@@ -35,10 +35,10 @@ export const searchMovies = async (query: string): Promise<TMDBMovie[]> => {
         `/search/movie?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`
     );
 
-    return z.array(TMDBMovieSchema).parse(data.results);
+    return z.array(TMDBMovieSchema).parse((data as { results: TMDBMovie[] })?.results || []);
 };
 
 export const getMovieDetails = async (id: number): Promise<TMDBMovie> => {
     const data = await fetchTMDB(`/movie/${id}?language=en-US`);
-    return TMDBMovieSchema.parse(data);
+    return TMDBMovieSchema.parse((data as TMDBMovie));
 };
