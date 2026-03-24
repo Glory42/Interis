@@ -1,11 +1,23 @@
-import { pgTable, integer, text, timestamp } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  serial,
+  integer,
+  text,
+  timestamp,
+  jsonb,
+} from "drizzle-orm/pg-core";
 
-// We use the TMDB ID as the primary key so we never save duplicates.
 export const movies = pgTable("movie", {
-  id: integer("id").primaryKey(), 
+  id: serial("id").primaryKey(),
+  tmdbId: integer("tmdb_id").notNull().unique(),
   title: text("title").notNull(),
-  posterPath: text("poster_path"), // e.g., "/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg"
-  releaseDate: text("release_date"),
+  originalTitle: text("original_title"),
+  posterPath: text("poster_path"),
+  backdropPath: text("backdrop_path"),
+  releaseYear: integer("release_year"),
+  runtime: integer("runtime"),
   overview: text("overview"),
-  createdAt: timestamp("created_at").defaultNow(),
+  tagline: text("tagline"),
+  genres: jsonb("genres").$type<{ id: number; name: string }[]>(),
+  cachedAt: timestamp("cached_at").defaultNow().notNull(),
 });
