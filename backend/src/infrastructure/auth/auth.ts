@@ -12,8 +12,20 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  baseURL: process.env.BETTER_AUTH_URL,
   secret: process.env.BETTER_AUTH_SECRET,
   trustedOrigins: [process.env.CORS_ORIGIN!],
+  advanced: {
+    crossSubdomainCookies: {
+      enabled: false, // aynı subdomain değil, tamamen farklı domain
+    },
+    defaultCookieAttributes: {
+      secure: true,
+      httpOnly: true,
+      sameSite: "none", // cross-domain için zorunlu
+      partitioned: true, // CHIPS — modern browserlar için
+    },
+  },
 
   databaseHooks: {
     user: {
