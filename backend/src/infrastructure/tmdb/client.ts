@@ -53,6 +53,14 @@ export const searchMovies = async (
   return z.array(TMDBSearchMovieSchema).parse(results);
 };
 
+export const getNowPlayingMovies = async (): Promise<TMDBSearchMovie[]> => {
+  const data = await fetchTMDB(
+    "/movie/now_playing?language=en-US&page=1&region=US",
+  );
+  const results = (data as { results?: unknown }).results ?? [];
+  return z.array(TMDBSearchMovieSchema).parse(results);
+};
+
 export const getMovieDetails = async (
   tmdbId: number,
 ): Promise<TMDBMovieDetail> => {
