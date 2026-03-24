@@ -14,7 +14,7 @@ export const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
 
   return (
     <Card className="overflow-hidden border-border/70">
-      <div className="relative h-36 bg-gradient-to-r from-secondary to-secondary/20 sm:h-44">
+      <div className="relative h-32 bg-gradient-to-r from-secondary to-secondary/20 sm:h-44">
         {backdropUrl ? (
           <img
             src={backdropUrl}
@@ -25,18 +25,20 @@ export const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/55 to-transparent" />
       </div>
 
-      <CardContent className="relative -mt-10 space-y-4 p-5 sm:p-6">
-        <div className="flex flex-wrap items-end gap-4">
+      <CardContent className="relative -mt-8 space-y-4 p-4 sm:-mt-10 sm:p-6">
+        <div className="flex flex-wrap items-end gap-3 sm:gap-4">
           <img
             src={
               profile.avatarUrl ||
               "https://placehold.co/160x160/1a2142/cfd7ff?text=Avatar"
             }
             alt={`${profile.username} avatar`}
-            className="h-20 w-20 rounded-xl border border-border object-cover shadow-lg"
+            className="h-16 w-16 rounded-xl border border-border object-cover shadow-lg sm:h-20 sm:w-20"
           />
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-foreground">@{profile.username}</h1>
+          <div className="min-w-0 space-y-1">
+            <h1 className="truncate text-[clamp(1.1rem,4.8vw,1.5rem)] font-bold text-foreground">
+              @{profile.username}
+            </h1>
             {profile.name ? <p className="text-sm text-muted-foreground">{profile.name}</p> : null}
           </div>
         </div>

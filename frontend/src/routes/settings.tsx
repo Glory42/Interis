@@ -133,7 +133,7 @@ const SettingsContent = ({ user }: SettingsContentProps) => {
       title="Settings"
       subtitle="Update your public profile and username from one form."
     >
-      <Card className="max-w-3xl">
+      <Card className="w-full max-w-3xl">
         <CardHeader>
           <CardTitle>Profile settings</CardTitle>
           <CardDescription>
@@ -141,7 +141,7 @@ const SettingsContent = ({ user }: SettingsContentProps) => {
           </CardDescription>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="p-4 sm:p-6">
           <form className="space-y-4" onSubmit={handleSave}>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-foreground" htmlFor="username">
@@ -219,7 +219,7 @@ const SettingsContent = ({ user }: SettingsContentProps) => {
               </p>
             ) : null}
 
-            <Button type="submit" disabled={isSaving}>
+            <Button type="submit" size="sm" className="sm:h-10 sm:px-4" disabled={isSaving}>
               {isSaving ? "Saving..." : "Save profile"}
             </Button>
           </form>

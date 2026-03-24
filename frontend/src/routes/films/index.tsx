@@ -40,7 +40,7 @@ function FilmsPage() {
       title="Films"
       subtitle="Find movies instantly and browse what is currently in cinemas."
     >
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px] xl:gap-5">
         <section className="space-y-5">
           <Card>
             <CardHeader>
@@ -61,7 +61,7 @@ function FilmsPage() {
               ) : null}
 
               {!recentMoviesQuery.isPending && !recentMoviesQuery.isError ? (
-                <div className="grid gap-4 lg:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2 lg:gap-4">
                   {recentMoviesQuery.data?.map((movie, index) => (
                     <div
                       key={`recent-${movie.id}`}
@@ -77,7 +77,7 @@ function FilmsPage() {
           </Card>
         </section>
 
-        <aside className="lg:sticky lg:top-6 lg:h-fit">
+        <aside className="xl:sticky xl:top-6 xl:h-fit">
           <FilmSearch
             query={queryInput}
             onQueryChange={setQueryInput}

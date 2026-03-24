@@ -40,7 +40,7 @@ const RootLayout = () => {
     <>
       <div className="min-h-screen md:pl-20">
         <AppSidebar />
-        <main className="pb-12 pt-16 md:pt-0">
+        <main className="min-w-0 pb-10 pt-16 md:pt-0">
           <div
             key={outletAnimationKey}
             className={

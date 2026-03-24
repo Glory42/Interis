@@ -102,7 +102,7 @@ export const FilmSearch = ({
         <CardTitle className="text-base">Quick film finder</CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 p-4 sm:p-5">
         <div ref={wrapperRef} className="relative">
           <label htmlFor="film-autocomplete" className="mb-1 block text-xs text-muted-foreground">
             Start typing and jump straight to a movie page.
@@ -126,7 +126,7 @@ export const FilmSearch = ({
                 }
               }}
               placeholder="e.g. The Godfather"
-              className="h-10 w-full rounded-lg border border-border bg-input pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+              className="h-10 w-full min-w-0 rounded-lg border border-border bg-input pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
               role="combobox"
               aria-expanded={isOpen}
               aria-controls={listboxId}
@@ -144,7 +144,7 @@ export const FilmSearch = ({
             <div
               id={listboxId}
               role="listbox"
-              className="absolute z-30 mt-2 max-h-96 w-full overflow-auto rounded-xl border border-border/80 bg-card/95 p-2 shadow-2xl backdrop-blur-sm animate-fade-up"
+              className="absolute z-30 mt-2 max-h-[65dvh] w-full overflow-auto rounded-xl border border-border/80 bg-card/95 p-2 shadow-2xl backdrop-blur-sm animate-fade-up sm:max-h-96"
             >
               {isSuggestionsLoading ? (
                 <p className="flex items-center gap-2 px-2 py-2 text-sm text-muted-foreground">
@@ -186,7 +186,7 @@ export const FilmSearch = ({
                           <img
                             src={getPosterUrl(movie.poster_path)}
                             alt={`${movie.title} poster`}
-                            className="h-14 w-10 rounded object-cover"
+                            className="h-12 w-9 rounded object-cover sm:h-14 sm:w-10"
                             loading="lazy"
                           />
 

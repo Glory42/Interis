@@ -15,14 +15,14 @@ function HomePage() {
 
   return (
     <PageWrapper>
-      <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
+      <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr] lg:gap-5">
         <Card className="overflow-hidden border-border/70">
-          <CardContent className="space-y-6 p-6 sm:p-8">
+          <CardContent className="space-y-5 p-4 sm:p-6 lg:p-8">
             <div className="space-y-4">
               <p className="text-xs uppercase tracking-[0.18em] text-primary">
                 Phase 1 Frontend
               </p>
-              <h1 className="max-w-xl text-3xl font-bold leading-tight text-foreground sm:text-4xl">
+              <h1 className="max-w-xl text-[clamp(1.55rem,5.2vw,2.25rem)] font-bold leading-tight text-foreground">
                 Log films with a cinematic workflow built for your diary.
               </h1>
               <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
@@ -33,20 +33,20 @@ function HomePage() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button asChild>
+              <Button asChild size="sm" className="sm:h-10 sm:px-4">
                 <Link to="/films">
                   <Film className="h-4 w-4" /> Explore films
                 </Link>
               </Button>
 
               {user ? (
-                <Button asChild variant="outline">
+                <Button asChild size="sm" variant="outline" className="sm:h-10 sm:px-4">
                   <Link to="/profile/$username" params={{ username: user.username }}>
                     <UserRound className="h-4 w-4" /> My profile
                   </Link>
                 </Button>
               ) : (
-                <Button asChild variant="outline">
+                <Button asChild size="sm" variant="outline" className="sm:h-10 sm:px-4">
                   <Link to="/register">Create account</Link>
                 </Button>
               )}

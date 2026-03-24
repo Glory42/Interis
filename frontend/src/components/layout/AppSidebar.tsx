@@ -230,7 +230,7 @@ export const AppSidebar = () => {
 
               <div
                 className={cn(
-                  "absolute z-30 rounded-xl border border-border/80 bg-card p-2 shadow-xl backdrop-blur-sm transition-all duration-150",
+                  "absolute z-30 max-h-[70dvh] overflow-auto rounded-xl border border-border/80 bg-card p-2 shadow-xl backdrop-blur-sm transition-all duration-150 sm:max-h-96",
                   "left-full top-0 ml-2 w-56",
                   isUserMenuOpen ? "visible translate-y-0 opacity-100" : "invisible -translate-y-1 opacity-0",
                   "md:group-hover:visible md:group-hover:translate-y-0 md:group-hover:opacity-100",

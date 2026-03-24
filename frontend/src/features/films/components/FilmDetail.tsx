@@ -33,7 +33,7 @@ export const FilmDetail = ({ movie, actionSlot }: FilmDetailProps) => {
   return (
     <div className="space-y-6">
       <Card className="overflow-hidden border-border/70">
-        <div className="relative h-56 w-full sm:h-72">
+        <div className="relative h-44 w-full sm:h-64 lg:h-72">
           <img
             src={getBackdropUrl(movie.backdropPath)}
             alt={`${movie.title} backdrop`}
@@ -42,18 +42,20 @@ export const FilmDetail = ({ movie, actionSlot }: FilmDetailProps) => {
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
         </div>
 
-        <CardContent className="relative -mt-16 grid gap-6 px-5 pb-6 sm:grid-cols-[180px_1fr] sm:px-6">
+        <CardContent className="relative -mt-10 grid gap-4 px-3 pb-5 sm:-mt-14 sm:grid-cols-[150px_1fr] sm:gap-5 sm:px-5 sm:pb-6 lg:grid-cols-[180px_1fr] lg:gap-6 lg:px-6">
           <img
             src={getPosterUrl(movie.posterPath)}
             alt={`${movie.title} poster`}
-            className="w-[160px] rounded-lg border border-border shadow-xl sm:w-[180px]"
+            className="w-[132px] rounded-lg border border-border shadow-xl sm:w-[150px] lg:w-[180px]"
           />
 
-          <div className="space-y-4">
+          <div className="min-w-0 space-y-3.5 sm:space-y-4">
             <div className="space-y-1">
-              <h1 className="text-2xl font-bold sm:text-3xl">{movie.title}</h1>
+              <h1 className="break-words text-[clamp(1.35rem,5vw,1.95rem)] font-bold">
+                {movie.title}
+              </h1>
               {movie.originalTitle && movie.originalTitle !== movie.title ? (
-                <p className="text-sm text-muted-foreground">{movie.originalTitle}</p>
+                <p className="break-words text-sm text-muted-foreground">{movie.originalTitle}</p>
               ) : null}
             </div>
 
@@ -77,7 +79,7 @@ export const FilmDetail = ({ movie, actionSlot }: FilmDetailProps) => {
               <p className="italic text-accent">“{movie.tagline}”</p>
             ) : null}
 
-            <p className="max-w-3xl text-sm leading-7 text-muted-foreground">
+            <p className="max-w-3xl text-sm leading-7 text-muted-foreground break-words">
               {movie.overview || "No overview available for this title."}
             </p>
 

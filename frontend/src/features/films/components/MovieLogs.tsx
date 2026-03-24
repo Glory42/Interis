@@ -50,10 +50,10 @@ export const MovieLogs = ({ tmdbId }: MovieLogsProps) => {
           {logsQuery.data?.map((log) => (
             <div
               key={log.diaryEntryId}
-              className="space-y-2 rounded-xl border border-border/70 bg-secondary/20 p-3"
+              className="space-y-2 rounded-xl border border-border/70 bg-secondary/20 p-3 sm:p-3.5"
             >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex min-w-0 items-center gap-2">
                   <img
                     src={
                       log.avatarUrl ||
@@ -62,15 +62,15 @@ export const MovieLogs = ({ tmdbId }: MovieLogsProps) => {
                     alt={`${log.username} avatar`}
                     className="h-8 w-8 rounded-full border border-border object-cover"
                   />
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">@{log.username}</p>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-foreground">@{log.username}</p>
                     <p className="text-xs text-muted-foreground">
                       Watched {formatDate(log.watchedDate)}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {log.rating !== null ? <Badge variant="accent">{log.rating}/10</Badge> : null}
                   {log.rewatch ? <Badge variant="primary">Rewatch</Badge> : null}
                 </div>

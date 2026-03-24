@@ -19,12 +19,12 @@ export const FilmCard = ({ movie }: FilmCardProps) => {
           params={{ tmdbId: String(movie.id) }}
           viewTransition
           startTransition
-          className="group grid gap-4 p-4 sm:grid-cols-[88px_1fr]"
+          className="group grid gap-3 p-3 sm:grid-cols-[88px_1fr] sm:gap-4 sm:p-4"
         >
           <img
             src={getPosterUrl(movie.poster_path)}
             alt={`${movie.title} poster`}
-            className="h-32 w-[88px] rounded-md border border-border/80 object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            className="h-28 w-[76px] rounded-md border border-border/80 object-cover transition-transform duration-300 group-hover:scale-[1.03] sm:h-32 sm:w-[88px]"
             loading="lazy"
           />
 
