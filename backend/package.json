@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "bun run --watch src/index.ts",
-    "start": "bun run src/index.ts"
+    "start": "bun run src/index.ts",
+    "test": "bun test"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -20,6 +21,8 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1017.0",
+    "@aws-sdk/s3-request-presigner": "^3.1017.0",
     "@better-auth/drizzle-adapter": "^1.5.3",
     "@neondatabase/serverless": "^1.0.2",
     "better-auth": "^1.5.3",
@@ -27,6 +30,7 @@
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.3.1",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
     "zod": "^4.3.6"
