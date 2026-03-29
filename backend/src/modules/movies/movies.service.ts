@@ -4,6 +4,7 @@ import { movies } from "./movies.entity";
 import {
   searchMovies as tmdbSearch,
   getNowPlayingMovies as tmdbNowPlaying,
+  getTrendingMovies as tmdbTrending,
   getMovieDetails as tmdbGetDetails,
   type TMDBSearchMovie,
   type TMDBMovieDetail,
@@ -22,6 +23,23 @@ export class MoviesService {
     return tmdbNowPlaying();
   }
 
+  static async getTrending() {
+    const trendingMovies = await tmdbTrending("week");
+
+    return trendingMovies.slice(0, 4).map((movie) => {
+      const releaseYear = movie.release_date
+        ? Number.parseInt(movie.release_date.slice(0, 4), 10)
+        : Number.NaN;
+
+      return {
+        tmdbId: movie.id,
+        title: movie.title,
+        posterPath: movie.poster_path,
+        releaseYear: Number.isNaN(releaseYear) ? null : releaseYear,
+      };
+    });
+  }
+
   static async findOrCreate(tmdbId: number) {
     const [existing] = await db
       .select()
@@ -32,7 +50,13 @@ export class MoviesService {
     if (existing) return existing;
 
     const tmdbData = await tmdbGetDetails(tmdbId);
-    return MoviesService.cacheMovie(tmdbData);
+    const cachedMovie = await MoviesService.cacheMovie(tmdbData);
+
+    if (!cachedMovie) {
+      throw new Error(`Failed to cache movie for tmdbId=${tmdbId}`);
+    }
+
+    return cachedMovie;
   }
 
   static async cacheMovie(tmdbData: TMDBMovieDetail) {
@@ -65,14 +89,15 @@ export class MoviesService {
       })
       .returning();
 
+    if (!inserted) {
+      return null;
+    }
+
     return inserted;
   }
 
   static async getLogsByTmdbId(tmdbId: number) {
     const movie = await MoviesService.findOrCreate(tmdbId);
-    if (!movie) {
-      return [];
-    }
 
     return db
       .select({
@@ -81,7 +106,7 @@ export class MoviesService {
         rating: diaryEntries.rating,
         rewatch: diaryEntries.rewatch,
         createdAt: diaryEntries.createdAt,
-        username: profiles.username,
+        username: user.username,
         userDisplayName: user.name,
         avatarUrl: profiles.avatarUrl,
         reviewContent: reviews.content,

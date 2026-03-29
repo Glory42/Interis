@@ -1,12 +1,10 @@
 import type { Request, Response } from "express";
 import { MoviesService } from "./movies.service";
-
-type SearchQuery = { query: string };
-type MovieParams = { tmdbId: string };
+import type { MovieParams, SearchMoviesQuery } from "./dto/movies.dto";
 
 export class MoviesController {
   static async search(
-    req: Request<{}, {}, {}, SearchQuery>,
+    req: Request<{}, {}, {}, SearchMoviesQuery>,
     res: Response,
   ): Promise<void> {
     const query = req.query.query?.trim();
@@ -40,6 +38,12 @@ export class MoviesController {
 
   static async getRecent(_req: Request, res: Response): Promise<void> {
     const movies = await MoviesService.getRecent();
+    res.status(200).json(movies);
+  }
+
+  static async getTrending(_req: Request, res: Response): Promise<void> {
+    const movies = await MoviesService.getTrending();
+    res.setHeader("Cache-Control", "public, max-age=300");
     res.status(200).json(movies);
   }
 

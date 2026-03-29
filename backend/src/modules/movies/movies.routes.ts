@@ -6,6 +6,7 @@ const router = Router();
 
 router.get("/search", asyncHandler(MoviesController.search));
 router.get("/recent", asyncHandler(MoviesController.getRecent));
+router.get("/trending", asyncHandler(MoviesController.getTrending));
 router.get("/:tmdbId/logs", asyncHandler(MoviesController.getLogsByTmdbId));
 router.get("/:tmdbId", asyncHandler(MoviesController.getByTmdbId));
 
