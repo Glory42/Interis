@@ -1,7 +1,7 @@
-import { Link, Navigate, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, redirect } from "@tanstack/react-router";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { LoginForm } from "@/features/auth/components/LoginForm";
-import { useAuth } from "@/features/auth/hooks/useAuth";
+import { authQueryOptions } from "@/features/auth/hooks/useAuth";
 
 type LoginSearch = {
   redirect?: string;
@@ -13,16 +13,17 @@ const validateLoginSearch = (search: Record<string, unknown>): LoginSearch => ({
 
 export const Route = createFileRoute("/login")({
   validateSearch: validateLoginSearch,
+  beforeLoad: async ({ context }) => {
+    const user = await context.queryClient.ensureQueryData(authQueryOptions);
+    if (user) {
+      throw redirect({ to: "/films" });
+    }
+  },
   component: LoginPage,
 });
 
 function LoginPage() {
   const { redirect } = Route.useSearch();
-  const { user, isUserLoading } = useAuth();
-
-  if (!isUserLoading && user) {
-    return <Navigate to="/films" />;
-  }
 
   return (
     <PageWrapper title="Sign in" subtitle="Continue your diary from where you left off.">

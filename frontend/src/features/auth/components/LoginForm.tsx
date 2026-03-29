@@ -36,7 +36,7 @@ export const LoginForm = ({ redirectTo }: LoginFormProps) => {
         return;
       }
 
-      await navigate({ to: "/films" });
+      await navigate({ to: "/" });
     } catch (error) {
       if (isApiError(error)) {
         setFormError(error.message);

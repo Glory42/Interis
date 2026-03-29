@@ -10,13 +10,19 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import {
+  USERNAME_MAX_LENGTH,
+  USERNAME_MIN_LENGTH,
+  normalizeUsername,
+  validateUsernameInput,
+} from "@/features/auth/username";
 import { isApiError } from "@/lib/api-client";
 
 export const RegisterForm = () => {
   const navigate = useNavigate();
   const { register, isRegisterPending } = useAuth();
 
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -31,13 +37,20 @@ export const RegisterForm = () => {
       return;
     }
 
+    const normalizedUsername = normalizeUsername(username);
+    const usernameValidationError = validateUsernameInput(normalizedUsername);
+    if (usernameValidationError) {
+      setFormError(usernameValidationError);
+      return;
+    }
+
     try {
       await register({
-        name,
+        username: normalizedUsername,
         email,
         password,
       });
-      await navigate({ to: "/films" });
+      await navigate({ to: "/" });
     } catch (error) {
       if (isApiError(error)) {
         setFormError(error.message);
@@ -59,19 +72,26 @@ export const RegisterForm = () => {
       <CardContent>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground" htmlFor="register-name">
-              Name
+            <label
+              className="text-sm font-medium text-foreground"
+              htmlFor="register-username"
+            >
+              Username
             </label>
             <Input
-              id="register-name"
-              name="name"
+              id="register-username"
+              name="username"
               type="text"
-              autoComplete="name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              minLength={2}
+              autoComplete="username"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              minLength={USERNAME_MIN_LENGTH}
+              maxLength={USERNAME_MAX_LENGTH}
               required
             />
+            <p className="text-xs text-muted-foreground">
+              Use lowercase letters, numbers, and underscores.
+            </p>
           </div>
 
           <div className="space-y-1.5">

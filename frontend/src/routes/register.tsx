@@ -1,23 +1,23 @@
-import { Link, Navigate, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, redirect } from "@tanstack/react-router";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { RegisterForm } from "@/features/auth/components/RegisterForm";
-import { useAuth } from "@/features/auth/hooks/useAuth";
+import { authQueryOptions } from "@/features/auth/hooks/useAuth";
 
 export const Route = createFileRoute("/register")({
+  beforeLoad: async ({ context }) => {
+    const user = await context.queryClient.ensureQueryData(authQueryOptions);
+    if (user) {
+      throw redirect({ to: "/films" });
+    }
+  },
   component: RegisterPage,
 });
 
 function RegisterPage() {
-  const { user, isUserLoading } = useAuth();
-
-  if (!isUserLoading && user) {
-    return <Navigate to="/films" />;
-  }
-
   return (
     <PageWrapper
       title="Create your account"
-      subtitle="A username profile is created automatically with Better Auth + profiles table."
+      subtitle="Choose your username once, and your profile is ready immediately."
     >
       <div className="space-y-4">
         <RegisterForm />
