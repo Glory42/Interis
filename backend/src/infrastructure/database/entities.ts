@@ -8,5 +8,6 @@ export * from "../../modules/users/users.entity";
 export * from "../../modules/diary/diary.entity";
 export * from "../../modules/reviews/reviews.entity";
 export * from "../../modules/interactions/interactions.entity";
+export * from "../../modules/posts/posts.entity";
 export * from "../../modules/social/social.entity";
 export * from "../../modules/lists/lists.entity";
