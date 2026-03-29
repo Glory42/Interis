@@ -1,9 +1,14 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
-import { Film, UserRound } from "lucide-react";
-import { PageWrapper } from "@/components/layout/PageWrapper";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FeedList } from "@/features/feed/components/FeedList";
+import { createFileRoute } from "@tanstack/react-router";
+import { Badge } from "@/components/ui/badge";
+import { FeedActivityList } from "@/features/feed/components/FeedActivityList";
+import { MyProfileSummaryRail } from "@/features/feed/components/MyProfileSummaryRail";
+import { QuickLogComposer } from "@/features/feed/components/QuickLogComposer";
+import { TrendingNowRail } from "@/features/feed/components/TrendingNowRail";
+import {
+  useFollowingFeed,
+  useMyFeedSummary,
+  useTrendingNow,
+} from "@/features/feed/hooks/useFeed";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export const Route = createFileRoute("/")({
@@ -13,63 +18,74 @@ export const Route = createFileRoute("/")({
 function HomePage() {
   const { user } = useAuth();
 
+  const isFollowingEnabled = Boolean(user);
+  const followingFeedQuery = useFollowingFeed(isFollowingEnabled);
+  const trendingQuery = useTrendingNow();
+  const mySummaryQuery = useMyFeedSummary(Boolean(user));
+
+  const feedItems = followingFeedQuery.data ?? [];
+  const isFeedLoading = isFollowingEnabled
+    ? followingFeedQuery.isPending
+    : false;
+  const isFeedError = isFollowingEnabled ? followingFeedQuery.isError : false;
+
   return (
-    <PageWrapper>
-      <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr] lg:gap-5">
-        <Card className="overflow-hidden border-border/70">
-          <CardContent className="space-y-5 p-4 sm:p-6 lg:p-8">
-            <div className="space-y-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-primary">
-                Phase 1 Frontend
-              </p>
-              <h1 className="max-w-xl text-[clamp(1.55rem,5.2vw,2.25rem)] font-bold leading-tight text-foreground">
-                Log films with a cinematic workflow built for your diary.
+    <section className="mx-auto w-full max-w-7xl px-4 py-8">
+      <main className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+        <aside className="hidden lg:col-span-3 lg:block lg:space-y-6">
+          <TrendingNowRail
+            isLoading={trendingQuery.isPending}
+            isError={trendingQuery.isError}
+            items={trendingQuery.data ?? []}
+          />
+        </aside>
+
+        <section className="space-y-5 lg:col-span-6">
+          <header className="flex flex-col gap-2">
+            <div>
+              <h1 className="flex items-center gap-2 text-xl font-bold text-foreground">
+                Feed
+                <Badge variant="accent" className="w-7.5">
+                  ⚡︎
+                </Badge>
               </h1>
-              <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
-                Search TMDB-powered films, open details, and create diary entries tied to
-                your real auth session. Social feed, reviews, and interactions are scaffolded
-                for the next phase.
-              </p>
             </div>
+          </header>
 
-            <div className="flex flex-wrap gap-2">
-              <Button asChild size="sm" className="sm:h-10 sm:px-4">
-                <Link to="/films">
-                  <Film className="h-4 w-4" /> Explore films
-                </Link>
-              </Button>
+          <QuickLogComposer user={user} />
 
-              {user ? (
-                <Button asChild size="sm" variant="outline" className="sm:h-10 sm:px-4">
-                  <Link to="/profile/$username" params={{ username: user.username }}>
-                    <UserRound className="h-4 w-4" /> My profile
-                  </Link>
-                </Button>
-              ) : (
-                <Button asChild size="sm" variant="outline" className="sm:h-10 sm:px-4">
-                  <Link to="/register">Create account</Link>
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+          <FeedActivityList
+            isAuthenticated={isFollowingEnabled}
+            isLoading={isFeedLoading}
+            isError={isFeedError}
+            items={feedItems}
+          />
+        </section>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Roadmap status</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>Backend Phase 1 endpoints are connected to this UI.</p>
-            <p>Auth + films + diary logging are implemented.</p>
-            <p>Feed/reviews/interactions/lists/admin UI is scaffolded for next phases.</p>
-          </CardContent>
-        </Card>
+        <aside className="hidden lg:col-span-3 lg:block">
+          <MyProfileSummaryRail
+            user={user}
+            isLoading={mySummaryQuery.isPending}
+            isError={mySummaryQuery.isError}
+            summary={mySummaryQuery.data ?? null}
+          />
+        </aside>
+      </main>
+
+      <div className="mt-8 grid gap-6 lg:hidden">
+        <MyProfileSummaryRail
+          user={user}
+          isLoading={mySummaryQuery.isPending}
+          isError={mySummaryQuery.isError}
+          summary={mySummaryQuery.data ?? null}
+        />
+
+        <TrendingNowRail
+          isLoading={trendingQuery.isPending}
+          isError={trendingQuery.isError}
+          items={trendingQuery.data ?? []}
+        />
       </div>
-
-      <div className="mt-8">
-        <h2 className="mb-3 text-lg font-semibold text-foreground">Feed preview area</h2>
-        <FeedList />
-      </div>
-    </PageWrapper>
+    </section>
   );
 }

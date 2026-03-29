@@ -1,9 +1,34 @@
 import { useQuery } from "@tanstack/react-query";
-import { getFeedActivities } from "@/features/feed/api";
+import {
+  getFollowingFeed,
+  getMyFeedSummary,
+  getTrendingMovies,
+} from "@/features/feed/api";
 
-export const useFeed = () =>
+export const feedKeys = {
+  all: ["feed"] as const,
+  following: ["feed", "following"] as const,
+  trending: ["feed", "trending"] as const,
+  meSummary: ["feed", "me-summary"] as const,
+};
+
+export const useFollowingFeed = (enabled = true) =>
   useQuery({
-    queryKey: ["feed", "activities"],
-    queryFn: getFeedActivities,
-    enabled: false,
+    queryKey: feedKeys.following,
+    queryFn: () => getFollowingFeed(20),
+    enabled,
+  });
+
+export const useTrendingNow = () =>
+  useQuery({
+    queryKey: feedKeys.trending,
+    queryFn: getTrendingMovies,
+    staleTime: 300_000,
+  });
+
+export const useMyFeedSummary = (enabled = true) =>
+  useQuery({
+    queryKey: feedKeys.meSummary,
+    queryFn: getMyFeedSummary,
+    enabled,
   });
