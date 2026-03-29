@@ -2,7 +2,7 @@
 
 A personal social film diary — Letterboxd meets Twitter. Built to power my portfolio's "recently watched" feed via a public API, and for daily use with friends.
 
-**Live:** [cinema.gorkemkaryol.dev](https://cinema.gorkemkaryol.dev)
+**Live:** [arkheion.gorkemkaryol.dev](https://arkheion.gorkemkaryol.dev)
 
 ## Stack
 
@@ -46,7 +46,7 @@ Watch time, top directors/actors, heatmap, admin moderation panel.
 - `GET /api/users/:username` — public profile
 - `GET /api/users/:username/diary` — public diary
 - `GET|PUT /api/users/me` — own profile + settings
-- `PUT /api/users/me/username` — username update
+- `POST /api/auth/update-user` — username/name update (Better Auth)
 - Phase 2 modules (`/api/reviews`, `/api/social`, `/api/interactions`) in progress
 
 ### Frontend
@@ -99,4 +99,4 @@ See `frontend/.env.example` for reference.
 - **On-demand TMDB caching** — films are fetched from TMDB and cached in Neon only when first touched by a user. No bulk imports, no API waste.
 - **Activities table** — every user action writes a denormalized row to `activities`. The feed is a single JOIN on `follows`, no complex unions.
 - **Diary ≠ Review** — `diary_entries` (multiple per film, watch log) and `reviews` (one per film, text) are separate tables by design.
-- **Profiles table** — extends Better Auth's `user` table with `username`, `bio`, `top4MovieIds`, `isAdmin`. Auto-created via Better Auth after-signup hook.
+- **Profiles table** — extends Better Auth's `user` table with app metadata (`bio`, `top4MovieIds`, `isAdmin`). Auto-created via Better Auth after-signup hook.
