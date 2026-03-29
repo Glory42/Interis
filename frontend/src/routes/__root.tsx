@@ -6,7 +6,9 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { AppSidebar } from "@/components/layout/AppSidebar";
+import { AppFooter } from "@/components/layout/AppFooter";
+import { AppNavbar } from "@/components/layout/AppNavbar";
+import { CinemaSearchDialogProvider } from "@/features/films/components/CinemaSearchDialogProvider";
 
 type RouterContext = {
   queryClient: QueryClient;
@@ -38,21 +40,24 @@ const RootLayout = () => {
 
   return (
     <>
-      <div className="min-h-screen md:pl-20">
-        <AppSidebar />
-        <main className="min-w-0 pb-10 pt-16 md:pt-0">
-          <div
-            key={outletAnimationKey}
-            className={
-              isProfileSection
-                ? ""
-                : "animate-route-enter motion-reduce:animate-none"
-            }
-          >
-            <Outlet />
-          </div>
-        </main>
-      </div>
+      <CinemaSearchDialogProvider>
+        <div className="flex min-h-screen flex-col">
+          <AppNavbar />
+          <main className="min-w-0 flex-1 pb-10">
+            <div
+              key={outletAnimationKey}
+              className={
+                isProfileSection
+                  ? ""
+                  : "animate-route-enter motion-reduce:animate-none"
+              }
+            >
+              <Outlet />
+            </div>
+          </main>
+          <AppFooter />
+        </div>
+      </CinemaSearchDialogProvider>
       {import.meta.env.DEV ? <TanStackRouterDevtools position="bottom-right" /> : null}
     </>
   );

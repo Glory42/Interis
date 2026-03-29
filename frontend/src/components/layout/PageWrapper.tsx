@@ -17,7 +17,7 @@ export const PageWrapper = ({
   return (
     <section
       className={cn(
-        "mx-auto w-full max-w-[min(96rem,100vw)] px-3 py-6 sm:px-5 sm:py-8 lg:px-8",
+        "mx-auto w-full max-w-7xl px-4 py-8",
         className,
       )}
     >
