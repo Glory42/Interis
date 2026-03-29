@@ -5,24 +5,10 @@ import { activities } from "../social/social.entity";
 import { MoviesService } from "../movies/movies.service";
 import { reviews } from "../reviews/reviews.entity";
 import { movies } from "../movies/movies.entity";
-
-export type CreateDiaryEntryInput = {
-  tmdbId: number;
-  watchedDate: string;
-  rating?: number | null;
-  rewatch?: boolean;
-  review?: string;
-  containsSpoilers?: boolean;
-};
-
-export type UpdateDiaryEntryInput = {
-  watchedDate?: string;
-  rating?: number | null;
-  rewatch?: boolean;
-};
+import type { CreateDiaryDto, UpdateDiaryDto } from "./dto/diary.dto";
 
 export class DiaryService {
-  static async create(userId: string, input: CreateDiaryEntryInput) {
+  static async create(userId: string, input: CreateDiaryDto) {
     const movie = await MoviesService.findOrCreate(input.tmdbId);
     if (!movie || !movie.id) {
       throw new Error("Movie not found");
@@ -102,11 +88,15 @@ export class DiaryService {
         type: "review",
         entityId: review.id,
         metadata: JSON.stringify({
+          reviewId: review.id,
           movieId: movie.id,
           tmdbId: movie.tmdbId,
           title: movie.title,
           posterPath: movie.posterPath,
+          releaseYear: movie.releaseYear,
+          rating: input.rating ?? null,
           containsSpoilers: review.containsSpoilers,
+          excerpt: review.content.slice(0, 120),
         }),
       });
     }
@@ -183,7 +173,7 @@ export class DiaryService {
   static async update(
     entryId: string,
     userId: string,
-    input: UpdateDiaryEntryInput,
+    input: UpdateDiaryDto,
   ) {
     const [updated] = await db
       .update(diaryEntries)
