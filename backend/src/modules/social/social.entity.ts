@@ -8,6 +8,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "../../infrastructure/database/auth.entity";
 
+// "post" added for Twitter-style standalone posts
 export const activityTypeEnum = pgEnum("activity_type", [
   "diary_entry",
   "review",
@@ -17,6 +18,7 @@ export const activityTypeEnum = pgEnum("activity_type", [
   "created_list",
   "liked_review",
   "commented",
+  "post",
 ]);
 
 export const follows = pgTable(
@@ -33,9 +35,6 @@ export const follows = pgTable(
   (table) => [unique("follows_unique").on(table.followerId, table.followingId)],
 );
 
-// Denormalized activity stream — feed query is a single JOIN on follows
-// entityId points to the relevant row (diary entry id, review id, etc.)
-// metadata carries display data so the feed doesn't need N extra queries
 export const activities = pgTable("activity", {
   id: uuid("id")
     .primaryKey()
@@ -45,6 +44,6 @@ export const activities = pgTable("activity", {
     .references(() => user.id, { onDelete: "cascade" }),
   type: activityTypeEnum("type").notNull(),
   entityId: text("entity_id").notNull(),
-  metadata: text("metadata"), // JSON string — movie title, poster, username etc.
+  metadata: text("metadata"), // JSON string
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
