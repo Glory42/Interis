@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Card, CardContent } from "@/components/ui/card";
+import { BookOpen } from "lucide-react";
 import { DiaryEntryItem } from "@/features/diary/components/DiaryEntry";
-import { ProfileShell } from "@/features/profile/components/ProfileShell";
+import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import { useUserDiary } from "@/features/profile/hooks/useProfile";
+import { ProfileLayout } from "@/features/profile/layout/ProfileLayout";
 
 export const Route = createFileRoute("/profile/$username/diary")({
   component: ProfileDiaryPage,
@@ -13,34 +14,30 @@ function ProfileDiaryPage() {
   const diaryQuery = useUserDiary(username);
 
   return (
-    <ProfileShell username={username} activeTab="diary">
+    <ProfileLayout username={username} activeTab="diary">
       {diaryQuery.isPending ? (
-        <Card>
-          <CardContent className="p-4 text-sm text-muted-foreground">
-            Loading diary...
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
+          Loading diary...
+        </div>
       ) : null}
 
       {diaryQuery.isError ? (
-        <Card>
-          <CardContent className="p-4 text-sm text-destructive">
-            Could not load diary entries.
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+          Could not load diary entries.
+        </div>
       ) : null}
 
       {!diaryQuery.isPending && !diaryQuery.isError && (diaryQuery.data?.length ?? 0) === 0 ? (
-        <Card>
-          <CardContent className="p-4 text-sm text-muted-foreground">
-            No diary entries yet.
-          </CardContent>
-        </Card>
+        <ProfileTabEmptyState
+          icon={BookOpen}
+          title="No diary entries yet"
+          description="Start logging your viewing journey."
+        />
       ) : null}
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {diaryQuery.data?.map((entry) => <DiaryEntryItem key={entry.id} entry={entry} />)}
       </div>
-    </ProfileShell>
+    </ProfileLayout>
   );
 }

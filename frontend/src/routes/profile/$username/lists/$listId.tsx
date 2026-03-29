@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Card, CardContent } from "@/components/ui/card";
-import { ProfileShell } from "@/features/profile/components/ProfileShell";
+import { Layers3 } from "lucide-react";
+import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
+import { ProfileLayout } from "@/features/profile/layout/ProfileLayout";
 
 export const Route = createFileRoute("/profile/$username/lists/$listId")({
   component: ProfileListDetailPage,
@@ -10,13 +11,12 @@ function ProfileListDetailPage() {
   const { username, listId } = Route.useParams();
 
   return (
-    <ProfileShell username={username} activeTab="lists">
-      <Card>
-        <CardContent className="p-4 text-sm text-muted-foreground">
-          List detail view for <span className="font-semibold">{listId}</span> is
-          planned for Phase 3.
-        </CardContent>
-      </Card>
-    </ProfileShell>
+    <ProfileLayout username={username} activeTab="lists">
+      <ProfileTabEmptyState
+        icon={Layers3}
+        title="List details are unavailable"
+        description={`Public list detail for ${listId} is not available yet.`}
+      />
+    </ProfileLayout>
   );
 }

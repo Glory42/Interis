@@ -1,9 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Card, CardContent } from "@/components/ui/card";
-import { RecentActivity } from "@/features/profile/components/RecentActivity";
-import { ProfileShell } from "@/features/profile/components/ProfileShell";
-import { Top4Films } from "@/features/profile/components/Top4Films";
-import { useUserProfile } from "@/features/profile/hooks/useProfile";
+import { ProfileOverviewContent } from "@/features/profile/components/overview/ProfileOverviewContent";
+import { ProfileLayout } from "@/features/profile/layout/ProfileLayout";
 
 export const Route = createFileRoute("/profile/$username/")({
   component: ProfileOverviewPage,
@@ -11,22 +8,10 @@ export const Route = createFileRoute("/profile/$username/")({
 
 function ProfileOverviewPage() {
   const { username } = Route.useParams();
-  const profileQuery = useUserProfile(username);
 
   return (
-    <ProfileShell username={username} activeTab="overview">
-      {profileQuery.data ? (
-        <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
-          <Top4Films movieIds={profileQuery.data.top4MovieIds ?? []} />
-          <RecentActivity />
-        </div>
-      ) : (
-        <Card>
-          <CardContent className="p-4 text-sm text-muted-foreground">
-            Loading overview...
-          </CardContent>
-        </Card>
-      )}
-    </ProfileShell>
+    <ProfileLayout username={username} activeTab="overview">
+      <ProfileOverviewContent username={username} />
+    </ProfileLayout>
   );
 }
