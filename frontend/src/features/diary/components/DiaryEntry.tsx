@@ -16,6 +16,10 @@ const formatDate = (value: string): string => {
   return parsed.toLocaleDateString();
 };
 
+const toOutOfFiveLabel = (ratingOutOfTen: number): string => {
+  return `${(ratingOutOfTen / 2).toFixed(1)}/5`;
+};
+
 export const DiaryEntryItem = ({ entry }: DiaryEntryProps) => {
   return (
     <Card className="overflow-hidden">
@@ -44,7 +48,7 @@ export const DiaryEntryItem = ({ entry }: DiaryEntryProps) => {
 
           <div className="flex flex-wrap items-center gap-2">
             {entry.rating !== null ? (
-              <Badge variant="accent">Score: {entry.rating}/10</Badge>
+              <Badge variant="accent">Score: {toOutOfFiveLabel(entry.rating)}</Badge>
             ) : null}
             {entry.rewatch ? <Badge variant="primary">Rewatch</Badge> : null}
           </div>
