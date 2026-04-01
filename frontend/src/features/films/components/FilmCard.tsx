@@ -15,23 +15,26 @@ export const FilmCard = ({ movie }: FilmCardProps) => {
     <Card className="overflow-hidden border-border/70">
       <CardContent className="p-0">
         <Link
-          to="/films/$tmdbId"
+          to="/cinema/$tmdbId"
           params={{ tmdbId: String(movie.id) }}
           viewTransition
-          startTransition
           className="group grid gap-3 p-3 sm:grid-cols-[88px_1fr] sm:gap-4 sm:p-4"
         >
           <img
             src={getPosterUrl(movie.poster_path)}
             alt={`${movie.title} poster`}
-            className="h-28 w-[76px] rounded-md border border-border/80 object-cover transition-transform duration-300 group-hover:scale-[1.03] sm:h-32 sm:w-[88px]"
+            className="h-28 w-19 rounded-md border border-border/80 object-cover transition-transform duration-300 group-hover:scale-[1.03] sm:h-32 sm:w-22"
             loading="lazy"
           />
 
           <div className="space-y-2">
             <div className="flex items-start justify-between gap-2">
-              <h3 className="text-base font-semibold text-foreground">{movie.title}</h3>
-              {releaseYear ? <Badge variant="accent">{releaseYear}</Badge> : null}
+              <h3 className="text-base font-semibold text-foreground">
+                {movie.title}
+              </h3>
+              {releaseYear ? (
+                <Badge variant="accent">{releaseYear}</Badge>
+              ) : null}
             </div>
             <p className="line-clamp-3 text-sm text-muted-foreground">
               {movie.overview || "No synopsis available for this movie yet."}
