@@ -1,24 +1,46 @@
-import { eq, desc, inArray } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lt } from "drizzle-orm";
 import { db } from "../../infrastructure/database/db";
 import { user } from "../../infrastructure/database/auth.entity";
 import { profiles } from "../users/users.entity";
 import { diaryEntries } from "../diary/diary.entity";
 import { movies } from "../movies/movies.entity";
 import { movieInteractions } from "../interactions/interactions.entity";
-import { getMovieDirector } from "../../infrastructure/tmdb/client";
+import { activities } from "../social/social.entity";
+import { getMovieDirector } from "../../infrastructure/tmdb/cinemas";
+import {
+  DAY_IN_MS,
+  contributionActivityTypes,
+} from "./constants/public-contributions.constants";
+import {
+  applyContributionMediaTypes,
+  createEmptyContributionDay,
+  emptyMediaCounts,
+  resolveContributionMediaTypes,
+  toUtcDateKey,
+} from "./helpers/public-contributions.helper";
+import type {
+  ContributionMediaType,
+  PublicContributionDay,
+  PublicContributionsResponse,
+} from "./types/public-contributions.types";
 
 // Thin, read-only service for the public portfolio API
 // All responses are cached-friendly — no auth required
 
 export class PublicService {
-  static async getRecentActivity(username: string, limit = 10) {
+  private static async findUserIdByUsername(username: string): Promise<string | null> {
     const [profile] = await db
       .select({ id: user.id })
       .from(user)
       .where(eq(user.username, username))
       .limit(1);
 
-    if (!profile) return null;
+    return profile?.id ?? null;
+  }
+
+  static async getRecentActivity(username: string, limit = 10) {
+    const userId = await PublicService.findUserIdByUsername(username);
+    if (!userId) return null;
 
     return db
       .select({
@@ -32,7 +54,7 @@ export class PublicService {
       })
       .from(diaryEntries)
       .innerJoin(movies, eq(diaryEntries.movieId, movies.id))
-      .where(eq(diaryEntries.userId, profile.id))
+      .where(eq(diaryEntries.userId, userId))
       .orderBy(desc(diaryEntries.watchedDate))
       .limit(limit);
   }
@@ -86,14 +108,120 @@ export class PublicService {
     return rowsWithDirector.filter(Boolean);
   }
 
-  static async getStats(username: string) {
-    const [profileRow] = await db
-      .select({ id: user.id })
-      .from(user)
-      .where(eq(user.username, username))
-      .limit(1);
+  static async getContributions(
+    username: string,
+    windowDays?: number,
+  ): Promise<PublicContributionsResponse | null> {
+    const userId = await PublicService.findUserIdByUsername(username);
+    if (!userId) {
+      return null;
+    }
 
-    if (!profileRow) return null;
+    const now = new Date();
+    const endDayTimestamp = Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+    );
+    const startDayTimestamp =
+      typeof windowDays === "number"
+        ? endDayTimestamp - (windowDays - 1) * DAY_IN_MS
+        : Date.UTC(now.getUTCFullYear(), 0, 1);
+    const resolvedWindowDays =
+      Math.floor((endDayTimestamp - startDayTimestamp) / DAY_IN_MS) + 1;
+
+    const startBoundary = new Date(startDayTimestamp);
+    const endExclusiveBoundary = new Date(endDayTimestamp + DAY_IN_MS);
+
+    const rows = await db
+      .select({
+        type: activities.type,
+        metadata: activities.metadata,
+        createdAt: activities.createdAt,
+      })
+      .from(activities)
+      .where(
+        and(
+          eq(activities.userId, userId),
+          inArray(activities.type, [...contributionActivityTypes]),
+          gte(activities.createdAt, startBoundary),
+          lt(activities.createdAt, endExclusiveBoundary),
+        ),
+      )
+      .orderBy(activities.createdAt);
+
+    const byDate = new Map<string, PublicContributionDay>();
+
+    for (const row of rows) {
+      const dateKey = toUtcDateKey(row.createdAt);
+      const current = byDate.get(dateKey) ?? createEmptyContributionDay(dateKey);
+
+      current.totalCount += 1;
+      if (row.type === "diary_entry") {
+        current.logCount += 1;
+      }
+      if (row.type === "review") {
+        current.reviewCount += 1;
+      }
+
+      const mediaTypes = resolveContributionMediaTypes(row.type, row.metadata);
+      applyContributionMediaTypes(current, mediaTypes);
+
+      byDate.set(dateKey, current);
+    }
+
+    const days: PublicContributionDay[] = [];
+    for (
+      let cursor = startDayTimestamp;
+      cursor <= endDayTimestamp;
+      cursor += DAY_IN_MS
+    ) {
+      const dateKey = toUtcDateKey(new Date(cursor));
+      const existing = byDate.get(dateKey);
+      days.push(existing ?? createEmptyContributionDay(dateKey));
+    }
+
+    const totals = days.reduce(
+      (acc, day) => {
+        acc.contributions += day.totalCount;
+        acc.logs += day.logCount;
+        acc.reviews += day.reviewCount;
+
+        if (day.totalCount > 0) {
+          acc.activeDays += 1;
+        }
+
+        for (const mediaType of Object.keys(day.mediaCounts) as ContributionMediaType[]) {
+          acc.mediaCounts[mediaType] += day.mediaCounts[mediaType];
+        }
+
+        return acc;
+      },
+      {
+        contributions: 0,
+        activeDays: 0,
+        logs: 0,
+        reviews: 0,
+        mediaCounts: emptyMediaCounts(),
+      },
+    );
+
+    return {
+      window: {
+        startDate: toUtcDateKey(new Date(startDayTimestamp)),
+        endDate: toUtcDateKey(new Date(endDayTimestamp)),
+        days: resolvedWindowDays,
+        weekStartsOn: "sunday",
+        timezone: "UTC",
+      },
+      totals,
+      days,
+    };
+  }
+
+  static async getStats(username: string) {
+    const userId = await PublicService.findUserIdByUsername(username);
+    if (!userId) return null;
 
     const [diaryRows, likedRows] = await Promise.all([
       db
@@ -102,11 +230,11 @@ export class PublicService {
           rewatch: diaryEntries.rewatch,
         })
         .from(diaryEntries)
-        .where(eq(diaryEntries.userId, profileRow.id)),
+        .where(eq(diaryEntries.userId, userId)),
       db
         .select({ movieId: movieInteractions.movieId })
         .from(movieInteractions)
-        .where(eq(movieInteractions.userId, profileRow.id)),
+        .where(eq(movieInteractions.userId, userId)),
     ]);
 
     const watched = diaryRows.length;

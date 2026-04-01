@@ -17,6 +17,10 @@ router.use(publicLimiter);
 
 router.get("/:username/recent", asyncHandler(PublicController.getRecent));
 router.get("/:username/top4", asyncHandler(PublicController.getTop4));
+router.get(
+  "/:username/contributions",
+  asyncHandler(PublicController.getContributions),
+);
 router.get("/:username/stats", asyncHandler(PublicController.getStats));
 
 export default router;
