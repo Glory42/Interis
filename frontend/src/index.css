@@ -14,6 +14,8 @@
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -31,22 +33,491 @@
 :root {
   --radius: 0.85rem;
 
-  --background: #090b15;
-  --foreground: #eaecff;
-  --card: #121528;
-  --card-foreground: #eff1ff;
-  --primary: #8e8bff;
-  --primary-foreground: #0d0f1c;
-  --secondary: #1b2140;
-  --secondary-foreground: #d2d8ff;
-  --muted: #141930;
-  --muted-foreground: #9ca6d4;
-  --accent: #5aa6ff;
-  --accent-foreground: #0b1426;
-  --border: #2b335f;
-  --input: #1a2142;
-  --ring: #6ca2ff;
-  --destructive: #ff6f9f;
+  --background: #07090f;
+  --foreground: #dbe7f5;
+  --card: #111827;
+  --card-foreground: #dbe7f5;
+  --popover: #0f172a;
+  --popover-foreground: #dbe7f5;
+  --primary: #22d3ee;
+  --primary-foreground: #04121b;
+  --secondary: #162033;
+  --secondary-foreground: #c7d6e8;
+  --muted: #0f1728;
+  --muted-foreground: #90a3bf;
+  --accent: #38bdf8;
+  --accent-foreground: #051420;
+  --border: #24324a;
+  --input: #111c2e;
+  --ring: #22d3ee;
+  --destructive: #fb7185;
+  --aura-primary: #22d3ee;
+  --aura-secondary: #8b5cf6;
+  --aura-muted: #475569;
+
+  --theme-shell-gradient:
+    radial-gradient(1100px 520px at 12% -12%, rgba(137, 180, 250, 0.14), transparent 62%),
+    radial-gradient(900px 520px at 92% 108%, rgba(203, 166, 247, 0.11), transparent 64%),
+    linear-gradient(180deg, #1e1e2e 0%, #111320 100%);
+  --theme-shell-pattern: none;
+  --theme-shell-pattern-size: auto;
+  --theme-shell-pattern-position: center;
+  --theme-shell-pattern-opacity: 0;
+  --theme-shell-vignette: radial-gradient(140% 95% at 50% -10%, transparent 56%, rgba(2, 4, 10, 0.56) 100%);
+  --theme-shell-vignette-opacity: 0.65;
+
+  --theme-hero-gradient:
+    radial-gradient(95% 80% at 12% 4%, rgba(137, 180, 250, 0.2), transparent 62%),
+    linear-gradient(180deg, transparent 0%, rgba(7, 8, 16, 0.62) 66%, rgba(6, 8, 14, 0.95) 100%);
+  --theme-hero-gradient-opacity: 1;
+  --theme-hero-pattern: none;
+  --theme-hero-pattern-size: auto;
+  --theme-hero-pattern-position: center;
+  --theme-hero-pattern-opacity: 0;
+
+  --theme-modal-overlay: rgba(7, 10, 18, 0.72);
+  --theme-modal-gradient: linear-gradient(180deg, rgba(24, 24, 37, 0.98), rgba(17, 17, 27, 0.97));
+  --theme-modal-pattern: none;
+  --theme-modal-pattern-size: auto;
+  --theme-modal-pattern-position: center;
+  --theme-modal-pattern-opacity: 0;
+  --theme-modal-border: rgba(137, 180, 250, 0.24);
+  --theme-modal-shadow:
+    0 34px 72px -42px rgba(0, 0, 0, 0.76),
+    0 18px 36px -30px rgba(137, 180, 250, 0.36);
+
+  --theme-navbar-bg: rgba(14, 16, 27, 0.78);
+  --theme-navbar-border: rgba(137, 180, 250, 0.22);
+  --theme-navbar-shadow: 0 16px 36px -30px rgba(0, 0, 0, 0.72);
+  --theme-navbar-overlay: rgba(11, 13, 22, 0.5);
+
+  --theme-pill-bg: rgba(137, 180, 250, 0.18);
+  --theme-pill-border: rgba(137, 180, 250, 0.42);
+  --theme-pill-text: #e6ecff;
+  --theme-pill-shadow: 0 0 0 1px rgba(137, 180, 250, 0.18) inset;
+  --theme-segment-bg: rgba(24, 28, 45, 0.66);
+  --theme-segment-border: rgba(110, 123, 158, 0.35);
+
+  --theme-display-letter-spacing: -0.02em;
+  --theme-display-shadow: none;
+  --theme-kicker-font: "Space Grotesk", "Sora", "Segoe UI", sans-serif;
+  --theme-kicker-tracking: 0.16em;
+  --theme-kicker-weight: 700;
+
+  /* Contribution heatmap palette (deterministic media-type combinations) */
+  --heatmap-mask-1-rgb: 59 130 246;   /* film */
+  --heatmap-mask-2-rgb: 34 197 94;    /* tv */
+  --heatmap-mask-3-rgb: 20 184 166;   /* film + tv */
+  --heatmap-mask-4-rgb: 239 68 68;    /* book */
+  --heatmap-mask-5-rgb: 139 92 246;   /* film + book */
+  --heatmap-mask-6-rgb: 217 119 6;    /* tv + book */
+  --heatmap-mask-7-rgb: 99 102 241;   /* film + tv + book */
+  --heatmap-mask-8-rgb: 234 179 8;    /* music */
+  --heatmap-mask-9-rgb: 14 165 233;   /* film + music */
+  --heatmap-mask-10-rgb: 132 204 22;  /* tv + music */
+  --heatmap-mask-11-rgb: 6 182 212;   /* film + tv + music */
+  --heatmap-mask-12-rgb: 249 115 22;  /* book + music */
+  --heatmap-mask-13-rgb: 168 85 247;  /* film + book + music */
+  --heatmap-mask-14-rgb: 202 138 4;   /* tv + book + music */
+  --heatmap-mask-15-rgb: 100 116 139; /* all media types */
+}
+
+:root[data-theme-id="catppuccin-mocha"] {
+  --radius: 0.88rem;
+}
+
+:root[data-theme-id="starwars"] {
+  --radius: 0.78rem;
+  --theme-shell-gradient:
+    radial-gradient(1100px 420px at 50% 112%, rgba(246, 210, 139, 0.2), transparent 72%),
+    radial-gradient(820px 280px at 12% -8%, rgba(78, 168, 255, 0.12), transparent 66%),
+    linear-gradient(180deg, #05070b 0%, #080b12 56%, #0c0d12 100%);
+  --theme-shell-pattern:
+    radial-gradient(circle, rgba(246, 210, 139, 0.28) 0.8px, transparent 1px),
+    radial-gradient(circle, rgba(199, 210, 227, 0.2) 0.8px, transparent 1px);
+  --theme-shell-pattern-size: 34px 34px, 58px 58px;
+  --theme-shell-pattern-position: 0 0, 18px 20px;
+  --theme-shell-pattern-opacity: 0.28;
+  --theme-hero-gradient:
+    radial-gradient(95% 62% at 50% 102%, rgba(246, 210, 139, 0.28), transparent 72%),
+    linear-gradient(180deg, rgba(5, 7, 11, 0.08) 0%, rgba(5, 7, 11, 0.84) 100%);
+  --theme-hero-pattern: radial-gradient(circle, rgba(199, 210, 227, 0.22) 0.8px, transparent 1px);
+  --theme-hero-pattern-size: 52px 52px;
+  --theme-hero-pattern-position: 8px 6px;
+  --theme-hero-pattern-opacity: 0.16;
+  --theme-modal-overlay: rgba(5, 8, 13, 0.8);
+  --theme-modal-gradient: linear-gradient(180deg, rgba(17, 19, 24, 0.98), rgba(11, 14, 21, 0.97));
+  --theme-modal-pattern: repeating-linear-gradient(90deg, rgba(215, 163, 74, 0.08) 0 1px, transparent 1px 18px);
+  --theme-modal-pattern-opacity: 0.2;
+  --theme-modal-border: rgba(215, 163, 74, 0.34);
+  --theme-modal-shadow: 0 30px 70px -42px rgba(0, 0, 0, 0.8), 0 16px 38px -28px rgba(215, 163, 74, 0.3);
+  --theme-navbar-bg: rgba(9, 12, 19, 0.8);
+  --theme-navbar-border: rgba(215, 163, 74, 0.24);
+  --theme-navbar-overlay: rgba(6, 8, 12, 0.56);
+  --theme-pill-bg: rgba(215, 163, 74, 0.2);
+  --theme-pill-border: rgba(215, 163, 74, 0.5);
+  --theme-pill-text: #f6d28b;
+  --theme-pill-shadow: 0 0 24px -18px rgba(78, 168, 255, 0.45);
+  --theme-segment-bg: rgba(19, 21, 29, 0.72);
+  --theme-segment-border: rgba(78, 168, 255, 0.22);
+}
+
+:root[data-theme-id="dune"] {
+  --radius: 0.8rem;
+  --theme-shell-gradient:
+    radial-gradient(950px 470px at 56% 112%, rgba(201, 107, 31, 0.24), transparent 70%),
+    radial-gradient(760px 300px at 14% -6%, rgba(224, 164, 88, 0.12), transparent 66%),
+    linear-gradient(180deg, #0e0805 0%, #171009 52%, #1f140c 100%);
+  --theme-shell-pattern:
+    repeating-linear-gradient(112deg, rgba(224, 164, 88, 0.16) 0 1px, transparent 1px 14px),
+    repeating-linear-gradient(18deg, rgba(242, 223, 191, 0.08) 0 1px, transparent 1px 28px);
+  --theme-shell-pattern-opacity: 0.2;
+  --theme-hero-gradient:
+    radial-gradient(120% 85% at 52% 108%, rgba(201, 107, 31, 0.32), transparent 72%),
+    linear-gradient(180deg, rgba(14, 8, 5, 0.16) 0%, rgba(14, 8, 5, 0.9) 100%);
+  --theme-hero-pattern: repeating-linear-gradient(108deg, rgba(242, 223, 191, 0.1) 0 1px, transparent 1px 22px);
+  --theme-hero-pattern-opacity: 0.16;
+  --theme-modal-overlay: rgba(13, 8, 5, 0.8);
+  --theme-modal-gradient: linear-gradient(180deg, rgba(35, 24, 15, 0.98), rgba(24, 16, 10, 0.97));
+  --theme-modal-border: rgba(224, 164, 88, 0.36);
+  --theme-modal-shadow: 0 30px 70px -44px rgba(0, 0, 0, 0.82), 0 18px 40px -28px rgba(201, 107, 31, 0.36);
+  --theme-navbar-bg: rgba(20, 13, 8, 0.82);
+  --theme-navbar-border: rgba(224, 164, 88, 0.24);
+  --theme-navbar-overlay: rgba(13, 8, 5, 0.58);
+  --theme-pill-bg: rgba(201, 107, 31, 0.2);
+  --theme-pill-border: rgba(224, 164, 88, 0.5);
+  --theme-pill-text: #f2dfbf;
+  --theme-pill-shadow: 0 0 20px -14px rgba(201, 107, 31, 0.4);
+  --theme-segment-bg: rgba(40, 26, 16, 0.66);
+  --theme-segment-border: rgba(224, 164, 88, 0.26);
+}
+
+:root[data-theme-id="person-of-interest"] {
+  --radius: 0.72rem;
+  --theme-shell-gradient:
+    radial-gradient(960px 440px at 86% -14%, rgba(143, 183, 255, 0.12), transparent 62%),
+    linear-gradient(180deg, #06080b 0%, #0a0f15 56%, #0e131a 100%);
+  --theme-shell-pattern:
+    repeating-linear-gradient(180deg, rgba(207, 214, 223, 0.1) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(143, 183, 255, 0.08) 0 1px, transparent 1px 22px);
+  --theme-shell-pattern-opacity: 0.22;
+  --theme-hero-gradient:
+    linear-gradient(180deg, rgba(8, 11, 15, 0.2) 0%, rgba(8, 11, 15, 0.92) 100%);
+  --theme-hero-pattern:
+    repeating-linear-gradient(180deg, rgba(207, 214, 223, 0.08) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, rgba(143, 183, 255, 0.06) 0 1px, transparent 1px 26px);
+  --theme-hero-pattern-opacity: 0.2;
+  --theme-modal-overlay: rgba(6, 8, 11, 0.82);
+  --theme-modal-gradient: linear-gradient(180deg, rgba(16, 21, 28, 0.98), rgba(11, 16, 23, 0.98));
+  --theme-modal-pattern:
+    repeating-linear-gradient(180deg, rgba(207, 214, 223, 0.07) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, rgba(143, 183, 255, 0.06) 0 1px, transparent 1px 22px);
+  --theme-modal-pattern-opacity: 0.22;
+  --theme-modal-border: rgba(143, 183, 255, 0.28);
+  --theme-modal-shadow: 0 28px 68px -44px rgba(0, 0, 0, 0.82), 0 14px 30px -24px rgba(143, 183, 255, 0.3);
+  --theme-navbar-bg: rgba(10, 14, 19, 0.84);
+  --theme-navbar-border: rgba(143, 183, 255, 0.2);
+  --theme-navbar-overlay: rgba(7, 10, 14, 0.58);
+  --theme-pill-bg: rgba(143, 183, 255, 0.14);
+  --theme-pill-border: rgba(143, 183, 255, 0.45);
+  --theme-pill-text: #cfd6df;
+  --theme-pill-shadow: none;
+  --theme-segment-bg: rgba(15, 20, 28, 0.72);
+  --theme-segment-border: rgba(111, 127, 145, 0.34);
+  --theme-display-letter-spacing: -0.015em;
+  --theme-kicker-font: "JetBrains Mono", "Fira Code", monospace;
+  --theme-kicker-tracking: 0.2em;
+  --theme-kicker-weight: 600;
+}
+
+:root[data-theme-id="lotr"] {
+  --radius: 0.92rem;
+  --theme-shell-gradient:
+    radial-gradient(980px 460px at 18% -10%, rgba(63, 107, 63, 0.2), transparent 66%),
+    radial-gradient(760px 360px at 70% 108%, rgba(139, 107, 46, 0.18), transparent 72%),
+    linear-gradient(180deg, #0a0f0b 0%, #111811 52%, #171e16 100%);
+  --theme-shell-pattern:
+    radial-gradient(circle, rgba(231, 220, 195, 0.18) 0.8px, transparent 1px),
+    radial-gradient(circle, rgba(200, 178, 122, 0.14) 0.8px, transparent 1px);
+  --theme-shell-pattern-size: 26px 26px, 44px 44px;
+  --theme-shell-pattern-position: 0 0, 13px 17px;
+  --theme-shell-pattern-opacity: 0.14;
+  --theme-hero-gradient:
+    radial-gradient(105% 82% at 20% 0%, rgba(63, 107, 63, 0.25), transparent 66%),
+    linear-gradient(180deg, rgba(10, 15, 11, 0.18) 0%, rgba(10, 15, 11, 0.9) 100%);
+  --theme-hero-pattern:
+    radial-gradient(circle, rgba(231, 220, 195, 0.2) 0.8px, transparent 1px);
+  --theme-hero-pattern-size: 34px 34px;
+  --theme-hero-pattern-opacity: 0.14;
+  --theme-modal-overlay: rgba(9, 13, 10, 0.8);
+  --theme-modal-gradient: linear-gradient(180deg, rgba(20, 27, 20, 0.98), rgba(14, 20, 14, 0.98));
+  --theme-modal-border: rgba(139, 107, 46, 0.34);
+  --theme-modal-shadow: 0 28px 66px -42px rgba(0, 0, 0, 0.82), 0 14px 30px -24px rgba(63, 107, 63, 0.34);
+  --theme-navbar-bg: rgba(12, 18, 13, 0.82);
+  --theme-navbar-border: rgba(139, 107, 46, 0.24);
+  --theme-navbar-overlay: rgba(8, 12, 9, 0.56);
+  --theme-pill-bg: rgba(139, 107, 46, 0.22);
+  --theme-pill-border: rgba(200, 178, 122, 0.45);
+  --theme-pill-text: #e7dcc3;
+  --theme-pill-shadow: 0 0 18px -14px rgba(63, 107, 63, 0.45);
+  --theme-segment-bg: rgba(20, 29, 20, 0.66);
+  --theme-segment-border: rgba(63, 107, 63, 0.3);
+  --theme-display-letter-spacing: -0.026em;
+  --theme-display-shadow: 0 1px 0 rgba(139, 107, 46, 0.22);
+}
+
+:root[data-theme-id="graduation"] {
+  --radius: 0.98rem;
+  --theme-shell-gradient:
+    radial-gradient(860px 430px at 10% -12%, rgba(61, 165, 255, 0.3), transparent 64%),
+    radial-gradient(760px 340px at 88% 106%, rgba(255, 79, 163, 0.26), transparent 70%),
+    linear-gradient(180deg, #0a1020 0%, #131b33 48%, #1a213f 100%);
+  --theme-shell-pattern:
+    repeating-linear-gradient(135deg, rgba(255, 122, 89, 0.16) 0 1px, transparent 1px 18px),
+    repeating-linear-gradient(35deg, rgba(255, 209, 102, 0.12) 0 1px, transparent 1px 24px);
+  --theme-shell-pattern-opacity: 0.22;
+  --theme-hero-gradient:
+    radial-gradient(95% 74% at 14% 0%, rgba(61, 165, 255, 0.26), transparent 66%),
+    radial-gradient(80% 68% at 84% 20%, rgba(255, 79, 163, 0.24), transparent 70%),
+    linear-gradient(180deg, rgba(10, 16, 32, 0.1) 0%, rgba(10, 16, 32, 0.88) 100%);
+  --theme-hero-pattern: repeating-linear-gradient(120deg, rgba(255, 209, 102, 0.16) 0 1px, transparent 1px 20px);
+  --theme-hero-pattern-opacity: 0.16;
+  --theme-modal-overlay: rgba(10, 16, 32, 0.74);
+  --theme-modal-gradient: linear-gradient(180deg, rgba(22, 31, 56, 0.98), rgba(16, 24, 45, 0.98));
+  --theme-modal-border: rgba(61, 165, 255, 0.34);
+  --theme-modal-shadow: 0 30px 70px -42px rgba(0, 0, 0, 0.78), 0 15px 34px -26px rgba(255, 79, 163, 0.34);
+  --theme-navbar-bg: rgba(14, 22, 42, 0.8);
+  --theme-navbar-border: rgba(61, 165, 255, 0.24);
+  --theme-navbar-overlay: rgba(10, 16, 32, 0.54);
+  --theme-pill-bg: rgba(255, 79, 163, 0.22);
+  --theme-pill-border: rgba(255, 209, 102, 0.42);
+  --theme-pill-text: #eaf2ff;
+  --theme-pill-shadow: 0 0 20px -12px rgba(255, 122, 89, 0.46);
+  --theme-segment-bg: rgba(23, 34, 62, 0.66);
+  --theme-segment-border: rgba(61, 165, 255, 0.34);
+  --theme-display-letter-spacing: -0.016em;
+  --theme-display-shadow: 0 0 16px rgba(61, 165, 255, 0.2);
+  --theme-kicker-tracking: 0.14em;
+}
+
+:root[data-theme-id="hannibal"] {
+  --radius: 0.82rem;
+  --theme-shell-gradient:
+    radial-gradient(920px 410px at 88% -14%, rgba(166, 30, 50, 0.22), transparent 62%),
+    radial-gradient(760px 320px at 12% 108%, rgba(216, 201, 182, 0.12), transparent 70%),
+    linear-gradient(180deg, #080507 0%, #110a0f 52%, #170d13 100%);
+  --theme-shell-pattern: repeating-linear-gradient(115deg, transparent 0 132px, rgba(243, 236, 230, 0.1) 132px 136px, transparent 136px 280px);
+  --theme-shell-pattern-opacity: 0.22;
+  --theme-hero-gradient:
+    radial-gradient(92% 70% at 86% 4%, rgba(166, 30, 50, 0.24), transparent 64%),
+    linear-gradient(180deg, rgba(8, 5, 7, 0.14) 0%, rgba(8, 5, 7, 0.9) 100%);
+  --theme-hero-pattern: linear-gradient(105deg, transparent 32%, rgba(243, 236, 230, 0.1) 46%, transparent 58%);
+  --theme-hero-pattern-opacity: 0.24;
+  --theme-modal-overlay: rgba(8, 5, 7, 0.82);
+  --theme-modal-gradient: linear-gradient(180deg, rgba(25, 14, 20, 0.98), rgba(16, 10, 15, 0.98));
+  --theme-modal-pattern: linear-gradient(110deg, transparent 28%, rgba(243, 236, 230, 0.08) 42%, transparent 56%);
+  --theme-modal-pattern-opacity: 0.24;
+  --theme-modal-border: rgba(216, 201, 182, 0.3);
+  --theme-modal-shadow: 0 30px 72px -42px rgba(0, 0, 0, 0.84), 0 18px 36px -28px rgba(166, 30, 50, 0.4);
+  --theme-navbar-bg: rgba(16, 10, 15, 0.82);
+  --theme-navbar-border: rgba(216, 201, 182, 0.22);
+  --theme-navbar-overlay: rgba(10, 6, 9, 0.58);
+  --theme-pill-bg: rgba(166, 30, 50, 0.24);
+  --theme-pill-border: rgba(216, 201, 182, 0.38);
+  --theme-pill-text: #f3ece6;
+  --theme-pill-shadow: 0 0 18px -10px rgba(166, 30, 50, 0.42);
+  --theme-segment-bg: rgba(28, 16, 23, 0.66);
+  --theme-segment-border: rgba(122, 90, 99, 0.42);
+  --theme-display-letter-spacing: -0.024em;
+  --theme-display-shadow: 0 1px 0 rgba(216, 201, 182, 0.16);
+}
+
+:root[data-theme-id="spiderman"] {
+  --radius: 0.9rem;
+  --theme-shell-gradient:
+    radial-gradient(920px 430px at 10% -10%, rgba(31, 94, 255, 0.26), transparent 64%),
+    radial-gradient(760px 320px at 84% 108%, rgba(200, 29, 37, 0.22), transparent 70%),
+    linear-gradient(180deg, #0a1020 0%, #11192d 52%, #162039 100%);
+  --theme-shell-pattern:
+    repeating-linear-gradient(62deg, rgba(138, 164, 255, 0.18) 0 1px, transparent 1px 18px),
+    repeating-linear-gradient(-62deg, rgba(200, 29, 37, 0.14) 0 1px, transparent 1px 24px);
+  --theme-shell-pattern-opacity: 0.22;
+  --theme-hero-gradient:
+    radial-gradient(95% 72% at 14% 0%, rgba(31, 94, 255, 0.24), transparent 66%),
+    linear-gradient(180deg, rgba(10, 16, 32, 0.12) 0%, rgba(10, 16, 32, 0.9) 100%);
+  --theme-hero-pattern: repeating-linear-gradient(64deg, rgba(138, 164, 255, 0.18) 0 1px, transparent 1px 20px);
+  --theme-hero-pattern-opacity: 0.16;
+  --theme-modal-overlay: rgba(9, 14, 28, 0.78);
+  --theme-modal-gradient: linear-gradient(180deg, rgba(19, 28, 53, 0.98), rgba(15, 24, 46, 0.98));
+  --theme-modal-border: rgba(31, 94, 255, 0.32);
+  --theme-modal-shadow: 0 30px 70px -42px rgba(0, 0, 0, 0.8), 0 16px 34px -24px rgba(200, 29, 37, 0.36);
+  --theme-navbar-bg: rgba(12, 18, 34, 0.8);
+  --theme-navbar-border: rgba(31, 94, 255, 0.22);
+  --theme-navbar-overlay: rgba(9, 14, 28, 0.54);
+  --theme-pill-bg: rgba(200, 29, 37, 0.24);
+  --theme-pill-border: rgba(31, 94, 255, 0.42);
+  --theme-pill-text: #eef3ff;
+  --theme-pill-shadow: 0 0 20px -12px rgba(31, 94, 255, 0.46);
+  --theme-segment-bg: rgba(19, 29, 56, 0.68);
+  --theme-segment-border: rgba(31, 94, 255, 0.34);
+}
+
+:root[data-theme-id="superman"] {
+  --radius: 0.84rem;
+  --theme-shell-gradient:
+    radial-gradient(940px 430px at 12% -10%, rgba(29, 78, 216, 0.28), transparent 64%),
+    radial-gradient(780px 300px at 88% 108%, rgba(242, 193, 78, 0.2), transparent 70%),
+    linear-gradient(180deg, #0b1430 0%, #111d43 52%, #162753 100%);
+  --theme-shell-pattern:
+    repeating-linear-gradient(90deg, rgba(110, 168, 255, 0.16) 0 1px, transparent 1px 38px);
+  --theme-shell-pattern-opacity: 0.16;
+  --theme-hero-gradient:
+    radial-gradient(105% 74% at 18% 0%, rgba(29, 78, 216, 0.26), transparent 68%),
+    linear-gradient(180deg, rgba(11, 20, 48, 0.1) 0%, rgba(11, 20, 48, 0.88) 100%);
+  --theme-hero-pattern: repeating-linear-gradient(90deg, rgba(110, 168, 255, 0.16) 0 1px, transparent 1px 44px);
+  --theme-hero-pattern-opacity: 0.14;
+  --theme-modal-overlay: rgba(10, 18, 42, 0.76);
+  --theme-modal-gradient: linear-gradient(180deg, rgba(18, 33, 75, 0.98), rgba(14, 26, 62, 0.98));
+  --theme-modal-border: rgba(242, 193, 78, 0.34);
+  --theme-modal-shadow: 0 30px 70px -42px rgba(0, 0, 0, 0.78), 0 14px 30px -24px rgba(242, 193, 78, 0.34);
+  --theme-navbar-bg: rgba(14, 24, 56, 0.8);
+  --theme-navbar-border: rgba(110, 168, 255, 0.24);
+  --theme-navbar-overlay: rgba(10, 18, 42, 0.52);
+  --theme-pill-bg: rgba(29, 78, 216, 0.26);
+  --theme-pill-border: rgba(242, 193, 78, 0.42);
+  --theme-pill-text: #eef4ff;
+  --theme-pill-shadow: 0 0 18px -12px rgba(242, 193, 78, 0.44);
+  --theme-segment-bg: rgba(21, 34, 72, 0.68);
+  --theme-segment-border: rgba(110, 168, 255, 0.34);
+  --theme-display-letter-spacing: -0.018em;
+}
+
+:root[data-theme-id="batman"] {
+  --radius: 0.72rem;
+  --theme-shell-gradient:
+    radial-gradient(900px 430px at 70% 112%, rgba(196, 167, 71, 0.15), transparent 74%),
+    linear-gradient(180deg, #05070a 0%, #0b1016 54%, #111822 100%);
+  --theme-shell-pattern: repeating-linear-gradient(106deg, rgba(215, 221, 230, 0.09) 0 1px, transparent 1px 14px);
+  --theme-shell-pattern-opacity: 0.18;
+  --theme-hero-gradient:
+    radial-gradient(120% 85% at 76% 106%, rgba(196, 167, 71, 0.2), transparent 74%),
+    linear-gradient(180deg, rgba(5, 7, 10, 0.16) 0%, rgba(5, 7, 10, 0.92) 100%);
+  --theme-hero-pattern: repeating-linear-gradient(105deg, rgba(215, 221, 230, 0.08) 0 1px, transparent 1px 16px);
+  --theme-hero-pattern-opacity: 0.16;
+  --theme-modal-overlay: rgba(5, 7, 10, 0.84);
+  --theme-modal-gradient: linear-gradient(180deg, rgba(13, 17, 23, 0.98), rgba(10, 14, 20, 0.98));
+  --theme-modal-pattern: repeating-linear-gradient(106deg, rgba(215, 221, 230, 0.08) 0 1px, transparent 1px 18px);
+  --theme-modal-pattern-opacity: 0.14;
+  --theme-modal-border: rgba(196, 167, 71, 0.32);
+  --theme-modal-shadow: 0 32px 72px -42px rgba(0, 0, 0, 0.88), 0 14px 30px -26px rgba(107, 114, 128, 0.36);
+  --theme-navbar-bg: rgba(9, 12, 18, 0.84);
+  --theme-navbar-border: rgba(196, 167, 71, 0.22);
+  --theme-navbar-overlay: rgba(6, 8, 12, 0.58);
+  --theme-pill-bg: rgba(196, 167, 71, 0.2);
+  --theme-pill-border: rgba(196, 167, 71, 0.42);
+  --theme-pill-text: #d7dde6;
+  --theme-pill-shadow: 0 0 18px -14px rgba(196, 167, 71, 0.42);
+  --theme-segment-bg: rgba(14, 19, 28, 0.72);
+  --theme-segment-border: rgba(107, 114, 128, 0.36);
+}
+
+:root[data-theme-id="optimus-prime"] {
+  --radius: 0.74rem;
+  --theme-shell-gradient:
+    radial-gradient(920px 430px at 14% -12%, rgba(37, 99, 235, 0.22), transparent 64%),
+    radial-gradient(760px 300px at 84% 106%, rgba(198, 40, 57, 0.2), transparent 70%),
+    linear-gradient(180deg, #09111f 0%, #0e1a31 52%, #12203a 100%);
+  --theme-shell-pattern:
+    repeating-linear-gradient(90deg, rgba(184, 196, 214, 0.16) 0 1px, transparent 1px 40px),
+    repeating-linear-gradient(180deg, rgba(198, 40, 57, 0.08) 0 1px, transparent 1px 24px);
+  --theme-shell-pattern-opacity: 0.2;
+  --theme-hero-gradient:
+    radial-gradient(95% 72% at 14% 0%, rgba(37, 99, 235, 0.24), transparent 66%),
+    linear-gradient(180deg, rgba(9, 17, 31, 0.14) 0%, rgba(9, 17, 31, 0.9) 100%);
+  --theme-hero-pattern:
+    repeating-linear-gradient(90deg, rgba(184, 196, 214, 0.18) 0 1px, transparent 1px 48px),
+    repeating-linear-gradient(180deg, rgba(198, 40, 57, 0.08) 0 1px, transparent 1px 30px);
+  --theme-hero-pattern-opacity: 0.16;
+  --theme-modal-overlay: rgba(9, 17, 31, 0.8);
+  --theme-modal-gradient: linear-gradient(180deg, rgba(16, 29, 55, 0.98), rgba(12, 24, 46, 0.98));
+  --theme-modal-pattern: repeating-linear-gradient(90deg, rgba(184, 196, 214, 0.12) 0 1px, transparent 1px 34px);
+  --theme-modal-pattern-opacity: 0.18;
+  --theme-modal-border: rgba(184, 196, 214, 0.3);
+  --theme-modal-shadow: 0 30px 70px -42px rgba(0, 0, 0, 0.84), 0 18px 34px -26px rgba(37, 99, 235, 0.36);
+  --theme-navbar-bg: rgba(11, 21, 40, 0.82);
+  --theme-navbar-border: rgba(184, 196, 214, 0.24);
+  --theme-navbar-overlay: rgba(9, 17, 31, 0.56);
+  --theme-pill-bg: rgba(198, 40, 57, 0.22);
+  --theme-pill-border: rgba(37, 99, 235, 0.44);
+  --theme-pill-text: #e6edf7;
+  --theme-pill-shadow: 0 0 20px -12px rgba(37, 99, 235, 0.42);
+  --theme-segment-bg: rgba(16, 29, 55, 0.7);
+  --theme-segment-border: rgba(184, 196, 214, 0.3);
+}
+
+:root[data-theme-id="doctor-who"] {
+  --radius: 0.94rem;
+  --theme-shell-gradient:
+    conic-gradient(from 220deg at 62% 18%, rgba(124, 92, 255, 0.32), rgba(23, 78, 166, 0.2), rgba(45, 212, 255, 0.3), rgba(124, 92, 255, 0.32)),
+    linear-gradient(180deg, #040816 0%, #09122a 52%, #0d1a3a 100%);
+  --theme-shell-pattern: repeating-radial-gradient(circle at 50% 50%, rgba(45, 212, 255, 0.14) 0 1px, transparent 1px 18px);
+  --theme-shell-pattern-opacity: 0.16;
+  --theme-hero-gradient:
+    conic-gradient(from 180deg at 72% 16%, rgba(124, 92, 255, 0.38), rgba(23, 78, 166, 0.16), rgba(45, 212, 255, 0.34), rgba(124, 92, 255, 0.38)),
+    linear-gradient(180deg, rgba(4, 8, 22, 0.14) 0%, rgba(4, 8, 22, 0.9) 100%);
+  --theme-hero-pattern: repeating-radial-gradient(circle at 50% 50%, rgba(45, 212, 255, 0.18) 0 1px, transparent 1px 14px);
+  --theme-hero-pattern-opacity: 0.16;
+  --theme-modal-overlay: rgba(4, 8, 22, 0.78);
+  --theme-modal-gradient: linear-gradient(180deg, rgba(12, 25, 57, 0.98), rgba(9, 21, 49, 0.98));
+  --theme-modal-pattern: repeating-radial-gradient(circle at 50% 50%, rgba(124, 92, 255, 0.14) 0 1px, transparent 1px 16px);
+  --theme-modal-pattern-opacity: 0.14;
+  --theme-modal-border: rgba(45, 212, 255, 0.34);
+  --theme-modal-shadow: 0 30px 70px -42px rgba(0, 0, 0, 0.8), 0 16px 34px -24px rgba(124, 92, 255, 0.4);
+  --theme-navbar-bg: rgba(8, 17, 40, 0.82);
+  --theme-navbar-border: rgba(45, 212, 255, 0.24);
+  --theme-navbar-overlay: rgba(4, 8, 22, 0.54);
+  --theme-pill-bg: rgba(23, 78, 166, 0.24);
+  --theme-pill-border: rgba(45, 212, 255, 0.42);
+  --theme-pill-text: #d9e7ff;
+  --theme-pill-shadow: 0 0 22px -12px rgba(124, 92, 255, 0.46);
+  --theme-segment-bg: rgba(13, 25, 57, 0.7);
+  --theme-segment-border: rgba(124, 92, 255, 0.34);
+  --theme-display-letter-spacing: -0.016em;
+  --theme-display-shadow: 0 0 18px rgba(45, 212, 255, 0.24);
+}
+
+:root[data-theme-id="got"] {
+  --radius: 0.75rem;
+  --theme-shell-gradient:
+    radial-gradient(920px 420px at 86% -12%, rgba(136, 164, 199, 0.14), transparent 62%),
+    radial-gradient(760px 300px at 18% 108%, rgba(143, 59, 47, 0.16), transparent 70%),
+    linear-gradient(180deg, #08090c 0%, #101419 52%, #161b22 100%);
+  --theme-shell-pattern:
+    repeating-linear-gradient(118deg, rgba(216, 221, 228, 0.09) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(28deg, rgba(107, 114, 128, 0.12) 0 1px, transparent 1px 22px);
+  --theme-shell-pattern-opacity: 0.16;
+  --theme-hero-gradient:
+    radial-gradient(100% 78% at 78% 0%, rgba(136, 164, 199, 0.2), transparent 64%),
+    linear-gradient(180deg, rgba(8, 9, 12, 0.16) 0%, rgba(8, 9, 12, 0.92) 100%);
+  --theme-hero-pattern: repeating-linear-gradient(112deg, rgba(216, 221, 228, 0.08) 0 1px, transparent 1px 18px);
+  --theme-hero-pattern-opacity: 0.14;
+  --theme-modal-overlay: rgba(8, 9, 12, 0.82);
+  --theme-modal-gradient: linear-gradient(180deg, rgba(18, 21, 26, 0.98), rgba(14, 17, 22, 0.98));
+  --theme-modal-pattern: repeating-linear-gradient(120deg, rgba(107, 114, 128, 0.1) 0 1px, transparent 1px 24px);
+  --theme-modal-pattern-opacity: 0.12;
+  --theme-modal-border: rgba(136, 164, 199, 0.28);
+  --theme-modal-shadow: 0 32px 72px -42px rgba(0, 0, 0, 0.86), 0 14px 32px -26px rgba(143, 59, 47, 0.28);
+  --theme-navbar-bg: rgba(12, 15, 20, 0.84);
+  --theme-navbar-border: rgba(136, 164, 199, 0.2);
+  --theme-navbar-overlay: rgba(8, 10, 14, 0.58);
+  --theme-pill-bg: rgba(136, 164, 199, 0.2);
+  --theme-pill-border: rgba(143, 59, 47, 0.36);
+  --theme-pill-text: #d8dde4;
+  --theme-pill-shadow: 0 0 16px -12px rgba(143, 59, 47, 0.4);
+  --theme-segment-bg: rgba(19, 23, 30, 0.72);
+  --theme-segment-border: rgba(107, 114, 128, 0.34);
+  --theme-display-letter-spacing: -0.024em;
+  --theme-display-shadow: 0 1px 0 rgba(216, 221, 228, 0.14);
 }
 
 @layer base {
@@ -58,10 +529,8 @@
     @apply bg-background text-foreground;
     min-height: 100vh;
     overflow-x: hidden;
-    background-image:
-      radial-gradient(circle at 10% -10%, rgba(142, 139, 255, 0.25) 0%, transparent 34%),
-      radial-gradient(circle at 90% 0%, rgba(90, 166, 255, 0.17) 0%, transparent 42%),
-      radial-gradient(circle at 50% 120%, rgba(60, 71, 124, 0.32) 0%, transparent 38%);
+    position: relative;
+    isolation: isolate;
     font-family: "Inter", "Manrope", "Segoe UI", sans-serif;
     text-rendering: optimizeLegibility;
   }
@@ -73,7 +542,8 @@
   h5,
   h6 {
     font-family: "Space Grotesk", "Sora", "Segoe UI", sans-serif;
-    letter-spacing: -0.02em;
+    letter-spacing: var(--theme-display-letter-spacing);
+    text-shadow: var(--theme-display-shadow);
   }
 
   code,
@@ -122,6 +592,141 @@
   }
 }
 
+@layer components {
+  .theme-shell-gradient {
+    background: var(--theme-shell-gradient);
+  }
+
+  .theme-shell-pattern {
+    background-image: var(--theme-shell-pattern);
+    background-size: var(--theme-shell-pattern-size);
+    background-position: var(--theme-shell-pattern-position);
+    background-repeat: repeat;
+    opacity: var(--theme-shell-pattern-opacity);
+  }
+
+  .theme-shell-vignette {
+    background: var(--theme-shell-vignette);
+    opacity: var(--theme-shell-vignette-opacity);
+  }
+
+  .theme-hero-shell {
+    isolation: isolate;
+  }
+
+  .theme-hero-media {
+    position: relative;
+    z-index: 1;
+  }
+
+  .theme-hero-gradient-layer {
+    pointer-events: none;
+    z-index: 3;
+    background: var(--theme-hero-gradient);
+    opacity: calc(var(--theme-hero-gradient-opacity) * 0.76);
+  }
+
+  .theme-hero-pattern-layer {
+    pointer-events: none;
+    z-index: 0;
+    background-image: var(--theme-hero-pattern);
+    background-size: var(--theme-hero-pattern-size);
+    background-position: var(--theme-hero-pattern-position);
+    background-repeat: repeat;
+    opacity: calc(var(--theme-hero-pattern-opacity) * 0.14);
+  }
+
+  .theme-hero-readable-overlay {
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  .theme-hero-safe-area {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: clamp(2.75rem, 8vh, 4.5rem);
+    z-index: 12;
+  }
+
+  .theme-hero-safe-content {
+    position: relative;
+    z-index: 12;
+  }
+
+  .theme-modal-overlay {
+    background: var(--theme-modal-overlay) !important;
+    backdrop-filter: blur(8px);
+  }
+
+  .theme-modal-panel {
+    position: relative;
+    isolation: isolate;
+    border-color: var(--theme-modal-border) !important;
+    background: var(--theme-modal-gradient) !important;
+    box-shadow: var(--theme-modal-shadow) !important;
+  }
+
+  .theme-modal-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image: var(--theme-modal-pattern);
+    background-size: var(--theme-modal-pattern-size);
+    background-position: var(--theme-modal-pattern-position);
+    background-repeat: repeat;
+    opacity: var(--theme-modal-pattern-opacity);
+  }
+
+  .theme-modal-panel > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .theme-navbar-shell {
+    background: var(--theme-navbar-bg) !important;
+    border-bottom-color: var(--theme-navbar-border) !important;
+    box-shadow: var(--theme-navbar-shadow);
+  }
+
+  .theme-navbar-panel {
+    background: var(--theme-navbar-bg) !important;
+    border-top-color: var(--theme-navbar-border) !important;
+  }
+
+  .theme-navbar-overlay {
+    background: var(--theme-navbar-overlay) !important;
+  }
+
+  .theme-nav-pill-active,
+  .theme-segment-active,
+  .theme-menu-item-active {
+    background: var(--theme-pill-bg) !important;
+    border-color: var(--theme-pill-border) !important;
+    color: var(--theme-pill-text) !important;
+    box-shadow: var(--theme-pill-shadow);
+  }
+
+  .theme-segment-shell {
+    border-color: var(--theme-segment-border) !important;
+    background: var(--theme-segment-bg) !important;
+  }
+
+  .theme-kicker {
+    font-family: var(--theme-kicker-font);
+    letter-spacing: var(--theme-kicker-tracking);
+    font-weight: var(--theme-kicker-weight);
+  }
+
+  .theme-display-title {
+    letter-spacing: var(--theme-display-letter-spacing);
+    text-shadow: var(--theme-display-shadow);
+  }
+}
+
 @layer utilities {
   .animate-route-enter {
     animation: route-enter 280ms cubic-bezier(0.2, 0.75, 0.2, 1) both;
@@ -129,6 +734,15 @@
 
   .animate-fade-up {
     animation: fade-up 280ms ease both;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }
 

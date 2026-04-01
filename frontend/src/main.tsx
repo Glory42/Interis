@@ -4,6 +4,7 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { routeTree } from "./routeTree.gen";
 import { queryClient } from "./lib/query-client";
+import { bootstrapStoredTheme } from "@/features/theme/theme-runtime";
 import "./index.css";
 
 const router = createRouter({
@@ -26,6 +27,8 @@ const rootElement = document.getElementById("root");
 if (!rootElement) {
   throw new Error("Root element #root not found");
 }
+
+bootstrapStoredTheme();
 
 createRoot(rootElement).render(
   <StrictMode>
