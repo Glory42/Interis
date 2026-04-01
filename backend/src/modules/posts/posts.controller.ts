@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { z } from "zod";
+import { sendValidationError } from "../../commons/http/validation-response.helper";
 import { PostsService } from "./posts.service";
 import { CreatePostSchema, PostCommentSchema } from "./dto/posts.dto";
 
@@ -21,7 +21,7 @@ export class PostsController {
   static async create(req: Request, res: Response): Promise<void> {
     const parsed = CreatePostSchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ error: z.flattenError(parsed.error) });
+      sendValidationError(res, parsed.error);
       return;
     }
 
@@ -80,7 +80,7 @@ export class PostsController {
   ): Promise<void> {
     const parsed = PostCommentSchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ error: z.flattenError(parsed.error) });
+      sendValidationError(res, parsed.error);
       return;
     }
 
