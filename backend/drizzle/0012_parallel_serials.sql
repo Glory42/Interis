@@ -1,0 +1,23 @@
+CREATE TABLE "tv_series" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"tmdb_id" integer NOT NULL,
+	"title" text NOT NULL,
+	"original_title" text,
+	"poster_path" text,
+	"backdrop_path" text,
+	"first_air_date" date,
+	"first_air_year" integer,
+	"last_air_date" date,
+	"creator" text,
+	"network" text,
+	"episode_runtime" integer,
+	"number_of_seasons" integer,
+	"number_of_episodes" integer,
+	"status" text,
+	"overview" text,
+	"tagline" text,
+	"language_code" text,
+	"genres" jsonb,
+	"cached_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "tv_series_tmdb_id_unique" UNIQUE("tmdb_id")
+);
