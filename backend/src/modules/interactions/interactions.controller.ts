@@ -1,4 +1,9 @@
 import type { Request, Response } from "express";
+import {
+  sendBadRequest,
+  sendValidationError,
+} from "../../commons/http/validation-response.helper";
+import { parseTmdbIdParam } from "../../commons/validation/params.helper";
 import { InteractionsService } from "./interactions.service";
 import { UpdateInteractionSchema } from "./dto/interactions.dto";
 
@@ -8,9 +13,9 @@ export class InteractionsController {
     req: Request<{ tmdbId: string }>,
     res: Response,
   ): Promise<void> {
-    const tmdbId = Number.parseInt(req.params.tmdbId, 10);
-    if (Number.isNaN(tmdbId)) {
-      res.status(400).json({ error: "Invalid tmdbId" });
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
+    if (tmdbId === null) {
+      sendBadRequest(res, "Invalid tmdbId");
       return;
     }
 
@@ -23,15 +28,15 @@ export class InteractionsController {
     req: Request<{ tmdbId: string }>,
     res: Response,
   ): Promise<void> {
-    const tmdbId = Number.parseInt(req.params.tmdbId, 10);
-    if (Number.isNaN(tmdbId)) {
-      res.status(400).json({ error: "Invalid tmdbId" });
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
+    if (tmdbId === null) {
+      sendBadRequest(res, "Invalid tmdbId");
       return;
     }
 
     const parsed = UpdateInteractionSchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ error: parsed.error.flatten() });
+      sendValidationError(res, parsed.error);
       return;
     }
 
