@@ -1,11 +1,6 @@
-import { and, eq, inArray, or, sql } from "drizzle-orm";
-import { db } from "../../../infrastructure/database/db";
-import { comments, reviewLikes, reviews } from "../../reviews/reviews.entity";
-import { diaryEntries } from "../../diary/diary.entity";
-import { movies } from "../../movies/movies.entity";
-import { postComments, postLikes } from "../../posts/posts.entity";
 import { parseMetadata, readString } from "./social-feed-metadata.helper";
 import { resolveReviewId, toFeedMetadata } from "./social-feed-resolvers.helper";
+import { SocialFeedRepository } from "../repositories/social-feed.repository";
 import type {
   ActivityRow,
   PostEngagement,
@@ -40,31 +35,10 @@ export const buildReviewContext = async (
     };
   }
 
-  const reviewIdList = [...reviewIds];
-  const diaryEntryIdList = [...diaryEntryIds];
-  const whereClause =
-    reviewIdList.length > 0 && diaryEntryIdList.length > 0
-      ? or(inArray(reviews.id, reviewIdList), inArray(reviews.diaryEntryId, diaryEntryIdList))
-      : reviewIdList.length > 0
-        ? inArray(reviews.id, reviewIdList)
-        : inArray(reviews.diaryEntryId, diaryEntryIdList);
-
-  const reviewRows = await db
-    .select({
-      id: reviews.id,
-      diaryEntryId: reviews.diaryEntryId,
-      content: reviews.content,
-      containsSpoilers: reviews.containsSpoilers,
-      rating: diaryEntries.rating,
-      tmdbId: movies.tmdbId,
-      title: movies.title,
-      posterPath: movies.posterPath,
-      releaseYear: movies.releaseYear,
-    })
-    .from(reviews)
-    .innerJoin(movies, eq(reviews.movieId, movies.id))
-    .leftJoin(diaryEntries, eq(reviews.diaryEntryId, diaryEntries.id))
-    .where(whereClause);
+  const reviewRows = await SocialFeedRepository.getReviewRowsByReviewOrDiaryIds(
+    [...reviewIds],
+    [...diaryEntryIds],
+  );
 
   const hydratedReviewIds = reviewRows.map((row) => row.id);
   if (hydratedReviewIds.length === 0) {
@@ -75,32 +49,10 @@ export const buildReviewContext = async (
   }
 
   const [reviewLikeRows, commentRows, viewerLikeRows] = await Promise.all([
-    db
-      .select({
-        reviewId: reviewLikes.reviewId,
-        count: sql<number>`count(*)`.mapWith(Number),
-      })
-      .from(reviewLikes)
-      .where(inArray(reviewLikes.reviewId, hydratedReviewIds))
-      .groupBy(reviewLikes.reviewId),
-    db
-      .select({
-        reviewId: comments.reviewId,
-        count: sql<number>`count(*)`.mapWith(Number),
-      })
-      .from(comments)
-      .where(inArray(comments.reviewId, hydratedReviewIds))
-      .groupBy(comments.reviewId),
+    SocialFeedRepository.getReviewLikeCountRows(hydratedReviewIds),
+    SocialFeedRepository.getReviewCommentCountRows(hydratedReviewIds),
     viewerId
-      ? db
-          .select({ reviewId: reviewLikes.reviewId })
-          .from(reviewLikes)
-          .where(
-            and(
-              eq(reviewLikes.userId, viewerId),
-              inArray(reviewLikes.reviewId, hydratedReviewIds),
-            ),
-          )
+      ? SocialFeedRepository.getViewerReviewLikeRows(viewerId, hydratedReviewIds)
       : Promise.resolve([]),
   ]);
 
@@ -123,6 +75,7 @@ export const buildReviewContext = async (
         title: row.title,
         posterPath: row.posterPath,
         releaseYear: row.releaseYear,
+        mediaType: row.mediaType,
       },
       likeCount: likeCountsByReviewId.get(row.id) ?? 0,
       commentCount: commentCountsByReviewId.get(row.id) ?? 0,
@@ -165,22 +118,8 @@ export const buildPostEngagementContext = async (
 
   const uniquePostIds = [...postIds];
   const [postLikeRows, postCommentRows] = await Promise.all([
-    db
-      .select({
-        postId: postLikes.postId,
-        count: sql<number>`count(*)`.mapWith(Number),
-      })
-      .from(postLikes)
-      .where(inArray(postLikes.postId, uniquePostIds))
-      .groupBy(postLikes.postId),
-    db
-      .select({
-        postId: postComments.postId,
-        count: sql<number>`count(*)`.mapWith(Number),
-      })
-      .from(postComments)
-      .where(inArray(postComments.postId, uniquePostIds))
-      .groupBy(postComments.postId),
+    SocialFeedRepository.getPostLikeCountRows(uniquePostIds),
+    SocialFeedRepository.getPostCommentCountRows(uniquePostIds),
   ]);
 
   const likeCountsByPostId = new Map(postLikeRows.map((row) => [row.postId, row.count]));

@@ -1,23 +1,15 @@
 import type { Request, Response } from "express";
 import { SocialService } from "./social.service";
 import { UsersService } from "../users/users.service";
+import { normalizeSocialFeedLimit } from "./helpers/social-query-normalizer.helper";
 import type { FeedQueryDto, UsernameParamsDto } from "./dto/social.dto";
 
 export class SocialController {
-  private static parseLimit(limit: unknown, fallback = 20): number {
-    if (typeof limit !== "string") {
-      return fallback;
-    }
-
-    const parsed = Number.parseInt(limit, 10);
-    return Number.isNaN(parsed) ? fallback : parsed;
-  }
-
   static async getFeed(
     req: Request<{}, {}, {}, FeedQueryDto>,
     res: Response,
   ): Promise<void> {
-    const limit = SocialController.parseLimit(req.query.limit, 20);
+    const limit = normalizeSocialFeedLimit(req.query.limit, 20);
     const feed = await SocialService.getFeed(req.user.id, undefined, limit);
     res.status(200).json(feed);
   }
@@ -26,7 +18,7 @@ export class SocialController {
     req: Request<{}, {}, {}, FeedQueryDto>,
     res: Response,
   ): Promise<void> {
-    const limit = SocialController.parseLimit(req.query.limit, 20);
+    const limit = normalizeSocialFeedLimit(req.query.limit, 20);
     const feed = await SocialService.getFollowingFeed(req.user.id, limit);
     res.status(200).json(feed);
   }

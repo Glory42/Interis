@@ -21,11 +21,14 @@ export type FeedActivityKind =
   | "liked_post"
   | "commented_post";
 
+export type FeedMediaType = "movie" | "tv";
+
 export type FeedMovie = {
   tmdbId: number;
   title: string;
   posterPath: string | null;
   releaseYear: number | null;
+  mediaType: FeedMediaType;
 };
 
 export type FeedPostMediaType = "movie" | "tv" | "book" | "music";
@@ -50,6 +53,8 @@ export type FeedMetadata = {
   targetUsername: string | null;
   rating: number | null;
   rewatch: boolean | null;
+  hasReview: boolean | null;
+  mediaType: FeedMediaType | null;
   containsSpoilers: boolean | null;
   reviewId: string | null;
   commentId: string | null;

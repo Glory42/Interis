@@ -36,7 +36,14 @@ export const toFeedItem = async (
         containsSpoilers: reviewDetails.containsSpoilers,
         rating: reviewDetails.rating,
       }
-    : null;
+    : metadata.hasReview || kind === "review"
+      ? {
+          id: metadata.reviewId ?? row.activity.entityId,
+          content: metadata.excerpt ?? "Shared a review.",
+          containsSpoilers: metadata.containsSpoilers ?? false,
+          rating: metadata.rating,
+        }
+      : null;
 
   const postId = post?.id ?? metadata.postId ?? (kind === "post" ? row.activity.entityId : null);
   const postEngagement = postId

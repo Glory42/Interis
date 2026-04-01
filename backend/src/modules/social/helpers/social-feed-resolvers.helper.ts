@@ -1,23 +1,37 @@
-import { eq } from "drizzle-orm";
-import { db } from "../../../infrastructure/database/db";
-import { movies } from "../../movies/movies.entity";
-import { posts } from "../../posts/posts.entity";
 import { readBoolean, readNumber, readPostMediaType, readString } from "./social-feed-metadata.helper";
+import { SocialFeedRepository } from "../repositories/social-feed.repository";
 import type {
   FeedMetadata,
+  FeedMediaType,
   FeedMovie,
   FeedPost,
   FeedRawMetadata,
   SocialActivity,
 } from "../types/social-feed.types";
 
+const toFeedMediaType = (value: string | null): FeedMediaType | null => {
+  if (value === "tv") {
+    return "tv";
+  }
+
+  if (value === "movie") {
+    return "movie";
+  }
+
+  return null;
+};
+
 export const toFeedMetadata = (rawMetadata: FeedRawMetadata): FeedMetadata => {
+  const mediaType = toFeedMediaType(readPostMediaType(rawMetadata, "mediaType"));
+
   return {
     action: readString(rawMetadata, "action"),
     excerpt: readString(rawMetadata, "excerpt"),
     targetUsername: readString(rawMetadata, "targetUsername"),
     rating: readNumber(rawMetadata, "rating"),
     rewatch: readBoolean(rawMetadata, "rewatch"),
+    hasReview: readBoolean(rawMetadata, "hasReview"),
+    mediaType,
     containsSpoilers: readBoolean(rawMetadata, "containsSpoilers"),
     reviewId: readString(rawMetadata, "reviewId"),
     commentId: readString(rawMetadata, "commentId"),
@@ -63,16 +77,7 @@ export const resolvePost = async (
     };
   }
 
-  const [post] = await db
-    .select({
-      id: posts.id,
-      content: posts.content,
-      mediaId: posts.mediaId,
-      mediaType: posts.mediaType,
-    })
-    .from(posts)
-    .where(eq(posts.id, postId))
-    .limit(1);
+  const post = await SocialFeedRepository.getPostById(postId);
 
   if (!post) {
     return null;
@@ -93,6 +98,7 @@ export const resolveMovie = async (
 ): Promise<FeedMovie | null> => {
   const tmdbId = readNumber(rawMetadata, "tmdbId");
   const title = readString(rawMetadata, "title");
+  const mediaType = toFeedMediaType(readPostMediaType(rawMetadata, "mediaType"));
 
   if (tmdbId !== null && title) {
     return {
@@ -100,6 +106,7 @@ export const resolveMovie = async (
       title,
       posterPath: readString(rawMetadata, "posterPath"),
       releaseYear: readNumber(rawMetadata, "releaseYear"),
+      mediaType: mediaType ?? "movie",
     };
   }
 
@@ -116,16 +123,7 @@ export const resolveMovie = async (
     return null;
   }
 
-  const [movie] = await db
-    .select({
-      tmdbId: movies.tmdbId,
-      title: movies.title,
-      posterPath: movies.posterPath,
-      releaseYear: movies.releaseYear,
-    })
-    .from(movies)
-    .where(eq(movies.id, fallbackMovieId))
-    .limit(1);
+  const movie = await SocialFeedRepository.getMovieById(fallbackMovieId);
 
-  return movie ?? null;
+  return movie ? { ...movie, mediaType: "movie" } : null;
 };
