@@ -4,9 +4,9 @@ import {
   isR2ConfigurationError,
   type UploadType,
 } from "../../infrastructure/r2/client";
+import { sendValidationError } from "../../commons/http/validation-response.helper";
 import { logger } from "../../commons/utils/logger";
 import { UsersService } from "../users/users.service";
-import { z } from "zod";
 import { ConfirmUploadSchema, RequestUploadSchema } from "./dto/uploads.dto";
 
 export class UploadsController {
@@ -15,7 +15,7 @@ export class UploadsController {
   static async requestUpload(req: Request, res: Response): Promise<void> {
     const parsed = RequestUploadSchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ error: z.flattenError(parsed.error) });
+      sendValidationError(res, parsed.error);
       return;
     }
 
@@ -60,7 +60,7 @@ export class UploadsController {
     const parsed = ConfirmUploadSchema.safeParse(req.body);
 
     if (!parsed.success) {
-      res.status(400).json({ error: z.flattenError(parsed.error) });
+      sendValidationError(res, parsed.error);
       return;
     }
 
