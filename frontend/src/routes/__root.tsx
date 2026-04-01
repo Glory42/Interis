@@ -41,7 +41,13 @@ const RootLayout = () => {
   return (
     <>
       <CinemaSearchDialogProvider>
-        <div className="flex min-h-screen flex-col">
+        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden>
+          <div className="theme-shell-gradient absolute inset-0" />
+          <div className="theme-shell-pattern absolute inset-0" />
+          <div className="theme-shell-vignette absolute inset-0" />
+        </div>
+
+        <div className="relative z-10 flex min-h-screen flex-col">
           <AppNavbar />
           <main className="min-w-0 flex-1 pb-10">
             <div
