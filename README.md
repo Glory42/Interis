@@ -1,102 +1,123 @@
-# This is Cinema
+# Arkheion
 
-A personal social film diary — Letterboxd meets Twitter. Built to power my portfolio's "recently watched" feed via a public API, and for daily use with friends.
+Arkheion is a social movie journal app inspired by Letterboxd + timeline-style social apps.
 
-**Live:** [arkheion.gorkemkaryol.dev](https://arkheion.gorkemkaryol.dev)
+- Log watches with dates, ratings, rewatches, and optional reviews
+- Follow people and browse a personalized activity feed
+- Browse a cinema archive with genre/language/time/sort filters
+- Explore public profile pages, stats, heatmaps, lists, likes, and watchlists
+- Power external widgets through a small public API (`/api/public/*`)
 
-## Stack
+Live: [arkheion.gorkemkaryol.dev](https://arkheion.gorkemkaryol.dev)
+
+## Tech stack
 
 | Layer | Tech |
-|---|---|
+| --- | --- |
 | Runtime | Bun |
-| Backend | Express v5 |
-| Database | Neon (Serverless Postgres) |
-| ORM | Drizzle |
+| Backend | Express 5 + TypeScript |
+| Database | Neon (PostgreSQL) |
+| ORM | Drizzle ORM |
 | Auth | Better Auth |
-| Frontend | React + Vite |
+| Frontend | React 19 + Vite |
 | Routing | TanStack Router (file-based) |
-| Data fetching | TanStack Query |
-| Styling | Tailwind CSS |
-| Deploy | Cloudflare Pages (frontend) + Render (backend) |
-| External API | TMDB (on-demand cache — never bulk imported) |
+| Data | TanStack Query |
+| UI | Tailwind CSS + Radix/shadcn primitives |
+| External data | TMDB (on-demand fetch + local cache) |
 
-## Roadmap
+## Repository layout
 
-### Phase 1 — Core MVP ✅
-Auth, film search, diary logging, user profiles, public API for portfolio.
-
-### Phase 2 — Social Layer 🔄
-Reviews, comments, likes, follow graph, activity feed.
-
-### Phase 3 — Organization
-Lists (ranked/unranked), tags (`#rewatch`, `#horror`, etc.).
-
-### Phase 4 — Stats + Admin
-Watch time, top directors/actors, heatmap, admin moderation panel.
-
-## Current Status
-
-### Backend
-- `POST /api/auth/*` — Better Auth (sign-up, sign-in, session)
-- `GET /api/movies/search` — TMDB search proxy
-- `GET /api/movies/:tmdbId` — movie detail with on-demand DB caching
-- `GET /api/movies/recent` — recently cached/logged films
-- `GET /api/movies/:tmdbId/logs` — log count for a film
-- `GET|POST|PUT|DELETE /api/diary` — diary CRUD, optional review payload on log
-- `GET /api/users/:username` — public profile
-- `GET /api/users/:username/diary` — public diary
-- `GET|PUT /api/users/me` — own profile + settings
-- `POST /api/auth/update-user` — username/name update (Better Auth)
-- Phase 2 modules (`/api/reviews`, `/api/social`, `/api/interactions`) in progress
-
-### Frontend
-- File-based routing with TanStack Router
-- Auth pages (sign-in / sign-up)
-- Films page with autocomplete search + recent section
-- Movie detail page
-- Log film modal (date, rating, rewatch flag)
-- Profile page + settings page
-- Sidebar navigation + page transitions
-
-## Local Development
-
-### Backend
-```bash
-cd backend
-bun install
-bun dev
+```text
+.
+├── backend/   # Express API, domain modules, Drizzle schema/migrations
+├── frontend/  # React app (TanStack Router + Query)
+└── README.md
 ```
 
-### Frontend
-```bash
-cd frontend
-bun install
-bun dev
-```
+## Quick start
 
-### Environment Variables
+Prerequisites:
+- Bun 1.3+
+- PostgreSQL (Neon recommended)
+- TMDB API access token
 
-**Backend** (`backend/.env`):
-```
+1) Configure backend env (`backend/.env`)
+
+```env
 DATABASE_URL=
+BETTER_AUTH_URL=http://localhost:5000
 BETTER_AUTH_SECRET=
 TMDB_ACCESS_TOKEN=
 CORS_ORIGIN=http://localhost:5173
 PORT=5000
+
+# Optional (required only for uploads)
+R2_ACCOUNT_ID=
+R2_ACCESS_KEY_ID=
+R2_SECRET_ACCESS_KEY=
+R2_BUCKET_NAME=
+R2_PUBLIC_URL=
 ```
 
-**Frontend** (`frontend/.env`):
+2) Configure frontend env (`frontend/.env`)
+
+```env
+VITE_API_PROXY_TARGET=http://localhost:5000
+VITE_API_BASE_URL=
 ```
-VITE_API_PROXY_TARGET=http://localhost:5000   # dev proxy target
-VITE_API_BASE_URL=                            # empty in dev, set in production
+
+3) Install and run
+
+```bash
+# terminal 1
+cd backend
+bun install
+bun run dev
+
+# terminal 2
+cd frontend
+bun install
+bun run dev
 ```
 
-See `frontend/.env.example` for reference.
+Frontend runs on `http://localhost:5173` and proxies `/api` to backend.
 
-## Architecture Notes
+## Key API groups
 
-- **Domain-driven module structure** — each feature (`movies`, `diary`, `reviews`, etc.) owns its entity, service, controller, and routes.
-- **On-demand TMDB caching** — films are fetched from TMDB and cached in Neon only when first touched by a user. No bulk imports, no API waste.
-- **Activities table** — every user action writes a denormalized row to `activities`. The feed is a single JOIN on `follows`, no complex unions.
-- **Diary ≠ Review** — `diary_entries` (multiple per film, watch log) and `reviews` (one per film, text) are separate tables by design.
-- **Profiles table** — extends Better Auth's `user` table with app metadata (`bio`, `top4MovieIds`, `isAdmin`). Auto-created via Better Auth after-signup hook.
+- `POST /api/auth/*` - Better Auth endpoints (session, sign-in, sign-up, update-user)
+- `GET /api/movies/*` - search, detail, logs, archive, trending
+- `GET|POST|PUT|DELETE /api/diary` - private diary CRUD
+- `GET /api/users/*` - profile, diary, reviews, films/cinema, likes, watchlist
+- `GET|POST|PUT|DELETE /api/reviews/*` - reviews, comments, likes
+- `GET|POST|DELETE /api/posts/*` - short posts, comments, likes
+- `GET|POST|DELETE /api/social/*` - feed + follow graph
+- `GET|PUT /api/interactions/:tmdbId` - watchlist/like/log interaction state
+- `POST /api/uploads/*` - signed upload flow (R2)
+- `GET /api/public/:username/*` - widget-friendly public endpoints
+
+## Quality checks
+
+Backend:
+
+```bash
+cd backend
+bunx tsc --noEmit
+bun test
+```
+
+Frontend:
+
+```bash
+cd frontend
+bun run typecheck
+bun run lint
+bun run build
+```
+
+## Architecture notes
+
+- Feature-first backend modules: each domain owns controller/service/repository/dto/helpers/types.
+- TMDB data is fetched on demand and cached locally; no bulk mirror/import.
+- Diary entries (watch logs) and reviews are modeled separately by design.
+- Public profile/stats routes are optimized for read-heavy usage and widget integration.
+- Frontend is route-driven and feature-oriented, with API contracts validated by Zod.
