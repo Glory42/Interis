@@ -9,10 +9,9 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "../../infrastructure/database/auth.entity";
 import { movies } from "../movies/movies.entity";
-import { diaryEntries } from "../diary/diary.entity";
 
-// One review per user per film (UNIQUE constraint)
-// Optionally linked to a diary entry — if the user wrote a review while logging
+// Unified review model across media types.
+// mediaSource/mediaSourceId identify the external media record (e.g. TMDB id).
 export const reviews = pgTable(
   "review",
   {
@@ -22,12 +21,11 @@ export const reviews = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    movieId: integer("movie_id")
-      .notNull()
-      .references(() => movies.id, { onDelete: "cascade" }),
-    diaryEntryId: uuid("diary_entry_id").references(() => diaryEntries.id, {
-      onDelete: "set null",
-    }),
+    mediaType: text("media_type").notNull().default("movie"),
+    mediaSource: text("media_source").notNull().default("tmdb"),
+    mediaSourceId: text("media_source_id").notNull(),
+    movieId: integer("movie_id").references(() => movies.id, { onDelete: "cascade" }),
+    diaryEntryId: uuid("diary_entry_id"),
     content: text("content").notNull(),
     containsSpoilers: boolean("contains_spoilers").default(false).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -37,7 +35,12 @@ export const reviews = pgTable(
       .notNull(),
   },
   (table) => [
-    unique("reviews_user_movie_unique").on(table.userId, table.movieId),
+    unique("reviews_user_media_unique").on(
+      table.userId,
+      table.mediaType,
+      table.mediaSource,
+      table.mediaSourceId,
+    ),
   ],
 );
 

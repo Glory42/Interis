@@ -1,0 +1,1 @@
+export const REVIEW_ACTIVITY_EXCERPT_LENGTH = 120;

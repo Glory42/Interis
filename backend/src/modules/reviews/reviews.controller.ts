@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
-import { z } from "zod";
+import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
+import { sendValidationError } from "../../commons/http/validation-response.helper";
 import { ReviewsService } from "./reviews.service";
 import {
   CreateReviewSchema,
@@ -23,7 +24,7 @@ export class ReviewsController {
   static async create(req: Request, res: Response): Promise<void> {
     const parsed = CreateReviewSchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ error: z.flattenError(parsed.error) });
+      sendValidationError(res, parsed.error);
       return;
     }
 
@@ -37,7 +38,7 @@ export class ReviewsController {
   ): Promise<void> {
     const parsed = UpdateReviewSchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ error: z.flattenError(parsed.error) });
+      sendValidationError(res, parsed.error);
       return;
     }
 
@@ -69,7 +70,8 @@ export class ReviewsController {
     req: Request<{ id: string }>,
     res: Response,
   ): Promise<void> {
-    const comments = await ReviewsService.getComments(req.params.id);
+    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
+    const comments = await ReviewsService.getComments(req.params.id, viewerUserId);
     res.status(200).json(comments);
   }
 
@@ -79,7 +81,7 @@ export class ReviewsController {
   ): Promise<void> {
     const parsed = ReviewCommentSchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ error: z.flattenError(parsed.error) });
+      sendValidationError(res, parsed.error);
       return;
     }
 
@@ -125,32 +127,6 @@ export class ReviewsController {
     const result = await ReviewsService.unlikeReview(
       req.user.id,
       req.params.id,
-    );
-    if (!result) {
-      res.status(404).json({ error: "Like not found" });
-      return;
-    }
-    res.status(200).json({ liked: false });
-  }
-
-  static async likeComment(
-    req: Request<{ commentId: string }>,
-    res: Response,
-  ): Promise<void> {
-    const result = await ReviewsService.likeComment(
-      req.user.id,
-      req.params.commentId,
-    );
-    res.status(200).json(result);
-  }
-
-  static async unlikeComment(
-    req: Request<{ commentId: string }>,
-    res: Response,
-  ): Promise<void> {
-    const result = await ReviewsService.unlikeComment(
-      req.user.id,
-      req.params.commentId,
     );
     if (!result) {
       res.status(404).json({ error: "Like not found" });

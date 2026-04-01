@@ -37,15 +37,5 @@ router.delete(
   requireAuth,
   asyncHandler(ReviewsController.unlikeReview),
 );
-router.post(
-  "/comments/:commentId/like",
-  requireAuth,
-  asyncHandler(ReviewsController.likeComment),
-);
-router.delete(
-  "/comments/:commentId/like",
-  requireAuth,
-  asyncHandler(ReviewsController.unlikeComment),
-);
 
 export default router;
