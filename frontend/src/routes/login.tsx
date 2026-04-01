@@ -16,7 +16,7 @@ export const Route = createFileRoute("/login")({
   beforeLoad: async ({ context }) => {
     const user = await context.queryClient.ensureQueryData(authQueryOptions);
     if (user) {
-      throw redirect({ to: "/films" });
+      throw redirect({ to: "/cinema" });
     }
   },
   component: LoginPage,
