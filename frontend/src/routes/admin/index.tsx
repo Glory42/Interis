@@ -1,21 +1,38 @@
-import { Navigate, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { Card, CardContent } from "@/components/ui/card";
 import { AdminPlaceholder } from "@/features/admin/components/AdminPlaceholder";
-import { useAuth } from "@/features/auth/hooks/useAuth";
+import { authQueryOptions, useAuth } from "@/features/auth/hooks/useAuth";
 
 export const Route = createFileRoute("/admin/")({
+  beforeLoad: async ({ context, location }) => {
+    const user = await context.queryClient.ensureQueryData(authQueryOptions);
+    if (!user) {
+      throw redirect({
+        to: "/login",
+        search: { redirect: location.pathname },
+      });
+    }
+  },
   component: AdminPage,
 });
 
 function AdminPage() {
   const { user, isUserLoading } = useAuth();
 
-  if (!isUserLoading && !user) {
-    return <Navigate to="/login" search={{ redirect: "/admin" }} />;
+  if (isUserLoading || !user) {
+    return (
+      <PageWrapper>
+        <Card>
+          <CardContent className="p-4 text-sm text-muted-foreground">
+            Loading admin access...
+          </CardContent>
+        </Card>
+      </PageWrapper>
+    );
   }
 
-  if (!isUserLoading && user && !user.isAdmin) {
+  if (!user.isAdmin) {
     return (
       <PageWrapper title="Forbidden">
         <Card>

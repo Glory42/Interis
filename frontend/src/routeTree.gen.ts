@@ -9,25 +9,35 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as EchoesRouteImport } from './routes/echoes'
+import { Route as CodexRouteImport } from './routes/codex'
+import { Route as SettingsRouteRouteImport } from './routes/settings/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsIndexRouteImport } from './routes/settings/index'
+import { Route as SerialsIndexRouteImport } from './routes/serials/index'
 import { Route as FilmsIndexRouteImport } from './routes/films/index'
+import { Route as CinemaIndexRouteImport } from './routes/cinema/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as SettingsThemeRouteImport } from './routes/settings/theme'
+import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
+import { Route as SettingsAuthRouteImport } from './routes/settings/auth'
+import { Route as SerialsTmdbIdRouteImport } from './routes/serials/$tmdbId'
 import { Route as FilmsTmdbIdRouteImport } from './routes/films/$tmdbId'
+import { Route as CinemaTmdbIdRouteImport } from './routes/cinema/$tmdbId'
+import { Route as ProfileUsernameRouteRouteImport } from './routes/profile/$username/route'
 import { Route as ProfileUsernameIndexRouteImport } from './routes/profile/$username/index'
+import { Route as ReviewsUsernameReviewIdRouteImport } from './routes/reviews/$username/$reviewId'
+import { Route as ProfileUsernameWatchlistRouteImport } from './routes/profile/$username/watchlist'
 import { Route as ProfileUsernameReviewsRouteImport } from './routes/profile/$username/reviews'
+import { Route as ProfileUsernameLikedRouteImport } from './routes/profile/$username/liked'
 import { Route as ProfileUsernameFilmsRouteImport } from './routes/profile/$username/films'
 import { Route as ProfileUsernameDiaryRouteImport } from './routes/profile/$username/diary'
+import { Route as ProfileUsernameCinemaRouteImport } from './routes/profile/$username/cinema'
 import { Route as ProfileUsernameListsIndexRouteImport } from './routes/profile/$username/lists/index'
 import { Route as ProfileUsernameListsListIdRouteImport } from './routes/profile/$username/lists/$listId'
 
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -38,9 +48,34 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EchoesRoute = EchoesRouteImport.update({
+  id: '/echoes',
+  path: '/echoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CodexRoute = CodexRouteImport.update({
+  id: '/codex',
+  path: '/codex',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRouteRoute = SettingsRouteRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SettingsRouteRoute,
+} as any)
+const SerialsIndexRoute = SerialsIndexRouteImport.update({
+  id: '/serials/',
+  path: '/serials/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FilmsIndexRoute = FilmsIndexRouteImport.update({
@@ -48,9 +83,34 @@ const FilmsIndexRoute = FilmsIndexRouteImport.update({
   path: '/films/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CinemaIndexRoute = CinemaIndexRouteImport.update({
+  id: '/cinema/',
+  path: '/cinema/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsThemeRoute = SettingsThemeRouteImport.update({
+  id: '/theme',
+  path: '/theme',
+  getParentRoute: () => SettingsRouteRoute,
+} as any)
+const SettingsProfileRoute = SettingsProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => SettingsRouteRoute,
+} as any)
+const SettingsAuthRoute = SettingsAuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => SettingsRouteRoute,
+} as any)
+const SerialsTmdbIdRoute = SerialsTmdbIdRouteImport.update({
+  id: '/serials/$tmdbId',
+  path: '/serials/$tmdbId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FilmsTmdbIdRoute = FilmsTmdbIdRouteImport.update({
@@ -58,65 +118,124 @@ const FilmsTmdbIdRoute = FilmsTmdbIdRouteImport.update({
   path: '/films/$tmdbId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProfileUsernameIndexRoute = ProfileUsernameIndexRouteImport.update({
-  id: '/profile/$username/',
-  path: '/profile/$username/',
+const CinemaTmdbIdRoute = CinemaTmdbIdRouteImport.update({
+  id: '/cinema/$tmdbId',
+  path: '/cinema/$tmdbId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProfileUsernameReviewsRoute = ProfileUsernameReviewsRouteImport.update({
-  id: '/profile/$username/reviews',
-  path: '/profile/$username/reviews',
+const ProfileUsernameRouteRoute = ProfileUsernameRouteRouteImport.update({
+  id: '/profile/$username',
+  path: '/profile/$username',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileUsernameIndexRoute = ProfileUsernameIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProfileUsernameRouteRoute,
+} as any)
+const ReviewsUsernameReviewIdRoute = ReviewsUsernameReviewIdRouteImport.update({
+  id: '/reviews/$username/$reviewId',
+  path: '/reviews/$username/$reviewId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileUsernameWatchlistRoute =
+  ProfileUsernameWatchlistRouteImport.update({
+    id: '/watchlist',
+    path: '/watchlist',
+    getParentRoute: () => ProfileUsernameRouteRoute,
+  } as any)
+const ProfileUsernameReviewsRoute = ProfileUsernameReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => ProfileUsernameRouteRoute,
+} as any)
+const ProfileUsernameLikedRoute = ProfileUsernameLikedRouteImport.update({
+  id: '/liked',
+  path: '/liked',
+  getParentRoute: () => ProfileUsernameRouteRoute,
 } as any)
 const ProfileUsernameFilmsRoute = ProfileUsernameFilmsRouteImport.update({
-  id: '/profile/$username/films',
-  path: '/profile/$username/films',
-  getParentRoute: () => rootRouteImport,
+  id: '/films',
+  path: '/films',
+  getParentRoute: () => ProfileUsernameRouteRoute,
 } as any)
 const ProfileUsernameDiaryRoute = ProfileUsernameDiaryRouteImport.update({
-  id: '/profile/$username/diary',
-  path: '/profile/$username/diary',
-  getParentRoute: () => rootRouteImport,
+  id: '/diary',
+  path: '/diary',
+  getParentRoute: () => ProfileUsernameRouteRoute,
+} as any)
+const ProfileUsernameCinemaRoute = ProfileUsernameCinemaRouteImport.update({
+  id: '/cinema',
+  path: '/cinema',
+  getParentRoute: () => ProfileUsernameRouteRoute,
 } as any)
 const ProfileUsernameListsIndexRoute =
   ProfileUsernameListsIndexRouteImport.update({
-    id: '/profile/$username/lists/',
-    path: '/profile/$username/lists/',
-    getParentRoute: () => rootRouteImport,
+    id: '/lists/',
+    path: '/lists/',
+    getParentRoute: () => ProfileUsernameRouteRoute,
   } as any)
 const ProfileUsernameListsListIdRoute =
   ProfileUsernameListsListIdRouteImport.update({
-    id: '/profile/$username/lists/$listId',
-    path: '/profile/$username/lists/$listId',
-    getParentRoute: () => rootRouteImport,
+    id: '/lists/$listId',
+    path: '/lists/$listId',
+    getParentRoute: () => ProfileUsernameRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRouteRouteWithChildren
+  '/codex': typeof CodexRoute
+  '/echoes': typeof EchoesRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/settings': typeof SettingsRoute
+  '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
+  '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
+  '/serials/$tmdbId': typeof SerialsTmdbIdRoute
+  '/settings/auth': typeof SettingsAuthRoute
+  '/settings/profile': typeof SettingsProfileRoute
+  '/settings/theme': typeof SettingsThemeRoute
   '/admin/': typeof AdminIndexRoute
+  '/cinema/': typeof CinemaIndexRoute
   '/films/': typeof FilmsIndexRoute
+  '/serials/': typeof SerialsIndexRoute
+  '/settings/': typeof SettingsIndexRoute
+  '/profile/$username/cinema': typeof ProfileUsernameCinemaRoute
   '/profile/$username/diary': typeof ProfileUsernameDiaryRoute
   '/profile/$username/films': typeof ProfileUsernameFilmsRoute
+  '/profile/$username/liked': typeof ProfileUsernameLikedRoute
   '/profile/$username/reviews': typeof ProfileUsernameReviewsRoute
+  '/profile/$username/watchlist': typeof ProfileUsernameWatchlistRoute
+  '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
   '/profile/$username/': typeof ProfileUsernameIndexRoute
   '/profile/$username/lists/$listId': typeof ProfileUsernameListsListIdRoute
   '/profile/$username/lists/': typeof ProfileUsernameListsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/codex': typeof CodexRoute
+  '/echoes': typeof EchoesRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/settings': typeof SettingsRoute
+  '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
+  '/serials/$tmdbId': typeof SerialsTmdbIdRoute
+  '/settings/auth': typeof SettingsAuthRoute
+  '/settings/profile': typeof SettingsProfileRoute
+  '/settings/theme': typeof SettingsThemeRoute
   '/admin': typeof AdminIndexRoute
+  '/cinema': typeof CinemaIndexRoute
   '/films': typeof FilmsIndexRoute
+  '/serials': typeof SerialsIndexRoute
+  '/settings': typeof SettingsIndexRoute
+  '/profile/$username/cinema': typeof ProfileUsernameCinemaRoute
   '/profile/$username/diary': typeof ProfileUsernameDiaryRoute
   '/profile/$username/films': typeof ProfileUsernameFilmsRoute
+  '/profile/$username/liked': typeof ProfileUsernameLikedRoute
   '/profile/$username/reviews': typeof ProfileUsernameReviewsRoute
+  '/profile/$username/watchlist': typeof ProfileUsernameWatchlistRoute
+  '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
   '/profile/$username': typeof ProfileUsernameIndexRoute
   '/profile/$username/lists/$listId': typeof ProfileUsernameListsListIdRoute
   '/profile/$username/lists': typeof ProfileUsernameListsIndexRoute
@@ -124,15 +243,30 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRouteRouteWithChildren
+  '/codex': typeof CodexRoute
+  '/echoes': typeof EchoesRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/settings': typeof SettingsRoute
+  '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
+  '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
+  '/serials/$tmdbId': typeof SerialsTmdbIdRoute
+  '/settings/auth': typeof SettingsAuthRoute
+  '/settings/profile': typeof SettingsProfileRoute
+  '/settings/theme': typeof SettingsThemeRoute
   '/admin/': typeof AdminIndexRoute
+  '/cinema/': typeof CinemaIndexRoute
   '/films/': typeof FilmsIndexRoute
+  '/serials/': typeof SerialsIndexRoute
+  '/settings/': typeof SettingsIndexRoute
+  '/profile/$username/cinema': typeof ProfileUsernameCinemaRoute
   '/profile/$username/diary': typeof ProfileUsernameDiaryRoute
   '/profile/$username/films': typeof ProfileUsernameFilmsRoute
+  '/profile/$username/liked': typeof ProfileUsernameLikedRoute
   '/profile/$username/reviews': typeof ProfileUsernameReviewsRoute
+  '/profile/$username/watchlist': typeof ProfileUsernameWatchlistRoute
+  '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
   '/profile/$username/': typeof ProfileUsernameIndexRoute
   '/profile/$username/lists/$listId': typeof ProfileUsernameListsListIdRoute
   '/profile/$username/lists/': typeof ProfileUsernameListsIndexRoute
@@ -141,45 +275,88 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/settings'
+    | '/codex'
+    | '/echoes'
     | '/login'
     | '/register'
-    | '/settings'
+    | '/profile/$username'
+    | '/cinema/$tmdbId'
     | '/films/$tmdbId'
+    | '/serials/$tmdbId'
+    | '/settings/auth'
+    | '/settings/profile'
+    | '/settings/theme'
     | '/admin/'
+    | '/cinema/'
     | '/films/'
+    | '/serials/'
+    | '/settings/'
+    | '/profile/$username/cinema'
     | '/profile/$username/diary'
     | '/profile/$username/films'
+    | '/profile/$username/liked'
     | '/profile/$username/reviews'
+    | '/profile/$username/watchlist'
+    | '/reviews/$username/$reviewId'
     | '/profile/$username/'
     | '/profile/$username/lists/$listId'
     | '/profile/$username/lists/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/codex'
+    | '/echoes'
     | '/login'
     | '/register'
-    | '/settings'
+    | '/cinema/$tmdbId'
     | '/films/$tmdbId'
+    | '/serials/$tmdbId'
+    | '/settings/auth'
+    | '/settings/profile'
+    | '/settings/theme'
     | '/admin'
+    | '/cinema'
     | '/films'
+    | '/serials'
+    | '/settings'
+    | '/profile/$username/cinema'
     | '/profile/$username/diary'
     | '/profile/$username/films'
+    | '/profile/$username/liked'
     | '/profile/$username/reviews'
+    | '/profile/$username/watchlist'
+    | '/reviews/$username/$reviewId'
     | '/profile/$username'
     | '/profile/$username/lists/$listId'
     | '/profile/$username/lists'
   id:
     | '__root__'
     | '/'
+    | '/settings'
+    | '/codex'
+    | '/echoes'
     | '/login'
     | '/register'
-    | '/settings'
+    | '/profile/$username'
+    | '/cinema/$tmdbId'
     | '/films/$tmdbId'
+    | '/serials/$tmdbId'
+    | '/settings/auth'
+    | '/settings/profile'
+    | '/settings/theme'
     | '/admin/'
+    | '/cinema/'
     | '/films/'
+    | '/serials/'
+    | '/settings/'
+    | '/profile/$username/cinema'
     | '/profile/$username/diary'
     | '/profile/$username/films'
+    | '/profile/$username/liked'
     | '/profile/$username/reviews'
+    | '/profile/$username/watchlist'
+    | '/reviews/$username/$reviewId'
     | '/profile/$username/'
     | '/profile/$username/lists/$listId'
     | '/profile/$username/lists/'
@@ -187,29 +364,24 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SettingsRouteRoute: typeof SettingsRouteRouteWithChildren
+  CodexRoute: typeof CodexRoute
+  EchoesRoute: typeof EchoesRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
-  SettingsRoute: typeof SettingsRoute
+  ProfileUsernameRouteRoute: typeof ProfileUsernameRouteRouteWithChildren
+  CinemaTmdbIdRoute: typeof CinemaTmdbIdRoute
   FilmsTmdbIdRoute: typeof FilmsTmdbIdRoute
+  SerialsTmdbIdRoute: typeof SerialsTmdbIdRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  CinemaIndexRoute: typeof CinemaIndexRoute
   FilmsIndexRoute: typeof FilmsIndexRoute
-  ProfileUsernameDiaryRoute: typeof ProfileUsernameDiaryRoute
-  ProfileUsernameFilmsRoute: typeof ProfileUsernameFilmsRoute
-  ProfileUsernameReviewsRoute: typeof ProfileUsernameReviewsRoute
-  ProfileUsernameIndexRoute: typeof ProfileUsernameIndexRoute
-  ProfileUsernameListsListIdRoute: typeof ProfileUsernameListsListIdRoute
-  ProfileUsernameListsIndexRoute: typeof ProfileUsernameListsIndexRoute
+  SerialsIndexRoute: typeof SerialsIndexRoute
+  ReviewsUsernameReviewIdRoute: typeof ReviewsUsernameReviewIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -224,11 +396,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/echoes': {
+      id: '/echoes'
+      path: '/echoes'
+      fullPath: '/echoes'
+      preLoaderRoute: typeof EchoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/codex': {
+      id: '/codex'
+      path: '/codex'
+      fullPath: '/codex'
+      preLoaderRoute: typeof CodexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/': {
+      id: '/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
+    '/serials/': {
+      id: '/serials/'
+      path: '/serials'
+      fullPath: '/serials/'
+      preLoaderRoute: typeof SerialsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/films/': {
@@ -238,11 +445,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FilmsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cinema/': {
+      id: '/cinema/'
+      path: '/cinema'
+      fullPath: '/cinema/'
+      preLoaderRoute: typeof CinemaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/': {
       id: '/admin/'
       path: '/admin'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/theme': {
+      id: '/settings/theme'
+      path: '/theme'
+      fullPath: '/settings/theme'
+      preLoaderRoute: typeof SettingsThemeRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
+    '/settings/profile': {
+      id: '/settings/profile'
+      path: '/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof SettingsProfileRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
+    '/settings/auth': {
+      id: '/settings/auth'
+      path: '/auth'
+      fullPath: '/settings/auth'
+      preLoaderRoute: typeof SettingsAuthRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
+    '/serials/$tmdbId': {
+      id: '/serials/$tmdbId'
+      path: '/serials/$tmdbId'
+      fullPath: '/serials/$tmdbId'
+      preLoaderRoute: typeof SerialsTmdbIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/films/$tmdbId': {
@@ -252,65 +494,154 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FilmsTmdbIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cinema/$tmdbId': {
+      id: '/cinema/$tmdbId'
+      path: '/cinema/$tmdbId'
+      fullPath: '/cinema/$tmdbId'
+      preLoaderRoute: typeof CinemaTmdbIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/$username': {
+      id: '/profile/$username'
+      path: '/profile/$username'
+      fullPath: '/profile/$username'
+      preLoaderRoute: typeof ProfileUsernameRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile/$username/': {
       id: '/profile/$username/'
-      path: '/profile/$username'
+      path: '/'
       fullPath: '/profile/$username/'
       preLoaderRoute: typeof ProfileUsernameIndexRouteImport
+      parentRoute: typeof ProfileUsernameRouteRoute
+    }
+    '/reviews/$username/$reviewId': {
+      id: '/reviews/$username/$reviewId'
+      path: '/reviews/$username/$reviewId'
+      fullPath: '/reviews/$username/$reviewId'
+      preLoaderRoute: typeof ReviewsUsernameReviewIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/profile/$username/watchlist': {
+      id: '/profile/$username/watchlist'
+      path: '/watchlist'
+      fullPath: '/profile/$username/watchlist'
+      preLoaderRoute: typeof ProfileUsernameWatchlistRouteImport
+      parentRoute: typeof ProfileUsernameRouteRoute
     }
     '/profile/$username/reviews': {
       id: '/profile/$username/reviews'
-      path: '/profile/$username/reviews'
+      path: '/reviews'
       fullPath: '/profile/$username/reviews'
       preLoaderRoute: typeof ProfileUsernameReviewsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ProfileUsernameRouteRoute
+    }
+    '/profile/$username/liked': {
+      id: '/profile/$username/liked'
+      path: '/liked'
+      fullPath: '/profile/$username/liked'
+      preLoaderRoute: typeof ProfileUsernameLikedRouteImport
+      parentRoute: typeof ProfileUsernameRouteRoute
     }
     '/profile/$username/films': {
       id: '/profile/$username/films'
-      path: '/profile/$username/films'
+      path: '/films'
       fullPath: '/profile/$username/films'
       preLoaderRoute: typeof ProfileUsernameFilmsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ProfileUsernameRouteRoute
     }
     '/profile/$username/diary': {
       id: '/profile/$username/diary'
-      path: '/profile/$username/diary'
+      path: '/diary'
       fullPath: '/profile/$username/diary'
       preLoaderRoute: typeof ProfileUsernameDiaryRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ProfileUsernameRouteRoute
+    }
+    '/profile/$username/cinema': {
+      id: '/profile/$username/cinema'
+      path: '/cinema'
+      fullPath: '/profile/$username/cinema'
+      preLoaderRoute: typeof ProfileUsernameCinemaRouteImport
+      parentRoute: typeof ProfileUsernameRouteRoute
     }
     '/profile/$username/lists/': {
       id: '/profile/$username/lists/'
-      path: '/profile/$username/lists'
+      path: '/lists'
       fullPath: '/profile/$username/lists/'
       preLoaderRoute: typeof ProfileUsernameListsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ProfileUsernameRouteRoute
     }
     '/profile/$username/lists/$listId': {
       id: '/profile/$username/lists/$listId'
-      path: '/profile/$username/lists/$listId'
+      path: '/lists/$listId'
       fullPath: '/profile/$username/lists/$listId'
       preLoaderRoute: typeof ProfileUsernameListsListIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ProfileUsernameRouteRoute
     }
   }
 }
 
-const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  LoginRoute: LoginRoute,
-  RegisterRoute: RegisterRoute,
-  SettingsRoute: SettingsRoute,
-  FilmsTmdbIdRoute: FilmsTmdbIdRoute,
-  AdminIndexRoute: AdminIndexRoute,
-  FilmsIndexRoute: FilmsIndexRoute,
+interface SettingsRouteRouteChildren {
+  SettingsAuthRoute: typeof SettingsAuthRoute
+  SettingsProfileRoute: typeof SettingsProfileRoute
+  SettingsThemeRoute: typeof SettingsThemeRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
+}
+
+const SettingsRouteRouteChildren: SettingsRouteRouteChildren = {
+  SettingsAuthRoute: SettingsAuthRoute,
+  SettingsProfileRoute: SettingsProfileRoute,
+  SettingsThemeRoute: SettingsThemeRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
+}
+
+const SettingsRouteRouteWithChildren = SettingsRouteRoute._addFileChildren(
+  SettingsRouteRouteChildren,
+)
+
+interface ProfileUsernameRouteRouteChildren {
+  ProfileUsernameCinemaRoute: typeof ProfileUsernameCinemaRoute
+  ProfileUsernameDiaryRoute: typeof ProfileUsernameDiaryRoute
+  ProfileUsernameFilmsRoute: typeof ProfileUsernameFilmsRoute
+  ProfileUsernameLikedRoute: typeof ProfileUsernameLikedRoute
+  ProfileUsernameReviewsRoute: typeof ProfileUsernameReviewsRoute
+  ProfileUsernameWatchlistRoute: typeof ProfileUsernameWatchlistRoute
+  ProfileUsernameIndexRoute: typeof ProfileUsernameIndexRoute
+  ProfileUsernameListsListIdRoute: typeof ProfileUsernameListsListIdRoute
+  ProfileUsernameListsIndexRoute: typeof ProfileUsernameListsIndexRoute
+}
+
+const ProfileUsernameRouteRouteChildren: ProfileUsernameRouteRouteChildren = {
+  ProfileUsernameCinemaRoute: ProfileUsernameCinemaRoute,
   ProfileUsernameDiaryRoute: ProfileUsernameDiaryRoute,
   ProfileUsernameFilmsRoute: ProfileUsernameFilmsRoute,
+  ProfileUsernameLikedRoute: ProfileUsernameLikedRoute,
   ProfileUsernameReviewsRoute: ProfileUsernameReviewsRoute,
+  ProfileUsernameWatchlistRoute: ProfileUsernameWatchlistRoute,
   ProfileUsernameIndexRoute: ProfileUsernameIndexRoute,
   ProfileUsernameListsListIdRoute: ProfileUsernameListsListIdRoute,
   ProfileUsernameListsIndexRoute: ProfileUsernameListsIndexRoute,
+}
+
+const ProfileUsernameRouteRouteWithChildren =
+  ProfileUsernameRouteRoute._addFileChildren(ProfileUsernameRouteRouteChildren)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  SettingsRouteRoute: SettingsRouteRouteWithChildren,
+  CodexRoute: CodexRoute,
+  EchoesRoute: EchoesRoute,
+  LoginRoute: LoginRoute,
+  RegisterRoute: RegisterRoute,
+  ProfileUsernameRouteRoute: ProfileUsernameRouteRouteWithChildren,
+  CinemaTmdbIdRoute: CinemaTmdbIdRoute,
+  FilmsTmdbIdRoute: FilmsTmdbIdRoute,
+  SerialsTmdbIdRoute: SerialsTmdbIdRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  CinemaIndexRoute: CinemaIndexRoute,
+  FilmsIndexRoute: FilmsIndexRoute,
+  SerialsIndexRoute: SerialsIndexRoute,
+  ReviewsUsernameReviewIdRoute: ReviewsUsernameReviewIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
