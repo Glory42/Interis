@@ -1,6 +1,14 @@
 import type { Request, Response } from "express";
+import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
+import { sendBadRequest } from "../../commons/http/validation-response.helper";
+import { parseTmdbIdParam } from "../../commons/validation/params.helper";
 import { MoviesService } from "./movies.service";
-import type { MovieParams, SearchMoviesQuery } from "./dto/movies.dto";
+import type {
+  CinemaArchiveQuery,
+  MovieDetailQuery,
+  MovieParams,
+  SearchMoviesQuery,
+} from "./dto/movies.dto";
 
 export class MoviesController {
   static async search(
@@ -9,7 +17,7 @@ export class MoviesController {
   ): Promise<void> {
     const query = req.query.query?.trim();
     if (!query) {
-      res.status(400).json({ error: "Search query is required" });
+      sendBadRequest(res, "Search query is required");
       return;
     }
 
@@ -21,9 +29,9 @@ export class MoviesController {
     req: Request<MovieParams>,
     res: Response,
   ): Promise<void> {
-    const tmdbId = Number.parseInt(req.params.tmdbId, 10);
-    if (Number.isNaN(tmdbId)) {
-      res.status(400).json({ error: "Invalid movie ID" });
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
+    if (tmdbId === null) {
+      sendBadRequest(res, "Invalid movie ID");
       return;
     }
 
@@ -36,9 +44,53 @@ export class MoviesController {
     res.status(200).json(movie);
   }
 
+  static async getDetailByTmdbId(
+    req: Request<MovieParams, {}, {}, MovieDetailQuery>,
+    res: Response,
+  ): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
+    if (tmdbId === null) {
+      sendBadRequest(res, "Invalid movie ID");
+      return;
+    }
+
+    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
+
+    const detail = await MoviesService.getDetail({
+      tmdbId,
+      viewerUserId,
+      reviewsSort: req.query.reviewsSort,
+    });
+
+    if (!detail) {
+      res.status(404).json({ error: "Movie not found" });
+      return;
+    }
+
+    res.setHeader("Cache-Control", "no-store");
+    res.status(200).json(detail);
+  }
+
   static async getRecent(_req: Request, res: Response): Promise<void> {
     const movies = await MoviesService.getRecent();
     res.status(200).json(movies);
+  }
+
+  static async getArchive(
+    req: Request<{}, {}, {}, CinemaArchiveQuery>,
+    res: Response,
+  ): Promise<void> {
+    const archive = await MoviesService.getArchive({
+      genre: req.query.genre,
+      language: req.query.language,
+      sort: req.query.sort,
+      period: req.query.period,
+      page: req.query.page,
+      limit: req.query.limit,
+    });
+
+    res.setHeader("Cache-Control", "no-store");
+    res.status(200).json(archive);
   }
 
   static async getTrending(_req: Request, res: Response): Promise<void> {
@@ -51,9 +103,9 @@ export class MoviesController {
     req: Request<MovieParams>,
     res: Response,
   ): Promise<void> {
-    const tmdbId = Number.parseInt(req.params.tmdbId, 10);
-    if (Number.isNaN(tmdbId)) {
-      res.status(400).json({ error: "Invalid movie ID" });
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
+    if (tmdbId === null) {
+      sendBadRequest(res, "Invalid movie ID");
       return;
     }
 
