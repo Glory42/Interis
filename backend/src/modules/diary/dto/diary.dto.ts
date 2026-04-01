@@ -1,20 +1,24 @@
 import { z } from "zod";
+import { isoDateSchema } from "../../../commons/validation/common.schemas";
+
+const ratingOutOfFiveSchema = z
+  .number()
+  .min(0.5)
+  .max(5)
+  .multipleOf(0.5);
 
 export const CreateDiarySchema = z.object({
   tmdbId: z.number().int().positive(),
-  watchedDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD"),
-  rating: z.number().int().min(0).max(10).optional(),
+  watchedDate: isoDateSchema,
+  ratingOutOfFive: ratingOutOfFiveSchema.optional(),
   rewatch: z.boolean().optional(),
   review: z.string().max(5000).optional(),
   containsSpoilers: z.boolean().optional(),
 });
 
 export const UpdateDiarySchema = z.object({
-  watchedDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
-  rating: z.number().int().min(0).max(10).nullable().optional(),
+  watchedDate: isoDateSchema.optional(),
+  ratingOutOfFive: ratingOutOfFiveSchema.nullable().optional(),
   rewatch: z.boolean().optional(),
 });
 
