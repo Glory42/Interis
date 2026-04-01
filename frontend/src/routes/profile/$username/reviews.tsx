@@ -3,7 +3,6 @@ import { Star } from "lucide-react";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import { getPosterUrl } from "@/features/films/components/utils";
 import { useUserReviews } from "@/features/profile/hooks/useProfile";
-import { ProfileLayout } from "@/features/profile/layout/ProfileLayout";
 
 export const Route = createFileRoute("/profile/$username/reviews")({
   component: ProfileReviewsPage,
@@ -29,7 +28,7 @@ function ProfileReviewsPage() {
   const reviews = reviewsQuery.data ?? [];
 
   return (
-    <ProfileLayout username={username} activeTab="reviews">
+    <>
       {reviewsQuery.isPending ? (
         <div className="rounded-2xl border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
           Loading reviews...
@@ -57,25 +56,46 @@ function ProfileReviewsPage() {
             className="rounded-2xl border border-border/60 bg-card/30 p-3 sm:p-4"
           >
             <div className="grid gap-3 sm:grid-cols-[84px_1fr]">
-              <Link
-                to="/films/$tmdbId"
-                params={{ tmdbId: String(entry.tmdbId) }}
-                className="block"
-                viewTransition
-              >
-                <img
-                  src={getPosterUrl(entry.posterPath)}
-                  alt={`${entry.title} poster`}
-                  className="h-[126px] w-[84px] rounded-lg border border-border/60 object-cover"
-                  loading="lazy"
-                />
-              </Link>
+              {entry.mediaType === "tv" ? (
+                <Link
+                  to="/serials/$tmdbId"
+                  params={{ tmdbId: String(entry.tmdbId) }}
+                  className="block"
+                  viewTransition
+                >
+                  <img
+                    src={getPosterUrl(entry.posterPath)}
+                    alt={`${entry.title} poster`}
+                    className="h-[126px] w-[84px] rounded-lg border border-border/60 object-cover"
+                    loading="lazy"
+                  />
+                </Link>
+              ) : (
+                <Link
+                  to="/cinema/$tmdbId"
+                  params={{ tmdbId: String(entry.tmdbId) }}
+                  className="block"
+                  viewTransition
+                >
+                  <img
+                    src={getPosterUrl(entry.posterPath)}
+                    alt={`${entry.title} poster`}
+                    className="h-[126px] w-[84px] rounded-lg border border-border/60 object-cover"
+                    loading="lazy"
+                  />
+                </Link>
+              )}
 
               <div className="space-y-2">
-                <p className="text-sm font-semibold text-foreground">
+                <Link
+                  to="/reviews/$username/$reviewId"
+                  params={{ username, reviewId: entry.id }}
+                  className="block text-sm font-semibold text-foreground hover:text-primary"
+                  viewTransition
+                >
                   {entry.title}
                   {entry.releaseYear ? ` (${entry.releaseYear})` : ""}
-                </p>
+                </Link>
                 <p className="text-xs text-muted-foreground">
                   Reviewed on {formatDate(entry.createdAt)}
                 </p>
@@ -84,14 +104,19 @@ function ProfileReviewsPage() {
                     Contains spoilers
                   </p>
                 ) : null}
-                <p className="whitespace-pre-wrap text-sm text-foreground/95">
+                <Link
+                  to="/reviews/$username/$reviewId"
+                  params={{ username, reviewId: entry.id }}
+                  className="block whitespace-pre-wrap text-sm text-foreground/95 hover:text-foreground"
+                  viewTransition
+                >
                   {entry.content}
-                </p>
+                </Link>
               </div>
             </div>
           </article>
         ))}
       </div>
-    </ProfileLayout>
+    </>
   );
 }

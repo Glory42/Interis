@@ -1,5 +1,7 @@
 type ProfileStatsGridProps = {
   diaryEntries: number;
+  followers: number;
+  following: number;
   reviews: number;
   filmsLogged: number;
   lists: number;
@@ -11,8 +13,8 @@ type ProfileStatCardProps = {
 };
 
 const ProfileStatCard = ({ value, label }: ProfileStatCardProps) => (
-  <div className="rounded-2xl border border-border/50 bg-card/30 p-5 text-center">
-    <p className="text-2xl font-black text-foreground">{value}</p>
+  <div className="rounded-xl border border-border/55 bg-card/30 px-3 py-3 text-center">
+    <p className="text-xl font-black text-foreground">{value}</p>
     <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
       {label}
     </p>
@@ -21,13 +23,17 @@ const ProfileStatCard = ({ value, label }: ProfileStatCardProps) => (
 
 export const ProfileStatsGrid = ({
   diaryEntries,
+  followers,
+  following,
   reviews,
   filmsLogged,
   lists,
 }: ProfileStatsGridProps) => {
   return (
-    <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
+    <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
       <ProfileStatCard value={diaryEntries} label="Diary Entries" />
+      <ProfileStatCard value={followers} label="Followers" />
+      <ProfileStatCard value={following} label="Following" />
       <ProfileStatCard value={reviews} label="Reviews" />
       <ProfileStatCard value={filmsLogged} label="Films Logged" />
       <ProfileStatCard value={lists} label="Lists" />

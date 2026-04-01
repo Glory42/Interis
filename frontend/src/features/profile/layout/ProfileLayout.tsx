@@ -150,6 +150,8 @@ export const ProfileLayout = ({
   }
 
   const diaryEntries = profile.stats?.entryCount ?? 0;
+  const followerCount = profile.stats?.followerCount ?? 0;
+  const followingCount = profile.stats?.followingCount ?? 0;
   const reviewCount = profile.stats?.reviewCount ?? 0;
   const filmCount = profile.stats?.filmCount ?? diaryEntries;
   const listCount = profile.stats?.listCount ?? 0;
@@ -171,6 +173,8 @@ export const ProfileLayout = ({
       <div className="mx-auto w-full max-w-6xl px-4 pb-8">
         <ProfileStatsGrid
           diaryEntries={diaryEntries}
+          followers={followerCount}
+          following={followingCount}
           reviews={reviewCount}
           filmsLogged={filmCount}
           lists={listCount}

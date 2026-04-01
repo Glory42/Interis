@@ -33,12 +33,12 @@ export const ProfileHero = ({
 
   return (
     <>
-      <div className="relative h-60 overflow-hidden">
+      <div className="theme-hero-shell relative h-60 overflow-hidden">
         {backdropUrl ? (
           <img
             src={backdropUrl}
             alt="Profile backdrop"
-            className="h-full w-full object-cover opacity-40"
+            className="theme-hero-media h-full w-full object-cover opacity-40"
             onError={() => {
               if (rawBackdropUrl) {
                 setFailedBackdropUrl(rawBackdropUrl);
@@ -46,9 +46,11 @@ export const ProfileHero = ({
             }}
           />
         ) : (
-          <div className="h-full w-full bg-secondary/40" />
+          <div className="theme-hero-media h-full w-full bg-secondary/40" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/40 to-background" />
+        <div className="theme-hero-gradient-layer absolute inset-0" />
+        <div className="theme-hero-pattern-layer absolute inset-0" />
+        <div className="theme-hero-readable-overlay absolute inset-0 bg-gradient-to-b from-transparent via-background/40 to-background" />
       </div>
 
       <div className="mx-auto w-full max-w-6xl px-4 py-8">
@@ -75,7 +77,9 @@ export const ProfileHero = ({
           <div className="flex-1">
             <div className="mb-2 flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-2">
-                <h1 className="text-4xl font-black tracking-tight text-foreground">{displayName}</h1>
+                <h1 className="theme-display-title text-4xl font-black tracking-tight text-foreground">
+                  {displayName}
+                </h1>
                 <Award className="h-5 w-5 text-primary" aria-hidden="true" />
               </div>
               {headerAction ? <div>{headerAction}</div> : null}

@@ -56,7 +56,7 @@ export const ProfileTopFilmsSection = ({
           return (
             <Link
               key={`top-film-${movie.tmdbId}`}
-              to="/films/$tmdbId"
+              to="/cinema/$tmdbId"
               params={{ tmdbId: String(movie.tmdbId) }}
               className="group block cursor-pointer"
               viewTransition

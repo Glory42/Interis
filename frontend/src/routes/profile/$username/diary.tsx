@@ -3,7 +3,6 @@ import { BookOpen } from "lucide-react";
 import { DiaryEntryItem } from "@/features/diary/components/DiaryEntry";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import { useUserDiary } from "@/features/profile/hooks/useProfile";
-import { ProfileLayout } from "@/features/profile/layout/ProfileLayout";
 
 export const Route = createFileRoute("/profile/$username/diary")({
   component: ProfileDiaryPage,
@@ -14,7 +13,7 @@ function ProfileDiaryPage() {
   const diaryQuery = useUserDiary(username);
 
   return (
-    <ProfileLayout username={username} activeTab="diary">
+    <>
       {diaryQuery.isPending ? (
         <div className="rounded-2xl border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
           Loading diary...
@@ -38,6 +37,6 @@ function ProfileDiaryPage() {
       <div className="space-y-4">
         {diaryQuery.data?.map((entry) => <DiaryEntryItem key={entry.id} entry={entry} />)}
       </div>
-    </ProfileLayout>
+    </>
   );
 }

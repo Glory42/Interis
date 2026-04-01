@@ -25,7 +25,7 @@ export const ProfileRecentActivitySection = ({
           activities.map((item) => (
             <Link
               key={item.id}
-              to="/films/$tmdbId"
+              to="/cinema/$tmdbId"
               params={{ tmdbId: String(item.tmdbId) }}
               className="grid grid-cols-[auto_1fr_auto] items-center gap-2 rounded-lg border border-border/50 bg-card/20 px-3 py-2.5 transition-colors hover:border-border/70 hover:bg-card/35"
               viewTransition

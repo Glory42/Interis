@@ -1,6 +1,11 @@
 import { Sparkles } from "lucide-react";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
-import { useUserDiary, useUserTop4Movies } from "@/features/profile/hooks/useProfile";
+import {
+  useUserContributions,
+  useUserDiary,
+  useUserTop4Movies,
+} from "@/features/profile/hooks/useProfile";
+import { ProfileContributionHeatmapSection } from "./ProfileContributionHeatmapSection";
 import { ProfileRecentActivitySection } from "./ProfileRecentActivitySection";
 import { ProfileTopFilmsSection } from "./ProfileTopFilmsSection";
 import {
@@ -15,6 +20,7 @@ type ProfileOverviewContentProps = {
 export const ProfileOverviewContent = ({ username }: ProfileOverviewContentProps) => {
   const diaryQuery = useUserDiary(username);
   const topMoviesQuery = useUserTop4Movies(username);
+  const contributionsQuery = useUserContributions(username, 365);
 
   if (diaryQuery.isPending || topMoviesQuery.isPending) {
     return (
@@ -34,11 +40,17 @@ export const ProfileOverviewContent = ({ username }: ProfileOverviewContentProps
 
   const diaryEntries = diaryQuery.data ?? [];
   const topMovies = topMoviesQuery.data ?? [];
+  const contributionActiveDays = contributionsQuery.data?.totals.activeDays ?? 0;
 
   const ratingByTmdbId = buildMovieRatingMap(diaryEntries);
   const activities = buildRecentActivityItems(diaryEntries, 4);
 
-  if (topMovies.length === 0 && activities.length === 0) {
+  if (
+    topMovies.length === 0 &&
+    activities.length === 0 &&
+    !contributionsQuery.isPending &&
+    contributionActiveDays === 0
+  ) {
     return (
       <ProfileTabEmptyState
         icon={Sparkles}
@@ -51,6 +63,11 @@ export const ProfileOverviewContent = ({ username }: ProfileOverviewContentProps
   return (
     <div className="space-y-8">
       <ProfileTopFilmsSection movies={topMovies} ratingByTmdbId={ratingByTmdbId} />
+      <ProfileContributionHeatmapSection
+        calendar={contributionsQuery.data ?? null}
+        isPending={contributionsQuery.isPending}
+        isError={contributionsQuery.isError}
+      />
       <ProfileRecentActivitySection activities={activities} />
     </div>
   );

@@ -26,6 +26,7 @@ const userReviewSchema = z
     title: z.string(),
     posterPath: z.string().nullable(),
     releaseYear: z.number().int().nullable(),
+    mediaType: z.enum(["movie", "tv"]).default("movie"),
   })
   .passthrough();
 
@@ -45,6 +46,20 @@ const userFilmSchema = z
 
 const userFilmListSchema = z.array(userFilmSchema);
 
+const userInteractionMovieSchema = z
+  .object({
+    tmdbId: z.number().int(),
+    title: z.string(),
+    posterPath: z.string().nullable(),
+    releaseYear: z.number().int().nullable(),
+    runtime: z.number().int().nullable(),
+    genres: z.array(movieGenreSchema).nullish(),
+    lastInteractionAt: z.string(),
+  })
+  .passthrough();
+
+const userInteractionMovieListSchema = z.array(userInteractionMovieSchema);
+
 const userTopMovieSchema = z
   .object({
     id: z.number().int(),
@@ -58,9 +73,65 @@ const userTopMovieSchema = z
 
 const userTopMovieListSchema = z.array(userTopMovieSchema);
 
+const contributionMediaTypeSchema = z.enum(["film", "tv", "book", "music"]);
+
+const contributionMediaCountsSchema = z.object({
+  film: z.number().int().nonnegative(),
+  tv: z.number().int().nonnegative(),
+  book: z.number().int().nonnegative(),
+  music: z.number().int().nonnegative(),
+});
+
+const userContributionDaySchema = z.object({
+  date: z.string(),
+  totalCount: z.number().int().nonnegative(),
+  logCount: z.number().int().nonnegative(),
+  reviewCount: z.number().int().nonnegative(),
+  mediaTypes: z.array(contributionMediaTypeSchema).optional(),
+  mediaCounts: contributionMediaCountsSchema,
+  mediaMask: z.number().int().min(0).max(15),
+});
+
+const userContributionCalendarSchema = z.object({
+  window: z.object({
+    startDate: z.string(),
+    endDate: z.string(),
+    days: z.number().int().positive(),
+    weekStartsOn: z.literal("sunday"),
+    timezone: z.literal("UTC"),
+  }),
+  totals: z.object({
+    contributions: z.number().int().nonnegative(),
+    activeDays: z.number().int().nonnegative(),
+    logs: z.number().int().nonnegative(),
+    reviews: z.number().int().nonnegative(),
+    mediaCounts: contributionMediaCountsSchema,
+  }),
+  days: z.array(userContributionDaySchema),
+});
+
+const userSearchResultSchema = z.object({
+  id: z.string(),
+  username: z.string(),
+  displayUsername: z.string().nullable(),
+  image: z.string().nullable(),
+  avatarUrl: z.string().nullable(),
+});
+
+const userSearchResultListSchema = z.array(userSearchResultSchema);
+
+type QueryRequestOptions = {
+  signal?: AbortSignal;
+};
+
 export type UserReview = z.infer<typeof userReviewSchema>;
 export type UserFilm = z.infer<typeof userFilmSchema>;
+export type UserInteractionMovie = z.infer<typeof userInteractionMovieSchema>;
 export type UserTopMovie = z.infer<typeof userTopMovieSchema>;
+export type UserContributionMediaType = z.infer<typeof contributionMediaTypeSchema>;
+export type UserContributionDay = z.infer<typeof userContributionDaySchema>;
+export type UserContributionCalendar = z.infer<typeof userContributionCalendarSchema>;
+export type UserSearchResult = z.infer<typeof userSearchResultSchema>;
 
 export const getUserProfile = async (username: string): Promise<PublicProfile> => {
   const response = await apiRequest<unknown>(`/api/users/${username}`, {
@@ -87,11 +158,31 @@ export const getUserReviews = async (username: string): Promise<UserReview[]> =>
 };
 
 export const getUserFilms = async (username: string): Promise<UserFilm[]> => {
-  const response = await apiRequest<unknown>(`/api/users/${username}/films`, {
+  const response = await apiRequest<unknown>(`/api/users/${username}/cinema`, {
     method: "GET",
   });
 
   return userFilmListSchema.parse(response);
+};
+
+export const getUserLikedFilms = async (
+  username: string,
+): Promise<UserInteractionMovie[]> => {
+  const response = await apiRequest<unknown>(`/api/users/${username}/likes`, {
+    method: "GET",
+  });
+
+  return userInteractionMovieListSchema.parse(response);
+};
+
+export const getUserWatchlist = async (
+  username: string,
+): Promise<UserInteractionMovie[]> => {
+  const response = await apiRequest<unknown>(`/api/users/${username}/watchlist`, {
+    method: "GET",
+  });
+
+  return userInteractionMovieListSchema.parse(response);
 };
 
 export const getUserTop4Movies = async (
@@ -100,6 +191,7 @@ export const getUserTop4Movies = async (
   try {
     const response = await apiRequest<unknown>(`/api/public/${username}/top4`, {
       method: "GET",
+      cache: "no-store",
     });
 
     return userTopMovieListSchema.parse(response);
@@ -110,6 +202,56 @@ export const getUserTop4Movies = async (
 
     throw error;
   }
+};
+
+export const getUserContributions = async (
+  username: string,
+  days?: number,
+): Promise<UserContributionCalendar> => {
+  const normalizedDays =
+    typeof days === "number"
+      ? Math.max(1, Math.min(730, Math.floor(days)))
+      : null;
+  const path =
+    normalizedDays === null
+      ? `/api/public/${username}/contributions`
+      : `/api/public/${username}/contributions?days=${normalizedDays}`;
+
+  const response = await apiRequest<unknown>(
+    path,
+    {
+      method: "GET",
+      cache: "no-store",
+    },
+  );
+
+  return userContributionCalendarSchema.parse(response);
+};
+
+export const searchUsers = async (
+  query: string,
+  input: { limit?: number } = {},
+  options: QueryRequestOptions = {},
+): Promise<UserSearchResult[]> => {
+  const normalizedQuery = query.trim();
+  if (normalizedQuery.length === 0) {
+    return [];
+  }
+
+  const searchParams = new URLSearchParams({
+    query: normalizedQuery,
+  });
+
+  if (typeof input.limit === "number" && Number.isFinite(input.limit)) {
+    searchParams.set("limit", String(Math.max(1, Math.min(20, Math.floor(input.limit)))));
+  }
+
+  const response = await apiRequest<unknown>(`/api/users?${searchParams.toString()}`, {
+    method: "GET",
+    signal: options.signal,
+  });
+
+  return userSearchResultListSchema.parse(response);
 };
 
 export const getMyProfile = async (): Promise<MeProfile> => {
