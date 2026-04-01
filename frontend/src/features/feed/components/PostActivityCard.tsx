@@ -89,28 +89,53 @@ export const PostActivityCard = ({ item }: PostActivityCardProps) => {
       )}
 
       {item.movie ? (
-        <Link
-          to="/films/$tmdbId"
-          params={{ tmdbId: String(item.movie.tmdbId) }}
-          className="mt-3 flex items-center gap-3 rounded-xl border border-border/70 bg-background/30 p-2.5 transition-colors hover:border-border hover:bg-secondary/45"
-          viewTransition
-        >
-          <img
-            src={getPosterUrl(item.movie.posterPath)}
-            alt={`${item.movie.title} poster`}
-            className="h-14 w-10 rounded object-cover"
-            loading="lazy"
-          />
+        item.movie.mediaType === "tv" ? (
+          <Link
+            to="/serials/$tmdbId"
+            params={{ tmdbId: String(item.movie.tmdbId) }}
+            className="mt-3 flex items-center gap-3 rounded-xl border border-border/70 bg-background/30 p-2.5 transition-colors hover:border-border hover:bg-secondary/45"
+            viewTransition
+          >
+            <img
+              src={getPosterUrl(item.movie.posterPath)}
+              alt={`${item.movie.title} poster`}
+              className="h-14 w-10 rounded object-cover"
+              loading="lazy"
+            />
 
-          <div className="min-w-0 flex-1">
-            <p className="line-clamp-1 text-sm font-semibold text-foreground">
-              {item.movie.title}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {item.movie.releaseYear ?? "Unknown year"}
-            </p>
-          </div>
-        </Link>
+            <div className="min-w-0 flex-1">
+              <p className="line-clamp-1 text-sm font-semibold text-foreground">
+                {item.movie.title}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {item.movie.releaseYear ?? "Unknown year"}
+              </p>
+            </div>
+          </Link>
+        ) : (
+          <Link
+            to="/cinema/$tmdbId"
+            params={{ tmdbId: String(item.movie.tmdbId) }}
+            className="mt-3 flex items-center gap-3 rounded-xl border border-border/70 bg-background/30 p-2.5 transition-colors hover:border-border hover:bg-secondary/45"
+            viewTransition
+          >
+            <img
+              src={getPosterUrl(item.movie.posterPath)}
+              alt={`${item.movie.title} poster`}
+              className="h-14 w-10 rounded object-cover"
+              loading="lazy"
+            />
+
+            <div className="min-w-0 flex-1">
+              <p className="line-clamp-1 text-sm font-semibold text-foreground">
+                {item.movie.title}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {item.movie.releaseYear ?? "Unknown year"}
+              </p>
+            </div>
+          </Link>
+        )
       ) : null}
 
       {hasEngagement ? (

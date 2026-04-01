@@ -6,16 +6,12 @@ import {
   Heart,
   Loader2,
   MessageSquare,
-  Send,
   Star,
+  TriangleAlert,
   Zap,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import type { FeedItem } from "@/features/feed/types";
 import { getPosterUrl } from "@/features/films/components/utils";
-import type { ReviewComment } from "@/features/reviews/api";
 import { cn } from "@/lib/utils";
 import { getRelativeTime } from "./reviewActivityCard.utils";
 
@@ -28,6 +24,7 @@ type ReviewActivityHeaderProps = {
   actorInitial: string;
   createdAt: string;
   movieTmdbId: number | null;
+  movieMediaType: ReviewMovie["mediaType"] | null;
 };
 
 export const ReviewActivityHeader = ({
@@ -37,6 +34,7 @@ export const ReviewActivityHeader = ({
   actorInitial,
   createdAt,
   movieTmdbId,
+  movieMediaType,
 }: ReviewActivityHeaderProps) => (
   <header className="flex items-start justify-between p-5 pb-3">
     <div className="flex items-start gap-3">
@@ -74,10 +72,20 @@ export const ReviewActivityHeader = ({
       </div>
     </div>
 
-    <div className="flex items-center gap-1.5">
-      {movieTmdbId ? (
+    {movieTmdbId ? (
+      movieMediaType === "tv" ? (
         <Link
-          to="/films/$tmdbId"
+          to="/serials/$tmdbId"
+          params={{ tmdbId: String(movieTmdbId) }}
+          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary/65 hover:text-foreground"
+          aria-label="Open series details"
+          viewTransition
+        >
+          <Ellipsis className="h-4 w-4" />
+        </Link>
+      ) : (
+        <Link
+          to="/cinema/$tmdbId"
           params={{ tmdbId: String(movieTmdbId) }}
           className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary/65 hover:text-foreground"
           aria-label="Open film details"
@@ -85,32 +93,62 @@ export const ReviewActivityHeader = ({
         >
           <Ellipsis className="h-4 w-4" />
         </Link>
-      ) : null}
-    </div>
+      )
+    ) : null}
   </header>
 );
 
 type ReviewActivityContentProps = {
   containsSpoilers: boolean;
+  isSpoilerRevealed: boolean;
   reviewContent: string;
+  onRevealSpoilers: () => void;
+  onOpenReview: () => void;
 };
 
 export const ReviewActivityContent = ({
   containsSpoilers,
+  isSpoilerRevealed,
   reviewContent,
-}: ReviewActivityContentProps) => (
-  <div className="px-5 pb-4">
-    {containsSpoilers ? (
-      <Badge variant="default" className="mb-2 text-[10px] uppercase tracking-wide">
-        Spoilers
-      </Badge>
-    ) : null}
+  onRevealSpoilers,
+  onOpenReview,
+}: ReviewActivityContentProps) => {
+  if (containsSpoilers && !isSpoilerRevealed) {
+    return (
+      <div className="px-5 pb-4">
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 rounded-lg border border-amber-500/35 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-500/15"
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onRevealSpoilers();
+          }}
+        >
+          <TriangleAlert className="h-3.5 w-3.5" />
+          Spoiler warning - click to reveal
+        </button>
+      </div>
+    );
+  }
 
-    <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/95">
-      {reviewContent || "Shared a review."}
-    </p>
-  </div>
-);
+  return (
+    <div className="px-5 pb-4">
+      <button
+        type="button"
+        className="w-full rounded-lg text-left transition-colors hover:bg-secondary/35"
+        onClick={(event) => {
+          event.preventDefault();
+          onOpenReview();
+        }}
+      >
+        <p className="whitespace-pre-wrap p-2 text-sm leading-relaxed text-foreground/95">
+          {reviewContent || "Shared a review."}
+        </p>
+      </button>
+    </div>
+  );
+};
 
 type ReviewActivityMoviePreviewProps = {
   itemId: string;
@@ -126,7 +164,7 @@ export const ReviewActivityMoviePreview = ({
   filledStars,
 }: ReviewActivityMoviePreviewProps) => (
   <Link
-    to="/films/$tmdbId"
+    to={movie.mediaType === "tv" ? "/serials/$tmdbId" : "/cinema/$tmdbId"}
     params={{ tmdbId: String(movie.tmdbId) }}
     className="mx-5 mb-4 flex w-[calc(100%-2.5rem)] items-stretch overflow-hidden rounded-xl border border-border/70 bg-background/35 text-left transition-all duration-300 hover:border-primary/30"
     viewTransition
@@ -143,7 +181,7 @@ export const ReviewActivityMoviePreview = ({
     <div className="flex min-w-0 flex-1 items-center justify-between p-3.5">
       <div className="min-w-0 flex-1">
         <p className="mb-1.5 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
-          <Film className="h-3 w-3" /> Film
+          <Film className="h-3 w-3" /> {movie.mediaType === "tv" ? "Series" : "Film"}
         </p>
         <p className="truncate text-sm font-bold text-foreground transition-colors hover:text-primary">
           {movie.title}
@@ -167,9 +205,7 @@ export const ReviewActivityMoviePreview = ({
                 />
               ))}
             </div>
-            <span className="font-mono text-[10px] text-muted-foreground">
-              {ratingOutOfFive}
-            </span>
+            <span className="font-mono text-[10px] text-muted-foreground">{ratingOutOfFive}</span>
           </div>
         ) : null}
       </div>
@@ -186,7 +222,8 @@ type ReviewActivityFooterProps = {
   viewerHasLiked: boolean;
   isLikePending: boolean;
   movieTmdbId: number | null;
-  onToggleComments: () => void;
+  movieMediaType: ReviewMovie["mediaType"] | null;
+  onOpenReview: () => void;
   onToggleLike: () => void;
 };
 
@@ -197,14 +234,19 @@ export const ReviewActivityFooter = ({
   viewerHasLiked,
   isLikePending,
   movieTmdbId,
-  onToggleComments,
+  movieMediaType,
+  onOpenReview,
   onToggleLike,
 }: ReviewActivityFooterProps) => (
   <footer className="flex items-center justify-between border-t border-border/60 px-4 py-3">
     <div className="flex items-center gap-0.5">
       <button
         type="button"
-        onClick={onToggleComments}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onOpenReview();
+        }}
         disabled={!hasReviewId}
         className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-muted-foreground transition-all hover:bg-secondary/65 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
       >
@@ -214,7 +256,11 @@ export const ReviewActivityFooter = ({
 
       <button
         type="button"
-        onClick={onToggleLike}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onToggleLike();
+        }}
         disabled={!hasReviewId || isLikePending}
         className={cn(
           "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs transition-all",
@@ -234,142 +280,27 @@ export const ReviewActivityFooter = ({
     </div>
 
     {movieTmdbId ? (
-      <Link
-        to="/films/$tmdbId"
-        params={{ tmdbId: String(movieTmdbId) }}
-        className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary/65 hover:text-foreground"
-        aria-label="Open film details"
-        viewTransition
-      >
-        <ChevronRight className="h-3.5 w-3.5" />
-      </Link>
+      movieMediaType === "tv" ? (
+        <Link
+          to="/serials/$tmdbId"
+          params={{ tmdbId: String(movieTmdbId) }}
+          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary/65 hover:text-foreground"
+          aria-label="Open series details"
+          viewTransition
+        >
+          <ChevronRight className="h-3.5 w-3.5" />
+        </Link>
+      ) : (
+        <Link
+          to="/cinema/$tmdbId"
+          params={{ tmdbId: String(movieTmdbId) }}
+          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary/65 hover:text-foreground"
+          aria-label="Open film details"
+          viewTransition
+        >
+          <ChevronRight className="h-3.5 w-3.5" />
+        </Link>
+      )
     ) : null}
   </footer>
 );
-
-type ReviewActivityCommentsSectionProps = {
-  isOpen: boolean;
-  isLoading: boolean;
-  isError: boolean;
-  comments: ReviewComment[];
-  isAuthenticated: boolean;
-  commentDraft: string;
-  isSubmittingComment: boolean;
-  submitCommentError: string | null;
-  onCommentDraftChange: (value: string) => void;
-  onSubmitComment: () => void;
-  onGoToLogin: () => void;
-};
-
-export const ReviewActivityCommentsSection = ({
-  isOpen,
-  isLoading,
-  isError,
-  comments,
-  isAuthenticated,
-  commentDraft,
-  isSubmittingComment,
-  submitCommentError,
-  onCommentDraftChange,
-  onSubmitComment,
-  onGoToLogin,
-}: ReviewActivityCommentsSectionProps) => {
-  if (!isOpen) {
-    return null;
-  }
-
-  return (
-    <section className="space-y-3 border-t border-border/60 bg-background/15 px-4 py-3">
-      {isLoading ? (
-        <p className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading comments...
-        </p>
-      ) : null}
-
-      {isError ? <p className="text-xs text-destructive">Could not load comments.</p> : null}
-
-      {!isLoading && !isError && comments.length === 0 ? (
-        <p className="text-xs text-muted-foreground">No comments yet.</p>
-      ) : null}
-
-      {!isLoading && !isError ? (
-        <div className="space-y-2">
-          {comments.map((comment) => {
-            const commentAuthor = comment.authorDisplayUsername ?? comment.authorUsername;
-            const commentAvatar = comment.authorAvatarUrl ?? comment.authorImage;
-            const commentInitial = comment.authorUsername.slice(0, 1).toUpperCase();
-
-            return (
-              <div
-                key={comment.id}
-                className="rounded-lg border border-border/60 bg-card/65 p-2.5"
-              >
-                <div className="mb-1.5 flex items-center gap-2">
-                  {commentAvatar ? (
-                    <img
-                      src={commentAvatar}
-                      alt={`${comment.authorUsername} avatar`}
-                      className="h-6 w-6 rounded-full border border-border/60 object-cover"
-                    />
-                  ) : (
-                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border/60 bg-secondary text-[10px] font-semibold text-secondary-foreground">
-                      {commentInitial}
-                    </span>
-                  )}
-                  <p className="text-[11px] text-muted-foreground">
-                    <span className="font-semibold text-foreground">{commentAuthor}</span>
-                    <span> · {getRelativeTime(comment.createdAt)}</span>
-                  </p>
-                </div>
-                <p className="whitespace-pre-wrap text-xs text-foreground/95">{comment.content}</p>
-              </div>
-            );
-          })}
-        </div>
-      ) : null}
-
-      {isAuthenticated ? (
-        <div className="space-y-2 border-t border-border/60 pt-3">
-          <Textarea
-            value={commentDraft}
-            onChange={(event) => {
-              onCommentDraftChange(event.target.value);
-            }}
-            placeholder="Write a comment..."
-            className="min-h-16 rounded-lg border-border/70 bg-background/40 text-sm"
-          />
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-[10px] text-muted-foreground">{commentDraft.length}/2000</p>
-            <Button
-              type="button"
-              size="sm"
-              onClick={onSubmitComment}
-              disabled={isSubmittingComment || commentDraft.trim().length === 0}
-              className="h-8 rounded-lg"
-            >
-              {isSubmittingComment ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Send className="h-3.5 w-3.5" />
-              )}
-              Comment
-            </Button>
-          </div>
-
-          {submitCommentError ? <p className="text-xs text-destructive">{submitCommentError}</p> : null}
-        </div>
-      ) : (
-        <p className="border-t border-border/60 pt-3 text-xs text-muted-foreground">
-          <button
-            type="button"
-            className="font-semibold text-primary hover:text-primary/80"
-            onClick={onGoToLogin}
-          >
-            Sign in
-          </button>{" "}
-          to join the discussion.
-        </p>
-      )}
-    </section>
-  );
-};

@@ -2,17 +2,9 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import type { FeedItem } from "@/features/feed/types";
-import type { ReviewComment } from "@/features/reviews/api";
-import {
-  useAddReviewComment,
-  useLikeReview,
-  useReviewComments,
-  useUnlikeReview,
-} from "@/features/reviews/hooks/useReviews";
-import {
-  getRatingOutOfFive,
-  getRoundedStarCount,
-} from "./reviewActivityCard.utils";
+import type { ReviewMediaType } from "@/features/reviews/api";
+import { useLikeReview, useUnlikeReview } from "@/features/reviews/hooks/useReviews";
+import { getRatingOutOfFive, getRoundedStarCount } from "./reviewActivityCard.utils";
 
 type ReviewActivityCardViewModel = {
   user: ReturnType<typeof useAuth>["user"];
@@ -26,22 +18,16 @@ type ReviewActivityCardViewModel = {
   itemId: string;
   ratingOutOfFive: string | null;
   filledStars: number;
-  isCommentsOpen: boolean;
-  commentDraft: string;
-  comments: ReviewComment[];
-  isCommentsLoading: boolean;
-  isCommentsError: boolean;
   commentCount: number;
   likeCount: number;
   viewerHasLiked: boolean;
   isLikePending: boolean;
-  isCommentSubmitting: boolean;
-  commentSubmitError: string | null;
   hasReviewId: boolean;
-  toggleComments: () => void;
+  isSpoilerRevealed: boolean;
+  openReview: () => Promise<void>;
+  openReviewFromAction: () => Promise<void>;
+  revealSpoilers: () => void;
   toggleLike: () => Promise<void>;
-  updateCommentDraft: (value: string) => void;
-  submitComment: () => Promise<void>;
   goToLogin: () => Promise<void>;
 };
 
@@ -49,16 +35,15 @@ export const useReviewActivityCard = (item: FeedItem): ReviewActivityCardViewMod
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
-  const [commentDraft, setCommentDraft] = useState("");
+  const [isSpoilerRevealed, setIsSpoilerRevealed] = useState(false);
 
   const reviewId = item.review?.id ?? item.metadata.reviewId ?? "";
+  const reviewMediaType =
+    (item.movie?.mediaType ?? item.metadata.mediaType ?? "movie") as ReviewMediaType;
   const hasReviewId = reviewId.length > 0;
 
-  const reviewCommentsQuery = useReviewComments(reviewId, hasReviewId && isCommentsOpen);
-  const addCommentMutation = useAddReviewComment(reviewId);
-  const likeReviewMutation = useLikeReview(reviewId);
-  const unlikeReviewMutation = useUnlikeReview(reviewId);
+  const likeReviewMutation = useLikeReview(reviewId, reviewMediaType);
+  const unlikeReviewMutation = useUnlikeReview(reviewId, reviewMediaType);
 
   const actorName = item.actor.displayUsername ?? item.actor.username;
   const actorAvatar = item.actor.avatarUrl ?? item.actor.image ?? null;
@@ -66,11 +51,11 @@ export const useReviewActivityCard = (item: FeedItem): ReviewActivityCardViewMod
 
   const reviewContent = item.review?.content ?? item.metadata.excerpt ?? "";
   const reviewContainsSpoilers = item.review?.containsSpoilers === true;
+  const reviewOwnerUsername = item.actor.username;
 
   const isLikePending = likeReviewMutation.isPending || unlikeReviewMutation.isPending;
 
-  const comments = reviewCommentsQuery.data ?? [];
-  const commentCount = reviewCommentsQuery.data?.length ?? item.engagement.commentCount;
+  const commentCount = item.engagement.commentCount;
   const likeCount = item.engagement.likeCount;
   const viewerHasLiked = item.engagement.viewerHasLiked === true;
 
@@ -86,6 +71,37 @@ export const useReviewActivityCard = (item: FeedItem): ReviewActivityCardViewMod
       to: "/login",
       search: { redirect: redirectPath },
     });
+  };
+
+  const openReviewRoute = async () => {
+    if (!hasReviewId) {
+      return;
+    }
+
+    await navigate({
+      to: "/reviews/$username/$reviewId",
+      params: {
+        username: reviewOwnerUsername,
+        reviewId,
+      },
+      viewTransition: true,
+    });
+  };
+
+  const openReview = async () => {
+    if (reviewContainsSpoilers && !isSpoilerRevealed) {
+      return;
+    }
+
+    await openReviewRoute();
+  };
+
+  const openReviewFromAction = async () => {
+    await openReviewRoute();
+  };
+
+  const revealSpoilers = () => {
+    setIsSpoilerRevealed(true);
   };
 
   const toggleLike = async () => {
@@ -106,43 +122,6 @@ export const useReviewActivityCard = (item: FeedItem): ReviewActivityCardViewMod
     await likeReviewMutation.mutateAsync();
   };
 
-  const submitComment = async () => {
-    if (!hasReviewId) {
-      return;
-    }
-
-    const normalizedContent = commentDraft.trim();
-    if (normalizedContent.length === 0 || addCommentMutation.isPending) {
-      return;
-    }
-
-    if (!user) {
-      await goToLogin();
-      return;
-    }
-
-    await addCommentMutation.mutateAsync({ content: normalizedContent });
-    setCommentDraft("");
-  };
-
-  const updateCommentDraft = (value: string) => {
-    if (value.length <= 2000) {
-      setCommentDraft(value);
-    }
-  };
-
-  const toggleComments = () => {
-    if (hasReviewId) {
-      setIsCommentsOpen((current) => !current);
-    }
-  };
-
-  const commentSubmitError = addCommentMutation.isError
-    ? addCommentMutation.error instanceof Error
-      ? addCommentMutation.error.message
-      : "Could not send comment."
-    : null;
-
   return {
     user,
     actorName,
@@ -155,22 +134,16 @@ export const useReviewActivityCard = (item: FeedItem): ReviewActivityCardViewMod
     itemId: item.id,
     ratingOutOfFive,
     filledStars,
-    isCommentsOpen,
-    commentDraft,
-    comments,
-    isCommentsLoading: reviewCommentsQuery.isPending,
-    isCommentsError: reviewCommentsQuery.isError,
     commentCount,
     likeCount,
     viewerHasLiked,
     isLikePending,
-    isCommentSubmitting: addCommentMutation.isPending,
-    commentSubmitError,
     hasReviewId,
-    toggleComments,
+    isSpoilerRevealed,
+    openReview,
+    openReviewFromAction,
+    revealSpoilers,
     toggleLike,
-    updateCommentDraft,
-    submitComment,
     goToLogin,
   };
 };

@@ -53,7 +53,7 @@ const getActivityCopy = (item: FeedItem): string => {
     case "review":
       return "published a review";
     case "commented":
-      return "left a comment";
+      return "commented on a review";
     case "liked_review":
       return "liked a review";
     case "liked_comment":
@@ -112,8 +112,14 @@ export const FeedActivityCard = ({ item }: FeedActivityCardProps) => {
   const actorName = item.actor.displayUsername ?? item.actor.username;
   const actorAvatar = item.actor.avatarUrl ?? item.actor.image ?? null;
   const actorInitial = item.actor.username.slice(0, 1).toUpperCase();
+  const reviewTargetUsername = item.metadata.targetUsername ?? null;
+  const reviewTargetId = item.metadata.reviewId ?? null;
   const hasEngagement =
     item.engagement.likeCount > 0 || item.engagement.commentCount > 0;
+  const hasReviewTargetLink =
+    (item.kind === "liked_review" || item.kind === "commented") &&
+    reviewTargetId !== null &&
+    reviewTargetUsername !== null;
 
   return (
     <article className="rounded-2xl border border-border/70 bg-card/72 p-4 transition-colors hover:border-border">
@@ -151,7 +157,24 @@ export const FeedActivityCard = ({ item }: FeedActivityCardProps) => {
 
       </header>
 
-      <p className="mt-3 text-sm text-muted-foreground">{getActivityCopy(item)}</p>
+      {hasReviewTargetLink ? (
+        <p className="mt-3 text-sm text-muted-foreground">
+          {item.kind === "liked_review" ? "liked" : "commented on"}{" "}
+          <Link
+            to="/reviews/$username/$reviewId"
+            params={{
+              username: reviewTargetUsername,
+              reviewId: reviewTargetId,
+            }}
+            className="font-semibold text-foreground hover:text-primary"
+            viewTransition
+          >
+            @{reviewTargetUsername}'s review
+          </Link>
+        </p>
+      ) : (
+        <p className="mt-3 text-sm text-muted-foreground">{getActivityCopy(item)}</p>
+      )}
 
       {item.metadata.excerpt ? (
         <p className="mt-2 line-clamp-4 text-sm leading-relaxed text-foreground/95">
@@ -160,28 +183,53 @@ export const FeedActivityCard = ({ item }: FeedActivityCardProps) => {
       ) : null}
 
       {item.movie ? (
-        <Link
-          to="/films/$tmdbId"
-          params={{ tmdbId: String(item.movie.tmdbId) }}
-          className="mt-3 flex items-center gap-3 rounded-xl border border-border/70 bg-background/30 p-2.5 transition-colors hover:border-border hover:bg-secondary/45"
-          viewTransition
-        >
-          <img
-            src={getPosterUrl(item.movie.posterPath)}
-            alt={`${item.movie.title} poster`}
-            className="h-14 w-10 rounded object-cover"
-            loading="lazy"
-          />
+        item.movie.mediaType === "tv" ? (
+          <Link
+            to="/serials/$tmdbId"
+            params={{ tmdbId: String(item.movie.tmdbId) }}
+            className="mt-3 flex items-center gap-3 rounded-xl border border-border/70 bg-background/30 p-2.5 transition-colors hover:border-border hover:bg-secondary/45"
+            viewTransition
+          >
+            <img
+              src={getPosterUrl(item.movie.posterPath)}
+              alt={`${item.movie.title} poster`}
+              className="h-14 w-10 rounded object-cover"
+              loading="lazy"
+            />
 
-          <div className="min-w-0 flex-1">
-            <p className="line-clamp-1 text-sm font-semibold text-foreground">
-              {item.movie.title}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {item.movie.releaseYear ?? "Unknown year"}
-            </p>
-          </div>
-        </Link>
+            <div className="min-w-0 flex-1">
+              <p className="line-clamp-1 text-sm font-semibold text-foreground">
+                {item.movie.title}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {item.movie.releaseYear ?? "Unknown year"}
+              </p>
+            </div>
+          </Link>
+        ) : (
+          <Link
+            to="/cinema/$tmdbId"
+            params={{ tmdbId: String(item.movie.tmdbId) }}
+            className="mt-3 flex items-center gap-3 rounded-xl border border-border/70 bg-background/30 p-2.5 transition-colors hover:border-border hover:bg-secondary/45"
+            viewTransition
+          >
+            <img
+              src={getPosterUrl(item.movie.posterPath)}
+              alt={`${item.movie.title} poster`}
+              className="h-14 w-10 rounded object-cover"
+              loading="lazy"
+            />
+
+            <div className="min-w-0 flex-1">
+              <p className="line-clamp-1 text-sm font-semibold text-foreground">
+                {item.movie.title}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {item.movie.releaseYear ?? "Unknown year"}
+              </p>
+            </div>
+          </Link>
+        )
       ) : null}
 
       {hasEngagement ? (

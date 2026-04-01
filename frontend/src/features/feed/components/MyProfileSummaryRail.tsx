@@ -129,7 +129,7 @@ export const MyProfileSummaryRail = ({
                 {summary.recentPosters.slice(0, 5).map((movie) => (
                   <Link
                     key={`summary-poster-${movie.tmdbId}`}
-                    to="/films/$tmdbId"
+                    to="/cinema/$tmdbId"
                     params={{ tmdbId: String(movie.tmdbId) }}
                     className="relative block h-12 w-9 overflow-hidden rounded-md border border-background transition-transform hover:-translate-y-0.5"
                     viewTransition

@@ -1,6 +1,5 @@
 import type { FeedItem } from "@/features/feed/types";
 import {
-  ReviewActivityCommentsSection,
   ReviewActivityContent,
   ReviewActivityFooter,
   ReviewActivityHeader,
@@ -14,7 +13,6 @@ type ReviewActivityCardProps = {
 
 export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
   const {
-    user,
     actorName,
     actorAvatar,
     actorInitial,
@@ -25,23 +23,16 @@ export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
     itemId,
     ratingOutOfFive,
     filledStars,
-    isCommentsOpen,
-    commentDraft,
-    comments,
-    isCommentsLoading,
-    isCommentsError,
+    isSpoilerRevealed,
     commentCount,
     likeCount,
     viewerHasLiked,
     isLikePending,
-    isCommentSubmitting,
-    commentSubmitError,
     hasReviewId,
-    toggleComments,
+    openReview,
+    openReviewFromAction,
+    revealSpoilers,
     toggleLike,
-    updateCommentDraft,
-    submitComment,
-    goToLogin,
   } = useReviewActivityCard(item);
 
   return (
@@ -53,11 +44,17 @@ export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
         actorInitial={actorInitial}
         createdAt={createdAt}
         movieTmdbId={movie?.tmdbId ?? null}
+        movieMediaType={movie?.mediaType ?? null}
       />
 
       <ReviewActivityContent
         containsSpoilers={reviewContainsSpoilers}
+        isSpoilerRevealed={isSpoilerRevealed}
         reviewContent={reviewContent}
+        onRevealSpoilers={revealSpoilers}
+        onOpenReview={() => {
+          void openReview();
+        }}
       />
 
       {movie ? (
@@ -76,27 +73,12 @@ export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
         viewerHasLiked={viewerHasLiked}
         isLikePending={isLikePending}
         movieTmdbId={movie?.tmdbId ?? null}
-        onToggleComments={toggleComments}
+        movieMediaType={movie?.mediaType ?? null}
+        onOpenReview={() => {
+          void openReviewFromAction();
+        }}
         onToggleLike={() => {
           void toggleLike();
-        }}
-      />
-
-      <ReviewActivityCommentsSection
-        isOpen={isCommentsOpen}
-        isLoading={isCommentsLoading}
-        isError={isCommentsError}
-        comments={comments}
-        isAuthenticated={Boolean(user)}
-        commentDraft={commentDraft}
-        isSubmittingComment={isCommentSubmitting}
-        submitCommentError={commentSubmitError}
-        onCommentDraftChange={updateCommentDraft}
-        onSubmitComment={() => {
-          void submitComment();
-        }}
-        onGoToLogin={() => {
-          void goToLogin();
         }}
       />
     </article>

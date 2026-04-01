@@ -41,6 +41,7 @@ export const feedMovieSchema = z
     title: z.string(),
     posterPath: z.string().nullable(),
     releaseYear: z.number().int().nullable(),
+    mediaType: z.enum(["movie", "tv"]).default("movie"),
   })
   .nullable();
 
@@ -70,6 +71,8 @@ export const feedMetadataSchema = z.object({
   targetUsername: z.string().nullable(),
   rating: z.number().nullable(),
   rewatch: z.boolean().nullable(),
+  hasReview: z.boolean().nullable().optional(),
+  mediaType: z.enum(["movie", "tv"]).nullable().optional(),
   containsSpoilers: z.boolean().nullable(),
   reviewId: z.string().nullable(),
   commentId: z.string().nullable(),

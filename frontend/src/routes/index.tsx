@@ -4,6 +4,7 @@ import { FeedActivityList } from "@/features/feed/components/FeedActivityList";
 import { MyProfileSummaryRail } from "@/features/feed/components/MyProfileSummaryRail";
 import { QuickLogComposer } from "@/features/feed/components/QuickLogComposer";
 import { TrendingNowRail } from "@/features/feed/components/TrendingNowRail";
+import { useTrendingSeries } from "@/features/serials/hooks/useSerials";
 import {
   useFollowingFeed,
   useMyFeedSummary,
@@ -20,7 +21,8 @@ function HomePage() {
 
   const isFollowingEnabled = Boolean(user);
   const followingFeedQuery = useFollowingFeed(isFollowingEnabled);
-  const trendingQuery = useTrendingNow();
+  const cinemaTrendingQuery = useTrendingNow();
+  const serialTrendingQuery = useTrendingSeries();
   const mySummaryQuery = useMyFeedSummary(Boolean(user));
 
   const feedItems = followingFeedQuery.data ?? [];
@@ -34,9 +36,12 @@ function HomePage() {
       <main className="grid grid-cols-1 gap-8 lg:grid-cols-12">
         <aside className="hidden lg:col-span-3 lg:block lg:space-y-6">
           <TrendingNowRail
-            isLoading={trendingQuery.isPending}
-            isError={trendingQuery.isError}
-            items={trendingQuery.data ?? []}
+            cinemaIsLoading={cinemaTrendingQuery.isPending}
+            cinemaIsError={cinemaTrendingQuery.isError}
+            cinemaItems={cinemaTrendingQuery.data ?? []}
+            serialsIsLoading={serialTrendingQuery.isPending}
+            serialsIsError={serialTrendingQuery.isError}
+            serialsItems={serialTrendingQuery.data ?? []}
           />
         </aside>
 
@@ -81,9 +86,12 @@ function HomePage() {
         />
 
         <TrendingNowRail
-          isLoading={trendingQuery.isPending}
-          isError={trendingQuery.isError}
-          items={trendingQuery.data ?? []}
+          cinemaIsLoading={cinemaTrendingQuery.isPending}
+          cinemaIsError={cinemaTrendingQuery.isError}
+          cinemaItems={cinemaTrendingQuery.data ?? []}
+          serialsIsLoading={serialTrendingQuery.isPending}
+          serialsIsError={serialTrendingQuery.isError}
+          serialsItems={serialTrendingQuery.data ?? []}
         />
       </div>
     </section>
