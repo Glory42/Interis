@@ -1,6 +1,13 @@
 import type { RefObject } from "react";
 import { Link } from "@tanstack/react-router";
-import { Grid3X3, LogIn, LogOut, Search, Settings, UserRound } from "lucide-react";
+import {
+  Grid3X3,
+  LogIn,
+  LogOut,
+  Search,
+  Settings,
+  UserRound,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -71,7 +78,9 @@ export const PrimaryNavLinks = ({
         }
         onClick={onNavigate}
       >
-        <Icon className={mobile ? "h-4 w-4 shrink-0" : "h-3.75 w-3.75 shrink-0"} />
+        <Icon
+          className={mobile ? "h-4 w-4 shrink-0" : "h-3.75 w-3.75 shrink-0"}
+        />
         <span>{item.label}</span>
       </Link>
     );
@@ -205,7 +214,10 @@ type MobileMenuToggleProps = {
   onToggle: () => void;
 };
 
-export const MobileMenuToggle = ({ isOpen, onToggle }: MobileMenuToggleProps) => (
+export const MobileMenuToggle = ({
+  isOpen,
+  onToggle,
+}: MobileMenuToggleProps) => (
   <button
     type="button"
     onClick={onToggle}
@@ -244,7 +256,7 @@ export const MobileMenu = ({
   }
 
   return (
-    <div className="border-t border-border/60 bg-background/92 backdrop-blur-2xl md:hidden">
+    <div className="theme-navbar-panel border-t border-border/60 bg-background/92 backdrop-blur-2xl md:hidden">
       <nav className="mx-auto flex w-full max-w-7xl flex-col gap-1 px-4 py-3">
         <button
           type="button"
@@ -262,7 +274,9 @@ export const MobileMenu = ({
         />
 
         {isUserLoading ? (
-          <p className="px-3 py-2 text-sm text-muted-foreground">Loading session...</p>
+          <p className="px-3 py-2 text-sm text-muted-foreground">
+            Loading session...
+          </p>
         ) : null}
 
         {user ? (
@@ -272,7 +286,11 @@ export const MobileMenu = ({
               params={{ username: user.username }}
               className={cn(navLinkClass, "w-full justify-start")}
               activeProps={{
-                className: cn(navLinkClass, navLinkActiveClass, "w-full justify-start"),
+                className: cn(
+                  navLinkClass,
+                  navLinkActiveClass,
+                  "w-full justify-start",
+                ),
               }}
               onClick={onClose}
               viewTransition
@@ -284,7 +302,11 @@ export const MobileMenu = ({
               to="/settings"
               className={cn(navLinkClass, "w-full justify-start")}
               activeProps={{
-                className: cn(navLinkClass, navLinkActiveClass, "w-full justify-start"),
+                className: cn(
+                  navLinkClass,
+                  navLinkActiveClass,
+                  "w-full justify-start",
+                ),
               }}
               onClick={onClose}
               viewTransition
@@ -319,7 +341,11 @@ export const MobileMenu = ({
                 Login
               </Link>
             </Button>
-            <Button asChild size="sm" className="w-full justify-start rounded-xl">
+            <Button
+              asChild
+              size="sm"
+              className="w-full justify-start rounded-xl"
+            >
               <Link to="/register" onClick={onClose} viewTransition>
                 <UserRound className="h-4 w-4" />
                 Register

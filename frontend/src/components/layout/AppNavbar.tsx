@@ -31,7 +31,7 @@ export const AppNavbar = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-border/40 bg-background/85 backdrop-blur-2xl">
+      <header className="theme-navbar-shell sticky top-0 z-50 border-b border-border/40 bg-background/85 backdrop-blur-2xl">
         <div className="mx-auto grid h-14 w-full max-w-7xl grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4">
           <NavbarBrand />
 
@@ -87,7 +87,7 @@ export const AppNavbar = () => {
         <button
           type="button"
           onClick={closeMobileMenu}
-          className="fixed inset-0 top-14 z-40 bg-background/45 md:hidden"
+          className="theme-navbar-overlay fixed inset-0 top-14 z-40 bg-background/45 md:hidden"
           aria-label="Close navigation overlay"
         />
       ) : null}

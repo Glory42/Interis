@@ -28,7 +28,7 @@ export const AppFooter = () => {
           <Link to="/" className="hover:text-primary" viewTransition>
             Feed
           </Link>
-          <Link to="/films" className="hover:text-primary" viewTransition>
+          <Link to="/cinema" className="hover:text-primary" viewTransition>
             Cinema
           </Link>
           <Link to="/settings" className="hover:text-primary" viewTransition>
