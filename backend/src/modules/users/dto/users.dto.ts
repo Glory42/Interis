@@ -31,5 +31,11 @@ export const UpdateThemeSchema = z
     themeId: "themeId" in payload ? payload.themeId : payload.theme,
   }));
 
+export const SearchUsersQuerySchema = z.object({
+  query: z.string().trim().min(1).max(32),
+  limit: z.coerce.number().int().min(1).max(20).optional(),
+});
+
 export type UpdateProfileDto = z.infer<typeof UpdateProfileSchema>;
 export type UpdateThemeDto = z.infer<typeof UpdateThemeSchema>;
+export type SearchUsersQueryDto = z.infer<typeof SearchUsersQuerySchema>;

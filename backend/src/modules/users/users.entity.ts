@@ -1,16 +1,12 @@
 import {
   pgTable,
-  pgEnum,
   text,
   boolean,
   timestamp,
   jsonb,
 } from "drizzle-orm/pg-core";
 import { user } from "../../infrastructure/database/auth.entity";
-import { DEFAULT_THEME_ID, THEME_IDS } from "./constants/theme.constants";
-
-// All valid theme names — default is arkheion
-export const themeEnum = pgEnum("theme", THEME_IDS);
+import { DEFAULT_THEME_ID } from "./constants/theme.constants";
 
 // username lives in BA's user table now — no duplication here
 export const profiles = pgTable("profile", {
@@ -24,7 +20,7 @@ export const profiles = pgTable("profile", {
   backdropUrl: text("backdrop_url"),
   top4MovieIds: jsonb("top4_movie_ids").$type<number[]>().default([]),
   favoriteGenres: jsonb("favorite_genres").$type<string[]>().default([]).notNull(),
-  themeId: themeEnum("theme").default(DEFAULT_THEME_ID).notNull(),
+  themeId: text("theme").default(DEFAULT_THEME_ID).notNull(),
   isAdmin: boolean("is_admin").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
