@@ -11,36 +11,84 @@ export type ThemeDefinition = {
   tokens: Record<string, string>;
 };
 
+const DEFAULT_THEME_ID = "rose-pine";
+
+const SUPPORTED_THEME_IDS = [
+  "rose-pine",
+  "null-log",
+  "gruvbox",
+] as const;
+
+const SUPPORTED_THEME_ID_SET = new Set<string>(SUPPORTED_THEME_IDS);
+
+const isSupportedThemeId = (themeId: string): boolean => {
+  return SUPPORTED_THEME_ID_SET.has(themeId);
+};
+
+const LEGACY_THEME_IDS = new Set([
+  "arkheion",
+  "amber-signal",
+  "goth",
+  "catppuccin-latte",
+  "nord-dark",
+  "nord-light",
+  "sunset",
+  "github-dark",
+  "github-light",
+  "catppuccin-mocha",
+  "starwars",
+  "dune",
+  "person-of-interest",
+  "lotr",
+  "graduation",
+  "hannibal",
+  "spiderman",
+  "superman",
+  "batman",
+  "optimus-prime",
+  "doctor-who",
+  "got",
+]);
+
+const normalizeThemeIdInput = (rawThemeId: unknown): string | null => {
+  if (typeof rawThemeId !== "string") {
+    return null;
+  }
+
+  const normalizedThemeId = rawThemeId.trim().toLowerCase();
+  return normalizedThemeId.length > 0 ? normalizedThemeId : null;
+};
+
 const fallbackTheme: ThemeDefinition = {
-  id: "catppuccin-mocha",
-  label: "Catppuccin Mocha",
-  description: "Soft dark palette with lavender and blue accents.",
+  id: DEFAULT_THEME_ID,
+  label: "Rose Pine",
+  description: "Soft dark elegance with mauve, rose, and iris accents.",
   preview: {
     mode: "dark",
-    swatches: ["#1e1e2e", "#181825", "#89b4fa", "#cba6f7"],
+    swatches: ["#171420", "#1f1b2b", "#d4b5ff", "#f4c2bf"],
   },
   tokens: {
-    "--background": "#1e1e2e",
-    "--foreground": "#cdd6f4",
-    "--card": "#181825",
-    "--card-foreground": "#cdd6f4",
-    "--popover": "#181825",
-    "--popover-foreground": "#cdd6f4",
-    "--primary": "#89b4fa",
-    "--primary-foreground": "#1e1e2e",
-    "--secondary": "#313244",
-    "--secondary-foreground": "#cdd6f4",
-    "--muted": "#11111b",
-    "--muted-foreground": "#a6adc8",
-    "--accent": "#cba6f7",
-    "--accent-foreground": "#1e1e2e",
-    "--border": "#45475a",
-    "--input": "#313244",
-    "--ring": "#89b4fa",
-    "--destructive": "#f38ba8",
-    "--aura-primary": "#89b4fa",
-    "--aura-secondary": "#cba6f7",
-    "--aura-muted": "#6c7086",
+    "--background": "#171420",
+    "--foreground": "#e8e3f7",
+    "--card": "#1f1b2b",
+    "--card-foreground": "#e8e3f7",
+    "--popover": "#1c1927",
+    "--popover-foreground": "#e8e3f7",
+    "--primary": "#d4b5ff",
+    "--primary-foreground": "#181422",
+    "--secondary": "#26213a",
+    "--secondary-foreground": "#e8e3f7",
+    "--muted": "#151220",
+    "--muted-foreground": "#9f98bb",
+    "--accent": "#f4c2bf",
+    "--accent-foreground": "#171420",
+    "--border": "#3f3958",
+    "--input": "#26213a",
+    "--ring": "#9fd4df",
+    "--destructive": "#f17fa0",
+    "--aura-primary": "#d4b5ff",
+    "--aura-secondary": "#9fd4df",
+    "--aura-muted": "#6f6789",
   },
 };
 
@@ -63,31 +111,54 @@ export const getThemeRegistry = (): Record<string, ThemeDefinition> => {
 
 export const getDefaultThemeId = (): string => {
   const registry = getThemeRegistry();
-  const configuredDefault =
+  const configuredDefault = normalizeThemeIdInput(
     typeof window !== "undefined"
       ? window.__THIS_IS_CINEMA_DEFAULT_THEME_ID__
-      : undefined;
+      : undefined,
+  );
 
-  if (configuredDefault && registry[configuredDefault]) {
+  if (
+    configuredDefault &&
+    isSupportedThemeId(configuredDefault) &&
+    registry[configuredDefault]
+  ) {
     return configuredDefault;
   }
 
-  if (registry[fallbackTheme.id]) {
-    return fallbackTheme.id;
+  if (registry[DEFAULT_THEME_ID]) {
+    return DEFAULT_THEME_ID;
   }
 
   return Object.keys(registry)[0] ?? fallbackTheme.id;
 };
 
 export const listThemes = (): ThemeDefinition[] => {
-  return Object.values(getThemeRegistry());
+  const registry = getThemeRegistry();
+  const supportedThemes = SUPPORTED_THEME_IDS
+    .map((themeId) => registry[themeId])
+    .filter((theme): theme is ThemeDefinition => Boolean(theme));
+
+  return supportedThemes.length > 0 ? supportedThemes : [fallbackTheme];
 };
 
 export const resolveThemeId = (rawThemeId: unknown): string => {
   const registry = getThemeRegistry();
+  const normalizedThemeId = normalizeThemeIdInput(rawThemeId);
 
-  if (typeof rawThemeId === "string" && registry[rawThemeId]) {
-    return rawThemeId;
+  if (
+    normalizedThemeId &&
+    isSupportedThemeId(normalizedThemeId) &&
+    registry[normalizedThemeId]
+  ) {
+    return normalizedThemeId;
+  }
+
+  if (normalizedThemeId && LEGACY_THEME_IDS.has(normalizedThemeId)) {
+    return registry[DEFAULT_THEME_ID] ? DEFAULT_THEME_ID : getDefaultThemeId();
+  }
+
+  if (registry[DEFAULT_THEME_ID]) {
+    return DEFAULT_THEME_ID;
   }
 
   return getDefaultThemeId();
