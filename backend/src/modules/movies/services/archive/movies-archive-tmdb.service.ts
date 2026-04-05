@@ -17,6 +17,30 @@ import {
   mapTmdbArchiveMovie,
 } from "./movies-archive-mapper.helper";
 
+const addViewerArchiveState = async (
+  viewerUserId: string | null,
+  pageItems: CinemaArchiveResponse["items"],
+): Promise<CinemaArchiveResponse["items"]> => {
+  if (!viewerUserId || pageItems.length === 0) {
+    return pageItems;
+  }
+
+  const tmdbIds = pageItems.map((item) => item.tmdbId);
+  const [viewerLoggedTmdbIds, viewerWatchlistedTmdbIds] = await Promise.all([
+    MoviesRepository.getViewerLoggedTmdbIds(viewerUserId, tmdbIds),
+    MoviesRepository.getViewerWatchlistedTmdbIds(viewerUserId, tmdbIds),
+  ]);
+
+  const viewerLoggedTmdbIdSet = new Set<number>(viewerLoggedTmdbIds);
+  const viewerWatchlistedTmdbIdSet = new Set<number>(viewerWatchlistedTmdbIds);
+
+  return pageItems.map((item) => ({
+    ...item,
+    viewerHasLogged: viewerLoggedTmdbIdSet.has(item.tmdbId),
+    viewerWatchlisted: viewerWatchlistedTmdbIdSet.has(item.tmdbId),
+  }));
+};
+
 export const getArchiveFromTmdbCatalog = async (
   input: MoviesArchiveQueryInput,
 ): Promise<CinemaArchiveResponse> => {
@@ -118,6 +142,11 @@ export const getArchiveFromTmdbCatalog = async (
         }))
       : pageItems;
 
+  const pageItemsWithViewerState = await addViewerArchiveState(
+    input.viewerUserId,
+    pageItemsWithDirector,
+  );
+
   const hasMore = discovered.page < discovered.totalPages;
 
   return {
@@ -127,7 +156,7 @@ export const getArchiveFromTmdbCatalog = async (
     selectedLanguage: input.selectedLanguage,
     selectedSort: input.sortBy,
     selectedPeriod: input.selectedPeriod,
-    featuredMovie: toFeaturedMovie(pageItemsWithDirector),
+    featuredMovie: toFeaturedMovie(pageItemsWithViewerState),
     availableGenres: availableTmdbGenres.map((genre) => ({
       id: genre.id,
       name: genre.name,
@@ -137,6 +166,6 @@ export const getArchiveFromTmdbCatalog = async (
     limit: input.limit,
     hasMore,
     nextPage: hasMore ? discovered.page + 1 : null,
-    items: pageItemsWithDirector,
+    items: pageItemsWithViewerState,
   };
 };

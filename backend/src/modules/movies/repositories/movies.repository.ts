@@ -2,6 +2,7 @@ import { and, asc, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { diaryEntries } from "../../diary/diary.entity";
+import { movieInteractions } from "../../interactions/interactions.entity";
 import { profiles } from "../../users/users.entity";
 import { reviewLikes, reviews } from "../../reviews/reviews.entity";
 import { movies } from "../movies.entity";
@@ -169,6 +170,49 @@ export class MoviesRepository {
         ),
       )
       .limit(1);
+  }
+
+  static async getViewerLoggedTmdbIds(viewerUserId: string, tmdbIds: number[]) {
+    const uniqueTmdbIds = [...new Set(tmdbIds)];
+    if (uniqueTmdbIds.length === 0) {
+      return [];
+    }
+
+    const rows = await db
+      .select({ tmdbId: movies.tmdbId })
+      .from(diaryEntries)
+      .innerJoin(movies, eq(diaryEntries.movieId, movies.id))
+      .where(
+        and(
+          eq(diaryEntries.userId, viewerUserId),
+          inArray(movies.tmdbId, uniqueTmdbIds),
+        ),
+      )
+      .groupBy(movies.tmdbId);
+
+    return rows.map((row) => row.tmdbId);
+  }
+
+  static async getViewerWatchlistedTmdbIds(viewerUserId: string, tmdbIds: number[]) {
+    const uniqueTmdbIds = [...new Set(tmdbIds)];
+    if (uniqueTmdbIds.length === 0) {
+      return [];
+    }
+
+    const rows = await db
+      .select({ tmdbId: movies.tmdbId })
+      .from(movieInteractions)
+      .innerJoin(movies, eq(movieInteractions.movieId, movies.id))
+      .where(
+        and(
+          eq(movieInteractions.userId, viewerUserId),
+          eq(movieInteractions.watchlisted, true),
+          inArray(movies.tmdbId, uniqueTmdbIds),
+        ),
+      )
+      .groupBy(movies.tmdbId);
+
+    return rows.map((row) => row.tmdbId);
   }
 
   static async getLocalArchiveAggregateRowsByTmdbIds(tmdbIds: number[]) {

@@ -18,6 +18,7 @@ export class MoviesArchiveService {
     period?: string;
     page?: string;
     limit?: string;
+    viewerUserId?: string | null;
   }): Promise<CinemaArchiveResponse> {
     const selectedGenre = normalizeArchiveGenre(input.genre);
     const selectedLanguage = normalizeArchiveLanguage(input.language);
@@ -33,6 +34,7 @@ export class MoviesArchiveService {
       sortBy,
       page,
       limit,
+      viewerUserId: input.viewerUserId ?? null,
     };
 
     if (sortBy === "logs_desc" || sortBy === "rating_user_desc") {

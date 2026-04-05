@@ -184,6 +184,18 @@ export class MoviesDetailService {
           tmdbDetail && tmdbDetail.original_language.trim().length > 0
             ? tmdbDetail.original_language
             : null,
+        productionCountries:
+          tmdbDetail?.production_countries
+            .map((country) => country.name.trim())
+            .filter((countryName) => countryName.length > 0) ?? [],
+        budget:
+          tmdbDetail && tmdbDetail.budget > 0 && Number.isFinite(tmdbDetail.budget)
+            ? tmdbDetail.budget
+            : null,
+        revenue:
+          tmdbDetail && tmdbDetail.revenue > 0 && Number.isFinite(tmdbDetail.revenue)
+            ? tmdbDetail.revenue
+            : null,
         globalRatingOutOfTen,
         globalRatingOutOfFive: toRatingOutOfFive(globalRatingOutOfTen),
         globalRatingVoteCount:

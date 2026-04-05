@@ -86,5 +86,7 @@ export const mapTmdbArchiveMovie = (
         ? Number(tmdbMovie.vote_average.toFixed(1))
         : null),
     ratedLogCount: localAggregate?.ratedLogCount ?? 0,
+    viewerHasLogged: false,
+    viewerWatchlisted: false,
   };
 };

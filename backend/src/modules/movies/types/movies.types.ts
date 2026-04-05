@@ -24,6 +24,8 @@ export type CinemaArchiveItem = {
   avgRatingOutOfTen: number | null;
   tmdbRatingOutOfTen: number | null;
   ratedLogCount: number;
+  viewerHasLogged: boolean;
+  viewerWatchlisted: boolean;
 };
 
 export type CinemaArchiveFeaturedMovie = {
@@ -124,6 +126,9 @@ export type MovieDetailResponse = {
     tagline: string | null;
     genres: ArchiveGenre[];
     languageCode: string | null;
+    productionCountries: string[];
+    budget: number | null;
+    revenue: number | null;
     globalRatingOutOfTen: number | null;
     globalRatingOutOfFive: number | null;
     globalRatingVoteCount: number | null;

@@ -58,6 +58,7 @@ export class MoviesService {
     period?: string;
     page?: string;
     limit?: string;
+    viewerUserId?: string | null;
   }) {
     return MoviesArchiveService.getArchive(input);
   }

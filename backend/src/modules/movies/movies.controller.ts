@@ -80,6 +80,8 @@ export class MoviesController {
     req: Request<{}, {}, {}, CinemaArchiveQuery>,
     res: Response,
   ): Promise<void> {
+    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
+
     const archive = await MoviesService.getArchive({
       genre: req.query.genre,
       language: req.query.language,
@@ -87,6 +89,7 @@ export class MoviesController {
       period: req.query.period,
       page: req.query.page,
       limit: req.query.limit,
+      viewerUserId,
     });
 
     res.setHeader("Cache-Control", "no-store");

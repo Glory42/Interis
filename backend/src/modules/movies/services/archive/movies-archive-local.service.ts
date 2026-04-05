@@ -18,6 +18,30 @@ import {
 } from "./movies-archive-shared.helper";
 import type { MoviesArchiveQueryInput } from "./movies-archive.types";
 
+const addViewerArchiveState = async (
+  viewerUserId: string | null,
+  pageItems: CinemaArchiveItem[],
+): Promise<CinemaArchiveItem[]> => {
+  if (!viewerUserId || pageItems.length === 0) {
+    return pageItems;
+  }
+
+  const tmdbIds = pageItems.map((item) => item.tmdbId);
+  const [viewerLoggedTmdbIds, viewerWatchlistedTmdbIds] = await Promise.all([
+    MoviesRepository.getViewerLoggedTmdbIds(viewerUserId, tmdbIds),
+    MoviesRepository.getViewerWatchlistedTmdbIds(viewerUserId, tmdbIds),
+  ]);
+
+  const viewerLoggedTmdbIdSet = new Set<number>(viewerLoggedTmdbIds);
+  const viewerWatchlistedTmdbIdSet = new Set<number>(viewerWatchlistedTmdbIds);
+
+  return pageItems.map((item) => ({
+    ...item,
+    viewerHasLogged: viewerLoggedTmdbIdSet.has(item.tmdbId),
+    viewerWatchlisted: viewerWatchlistedTmdbIdSet.has(item.tmdbId),
+  }));
+};
+
 export const getArchiveFromLocalCatalog = async (
   input: MoviesArchiveQueryInput,
 ): Promise<CinemaArchiveResponse> => {
@@ -73,6 +97,8 @@ export const getArchiveFromLocalCatalog = async (
       avgRatingOutOfTen: row.avgRatingOutOfTen,
       tmdbRatingOutOfTen: null,
       ratedLogCount: row.ratedLogCount,
+      viewerHasLogged: false,
+      viewerWatchlisted: false,
     };
   });
 
@@ -123,6 +149,10 @@ export const getArchiveFromLocalCatalog = async (
 
   const startIndex = (input.page - 1) * input.limit;
   const pageItems = sortedItems.slice(startIndex, startIndex + input.limit);
+  const pageItemsWithViewerState = await addViewerArchiveState(
+    input.viewerUserId,
+    pageItems,
+  );
   const hasMore = startIndex + input.limit < sortedItems.length;
 
   return {
@@ -132,12 +162,12 @@ export const getArchiveFromLocalCatalog = async (
     selectedLanguage: input.selectedLanguage,
     selectedSort: input.sortBy,
     selectedPeriod: input.selectedPeriod,
-    featuredMovie: toFeaturedMovie(pageItems),
+    featuredMovie: toFeaturedMovie(pageItemsWithViewerState),
     availableGenres: toAvailableGenresFromItems(periodFilteredItems),
     page: input.page,
     limit: input.limit,
     hasMore,
     nextPage: hasMore ? input.page + 1 : null,
-    items: pageItems,
+    items: pageItemsWithViewerState,
   };
 };

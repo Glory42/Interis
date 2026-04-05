@@ -7,6 +7,7 @@ export type MoviesArchiveQueryInput = {
   sortBy: CinemaArchiveSort;
   page: number;
   limit: number;
+  viewerUserId: string | null;
 };
 
 export type MoviesArchivePeriodWindow = {
