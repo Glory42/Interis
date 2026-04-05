@@ -123,14 +123,14 @@ const SeasonAccordionItem = ({
   const seasonDetailQuery = useSeriesSeasonDetail(tmdbId, season.seasonNumber, isOpen);
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/30">
+    <div className="overflow-hidden  border border-border/60 bg-card/30">
       <button
         type="button"
         className="group flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-secondary/25"
         onClick={onToggle}
       >
         <div className="flex items-center gap-4">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-secondary/60">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center  border border-border/60 bg-secondary/60">
             <span className="text-xs font-black text-primary">{season.seasonNumber}</span>
           </div>
 
@@ -180,7 +180,7 @@ const SeasonAccordionItem = ({
                   key={`episode-${episode.id}`}
                   className="group/ep flex gap-4 p-4 transition-colors hover:bg-secondary/20"
                 >
-                  <div className="relative h-16 w-28 shrink-0 overflow-hidden rounded-xl border border-border/60 bg-secondary/40">
+                  <div className="relative h-16 w-28 shrink-0 overflow-hidden  border border-border/60 bg-secondary/40">
                     <img
                       alt={episode.name}
                       className="h-full w-full object-cover opacity-80 transition-opacity group-hover/ep:opacity-100"
@@ -188,13 +188,13 @@ const SeasonAccordionItem = ({
                     />
 
                     <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover/ep:opacity-100">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/15 backdrop-blur-sm">
+                      <div className="flex h-8 w-8 items-center justify-center  border border-white/20 bg-white/15 backdrop-blur-sm">
                         <Play className="ml-0.5 h-3 w-3 text-white" />
                       </div>
                     </div>
 
                     {episode.runtimeLabel ? (
-                      <div className="absolute bottom-1 right-1 rounded-md bg-black/60 px-1.5 py-0.5 font-mono text-[9px] text-slate-300 backdrop-blur-sm">
+                      <div className="absolute bottom-1 right-1  bg-black/60 px-1.5 py-0.5 font-mono text-[9px] text-slate-300 backdrop-blur-sm">
                         {episode.runtimeLabel}
                       </div>
                     ) : null}
@@ -247,7 +247,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
   if (!isValidTmdbId) {
     return (
       <div className="mx-auto w-full max-w-5xl px-4 py-10">
-        <div className="rounded-2xl border border-border/70 bg-card/60 p-5 text-sm text-muted-foreground">
+        <div className=" border border-border/70 bg-card/60 p-5 text-sm text-muted-foreground">
           Invalid series id.
         </div>
       </div>
@@ -257,7 +257,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
   if (detailQuery.isPending) {
     return (
       <div className="mx-auto w-full max-w-7xl px-4 py-12">
-        <div className="h-64 animate-pulse rounded-2xl border border-border/60 bg-card/35" />
+        <div className="h-64 animate-pulse  border border-border/60 bg-card/35" />
       </div>
     );
   }
@@ -265,7 +265,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
   if (detailQuery.isError || !detailQuery.data) {
     return (
       <div className="mx-auto w-full max-w-5xl px-4 py-10">
-        <div className="rounded-2xl border border-destructive/45 bg-destructive/10 p-5 text-sm text-destructive">
+        <div className=" border border-destructive/45 bg-destructive/10 p-5 text-sm text-destructive">
           Could not load this series right now.
         </div>
       </div>
@@ -312,7 +312,8 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
       <section className="theme-hero-shell relative h-96 overflow-hidden">
         <img
           src={heroImageUrl}
-          alt={`${series.title} backdrop`}
+          alt=""
+          aria-hidden="true"
           className="theme-hero-media h-full w-full object-cover opacity-25"
         />
         <div className="theme-hero-gradient-layer pointer-events-none absolute inset-0" />
@@ -325,7 +326,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
             asChild
             variant="outline"
             size="sm"
-            className="rounded-xl bg-background/45 backdrop-blur-sm"
+            className=" bg-background/45 backdrop-blur-sm"
           >
             <Link to="/serials" viewTransition>
               <ArrowLeft className="h-4 w-4" /> Back
@@ -336,7 +337,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
         <div className="theme-hero-safe-area mx-auto w-full max-w-7xl px-4">
           <div className="theme-hero-safe-content flex w-full items-end gap-6">
             <div className="-mb-4 hidden shrink-0 sm:block">
-              <div className="h-40 w-28 overflow-hidden rounded-xl border border-border/60 shadow-2xl">
+              <div className="h-40 w-28 overflow-hidden  border border-border/60 shadow-2xl">
                 <img
                   src={getPosterUrl(series.posterPath)}
                   alt={`${series.title} poster`}
@@ -358,7 +359,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
                   </>
                 ) : null}
                 {series.genres.length > 0 ? (
-                  <span className="rounded-full bg-secondary/75 px-2 py-0.5 text-muted-foreground">
+                  <span className=" bg-secondary/75 px-2 py-0.5 text-muted-foreground">
                     {series.genres
                       .slice(0, 2)
                       .map((genre) => genre.name)
@@ -428,7 +429,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
             </p>
           </section>
 
-          <section className="rounded-2xl border border-border/60 bg-card/35 p-5">
+          <section className=" border border-border/60 bg-card/35 p-5">
             <h2 className="mb-4 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
               Your Rating
             </h2>
@@ -445,7 +446,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
                 onChange={setDraftRatingOutOfFive}
               />
 
-              <div className="rounded-lg border border-border/70 bg-secondary/35 px-3 py-1.5 text-sm font-semibold text-foreground">
+              <div className=" border border-border/70 bg-secondary/35 px-3 py-1.5 text-sm font-semibold text-foreground">
                 {formatRatingOutOfFiveLabel(draftRatingOutOfFive) ??
                   formatRatingOutOfFiveLabel(
                     detail.userRating?.ratingOutOfFive ?? null,
@@ -466,7 +467,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
               <Button
                 type="button"
                 variant="outline"
-                className="rounded-xl"
+                className=""
                 disabled={!user || isInteractionBusy}
                 onClick={() => {
                   void updateInteractionMutation.mutateAsync({
@@ -480,7 +481,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
               <Button
                 type="button"
                 variant="outline"
-                className="rounded-xl"
+                className=""
                 disabled={!user || isInteractionBusy}
                 onClick={() => {
                   void updateInteractionMutation.mutateAsync({ liked: !liked });
@@ -495,11 +496,11 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-base font-bold text-foreground">Reviews</h2>
 
-              <div className="theme-segment-shell flex rounded-xl border border-border/70 bg-card/50 p-1">
+              <div className="theme-segment-shell flex  border border-border/70 bg-card/50 p-1">
                 <button
                   type="button"
                   className={cn(
-                    "rounded-lg px-3 py-1.5 text-xs font-medium transition-all",
+                    " px-3 py-1.5 text-xs font-medium transition-all",
                     reviewsSort === "popular"
                       ? "theme-segment-active"
                       : "text-muted-foreground hover:text-foreground",
@@ -511,7 +512,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
                 <button
                   type="button"
                   className={cn(
-                    "rounded-lg px-3 py-1.5 text-xs font-medium transition-all",
+                    " px-3 py-1.5 text-xs font-medium transition-all",
                     reviewsSort === "recent"
                       ? "theme-segment-active"
                       : "text-muted-foreground hover:text-foreground",
@@ -525,7 +526,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
 
             <div className="space-y-4">
               {detail.reviews.length === 0 ? (
-                <div className="rounded-2xl border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
+                <div className=" border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
                   No reviews yet for this series.
                 </div>
               ) : (
@@ -537,7 +538,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
                   return (
                     <article
                       key={review.id}
-                      className="rounded-2xl border border-border/60 bg-card/30 p-5 transition-all hover:border-border"
+                      className=" border border-border/60 bg-card/30 p-5 transition-all hover:border-border"
                     >
                       <div className="mb-3 flex items-start justify-between gap-4">
                         <div className="flex items-center gap-3">
@@ -545,10 +546,10 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
                             <img
                               src={avatarUrl}
                               alt={`${review.author.username} avatar`}
-                              className="h-9 w-9 rounded-full border border-border/70 object-cover"
+                              className="h-9 w-9  border border-border/70 object-cover"
                             />
                           ) : (
-                            <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-secondary text-xs font-semibold text-secondary-foreground">
+                            <span className="inline-flex h-9 w-9 items-center justify-center  border border-border/70 bg-secondary text-xs font-semibold text-secondary-foreground">
                               {review.author.username.slice(0, 1).toUpperCase()}
                             </span>
                           )}
@@ -581,7 +582,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
                       </div>
 
                       {review.containsSpoilers ? (
-                        <p className="mb-2 inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-200">
+                        <p className="mb-2 inline-flex  border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-200">
                           Spoilers
                         </p>
                       ) : null}
@@ -599,7 +600,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
           <section>
             <h2 className="mb-4 text-base font-bold text-foreground">Seasons</h2>
             {series.seasons.length === 0 ? (
-              <div className="rounded-2xl border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
+              <div className=" border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
                 No season metadata available.
               </div>
             ) : (
@@ -632,7 +633,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
         </div>
 
         <aside className="space-y-8 lg:col-span-4">
-          <section className="rounded-2xl border border-border/60 bg-card/35 p-5">
+          <section className=" border border-border/60 bg-card/35 p-5">
             <h2 className="mb-5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
               Stats
             </h2>
@@ -720,7 +721,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-border/60 bg-card/35 p-5">
+          <section className=" border border-border/60 bg-card/35 p-5">
             <h2 className="mb-5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
               Rating Breakdown
             </h2>
@@ -738,9 +739,9 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
                     <Rocket className="h-2.5 w-2.5 text-muted-foreground" />
                   </div>
 
-                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary/60">
+                  <div className="h-1.5 flex-1 overflow-hidden  bg-secondary/60">
                     <div
-                      className="h-full rounded-full bg-primary/60"
+                      className="h-full  bg-primary/60"
                       style={{ width: `${bucket.percentage}%` }}
                     />
                   </div>
@@ -753,7 +754,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-border/60 bg-card/35 p-5">
+          <section className=" border border-border/60 bg-card/35 p-5">
             <h2 className="mb-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
               Production
             </h2>

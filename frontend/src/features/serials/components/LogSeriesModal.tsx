@@ -135,7 +135,7 @@ export const LogSeriesModal = ({
       <div
         role="dialog"
         aria-modal="true"
-        className="theme-modal-panel relative z-50 flex w-[calc(100vw-1rem)] max-h-[calc(100dvh-1rem)] max-w-4xl flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/95 shadow-2xl backdrop-blur-xl sm:w-[calc(100vw-2rem)] sm:max-h-[calc(100dvh-2rem)]"
+        className="theme-modal-panel relative z-50 flex w-[calc(100vw-1rem)] max-h-[calc(100dvh-1rem)] max-w-4xl flex-col overflow-hidden  border border-border/70 bg-card/95 shadow-2xl backdrop-blur-xl sm:w-[calc(100vw-2rem)] sm:max-h-[calc(100dvh-2rem)]"
       >
         <div className="flex items-start justify-between border-b border-border/60 bg-card/90 px-4 py-3.5 backdrop-blur-sm sm:px-5 sm:py-4">
           <div>
@@ -150,7 +150,7 @@ export const LogSeriesModal = ({
 
           <button
             type="button"
-            className="rounded-lg p-1 text-muted-foreground transition-all hover:bg-secondary/60 hover:text-foreground sm:p-1.5"
+            className=" p-1 text-muted-foreground transition-all hover:bg-secondary/60 hover:text-foreground sm:p-1.5"
             onClick={closeModal}
             aria-label="Close review modal"
           >
@@ -163,7 +163,7 @@ export const LogSeriesModal = ({
             <div className="grid gap-4 lg:grid-cols-[176px_minmax(0,1fr)] lg:gap-5">
               <aside className="space-y-2.5 lg:space-y-3.5">
                 <div className="flex items-start gap-3 lg:block lg:space-y-3">
-                  <div className="w-20 shrink-0 overflow-hidden rounded-lg border border-border/70 bg-background/30 shadow-sm sm:w-24 lg:w-full lg:rounded-xl">
+                  <div className="w-20 shrink-0 overflow-hidden  border border-border/70 bg-background/30 shadow-sm sm:w-24 lg:w-full ">
                     <img
                       src={getPosterUrl(seriesPosterPath)}
                       alt={`${seriesTitle} poster`}
@@ -201,7 +201,7 @@ export const LogSeriesModal = ({
                     value={watchedDate}
                     max={todayAsDateInput()}
                     onChange={(event) => setWatchedDate(event.target.value)}
-                    className="h-10 rounded-lg border-border/70 bg-background/45 sm:h-11 sm:rounded-xl"
+                    className="h-10  border-border/70 bg-background/45 sm:h-11 "
                   />
                 </section>
 
@@ -219,18 +219,18 @@ export const LogSeriesModal = ({
                       onChange={setRatingOutOfFive}
                     />
 
-                    <div className="rounded-lg border border-border/70 bg-secondary/35 px-2.5 py-1 text-xs font-semibold text-foreground sm:px-3 sm:py-1.5 sm:text-sm">
+                    <div className=" border border-border/70 bg-secondary/35 px-2.5 py-1 text-xs font-semibold text-foreground sm:px-3 sm:py-1.5 sm:text-sm">
                       {formatRatingOutOfFiveLabel(ratingOutOfFive) ?? "Unrated"}
                     </div>
                   </div>
                 </section>
 
-                <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-border/70 bg-secondary/20 p-2.5 transition-colors hover:border-border sm:rounded-xl sm:p-3">
+                <label className="flex cursor-pointer items-center gap-3  border border-border/70 bg-secondary/20 p-2.5 transition-colors hover:border-border  sm:p-3">
                   <input
                     type="checkbox"
                     checked={rewatch}
                     onChange={(event) => setRewatch(event.target.checked)}
-                    className="h-4 w-4 rounded border-border bg-input accent-primary"
+                    className="h-4 w-4  border-border bg-input accent-primary"
                   />
                   <span className="text-sm font-medium text-foreground">
                     I've watched this before
@@ -249,18 +249,18 @@ export const LogSeriesModal = ({
                     value={review}
                     onChange={(event) => setReview(event.target.value)}
                     placeholder="Share your thoughts about this series..."
-                    className="h-24 rounded-lg border-border/70 bg-background/45 sm:h-28 sm:rounded-xl lg:h-32"
+                    className="h-24  border-border/70 bg-background/45 sm:h-28  lg:h-32"
                   />
                 </section>
 
-                <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-destructive/35 bg-destructive/10 p-2.5 transition-colors hover:border-destructive/50 sm:rounded-xl sm:p-3">
+                <label className="flex cursor-pointer items-center gap-3  border border-destructive/35 bg-destructive/10 p-2.5 transition-colors hover:border-destructive/50  sm:p-3">
                   <input
                     type="checkbox"
                     checked={containsSpoilers}
                     onChange={(event) =>
                       setContainsSpoilers(event.target.checked)
                     }
-                    className="h-4 w-4 rounded border-border bg-input accent-primary"
+                    className="h-4 w-4  border-border bg-input accent-primary"
                   />
                   <span className="flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-destructive" />
@@ -271,7 +271,7 @@ export const LogSeriesModal = ({
                 </label>
 
                 {formError ? (
-                  <p className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  <p className=" border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                     {formError}
                   </p>
                 ) : null}
@@ -284,14 +284,14 @@ export const LogSeriesModal = ({
               <Button
                 type="button"
                 variant="outline"
-                className="h-9 flex-1 rounded-lg sm:h-10 sm:rounded-xl"
+                className="h-9 flex-1  sm:h-10 "
                 onClick={closeModal}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="h-9 flex-1 rounded-lg sm:h-10 sm:rounded-xl"
+                className="h-9 flex-1  sm:h-10 "
                 disabled={createSeriesLogMutation.isPending}
               >
                 {createSeriesLogMutation.isPending ? "Posting..." : "Post Review"}
@@ -305,7 +305,7 @@ export const LogSeriesModal = ({
 
   return (
     <>
-      <Button onClick={openModal} className="rounded-xl">
+      <Button onClick={openModal} className="">
         Write a Review
       </Button>
 

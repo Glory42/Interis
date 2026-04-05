@@ -143,7 +143,7 @@ const GridSeriesCard = ({
 
   return (
     <article className="group cursor-pointer">
-      <div className="relative mb-2 aspect-[2/3] overflow-hidden rounded-xl border border-border/70 bg-card/60">
+      <div className="relative mb-2 aspect-[2/3] overflow-hidden  border border-border/70 bg-card/60">
         <Link
           to="/serials/$tmdbId"
           params={{ tmdbId: String(series.tmdbId) }}
@@ -194,7 +194,7 @@ const GridSeriesCard = ({
         <Link
           to="/serials/$tmdbId"
           params={{ tmdbId: String(series.tmdbId) }}
-          className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full border border-border/65 bg-background/65 text-foreground/90 opacity-0 transition-all duration-200 group-hover:opacity-100"
+          className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center  border border-border/65 bg-background/65 text-foreground/90 opacity-0 transition-all duration-200 group-hover:opacity-100"
           aria-label={`Open ${series.title}`}
           viewTransition
         >
@@ -233,7 +233,7 @@ const ListSeriesRow = ({
     <Link
       to="/serials/$tmdbId"
       params={{ tmdbId: String(series.tmdbId) }}
-      className="group flex items-center gap-3 rounded-2xl border border-border/60 bg-card/35 p-3 transition-all hover:border-border hover:bg-card/55"
+      className="group flex items-center gap-3  border border-border/60 bg-card/35 p-3 transition-all hover:border-border hover:bg-card/55"
       viewTransition
     >
       <span className="w-6 shrink-0 text-right font-mono text-xs text-muted-foreground/70">
@@ -243,7 +243,7 @@ const ListSeriesRow = ({
       <img
         src={getPosterUrl(series.posterPath)}
         alt={`${series.title} poster`}
-        className="h-14 w-10 shrink-0 rounded-lg object-cover opacity-80 transition-opacity group-hover:opacity-100"
+        className="h-14 w-10 shrink-0  object-cover opacity-80 transition-opacity group-hover:opacity-100"
         loading="lazy"
       />
 
@@ -299,9 +299,9 @@ const ArchiveSkeletonGrid = () => (
   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
     {Array.from({ length: 12 }).map((_, index) => (
       <div key={`serial-archive-skeleton-${index}`} className="animate-pulse">
-        <div className="aspect-[2/3] rounded-xl border border-border/60 bg-card/40" />
-        <div className="mt-2 h-3 rounded bg-card/55" />
-        <div className="mt-1 h-2.5 w-3/4 rounded bg-card/40" />
+        <div className="aspect-[2/3]  border border-border/60 bg-card/40" />
+        <div className="mt-2 h-3  bg-card/55" />
+        <div className="mt-1 h-2.5 w-3/4  bg-card/40" />
       </div>
     ))}
   </div>
@@ -314,7 +314,7 @@ const ArchiveLoadingMoreRow = ({ viewMode }: { viewMode: ArchiveViewMode }) => {
         {Array.from({ length: 2 }).map((_, index) => (
           <div
             key={`serial-archive-loading-list-${index}`}
-            className="h-20 animate-pulse rounded-2xl border border-border/60 bg-card/35"
+            className="h-20 animate-pulse  border border-border/60 bg-card/35"
           />
         ))}
       </div>
@@ -326,7 +326,7 @@ const ArchiveLoadingMoreRow = ({ viewMode }: { viewMode: ArchiveViewMode }) => {
       {Array.from({ length: 6 }).map((_, index) => (
         <div
           key={`serial-archive-loading-grid-${index}`}
-          className="aspect-[2/3] animate-pulse rounded-xl border border-border/60 bg-card/35"
+          className="aspect-[2/3] animate-pulse  border border-border/60 bg-card/35"
         />
       ))}
     </div>
@@ -470,7 +470,8 @@ export const SerialsArchivePage = () => {
         {heroImageUrl ? (
           <img
             src={heroImageUrl}
-            alt={heroSeries ? heroSeries.title : "Serials backdrop"}
+            alt=""
+            aria-hidden="true"
             className="theme-hero-media h-full w-full object-cover opacity-30"
           />
         ) : (
@@ -519,7 +520,7 @@ export const SerialsArchivePage = () => {
             <div className="relative">
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-card/55 px-4 py-2 text-xs text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+                className="inline-flex items-center gap-2  border border-border/70 bg-card/55 px-4 py-2 text-xs text-muted-foreground transition-colors hover:border-border hover:text-foreground"
                 aria-haspopup="menu"
                 aria-expanded={openMenu === "genre"}
                 onClick={() => {
@@ -532,7 +533,7 @@ export const SerialsArchivePage = () => {
               </button>
 
               {openMenu === "genre" ? (
-                <div className="absolute left-0 top-full z-40 mt-1 min-w-[170px] overflow-hidden rounded-xl border border-border/70 bg-card/95 shadow-2xl shadow-background/40 backdrop-blur-sm">
+                <div className="absolute left-0 top-full z-40 mt-1 min-w-[170px] overflow-hidden  border border-border/70 bg-card/95 shadow-2xl shadow-background/40 backdrop-blur-sm">
                   <div className="max-h-36 overflow-y-auto sm:max-h-48">
                     <button
                       type="button"
@@ -581,7 +582,7 @@ export const SerialsArchivePage = () => {
             <div className="relative">
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-card/55 px-4 py-2 text-xs text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+                className="inline-flex items-center gap-2  border border-border/70 bg-card/55 px-4 py-2 text-xs text-muted-foreground transition-colors hover:border-border hover:text-foreground"
                 aria-haspopup="menu"
                 aria-expanded={openMenu === "sort"}
                 onClick={() => {
@@ -594,7 +595,7 @@ export const SerialsArchivePage = () => {
               </button>
 
               {openMenu === "sort" ? (
-                <div className="absolute left-0 top-full z-40 mt-1 min-w-[160px] overflow-hidden rounded-xl border border-border/70 bg-card/95 shadow-2xl shadow-background/40 backdrop-blur-sm">
+                <div className="absolute left-0 top-full z-40 mt-1 min-w-[160px] overflow-hidden  border border-border/70 bg-card/95 shadow-2xl shadow-background/40 backdrop-blur-sm">
                   {sortOptions.map((option) => (
                     <button
                       key={`serial-sort-option-${option.value}`}
@@ -622,7 +623,7 @@ export const SerialsArchivePage = () => {
             <div className="relative">
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-card/55 px-4 py-2 text-xs text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+                className="inline-flex items-center gap-2  border border-border/70 bg-card/55 px-4 py-2 text-xs text-muted-foreground transition-colors hover:border-border hover:text-foreground"
                 aria-haspopup="menu"
                 aria-expanded={openMenu === "language"}
                 onClick={() => {
@@ -637,7 +638,7 @@ export const SerialsArchivePage = () => {
               </button>
 
               {openMenu === "language" ? (
-                <div className="absolute left-0 top-full z-40 mt-1 min-w-[180px] overflow-hidden rounded-xl border border-border/70 bg-card/95 shadow-2xl shadow-background/40 backdrop-blur-sm">
+                <div className="absolute left-0 top-full z-40 mt-1 min-w-[180px] overflow-hidden  border border-border/70 bg-card/95 shadow-2xl shadow-background/40 backdrop-blur-sm">
                   <div className="max-h-36 overflow-y-auto sm:max-h-48">
                     {languageOptions.map((option) => (
                       <button
@@ -667,7 +668,7 @@ export const SerialsArchivePage = () => {
             <div className="relative">
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-card/55 px-4 py-2 text-xs text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+                className="inline-flex items-center gap-2  border border-border/70 bg-card/55 px-4 py-2 text-xs text-muted-foreground transition-colors hover:border-border hover:text-foreground"
                 aria-haspopup="menu"
                 aria-expanded={openMenu === "period"}
                 onClick={() => {
@@ -680,7 +681,7 @@ export const SerialsArchivePage = () => {
               </button>
 
               {openMenu === "period" ? (
-                <div className="absolute left-0 top-full z-40 mt-1 min-w-[160px] overflow-hidden rounded-xl border border-border/70 bg-card/95 shadow-2xl shadow-background/40 backdrop-blur-sm">
+                <div className="absolute left-0 top-full z-40 mt-1 min-w-[160px] overflow-hidden  border border-border/70 bg-card/95 shadow-2xl shadow-background/40 backdrop-blur-sm">
                   {periodOptions.map((option) => (
                     <button
                       key={`serial-period-option-${option.value}`}
@@ -706,11 +707,11 @@ export const SerialsArchivePage = () => {
             </div>
           </div>
 
-          <div className="theme-segment-shell inline-flex items-center rounded-xl border border-border/70 bg-card/55 p-1">
+          <div className="theme-segment-shell inline-flex items-center  border border-border/70 bg-card/55 p-1">
             <button
               type="button"
               className={cn(
-                "rounded-lg p-1.5 text-muted-foreground transition-colors",
+                " p-1.5 text-muted-foreground transition-colors",
                 viewMode === "grid" ? "theme-segment-active" : "hover:text-foreground",
               )}
               aria-label="Grid view"
@@ -721,7 +722,7 @@ export const SerialsArchivePage = () => {
             <button
               type="button"
               className={cn(
-                "rounded-lg p-1.5 text-muted-foreground transition-colors",
+                " p-1.5 text-muted-foreground transition-colors",
                 viewMode === "list" ? "theme-segment-active" : "hover:text-foreground",
               )}
               aria-label="List view"
@@ -735,13 +736,13 @@ export const SerialsArchivePage = () => {
         {archiveQuery.isPending ? <ArchiveSkeletonGrid /> : null}
 
         {archiveQuery.isError ? (
-          <div className="rounded-xl border border-destructive/45 bg-destructive/10 p-4 text-sm text-destructive">
+          <div className=" border border-destructive/45 bg-destructive/10 p-4 text-sm text-destructive">
             Could not load the serials archive right now.
           </div>
         ) : null}
 
         {!archiveQuery.isPending && !archiveQuery.isError && archiveItems.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border/70 bg-card/30 p-8 text-center text-sm text-muted-foreground">
+          <div className=" border border-dashed border-border/70 bg-card/30 p-8 text-center text-sm text-muted-foreground">
             No titles match these filters.
           </div>
         ) : null}
