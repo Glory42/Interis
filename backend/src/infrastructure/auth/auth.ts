@@ -4,6 +4,7 @@ import { username } from "better-auth/plugins";
 import { db } from "../database/db";
 import * as schema from "../database/entities";
 import { profiles } from "../../modules/users/users.entity";
+import { DEFAULT_THEME_ID } from "../../modules/users/constants/theme.constants";
 import {
   USERNAME_MAX_LENGTH,
   USERNAME_MIN_LENGTH,
@@ -104,6 +105,7 @@ export const auth = betterAuth({
         after: async (createdUser) => {
           await db.insert(profiles).values({
             userId: createdUser.id,
+            themeId: DEFAULT_THEME_ID,
             isAdmin: false,
             top4MovieIds: [],
           });
