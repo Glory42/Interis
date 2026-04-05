@@ -9,6 +9,7 @@ import {
   type ReviewComment,
   type ReviewDetail,
   type ReviewMediaType,
+  updateReview,
   unlikeReview,
 } from "@/features/reviews/api";
 
@@ -210,6 +211,41 @@ export const useUnlikeReview = (reviewId: string, mediaType: ReviewMediaType) =>
           },
         };
       });
+
+      await queryClient.invalidateQueries({ queryKey: feedKeys.following });
+    },
+  });
+};
+
+export const useUpdateReview = (reviewId: string, _mediaType: ReviewMediaType) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: { content: string; containsSpoilers?: boolean }) =>
+      updateReview(reviewId, input),
+    onSuccess: async (updatedReview) => {
+      updateReviewInFeedCaches(queryClient, reviewId, (item) => ({
+        ...item,
+        review: item.review
+          ? {
+              ...item.review,
+              content: updatedReview.content,
+              containsSpoilers: updatedReview.containsSpoilers,
+            }
+          : item.review,
+        metadata: {
+          ...item.metadata,
+          excerpt: updatedReview.content,
+          containsSpoilers: updatedReview.containsSpoilers,
+        },
+      }));
+
+      updateReviewDetailCache(queryClient, reviewId, (detail) => ({
+        ...detail,
+        content: updatedReview.content,
+        containsSpoilers: updatedReview.containsSpoilers,
+        updatedAt: updatedReview.updatedAt,
+      }));
 
       await queryClient.invalidateQueries({ queryKey: feedKeys.following });
     },

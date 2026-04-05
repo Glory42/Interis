@@ -24,6 +24,27 @@ const addReviewCommentInputSchema = z.object({
   content: z.string().trim().min(1).max(2000),
 });
 
+const updateReviewInputSchema = z
+  .object({
+    content: z.string().trim().min(1).max(10000).optional(),
+    containsSpoilers: z.boolean().optional(),
+  })
+  .refine(
+    (input) => input.content !== undefined || input.containsSpoilers !== undefined,
+    {
+      message: "At least one review field must be provided",
+    },
+  );
+
+const updatedReviewSchema = z
+  .object({
+    id: z.string(),
+    content: z.string(),
+    containsSpoilers: z.boolean(),
+    updatedAt: z.string(),
+  })
+  .passthrough();
+
 const reviewDetailSchema = z.object({
   id: z.string(),
   mediaType: reviewMediaTypeSchema,
@@ -78,6 +99,9 @@ export type ReviewMediaType = z.infer<typeof reviewMediaTypeSchema>;
 export type ReviewDetail = z.infer<typeof reviewDetailSchema>;
 
 type AddReviewCommentInput = z.infer<typeof addReviewCommentInputSchema>;
+type UpdateReviewInput = z.infer<typeof updateReviewInputSchema>;
+
+export type UpdatedReview = z.infer<typeof updatedReviewSchema>;
 
 const toReviewBasePath = (reviewId: string): string => `/api/reviews/${reviewId}`;
 
@@ -139,4 +163,21 @@ export const unlikeReview = async (reviewId: string, _mediaType: ReviewMediaType
   });
 
   return unlikeReviewResponseSchema.parse(response);
+};
+
+export const updateReview = async (
+  reviewId: string,
+  input: UpdateReviewInput,
+): Promise<UpdatedReview> => {
+  const payload = updateReviewInputSchema.parse(input);
+
+  const response = await apiRequest<unknown, UpdateReviewInput>(
+    `${toReviewBasePath(reviewId)}`,
+    {
+      method: "PUT",
+      body: payload,
+    },
+  );
+
+  return updatedReviewSchema.parse(response);
 };

@@ -89,7 +89,7 @@ export function ProfileReviewDetailPage({ username, reviewId }: ProfileReviewDet
   if (detailQuery.isPending) {
     return (
       <div className="mx-auto w-full max-w-7xl px-4 py-12">
-        <div className="h-64 animate-pulse rounded-2xl border border-border/60 bg-card/35" />
+        <div className="h-64 animate-pulse  border border-border/60 bg-card/35" />
       </div>
     );
   }
@@ -97,7 +97,7 @@ export function ProfileReviewDetailPage({ username, reviewId }: ProfileReviewDet
   if (detailQuery.isError || !detailQuery.data) {
     return (
       <div className="mx-auto w-full max-w-5xl px-4 py-10">
-        <div className="rounded-2xl border border-destructive/45 bg-destructive/10 p-5 text-sm text-destructive">
+        <div className=" border border-destructive/45 bg-destructive/10 p-5 text-sm text-destructive">
           Could not load this review.
         </div>
       </div>
@@ -177,7 +177,7 @@ export function ProfileReviewDetailPage({ username, reviewId }: ProfileReviewDet
             asChild
             variant="outline"
             size="sm"
-            className="rounded-xl bg-background/45 backdrop-blur-sm"
+            className=" bg-background/45 backdrop-blur-sm"
           >
             <Link to="/profile/$username/reviews" params={{ username }} viewTransition>
               <ArrowLeft className="h-4 w-4" /> Back to reviews
@@ -190,7 +190,7 @@ export function ProfileReviewDetailPage({ username, reviewId }: ProfileReviewDet
             <div className="-mb-4 hidden shrink-0 sm:block">
               {detail.mediaType === "tv" ? (
                 <Link to="/serials/$tmdbId" params={{ tmdbId: String(detail.media.tmdbId) }}>
-                  <div className="h-40 w-28 overflow-hidden rounded-xl border border-border/60 shadow-2xl">
+                  <div className="h-40 w-28 overflow-hidden  border border-border/60 shadow-2xl">
                     <img
                       src={getPosterUrl(detail.media.posterPath)}
                       alt={`${detail.media.title} poster`}
@@ -200,7 +200,7 @@ export function ProfileReviewDetailPage({ username, reviewId }: ProfileReviewDet
                 </Link>
               ) : (
                 <Link to="/cinema/$tmdbId" params={{ tmdbId: String(detail.media.tmdbId) }}>
-                  <div className="h-40 w-28 overflow-hidden rounded-xl border border-border/60 shadow-2xl">
+                  <div className="h-40 w-28 overflow-hidden  border border-border/60 shadow-2xl">
                     <img
                       src={getPosterUrl(detail.media.posterPath)}
                       alt={`${detail.media.title} poster`}
@@ -222,12 +222,12 @@ export function ProfileReviewDetailPage({ username, reviewId }: ProfileReviewDet
                   {detail.mediaType === "tv" ? "Series Review" : "Film Review"}
                 </span>
                 {detail.containsSpoilers ? (
-                  <span className="rounded-full border border-amber-500/35 bg-amber-500/10 px-2 py-0.5 text-amber-200">
+                  <span className=" border border-amber-500/35 bg-amber-500/10 px-2 py-0.5 text-amber-200">
                     Spoilers
                   </span>
                 ) : null}
                 {detail.media.genres.length > 0 ? (
-                  <span className="rounded-full bg-secondary/75 px-2 py-0.5 text-muted-foreground">
+                  <span className=" bg-secondary/75 px-2 py-0.5 text-muted-foreground">
                     {detail.media.genres
                       .slice(0, 2)
                       .map((genre) => genre.name)
@@ -252,10 +252,10 @@ export function ProfileReviewDetailPage({ username, reviewId }: ProfileReviewDet
                     <img
                       src={authorAvatar}
                       alt={`${detail.author.username} avatar`}
-                      className="h-8 w-8 rounded-full border border-border/70 object-cover"
+                      className="h-8 w-8  border border-border/70 object-cover"
                     />
                   ) : (
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-secondary text-[10px] font-semibold text-secondary-foreground">
+                    <span className="inline-flex h-8 w-8 items-center justify-center  border border-border/70 bg-secondary text-[10px] font-semibold text-secondary-foreground">
                       {detail.author.username.slice(0, 1).toUpperCase()}
                     </span>
                   )}
@@ -274,7 +274,7 @@ export function ProfileReviewDetailPage({ username, reviewId }: ProfileReviewDet
                   </p>
                 </div>
 
-                <div className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-secondary/40 px-2.5 py-1 text-xs font-semibold text-foreground">
+                <div className="inline-flex items-center gap-1.5  border border-border/70 bg-secondary/40 px-2.5 py-1 text-xs font-semibold text-foreground">
                   <SpaceRatingDisplay ratingOutOfFive={detail.ratingOutOfFive} size="sm" />
                   <span>{ratingLabel ?? "Unrated"}</span>
                 </div>
@@ -286,7 +286,7 @@ export function ProfileReviewDetailPage({ username, reviewId }: ProfileReviewDet
 
       <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 px-4 pb-16 pt-14 sm:pt-16 lg:grid-cols-12">
         <div className="space-y-8 lg:col-span-8">
-          <section className="rounded-2xl border border-border/60 bg-card/35 p-5 sm:p-6">
+          <section className=" border border-border/60 bg-card/35 p-5 sm:p-6">
             <div className="mb-4 flex items-center justify-between gap-3">
               <h2 className="text-base font-bold text-foreground">Review</h2>
               <span className="text-xs text-muted-foreground">
@@ -297,7 +297,7 @@ export function ProfileReviewDetailPage({ username, reviewId }: ProfileReviewDet
             {detail.containsSpoilers && !canReadSpoiler ? (
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-lg border border-amber-500/35 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-500/15"
+                className="inline-flex items-center gap-2  border border-amber-500/35 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-500/15"
                 onClick={() => setIsSpoilerRevealed(true)}
               >
                 <TriangleAlert className="h-3.5 w-3.5" />
@@ -319,7 +319,7 @@ export function ProfileReviewDetailPage({ username, reviewId }: ProfileReviewDet
                 type="button"
                 variant="outline"
                 size="sm"
-                className="rounded-lg"
+                className=""
                 disabled={likeBusy}
                 onClick={() => {
                   void toggleLike();
@@ -347,7 +347,7 @@ export function ProfileReviewDetailPage({ username, reviewId }: ProfileReviewDet
 
           <section
             id="review-comments"
-            className="rounded-2xl border border-border/60 bg-card/35 p-5 sm:p-6"
+            className=" border border-border/60 bg-card/35 p-5 sm:p-6"
           >
             <div className="mb-4 flex items-center justify-between gap-2">
               <h2 className="text-sm font-bold text-foreground">Comments</h2>
@@ -378,17 +378,17 @@ export function ProfileReviewDetailPage({ username, reviewId }: ProfileReviewDet
                     return (
                       <article
                         key={comment.id}
-                        className="rounded-xl border border-border/60 bg-card/50 p-3"
+                        className=" border border-border/60 bg-card/50 p-3"
                       >
                         <div className="mb-1.5 flex items-center gap-2">
                           {commentAvatar ? (
                             <img
                               src={commentAvatar}
                               alt={`${comment.authorUsername} avatar`}
-                              className="h-7 w-7 rounded-full border border-border/60 object-cover"
+                              className="h-7 w-7  border border-border/60 object-cover"
                             />
                           ) : (
-                            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border/60 bg-secondary text-[10px] font-semibold text-secondary-foreground">
+                            <span className="inline-flex h-7 w-7 items-center justify-center  border border-border/60 bg-secondary text-[10px] font-semibold text-secondary-foreground">
                               {comment.authorUsername.slice(0, 1).toUpperCase()}
                             </span>
                           )}
@@ -413,7 +413,7 @@ export function ProfileReviewDetailPage({ username, reviewId }: ProfileReviewDet
                 value={commentDraft}
                 onChange={(event) => setCommentDraft(event.target.value.slice(0, 2000))}
                 placeholder="Write a comment..."
-                className="min-h-24 rounded-xl border-border/70 bg-background/40 text-sm"
+                className="min-h-24  border-border/70 bg-background/40 text-sm"
               />
 
               <div className="flex items-center justify-between gap-2">
@@ -421,7 +421,7 @@ export function ProfileReviewDetailPage({ username, reviewId }: ProfileReviewDet
                 <Button
                   type="button"
                   size="sm"
-                  className="rounded-lg"
+                  className=""
                   disabled={addCommentMutation.isPending || commentDraft.trim().length === 0}
                   onClick={() => {
                     void submitComment();
@@ -442,7 +442,7 @@ export function ProfileReviewDetailPage({ username, reviewId }: ProfileReviewDet
         </div>
 
         <aside className="space-y-8 lg:col-span-4">
-          <section className="rounded-2xl border border-border/60 bg-card/35 p-5">
+          <section className=" border border-border/60 bg-card/35 p-5">
             <h2 className="mb-5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
               Review Stats
             </h2>
@@ -490,19 +490,19 @@ export function ProfileReviewDetailPage({ username, reviewId }: ProfileReviewDet
             </div>
           </section>
 
-          <section className="rounded-2xl border border-border/60 bg-card/35 p-5">
+          <section className=" border border-border/60 bg-card/35 p-5">
             <h2 className="mb-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
               Watch Page
             </h2>
 
             {detail.mediaType === "tv" ? (
-              <Button asChild variant="outline" className="w-full rounded-xl">
+              <Button asChild variant="outline" className="w-full ">
                 <Link to="/serials/$tmdbId" params={{ tmdbId: String(detail.media.tmdbId) }}>
                   Open series page
                 </Link>
               </Button>
             ) : (
-              <Button asChild variant="outline" className="w-full rounded-xl">
+              <Button asChild variant="outline" className="w-full ">
                 <Link to="/cinema/$tmdbId" params={{ tmdbId: String(detail.media.tmdbId) }}>
                   Open film page
                 </Link>
