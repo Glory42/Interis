@@ -1,21 +1,44 @@
 import { z } from "zod";
 
-export const DEFAULT_THEME_ID = "catppuccin-mocha";
+export const SUPPORTED_THEME_IDS = [
+  "rose-pine",
+  "null-log",
+  "gruvbox",
+] as const;
+
+export type ThemeId = (typeof SUPPORTED_THEME_IDS)[number];
+
+export const DEFAULT_THEME_ID: ThemeId = "rose-pine";
+
 const MAX_THEME_ID_LENGTH = 64;
 const THEME_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const REMOVED_THEME_IDS = new Set([
+
+const SUPPORTED_THEME_ID_SET = new Set<ThemeId>(SUPPORTED_THEME_IDS);
+
+const LEGACY_THEME_IDS = new Set([
   "arkheion",
   "amber-signal",
   "goth",
+  "catppuccin-mocha",
   "catppuccin-latte",
   "nord-dark",
   "nord-light",
   "sunset",
   "github-dark",
   "github-light",
+  "starwars",
+  "dune",
+  "person-of-interest",
+  "lotr",
+  "graduation",
+  "hannibal",
+  "spiderman",
+  "superman",
+  "batman",
+  "optimus-prime",
+  "doctor-who",
+  "got",
 ]);
-
-export type ThemeId = string;
 
 export const normalizeThemeId = (rawThemeId: string): ThemeId => {
   const normalizedThemeId = rawThemeId.trim().toLowerCase();
@@ -28,11 +51,15 @@ export const normalizeThemeId = (rawThemeId: string): ThemeId => {
     return DEFAULT_THEME_ID;
   }
 
-  if (REMOVED_THEME_IDS.has(normalizedThemeId)) {
+  if (LEGACY_THEME_IDS.has(normalizedThemeId)) {
     return DEFAULT_THEME_ID;
   }
 
-  return normalizedThemeId;
+  if (SUPPORTED_THEME_ID_SET.has(normalizedThemeId as ThemeId)) {
+    return normalizedThemeId as ThemeId;
+  }
+
+  return DEFAULT_THEME_ID;
 };
 
 export const ThemeIdInputSchema = z

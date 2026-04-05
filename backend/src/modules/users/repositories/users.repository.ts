@@ -42,6 +42,14 @@ const profileSelect = {
 } as const;
 
 export class UsersRepository {
+  static async getTotalUsersCount(): Promise<number> {
+    const rows = await db
+      .select({ count: sql<number>`count(*)`.mapWith(Number) })
+      .from(user);
+
+    return rows[0]?.count ?? 0;
+  }
+
   static async findProfileByUsername(username: string) {
     const [result] = await db
       .select(profileSelect)

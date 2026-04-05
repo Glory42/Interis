@@ -3,6 +3,10 @@ import { UsersRepository } from "../repositories/users.repository";
 import { UsersProfileService } from "./users-profile.service";
 
 export class UsersReadService {
+  static async getTotalUsersCount() {
+    return UsersRepository.getTotalUsersCount();
+  }
+
   static async searchUsers(query: string, limit = 8) {
     return UsersRepository.searchProfilesByUsername(query, limit);
   }

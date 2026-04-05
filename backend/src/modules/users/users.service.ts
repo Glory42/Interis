@@ -4,6 +4,10 @@ import { UsersProfileService } from "./services/users-profile.service";
 import { UsersReadService } from "./services/users-read.service";
 
 export class UsersService {
+  static async getTotalUsersCount() {
+    return UsersReadService.getTotalUsersCount();
+  }
+
   static async searchUsers(query: string, limit?: number) {
     return UsersReadService.searchUsers(query, limit);
   }

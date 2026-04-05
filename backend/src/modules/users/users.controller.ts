@@ -10,6 +10,11 @@ import {
 } from "./dto/users.dto";
 
 export class UsersController {
+  static async getNetworkStats(_req: Request, res: Response): Promise<void> {
+    const totalUsers = await UsersService.getTotalUsersCount();
+    res.status(200).json({ totalUsers });
+  }
+
   static async search(
     req: Request<{}, {}, {}, SearchUsersQueryDto>,
     res: Response,

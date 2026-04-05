@@ -14,6 +14,7 @@ router.put("/me/theme", requireAuth, asyncHandler(UsersController.updateTheme));
 
 // ── Public — profile tabs ─────────────────────────────────────────────────────
 router.get("/", asyncHandler(UsersController.search));
+router.get("/stats/network", asyncHandler(UsersController.getNetworkStats));
 router.get("/:username", asyncHandler(UsersController.getProfile));
 router.get("/:username/diary", asyncHandler(UsersController.getUserDiary));
 router.get("/:username/reviews", asyncHandler(UsersController.getUserReviews));
