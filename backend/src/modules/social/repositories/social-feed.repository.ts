@@ -172,6 +172,17 @@ export class SocialFeedRepository {
       .groupBy(postComments.postId);
   }
 
+  static async getViewerPostLikeRows(viewerId: string, postIds: string[]) {
+    if (postIds.length === 0) {
+      return [];
+    }
+
+    return db
+      .select({ postId: postLikes.postId })
+      .from(postLikes)
+      .where(and(eq(postLikes.userId, viewerId), inArray(postLikes.postId, postIds)));
+  }
+
   static async getPostById(postId: string) {
     const [post] = await db
       .select({

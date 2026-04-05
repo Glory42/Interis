@@ -46,9 +46,14 @@ export const toFeedItem = async (
       : null;
 
   const postId = post?.id ?? metadata.postId ?? (kind === "post" ? row.activity.entityId : null);
-  const postEngagement = postId
-    ? postEngagementByPostId.get(postId) ?? { likeCount: 0, commentCount: 0 }
-    : { likeCount: 0, commentCount: 0 };
+  const fallbackPostEngagement: PostEngagement = {
+    likeCount: 0,
+    commentCount: 0,
+    viewerHasLiked: null,
+  };
+  const postEngagement: PostEngagement = postId
+    ? postEngagementByPostId.get(postId) ?? fallbackPostEngagement
+    : fallbackPostEngagement;
 
   const engagement: FeedEngagement = reviewDetails
     ? {
@@ -59,7 +64,7 @@ export const toFeedItem = async (
     : {
         likeCount: postEngagement.likeCount,
         commentCount: postEngagement.commentCount,
-        viewerHasLiked: null,
+        viewerHasLiked: postEngagement.viewerHasLiked,
       };
 
   return {

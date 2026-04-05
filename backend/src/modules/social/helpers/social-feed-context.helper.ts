@@ -97,6 +97,7 @@ export const buildReviewContext = async (
 
 export const buildPostEngagementContext = async (
   rows: ActivityRow[],
+  viewerId?: string,
 ): Promise<Map<string, PostEngagement>> => {
   const postIds = new Set<string>();
 
@@ -117,13 +118,17 @@ export const buildPostEngagementContext = async (
   }
 
   const uniquePostIds = [...postIds];
-  const [postLikeRows, postCommentRows] = await Promise.all([
+  const [postLikeRows, postCommentRows, viewerPostLikeRows] = await Promise.all([
     SocialFeedRepository.getPostLikeCountRows(uniquePostIds),
     SocialFeedRepository.getPostCommentCountRows(uniquePostIds),
+    viewerId
+      ? SocialFeedRepository.getViewerPostLikeRows(viewerId, uniquePostIds)
+      : Promise.resolve([]),
   ]);
 
   const likeCountsByPostId = new Map(postLikeRows.map((row) => [row.postId, row.count]));
   const commentCountsByPostId = new Map(postCommentRows.map((row) => [row.postId, row.count]));
+  const viewerLikedPostIds = new Set(viewerPostLikeRows.map((row) => row.postId));
 
   return new Map(
     uniquePostIds.map((postId) => [
@@ -131,6 +136,7 @@ export const buildPostEngagementContext = async (
       {
         likeCount: likeCountsByPostId.get(postId) ?? 0,
         commentCount: commentCountsByPostId.get(postId) ?? 0,
+        viewerHasLiked: viewerId ? viewerLikedPostIds.has(postId) : null,
       },
     ]),
   );

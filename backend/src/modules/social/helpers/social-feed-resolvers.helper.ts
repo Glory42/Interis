@@ -63,6 +63,17 @@ export const resolvePost = async (
   }
 
   const postId = postIdFromMetadata ?? activity.entityId;
+  const post = await SocialFeedRepository.getPostById(postId);
+
+  if (post) {
+    return {
+      id: post.id,
+      content: post.content,
+      mediaId: post.mediaId,
+      mediaType: post.mediaType,
+    };
+  }
+
   const contentFromMetadata =
     readString(rawMetadata, "content") ?? readString(rawMetadata, "excerpt");
   const mediaIdFromMetadata = readNumber(rawMetadata, "mediaId");
@@ -77,18 +88,7 @@ export const resolvePost = async (
     };
   }
 
-  const post = await SocialFeedRepository.getPostById(postId);
-
-  if (!post) {
-    return null;
-  }
-
-  return {
-    id: post.id,
-    content: post.content,
-    mediaId: post.mediaId,
-    mediaType: post.mediaType,
-  };
+  return null;
 };
 
 export const resolveMovie = async (

@@ -24,7 +24,7 @@ export class SocialFeedService {
 
     const [reviewContext, postEngagementByPostId] = await Promise.all([
       buildReviewContext(rows, userId),
-      buildPostEngagementContext(rows),
+      buildPostEngagementContext(rows, userId),
     ]);
 
     const feedItems = await Promise.all(

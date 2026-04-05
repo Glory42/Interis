@@ -109,4 +109,5 @@ export type ReviewContext = {
 export type PostEngagement = {
   likeCount: number;
   commentCount: number;
+  viewerHasLiked: boolean | null;
 };
