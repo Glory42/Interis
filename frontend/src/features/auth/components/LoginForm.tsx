@@ -58,7 +58,10 @@ export const LoginForm = ({ redirectTo }: LoginFormProps) => {
       <CardContent>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground" htmlFor="login-email">
+            <label
+              className="text-sm font-medium text-foreground"
+              htmlFor="login-email"
+            >
               Email
             </label>
             <Input
@@ -92,7 +95,7 @@ export const LoginForm = ({ redirectTo }: LoginFormProps) => {
           </div>
 
           {formError ? (
-            <p className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <p className=" border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {formError}
             </p>
           ) : null}
