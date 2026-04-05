@@ -23,7 +23,7 @@ export const FilmCard = ({ movie }: FilmCardProps) => {
           <img
             src={getPosterUrl(movie.poster_path)}
             alt={`${movie.title} poster`}
-            className="h-28 w-19 rounded-md border border-border/80 object-cover transition-transform duration-300 group-hover:scale-[1.03] sm:h-32 sm:w-22"
+            className="h-28 w-19  border border-border/80 object-cover transition-transform duration-300 group-hover:scale-[1.03] sm:h-32 sm:w-22"
             loading="lazy"
           />
 

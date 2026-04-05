@@ -123,7 +123,7 @@ export const SpaceRatingInput = ({ value, onChange }: SpaceRatingInputProps) => 
 
             <button
               type="button"
-              className="absolute inset-y-0 left-0 w-1/2 rounded-l-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/70"
+              className="absolute inset-y-0 left-0 w-1/2  focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/70"
               aria-label={`Rate ${toStepLabel(leftStepValue)} out of 5`}
               onClick={() => {
                 onChange(isSameRating(value, leftStepValue) ? null : leftStepValue);
@@ -132,7 +132,7 @@ export const SpaceRatingInput = ({ value, onChange }: SpaceRatingInputProps) => 
 
             <button
               type="button"
-              className="absolute inset-y-0 right-0 w-1/2 rounded-r-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/70"
+              className="absolute inset-y-0 right-0 w-1/2  focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/70"
               aria-label={`Rate ${toStepLabel(rightStepValue)} out of 5`}
               onClick={() => {
                 onChange(isSameRating(value, rightStepValue) ? null : rightStepValue);

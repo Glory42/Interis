@@ -177,7 +177,7 @@ export const CinemaSearchDialog = ({
   }
 
   return createPortal(
-    <div className="theme-modal-overlay fixed inset-0 z-[120] bg-background/65 backdrop-blur-sm">
+    <div className="theme-modal-overlay fixed inset-0 z-[120] bg-background/70 backdrop-blur-sm">
       <button
         type="button"
         onClick={closeDialog}
@@ -185,16 +185,16 @@ export const CinemaSearchDialog = ({
         aria-label="Close cinema search"
       />
 
-      <div className="relative mx-auto flex h-full w-full max-w-2xl items-start px-4 pt-18 sm:pt-20">
+      <div className="relative mx-auto flex h-full w-full max-w-2xl items-start px-4 pt-16 sm:pt-20">
         <section
           role="dialog"
           aria-modal="true"
           aria-labelledby={inputId}
-          className="theme-modal-panel w-full overflow-hidden rounded-sm border border-border/70 bg-card/95 shadow-2xl shadow-background/40 backdrop-blur-xl animate-fade-up"
+          className="theme-modal-panel w-full overflow-hidden border border-border/80 bg-card/95 shadow-2xl shadow-background/40 backdrop-blur-md animate-fade-up"
         >
-          <div className="border-b border-border/60 p-3 sm:p-4">
+          <div className="border-b border-border/70 p-3 sm:p-4">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 id={inputId}
                 ref={inputRef}
@@ -205,7 +205,7 @@ export const CinemaSearchDialog = ({
                 }}
                 onKeyDown={handleInputKeyDown}
                 placeholder="Search cinema titles or @username..."
-                className="h-11 rounded-xl border-border/70 bg-background/45 pl-9 pr-11"
+                className="h-10 border-border/75 bg-background/55 pl-8 pr-10 font-mono text-sm"
                 autoComplete="off"
                 role="combobox"
                 aria-expanded={hasMinQueryLength && suggestionsCount > 0}
@@ -220,7 +220,7 @@ export const CinemaSearchDialog = ({
               <button
                 type="button"
                 onClick={closeDialog}
-                className="absolute right-1.5 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-secondary/55 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                className="absolute right-1.5 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors hover:bg-secondary/55 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                 aria-label="Close cinema search"
               >
                 <X className="h-4 w-4" />
@@ -230,10 +230,10 @@ export const CinemaSearchDialog = ({
 
           <div
             id={`${inputId}-results`}
-            className="max-h-[min(62dvh,30rem)] overflow-y-auto p-2 sm:p-3"
+            className="max-h-[min(62dvh,30rem)] overflow-y-auto p-2 sm:p-2.5"
           >
             {!hasMinQueryLength ? (
-              <p className="rounded-sm border border-dashed border-border/70 px-3 py-4 text-sm text-muted-foreground">
+              <p className="border border-dashed border-border/70 px-3 py-4 font-mono text-xs text-muted-foreground">
                 {isUserSearchMode
                   ? "Type at least 1 character after @ to find a profile."
                   : "Type at least 2 characters to search the cinema catalog."}
@@ -241,7 +241,7 @@ export const CinemaSearchDialog = ({
             ) : null}
 
             {hasMinQueryLength && isLoadingSuggestions ? (
-              <p className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
+              <p className="flex items-center gap-2 px-3 py-4 font-mono text-xs text-muted-foreground">
                 <Spinner />
                 {isUserSearchMode ? "Finding profiles..." : "Finding titles..."}
               </p>
@@ -250,7 +250,7 @@ export const CinemaSearchDialog = ({
             {hasMinQueryLength &&
             !isLoadingSuggestions &&
             suggestionsCount === 0 ? (
-              <p className="rounded-lg border border-dashed border-border/70 px-3 py-4 text-sm text-muted-foreground">
+              <p className="border border-dashed border-border/70 px-3 py-4 font-mono text-xs text-muted-foreground">
                 {isUserSearchMode
                   ? "No profile matches yet. Try another username."
                   : "No matches yet. Try another title."}
@@ -277,10 +277,10 @@ export const CinemaSearchDialog = ({
                             role="option"
                             aria-selected={isHighlighted}
                             className={cn(
-                              "grid w-full grid-cols-[42px_1fr] gap-2 rounded-lg border px-2 py-2 text-left transition-colors",
+                              "grid w-full grid-cols-[42px_1fr] gap-2 border px-2 py-2 text-left transition-colors",
                               isHighlighted
-                                ? "border-primary/40 bg-primary/12"
-                                : "border-border/70 bg-background/30 hover:bg-secondary/45",
+                                ? "border-primary/45 bg-primary/12"
+                                : "border-border/75 bg-background/30 hover:bg-secondary/40",
                             )}
                             onMouseEnter={() => setHighlightedIndex(index)}
                             onClick={() => openUserProfile(profile.username)}
@@ -289,11 +289,11 @@ export const CinemaSearchDialog = ({
                               <img
                                 src={profileAvatar}
                                 alt={`${profile.username} avatar`}
-                                className="h-10 w-10 rounded-full border border-border/60 object-cover"
+                                className="h-10 w-10  border border-border/60 object-cover"
                                 loading="lazy"
                               />
                             ) : (
-                              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-secondary text-xs font-semibold text-secondary-foreground">
+                              <span className="inline-flex h-10 w-10 items-center justify-center  border border-border/60 bg-secondary text-xs font-semibold text-secondary-foreground">
                                 {profile.username.slice(0, 1).toUpperCase()}
                               </span>
                             )}
@@ -322,10 +322,10 @@ export const CinemaSearchDialog = ({
                             role="option"
                             aria-selected={isHighlighted}
                             className={cn(
-                              "grid w-full grid-cols-[42px_1fr] gap-2 rounded-lg border px-2 py-2 text-left transition-colors",
+                              "grid w-full grid-cols-[42px_1fr] gap-2 border px-2 py-2 text-left transition-colors",
                               isHighlighted
-                                ? "border-primary/40 bg-primary/12"
-                                : "border-border/70 bg-background/30 hover:bg-secondary/45",
+                                ? "border-primary/45 bg-primary/12"
+                                : "border-border/75 bg-background/30 hover:bg-secondary/40",
                             )}
                             onMouseEnter={() => setHighlightedIndex(index)}
                             onClick={() => openMovie(movie.id)}
@@ -333,7 +333,7 @@ export const CinemaSearchDialog = ({
                             <img
                               src={getPosterUrl(movie.poster_path)}
                               alt={`${movie.title} poster`}
-                              className="h-14 w-10 rounded object-cover"
+                              className="h-14 w-10  object-cover"
                               loading="lazy"
                             />
 
@@ -353,7 +353,7 @@ export const CinemaSearchDialog = ({
             ) : null}
           </div>
 
-          <p className="border-t border-border/60 px-4 py-2 text-xs text-muted-foreground">
+          <p className="border-t border-border/70 px-4 py-2 font-mono text-[10px] text-muted-foreground">
             Enter opens the highlighted result. Use @ to search profiles. Esc
             closes search.
           </p>

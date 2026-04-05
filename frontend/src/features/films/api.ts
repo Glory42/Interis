@@ -32,6 +32,8 @@ const archiveMovieSchema = z.object({
   avgRatingOutOfTen: z.number().nullable(),
   tmdbRatingOutOfTen: z.number().nullable(),
   ratedLogCount: z.number().int().nonnegative(),
+  viewerHasLogged: z.boolean(),
+  viewerWatchlisted: z.boolean(),
 });
 
 const archiveFeaturedMovieSchema = z.object({
@@ -85,6 +87,9 @@ const movieDetailMovieSchema = z.object({
   tagline: z.string().nullable(),
   genres: z.array(archiveGenreSchema),
   languageCode: z.string().nullable(),
+  productionCountries: z.array(z.string()),
+  budget: z.number().nullable(),
+  revenue: z.number().nullable(),
   globalRatingOutOfTen: z.number().nullable(),
   globalRatingOutOfFive: z.number().nullable(),
   globalRatingVoteCount: z.number().int().nullable(),

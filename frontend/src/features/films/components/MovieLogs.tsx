@@ -55,7 +55,7 @@ export const MovieLogs = ({ tmdbId }: MovieLogsProps) => {
           {logsQuery.data?.map((log) => (
             <div
               key={log.diaryEntryId}
-              className="space-y-2 rounded-xl border border-border/70 bg-secondary/20 p-3 sm:p-3.5"
+              className="space-y-2  border border-border/70 bg-secondary/20 p-3 sm:p-3.5"
             >
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex min-w-0 items-center gap-2">
@@ -65,7 +65,7 @@ export const MovieLogs = ({ tmdbId }: MovieLogsProps) => {
                       "https://placehold.co/80x80/1b2140/cfd7ff?text=User"
                     }
                     alt={`${log.username} avatar`}
-                    className="h-8 w-8 rounded-full border border-border object-cover"
+                    className="h-8 w-8  border border-border object-cover"
                   />
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-foreground">@{log.username}</p>
@@ -77,7 +77,7 @@ export const MovieLogs = ({ tmdbId }: MovieLogsProps) => {
 
                 <div className="flex flex-wrap items-center gap-2">
                   {log.rating !== null ? (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-border/65 bg-secondary/40 px-2 py-1 text-xs text-foreground">
+                    <span className="inline-flex items-center gap-1  border border-border/65 bg-secondary/40 px-2 py-1 text-xs text-foreground">
                       <SpaceRatingDisplay
                         ratingOutOfFive={toFivePointFromTen(log.rating)}
                         size="sm"
@@ -94,7 +94,7 @@ export const MovieLogs = ({ tmdbId }: MovieLogsProps) => {
               </p>
 
               {log.reviewContent ? (
-                <div className="space-y-1 rounded-lg bg-background/40 p-2">
+                <div className="space-y-1  bg-background/40 p-2">
                   {log.reviewContainsSpoilers ? (
                     <Badge variant="default">Spoilers</Badge>
                   ) : null}

@@ -1,16 +1,16 @@
 import { Link } from "@tanstack/react-router";
 import {
   ArrowLeft,
-  BookText,
-  CalendarDays,
+  Award,
+  Check,
   Clock3,
-  Film,
+  DollarSign,
+  Globe2,
   Heart,
   Languages,
-  Rocket,
+  Plus,
 } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { LogFilmModal } from "@/features/diary/components/LogFilmModal";
 import { type MovieDetailReviewSort } from "@/features/films/api";
@@ -19,21 +19,30 @@ import {
   SpaceRatingInput,
 } from "@/features/films/components/SpaceRating";
 import { formatRatingOutOfFiveLabel } from "@/features/films/components/spaceRating.utils";
-import {
-  formatRuntimeLabel,
-  getBackdropUrl,
-  getPosterUrl,
-} from "@/features/films/components/utils";
+import { formatRuntimeLabel, getPosterUrl } from "@/features/films/components/utils";
 import { useMovieDetailView } from "@/features/films/hooks/useMovies";
 import {
   useMovieInteraction,
   useUpdateMovieInteraction,
 } from "@/features/interactions/hooks/useInteractions";
-import { cn } from "@/lib/utils";
 
 type CinemaDetailPageProps = {
   tmdbId: number;
 };
+
+const CINEMA_MODULE_STYLES = {
+  accent: "var(--module-cinema)",
+  text: "var(--foreground)",
+  muted: "color-mix(in srgb, var(--foreground) 68%, transparent)",
+  faint: "color-mix(in srgb, var(--foreground) 36%, transparent)",
+  border: "color-mix(in srgb, var(--module-cinema) 26%, transparent)",
+  borderSoft: "color-mix(in srgb, var(--module-cinema) 16%, transparent)",
+  panel: "color-mix(in srgb, var(--card) 92%, var(--background) 8%)",
+  panelElevated: "color-mix(in srgb, var(--card) 84%, var(--background) 16%)",
+  panelSoft: "color-mix(in srgb, var(--module-cinema) 10%, transparent)",
+  panelStrong: "color-mix(in srgb, var(--module-cinema) 26%, transparent)",
+  badge: "color-mix(in srgb, var(--module-cinema) 14%, transparent)",
+} as const;
 
 const formatRelativeTime = (value: string): string => {
   const date = new Date(value);
@@ -76,67 +85,92 @@ const toLanguageLabel = (languageCode: string | null): string | null => {
   }
 };
 
+const formatMoneyLabel = (value: number | null): string => {
+  if (value === null || !Number.isFinite(value) || value <= 0) {
+    return "Unknown";
+  }
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+};
+
 export function CinemaDetailPage({ tmdbId }: CinemaDetailPageProps) {
   const isValidTmdbId = Number.isInteger(tmdbId) && tmdbId > 0;
-  const [reviewsSort, setReviewsSort] =
-    useState<MovieDetailReviewSort>("popular");
-  const [draftRatingOutOfFive, setDraftRatingOutOfFive] = useState<
-    number | null
-  >(null);
+  const [reviewsSort, setReviewsSort] = useState<MovieDetailReviewSort>("popular");
+  const [draftRatingOutOfFive, setDraftRatingOutOfFive] = useState<number | null>(null);
+
   const detailQuery = useMovieDetailView(tmdbId, reviewsSort, isValidTmdbId);
 
   const { user } = useAuth();
-  const interactionQuery = useMovieInteraction(
-    tmdbId,
-    Boolean(user) && isValidTmdbId,
-  );
+  const interactionQuery = useMovieInteraction(tmdbId, Boolean(user) && isValidTmdbId);
   const updateInteractionMutation = useUpdateMovieInteraction(tmdbId);
 
   if (!isValidTmdbId) {
     return (
-      <div className="mx-auto w-full max-w-5xl px-4 py-10">
-        <div className="rounded-2xl border border-border/70 bg-card/60 p-5 text-sm text-muted-foreground">
+      <main className="mx-auto w-full max-w-5xl px-4 py-10">
+        <div
+          className="border p-5 font-mono text-xs"
+          style={{
+            borderColor: CINEMA_MODULE_STYLES.border,
+            background: CINEMA_MODULE_STYLES.panel,
+            color: CINEMA_MODULE_STYLES.muted,
+          }}
+        >
           Invalid movie id.
         </div>
-      </div>
+      </main>
     );
   }
 
   if (detailQuery.isPending) {
     return (
-      <div className="mx-auto w-full max-w-7xl px-4 py-12">
-        <div className="h-64 animate-pulse rounded-2xl border border-border/60 bg-card/35" />
-      </div>
+      <main className="mx-auto w-full max-w-5xl px-4 py-10">
+        <div
+          className="h-64 animate-pulse border"
+          style={{
+            borderColor: CINEMA_MODULE_STYLES.border,
+            background: CINEMA_MODULE_STYLES.panel,
+          }}
+        />
+      </main>
     );
   }
 
   if (detailQuery.isError || !detailQuery.data) {
     return (
-      <div className="mx-auto w-full max-w-5xl px-4 py-10">
-        <div className="rounded-2xl border border-destructive/45 bg-destructive/10 p-5 text-sm text-destructive">
+      <main className="mx-auto w-full max-w-5xl px-4 py-10">
+        <div
+          className="border p-5 font-mono text-xs"
+          style={{
+            borderColor: CINEMA_MODULE_STYLES.border,
+            background: CINEMA_MODULE_STYLES.panel,
+            color: CINEMA_MODULE_STYLES.muted,
+          }}
+        >
           Could not load this movie right now.
         </div>
-      </div>
+      </main>
     );
   }
 
   const detail = detailQuery.data;
   const movie = detail.movie;
 
-  const heroImageUrl = movie.backdropPath
-    ? getBackdropUrl(movie.backdropPath)
-    : getPosterUrl(movie.posterPath);
-
   const runtimeLabel = formatRuntimeLabel(movie.runtime);
   const languageLabel = toLanguageLabel(movie.languageCode);
-  const globalRatingLabel = formatRatingOutOfFiveLabel(
-    movie.globalRatingOutOfFive,
-  );
+  const communityRatingLabel =
+    detail.ratingBreakdown.averageRatingOutOfFive !== null
+      ? detail.ratingBreakdown.averageRatingOutOfFive.toFixed(1)
+      : "--";
+  const tmdbRatingLabel =
+    movie.globalRatingOutOfTen !== null ? movie.globalRatingOutOfTen.toFixed(1) : "--";
 
   const watchlisted = interactionQuery.data?.watchlisted ?? false;
-  const liked = interactionQuery.data?.liked ?? false;
-  const isInteractionBusy =
-    interactionQuery.isPending || updateInteractionMutation.isPending;
+  const isInteractionBusy = interactionQuery.isPending || updateInteractionMutation.isPending;
 
   const modalInitialState = {
     watchedDate: detail.userRating?.watchedDate ?? null,
@@ -151,389 +185,497 @@ export function CinemaDetailPage({ tmdbId }: CinemaDetailPageProps) {
     containsSpoilers: detail.userRating?.reviewContainsSpoilers ?? null,
   };
 
+  const factRows = [
+    {
+      label: "Director",
+      value: movie.director ?? "Unknown",
+      icon: Award,
+    },
+    {
+      label: "Runtime",
+      value: runtimeLabel ?? "Unknown",
+      icon: Clock3,
+    },
+    {
+      label: "Language",
+      value: languageLabel ?? "Unknown",
+      icon: Languages,
+    },
+    {
+      label: "Country",
+      value: movie.productionCountries[0] ?? "Unknown",
+      icon: Globe2,
+    },
+    {
+      label: "Budget",
+      value: formatMoneyLabel(movie.budget),
+      icon: DollarSign,
+    },
+    {
+      label: "Box Office",
+      value: formatMoneyLabel(movie.revenue),
+      icon: DollarSign,
+    },
+  ] as const;
+
   return (
     <div className="min-h-screen">
-      <section className="theme-hero-shell relative h-96 overflow-hidden">
-        <img
-          src={heroImageUrl}
-          alt={`${movie.title} backdrop`}
-          className="theme-hero-media h-full w-full object-cover opacity-25"
-        />
-        <div className="theme-hero-gradient-layer absolute inset-0" />
-        <div className="theme-hero-pattern-layer absolute inset-0" />
-        <div className="theme-hero-readable-overlay absolute inset-y-0 left-0 w-[74%] bg-linear-to-r from-background/78 via-background/34 to-transparent" />
-        <div className="theme-hero-readable-overlay absolute inset-x-0 bottom-0 h-[54%] bg-linear-to-t from-background/74 via-background/26 to-transparent" />
+      <div
+        className="sticky top-12 z-20 flex items-center gap-3 border-b px-4 py-3"
+        style={{
+          background: "color-mix(in srgb, var(--card) 94%, var(--background) 6%)",
+          borderColor: CINEMA_MODULE_STYLES.border,
+          backdropFilter: "blur(12px)",
+        }}
+      >
+        <Link
+          to="/cinema"
+          className="flex items-center gap-1.5 font-mono text-[11px]"
+          style={{ color: CINEMA_MODULE_STYLES.muted }}
+          viewTransition
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span>Cinema</span>
+        </Link>
 
-        <div className="absolute left-0 right-0 top-6 z-[22] mx-auto w-full max-w-7xl px-4">
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="rounded-xl bg-background/45 backdrop-blur-sm"
-          >
-            <Link to="/cinema" viewTransition>
-              <ArrowLeft className="h-4 w-4" /> Back
-            </Link>
-          </Button>
-        </div>
+        <span className="font-mono text-[11px]" style={{ color: CINEMA_MODULE_STYLES.faint }}>
+          /
+        </span>
 
-        <div className="theme-hero-safe-area mx-auto w-full max-w-7xl px-4">
-          <div className="theme-hero-safe-content flex w-full items-end gap-6">
-            <div className="-mb-4 hidden shrink-0 sm:block">
-              <div className="h-40 w-28 overflow-hidden rounded-xl border border-border/60 shadow-2xl">
+        <span
+          className="truncate font-mono text-[11px] uppercase"
+          style={{ color: CINEMA_MODULE_STYLES.accent }}
+        >
+          {movie.title}
+        </span>
+      </div>
+
+      <main className="mx-auto w-full max-w-5xl px-4 py-10">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-[220px_1fr]">
+          <aside>
+            <div
+              className="mb-4 aspect-[2/3] overflow-hidden border"
+              style={{ borderColor: CINEMA_MODULE_STYLES.border }}
+            >
+              {movie.posterPath ? (
                 <img
                   src={getPosterUrl(movie.posterPath)}
                   alt={`${movie.title} poster`}
                   className="h-full w-full object-cover"
                 />
-              </div>
-            </div>
-
-            <div className="flex-1 pb-1">
-              <div className="mb-2 flex flex-wrap items-center gap-2 text-[10px]">
-                <Film className="h-3 w-3 text-primary" />
-                <span className="theme-kicker font-bold uppercase tracking-[0.16em] text-primary">
-                  Cinema
-                </span>
-                {movie.releaseYear ? (
-                  <>
-                    <span className="text-muted-foreground">·</span>
-                    <span className="text-muted-foreground">
-                      {movie.releaseYear}
-                    </span>
-                  </>
-                ) : null}
-                {movie.genres.length > 0 ? (
-                  <span className="rounded-full bg-secondary/75 px-2 py-0.5 text-muted-foreground">
-                    {movie.genres
-                      .slice(0, 2)
-                      .map((genre) => genre.name)
-                      .join(" / ")}
-                  </span>
-                ) : null}
-              </div>
-
-              <h1 className="theme-display-title text-4xl font-black leading-none tracking-tight text-foreground">
-                {movie.title}
-              </h1>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {movie.director ?? "Director unknown"}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 px-4 pb-16 pt-14 sm:pt-16 lg:grid-cols-12">
-        <div className="space-y-10 lg:col-span-8">
-          <div className="flex flex-wrap items-center gap-6">
-            <div className="flex items-center gap-2">
-              <SpaceRatingDisplay
-                ratingOutOfFive={movie.globalRatingOutOfFive}
-                size="md"
-                className="gap-0.5"
-              />
-              <span className="text-lg font-bold text-foreground">
-                {globalRatingLabel ?? "N/A"}
-              </span>
-            </div>
-
-            <div className="h-4 w-px bg-border/70" />
-
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <BookText className="h-3.5 w-3.5" />
-              <span>{detail.logsCount.toLocaleString()} logs</span>
-            </div>
-
-            {runtimeLabel ? (
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Clock3 className="h-3.5 w-3.5" />
-                <span>{runtimeLabel}</span>
-              </div>
-            ) : null}
-
-            {languageLabel ? (
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Languages className="h-3.5 w-3.5" />
-                <span>{languageLabel}</span>
-              </div>
-            ) : null}
-          </div>
-
-          <section>
-            <h2 className="mb-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              Synopsis
-            </h2>
-            <p className="max-w-2xl text-sm leading-relaxed text-foreground/90">
-              {movie.overview || "No synopsis available for this title."}
-            </p>
-          </section>
-
-          <section className="rounded-2xl border border-border/60 bg-card/35 p-5">
-            <h2 className="mb-4 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              Your Rating
-            </h2>
-
-            <div className="mb-4 flex flex-wrap items-center gap-4">
-              <SpaceRatingInput
-                value={
-                  draftRatingOutOfFive ??
-                  (detail.userRating?.ratingOutOfFive !== null &&
-                  detail.userRating?.ratingOutOfFive !== undefined
-                    ? detail.userRating.ratingOutOfFive
-                    : null)
-                }
-                onChange={setDraftRatingOutOfFive}
-              />
-
-              <div className="rounded-lg border border-border/70 bg-secondary/35 px-3 py-1.5 text-sm font-semibold text-foreground">
-                {formatRatingOutOfFiveLabel(draftRatingOutOfFive) ??
-                  formatRatingOutOfFiveLabel(
-                    detail.userRating?.ratingOutOfFive ?? null,
-                  ) ??
-                  "No rating yet"}
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <LogFilmModal
-                tmdbId={movie.tmdbId}
-                movieTitle={movie.title}
-                movieReleaseYear={movie.releaseYear}
-                moviePosterPath={movie.posterPath}
-                initialState={modalInitialState}
-              />
-
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-xl"
-                disabled={!user || isInteractionBusy}
-                onClick={() => {
-                  void updateInteractionMutation.mutateAsync({
-                    watchlisted: !watchlisted,
-                  });
-                }}
-              >
-                {watchlisted ? "In Watchlist" : "Add to Watchlist"}
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-xl"
-                disabled={!user || isInteractionBusy}
-                onClick={() => {
-                  void updateInteractionMutation.mutateAsync({ liked: !liked });
-                }}
-              >
-                {liked ? "Liked" : "Like"}
-              </Button>
-            </div>
-          </section>
-
-          <section>
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-base font-bold text-foreground">Reviews</h2>
-
-              <div className="theme-segment-shell flex rounded-xl border border-border/70 bg-card/50 p-1">
-                <button
-                  type="button"
-                  className={cn(
-                    "rounded-lg px-3 py-1.5 text-xs font-medium transition-all",
-                    reviewsSort === "popular"
-                      ? "theme-segment-active"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                  onClick={() => setReviewsSort("popular")}
-                >
-                  Popular
-                </button>
-                <button
-                  type="button"
-                  className={cn(
-                    "rounded-lg px-3 py-1.5 text-xs font-medium transition-all",
-                    reviewsSort === "recent"
-                      ? "theme-segment-active"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                  onClick={() => setReviewsSort("recent")}
-                >
-                  Recent
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {detail.reviews.length === 0 ? (
-                <div className="rounded-2xl border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
-                  No reviews yet for this movie.
-                </div>
               ) : (
-                detail.reviews.map((review) => {
-                  const authorName =
-                    review.author.displayUsername ?? review.author.username;
-                  const avatarUrl =
-                    review.author.avatarUrl ?? review.author.image;
-
-                  return (
-                    <article
-                      key={review.id}
-                      className="rounded-2xl border border-border/60 bg-card/30 p-5 transition-all hover:border-border"
-                    >
-                      <div className="mb-3 flex items-start justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          {avatarUrl ? (
-                            <img
-                              src={avatarUrl}
-                              alt={`${review.author.username} avatar`}
-                              className="h-9 w-9 rounded-full border border-border/70 object-cover"
-                            />
-                          ) : (
-                            <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-secondary text-xs font-semibold text-secondary-foreground">
-                              {review.author.username.slice(0, 1).toUpperCase()}
-                            </span>
-                          )}
-
-                          <div>
-                            <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
-                              <span>{authorName}</span>
-                            </div>
-                            <div className="mt-0.5 flex items-center gap-2">
-                              <SpaceRatingDisplay
-                                ratingOutOfFive={review.ratingOutOfFive}
-                                size="sm"
-                              />
-                              <span className="text-[10px] text-muted-foreground">
-                                {formatRatingOutOfFiveLabel(
-                                  review.ratingOutOfFive,
-                                ) ?? "Unrated"}
-                              </span>
-                              <span className="text-[10px] text-muted-foreground">
-                                {formatRelativeTime(review.createdAt)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <Heart className="h-3 w-3" />
-                          <span>{review.likeCount}</span>
-                        </div>
-                      </div>
-
-                      {review.containsSpoilers ? (
-                        <p className="mb-2 inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-200">
-                          Spoilers
-                        </p>
-                      ) : null}
-
-                      <p className="text-sm leading-relaxed text-foreground/90">
-                        {review.content}
-                      </p>
-                    </article>
-                  );
-                })
+                <div
+                  className="flex h-full w-full flex-col items-center justify-center gap-2"
+                  style={{ background: CINEMA_MODULE_STYLES.panelSoft }}
+                >
+                  <div
+                    className="flex h-8 w-8 items-center justify-center"
+                    style={{ background: CINEMA_MODULE_STYLES.panelStrong }}
+                  >
+                    <Award className="h-4 w-4" style={{ color: CINEMA_MODULE_STYLES.accent }} />
+                  </div>
+                  <span
+                    className="font-mono text-[8px] uppercase tracking-[0.22em]"
+                    style={{ color: CINEMA_MODULE_STYLES.faint }}
+                  >
+                    No Art
+                  </span>
+                </div>
               )}
             </div>
-          </section>
-        </div>
-
-        <aside className="space-y-8 lg:col-span-4">
-          <section className="rounded-2xl border border-border/60 bg-card/35 p-5">
-            <h2 className="mb-5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              Stats
-            </h2>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between text-xs">
-                <span className="inline-flex items-center gap-2 text-muted-foreground">
-                  <Rocket className="h-3 w-3" />
-                  Overall Rating
-                </span>
-                <span className="font-medium text-foreground">
-                  {globalRatingLabel ?? "Not available"}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between text-xs">
-                <span className="inline-flex items-center gap-2 text-muted-foreground">
-                  <BookText className="h-3 w-3" />
-                  Total Logs
-                </span>
-                <span className="font-medium text-foreground">
-                  {detail.logsCount.toLocaleString()}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between text-xs">
-                <span className="inline-flex items-center gap-2 text-muted-foreground">
-                  <CalendarDays className="h-3 w-3" />
-                  Year Released
-                </span>
-                <span className="font-medium text-foreground">
-                  {movie.releaseYear ?? "Unknown"}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between text-xs">
-                <span className="inline-flex items-center gap-2 text-muted-foreground">
-                  <Clock3 className="h-3 w-3" />
-                  Duration
-                </span>
-                <span className="font-medium text-foreground">
-                  {runtimeLabel ?? "Unknown"}
-                </span>
-              </div>
-
-              {languageLabel ? (
-                <div className="flex items-center justify-between text-xs">
-                  <span className="inline-flex items-center gap-2 text-muted-foreground">
-                    <Languages className="h-3 w-3" />
-                    Language
-                  </span>
-                  <span className="font-medium text-foreground">
-                    {languageLabel}
-                  </span>
-                </div>
-              ) : null}
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-border/60 bg-card/35 p-5">
-            <h2 className="mb-5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              Rating Breakdown
-            </h2>
 
             <div className="space-y-2">
-              {detail.ratingBreakdown.buckets.map((bucket) => (
-                <div
-                  key={`breakdown-${bucket.ratingValueOutOfFive}`}
-                  className="flex items-center gap-2"
+              <div className="flex gap-2">
+                <LogFilmModal
+                  tmdbId={movie.tmdbId}
+                  movieTitle={movie.title}
+                  movieReleaseYear={movie.releaseYear}
+                  moviePosterPath={movie.posterPath}
+                  initialState={modalInitialState}
+                  triggerVariant="outline"
+                  triggerLabel="Log"
+                  triggerClassName="h-auto flex-1 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
+                  triggerContent={
+                    <>
+                      <Check className="h-3 w-3" />
+                      <span>Log</span>
+                    </>
+                  }
+                />
+
+                {user ? (
+                  <button
+                    type="button"
+                    disabled={isInteractionBusy}
+                    className="flex flex-1 items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+                    style={{
+                      borderColor: watchlisted
+                        ? CINEMA_MODULE_STYLES.accent
+                        : CINEMA_MODULE_STYLES.border,
+                      color: watchlisted
+                        ? CINEMA_MODULE_STYLES.accent
+                        : CINEMA_MODULE_STYLES.muted,
+                      background: "transparent",
+                    }}
+                    onClick={() => {
+                      void updateInteractionMutation.mutateAsync({
+                        watchlisted: !watchlisted,
+                      });
+                    }}
+                  >
+                    <Plus className="h-3 w-3" />
+                    <span>{watchlisted ? "Queued" : "Queue"}</span>
+                  </button>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="flex flex-1 items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
+                    style={{
+                      borderColor: CINEMA_MODULE_STYLES.border,
+                      color: CINEMA_MODULE_STYLES.muted,
+                    }}
+                    viewTransition
+                  >
+                    <Plus className="h-3 w-3" />
+                    <span>Queue</span>
+                  </Link>
+                )}
+              </div>
+
+              <div
+                className="border p-3"
+                style={{
+                  borderColor: CINEMA_MODULE_STYLES.border,
+                  background: CINEMA_MODULE_STYLES.panelElevated,
+                }}
+              >
+                <p
+                  className="mb-2 font-mono text-[9px] uppercase tracking-[0.22em]"
+                  style={{ color: CINEMA_MODULE_STYLES.faint }}
                 >
-                  <div className="flex w-12 shrink-0 items-center justify-end gap-1">
-                    <span className="text-[10px] text-muted-foreground">
-                      {formatRatingOutOfFiveLabel(bucket.ratingValueOutOfFive)}
-                    </span>
-                    <Rocket className="h-2.5 w-2.5 text-muted-foreground" />
-                  </div>
+                  Your Rating
+                </p>
+                <div className="flex items-center gap-3">
+                  <SpaceRatingInput
+                    value={
+                      draftRatingOutOfFive ??
+                      (detail.userRating?.ratingOutOfFive !== null &&
+                      detail.userRating?.ratingOutOfFive !== undefined
+                        ? detail.userRating.ratingOutOfFive
+                        : null)
+                    }
+                    onChange={setDraftRatingOutOfFive}
+                  />
+                </div>
+                <p className="mt-2 font-mono text-[10px]" style={{ color: CINEMA_MODULE_STYLES.muted }}>
+                  {formatRatingOutOfFiveLabel(draftRatingOutOfFive) ??
+                    formatRatingOutOfFiveLabel(detail.userRating?.ratingOutOfFive ?? null) ??
+                    "No rating yet"}
+                </p>
+              </div>
+            </div>
+          </aside>
 
-                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary/60">
-                    <div
-                      className="h-full rounded-full bg-primary/60"
-                      style={{ width: `${bucket.percentage}%` }}
-                    />
-                  </div>
+          <section>
+            <div className="mb-1 flex flex-wrap items-center gap-2">
+              <span className="font-mono text-[10px]" style={{ color: CINEMA_MODULE_STYLES.faint }}>
+                {movie.releaseYear ?? "Unknown"}
+              </span>
+              {movie.genres.slice(0, 3).map((genre) => (
+                <span
+                  key={`detail-genre-${genre.id}`}
+                  className="border px-2 py-0.5 font-mono text-[9px]"
+                  style={{
+                    borderColor: CINEMA_MODULE_STYLES.border,
+                    color: CINEMA_MODULE_STYLES.muted,
+                  }}
+                >
+                  {genre.name}
+                </span>
+              ))}
+            </div>
 
-                  <span className="w-8 shrink-0 text-right text-[10px] text-muted-foreground">
-                    {bucket.percentage}%
+            <h1
+              className="mb-2 font-mono text-3xl font-bold leading-tight md:text-5xl"
+              style={{ color: CINEMA_MODULE_STYLES.text }}
+            >
+              {movie.title}
+            </h1>
+            <p className="mb-6 font-mono text-sm" style={{ color: CINEMA_MODULE_STYLES.muted }}>
+              <span>dir. </span>
+              <span style={{ color: CINEMA_MODULE_STYLES.accent }}>
+                {movie.director ?? "Unknown"}
+              </span>
+            </p>
+
+            <div
+              className="mb-8 flex flex-wrap items-center gap-8 border-b pb-8"
+              style={{ borderColor: CINEMA_MODULE_STYLES.borderSoft }}
+            >
+              <div>
+                <p
+                  className="mb-1 font-mono text-[9px] uppercase tracking-[0.22em]"
+                  style={{ color: CINEMA_MODULE_STYLES.faint }}
+                >
+                  Community
+                </p>
+                <div className="flex items-baseline gap-2">
+                  <span
+                    className="font-mono text-2xl font-bold"
+                    style={{ color: CINEMA_MODULE_STYLES.accent }}
+                  >
+                    {communityRatingLabel}
                   </span>
+                  <span className="font-mono text-[10px]" style={{ color: CINEMA_MODULE_STYLES.faint }}>
+                    {detail.logsCount.toLocaleString()} logs
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <p
+                  className="mb-1 font-mono text-[9px] uppercase tracking-[0.22em]"
+                  style={{ color: CINEMA_MODULE_STYLES.faint }}
+                >
+                  TMDB
+                </p>
+                <span
+                  className="font-mono text-2xl font-bold"
+                  style={{ color: CINEMA_MODULE_STYLES.muted }}
+                >
+                  {tmdbRatingLabel}
+                </span>
+              </div>
+            </div>
+
+            <p
+              className="mb-8 text-sm leading-relaxed"
+              style={{
+                color: CINEMA_MODULE_STYLES.muted,
+                fontFamily: "Georgia, serif",
+              }}
+            >
+              {movie.overview || "No synopsis is available for this title."}
+            </p>
+
+            <div className="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
+              {factRows.map((fact) => (
+                <div
+                  key={fact.label}
+                  className="flex items-start gap-3 border-b py-3"
+                  style={{ borderColor: CINEMA_MODULE_STYLES.borderSoft }}
+                >
+                  <fact.icon
+                    className="mt-0.5 h-3.5 w-3.5 shrink-0"
+                    style={{ color: CINEMA_MODULE_STYLES.accent }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className="mb-0.5 font-mono text-[9px] uppercase tracking-[0.22em]"
+                      style={{ color: CINEMA_MODULE_STYLES.faint }}
+                    >
+                      {fact.label}
+                    </p>
+                    <p className="font-mono text-xs" style={{ color: CINEMA_MODULE_STYLES.text }}>
+                      {fact.value}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
           </section>
-        </aside>
-      </div>
+        </div>
+
+        <section className="mt-10">
+          <div
+            className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b pb-4"
+            style={{ borderColor: CINEMA_MODULE_STYLES.borderSoft }}
+          >
+            <h2
+              className="font-mono text-lg font-bold"
+              style={{ color: CINEMA_MODULE_STYLES.text }}
+            >
+              Reviews
+            </h2>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                className="border px-3 py-1.5 font-mono text-[10px] transition-all"
+                style={{
+                  borderColor:
+                    reviewsSort === "popular"
+                      ? CINEMA_MODULE_STYLES.accent
+                      : CINEMA_MODULE_STYLES.borderSoft,
+                  color:
+                    reviewsSort === "popular"
+                      ? CINEMA_MODULE_STYLES.accent
+                      : CINEMA_MODULE_STYLES.faint,
+                  background:
+                    reviewsSort === "popular"
+                      ? "color-mix(in srgb, var(--module-cinema) 8%, transparent)"
+                      : "transparent",
+                }}
+                onClick={() => setReviewsSort("popular")}
+              >
+                Popular
+              </button>
+
+              <button
+                type="button"
+                className="border px-3 py-1.5 font-mono text-[10px] transition-all"
+                style={{
+                  borderColor:
+                    reviewsSort === "recent"
+                      ? CINEMA_MODULE_STYLES.accent
+                      : CINEMA_MODULE_STYLES.borderSoft,
+                  color:
+                    reviewsSort === "recent"
+                      ? CINEMA_MODULE_STYLES.accent
+                      : CINEMA_MODULE_STYLES.faint,
+                  background:
+                    reviewsSort === "recent"
+                      ? "color-mix(in srgb, var(--module-cinema) 8%, transparent)"
+                      : "transparent",
+                }}
+                onClick={() => setReviewsSort("recent")}
+              >
+                Recent
+              </button>
+            </div>
+          </div>
+
+          {detail.reviews.length === 0 ? (
+            <div
+              className="border p-4 font-mono text-xs"
+              style={{
+                borderColor: CINEMA_MODULE_STYLES.border,
+                color: CINEMA_MODULE_STYLES.muted,
+                background: CINEMA_MODULE_STYLES.panel,
+              }}
+            >
+              No reviews yet for this movie.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {detail.reviews.map((review) => {
+                const authorName = review.author.displayUsername ?? review.author.username;
+                const avatarUrl = review.author.avatarUrl ?? review.author.image;
+
+                return (
+                  <article
+                    key={review.id}
+                    className="border p-4"
+                    style={{
+                      borderColor: CINEMA_MODULE_STYLES.border,
+                      background: CINEMA_MODULE_STYLES.panel,
+                    }}
+                  >
+                    <div className="mb-3 flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        {avatarUrl ? (
+                          <img
+                            src={avatarUrl}
+                            alt={`${review.author.username} avatar`}
+                            className="h-9 w-9 border object-cover"
+                            style={{ borderColor: CINEMA_MODULE_STYLES.border }}
+                          />
+                        ) : (
+                          <span
+                            className="inline-flex h-9 w-9 items-center justify-center border font-mono text-xs"
+                            style={{
+                              borderColor: CINEMA_MODULE_STYLES.border,
+                              color: CINEMA_MODULE_STYLES.text,
+                              background: CINEMA_MODULE_STYLES.panelElevated,
+                            }}
+                          >
+                            {review.author.username.slice(0, 1).toUpperCase()}
+                          </span>
+                        )}
+
+                        <div>
+                          <Link
+                            to="/profile/$username"
+                            params={{ username: review.author.username }}
+                            className="font-mono text-xs font-bold"
+                            style={{ color: CINEMA_MODULE_STYLES.text }}
+                            viewTransition
+                          >
+                            {authorName}
+                          </Link>
+
+                          <div className="mt-0.5 flex items-center gap-2">
+                            <SpaceRatingDisplay
+                              ratingOutOfFive={review.ratingOutOfFive}
+                              size="sm"
+                            />
+                            <span
+                              className="font-mono text-[10px]"
+                              style={{ color: CINEMA_MODULE_STYLES.faint }}
+                            >
+                              {formatRatingOutOfFiveLabel(review.ratingOutOfFive) ?? "Unrated"}
+                            </span>
+                            <span
+                              className="font-mono text-[10px]"
+                              style={{ color: CINEMA_MODULE_STYLES.faint }}
+                            >
+                              {formatRelativeTime(review.createdAt)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <span
+                        className="inline-flex items-center gap-1 font-mono text-[10px]"
+                        style={{
+                          color: review.viewerHasLiked
+                            ? CINEMA_MODULE_STYLES.accent
+                            : CINEMA_MODULE_STYLES.faint,
+                        }}
+                      >
+                        <Heart className="h-3 w-3" />
+                        {review.likeCount}
+                      </span>
+                    </div>
+
+                    {review.containsSpoilers ? (
+                      <p
+                        className="mb-2 inline-flex border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em]"
+                        style={{
+                          borderColor: CINEMA_MODULE_STYLES.accent,
+                          color: CINEMA_MODULE_STYLES.accent,
+                          background: CINEMA_MODULE_STYLES.badge,
+                        }}
+                      >
+                        Spoilers
+                      </p>
+                    ) : null}
+
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed" style={{ color: CINEMA_MODULE_STYLES.muted }}>
+                      {review.content}
+                    </p>
+
+                    <div className="mt-3 border-t pt-3" style={{ borderColor: CINEMA_MODULE_STYLES.borderSoft }}>
+                      <Link
+                        to="/reviews/$username/$reviewId"
+                        params={{
+                          username: review.author.username,
+                          reviewId: review.id,
+                        }}
+                        className="font-mono text-[10px] uppercase tracking-[0.16em]"
+                        style={{ color: CINEMA_MODULE_STYLES.faint }}
+                        viewTransition
+                      >
+                        Open full review thread
+                      </Link>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      </main>
     </div>
   );
 }

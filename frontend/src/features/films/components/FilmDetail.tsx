@@ -23,7 +23,8 @@ export const FilmDetail = ({ movie, actionSlot }: FilmDetailProps) => {
         <div className="relative h-44 w-full sm:h-64 lg:h-72">
           <img
             src={getBackdropUrl(movie.backdropPath)}
-            alt={`${movie.title} backdrop`}
+            alt=""
+            aria-hidden="true"
             className="h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-linear-to-t from-background via-background/20 to-transparent" />
@@ -33,7 +34,7 @@ export const FilmDetail = ({ movie, actionSlot }: FilmDetailProps) => {
           <img
             src={getPosterUrl(movie.posterPath)}
             alt={`${movie.title} poster`}
-            className="w-33 rounded-lg border border-border shadow-xl sm:w-37.5 lg:w-45"
+            className="w-33  border border-border shadow-xl sm:w-37.5 lg:w-45"
           />
 
           <div className="min-w-0 space-y-3.5 sm:space-y-4">
