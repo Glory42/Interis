@@ -21,6 +21,16 @@ export const TMDBMovieDetailSchema = z.object({
   runtime: z.number().nullable(),
   overview: z.string().default(""),
   tagline: z.string().default(""),
+  production_countries: z
+    .array(
+      z.object({
+        iso_3166_1: z.string(),
+        name: z.string(),
+      }),
+    )
+    .default([]),
+  budget: z.number().int().nonnegative().default(0),
+  revenue: z.number().int().nonnegative().default(0),
   genres: z.array(z.object({ id: z.number(), name: z.string() })).default([]),
 });
 
