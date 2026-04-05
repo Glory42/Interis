@@ -27,7 +27,7 @@ export const DiaryEntryItem = ({ entry }: DiaryEntryProps) => {
         <img
           src={getPosterUrl(entry.moviePosterPath)}
           alt={`${entry.movieTitle} poster`}
-          className="h-[126px] w-[84px] rounded-md border border-border/70 object-cover"
+          className="h-[126px] w-[84px]  border border-border/70 object-cover"
           loading="lazy"
         />
 
@@ -42,19 +42,22 @@ export const DiaryEntryItem = ({ entry }: DiaryEntryProps) => {
               ) : null}
             </h3>
             <p className="text-xs text-muted-foreground">
-              Watched {formatDate(entry.watchedDate)} • Logged {formatDate(entry.createdAt)}
+              Watched {formatDate(entry.watchedDate)} • Logged{" "}
+              {formatDate(entry.createdAt)}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             {entry.rating !== null ? (
-              <Badge variant="accent">Score: {toOutOfFiveLabel(entry.rating)}</Badge>
+              <Badge variant="accent">
+                Score: {toOutOfFiveLabel(entry.rating)}
+              </Badge>
             ) : null}
             {entry.rewatch ? <Badge variant="primary">Rewatch</Badge> : null}
           </div>
 
           {entry.reviewContent ? (
-            <div className="space-y-1 rounded-lg border border-border/60 bg-secondary/20 p-3">
+            <div className="space-y-1  border border-border/60 bg-secondary/20 p-3">
               {entry.reviewContainsSpoilers ? <Badge>Spoilers</Badge> : null}
               <p className="text-sm text-foreground">{entry.reviewContent}</p>
               {entry.reviewCreatedAt ? (
