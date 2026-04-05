@@ -1,0 +1,1 @@
+ALTER TABLE "profile" ALTER COLUMN "theme" SET DEFAULT 'rose-pine';

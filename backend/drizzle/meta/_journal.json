@@ -134,6 +134,13 @@
       "when": 1775072862675,
       "tag": "0018_demonic_kulan_gath",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1775422260796,
+      "tag": "0019_rich_silver_samurai",
+      "breakpoints": true
     }
   ]
 }
