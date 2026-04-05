@@ -1,12 +1,12 @@
 import type { HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-export const Card = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
+export const Card = ({
+  className,
+  ...props
+}: HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn(
-      "rounded-2xl border border-border/80 bg-card/85 backdrop-blur-sm",
-      className,
-    )}
+    className={cn("border border-border/80 bg-card/88", className)}
     {...props}
   />
 );
@@ -15,14 +15,17 @@ export const CardHeader = ({
   className,
   ...props
 }: HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col gap-1.5 p-5", className)} {...props} />
+  <div className={cn("flex flex-col gap-1.5 p-4", className)} {...props} />
 );
 
 export const CardTitle = ({
   className,
   ...props
 }: HTMLAttributes<HTMLHeadingElement>) => (
-  <h3 className={cn("text-lg font-semibold tracking-tight", className)} {...props} />
+  <h3
+    className={cn("text-lg font-semibold tracking-tight", className)}
+    {...props}
+  />
 );
 
 export const CardDescription = ({
@@ -36,12 +39,12 @@ export const CardContent = ({
   className,
   ...props
 }: HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("p-5 pt-0", className)} {...props} />
+  <div className={cn("p-4 pt-0", className)} {...props} />
 );
 
 export const CardFooter = ({
   className,
   ...props
 }: HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex items-center p-5 pt-0", className)} {...props} />
+  <div className={cn("flex items-center p-4 pt-0", className)} {...props} />
 );
