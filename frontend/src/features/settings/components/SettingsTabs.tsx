@@ -3,18 +3,18 @@ import { cn } from "@/lib/utils";
 import { settingsSections } from "@/features/settings/model/settings.constants";
 
 const tabClass =
-  "inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors";
+  "inline-flex items-center border-b-2 px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] transition-colors";
 
 export const SettingsTabs = () => {
   return (
-    <nav className="theme-segment-shell flex flex-wrap gap-1 rounded-xl border border-border/70 bg-card/45 p-1">
+    <nav className="flex flex-wrap gap-0 border-b border-border/60">
       {settingsSections.map((section) => (
         <Link
           key={section.id}
           to={section.to}
           className={cn(
             tabClass,
-            "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
+            "text-muted-foreground hover:text-foreground",
           )}
           activeProps={{
             className: cn(tabClass, "theme-segment-active"),

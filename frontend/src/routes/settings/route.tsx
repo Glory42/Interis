@@ -22,7 +22,7 @@ function SettingsLayoutRoute() {
   return (
     <SettingsLayout>
       {isUserLoading || !user ? (
-        <div className="rounded-xl border border-border/70 bg-card/60 p-4 text-sm text-muted-foreground">
+        <div className=" border border-border/70 bg-card/60 p-4 text-sm text-muted-foreground">
           <p className="flex items-center gap-2">
             <Spinner /> Loading settings...
           </p>

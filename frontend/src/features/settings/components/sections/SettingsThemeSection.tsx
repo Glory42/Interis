@@ -24,7 +24,7 @@ export const SettingsThemeSection = () => {
 
   if (isUserLoading || !user) {
     return (
-      <div className="rounded-xl border border-border/70 bg-card/60 p-4 text-sm text-muted-foreground">
+      <div className=" border border-border/70 bg-card/60 p-4 text-sm text-muted-foreground">
         <p className="flex items-center gap-2">
           <Spinner /> Loading theme settings...
         </p>
@@ -69,7 +69,7 @@ export const SettingsThemeSection = () => {
       <CardHeader>
         <CardTitle>Appearance</CardTitle>
         <CardDescription>
-          Theme selection is applied immediately and synced to your account.
+          Choose between Rose Pine, NULL://LOG, and Gruvbox. Selection applies immediately and syncs to your account.
         </CardDescription>
       </CardHeader>
 
@@ -87,13 +87,13 @@ export const SettingsThemeSection = () => {
         </div>
 
         {themeError ? (
-          <p className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <p className=" border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {themeError}
           </p>
         ) : null}
 
         {themeSuccess ? (
-          <p className="rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
+          <p className=" border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
             {themeSuccess}
           </p>
         ) : null}

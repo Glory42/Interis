@@ -109,8 +109,8 @@ export const SettingsFavoriteGenresCard = ({
                 onClick={() => toggleGenre(genre)}
                 className={
                   isSelected
-                    ? "rounded-full border border-primary/45 bg-primary/15 px-3 py-1.5 text-xs font-medium text-primary"
-                    : "rounded-full border border-border/65 bg-secondary/20 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+                    ? " border border-primary/45 bg-primary/15 px-3 py-1.5 text-xs font-medium text-primary"
+                    : " border border-border/65 bg-secondary/20 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-border hover:text-foreground"
                 }
                 aria-pressed={isSelected}
               >
@@ -125,13 +125,13 @@ export const SettingsFavoriteGenresCard = ({
         </p>
 
         {saveError ? (
-          <p className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <p className=" border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {saveError}
           </p>
         ) : null}
 
         {saveSuccess ? (
-          <p className="rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
+          <p className=" border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
             {saveSuccess}
           </p>
         ) : null}

@@ -45,7 +45,7 @@ export const Top4MovieSearchDialog = ({
         <section
           role="dialog"
           aria-modal="true"
-          className="theme-modal-panel w-full overflow-hidden rounded-2xl border border-border/70 bg-card/95 shadow-2xl"
+          className="theme-modal-panel w-full overflow-hidden  border border-border/70 bg-card/95 shadow-2xl"
         >
           <div className="border-b border-border/60 p-3 sm:p-4">
             <div className="relative">
@@ -54,13 +54,13 @@ export const Top4MovieSearchDialog = ({
                 value={query}
                 onChange={(event) => onQueryChange(event.target.value)}
                 placeholder="Search movies for this slot..."
-                className="h-11 rounded-xl border-border/70 bg-background/45 pl-9 pr-11"
+                className="h-11  border-border/70 bg-background/45 pl-9 pr-11"
                 autoComplete="off"
               />
               <button
                 type="button"
                 onClick={onClose}
-                className="absolute right-1.5 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary/55 hover:text-foreground"
+                className="absolute right-1.5 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center  text-muted-foreground transition-colors hover:bg-secondary/55 hover:text-foreground"
                 aria-label="Close picker"
               >
                 <X className="h-4 w-4" />
@@ -70,7 +70,7 @@ export const Top4MovieSearchDialog = ({
 
           <div className="max-h-[min(62dvh,30rem)] overflow-y-auto p-2 sm:p-3">
             {query.trim().length < 2 ? (
-              <p className="rounded-lg border border-dashed border-border/70 px-3 py-4 text-sm text-muted-foreground">
+              <p className=" border border-dashed border-border/70 px-3 py-4 text-sm text-muted-foreground">
                 Type at least 2 characters to search.
               </p>
             ) : null}
@@ -84,7 +84,7 @@ export const Top4MovieSearchDialog = ({
             {query.trim().length >= 2 &&
             !searchQuery.isFetching &&
             suggestions.length === 0 ? (
-              <p className="rounded-lg border border-dashed border-border/70 px-3 py-4 text-sm text-muted-foreground">
+              <p className=" border border-dashed border-border/70 px-3 py-4 text-sm text-muted-foreground">
                 No matches found.
               </p>
             ) : null}
@@ -98,14 +98,14 @@ export const Top4MovieSearchDialog = ({
                     <li key={movie.id}>
                       <button
                         type="button"
-                        className="grid w-full grid-cols-[42px_1fr] gap-2 rounded-lg border border-border/70 bg-background/30 px-2 py-2 text-left transition-colors hover:bg-secondary/45"
+                        className="grid w-full grid-cols-[42px_1fr] gap-2  border border-border/70 bg-background/30 px-2 py-2 text-left transition-colors hover:bg-secondary/45"
                         onClick={() => onSelectMovie(movie)}
                         disabled={isSelectingMovie}
                       >
                         <img
                           src={getPosterUrl(movie.poster_path)}
                           alt={`${movie.title} poster`}
-                          className="h-14 w-10 rounded object-cover"
+                          className="h-14 w-10  object-cover"
                           loading="lazy"
                         />
                         <span className="space-y-0.5">

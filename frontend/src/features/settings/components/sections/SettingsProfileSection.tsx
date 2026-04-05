@@ -55,7 +55,7 @@ export const SettingsProfileSection = () => {
 
   if (isUserLoading || !user) {
     return (
-      <div className="rounded-xl border border-border/70 bg-card/60 p-4 text-sm text-muted-foreground">
+      <div className=" border border-border/70 bg-card/60 p-4 text-sm text-muted-foreground">
         <p className="flex items-center gap-2">
           <Spinner /> Loading profile settings...
         </p>
@@ -128,7 +128,7 @@ export const SettingsProfileSection = () => {
         </CardHeader>
 
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <section className="rounded-xl border border-border/70 bg-secondary/20 p-4">
+          <section className=" border border-border/70 bg-secondary/20 p-4">
             <h3 className="text-sm font-semibold text-foreground">Avatar image</h3>
 
             <div className="mt-3 flex items-center gap-3">
@@ -136,10 +136,10 @@ export const SettingsProfileSection = () => {
                 <img
                   src={user.avatarUrl ?? user.image ?? undefined}
                   alt={`${user.username} avatar`}
-                  className="h-14 w-14 rounded-full border border-border/70 object-cover"
+                  className="h-14 w-14  border border-border/70 object-cover"
                 />
               ) : (
-                <span className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-border/70 bg-muted text-xs text-muted-foreground">
+                <span className="inline-flex h-14 w-14 items-center justify-center  border border-border/70 bg-muted text-xs text-muted-foreground">
                   No image
                 </span>
               )}
@@ -164,30 +164,31 @@ export const SettingsProfileSection = () => {
             />
 
             {avatarUploadError ? (
-              <p className="mt-3 rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <p className="mt-3  border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {avatarUploadError}
               </p>
             ) : null}
 
             {avatarUploadSuccess ? (
-              <p className="mt-3 rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
+              <p className="mt-3  border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
                 {avatarUploadSuccess}
               </p>
             ) : null}
           </section>
 
-          <section className="rounded-xl border border-border/70 bg-secondary/20 p-4">
+          <section className=" border border-border/70 bg-secondary/20 p-4">
             <h3 className="text-sm font-semibold text-foreground">Backdrop image</h3>
 
             <div className="mt-3 space-y-3">
               {user.backdropUrl ? (
                 <img
                   src={user.backdropUrl}
-                  alt={`${user.username} backdrop`}
-                  className="h-24 w-full rounded-lg border border-border/70 object-cover"
+                  alt=""
+                  aria-hidden="true"
+                  className="h-24 w-full  border border-border/70 object-cover"
                 />
               ) : (
-                <div className="flex h-24 w-full items-center justify-center rounded-lg border border-dashed border-border/70 bg-muted/25 text-xs text-muted-foreground">
+                <div className="flex h-24 w-full items-center justify-center  border border-dashed border-border/70 bg-muted/25 text-xs text-muted-foreground">
                   No backdrop image
                 </div>
               )}
@@ -212,13 +213,13 @@ export const SettingsProfileSection = () => {
             />
 
             {backdropUploadError ? (
-              <p className="mt-3 rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <p className="mt-3  border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {backdropUploadError}
               </p>
             ) : null}
 
             {backdropUploadSuccess ? (
-              <p className="mt-3 rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
+              <p className="mt-3  border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
                 {backdropUploadSuccess}
               </p>
             ) : null}
@@ -255,13 +256,13 @@ export const SettingsProfileSection = () => {
             </div>
 
             {usernameError ? (
-              <p className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <p className=" border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {usernameError}
               </p>
             ) : null}
 
             {usernameSuccess ? (
-              <p className="rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
+              <p className=" border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
                 {usernameSuccess}
               </p>
             ) : null}
@@ -308,13 +309,13 @@ export const SettingsProfileSection = () => {
             </div>
 
             {profileError ? (
-              <p className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <p className=" border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {profileError}
               </p>
             ) : null}
 
             {profileSuccess ? (
-              <p className="rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
+              <p className=" border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
                 {profileSuccess}
               </p>
             ) : null}

@@ -49,7 +49,7 @@ export const SettingsAuthSection = () => {
 
   if (isUserLoading || !user) {
     return (
-      <div className="rounded-xl border border-border/70 bg-card/60 p-4 text-sm text-muted-foreground">
+      <div className=" border border-border/70 bg-card/60 p-4 text-sm text-muted-foreground">
         <p className="flex items-center gap-2">
           <Spinner /> Loading auth settings...
         </p>
@@ -139,13 +139,13 @@ export const SettingsAuthSection = () => {
             </div>
 
             {authEmailError ? (
-              <p className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <p className=" border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {authEmailError}
               </p>
             ) : null}
 
             {authEmailSuccess ? (
-              <p className="rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
+              <p className=" border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
                 {authEmailSuccess}
               </p>
             ) : null}
@@ -218,7 +218,7 @@ export const SettingsAuthSection = () => {
             <label className="flex items-center gap-2 text-sm text-muted-foreground">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-border bg-input"
+                className="h-4 w-4  border-border bg-input"
                 checked={revokeOtherSessions}
                 onChange={(event) => setRevokeOtherSessions(event.target.checked)}
               />
@@ -226,13 +226,13 @@ export const SettingsAuthSection = () => {
             </label>
 
             {authPasswordError ? (
-              <p className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <p className=" border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {authPasswordError}
               </p>
             ) : null}
 
             {authPasswordSuccess ? (
-              <p className="rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
+              <p className=" border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
                 {authPasswordSuccess}
               </p>
             ) : null}
