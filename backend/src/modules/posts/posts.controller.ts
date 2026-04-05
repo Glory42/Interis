@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { sendValidationError } from "../../commons/http/validation-response.helper";
 import { PostsService } from "./posts.service";
-import { CreatePostSchema, PostCommentSchema } from "./dto/posts.dto";
+import { CreatePostSchema, PostCommentSchema, UpdatePostSchema } from "./dto/posts.dto";
 
 export class PostsController {
   // GET /api/posts/:id
@@ -40,6 +40,26 @@ export class PostsController {
       return;
     }
     res.status(200).json({ success: true });
+  }
+
+  // PUT /api/posts/:id
+  static async update(
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> {
+    const parsed = UpdatePostSchema.safeParse(req.body);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    const updated = await PostsService.update(req.params.id, req.user.id, parsed.data);
+    if (!updated) {
+      res.status(404).json({ error: "Post not found" });
+      return;
+    }
+
+    res.status(200).json(updated);
   }
 
   // POST /api/posts/:id/like

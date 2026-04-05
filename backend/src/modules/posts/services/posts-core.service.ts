@@ -1,6 +1,6 @@
 import { db } from "../../../infrastructure/database/db";
 import { activities } from "../../social/social.entity";
-import type { CreatePostDto } from "../dto/posts.dto";
+import type { CreatePostDto, UpdatePostDto } from "../dto/posts.dto";
 import { buildPostCreatedActivityMetadata } from "../helpers/posts-activity.helper";
 import { PostsRepository } from "../repositories/posts.repository";
 
@@ -59,5 +59,9 @@ export class PostsCoreService {
 
   static async delete(postId: string, userId: string) {
     return PostsRepository.deleteByIdAndUser(postId, userId);
+  }
+
+  static async update(postId: string, userId: string, input: UpdatePostDto) {
+    return PostsRepository.updateByIdAndUser(postId, userId, input.content);
   }
 }

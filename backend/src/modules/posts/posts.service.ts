@@ -1,4 +1,4 @@
-import type { CreatePostDto } from "./dto/posts.dto";
+import type { CreatePostDto, UpdatePostDto } from "./dto/posts.dto";
 import { PostsCommentsService } from "./services/posts-comments.service";
 import { PostsCoreService } from "./services/posts-core.service";
 import { PostsLikesService } from "./services/posts-likes.service";
@@ -14,6 +14,10 @@ export class PostsService {
 
   static async findByUser(userId: string) {
     return PostsCoreService.findByUser(userId);
+  }
+
+  static async update(postId: string, userId: string, input: UpdatePostDto) {
+    return PostsCoreService.update(postId, userId, input);
   }
 
   static async delete(postId: string, userId: string) {

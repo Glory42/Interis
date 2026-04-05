@@ -11,6 +11,7 @@ router.get("/:id/comments", asyncHandler(PostsController.getComments));
 
 // Protected — post CRUD
 router.post("/", requireAuth, asyncHandler(PostsController.create));
+router.put("/:id", requireAuth, asyncHandler(PostsController.update));
 router.delete("/:id", requireAuth, asyncHandler(PostsController.remove));
 
 // Protected — likes

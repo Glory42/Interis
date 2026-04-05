@@ -81,6 +81,19 @@ export class PostsRepository {
     return deleted ?? null;
   }
 
+  static async updateByIdAndUser(postId: string, userId: string, content: string) {
+    const [updated] = await db
+      .update(posts)
+      .set({
+        content,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(posts.id, postId), eq(posts.userId, userId)))
+      .returning();
+
+    return updated ?? null;
+  }
+
   static async insertLike(userId: string, postId: string) {
     const [row] = await db
       .insert(postLikes)
