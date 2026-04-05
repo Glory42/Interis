@@ -19,10 +19,9 @@ export const AppNavbar = () => {
     isProfileMenuOpen,
     visiblePrimaryNavItems,
     profileMenuRef,
-    profileImageUrl,
-    profileInitial,
     closeMobileMenu,
     closeProfileMenu,
+    openProfileMenu,
     toggleProfileMenu,
     toggleMobileMenu,
     openSearchDialog,
@@ -31,33 +30,40 @@ export const AppNavbar = () => {
 
   return (
     <>
-      <header className="theme-navbar-shell sticky top-0 z-50 border-b border-border/40 bg-background/85 backdrop-blur-2xl">
-        <div className="mx-auto grid h-14 w-full max-w-7xl grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4">
+      <header className="theme-navbar-shell sticky top-0 z-40 border-b border-border/70">
+        <div
+          className="pointer-events-none h-px w-full"
+          style={{
+              background:
+                "linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 30%, transparent), transparent)",
+          }}
+        />
+
+        <div className="mx-auto flex h-12 w-full max-w-[1600px] items-center justify-between gap-4 px-4">
           <NavbarBrand />
 
-          <nav className="hidden min-w-0 items-center justify-center gap-1 md:flex">
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 md:flex">
             <PrimaryNavLinks items={visiblePrimaryNavItems} />
           </nav>
 
-          <div className="flex min-w-0 items-center justify-end gap-3">
+          <div className="flex shrink-0 items-center gap-3">
             <DesktopSearchButton
               isSearchDialogOpen={isSearchDialogOpen}
               onOpen={openSearchDialog}
             />
 
             {isUserLoading ? (
-              <span className="hidden text-xs text-muted-foreground lg:inline">
-                Loading session...
+              <span className="hidden font-mono text-[10px] text-muted-foreground lg:inline">
+                LOADING
               </span>
             ) : null}
 
             {user ? (
               <ProfileMenu
                 user={user}
-                profileImageUrl={profileImageUrl}
-                profileInitial={profileInitial}
                 isOpen={isProfileMenuOpen}
                 isLogoutPending={isLogoutPending}
+                onOpen={openProfileMenu}
                 onToggle={toggleProfileMenu}
                 onClose={closeProfileMenu}
                 onSignOut={handleSignOut}
@@ -87,7 +93,7 @@ export const AppNavbar = () => {
         <button
           type="button"
           onClick={closeMobileMenu}
-          className="theme-navbar-overlay fixed inset-0 top-14 z-40 bg-background/45 md:hidden"
+          className="theme-navbar-overlay fixed inset-0 top-12 z-30 bg-black/45 md:hidden"
           aria-label="Close navigation overlay"
         />
       ) : null}

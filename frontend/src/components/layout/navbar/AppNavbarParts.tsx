@@ -1,11 +1,12 @@
 import type { RefObject } from "react";
 import { Link } from "@tanstack/react-router";
 import {
-  Grid3X3,
   LogIn,
   LogOut,
   Search,
   Settings,
+  Terminal,
+  User,
   UserRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -29,20 +30,17 @@ type PrimaryNavLinksProps = {
 };
 
 export const NavbarBrand = () => (
-  <div className="min-w-0 shrink-0 mt-2.5">
+  <div className="shrink-0">
     <Link
       to="/"
       viewTransition
-      className="inline-flex min-w-0 shrink-0 items-center gap-2 text-primary"
+      className="group flex items-center gap-2 shrink-0"
     >
-      <img
-        src="/icon.svg"
-        alt=""
-        aria-hidden
-        className="h-7.5 w-7.5 rounded-sm object-cover"
-      />
-      <span className="truncate text-lg font-bold uppercase italic text-primary">
-        Arkheion
+      <div className="flex h-6 w-6 items-center justify-center border border-primary/40 bg-primary/10 text-primary transition-all group-hover:border-primary">
+        <Terminal className="h-3.5 w-3.5 text-current" />
+      </div>
+      <span className="font-mono text-[11px] font-bold tracking-widest text-foreground/80 transition-colors group-hover:text-foreground">
+        NULL<span className="text-primary">://</span>LOG
       </span>
     </Link>
   </div>
@@ -56,10 +54,14 @@ export const PrimaryNavLinks = ({
   items.map((item) => {
     const Icon = item.icon;
     const sharedClassName = mobile
-      ? cn(navLinkClass, "w-full justify-start")
+      ? cn(navLinkClass, "w-full justify-start px-2 py-2 text-[11px]")
       : navLinkClass;
     const sharedActiveClassName = mobile
-      ? cn(navLinkClass, navLinkActiveClass, "w-full justify-start")
+      ? cn(
+          navLinkClass,
+          navLinkActiveClass,
+          "w-full justify-start px-2 py-2 text-[11px]",
+        )
       : cn(navLinkClass, navLinkActiveClass);
 
     return (
@@ -79,7 +81,7 @@ export const PrimaryNavLinks = ({
         onClick={onNavigate}
       >
         <Icon
-          className={mobile ? "h-4 w-4 shrink-0" : "h-3.75 w-3.75 shrink-0"}
+          className={mobile ? "h-3.5 w-3.5 shrink-0" : "h-3 w-3 shrink-0"}
         />
         <span>{item.label}</span>
       </Link>
@@ -95,25 +97,29 @@ export const DesktopSearchButton = ({
   isSearchDialogOpen,
   onOpen,
 }: DesktopSearchButtonProps) => (
-  <button
-    type="button"
-    onClick={onOpen}
-    className="relative hidden w-44 items-center rounded-xl border border-border/70 bg-secondary/35 py-1.5 pl-8 pr-3 text-left text-xs text-muted-foreground transition-all duration-200 hover:border-border hover:bg-secondary/55 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring/50 focus-visible:border-primary/40 sm:inline-flex"
-    aria-haspopup="dialog"
-    aria-expanded={isSearchDialogOpen}
-    aria-label="Open cinema search"
-  >
-    <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2" />
-    <span className="truncate">Search...</span>
-  </button>
+  <div className="relative hidden sm:flex items-center">
+    <Search className="pointer-events-none relative z-10 ml-2 mr-[-20px] h-3 w-3 text-muted-foreground/70" />
+    <input
+      readOnly
+      type="text"
+      value=""
+      onClick={onOpen}
+      onFocus={onOpen}
+      placeholder="search..."
+      aria-haspopup="dialog"
+      aria-expanded={isSearchDialogOpen}
+      aria-label="Open cinema search"
+      className="w-36 border border-border/70 bg-background/45 py-1.5 pr-3 pl-7 font-mono text-[11px] text-foreground/80 transition-colors placeholder:text-muted-foreground/60 focus:w-48 focus:border-border focus:outline-none"
+      style={{ transition: "width 0.2s, border-color 0.2s" }}
+    />
+  </div>
 );
 
 type ProfileMenuProps = {
   user: NavbarUser;
-  profileImageUrl: string | null;
-  profileInitial: string;
   isOpen: boolean;
   isLogoutPending: boolean;
+  onOpen: () => void;
   onToggle: () => void;
   onClose: () => void;
   onSignOut: () => void | Promise<void>;
@@ -122,43 +128,35 @@ type ProfileMenuProps = {
 
 export const ProfileMenu = ({
   user,
-  profileImageUrl,
-  profileInitial,
   isOpen,
   isLogoutPending,
+  onOpen,
   onToggle,
   onClose,
   onSignOut,
   menuRef,
 }: ProfileMenuProps) => (
-  <div ref={menuRef} className="relative">
+  <div
+    ref={menuRef}
+    className="relative"
+    onMouseEnter={onOpen}
+    onMouseLeave={onClose}
+  >
     <button
       type="button"
       onClick={onToggle}
-      className="flex items-center gap-2 rounded-full border border-border/70 bg-secondary/35 py-1 pl-1 pr-3 transition-all duration-200 hover:border-border hover:bg-secondary/55 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring/50"
+      className="flex items-center gap-1.5 border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground transition-all hover:text-foreground"
       aria-haspopup="menu"
       aria-expanded={isOpen}
       aria-label="Open profile menu"
     >
-      {profileImageUrl ? (
-        <img
-          src={profileImageUrl}
-          alt={`${user.username} avatar`}
-          className="h-7 w-7 rounded-full border border-border/70 bg-muted object-cover"
-        />
-      ) : (
-        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border/70 bg-secondary text-[11px] font-semibold text-secondary-foreground">
-          {profileInitial}
-        </span>
-      )}
-      <span className="hidden max-w-32 truncate text-xs font-medium text-foreground lg:inline">
-        {user.username}
-      </span>
+      <User className="h-3 w-3" />
+      <span className="hidden sm:inline">PROFILE</span>
     </button>
 
     {isOpen ? (
       <div
-        className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-44 rounded-xl border border-border/70 bg-card/95 p-1.5 shadow-lg shadow-background/30 backdrop-blur-xl animate-fade-up"
+        className="absolute right-0 top-[calc(100%+0.35rem)] z-50 w-44 border border-border/80 bg-popover/95 p-1 backdrop-blur-md animate-fade-up"
         role="menu"
         aria-label="Profile options"
       >
@@ -194,16 +192,21 @@ export const ProfileMenu = ({
 
 export const DesktopGuestActions = () => (
   <div className="hidden items-center gap-1 md:flex">
-    <Button asChild variant="ghost" size="sm" className="h-8 rounded-xl px-3">
+    <Button
+      asChild
+      variant="ghost"
+      size="sm"
+      className="h-7 px-2.5 text-muted-foreground"
+    >
       <Link to="/login" viewTransition>
-        <LogIn className="h-4 w-4" />
-        Login
+        <LogIn className="h-3.5 w-3.5" />
+        LOGIN
       </Link>
     </Button>
-    <Button asChild size="sm" className="h-8 rounded-xl px-3">
+    <Button asChild size="sm" className="h-7 px-2.5">
       <Link to="/register" viewTransition>
-        <UserRound className="h-4 w-4" />
-        Register
+        <UserRound className="h-3.5 w-3.5" />
+        REGISTER
       </Link>
     </Button>
   </div>
@@ -221,12 +224,12 @@ export const MobileMenuToggle = ({
   <button
     type="button"
     onClick={onToggle}
-    className="inline-flex items-center justify-center rounded-lg border border-border/70 p-1.5 text-muted-foreground transition-colors hover:border-border hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring/60 md:hidden"
+    className="border border-border/70 px-2 py-1.5 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 md:hidden"
     aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
     aria-expanded={isOpen}
     aria-haspopup="menu"
   >
-    <Grid3X3 className="h-4 w-4" />
+    MENU
   </button>
 );
 
@@ -256,15 +259,15 @@ export const MobileMenu = ({
   }
 
   return (
-    <div className="theme-navbar-panel border-t border-border/60 bg-background/92 backdrop-blur-2xl md:hidden">
-      <nav className="mx-auto flex w-full max-w-7xl flex-col gap-1 px-4 py-3">
+    <div className="theme-navbar-panel border-t border-border/70 bg-background/95 md:hidden">
+      <nav className="mx-auto flex w-full max-w-[1600px] flex-col gap-1 px-4 py-3">
         <button
           type="button"
           onClick={onOpenSearch}
-          className="inline-flex w-full items-center gap-2 rounded-xl border border-border/70 bg-background/35 px-3.5 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-secondary/45 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+          className="inline-flex w-full items-center gap-2 border border-border/70 px-3 py-2 text-left font-mono text-[11px] text-foreground/80 transition-colors hover:border-border hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
         >
-          <Search className="h-4 w-4" />
-          Search cinema
+          <Search className="h-3.5 w-3.5" />
+          SEARCH
         </button>
 
         <PrimaryNavLinks
@@ -274,8 +277,8 @@ export const MobileMenu = ({
         />
 
         {isUserLoading ? (
-          <p className="px-3 py-2 text-sm text-muted-foreground">
-            Loading session...
+          <p className="px-2 py-2 font-mono text-[11px] text-muted-foreground">
+            LOADING SESSION...
           </p>
         ) : null}
 
@@ -284,35 +287,41 @@ export const MobileMenu = ({
             <Link
               to="/profile/$username"
               params={{ username: user.username }}
-              className={cn(navLinkClass, "w-full justify-start")}
+              className={cn(
+                navLinkClass,
+                "w-full justify-start px-2 py-2 text-[11px]",
+              )}
               activeProps={{
                 className: cn(
                   navLinkClass,
                   navLinkActiveClass,
-                  "w-full justify-start",
+                  "w-full justify-start px-2 py-2 text-[11px]",
                 ),
               }}
               onClick={onClose}
               viewTransition
             >
-              <UserRound className="h-4 w-4 shrink-0" />
-              <span>Profile</span>
+              <User className="h-3.5 w-3.5 shrink-0" />
+              <span>PROFILE</span>
             </Link>
             <Link
               to="/settings"
-              className={cn(navLinkClass, "w-full justify-start")}
+              className={cn(
+                navLinkClass,
+                "w-full justify-start px-2 py-2 text-[11px]",
+              )}
               activeProps={{
                 className: cn(
                   navLinkClass,
                   navLinkActiveClass,
-                  "w-full justify-start",
+                  "w-full justify-start px-2 py-2 text-[11px]",
                 ),
               }}
               onClick={onClose}
               viewTransition
             >
-              <Settings className="h-4 w-4 shrink-0" />
-              <span>Settings</span>
+              <Settings className="h-3.5 w-3.5 shrink-0" />
+              <span>SETTINGS</span>
             </Link>
             <Button
               type="button"
@@ -320,35 +329,31 @@ export const MobileMenu = ({
               size="sm"
               onClick={onSignOut}
               disabled={isLogoutPending}
-              className="w-full justify-start rounded-xl text-muted-foreground hover:text-foreground"
+              className="w-full justify-start px-2 py-2 text-[11px] text-muted-foreground hover:text-foreground"
             >
-              <LogOut className="h-4 w-4" />
-              {isLogoutPending ? "Signing out" : "Sign out"}
+              <LogOut className="h-3.5 w-3.5" />
+              {isLogoutPending ? "SIGNING OUT" : "SIGN OUT"}
             </Button>
           </>
         ) : null}
 
         {!isUserLoading && !user ? (
-          <div className="mt-1 flex flex-col gap-2 border-t border-border/60 pt-3">
+          <div className="mt-1 flex flex-col gap-2 border-t border-border/70 pt-3">
             <Button
               asChild
               variant="ghost"
               size="sm"
-              className="w-full justify-start rounded-xl"
+              className="w-full justify-start text-muted-foreground"
             >
               <Link to="/login" onClick={onClose} viewTransition>
-                <LogIn className="h-4 w-4" />
-                Login
+                <LogIn className="h-3.5 w-3.5" />
+                LOGIN
               </Link>
             </Button>
-            <Button
-              asChild
-              size="sm"
-              className="w-full justify-start rounded-xl"
-            >
+            <Button asChild size="sm" className="w-full justify-start ">
               <Link to="/register" onClick={onClose} viewTransition>
-                <UserRound className="h-4 w-4" />
-                Register
+                <UserRound className="h-3.5 w-3.5" />
+                REGISTER
               </Link>
             </Button>
           </div>

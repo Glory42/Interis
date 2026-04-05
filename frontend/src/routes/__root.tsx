@@ -23,7 +23,7 @@ const NotFoundPage = () => (
     </p>
     <Link
       to="/"
-      className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+      className=" bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
     >
       Return home
     </Link>
@@ -41,12 +41,6 @@ const RootLayout = () => {
   return (
     <>
       <CinemaSearchDialogProvider>
-        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden>
-          <div className="theme-shell-gradient absolute inset-0" />
-          <div className="theme-shell-pattern absolute inset-0" />
-          <div className="theme-shell-vignette absolute inset-0" />
-        </div>
-
         <div className="relative z-10 flex min-h-screen flex-col">
           <AppNavbar />
           <main className="min-w-0 flex-1 pb-10">

@@ -109,6 +109,10 @@ export const useAppNavbarController = () => {
     setIsProfileMenuOpen(false);
   };
 
+  const openProfileMenu = () => {
+    setIsProfileMenuOpen(true);
+  };
+
   const toggleProfileMenu = () => {
     setIsProfileMenuOpen((current) => !current);
   };
@@ -149,6 +153,7 @@ export const useAppNavbarController = () => {
     profileInitial,
     closeMobileMenu,
     closeProfileMenu,
+    openProfileMenu,
     toggleProfileMenu,
     toggleMobileMenu,
     openSearchDialog,
