@@ -9,20 +9,30 @@
       (function () {
         var storageKey = "tic-theme-id";
         var registry = window.__THIS_IS_CINEMA_THEME_REGISTRY__ || {};
+        var configuredDefault = window.__THIS_IS_CINEMA_DEFAULT_THEME_ID__;
         var fallbackThemeId =
-          window.__THIS_IS_CINEMA_DEFAULT_THEME_ID__ || "catppuccin-mocha";
+          typeof configuredDefault === "string"
+            ? configuredDefault.toLowerCase()
+            : "rose-pine";
 
         var resolveThemeId = function (rawThemeId) {
-          if (typeof rawThemeId === "string" && registry[rawThemeId]) {
-            return rawThemeId;
+          if (typeof rawThemeId === "string") {
+            var normalizedThemeId = rawThemeId.trim().toLowerCase();
+            if (registry[normalizedThemeId]) {
+              return normalizedThemeId;
+            }
           }
 
-          if (registry[fallbackThemeId]) {
+          if (registry["rose-pine"]) {
+            return "rose-pine";
+          }
+
+          if (fallbackThemeId && registry[fallbackThemeId]) {
             return fallbackThemeId;
           }
 
           var firstThemeId = Object.keys(registry)[0];
-          return firstThemeId || "catppuccin-mocha";
+          return firstThemeId || "rose-pine";
         };
 
         var rawStoredThemeId = null;
@@ -50,7 +60,7 @@
         }
       })();
     </script>
-    <title>Arkheion</title>
+    <title>NULL://LOG</title>
   </head>
   <body>
     <div id="root"></div>
