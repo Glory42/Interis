@@ -15,13 +15,13 @@ function ProfileDiaryPage() {
   return (
     <>
       {diaryQuery.isPending ? (
-        <div className="rounded-2xl border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
+        <div className=" border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
           Loading diary...
         </div>
       ) : null}
 
       {diaryQuery.isError ? (
-        <div className="rounded-2xl border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+        <div className=" border border-border/60 bg-card/30 p-4 text-sm text-destructive">
           Could not load diary entries.
         </div>
       ) : null}

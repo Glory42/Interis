@@ -37,7 +37,8 @@ export const ProfileHero = ({
         {backdropUrl ? (
           <img
             src={backdropUrl}
-            alt="Profile backdrop"
+            alt=""
+            aria-hidden="true"
             className="theme-hero-media h-full w-full object-cover opacity-40"
             onError={() => {
               if (rawBackdropUrl) {
@@ -60,7 +61,7 @@ export const ProfileHero = ({
               <img
                 src={avatarUrl}
                 alt="Profile avatar"
-                className="h-32 w-32 rounded-2xl border-4 border-border bg-card object-cover shadow-2xl"
+                className="h-32 w-32  border-4 border-border bg-card object-cover shadow-2xl"
                 onError={() => {
                   if (rawAvatarUrl) {
                     setFailedAvatarUrl(rawAvatarUrl);
@@ -68,7 +69,7 @@ export const ProfileHero = ({
                 }}
               />
             ) : (
-              <span className="inline-flex h-32 w-32 items-center justify-center rounded-2xl border-4 border-border bg-card text-4xl font-black text-foreground shadow-2xl">
+              <span className="inline-flex h-32 w-32 items-center justify-center  border-4 border-border bg-card text-4xl font-black text-foreground shadow-2xl">
                 {avatarInitial}
               </span>
             )}
@@ -88,7 +89,7 @@ export const ProfileHero = ({
             <p className="mb-4 font-mono text-sm text-muted-foreground">@{profile.username}</p>
 
             {actionError ? (
-              <p className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+              <p className="mb-4  border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
                 {actionError}
               </p>
             ) : null}

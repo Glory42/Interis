@@ -16,13 +16,13 @@ type ProfileTabsProps = {
 };
 
 const tabClass =
-  "whitespace-nowrap rounded-xl px-4 py-2 text-xs font-medium transition-all";
+  "whitespace-nowrap border-b-2 px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] transition-all";
 
 const activeTabClass = "theme-segment-active";
 
 export const ProfileTabs = ({ username, activeTab }: ProfileTabsProps) => {
   return (
-    <nav className="theme-segment-shell flex items-center gap-1 overflow-x-auto rounded-2xl border border-border/50 bg-card/30 p-2">
+    <nav className="flex items-center gap-0 overflow-x-auto border-b border-border/60">
       <Link
         to="/profile/$username"
         params={{ username }}
@@ -30,7 +30,7 @@ export const ProfileTabs = ({ username, activeTab }: ProfileTabsProps) => {
             tabClass,
             activeTab === "overview"
               ? activeTabClass
-              : "text-muted-foreground hover:text-foreground",
+              : "text-muted-foreground/80 hover:text-foreground",
           )}
         resetScroll={false}
         viewTransition
@@ -44,7 +44,7 @@ export const ProfileTabs = ({ username, activeTab }: ProfileTabsProps) => {
             tabClass,
             activeTab === "diary"
               ? activeTabClass
-              : "text-muted-foreground hover:text-foreground",
+              : "text-muted-foreground/80 hover:text-foreground",
           )}
         resetScroll={false}
         viewTransition
@@ -58,7 +58,7 @@ export const ProfileTabs = ({ username, activeTab }: ProfileTabsProps) => {
             tabClass,
             activeTab === "cinema"
               ? activeTabClass
-              : "text-muted-foreground hover:text-foreground",
+              : "text-muted-foreground/80 hover:text-foreground",
           )}
         resetScroll={false}
         viewTransition
@@ -72,7 +72,7 @@ export const ProfileTabs = ({ username, activeTab }: ProfileTabsProps) => {
             tabClass,
             activeTab === "reviews"
               ? activeTabClass
-              : "text-muted-foreground hover:text-foreground",
+              : "text-muted-foreground/80 hover:text-foreground",
           )}
         resetScroll={false}
         viewTransition
@@ -86,7 +86,7 @@ export const ProfileTabs = ({ username, activeTab }: ProfileTabsProps) => {
             tabClass,
             activeTab === "watchlist"
               ? activeTabClass
-              : "text-muted-foreground hover:text-foreground",
+              : "text-muted-foreground/80 hover:text-foreground",
           )}
         resetScroll={false}
         viewTransition
@@ -100,7 +100,7 @@ export const ProfileTabs = ({ username, activeTab }: ProfileTabsProps) => {
             tabClass,
             activeTab === "liked"
               ? activeTabClass
-              : "text-muted-foreground hover:text-foreground",
+              : "text-muted-foreground/80 hover:text-foreground",
           )}
         resetScroll={false}
         viewTransition
@@ -114,7 +114,7 @@ export const ProfileTabs = ({ username, activeTab }: ProfileTabsProps) => {
             tabClass,
             activeTab === "lists"
               ? activeTabClass
-              : "text-muted-foreground hover:text-foreground",
+              : "text-muted-foreground/80 hover:text-foreground",
           )}
         resetScroll={false}
         viewTransition

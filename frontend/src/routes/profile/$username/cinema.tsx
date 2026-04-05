@@ -15,13 +15,13 @@ function ProfileCinemaPage() {
   return (
     <>
       {cinemaQuery.isPending ? (
-        <div className="rounded-2xl border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
+        <div className=" border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
           Loading cinema...
         </div>
       ) : null}
 
       {cinemaQuery.isError ? (
-        <div className="rounded-2xl border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+        <div className=" border border-border/60 bg-card/30 p-4 text-sm text-destructive">
           Could not load logged cinema.
         </div>
       ) : null}
@@ -41,13 +41,13 @@ function ProfileCinemaPage() {
               key={film.tmdbId}
               to="/cinema/$tmdbId"
               params={{ tmdbId: String(film.tmdbId) }}
-              className="group rounded-2xl border border-border/60 bg-card/30 p-2 transition-colors hover:border-border"
+              className="group  border border-border/60 bg-card/30 p-2 transition-colors hover:border-border"
               viewTransition
             >
               <img
                 src={getPosterUrl(film.posterPath)}
                 alt={`${film.title} poster`}
-                className="h-44 w-full rounded-xl object-cover"
+                className="h-44 w-full  object-cover"
                 loading="lazy"
               />
               <p className="mt-2 line-clamp-2 text-sm font-semibold text-foreground">

@@ -18,13 +18,13 @@ function ProfileLikedPage() {
   return (
     <>
       {likedQuery.isPending ? (
-        <div className="rounded-2xl border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
+        <div className=" border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
           Loading liked films...
         </div>
       ) : null}
 
       {likedQuery.isError ? (
-        <div className="rounded-2xl border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+        <div className=" border border-border/60 bg-card/30 p-4 text-sm text-destructive">
           Could not load liked films.
         </div>
       ) : null}
@@ -52,7 +52,7 @@ function ProfileLikedPage() {
                 className="group block"
                 viewTransition
               >
-                <div className="relative mb-1.5 aspect-[2/3] overflow-hidden rounded-lg border border-border/70 bg-card/25">
+                <div className="relative mb-1.5 aspect-[2/3] overflow-hidden  border border-border/70 bg-card/25">
                   <img
                     src={getPosterUrl(film.posterPath)}
                     alt={film.title}

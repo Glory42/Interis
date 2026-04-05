@@ -13,7 +13,7 @@ function ProfileListsPage() {
 
   if (profileQuery.isPending) {
     return (
-      <div className="rounded-2xl border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
+      <div className=" border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
         Loading profile...
       </div>
     );
@@ -21,7 +21,7 @@ function ProfileListsPage() {
 
   if (profileQuery.isError || !profileQuery.data) {
     return (
-      <div className="rounded-2xl border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+      <div className=" border border-border/60 bg-card/30 p-4 text-sm text-destructive">
         Could not load profile lists.
       </div>
     );

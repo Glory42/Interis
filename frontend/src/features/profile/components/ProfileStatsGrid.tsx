@@ -13,9 +13,9 @@ type ProfileStatCardProps = {
 };
 
 const ProfileStatCard = ({ value, label }: ProfileStatCardProps) => (
-  <div className="rounded-xl border border-border/55 bg-card/30 px-3 py-3 text-center">
-    <p className="text-xl font-black text-foreground">{value}</p>
-    <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+  <div className="border border-border/70 bg-card/65 px-3 py-2 text-center">
+    <p className="font-mono text-lg font-bold text-foreground">{value}</p>
+    <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
       {label}
     </p>
   </div>

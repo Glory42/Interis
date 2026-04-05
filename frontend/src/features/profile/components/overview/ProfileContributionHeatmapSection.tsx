@@ -93,7 +93,7 @@ export const ProfileContributionHeatmapSection = ({
         <h3 className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
           Contribution Activity
         </h3>
-        <div className="rounded-lg border border-border/70 bg-card/25 p-3 text-sm text-muted-foreground">
+        <div className=" border border-border/70 bg-card/25 p-3 text-sm text-muted-foreground">
           Loading contribution history...
         </div>
       </div>
@@ -106,7 +106,7 @@ export const ProfileContributionHeatmapSection = ({
         <h3 className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
           Contribution Activity
         </h3>
-        <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+        <div className=" border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
           Could not load contribution history.
         </div>
       </div>
@@ -119,13 +119,13 @@ export const ProfileContributionHeatmapSection = ({
         Contribution Activity
       </h3>
 
-      <div className="rounded-xl border border-border/60 bg-card/20 p-3.5">
+      <div className=" border border-border/60 bg-card/20 p-3.5">
         <p className="mb-3 text-xs text-muted-foreground">
           {buildContributionSummaryLabel(calendar)}
         </p>
 
         <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <div className="rounded-lg border border-border/60 bg-background/25 px-3 py-2 text-center">
+          <div className=" border border-border/60 bg-background/25 px-3 py-2 text-center">
             <p className="text-sm font-semibold text-foreground">
               {calendar.totals.activeDays}
             </p>
@@ -133,13 +133,13 @@ export const ProfileContributionHeatmapSection = ({
               Active Days
             </p>
           </div>
-          <div className="rounded-lg border border-border/60 bg-background/25 px-3 py-2 text-center">
+          <div className=" border border-border/60 bg-background/25 px-3 py-2 text-center">
             <p className="text-sm font-semibold text-foreground">{streaks.current}</p>
             <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
               Current Streak
             </p>
           </div>
-          <div className="rounded-lg border border-border/60 bg-background/25 px-3 py-2 text-center">
+          <div className=" border border-border/60 bg-background/25 px-3 py-2 text-center">
             <p className="text-sm font-semibold text-foreground">{streaks.longest}</p>
             <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
               Longest Streak
@@ -202,7 +202,7 @@ export const ProfileContributionHeatmapSection = ({
                           type="button"
                           title={buildContributionTooltipLabel(day)}
                           aria-label={buildContributionTooltipLabel(day)}
-                          className="h-3 w-3 rounded-[3px] border border-border/45 bg-muted/35 transition-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+                          className="h-3 w-3  border border-border/45 bg-muted/35 transition-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
                           style={
                             dayColor ? { backgroundColor: dayColor } : undefined
                           }
@@ -236,7 +236,7 @@ export const ProfileContributionHeatmapSection = ({
                 className="inline-flex items-center gap-1.5"
               >
                 <span
-                  className="h-2.5 w-2.5 rounded-[2px] border border-border/45"
+                  className="h-2.5 w-2.5  border border-border/45"
                   style={{
                     backgroundColor: resolveContributionLegendColor(
                       contributionMaskByMediaType[mediaType],
@@ -254,7 +254,7 @@ export const ProfileContributionHeatmapSection = ({
             {[1, 2, 3, 4].map((level) => (
               <span
                 key={`contribution-level-${level}`}
-                className="h-2.5 w-2.5 rounded-[2px] border border-border/45"
+                className="h-2.5 w-2.5  border border-border/45"
                 style={{
                   backgroundColor: resolveContributionLegendColor(
                     1,
@@ -266,7 +266,7 @@ export const ProfileContributionHeatmapSection = ({
             <span>More</span>
           </div>
 
-          <div className="rounded-lg border border-border/60 bg-background/25 px-3 py-2.5">
+          <div className=" border border-border/60 bg-background/25 px-3 py-2.5">
             {activeDay ? (
               <ActiveDayDetails day={activeDay} />
             ) : (

@@ -59,7 +59,7 @@ export const ProfileLayout = ({
   if (profileQuery.isError || !profileQuery.data) {
     return (
       <div className="mx-auto flex min-h-[55vh] w-full max-w-6xl items-center px-4 py-8">
-        <div className="rounded-2xl border border-border/60 bg-card/40 p-4 text-sm text-muted-foreground">
+        <div className=" border border-border/60 bg-card/40 p-4 text-sm text-muted-foreground">
           This user does not exist or cannot be loaded right now.
         </div>
       </div>
@@ -100,7 +100,7 @@ export const ProfileLayout = ({
       asChild
       size="sm"
       variant="ghost"
-      className="h-8 rounded-full border border-border/60 bg-background/35 px-3 text-xs text-muted-foreground hover:text-foreground"
+      className="h-8  border border-border/60 bg-background/35 px-3 text-xs text-muted-foreground hover:text-foreground"
     >
       <Link to="/settings/profile">Settings</Link>
     </Button>
@@ -109,7 +109,7 @@ export const ProfileLayout = ({
       type="button"
       size="sm"
       variant={isFollowing ? "outline" : "secondary"}
-      className="h-8 rounded-full px-3 text-xs"
+      className="h-8  px-3 text-xs"
       disabled={followStateQuery.isPending || isFollowActionPending}
       onClick={() => {
         void handleToggleFollow();
@@ -124,7 +124,7 @@ export const ProfileLayout = ({
             : "Follow"}
     </Button>
   ) : (
-    <Button asChild size="sm" variant="outline" className="h-8 rounded-full px-3 text-xs">
+    <Button asChild size="sm" variant="outline" className="h-8  px-3 text-xs">
       <Link
         to="/login"
         search={{

@@ -24,7 +24,7 @@ export const ProfileOverviewContent = ({ username }: ProfileOverviewContentProps
 
   if (diaryQuery.isPending || topMoviesQuery.isPending) {
     return (
-      <div className="rounded-2xl border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
+      <div className=" border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
         Loading profile overview...
       </div>
     );
@@ -32,7 +32,7 @@ export const ProfileOverviewContent = ({ username }: ProfileOverviewContentProps
 
   if (diaryQuery.isError || topMoviesQuery.isError) {
     return (
-      <div className="rounded-2xl border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+      <div className=" border border-border/60 bg-card/30 p-4 text-sm text-destructive">
         Could not load profile overview.
       </div>
     );

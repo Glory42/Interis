@@ -30,13 +30,13 @@ function ProfileReviewsPage() {
   return (
     <>
       {reviewsQuery.isPending ? (
-        <div className="rounded-2xl border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
+        <div className=" border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
           Loading reviews...
         </div>
       ) : null}
 
       {reviewsQuery.isError ? (
-        <div className="rounded-2xl border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+        <div className=" border border-border/60 bg-card/30 p-4 text-sm text-destructive">
           Could not load reviews.
         </div>
       ) : null}
@@ -53,7 +53,7 @@ function ProfileReviewsPage() {
         {reviews.map((entry) => (
           <article
             key={entry.id}
-            className="rounded-2xl border border-border/60 bg-card/30 p-3 sm:p-4"
+            className=" border border-border/60 bg-card/30 p-3 sm:p-4"
           >
             <div className="grid gap-3 sm:grid-cols-[84px_1fr]">
               {entry.mediaType === "tv" ? (
@@ -66,7 +66,7 @@ function ProfileReviewsPage() {
                   <img
                     src={getPosterUrl(entry.posterPath)}
                     alt={`${entry.title} poster`}
-                    className="h-[126px] w-[84px] rounded-lg border border-border/60 object-cover"
+                    className="h-[126px] w-[84px]  border border-border/60 object-cover"
                     loading="lazy"
                   />
                 </Link>
@@ -80,7 +80,7 @@ function ProfileReviewsPage() {
                   <img
                     src={getPosterUrl(entry.posterPath)}
                     alt={`${entry.title} poster`}
-                    className="h-[126px] w-[84px] rounded-lg border border-border/60 object-cover"
+                    className="h-[126px] w-[84px]  border border-border/60 object-cover"
                     loading="lazy"
                   />
                 </Link>

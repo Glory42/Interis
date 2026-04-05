@@ -19,7 +19,7 @@ type ProfileTopFilmsSectionProps = {
 
 const PlaceholderTopFilmCard = ({ slotNumber }: { slotNumber: number }) => (
   <div>
-    <div className="relative mb-1.5 aspect-[2/3] overflow-hidden rounded-lg border border-dashed border-border/70 bg-card/25">
+    <div className="relative mb-1.5 aspect-[2/3] overflow-hidden  border border-dashed border-border/70 bg-card/25">
       <div className="absolute inset-0 flex items-center justify-center text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
         Empty slot {slotNumber}
       </div>
@@ -61,7 +61,7 @@ export const ProfileTopFilmsSection = ({
               className="group block cursor-pointer"
               viewTransition
             >
-              <div className="relative mb-1.5 aspect-[2/3] overflow-hidden rounded-lg bg-card/80">
+              <div className="relative mb-1.5 aspect-[2/3] overflow-hidden  bg-card/80">
                 <img
                   alt={movie.title}
                   className="h-full w-full object-cover opacity-90 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
