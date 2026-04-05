@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getFollowingFeed,
   getMyFeedSummary,
+  getNetworkStats,
   getTrendingMovies,
 } from "@/features/feed/api";
 
@@ -10,6 +11,7 @@ export const feedKeys = {
   following: ["feed", "following"] as const,
   trending: ["feed", "trending"] as const,
   meSummary: ["feed", "me-summary"] as const,
+  networkStats: ["feed", "network-stats"] as const,
 };
 
 export const useFollowingFeed = (enabled = true) =>
@@ -31,4 +33,11 @@ export const useMyFeedSummary = (enabled = true) =>
     queryKey: feedKeys.meSummary,
     queryFn: getMyFeedSummary,
     enabled,
+  });
+
+export const useNetworkStats = () =>
+  useQuery({
+    queryKey: feedKeys.networkStats,
+    queryFn: getNetworkStats,
+    staleTime: 300_000,
   });

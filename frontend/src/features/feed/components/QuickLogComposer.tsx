@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { Loader2, Send } from "lucide-react";
+import { useState, type KeyboardEvent } from "react";
+import { Loader2, SendHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreatePost } from "@/features/posts/hooks/usePosts";
 import type { MeProfile } from "@/types/api";
@@ -16,20 +17,22 @@ export const QuickLogComposer = ({ user }: QuickLogComposerProps) => {
 
   if (!user) {
     return (
-      <div className="rounded-2xl border border-border/70 bg-card/70 p-4">
-        <p className="text-sm text-muted-foreground">
-          Sign in to post updates, log films, and see personalized following
-          activity.
+      <div className="border border-border/70 bg-card/72 p-4">
+        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+          // LOG_CONSOLE_LOCKED
+        </p>
+        <p className="mt-2 font-mono text-xs text-muted-foreground">
+          sign in to publish quick log entries.
         </p>
         <Button asChild size="sm" className="mt-3">
-          <Link to="/login">Sign in to start logging</Link>
+          <Link to="/login">SIGN IN</Link>
         </Button>
       </div>
     );
   }
 
-  const avatarUrl = user.avatarUrl ?? user.image ?? null;
   const profileInitial = user.username.slice(0, 1).toUpperCase();
+  const avatarUrl = user.avatarUrl ?? user.image ?? null;
   const trimmedContent = content.trim();
   const canSubmit =
     trimmedContent.length > 0 &&
@@ -45,59 +48,69 @@ export const QuickLogComposer = ({ user }: QuickLogComposerProps) => {
     setContent("");
   };
 
+  const handleTextareaKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== "Enter" || event.shiftKey) {
+      return;
+    }
+
+    event.preventDefault();
+    void handleSubmit();
+  };
+
   return (
-    <div className="rounded-2xl border border-border/70 bg-card/70 p-4">
+    <div className="border border-border/70 bg-card/72 p-4">
       <div className="flex items-start gap-3">
-        {avatarUrl ? (
-          <img
-            src={avatarUrl}
-            alt={`${user.username} avatar`}
-            className="h-9 w-9 rounded-full border border-border/70 object-cover"
+        <div className="flex shrink-0 flex-col items-center gap-2">
+          <FeedActorAvatar
+            avatarUrl={avatarUrl}
+            username={user.username}
+            initial={profileInitial}
+            className="flex h-8 w-8 items-center justify-center overflow-hidden border border-primary/35 bg-primary/10 font-mono text-xs font-bold text-primary"
           />
-        ) : (
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-secondary text-xs font-semibold text-secondary-foreground">
-            {profileInitial}
-          </span>
-        )}
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-end gap-2">
-            <Textarea
-              value={content}
-              onChange={(event) => {
-                if (event.target.value.length <= 250) {
-                  setContent(event.target.value);
-                }
-              }}
-              placeholder="Share a film thought with your followers..."
-              className="min-h-0 flex-1 resize-y rounded-xl border-border/70 bg-background/35"
-            />
+          <Button
+            type="button"
+            size="sm"
+            className="h-7 px-2.5 text-[10px]"
+            disabled={!canSubmit}
+            onClick={() => {
+              void handleSubmit();
+            }}
+          >
+            {createPostMutation.isPending ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <SendHorizontal className="h-3.5 w-3.5" />
+            )}
+          </Button>
+        </div>
 
-            <Button
-              type="button"
-              size="sm"
-              className="h-10 shrink-0 rounded-xl px-4"
-              disabled={!canSubmit}
-              onClick={() => {
-                void handleSubmit();
-              }}
-            >
-              {createPostMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-              Post
-            </Button>
+        <div className="min-w-0 flex-1 space-y-2">
+          <Textarea
+            value={content}
+            onKeyDown={handleTextareaKeyDown}
+            onChange={(event) => {
+              if (event.target.value.length <= 250) {
+                setContent(event.target.value);
+              }
+            }}
+            placeholder="log a thought..."
+            className="min-h-[4.5rem] resize-y border-border/70 bg-background/55 font-mono text-sm"
+          />
+
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-mono text-[10px] text-muted-foreground">
+              Enter submits. Shift+Enter newline. {content.length}/250
+            </span>
           </div>
         </div>
       </div>
 
       {createPostMutation.isError ? (
-        <p className="mt-3 text-xs text-destructive">
+        <p className="mt-2 font-mono text-[11px] text-destructive">
           {createPostMutation.error instanceof Error
             ? createPostMutation.error.message
-            : "Could not publish post."}
+            : "could not publish post."}
         </p>
       ) : null}
     </div>

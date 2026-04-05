@@ -132,7 +132,12 @@ export const meFeedSummarySchema = z.object({
   ),
 });
 
+export const networkStatsSchema = z.object({
+  totalUsers: z.number().int().nonnegative(),
+});
+
 export type FeedItem = z.infer<typeof feedItemSchema>;
 export type FeedActivityKind = z.infer<typeof feedActivityKindSchema>;
 export type TrendingMovie = z.infer<typeof trendingMovieSchema>;
 export type MeFeedSummary = z.infer<typeof meFeedSummarySchema>;
+export type NetworkStats = z.infer<typeof networkStatsSchema>;

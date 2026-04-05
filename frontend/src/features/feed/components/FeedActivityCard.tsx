@@ -1,49 +1,21 @@
+import type { CSSProperties } from "react";
 import { Link } from "@tanstack/react-router";
-import {
-  BookOpen,
-  Heart,
-  MessageSquare,
-  Repeat2,
-  Sparkles,
-  Star,
-  UserPlus,
-} from "lucide-react";
+import { CornerDownRight, Heart, MessageSquare, Star } from "lucide-react";
+import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
 import { PostActivityCard } from "@/features/feed/components/PostActivityCard";
 import { ReviewActivityCard } from "@/features/feed/components/ReviewActivityCard";
-import { getPosterUrl } from "@/features/films/components/utils";
+import {
+  feedChannelMeta,
+  getRatingOutOfFive,
+  getRelativeTime,
+  getRoundedStars,
+  inferFeedChannel,
+} from "@/features/feed/components/feed-row.utils";
 import type { FeedItem } from "@/features/feed/types";
 import { cn } from "@/lib/utils";
 
 type FeedActivityCardProps = {
   item: FeedItem;
-};
-
-const getRelativeTime = (value: string): string => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  const deltaSeconds = Math.round((date.getTime() - Date.now()) / 1000);
-  const absSeconds = Math.abs(deltaSeconds);
-  const formatter = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
-
-  if (absSeconds < 60) {
-    return formatter.format(deltaSeconds, "second");
-  }
-
-  const deltaMinutes = Math.round(deltaSeconds / 60);
-  if (Math.abs(deltaMinutes) < 60) {
-    return formatter.format(deltaMinutes, "minute");
-  }
-
-  const deltaHours = Math.round(deltaMinutes / 60);
-  if (Math.abs(deltaHours) < 24) {
-    return formatter.format(deltaHours, "hour");
-  }
-
-  const deltaDays = Math.round(deltaHours / 24);
-  return formatter.format(deltaDays, "day");
 };
 
 const getActivityCopy = (item: FeedItem): string => {
@@ -63,45 +35,48 @@ const getActivityCopy = (item: FeedItem): string => {
     case "commented_post":
       return "commented on a post";
     case "liked_movie":
-      return "liked a film";
+      return "liked a title";
     case "watchlisted_movie":
       return "updated watchlist";
     case "followed_user":
       return item.metadata.targetUsername
         ? `followed @${item.metadata.targetUsername}`
         : "followed someone";
+    case "created_list":
+      return "created a list";
     default:
       return "updated activity";
   }
 };
 
-const ActivityIcon = ({ kind }: { kind: FeedItem["kind"] }) => {
-  switch (kind) {
-    case "review":
-      return <Star className="h-3.5 w-3.5 text-primary" />;
-    case "diary_entry":
-      return <Sparkles className="h-3.5 w-3.5 text-primary" />;
-    case "liked_movie":
-    case "liked_review":
-    case "liked_comment":
-    case "liked_post":
-      return <Heart className="h-3.5 w-3.5 text-primary" />;
-    case "commented":
-    case "commented_post":
-      return <MessageSquare className="h-3.5 w-3.5 text-primary" />;
-    case "watchlisted_movie":
-      return <Repeat2 className="h-3.5 w-3.5 text-primary" />;
-    case "followed_user":
-      return <UserPlus className="h-3.5 w-3.5 text-primary" />;
-    case "created_list":
-      return <BookOpen className="h-3.5 w-3.5 text-primary" />;
-    default:
-      return <Sparkles className="h-3.5 w-3.5 text-primary" />;
+const renderAttachedTitle = (item: FeedItem) => {
+  if (!item.movie) {
+    return <span className="font-mono text-xs font-bold text-foreground">{getActivityCopy(item)}</span>;
   }
+
+  const to = item.movie.mediaType === "tv" ? "/serials/$tmdbId" : "/cinema/$tmdbId";
+
+  return (
+    <>
+      <Link
+        to={to}
+        params={{ tmdbId: String(item.movie.tmdbId) }}
+        className="line-clamp-1 font-mono text-xs font-bold text-foreground hover:text-primary"
+        viewTransition
+      >
+        {item.movie.title}
+      </Link>
+      {item.movie.releaseYear ? (
+        <span className="font-mono text-[10px] text-muted-foreground">
+          {item.movie.releaseYear}
+        </span>
+      ) : null}
+    </>
+  );
 };
 
 export const FeedActivityCard = ({ item }: FeedActivityCardProps) => {
-  if (item.kind === "post") {
+  if (item.kind === "post" || item.kind === "liked_post" || item.kind === "commented_post") {
     return <PostActivityCard item={item} />;
   }
 
@@ -109,151 +84,85 @@ export const FeedActivityCard = ({ item }: FeedActivityCardProps) => {
     return <ReviewActivityCard item={item} />;
   }
 
+  const channel = inferFeedChannel(item);
+  const channelLabel = channel ? feedChannelMeta[channel].label : "FEED";
+  const channelColor = channel ? feedChannelMeta[channel].color : "var(--module-neutral)";
+  const channelTint = channel ? feedChannelMeta[channel].tint : "rgba(156, 163, 175, 0.08)";
   const actorName = item.actor.displayUsername ?? item.actor.username;
-  const actorAvatar = item.actor.avatarUrl ?? item.actor.image ?? null;
   const actorInitial = item.actor.username.slice(0, 1).toUpperCase();
-  const reviewTargetUsername = item.metadata.targetUsername ?? null;
-  const reviewTargetId = item.metadata.reviewId ?? null;
-  const hasEngagement =
-    item.engagement.likeCount > 0 || item.engagement.commentCount > 0;
-  const hasReviewTargetLink =
-    (item.kind === "liked_review" || item.kind === "commented") &&
-    reviewTargetId !== null &&
-    reviewTargetUsername !== null;
+  const actorAvatar = item.actor.avatarUrl ?? item.actor.image ?? null;
+  const ratingOutOfFive = getRatingOutOfFive(item.metadata.rating);
+  const filledStars = getRoundedStars(ratingOutOfFive);
+
+  const channelStyle = {
+    borderColor: `color-mix(in srgb, ${channelColor} 36%, transparent)`,
+    background: channelTint,
+    color: channelColor,
+  } satisfies CSSProperties;
 
   return (
-    <article className="rounded-2xl border border-border/70 bg-card/72 p-4 transition-colors hover:border-border">
-      <header className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3">
-          {actorAvatar ? (
-            <img
-              src={actorAvatar}
-              alt={`${item.actor.username} avatar`}
-              className="h-10 w-10 rounded-full border border-border/70 object-cover"
-            />
-          ) : (
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-secondary text-xs font-semibold text-secondary-foreground">
-              {actorInitial}
-            </span>
-          )}
+    <article className="group border-b border-border/60 py-6">
+      <div className="flex items-center gap-3">
+        <FeedActorAvatar
+          avatarUrl={actorAvatar}
+          username={item.actor.username}
+          initial={actorInitial}
+          style={channelStyle}
+        />
+        <div className="flex min-w-0 flex-1 items-baseline gap-2">
+          <Link
+            to="/profile/$username"
+            params={{ username: item.actor.username }}
+            className="truncate font-mono text-xs font-bold text-foreground hover:text-primary"
+            viewTransition
+          >
+            {actorName}
+          </Link>
+          <span className="truncate font-mono text-[10px] text-muted-foreground/80">
+            @{item.actor.username}
+          </span>
+          <span className="ml-auto shrink-0 font-mono text-[10px] text-muted-foreground">
+            {getRelativeTime(item.createdAt)}
+          </span>
+        </div>
+      </div>
 
-          <div className="space-y-0.5">
-            <p className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
-              <Link
-                to="/profile/$username"
-                params={{ username: item.actor.username }}
-                className="hover:text-primary"
-                viewTransition
-              >
-                {actorName}
-              </Link>
-              <ActivityIcon kind={item.kind} />
-            </p>
-            <p className="text-xs text-muted-foreground">
-              @{item.actor.username} · {getRelativeTime(item.createdAt)}
-            </p>
-          </div>
+      <div className="mt-3 ml-10 flex flex-wrap items-center gap-3">
+        <div className="flex min-w-0 items-center gap-2 border px-2.5 py-1" style={channelStyle}>
+          <span className="font-mono text-[9px] uppercase tracking-[0.14em]">{channelLabel}</span>
+          <CornerDownRight className="h-3 w-3" />
+          {renderAttachedTitle(item)}
         </div>
 
-      </header>
+        {ratingOutOfFive !== null ? (
+          <div className="flex items-center gap-0.5" style={{ color: channelColor }}>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <Star
+                key={`feed-star-${item.id}-${index}`}
+                className={cn(
+                  "h-3.5 w-3.5",
+                  index < filledStars ? "fill-current" : "text-white/15",
+                )}
+              />
+            ))}
+          </div>
+        ) : null}
+      </div>
 
-      {hasReviewTargetLink ? (
-        <p className="mt-3 text-sm text-muted-foreground">
-          {item.kind === "liked_review" ? "liked" : "commented on"}{" "}
-          <Link
-            to="/reviews/$username/$reviewId"
-            params={{
-              username: reviewTargetUsername,
-              reviewId: reviewTargetId,
-            }}
-            className="font-semibold text-foreground hover:text-primary"
-            viewTransition
-          >
-            @{reviewTargetUsername}'s review
-          </Link>
-        </p>
-      ) : (
-        <p className="mt-3 text-sm text-muted-foreground">{getActivityCopy(item)}</p>
-      )}
+      <p className="mt-3 ml-10 whitespace-pre-wrap font-mono text-sm leading-relaxed text-foreground/80">
+        {item.metadata.excerpt ?? getActivityCopy(item)}
+      </p>
 
-      {item.metadata.excerpt ? (
-        <p className="mt-2 line-clamp-4 text-sm leading-relaxed text-foreground/95">
-          "{item.metadata.excerpt}"
-        </p>
-      ) : null}
-
-      {item.movie ? (
-        item.movie.mediaType === "tv" ? (
-          <Link
-            to="/serials/$tmdbId"
-            params={{ tmdbId: String(item.movie.tmdbId) }}
-            className="mt-3 flex items-center gap-3 rounded-xl border border-border/70 bg-background/30 p-2.5 transition-colors hover:border-border hover:bg-secondary/45"
-            viewTransition
-          >
-            <img
-              src={getPosterUrl(item.movie.posterPath)}
-              alt={`${item.movie.title} poster`}
-              className="h-14 w-10 rounded object-cover"
-              loading="lazy"
-            />
-
-            <div className="min-w-0 flex-1">
-              <p className="line-clamp-1 text-sm font-semibold text-foreground">
-                {item.movie.title}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {item.movie.releaseYear ?? "Unknown year"}
-              </p>
-            </div>
-          </Link>
-        ) : (
-          <Link
-            to="/cinema/$tmdbId"
-            params={{ tmdbId: String(item.movie.tmdbId) }}
-            className="mt-3 flex items-center gap-3 rounded-xl border border-border/70 bg-background/30 p-2.5 transition-colors hover:border-border hover:bg-secondary/45"
-            viewTransition
-          >
-            <img
-              src={getPosterUrl(item.movie.posterPath)}
-              alt={`${item.movie.title} poster`}
-              className="h-14 w-10 rounded object-cover"
-              loading="lazy"
-            />
-
-            <div className="min-w-0 flex-1">
-              <p className="line-clamp-1 text-sm font-semibold text-foreground">
-                {item.movie.title}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {item.movie.releaseYear ?? "Unknown year"}
-              </p>
-            </div>
-          </Link>
-        )
-      ) : null}
-
-      {hasEngagement ? (
-        <footer className="mt-3 flex items-center gap-4 border-t border-border/60 pt-3 text-xs text-muted-foreground">
-          <span
-            className={cn(
-              "inline-flex items-center gap-1",
-              item.engagement.likeCount > 0 ? "text-foreground" : "",
-            )}
-          >
-            <Heart className="h-3.5 w-3.5" />
-            {item.engagement.likeCount}
-          </span>
-          <span
-            className={cn(
-              "inline-flex items-center gap-1",
-              item.engagement.commentCount > 0 ? "text-foreground" : "",
-            )}
-          >
-            <MessageSquare className="h-3.5 w-3.5" />
-            {item.engagement.commentCount}
-          </span>
-        </footer>
-      ) : null}
+      <div className="mt-3 ml-10 flex items-center gap-5">
+        <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
+          <Heart className="h-3.5 w-3.5" />
+          {item.engagement.likeCount}
+        </span>
+        <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
+          <MessageSquare className="h-3.5 w-3.5" />
+          {item.engagement.commentCount}
+        </span>
+      </div>
     </article>
   );
 };

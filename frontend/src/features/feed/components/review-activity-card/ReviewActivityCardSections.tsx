@@ -43,15 +43,15 @@ export const ReviewActivityHeader = ({
           <img
             src={actorAvatar}
             alt={`${actorUsername} avatar`}
-            className="h-10 w-10 rounded-full border border-border/70 bg-secondary object-cover"
+            className="h-10 w-10 border border-border/70 bg-secondary object-cover"
           />
         ) : (
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-secondary text-xs font-semibold text-secondary-foreground">
+          <span className="inline-flex h-10 w-10 items-center justify-center border border-border/70 bg-secondary text-xs font-semibold text-secondary-foreground">
             {actorInitial}
           </span>
         )}
 
-        <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card bg-primary" />
+        <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 border-2 border-card bg-primary" />
       </div>
 
       <div>
@@ -77,7 +77,7 @@ export const ReviewActivityHeader = ({
         <Link
           to="/serials/$tmdbId"
           params={{ tmdbId: String(movieTmdbId) }}
-          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary/65 hover:text-foreground"
+          className="p-1.5 text-muted-foreground transition-colors hover:bg-secondary/65 hover:text-foreground"
           aria-label="Open series details"
           viewTransition
         >
@@ -87,7 +87,7 @@ export const ReviewActivityHeader = ({
         <Link
           to="/cinema/$tmdbId"
           params={{ tmdbId: String(movieTmdbId) }}
-          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary/65 hover:text-foreground"
+          className="p-1.5 text-muted-foreground transition-colors hover:bg-secondary/65 hover:text-foreground"
           aria-label="Open film details"
           viewTransition
         >
@@ -118,7 +118,7 @@ export const ReviewActivityContent = ({
       <div className="px-5 pb-4">
         <button
           type="button"
-          className="inline-flex items-center gap-2 rounded-lg border border-amber-500/35 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-500/15"
+          className="inline-flex items-center gap-2 border border-amber-500/35 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-500/15"
           onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();
@@ -136,7 +136,7 @@ export const ReviewActivityContent = ({
     <div className="px-5 pb-4">
       <button
         type="button"
-        className="w-full rounded-lg text-left transition-colors hover:bg-secondary/35"
+        className="w-full text-left transition-colors hover:bg-secondary/35"
         onClick={(event) => {
           event.preventDefault();
           onOpenReview();
@@ -166,7 +166,7 @@ export const ReviewActivityMoviePreview = ({
   <Link
     to={movie.mediaType === "tv" ? "/serials/$tmdbId" : "/cinema/$tmdbId"}
     params={{ tmdbId: String(movie.tmdbId) }}
-    className="mx-5 mb-4 flex w-[calc(100%-2.5rem)] items-stretch overflow-hidden rounded-xl border border-border/70 bg-background/35 text-left transition-all duration-300 hover:border-primary/30"
+    className="mx-5 mb-4 flex w-[calc(100%-2.5rem)] items-stretch overflow-hidden border border-border/70 bg-background/35 text-left transition-all duration-300 hover:border-primary/30"
     viewTransition
   >
     <div className="relative h-32 w-24 shrink-0 overflow-hidden">
@@ -181,7 +181,8 @@ export const ReviewActivityMoviePreview = ({
     <div className="flex min-w-0 flex-1 items-center justify-between p-3.5">
       <div className="min-w-0 flex-1">
         <p className="mb-1.5 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
-          <Film className="h-3 w-3" /> {movie.mediaType === "tv" ? "Series" : "Film"}
+          <Film className="h-3 w-3" />{" "}
+          {movie.mediaType === "tv" ? "Series" : "Film"}
         </p>
         <p className="truncate text-sm font-bold text-foreground transition-colors hover:text-primary">
           {movie.title}
@@ -205,7 +206,9 @@ export const ReviewActivityMoviePreview = ({
                 />
               ))}
             </div>
-            <span className="font-mono text-[10px] text-muted-foreground">{ratingOutOfFive}</span>
+            <span className="font-mono text-[10px] text-muted-foreground">
+              {ratingOutOfFive}
+            </span>
           </div>
         ) : null}
       </div>
@@ -248,7 +251,7 @@ export const ReviewActivityFooter = ({
           onOpenReview();
         }}
         disabled={!hasReviewId}
-        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-muted-foreground transition-all hover:bg-secondary/65 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-muted-foreground transition-all hover:bg-secondary/65 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
       >
         <MessageSquare className="h-3.5 w-3.5" />
         <span>{commentCount}</span>
@@ -263,7 +266,7 @@ export const ReviewActivityFooter = ({
         }}
         disabled={!hasReviewId || isLikePending}
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs transition-all",
+          "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs transition-all",
           viewerHasLiked
             ? "text-primary hover:bg-primary/15"
             : "text-muted-foreground hover:bg-secondary/65 hover:text-foreground",
@@ -273,7 +276,9 @@ export const ReviewActivityFooter = ({
         {isLikePending ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
         ) : (
-          <Heart className={cn("h-3.5 w-3.5", viewerHasLiked ? "fill-primary" : "")} />
+          <Heart
+            className={cn("h-3.5 w-3.5", viewerHasLiked ? "fill-primary" : "")}
+          />
         )}
         <span>{likeCount}</span>
       </button>
@@ -284,7 +289,7 @@ export const ReviewActivityFooter = ({
         <Link
           to="/serials/$tmdbId"
           params={{ tmdbId: String(movieTmdbId) }}
-          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary/65 hover:text-foreground"
+          className="p-1.5 text-muted-foreground transition-colors hover:bg-secondary/65 hover:text-foreground"
           aria-label="Open series details"
           viewTransition
         >
@@ -294,7 +299,7 @@ export const ReviewActivityFooter = ({
         <Link
           to="/cinema/$tmdbId"
           params={{ tmdbId: String(movieTmdbId) }}
-          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary/65 hover:text-foreground"
+          className="p-1.5 text-muted-foreground transition-colors hover:bg-secondary/65 hover:text-foreground"
           aria-label="Open film details"
           viewTransition
         >

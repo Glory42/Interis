@@ -2,9 +2,11 @@ import { apiRequest } from "@/lib/api-client";
 import {
   feedListSchema,
   meFeedSummarySchema,
+  networkStatsSchema,
   trendingMovieListSchema,
   type FeedItem,
   type MeFeedSummary,
+  type NetworkStats,
   type TrendingMovie,
 } from "@/features/feed/types";
 
@@ -41,4 +43,12 @@ export const getMyFeedSummary = async (): Promise<MeFeedSummary> => {
   });
 
   return meFeedSummarySchema.parse(response);
+};
+
+export const getNetworkStats = async (): Promise<NetworkStats> => {
+  const response = await apiRequest<unknown>("/api/users/stats/network", {
+    method: "GET",
+  });
+
+  return networkStatsSchema.parse(response);
 };
