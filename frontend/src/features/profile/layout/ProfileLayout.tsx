@@ -6,9 +6,19 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { ProfileHero } from "@/features/profile/components/ProfileHero";
 import { ProfileSidebar } from "@/features/profile/components/ProfileSidebar";
 import { ProfileStatsGrid } from "@/features/profile/components/ProfileStatsGrid";
-import { ProfileTabs, type ProfileTab } from "@/features/profile/components/ProfileTabs";
-import { useUserFilms, useUserProfile } from "@/features/profile/hooks/useProfile";
-import { useFollowState, useFollowUser, useUnfollowUser } from "@/features/social/hooks/useSocial";
+import {
+  ProfileTabs,
+  type ProfileTab,
+} from "@/features/profile/components/ProfileTabs";
+import {
+  useUserFilms,
+  useUserProfile,
+} from "@/features/profile/hooks/useProfile";
+import {
+  useFollowState,
+  useFollowUser,
+  useUnfollowUser,
+} from "@/features/social/hooks/useSocial";
 import {
   formatJoinedDate,
   getLatestWatchedDate,
@@ -31,9 +41,10 @@ export const ProfileLayout = ({
   const { user, isUserLoading } = useAuth();
   const profileQuery = useUserProfile(username);
   const userFilmsQuery = useUserFilms(username);
-  const [followError, setFollowError] = useState<
-    { username: string; message: string } | null
-  >(null);
+  const [followError, setFollowError] = useState<{
+    username: string;
+    message: string;
+  } | null>(null);
 
   const isViewerLoggedIn = Boolean(user);
   const isOwnProfileByRoute =
@@ -68,9 +79,11 @@ export const ProfileLayout = ({
 
   const profile = profileQuery.data;
   const isOwnProfile =
-    user !== null && user.username.toLowerCase() === profile.username.toLowerCase();
+    user !== null &&
+    user.username.toLowerCase() === profile.username.toLowerCase();
 
-  const isFollowActionPending = followMutation.isPending || unfollowMutation.isPending;
+  const isFollowActionPending =
+    followMutation.isPending || unfollowMutation.isPending;
   const isFollowing = followStateQuery.data?.isFollowing ?? false;
 
   const handleToggleFollow = async () => {
@@ -84,14 +97,12 @@ export const ProfileLayout = ({
 
       await followMutation.mutateAsync();
     } catch (error) {
-      setFollowError(
-        {
-          username: profile.username,
-          message: isApiError(error)
-            ? error.message
-            : "Could not update follow status right now.",
-        },
-      );
+      setFollowError({
+        username: profile.username,
+        message: isApiError(error)
+          ? error.message
+          : "Could not update follow status right now.",
+      });
     }
   };
 
@@ -149,11 +160,9 @@ export const ProfileLayout = ({
     lastActiveLabel = getRelativeTime(latestWatchedDate);
   }
 
-  const diaryEntries = profile.stats?.entryCount ?? 0;
   const followerCount = profile.stats?.followerCount ?? 0;
   const followingCount = profile.stats?.followingCount ?? 0;
   const reviewCount = profile.stats?.reviewCount ?? 0;
-  const filmCount = profile.stats?.filmCount ?? diaryEntries;
   const listCount = profile.stats?.listCount ?? 0;
 
   return (
@@ -172,11 +181,9 @@ export const ProfileLayout = ({
 
       <div className="mx-auto w-full max-w-6xl px-4 pb-8">
         <ProfileStatsGrid
-          diaryEntries={diaryEntries}
           followers={followerCount}
           following={followingCount}
           reviews={reviewCount}
-          filmsLogged={filmCount}
           lists={listCount}
         />
 

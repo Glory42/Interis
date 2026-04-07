@@ -17,7 +17,9 @@ export const ProfileHero = ({
   actionError,
 }: ProfileHeroProps) => {
   const displayName = getProfileDisplayName(profile);
-  const [failedBackdropUrl, setFailedBackdropUrl] = useState<string | null>(null);
+  const [failedBackdropUrl, setFailedBackdropUrl] = useState<string | null>(
+    null,
+  );
   const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
 
   const avatarInitial = useMemo(() => {
@@ -25,11 +27,14 @@ export const ProfileHero = ({
   }, [profile.username]);
 
   const rawAvatarUrl = profile.avatarUrl ?? profile.image ?? null;
-  const avatarUrl = rawAvatarUrl && rawAvatarUrl !== failedAvatarUrl ? rawAvatarUrl : null;
+  const avatarUrl =
+    rawAvatarUrl && rawAvatarUrl !== failedAvatarUrl ? rawAvatarUrl : null;
 
   const rawBackdropUrl = profile.backdropUrl ?? null;
   const backdropUrl =
-    rawBackdropUrl && rawBackdropUrl !== failedBackdropUrl ? rawBackdropUrl : null;
+    rawBackdropUrl && rawBackdropUrl !== failedBackdropUrl
+      ? rawBackdropUrl
+      : null;
 
   return (
     <>
@@ -51,7 +56,7 @@ export const ProfileHero = ({
         )}
         <div className="theme-hero-gradient-layer absolute inset-0" />
         <div className="theme-hero-pattern-layer absolute inset-0" />
-        <div className="theme-hero-readable-overlay absolute inset-0 bg-gradient-to-b from-transparent via-background/40 to-background" />
+        <div className="theme-hero-readable-overlay absolute inset-0 bg-linear-to-b from-transparent via-background/40 to-background" />
       </div>
 
       <div className="mx-auto w-full max-w-6xl px-4 py-8">
@@ -86,7 +91,9 @@ export const ProfileHero = ({
               {headerAction ? <div>{headerAction}</div> : null}
             </div>
 
-            <p className="mb-4 font-mono text-sm text-muted-foreground">@{profile.username}</p>
+            <p className="mb-4 font-mono text-sm text-muted-foreground">
+              @{profile.username}
+            </p>
 
             {actionError ? (
               <p className="mb-4  border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">

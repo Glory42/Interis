@@ -30,21 +30,28 @@ export const ProfileRecentActivitySection = ({
               className="grid grid-cols-[auto_1fr_auto] items-center gap-2  border border-border/50 bg-card/20 px-3 py-2.5 transition-colors hover:border-border/70 hover:bg-card/35"
               viewTransition
             >
-              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center  border border-primary/25 bg-primary/10">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center  border border-primary/25 bg-primary/10">
                 <Zap className="h-3 w-3 text-primary" aria-hidden="true" />
               </div>
 
               <div className="min-w-0 flex-1">
                 <p className="text-[13px] leading-tight text-foreground/85">
-                  <span className="font-semibold text-foreground">{item.actionLabel}</span>{" "}
-                  <span className="font-semibold text-primary">{item.movieTitle}</span>
+                  <span className="font-semibold text-foreground">
+                    {item.actionLabel}
+                  </span>{" "}
+                  <span className="font-semibold text-primary">
+                    {item.movieTitle}
+                  </span>
                   {item.ratingLabel ? (
-                    <span className="text-muted-foreground"> · {item.ratingLabel}</span>
+                    <span className="text-muted-foreground">
+                      {" "}
+                      · {item.ratingLabel}
+                    </span>
                   ) : null}
                 </p>
               </div>
 
-              <span className="flex-shrink-0 text-[11px] text-muted-foreground/80">
+              <span className="shrink-0 text-[11px] text-muted-foreground/80">
                 {getRelativeTime(item.createdAt)}
               </span>
             </Link>

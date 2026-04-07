@@ -63,7 +63,7 @@ const invalidateCurrentUserProfile = async (
 export const useUserProfile = (username: string) =>
   useQuery({
     queryKey: profileKeys.detail(username),
-    queryFn: () => getUserProfile(username),
+    queryFn: ({ signal }) => getUserProfile(username, { signal }),
     enabled: username.trim().length > 0,
   });
 
@@ -77,42 +77,42 @@ export const useUserSearch = (query: string, limit = 8) =>
 export const useUserDiary = (username: string) =>
   useQuery({
     queryKey: profileKeys.diary(username),
-    queryFn: () => getUserDiary(username),
+    queryFn: ({ signal }) => getUserDiary(username, { signal }),
     enabled: username.trim().length > 0,
   });
 
 export const useUserFilms = (username: string) =>
   useQuery({
     queryKey: profileKeys.films(username),
-    queryFn: () => getUserFilms(username),
+    queryFn: ({ signal }) => getUserFilms(username, { signal }),
     enabled: username.trim().length > 0,
   });
 
 export const useUserLikedFilms = (username: string) =>
   useQuery({
     queryKey: profileKeys.likes(username),
-    queryFn: () => getUserLikedFilms(username),
+    queryFn: ({ signal }) => getUserLikedFilms(username, { signal }),
     enabled: username.trim().length > 0,
   });
 
 export const useUserWatchlist = (username: string) =>
   useQuery({
     queryKey: profileKeys.watchlist(username),
-    queryFn: () => getUserWatchlist(username),
+    queryFn: ({ signal }) => getUserWatchlist(username, { signal }),
     enabled: username.trim().length > 0,
   });
 
 export const useUserReviews = (username: string) =>
   useQuery({
     queryKey: profileKeys.reviews(username),
-    queryFn: () => getUserReviews(username),
+    queryFn: ({ signal }) => getUserReviews(username, { signal }),
     enabled: username.trim().length > 0,
   });
 
 export const useUserTop4Movies = (username: string) =>
   useQuery({
     queryKey: profileKeys.top4(username),
-    queryFn: () => getUserTop4Movies(username),
+    queryFn: ({ signal }) => getUserTop4Movies(username, { signal }),
     enabled: username.trim().length > 0,
   });
 
@@ -121,7 +121,7 @@ export const useUserContributions = (username: string, days?: number) => {
 
   return useQuery({
     queryKey: profileKeys.contributions(username, rangeKey),
-    queryFn: () => getUserContributions(username, days),
+    queryFn: ({ signal }) => getUserContributions(username, days, { signal }),
     enabled: username.trim().length > 0,
   });
 };
@@ -129,7 +129,7 @@ export const useUserContributions = (username: string, days?: number) => {
 export const useMyProfile = () =>
   useQuery({
     queryKey: profileKeys.me,
-    queryFn: getMyProfile,
+    queryFn: ({ signal }) => getMyProfile({ signal }),
   });
 
 export const useUpdateMyProfile = () => {

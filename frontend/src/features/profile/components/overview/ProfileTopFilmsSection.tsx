@@ -19,12 +19,14 @@ type ProfileTopFilmsSectionProps = {
 
 const PlaceholderTopFilmCard = ({ slotNumber }: { slotNumber: number }) => (
   <div>
-    <div className="relative mb-1.5 aspect-[2/3] overflow-hidden  border border-dashed border-border/70 bg-card/25">
+    <div className="relative mb-1.5 aspect-2/3 overflow-hidden  border border-dashed border-border/70 bg-card/25">
       <div className="absolute inset-0 flex items-center justify-center text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
         Empty slot {slotNumber}
       </div>
     </div>
-    <p className="truncate text-[11px] font-semibold text-foreground/95">No film selected</p>
+    <p className="truncate text-[11px] font-semibold text-foreground/95">
+      No film selected
+    </p>
     <p className="text-[10px] text-muted-foreground/85">Add from settings</p>
   </div>
 );
@@ -48,7 +50,12 @@ export const ProfileTopFilmsSection = ({
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {slots.map((movie, index) => {
           if (!movie) {
-            return <PlaceholderTopFilmCard key={`top-film-slot-${index + 1}`} slotNumber={index + 1} />;
+            return (
+              <PlaceholderTopFilmCard
+                key={`top-film-slot-${index + 1}`}
+                slotNumber={index + 1}
+              />
+            );
           }
 
           const rating = ratingByTmdbId.get(movie.tmdbId) ?? null;
@@ -61,7 +68,7 @@ export const ProfileTopFilmsSection = ({
               className="group block cursor-pointer"
               viewTransition
             >
-              <div className="relative mb-1.5 aspect-[2/3] overflow-hidden  bg-card/80">
+              <div className="relative mb-1.5 aspect-2/3 overflow-hidden  bg-card/80">
                 <img
                   alt={movie.title}
                   className="h-full w-full object-cover opacity-90 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
@@ -69,7 +76,7 @@ export const ProfileTopFilmsSection = ({
                   loading="lazy"
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/10 to-transparent opacity-0 transition-all duration-300 group-hover:opacity-100" />
+                <div className="absolute inset-0 bg-linear-to-t from-background/90 via-background/10 to-transparent opacity-0 transition-all duration-300 group-hover:opacity-100" />
 
                 <div className="absolute bottom-0 left-0 right-0 translate-y-2 p-2.5 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
                   {rating ? (
@@ -92,7 +99,9 @@ export const ProfileTopFilmsSection = ({
                       </span>
                     </div>
                   ) : (
-                    <p className="text-[10px] text-muted-foreground">No rating yet</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      No rating yet
+                    </p>
                   )}
                 </div>
               </div>

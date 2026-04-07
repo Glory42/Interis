@@ -1,9 +1,7 @@
 type ProfileStatsGridProps = {
-  diaryEntries: number;
   followers: number;
   following: number;
   reviews: number;
-  filmsLogged: number;
   lists: number;
 };
 
@@ -22,20 +20,16 @@ const ProfileStatCard = ({ value, label }: ProfileStatCardProps) => (
 );
 
 export const ProfileStatsGrid = ({
-  diaryEntries,
   followers,
   following,
   reviews,
-  filmsLogged,
   lists,
 }: ProfileStatsGridProps) => {
   return (
     <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-      <ProfileStatCard value={diaryEntries} label="Diary Entries" />
       <ProfileStatCard value={followers} label="Followers" />
       <ProfileStatCard value={following} label="Following" />
       <ProfileStatCard value={reviews} label="Reviews" />
-      <ProfileStatCard value={filmsLogged} label="Films Logged" />
       <ProfileStatCard value={lists} label="Lists" />
     </div>
   );

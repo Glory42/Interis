@@ -16,7 +16,9 @@ export const ProfileSidebar = ({
   lastActiveLabel,
   favoriteGenres,
 }: ProfileSidebarProps) => {
-  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">("idle");
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">(
+    "idle",
+  );
 
   const profileUrl = useMemo(() => {
     if (typeof window === "undefined") {
@@ -36,7 +38,10 @@ export const ProfileSidebar = ({
   };
 
   const shareProfile = async () => {
-    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+    if (
+      typeof navigator !== "undefined" &&
+      typeof navigator.share === "function"
+    ) {
       try {
         await navigator.share({
           title: `@${username} on NULL://LOG`,
@@ -77,7 +82,9 @@ export const ProfileSidebar = ({
             <p className="mb-1 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
               Last Active
             </p>
-            <p className="font-mono text-xs text-foreground">{lastActiveLabel}</p>
+            <p className="font-mono text-xs text-foreground">
+              {lastActiveLabel}
+            </p>
           </div>
         </div>
       </section>
@@ -92,14 +99,16 @@ export const ProfileSidebar = ({
             {favoriteGenres.map((genre) => (
               <span
                 key={genre}
-                className="border border-primary/25 bg-primary/10 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.1em] text-primary"
+                className="border border-primary/25 bg-primary/10 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-primary"
               >
                 {genre}
               </span>
             ))}
           </div>
         ) : (
-          <p className="font-mono text-xs text-muted-foreground">No favorite genres selected yet.</p>
+          <p className="font-mono text-xs text-muted-foreground">
+            No favorite genres selected yet.
+          </p>
         )}
       </section>
 

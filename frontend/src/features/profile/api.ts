@@ -124,6 +124,10 @@ type QueryRequestOptions = {
   signal?: AbortSignal;
 };
 
+const encodePathSegment = (value: string): string => {
+  return encodeURIComponent(value);
+};
+
 export type UserReview = z.infer<typeof userReviewSchema>;
 export type UserFilm = z.infer<typeof userFilmSchema>;
 export type UserInteractionMovie = z.infer<typeof userInteractionMovieSchema>;
@@ -133,66 +137,109 @@ export type UserContributionDay = z.infer<typeof userContributionDaySchema>;
 export type UserContributionCalendar = z.infer<typeof userContributionCalendarSchema>;
 export type UserSearchResult = z.infer<typeof userSearchResultSchema>;
 
-export const getUserProfile = async (username: string): Promise<PublicProfile> => {
-  const response = await apiRequest<unknown>(`/api/users/${username}`, {
-    method: "GET",
-  });
+export const getUserProfile = async (
+  username: string,
+  options: QueryRequestOptions = {},
+): Promise<PublicProfile> => {
+  const response = await apiRequest<unknown>(
+    `/api/users/${encodePathSegment(username)}`,
+    {
+      method: "GET",
+      signal: options.signal,
+    },
+  );
 
   return publicProfileSchema.parse(response);
 };
 
-export const getUserDiary = async (username: string): Promise<DiaryEntry[]> => {
-  const response = await apiRequest<unknown>(`/api/users/${username}/diary`, {
-    method: "GET",
-  });
+export const getUserDiary = async (
+  username: string,
+  options: QueryRequestOptions = {},
+): Promise<DiaryEntry[]> => {
+  const response = await apiRequest<unknown>(
+    `/api/users/${encodePathSegment(username)}/diary`,
+    {
+      method: "GET",
+      signal: options.signal,
+    },
+  );
 
   return profileDiaryResponseSchema.parse(response);
 };
 
-export const getUserReviews = async (username: string): Promise<UserReview[]> => {
-  const response = await apiRequest<unknown>(`/api/users/${username}/reviews`, {
-    method: "GET",
-  });
+export const getUserReviews = async (
+  username: string,
+  options: QueryRequestOptions = {},
+): Promise<UserReview[]> => {
+  const response = await apiRequest<unknown>(
+    `/api/users/${encodePathSegment(username)}/reviews`,
+    {
+      method: "GET",
+      signal: options.signal,
+    },
+  );
 
   return userReviewListSchema.parse(response);
 };
 
-export const getUserFilms = async (username: string): Promise<UserFilm[]> => {
-  const response = await apiRequest<unknown>(`/api/users/${username}/cinema`, {
-    method: "GET",
-  });
+export const getUserFilms = async (
+  username: string,
+  options: QueryRequestOptions = {},
+): Promise<UserFilm[]> => {
+  const response = await apiRequest<unknown>(
+    `/api/users/${encodePathSegment(username)}/cinema`,
+    {
+      method: "GET",
+      signal: options.signal,
+    },
+  );
 
   return userFilmListSchema.parse(response);
 };
 
 export const getUserLikedFilms = async (
   username: string,
+  options: QueryRequestOptions = {},
 ): Promise<UserInteractionMovie[]> => {
-  const response = await apiRequest<unknown>(`/api/users/${username}/likes`, {
-    method: "GET",
-  });
+  const response = await apiRequest<unknown>(
+    `/api/users/${encodePathSegment(username)}/likes`,
+    {
+      method: "GET",
+      signal: options.signal,
+    },
+  );
 
   return userInteractionMovieListSchema.parse(response);
 };
 
 export const getUserWatchlist = async (
   username: string,
+  options: QueryRequestOptions = {},
 ): Promise<UserInteractionMovie[]> => {
-  const response = await apiRequest<unknown>(`/api/users/${username}/watchlist`, {
-    method: "GET",
-  });
+  const response = await apiRequest<unknown>(
+    `/api/users/${encodePathSegment(username)}/watchlist`,
+    {
+      method: "GET",
+      signal: options.signal,
+    },
+  );
 
   return userInteractionMovieListSchema.parse(response);
 };
 
 export const getUserTop4Movies = async (
   username: string,
+  options: QueryRequestOptions = {},
 ): Promise<UserTopMovie[]> => {
   try {
-    const response = await apiRequest<unknown>(`/api/public/${username}/top4`, {
-      method: "GET",
-      cache: "no-store",
-    });
+    const response = await apiRequest<unknown>(
+      `/api/public/${encodePathSegment(username)}/top4`,
+      {
+        method: "GET",
+        cache: "no-store",
+        signal: options.signal,
+      },
+    );
 
     return userTopMovieListSchema.parse(response);
   } catch (error) {
@@ -207,21 +254,24 @@ export const getUserTop4Movies = async (
 export const getUserContributions = async (
   username: string,
   days?: number,
+  options: QueryRequestOptions = {},
 ): Promise<UserContributionCalendar> => {
   const normalizedDays =
     typeof days === "number"
       ? Math.max(1, Math.min(730, Math.floor(days)))
       : null;
+  const encodedUsername = encodePathSegment(username);
   const path =
     normalizedDays === null
-      ? `/api/public/${username}/contributions`
-      : `/api/public/${username}/contributions?days=${normalizedDays}`;
+      ? `/api/public/${encodedUsername}/contributions`
+      : `/api/public/${encodedUsername}/contributions?days=${normalizedDays}`;
 
   const response = await apiRequest<unknown>(
     path,
     {
       method: "GET",
       cache: "no-store",
+      signal: options.signal,
     },
   );
 
@@ -243,7 +293,10 @@ export const searchUsers = async (
   });
 
   if (typeof input.limit === "number" && Number.isFinite(input.limit)) {
-    searchParams.set("limit", String(Math.max(1, Math.min(20, Math.floor(input.limit)))));
+    searchParams.set(
+      "limit",
+      String(Math.max(1, Math.min(20, Math.floor(input.limit)))),
+    );
   }
 
   const response = await apiRequest<unknown>(`/api/users?${searchParams.toString()}`, {
@@ -254,9 +307,12 @@ export const searchUsers = async (
   return userSearchResultListSchema.parse(response);
 };
 
-export const getMyProfile = async (): Promise<MeProfile> => {
+export const getMyProfile = async (
+  options: QueryRequestOptions = {},
+): Promise<MeProfile> => {
   const response = await apiRequest<unknown>("/api/users/me", {
     method: "GET",
+    signal: options.signal,
   });
 
   return meProfileSchema.parse(response);
