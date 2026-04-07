@@ -27,7 +27,7 @@ export const DiaryEntryItem = ({ entry }: DiaryEntryProps) => {
         <img
           src={getPosterUrl(entry.moviePosterPath)}
           alt={`${entry.movieTitle} poster`}
-          className="h-[126px] w-[84px]  border border-border/70 object-cover"
+          className="h-31.5 w-21  border border-border/70 object-cover"
           loading="lazy"
         />
 
