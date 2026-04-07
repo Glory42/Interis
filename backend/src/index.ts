@@ -10,6 +10,7 @@ import { auth } from "./infrastructure/auth/auth";
 import { logger } from "./commons/utils/logger";
 import moviesRouter from "./modules/movies/movies.routes";
 import serialsRouter from "./modules/serials/serials.routes";
+import peopleRouter from "./modules/people/people.routes";
 import diaryRouter from "./modules/diary/diary.routes";
 import usersRouter from "./modules/users/users.routes";
 import reviewsRouter from "./modules/reviews/reviews.routes";
@@ -53,6 +54,7 @@ export const createApp = () => {
 
   app.use("/api/movies", moviesRouter);
   app.use("/api/serials", serialsRouter);
+  app.use("/api/people", peopleRouter);
   app.use("/api/diary", diaryRouter);
   app.use("/api/users", usersRouter);
   app.use("/api/reviews", reviewsRouter);

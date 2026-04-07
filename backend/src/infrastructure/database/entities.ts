@@ -5,6 +5,7 @@ export * from "./auth.entity";
 // movies/serials → diary/reviews/interactions/lists → social/users
 export * from "../../modules/movies/movies.entity";
 export * from "../../modules/serials/serials.entity";
+export * from "../../modules/people/people.entity";
 export * from "../../modules/users/users.entity";
 export * from "../../modules/diary/diary.entity";
 export * from "../../modules/reviews/reviews.entity";
