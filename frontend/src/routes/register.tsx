@@ -1,14 +1,11 @@
-import { Link, createFileRoute, redirect } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { RegisterForm } from "@/features/auth/components/RegisterForm";
-import { authQueryOptions } from "@/features/auth/hooks/useAuth";
+import { requireGuestUser } from "@/lib/router/auth-guards";
 
 export const Route = createFileRoute("/register")({
   beforeLoad: async ({ context }) => {
-    const user = await context.queryClient.ensureQueryData(authQueryOptions);
-    if (user) {
-      throw redirect({ to: "/cinema" });
-    }
+    await requireGuestUser(context.queryClient);
   },
   component: RegisterPage,
 });

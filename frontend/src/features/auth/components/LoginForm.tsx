@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { isApiError } from "@/lib/api-client";
+import { normalizeInternalRedirectPath } from "@/lib/router/redirect";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
 type LoginFormProps = {
@@ -31,8 +32,9 @@ export const LoginForm = ({ redirectTo }: LoginFormProps) => {
     try {
       await login({ email, password });
 
-      if (redirectTo && redirectTo.startsWith("/")) {
-        window.location.assign(redirectTo);
+      const safeRedirectPath = normalizeInternalRedirectPath(redirectTo);
+      if (safeRedirectPath) {
+        window.location.assign(safeRedirectPath);
         return;
       }
 

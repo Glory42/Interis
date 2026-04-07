@@ -1,23 +1,21 @@
-import { Link, createFileRoute, redirect } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { LoginForm } from "@/features/auth/components/LoginForm";
-import { authQueryOptions } from "@/features/auth/hooks/useAuth";
+import { requireGuestUser } from "@/lib/router/auth-guards";
+import { normalizeInternalRedirectPath } from "@/lib/router/redirect";
 
 type LoginSearch = {
   redirect?: string;
 };
 
 const validateLoginSearch = (search: Record<string, unknown>): LoginSearch => ({
-  redirect: typeof search.redirect === "string" ? search.redirect : undefined,
+  redirect: normalizeInternalRedirectPath(search.redirect) ?? undefined,
 });
 
 export const Route = createFileRoute("/login")({
   validateSearch: validateLoginSearch,
   beforeLoad: async ({ context }) => {
-    const user = await context.queryClient.ensureQueryData(authQueryOptions);
-    if (user) {
-      throw redirect({ to: "/cinema" });
-    }
+    await requireGuestUser(context.queryClient);
   },
   component: LoginPage,
 });
