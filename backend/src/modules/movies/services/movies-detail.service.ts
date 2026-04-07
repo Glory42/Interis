@@ -1,6 +1,6 @@
 import {
+  getMovieCredits,
   getMovieDetails as tmdbGetDetails,
-  getMovieDirector,
 } from "../../../infrastructure/tmdb/cinemas";
 import {
   normalizeMovieGenres,
@@ -10,11 +10,21 @@ import {
 import { normalizeDetailReviewSort } from "../helpers/movies-query-normalizer.helper";
 import { MoviesRepository } from "../repositories/movies.repository";
 import { MoviesCacheService } from "./movies-cache.service";
+import { PeopleService } from "../../people/people.service";
 import type {
   MovieDetailRatingBreakdownBucket,
   MovieDetailResponse,
   MovieDetailReviewItem,
 } from "../types/movies.types";
+
+const toNullableTrimmedText = (value: string | null | undefined): string | null => {
+  if (!value) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
 
 export class MoviesDetailService {
   static async getDetail(input: {
@@ -30,20 +40,64 @@ export class MoviesDetailService {
     const reviewsSort = normalizeDetailReviewSort(input.reviewsSort);
     const viewerUserId = input.viewerUserId ?? null;
 
-    const [tmdbDetail, logsCount, reviewRows, hydratedDirector] = await Promise.all([
+    const [tmdbDetail, tmdbCredits, logsCount, reviewRows] = await Promise.all([
       tmdbGetDetails(input.tmdbId).catch(() => null),
+      getMovieCredits(input.tmdbId).catch(() => null),
       MoviesRepository.getLogsCountByMovieId(movie.id),
       MoviesRepository.getReviewRowsByMovieId(movie.id),
-      movie.director
-        ? Promise.resolve(movie.director)
-        : getMovieDirector(input.tmdbId).catch(() => null),
     ]);
 
-    if (!movie.director && hydratedDirector) {
-      await MoviesRepository.updateDirectorByTmdbId(input.tmdbId, hydratedDirector).catch(
+    const directorCredits = (tmdbCredits?.crew ?? []).filter(
+      (crewMember) => crewMember.job === "Director",
+    );
+
+    const uniqueDirectorCredits = new Map<number, (typeof directorCredits)[number]>();
+    for (const directorCredit of directorCredits) {
+      if (!uniqueDirectorCredits.has(directorCredit.id)) {
+        uniqueDirectorCredits.set(directorCredit.id, directorCredit);
+      }
+    }
+
+    const resolvedDirectorName =
+      [...uniqueDirectorCredits.values()]
+        .map((directorCredit) => toNullableTrimmedText(directorCredit.name))
+        .find((directorName): directorName is string => Boolean(directorName)) ??
+      movie.director;
+
+    if (!movie.director && resolvedDirectorName) {
+      await MoviesRepository.updateDirectorByTmdbId(input.tmdbId, resolvedDirectorName).catch(
         () => undefined,
       );
     }
+
+    const directors = await PeopleService.ensurePersonLinks(
+      [...uniqueDirectorCredits.values()].map((directorCredit) => ({
+        tmdbPersonId: directorCredit.id,
+        name: directorCredit.name,
+        profilePath: directorCredit.profile_path,
+        knownForDepartment: directorCredit.known_for_department,
+        popularity: directorCredit.popularity,
+        routeRole: "director" as const,
+        job: directorCredit.job,
+        department: directorCredit.department,
+      })),
+    );
+
+    const cast = await PeopleService.ensurePersonLinks(
+      [...(tmdbCredits?.cast ?? [])]
+        .sort((leftMember, rightMember) => leftMember.order - rightMember.order)
+        .slice(0, 20)
+        .map((castMember) => ({
+          tmdbPersonId: castMember.id,
+          name: castMember.name,
+          profilePath: castMember.profile_path,
+          knownForDepartment: castMember.known_for_department,
+          popularity: castMember.popularity,
+          routeRole: "actor" as const,
+          character: castMember.character,
+          department: castMember.known_for_department,
+        })),
+    );
 
     const reviewIds = reviewRows.map((reviewRow) => reviewRow.id);
 
@@ -175,7 +229,9 @@ export class MoviesDetailService {
         backdropPath: movie.backdropPath,
         releaseDate: movie.releaseDate,
         releaseYear: movie.releaseYear,
-        director: hydratedDirector ?? movie.director,
+        director: resolvedDirectorName,
+        directors,
+        cast,
         runtime: movie.runtime,
         overview: movie.overview,
         tagline: movie.tagline,

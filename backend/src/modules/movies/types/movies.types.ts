@@ -3,6 +3,7 @@ import type {
   CinemaArchiveSort,
   MovieDetailReviewSort,
 } from "../dto/movies.dto";
+import type { PersonLinkItem } from "../../people/types/people.types";
 
 export type ArchiveGenre = {
   id: number;
@@ -121,6 +122,8 @@ export type MovieDetailResponse = {
     releaseDate: string | null;
     releaseYear: number | null;
     director: string | null;
+    directors: PersonLinkItem[];
+    cast: PersonLinkItem[];
     runtime: number | null;
     overview: string | null;
     tagline: string | null;
