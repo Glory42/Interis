@@ -102,6 +102,10 @@ export type PostCommentInput = {
 export type PostDetail = z.infer<typeof postDetailSchema>;
 export type PostComment = z.infer<typeof postCommentSchema>;
 
+const toPostBasePath = (postId: string): string => {
+  return `/api/posts/${encodeURIComponent(postId)}`;
+};
+
 export const createPost = async (payload: CreatePostInput) => {
   const normalizedPayload = createPostInputSchema.parse(payload);
 
@@ -116,7 +120,7 @@ export const createPost = async (payload: CreatePostInput) => {
 export const updatePost = async (postId: string, payload: UpdatePostInput) => {
   const normalizedPayload = updatePostInputSchema.parse(payload);
 
-  const response = await apiRequest<unknown, UpdatePostInput>(`/api/posts/${postId}`, {
+  const response = await apiRequest<unknown, UpdatePostInput>(toPostBasePath(postId), {
     method: "PUT",
     body: normalizedPayload,
   });
@@ -125,7 +129,7 @@ export const updatePost = async (postId: string, payload: UpdatePostInput) => {
 };
 
 export const getPostById = async (postId: string): Promise<PostDetail> => {
-  const response = await apiRequest<unknown>(`/api/posts/${postId}`, {
+  const response = await apiRequest<unknown>(toPostBasePath(postId), {
     method: "GET",
   });
 
@@ -133,7 +137,7 @@ export const getPostById = async (postId: string): Promise<PostDetail> => {
 };
 
 export const getPostComments = async (postId: string): Promise<PostComment[]> => {
-  const response = await apiRequest<unknown>(`/api/posts/${postId}/comments`, {
+  const response = await apiRequest<unknown>(`${toPostBasePath(postId)}/comments`, {
     method: "GET",
   });
 
@@ -152,7 +156,7 @@ export const addPostComment = async (
   const normalizedPayload = postCommentInputSchema.parse(payload);
 
   const response = await apiRequest<unknown, PostCommentInput>(
-    `/api/posts/${postId}/comments`,
+    `${toPostBasePath(postId)}/comments`,
     {
       method: "POST",
       body: normalizedPayload,
@@ -163,7 +167,7 @@ export const addPostComment = async (
 };
 
 export const likePost = async (postId: string) => {
-  const response = await apiRequest<unknown>(`/api/posts/${postId}/like`, {
+  const response = await apiRequest<unknown>(`${toPostBasePath(postId)}/like`, {
     method: "POST",
   });
 
@@ -171,7 +175,7 @@ export const likePost = async (postId: string) => {
 };
 
 export const unlikePost = async (postId: string) => {
-  const response = await apiRequest<unknown>(`/api/posts/${postId}/like`, {
+  const response = await apiRequest<unknown>(`${toPostBasePath(postId)}/like`, {
     method: "DELETE",
   });
 
