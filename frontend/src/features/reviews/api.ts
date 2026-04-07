@@ -100,20 +100,27 @@ export type ReviewDetail = z.infer<typeof reviewDetailSchema>;
 
 type AddReviewCommentInput = z.infer<typeof addReviewCommentInputSchema>;
 type UpdateReviewInput = z.infer<typeof updateReviewInputSchema>;
+type QueryRequestOptions = {
+  signal?: AbortSignal;
+};
 
 export type UpdatedReview = z.infer<typeof updatedReviewSchema>;
 
-const toReviewBasePath = (reviewId: string): string => `/api/reviews/${reviewId}`;
+const toReviewBasePath = (reviewId: string): string => {
+  return `/api/reviews/${encodeURIComponent(reviewId)}`;
+};
 
 export const getProfileReviewDetail = async (
   username: string,
   reviewId: string,
+  options: QueryRequestOptions = {},
 ): Promise<ReviewDetail> => {
   const response = await apiRequest<unknown>(
     `/api/users/${encodeURIComponent(username)}/reviews/${encodeURIComponent(reviewId)}`,
     {
       method: "GET",
       cache: "no-store",
+      signal: options.signal,
     },
   );
 
@@ -122,7 +129,6 @@ export const getProfileReviewDetail = async (
 
 export const getReviewComments = async (
   reviewId: string,
-  _mediaType: ReviewMediaType,
 ): Promise<ReviewComment[]> => {
   const response = await apiRequest<unknown>(`${toReviewBasePath(reviewId)}/comments`, {
     method: "GET",
@@ -133,7 +139,6 @@ export const getReviewComments = async (
 
 export const addReviewComment = async (
   reviewId: string,
-  _mediaType: ReviewMediaType,
   input: AddReviewCommentInput,
 ): Promise<ReviewComment> => {
   const payload = addReviewCommentInputSchema.parse(input);
@@ -149,7 +154,7 @@ export const addReviewComment = async (
   return reviewCommentSchema.parse(response);
 };
 
-export const likeReview = async (reviewId: string, _mediaType: ReviewMediaType) => {
+export const likeReview = async (reviewId: string) => {
   const response = await apiRequest<unknown>(`${toReviewBasePath(reviewId)}/like`, {
     method: "POST",
   });
@@ -157,7 +162,7 @@ export const likeReview = async (reviewId: string, _mediaType: ReviewMediaType) 
   return likeReviewResponseSchema.parse(response);
 };
 
-export const unlikeReview = async (reviewId: string, _mediaType: ReviewMediaType) => {
+export const unlikeReview = async (reviewId: string) => {
   const response = await apiRequest<unknown>(`${toReviewBasePath(reviewId)}/like`, {
     method: "DELETE",
   });

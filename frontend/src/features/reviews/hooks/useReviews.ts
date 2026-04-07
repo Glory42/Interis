@@ -43,7 +43,7 @@ const updateReviewInFeedCaches = (
 export const useReviewDetail = (username: string, reviewId: string, enabled = true) => {
   return useQuery({
     queryKey: reviewKeys.detail(username, reviewId),
-    queryFn: () => getProfileReviewDetail(username, reviewId),
+    queryFn: ({ signal }) => getProfileReviewDetail(username, reviewId, { signal }),
     enabled,
   });
 };
@@ -55,7 +55,7 @@ export const useReviewComments = (
 ) => {
   return useQuery({
     queryKey: reviewKeys.comments(mediaType, reviewId),
-    queryFn: () => getReviewComments(reviewId, mediaType),
+    queryFn: () => getReviewComments(reviewId),
     enabled,
   });
 };
@@ -70,7 +70,11 @@ const updateReviewDetailCache = (
       queryKey: ["reviews", "detail"],
       exact: false,
       predicate: (query) => {
-        const [scope, kind, _username, candidateReviewId] = query.queryKey;
+        const [scope, kind, candidateReviewId] = [
+          query.queryKey[0],
+          query.queryKey[1],
+          query.queryKey[3],
+        ];
         return scope === "reviews" && kind === "detail" && candidateReviewId === reviewId;
       },
     },
@@ -88,7 +92,7 @@ export const useAddReviewComment = (reviewId: string, mediaType: ReviewMediaType
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: { content: string }) => addReviewComment(reviewId, mediaType, input),
+    mutationFn: (input: { content: string }) => addReviewComment(reviewId, input),
     onSuccess: async (createdComment) => {
       queryClient.setQueryData<ReviewComment[]>(
         reviewKeys.comments(mediaType, reviewId),
@@ -133,11 +137,11 @@ export const useAddReviewComment = (reviewId: string, mediaType: ReviewMediaType
   });
 };
 
-export const useLikeReview = (reviewId: string, mediaType: ReviewMediaType) => {
+export const useLikeReview = (reviewId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => likeReview(reviewId, mediaType),
+    mutationFn: () => likeReview(reviewId),
     onSuccess: async (result) => {
       updateReviewInFeedCaches(queryClient, reviewId, (item) => {
         const alreadyLikedInCard = item.engagement.viewerHasLiked === true;
@@ -176,11 +180,11 @@ export const useLikeReview = (reviewId: string, mediaType: ReviewMediaType) => {
   });
 };
 
-export const useUnlikeReview = (reviewId: string, mediaType: ReviewMediaType) => {
+export const useUnlikeReview = (reviewId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => unlikeReview(reviewId, mediaType),
+    mutationFn: () => unlikeReview(reviewId),
     onSuccess: async () => {
       updateReviewInFeedCaches(queryClient, reviewId, (item) => {
         const wasLikedInCard = item.engagement.viewerHasLiked === true;
@@ -217,7 +221,7 @@ export const useUnlikeReview = (reviewId: string, mediaType: ReviewMediaType) =>
   });
 };
 
-export const useUpdateReview = (reviewId: string, _mediaType: ReviewMediaType) => {
+export const useUpdateReview = (reviewId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
