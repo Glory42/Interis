@@ -216,15 +216,17 @@ export const PostActivityCard = ({ item }: PostActivityCardProps) => {
         </div>
       </article>
 
-      <PostActivityDialog
-        item={item}
-        isOpen={isDialogOpen}
-        mode={dialogMode}
-        onClose={() => {
-          setIsDialogOpen(false);
-          setDialogMode("view");
-        }}
-      />
+      {isDialogOpen ? (
+        <PostActivityDialog
+          item={item}
+          isOpen={isDialogOpen}
+          mode={dialogMode}
+          onClose={() => {
+            setIsDialogOpen(false);
+            setDialogMode("view");
+          }}
+        />
+      ) : null}
     </>
   );
 };

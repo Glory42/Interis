@@ -17,27 +17,27 @@ export const feedKeys = {
 export const useFollowingFeed = (enabled = true) =>
   useQuery({
     queryKey: feedKeys.following,
-    queryFn: () => getFollowingFeed(20),
+    queryFn: ({ signal }) => getFollowingFeed(20, { signal }),
     enabled,
   });
 
 export const useTrendingNow = () =>
   useQuery({
     queryKey: feedKeys.trending,
-    queryFn: getTrendingMovies,
+    queryFn: ({ signal }) => getTrendingMovies({ signal }),
     staleTime: 300_000,
   });
 
 export const useMyFeedSummary = (enabled = true) =>
   useQuery({
     queryKey: feedKeys.meSummary,
-    queryFn: getMyFeedSummary,
+    queryFn: ({ signal }) => getMyFeedSummary({ signal }),
     enabled,
   });
 
 export const useNetworkStats = () =>
   useQuery({
     queryKey: feedKeys.networkStats,
-    queryFn: getNetworkStats,
+    queryFn: ({ signal }) => getNetworkStats({ signal }),
     staleTime: 300_000,
   });

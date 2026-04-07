@@ -17,7 +17,6 @@ import {
   getRoundedStars,
 } from "@/features/feed/components/feed-row.utils";
 import type { FeedItem } from "@/features/feed/types";
-import type { ReviewMediaType } from "@/features/reviews/api";
 import { cn } from "@/lib/utils";
 import { useReviewActivityCard } from "./review-activity-card/useReviewActivityCard";
 
@@ -54,8 +53,6 @@ export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
     ratingOutOfFive ? Number.parseFloat(ratingOutOfFive) : null,
   );
   const reviewId = item.review?.id ?? item.metadata.reviewId ?? null;
-  const reviewMediaType =
-    (movie?.mediaType ?? item.metadata.mediaType ?? "movie") as ReviewMediaType;
   const isOwnReview = Boolean(user && reviewId && user.id === item.actor.id);
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -210,14 +207,13 @@ export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
         </div>
       </article>
 
-      {reviewId ? (
+      {isEditDialogOpen && reviewId ? (
         <FeedReviewEditDialog
           isOpen={isEditDialogOpen}
           onClose={() => {
             setIsEditDialogOpen(false);
           }}
           reviewId={reviewId}
-          mediaType={reviewMediaType}
           initialContent={reviewContent}
           containsSpoilers={reviewContainsSpoilers}
         />

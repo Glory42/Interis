@@ -95,7 +95,7 @@ export const QuickLogComposer = ({ user }: QuickLogComposerProps) => {
               }
             }}
             placeholder="log a thought..."
-            className="min-h-[4.5rem] resize-y border-border/70 bg-background/55 font-mono text-sm"
+            className="min-h-18 resize-y border-border/70 bg-background/55 font-mono text-sm"
           />
 
           <div className="flex items-center justify-between gap-2">

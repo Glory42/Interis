@@ -41,21 +41,17 @@ const buildTopLoggedThings = (items: FeedItem[]): LoggedThing[] => {
 
   return Array.from(counts.values())
     .sort((left, right) => right.count - left.count)
-    .slice(0, 5);
+    .slice(0, 6);
 };
 
 export const MyProfileSummaryRail = ({
-  user,
-  isLoading,
-  isError,
-  summary,
   feedItems,
 }: MyProfileSummaryRailProps) => {
   const topLoggedThings = buildTopLoggedThings(feedItems);
 
   return (
     <section className="border border-border/70 p-5">
-      <p className="mb-4 font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--module-serial)]">
+      <p className="mb-4 font-mono text-[9px] uppercase tracking-[0.16em] text-(--module-serial)">
         // TRENDING_AMONG_USERS
       </p>
 
@@ -63,7 +59,9 @@ export const MyProfileSummaryRail = ({
         <div className="space-y-3">
           {topLoggedThings.map((entry, index) => (
             <div key={entry.id} className="flex items-center gap-3">
-              <span className="w-4 font-mono text-[10px] text-muted-foreground">{index + 1}</span>
+              <span className="w-4 font-mono text-[10px] text-muted-foreground">
+                {index + 1}
+              </span>
               <span className="min-w-0 flex-1 truncate font-mono text-xs text-foreground/80">
                 {entry.title}
               </span>
@@ -78,7 +76,9 @@ export const MyProfileSummaryRail = ({
               >
                 {entry.module}
               </span>
-              <span className="font-mono text-[10px] text-muted-foreground">{entry.count}</span>
+              <span className="font-mono text-[10px] text-muted-foreground">
+                {entry.count}
+              </span>
             </div>
           ))}
         </div>
@@ -87,20 +87,6 @@ export const MyProfileSummaryRail = ({
           not enough logs yet to calculate trends.
         </p>
       )}
-
-      {topLoggedThings[0] ? (
-        <p className="mt-4 border-t border-border/60 pt-4 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-          MOST_LOGGED_THING: {topLoggedThings[0].title}
-        </p>
-      ) : null}
-
-      {user && !isLoading && !isError && summary ? (
-        <div className="mt-3 border-t border-border/60 pt-3">
-          <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-            @{summary.username} logs: {summary.counts.logs}
-          </p>
-        </div>
-      ) : null}
     </section>
   );
 };

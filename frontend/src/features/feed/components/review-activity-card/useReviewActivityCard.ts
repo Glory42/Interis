@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import type { FeedItem } from "@/features/feed/types";
-import type { ReviewMediaType } from "@/features/reviews/api";
 import { useLikeReview, useUnlikeReview } from "@/features/reviews/hooks/useReviews";
+import { navigateWithViewTransitionFallback } from "@/lib/view-transition";
 import { getRatingOutOfFive, getRoundedStarCount } from "./reviewActivityCard.utils";
 
 type ReviewActivityCardViewModel = {
@@ -38,12 +38,10 @@ export const useReviewActivityCard = (item: FeedItem): ReviewActivityCardViewMod
   const [isSpoilerRevealed, setIsSpoilerRevealed] = useState(false);
 
   const reviewId = item.review?.id ?? item.metadata.reviewId ?? "";
-  const reviewMediaType =
-    (item.movie?.mediaType ?? item.metadata.mediaType ?? "movie") as ReviewMediaType;
   const hasReviewId = reviewId.length > 0;
 
-  const likeReviewMutation = useLikeReview(reviewId, reviewMediaType);
-  const unlikeReviewMutation = useUnlikeReview(reviewId, reviewMediaType);
+  const likeReviewMutation = useLikeReview(reviewId);
+  const unlikeReviewMutation = useUnlikeReview(reviewId);
 
   const actorName = item.actor.displayUsername ?? item.actor.username;
   const actorAvatar = item.actor.avatarUrl ?? item.actor.image ?? null;
@@ -78,14 +76,25 @@ export const useReviewActivityCard = (item: FeedItem): ReviewActivityCardViewMod
       return;
     }
 
-    await navigate({
-      to: "/reviews/$username/$reviewId",
-      params: {
-        username: reviewOwnerUsername,
-        reviewId,
-      },
-      viewTransition: true,
-    });
+    await navigateWithViewTransitionFallback(
+      () =>
+        navigate({
+          to: "/reviews/$username/$reviewId",
+          params: {
+            username: reviewOwnerUsername,
+            reviewId,
+          },
+          viewTransition: true,
+        }),
+      () =>
+        navigate({
+          to: "/reviews/$username/$reviewId",
+          params: {
+            username: reviewOwnerUsername,
+            reviewId,
+          },
+        }),
+    );
   };
 
   const openReview = async () => {

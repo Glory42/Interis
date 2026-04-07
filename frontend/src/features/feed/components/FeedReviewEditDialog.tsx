@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
 import { Loader2, X } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import type { ReviewMediaType } from "@/features/reviews/api";
 import { useUpdateReview } from "@/features/reviews/hooks/useReviews";
 
 type FeedReviewEditDialogProps = {
   isOpen: boolean;
   onClose: () => void;
   reviewId: string;
-  mediaType: ReviewMediaType;
   initialContent: string;
   containsSpoilers: boolean;
 };
@@ -17,19 +15,12 @@ export const FeedReviewEditDialog = ({
   isOpen,
   onClose,
   reviewId,
-  mediaType,
   initialContent,
   containsSpoilers,
 }: FeedReviewEditDialogProps) => {
-  const updateReviewMutation = useUpdateReview(reviewId, mediaType);
+  const updateReviewMutation = useUpdateReview(reviewId);
 
   const [draftContent, setDraftContent] = useState(initialContent);
-
-  useEffect(() => {
-    if (isOpen) {
-      setDraftContent(initialContent);
-    }
-  }, [initialContent, isOpen]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -70,7 +61,7 @@ export const FeedReviewEditDialog = ({
   }
 
   return (
-    <div className="theme-modal-overlay fixed inset-0 z-[140] bg-background/70 backdrop-blur-sm">
+    <div className="theme-modal-overlay fixed inset-0 z-140 bg-background/70 backdrop-blur-sm">
       <button
         type="button"
         aria-label="Close review edit dialog"
@@ -103,7 +94,7 @@ export const FeedReviewEditDialog = ({
                   setDraftContent(event.target.value);
                 }
               }}
-              className="min-h-[8rem] border-border/75 bg-background/45 font-mono text-sm"
+              className="min-h-32 border-border/75 bg-background/45 font-mono text-sm"
             />
 
             <div className="flex items-center justify-between gap-2">
