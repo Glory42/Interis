@@ -67,7 +67,10 @@ export const CinemaActionsSidebar = ({
               className="flex h-8 w-8 items-center justify-center"
               style={{ background: CINEMA_MODULE_STYLES.panelStrong }}
             >
-              <Award className="h-4 w-4" style={{ color: CINEMA_MODULE_STYLES.accent }} />
+              <Award
+                className="h-4 w-4"
+                style={{ color: CINEMA_MODULE_STYLES.accent }}
+              />
             </div>
             <span
               className="font-mono text-[8px] uppercase tracking-[0.22em]"
@@ -114,8 +117,12 @@ export const CinemaActionsSidebar = ({
               }}
               onClick={onToggleWatchlist}
             >
-              <Plus className="h-3 w-3" />
-              <span>{watchlisted ? "Queued" : "Queue"}</span>
+              {watchlisted ? (
+                <Check className="h-3 w-3" />
+              ) : (
+                <Plus className="h-3 w-3" />
+              )}
+              <span>{watchlisted ? "watchlisted" : "watchlist"}</span>
             </button>
           ) : (
             <Link

@@ -50,7 +50,7 @@ export const TrendingNowRail = ({
       module: "SERIAL" as const,
       color: "var(--module-serial)",
     })),
-  ].slice(0, 5);
+  ].slice(0, 6);
 
   return (
     <section className="border border-border/70 p-5">
@@ -65,11 +65,15 @@ export const TrendingNowRail = ({
       ) : null}
 
       {isError ? (
-        <p className="font-mono text-[11px] text-destructive">could not load trends.</p>
+        <p className="font-mono text-[11px] text-destructive">
+          could not load trends.
+        </p>
       ) : null}
 
       {!isLoading && !isError && mergedEntries.length === 0 ? (
-        <p className="font-mono text-[11px] text-muted-foreground">no trending titles yet.</p>
+        <p className="font-mono text-[11px] text-muted-foreground">
+          no trending titles yet.
+        </p>
       ) : null}
 
       {!isLoading && !isError && mergedEntries.length > 0 ? (

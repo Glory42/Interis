@@ -40,10 +40,16 @@ export const PrimaryNavLinks = ({
         activeProps={{
           className: sharedActiveClassName,
         }}
-        activeOptions={item.exact ? { ...navLinkActiveOptions, exact: true } : navLinkActiveOptions}
+        activeOptions={
+          item.exact
+            ? { ...navLinkActiveOptions, exact: true }
+            : navLinkActiveOptions
+        }
         onClick={onNavigate}
       >
-        <Icon className={mobile ? "h-3.5 w-3.5 shrink-0" : "h-3 w-3 shrink-0"} />
+        <Icon
+          className={mobile ? "h-3.5 w-3.5 shrink-0" : "h-3 w-3 shrink-0"}
+        />
         <span>{item.label}</span>
       </Link>
     );

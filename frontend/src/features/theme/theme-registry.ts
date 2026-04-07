@@ -13,11 +13,7 @@ export type ThemeDefinition = {
 
 const DEFAULT_THEME_ID = "rose-pine";
 
-const SUPPORTED_THEME_IDS = [
-  "rose-pine",
-  "null-log",
-  "gruvbox",
-] as const;
+const SUPPORTED_THEME_IDS = ["rose-pine", "null-log", "gruvbox"] as const;
 
 const SUPPORTED_THEME_ID_SET = new Set<string>(SUPPORTED_THEME_IDS);
 
@@ -134,9 +130,9 @@ export const getDefaultThemeId = (): string => {
 
 export const listThemes = (): ThemeDefinition[] => {
   const registry = getThemeRegistry();
-  const supportedThemes = SUPPORTED_THEME_IDS
-    .map((themeId) => registry[themeId])
-    .filter((theme): theme is ThemeDefinition => Boolean(theme));
+  const supportedThemes = SUPPORTED_THEME_IDS.map(
+    (themeId) => registry[themeId],
+  ).filter((theme): theme is ThemeDefinition => Boolean(theme));
 
   return supportedThemes.length > 0 ? supportedThemes : [fallbackTheme];
 };

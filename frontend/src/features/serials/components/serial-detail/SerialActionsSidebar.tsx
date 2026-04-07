@@ -98,8 +98,12 @@ export const SerialActionsSidebar = ({
               }}
               onClick={onToggleWatchlist}
             >
-              <Plus className="h-3 w-3" />
-              <span>{watchlisted ? "Queued" : "Queue"}</span>
+              {watchlisted ? (
+                <Check className="h-3 w-3" />
+              ) : (
+                <Plus className="h-3 w-3" />
+              )}
+              <span>{watchlisted ? "watchlisted" : "watchlist"}</span>
             </button>
           ) : (
             <Link

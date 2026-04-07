@@ -35,7 +35,8 @@ export const FilmButtons = ({ tmdbId }: FilmButtonsProps) => {
 
   const liked = interactionQuery.data?.liked ?? false;
   const watchlisted = interactionQuery.data?.watchlisted ?? false;
-  const isLoading = interactionQuery.isPending || updateInteractionMutation.isPending;
+  const isLoading =
+    interactionQuery.isPending || updateInteractionMutation.isPending;
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -47,7 +48,11 @@ export const FilmButtons = ({ tmdbId }: FilmButtonsProps) => {
           void updateInteractionMutation.mutateAsync({ liked: !liked });
         }}
       >
-        {isLoading ? <Spinner className="h-3.5 w-3.5" /> : <Heart className="h-4 w-4" />}
+        {isLoading ? (
+          <Spinner className="h-3.5 w-3.5" />
+        ) : (
+          <Heart className="h-4 w-4" />
+        )}
         {liked ? "Liked" : "Like"}
       </Button>
 
@@ -56,7 +61,9 @@ export const FilmButtons = ({ tmdbId }: FilmButtonsProps) => {
         size="sm"
         disabled={isLoading}
         onClick={() => {
-          void updateInteractionMutation.mutateAsync({ watchlisted: !watchlisted });
+          void updateInteractionMutation.mutateAsync({
+            watchlisted: !watchlisted,
+          });
         }}
       >
         {isLoading ? (

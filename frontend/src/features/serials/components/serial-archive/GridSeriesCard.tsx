@@ -6,7 +6,6 @@ import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-archi
 import type { ArchiveRatingSource } from "@/features/serials/components/serial-archive/types";
 import {
   getCreatorYearLine,
-  getFirstAirYearLabel,
   getRatingOutOfFive,
   getRoundedStars,
 } from "@/features/serials/components/serial-archive/utils";
@@ -17,7 +16,10 @@ type GridSeriesCardProps = {
   ratingSource: ArchiveRatingSource;
 };
 
-export const GridSeriesCard = ({ series, ratingSource }: GridSeriesCardProps) => {
+export const GridSeriesCard = ({
+  series,
+  ratingSource,
+}: GridSeriesCardProps) => {
   const ratingOutOfFive = getRatingOutOfFive(series, ratingSource);
   const roundedStars = getRoundedStars(ratingOutOfFive);
 
@@ -51,7 +53,10 @@ export const GridSeriesCard = ({ series, ratingSource }: GridSeriesCardProps) =>
               className="flex h-8 w-8 items-center justify-center"
               style={{ background: SERIAL_MODULE_STYLES.panelStrong }}
             >
-              <Award className="h-4 w-4" style={{ color: SERIAL_MODULE_STYLES.accent }} />
+              <Award
+                className="h-4 w-4"
+                style={{ color: SERIAL_MODULE_STYLES.accent }}
+              />
             </div>
             <span
               className="font-mono text-[8px] uppercase tracking-[0.22em]"
@@ -61,19 +66,6 @@ export const GridSeriesCard = ({ series, ratingSource }: GridSeriesCardProps) =>
             </span>
           </div>
         )}
-
-        <div className="absolute left-2 top-2">
-          <span
-            className="border px-2 py-0.5 font-mono text-[9px]"
-            style={{
-              borderColor: SERIAL_MODULE_STYLES.borderSoft,
-              color: SERIAL_MODULE_STYLES.faint,
-              background: SERIAL_MODULE_STYLES.panel,
-            }}
-          >
-            {getFirstAirYearLabel(series)}
-          </span>
-        </div>
 
         {ratingOutOfFive !== null ? (
           <div className="absolute bottom-2 right-2">
@@ -107,7 +99,10 @@ export const GridSeriesCard = ({ series, ratingSource }: GridSeriesCardProps) =>
       </p>
 
       <div className="mt-1 flex items-center justify-between">
-        <span className="font-mono text-[9px]" style={{ color: SERIAL_MODULE_STYLES.faint }}>
+        <span
+          className="font-mono text-[9px]"
+          style={{ color: SERIAL_MODULE_STYLES.faint }}
+        >
           {series.logCount.toLocaleString()} logs
         </span>
         <span

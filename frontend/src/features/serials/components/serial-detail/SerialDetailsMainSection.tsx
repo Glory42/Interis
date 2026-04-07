@@ -183,43 +183,6 @@ export const SerialDetailsMainSection = ({
             ))}
           </div>
         )}
-
-        <p
-          className="mb-3 font-mono text-[9px] uppercase tracking-[0.22em]"
-          style={{ color: SERIAL_MODULE_STYLES.faint }}
-        >
-          Creators & Crew
-        </p>
-
-        {series.creators.length === 0 && series.crew.length === 0 ? (
-          <p
-            className="font-mono text-xs"
-            style={{ color: SERIAL_MODULE_STYLES.muted }}
-          >
-            No creator or crew metadata available.
-          </p>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {[...series.creators, ...series.crew]
-              .slice(0, 18)
-              .map((crewMember) => (
-                <PersonRouteLink
-                  key={`series-crew-${crewMember.tmdbPersonId}-${crewMember.job ?? "crew"}`}
-                  person={crewMember}
-                  className="border px-2 py-1 font-mono text-[10px]"
-                  style={{
-                    borderColor: SERIAL_MODULE_STYLES.border,
-                    color: SERIAL_MODULE_STYLES.muted,
-                    background: SERIAL_MODULE_STYLES.panelSoft,
-                  }}
-                >
-                  {crewMember.job
-                    ? `${crewMember.name} — ${crewMember.job}`
-                    : crewMember.name}
-                </PersonRouteLink>
-              ))}
-          </div>
-        )}
       </div>
 
       <SerialFactsGrid factRows={factRows} />
