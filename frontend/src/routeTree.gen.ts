@@ -25,7 +25,9 @@ import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
 import { Route as SettingsAuthRouteImport } from './routes/settings/auth'
 import { Route as SerialsTmdbIdRouteImport } from './routes/serials/$tmdbId'
 import { Route as FilmsTmdbIdRouteImport } from './routes/films/$tmdbId'
+import { Route as DirectorSlugRouteImport } from './routes/director/$slug'
 import { Route as CinemaTmdbIdRouteImport } from './routes/cinema/$tmdbId'
+import { Route as ActorSlugRouteImport } from './routes/actor/$slug'
 import { Route as ProfileUsernameRouteRouteImport } from './routes/profile/$username/route'
 import { Route as ProfileUsernameIndexRouteImport } from './routes/profile/$username/index'
 import { Route as ReviewsUsernameReviewIdRouteImport } from './routes/reviews/$username/$reviewId'
@@ -118,9 +120,19 @@ const FilmsTmdbIdRoute = FilmsTmdbIdRouteImport.update({
   path: '/films/$tmdbId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DirectorSlugRoute = DirectorSlugRouteImport.update({
+  id: '/director/$slug',
+  path: '/director/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CinemaTmdbIdRoute = CinemaTmdbIdRouteImport.update({
   id: '/cinema/$tmdbId',
   path: '/cinema/$tmdbId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActorSlugRoute = ActorSlugRouteImport.update({
+  id: '/actor/$slug',
+  path: '/actor/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileUsernameRouteRoute = ProfileUsernameRouteRouteImport.update({
@@ -190,7 +202,9 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
+  '/actor/$slug': typeof ActorSlugRoute
   '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
+  '/director/$slug': typeof DirectorSlugRoute
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
@@ -218,7 +232,9 @@ export interface FileRoutesByTo {
   '/echoes': typeof EchoesRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/actor/$slug': typeof ActorSlugRoute
   '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
+  '/director/$slug': typeof DirectorSlugRoute
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
@@ -249,7 +265,9 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
+  '/actor/$slug': typeof ActorSlugRoute
   '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
+  '/director/$slug': typeof DirectorSlugRoute
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
@@ -281,7 +299,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/profile/$username'
+    | '/actor/$slug'
     | '/cinema/$tmdbId'
+    | '/director/$slug'
     | '/films/$tmdbId'
     | '/serials/$tmdbId'
     | '/settings/auth'
@@ -309,7 +329,9 @@ export interface FileRouteTypes {
     | '/echoes'
     | '/login'
     | '/register'
+    | '/actor/$slug'
     | '/cinema/$tmdbId'
+    | '/director/$slug'
     | '/films/$tmdbId'
     | '/serials/$tmdbId'
     | '/settings/auth'
@@ -339,7 +361,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/profile/$username'
+    | '/actor/$slug'
     | '/cinema/$tmdbId'
+    | '/director/$slug'
     | '/films/$tmdbId'
     | '/serials/$tmdbId'
     | '/settings/auth'
@@ -370,7 +394,9 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   ProfileUsernameRouteRoute: typeof ProfileUsernameRouteRouteWithChildren
+  ActorSlugRoute: typeof ActorSlugRoute
   CinemaTmdbIdRoute: typeof CinemaTmdbIdRoute
+  DirectorSlugRoute: typeof DirectorSlugRoute
   FilmsTmdbIdRoute: typeof FilmsTmdbIdRoute
   SerialsTmdbIdRoute: typeof SerialsTmdbIdRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -494,11 +520,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FilmsTmdbIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/director/$slug': {
+      id: '/director/$slug'
+      path: '/director/$slug'
+      fullPath: '/director/$slug'
+      preLoaderRoute: typeof DirectorSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cinema/$tmdbId': {
       id: '/cinema/$tmdbId'
       path: '/cinema/$tmdbId'
       fullPath: '/cinema/$tmdbId'
       preLoaderRoute: typeof CinemaTmdbIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/actor/$slug': {
+      id: '/actor/$slug'
+      path: '/actor/$slug'
+      fullPath: '/actor/$slug'
+      preLoaderRoute: typeof ActorSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile/$username': {
@@ -634,7 +674,9 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   ProfileUsernameRouteRoute: ProfileUsernameRouteRouteWithChildren,
+  ActorSlugRoute: ActorSlugRoute,
   CinemaTmdbIdRoute: CinemaTmdbIdRoute,
+  DirectorSlugRoute: DirectorSlugRoute,
   FilmsTmdbIdRoute: FilmsTmdbIdRoute,
   SerialsTmdbIdRoute: SerialsTmdbIdRoute,
   AdminIndexRoute: AdminIndexRoute,

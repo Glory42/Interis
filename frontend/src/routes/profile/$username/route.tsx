@@ -1,45 +1,16 @@
 import { Outlet, createFileRoute, useRouterState } from "@tanstack/react-router";
-import { type ProfileTab } from "@/features/profile/components/ProfileTabs";
+import { getUserProfile } from "@/features/profile/api";
 import { ProfileLayout } from "@/features/profile/layout/ProfileLayout";
-
-const resolveActiveTab = (pathname: string, username: string): ProfileTab => {
-  const basePath = `/profile/${encodeURIComponent(username)}`;
-  const suffix = pathname.startsWith(basePath)
-    ? pathname.slice(basePath.length)
-    : pathname;
-
-  if (suffix === "" || suffix === "/") {
-    return "overview";
-  }
-
-  if (suffix.startsWith("/diary")) {
-    return "diary";
-  }
-
-  if (suffix.startsWith("/cinema") || suffix.startsWith("/films")) {
-    return "cinema";
-  }
-
-  if (suffix.startsWith("/watchlist")) {
-    return "watchlist";
-  }
-
-  if (suffix.startsWith("/liked")) {
-    return "liked";
-  }
-
-  if (suffix.startsWith("/reviews")) {
-    return "reviews";
-  }
-
-  if (suffix.startsWith("/lists")) {
-    return "lists";
-  }
-
-  return "overview";
-};
+import { profileKeys } from "@/features/profile/hooks/useProfile";
+import { resolveActiveProfileTab } from "@/features/profile/routing/resolveProfileTab";
 
 export const Route = createFileRoute("/profile/$username")({
+  loader: async ({ context, params }) => {
+    await context.queryClient.prefetchQuery({
+      queryKey: profileKeys.detail(params.username),
+      queryFn: ({ signal }) => getUserProfile(params.username, { signal }),
+    });
+  },
   component: ProfileRouteLayout,
 });
 
@@ -49,7 +20,7 @@ function ProfileRouteLayout() {
     select: (state) => state.location.pathname,
   });
 
-  const activeTab = resolveActiveTab(pathname, username);
+  const activeTab = resolveActiveProfileTab(pathname, username);
 
   return (
     <ProfileLayout username={username} activeTab={activeTab}>

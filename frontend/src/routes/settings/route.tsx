@@ -1,17 +1,15 @@
-import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
+import { Outlet, createFileRoute } from "@tanstack/react-router";
 import { Spinner } from "@/components/ui/spinner";
-import { authQueryOptions, useAuth } from "@/features/auth/hooks/useAuth";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { SettingsLayout } from "@/features/settings/components/SettingsLayout";
+import { requireAuthenticatedUser } from "@/lib/router/auth-guards";
 
 export const Route = createFileRoute("/settings")({
   beforeLoad: async ({ context, location }) => {
-    const user = await context.queryClient.ensureQueryData(authQueryOptions);
-    if (!user) {
-      throw redirect({
-        to: "/login",
-        search: { redirect: location.pathname },
-      });
-    }
+    await requireAuthenticatedUser({
+      queryClient: context.queryClient,
+      redirectPath: location.pathname,
+    });
   },
   component: SettingsLayoutRoute,
 });

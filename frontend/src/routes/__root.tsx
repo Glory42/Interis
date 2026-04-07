@@ -3,7 +3,6 @@ import {
   Link,
   Outlet,
   createRootRouteWithContext,
-  useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { AppFooter } from "@/components/layout/AppFooter";
@@ -31,27 +30,13 @@ const NotFoundPage = () => (
 );
 
 const RootLayout = () => {
-  const pathname = useRouterState({
-    select: (state) => state.location.pathname,
-  });
-
-  const isProfileSection = pathname.startsWith("/profile/");
-  const outletAnimationKey = isProfileSection ? "/profile" : pathname;
-
   return (
     <>
       <CinemaSearchDialogProvider>
         <div className="relative z-10 flex min-h-screen flex-col">
           <AppNavbar />
           <main className="min-w-0 flex-1 pb-10">
-            <div
-              key={outletAnimationKey}
-              className={
-                isProfileSection
-                  ? ""
-                  : "animate-route-enter motion-reduce:animate-none"
-              }
-            >
+            <div className="animate-route-enter motion-reduce:animate-none">
               <Outlet />
             </div>
           </main>

@@ -1,19 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Layers3 } from "lucide-react";
-import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
+import { ProfileListDetailPage } from "@/features/profile/pages/ProfileListDetailPage";
 
 export const Route = createFileRoute("/profile/$username/lists/$listId")({
-  component: ProfileListDetailPage,
+  component: ProfileListDetailRoute,
 });
 
-function ProfileListDetailPage() {
+function ProfileListDetailRoute() {
   const { listId } = Route.useParams();
 
-  return (
-    <ProfileTabEmptyState
-      icon={Layers3}
-      title="List details are unavailable"
-      description={`Public list detail for ${listId} is not available yet.`}
-    />
-  );
+  return <ProfileListDetailPage listId={listId} />;
 }
