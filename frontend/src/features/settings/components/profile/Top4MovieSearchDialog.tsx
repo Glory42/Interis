@@ -33,7 +33,7 @@ export const Top4MovieSearchDialog = ({
   }
 
   return createPortal(
-    <div className="theme-modal-overlay fixed inset-0 z-[140] bg-background/70 backdrop-blur-sm">
+    <div className="theme-modal-overlay fixed inset-0 z-140 bg-background/70 backdrop-blur-sm">
       <button
         type="button"
         onClick={onClose}
@@ -89,7 +89,9 @@ export const Top4MovieSearchDialog = ({
               </p>
             ) : null}
 
-            {!searchQuery.isFetching && query.trim().length >= 2 && suggestions.length > 0 ? (
+            {!searchQuery.isFetching &&
+            query.trim().length >= 2 &&
+            suggestions.length > 0 ? (
               <ul className="space-y-1">
                 {suggestions.map((movie) => {
                   const releaseYear = toReleaseYear(movie.release_date);

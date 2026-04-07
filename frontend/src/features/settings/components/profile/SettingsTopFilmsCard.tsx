@@ -42,12 +42,15 @@ const toFixedLengthSlots = (
   items[3] ?? null,
 ];
 
-const isTopFilmSlot = (slot: TopFilmSlot | null): slot is TopFilmSlot => slot !== null;
+const isTopFilmSlot = (slot: TopFilmSlot | null): slot is TopFilmSlot =>
+  slot !== null;
 
 const toTopMovieList = (slots: Array<TopFilmSlot | null>): UserTopMovie[] =>
   slots.filter(isTopFilmSlot).map((slot) => ({ ...slot, director: null }));
 
-export const SettingsTopFilmsCard = ({ username }: SettingsTopFilmsCardProps) => {
+export const SettingsTopFilmsCard = ({
+  username,
+}: SettingsTopFilmsCardProps) => {
   const queryClient = useQueryClient();
   const top4Query = useUserTop4Movies(username);
   const updateProfileMutation = useUpdateMyProfile();
@@ -58,9 +61,8 @@ export const SettingsTopFilmsCard = ({ username }: SettingsTopFilmsCardProps) =>
   const [isSelectingMovie, setIsSelectingMovie] = useState(false);
   const [selectionError, setSelectionError] = useState<string | null>(null);
   const [selectionSuccess, setSelectionSuccess] = useState<string | null>(null);
-  const [optimisticSlots, setOptimisticSlots] = useState<Array<TopFilmSlot | null> | null>(
-    null,
-  );
+  const [optimisticSlots, setOptimisticSlots] =
+    useState<Array<TopFilmSlot | null> | null>(null);
 
   const savedSlots = useMemo(() => {
     const normalized = (top4Query.data ?? []).map((movie) => ({
@@ -101,7 +103,9 @@ export const SettingsTopFilmsCard = ({ username }: SettingsTopFilmsCardProps) =>
     setOptimisticSlots(nextSlots);
 
     try {
-      const top4MovieIds = nextSlots.filter(isTopFilmSlot).map((slot) => slot.id);
+      const top4MovieIds = nextSlots
+        .filter(isTopFilmSlot)
+        .map((slot) => slot.id);
 
       await updateProfileMutation.mutateAsync({
         top4MovieIds,
@@ -117,7 +121,9 @@ export const SettingsTopFilmsCard = ({ username }: SettingsTopFilmsCardProps) =>
     } catch (error) {
       setOptimisticSlots(null);
       setSelectionError(
-        isApiError(error) ? error.message : "Could not save top films right now.",
+        isApiError(error)
+          ? error.message
+          : "Could not save top films right now.",
       );
     }
   };
@@ -179,14 +185,16 @@ export const SettingsTopFilmsCard = ({ username }: SettingsTopFilmsCardProps) =>
       <CardHeader>
         <CardTitle>Top films</CardTitle>
         <CardDescription>
-          Pick up to 4 films shown on your profile overview. Selecting or clearing a
-          slot saves automatically.
+          Pick up to 4 films shown on your profile overview. Selecting or
+          clearing a slot saves automatically.
         </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">
         {top4Query.isPending ? (
-          <p className="text-sm text-muted-foreground">Loading current top films...</p>
+          <p className="text-sm text-muted-foreground">
+            Loading current top films...
+          </p>
         ) : null}
 
         {top4Query.isError ? (
@@ -204,7 +212,7 @@ export const SettingsTopFilmsCard = ({ username }: SettingsTopFilmsCardProps) =>
                 disabled={isInteractionDisabled}
                 className="group relative block w-full overflow-hidden  border border-border/70 bg-background/30"
               >
-                <div className="aspect-[2/3]">
+                <div className="aspect-2/3">
                   {slot ? (
                     <img
                       src={getPosterUrl(slot.posterPath)}
@@ -222,7 +230,7 @@ export const SettingsTopFilmsCard = ({ username }: SettingsTopFilmsCardProps) =>
                   )}
                 </div>
 
-                <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/85 to-transparent px-2 py-2 text-[10px] text-foreground opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                <span className="absolute inset-x-0 bottom-0 bg-linear-to-t from-background/85 to-transparent px-2 py-2 text-[10px] text-foreground opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                   {slot ? "Replace movie" : "Select movie"}
                 </span>
               </button>
