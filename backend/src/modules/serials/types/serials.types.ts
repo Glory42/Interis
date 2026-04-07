@@ -3,6 +3,7 @@ import type {
   SerialArchiveSort,
   SerialDetailReviewSort,
 } from "../dto/serials.dto";
+import type { PersonLinkItem } from "../../people/types/people.types";
 
 export type SerialGenre = {
   id: number;
@@ -144,6 +145,9 @@ export type SerialDetailResponse = {
     firstAirYear: number | null;
     lastAirDate: string | null;
     creator: string | null;
+    creators: PersonLinkItem[];
+    cast: PersonLinkItem[];
+    crew: PersonLinkItem[];
     network: string | null;
     episodeRuntime: number | null;
     numberOfSeasons: number | null;

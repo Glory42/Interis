@@ -1,4 +1,5 @@
 import {
+  getSeriesAggregateCredits as tmdbGetAggregateCredits,
   getSeriesDetails as tmdbGetDetails,
   getSeriesSeasonDetails as tmdbGetSeasonDetails,
 } from "../../../infrastructure/tmdb/serials";
@@ -14,12 +15,39 @@ import {
 import { normalizeDetailReviewSort } from "../helpers/serials-query-normalizer.helper";
 import { SerialsRepository } from "../repositories/serials.repository";
 import { SerialsCacheService } from "./serials-cache.service";
+import { PeopleService } from "../../people/people.service";
 import type {
   SerialDetailRatingBreakdownBucket,
   SerialDetailResponse,
   SerialDetailReviewItem,
   SerialSeasonDetailResponse,
 } from "../types/serials.types";
+
+const RELEVANT_CREW_DEPARTMENTS = new Set(["Directing", "Writing", "Production"]);
+
+const toNullableTrimmedText = (value: string | null | undefined): string | null => {
+  if (!value) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+
+const toDistinctValues = (values: Array<string | null | undefined>): string[] => {
+  const seen = new Set<string>();
+
+  for (const value of values) {
+    const normalized = toNullableTrimmedText(value);
+    if (!normalized) {
+      continue;
+    }
+
+    seen.add(normalized);
+  }
+
+  return [...seen];
+};
 
 export class SerialsDetailService {
   static async getDetail(input: {
@@ -35,8 +63,9 @@ export class SerialsDetailService {
     const reviewsSort = normalizeDetailReviewSort(input.reviewsSort);
     const viewerUserId = input.viewerUserId ?? null;
 
-    const [tmdbDetail, logsCount, reviewRows] = await Promise.all([
+    const [tmdbDetail, tmdbAggregateCredits, logsCount, reviewRows] = await Promise.all([
       tmdbGetDetails(input.tmdbId).catch(() => null),
+      tmdbGetAggregateCredits(input.tmdbId).catch(() => null),
       SerialsRepository.getLogsCountBySeriesId(cachedSeries.id),
       SerialsRepository.getReviewRowsBySeriesId(cachedSeries.id),
     ]);
@@ -165,6 +194,69 @@ export class SerialsDetailService {
     const viewerDiary = viewerDiaryRow[0] ?? null;
     const viewerReview = viewerReviewRow[0] ?? null;
 
+    const creators = await PeopleService.ensurePersonLinks(
+      (tmdbDetail?.created_by ?? []).map((creator) => ({
+        tmdbPersonId: creator.id,
+        name: creator.name,
+        profilePath: creator.profile_path,
+        knownForDepartment: creator.known_for_department,
+        routeRole: "director" as const,
+        job: "Creator",
+        department: "Production",
+      })),
+    );
+
+    const cast = await PeopleService.ensurePersonLinks(
+      [...(tmdbAggregateCredits?.cast ?? [])]
+        .sort((leftMember, rightMember) => leftMember.order - rightMember.order)
+        .slice(0, 24)
+        .map((castMember) => {
+          const castCharacters = toDistinctValues(
+            castMember.roles.map((role) => role.character),
+          );
+
+          return {
+            tmdbPersonId: castMember.id,
+            name: castMember.name,
+            profilePath: castMember.profile_path,
+            knownForDepartment: castMember.known_for_department,
+            popularity: castMember.popularity,
+            routeRole: "actor" as const,
+            character:
+              castCharacters.length > 0 ? castCharacters.slice(0, 2).join(" / ") : null,
+            department: "Acting",
+          };
+        }),
+    );
+
+    const crew = await PeopleService.ensurePersonLinks(
+      [...(tmdbAggregateCredits?.crew ?? [])]
+        .filter((crewMember) => RELEVANT_CREW_DEPARTMENTS.has(crewMember.department))
+        .sort(
+          (leftMember, rightMember) =>
+            rightMember.total_episode_count - leftMember.total_episode_count,
+        )
+        .slice(0, 20)
+        .map((crewMember) => {
+          const crewJobs = toDistinctValues(crewMember.jobs.map((job) => job.job));
+
+          return {
+            tmdbPersonId: crewMember.id,
+            name: crewMember.name,
+            profilePath: crewMember.profile_path,
+            knownForDepartment:
+              crewMember.known_for_department ?? toNullableTrimmedText(crewMember.department),
+            popularity: crewMember.popularity,
+            routeRole: "director" as const,
+            job: crewJobs.length > 0 ? crewJobs.slice(0, 2).join(", ") : null,
+            department: toNullableTrimmedText(crewMember.department),
+          };
+        }),
+    );
+
+    const resolvedCreatorName =
+      creators[0]?.name ?? cachedSeries.creator ?? normalizedTmdbDetail?.creator ?? null;
+
     return {
       series: {
         id: cachedSeries.id,
@@ -176,7 +268,10 @@ export class SerialsDetailService {
         firstAirDate: cachedSeries.firstAirDate,
         firstAirYear: cachedSeries.firstAirYear,
         lastAirDate: cachedSeries.lastAirDate,
-        creator: cachedSeries.creator ?? normalizedTmdbDetail?.creator ?? null,
+        creator: resolvedCreatorName,
+        creators,
+        cast,
+        crew,
         network: cachedSeries.network ?? normalizedTmdbDetail?.network ?? null,
         episodeRuntime:
           cachedSeries.episodeRuntime ?? normalizedTmdbDetail?.episodeRuntime ?? null,
