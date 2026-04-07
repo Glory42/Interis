@@ -39,7 +39,9 @@ export const HomePage = () => {
     () => followingFeedQuery.data ?? [],
     [followingFeedQuery.data],
   );
-  const isFeedLoading = isFollowingEnabled ? followingFeedQuery.isPending : false;
+  const isFeedLoading = isFollowingEnabled
+    ? followingFeedQuery.isPending
+    : false;
   const isFeedError = isFollowingEnabled ? followingFeedQuery.isError : false;
 
   const liveReviews = useMemo(
@@ -73,9 +75,13 @@ export const HomePage = () => {
           <span className="font-mono text-[10px] text-muted-foreground/70">
             root@null
           </span>
-          <span className="font-mono text-[10px] text-muted-foreground/70">:</span>
+          <span className="font-mono text-[10px] text-muted-foreground/70">
+            :
+          </span>
           <span className="font-mono text-[10px] text-primary">~/void</span>
-          <span className="font-mono text-[10px] text-muted-foreground/70">$</span>
+          <span className="font-mono text-[10px] text-muted-foreground/70">
+            $
+          </span>
           <span className="font-mono text-sm text-muted-foreground">
             {" "}
             ./run_feed --all --live
@@ -86,7 +92,7 @@ export const HomePage = () => {
         </div>
 
         <h1 className="font-mono text-4xl font-bold text-foreground md:text-6xl">
-          THE NULL FEED
+          INTERIS://FEED
         </h1>
 
         <p className="mt-3 max-w-xl font-mono text-sm text-muted-foreground/80">
