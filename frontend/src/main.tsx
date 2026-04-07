@@ -4,6 +4,7 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { routeTree } from "./routeTree.gen";
 import { queryClient } from "./lib/query-client";
+import { installSafeViewTransitions } from "./lib/view-transition";
 import { bootstrapStoredTheme } from "@/features/theme/theme-runtime";
 import "./index.css";
 
@@ -29,6 +30,7 @@ if (!rootElement) {
 }
 
 bootstrapStoredTheme();
+installSafeViewTransitions();
 
 createRoot(rootElement).render(
   <StrictMode>

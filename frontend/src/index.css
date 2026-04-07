@@ -56,27 +56,45 @@
   --aura-muted: #6f6789;
 
   --theme-shell-gradient:
-    radial-gradient(900px 420px at 12% -12%, rgba(212, 181, 255, 0.16), transparent 62%),
-    radial-gradient(740px 340px at 90% 112%, rgba(244, 194, 191, 0.12), transparent 70%),
+    radial-gradient(
+      900px 420px at 12% -12%,
+      rgba(212, 181, 255, 0.16),
+      transparent 62%
+    ),
+    radial-gradient(
+      740px 340px at 90% 112%,
+      rgba(244, 194, 191, 0.12),
+      transparent 70%
+    ),
     linear-gradient(180deg, #171420 0%, #181524 48%, #120f1c 100%);
-  --theme-shell-pattern:
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.035) 0,
-      rgba(255, 255, 255, 0.035) 1px,
-      transparent 1px,
-      transparent 4px
-    );
+  --theme-shell-pattern: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.035) 0,
+    rgba(255, 255, 255, 0.035) 1px,
+    transparent 1px,
+    transparent 4px
+  );
   --theme-shell-pattern-size: auto;
   --theme-shell-pattern-position: center;
   --theme-shell-pattern-opacity: 0.16;
-  --theme-shell-vignette:
-    radial-gradient(140% 95% at 50% -10%, transparent 52%, rgba(0, 0, 0, 0.62) 100%);
+  --theme-shell-vignette: radial-gradient(
+    140% 95% at 50% -10%,
+    transparent 52%,
+    rgba(0, 0, 0, 0.62) 100%
+  );
   --theme-shell-vignette-opacity: 0.8;
 
   --theme-hero-gradient:
-    radial-gradient(92% 76% at 10% 0%, rgba(212, 181, 255, 0.2), transparent 62%),
-    linear-gradient(180deg, rgba(16, 14, 24, 0.08) 0%, rgba(16, 14, 24, 0.9) 100%);
+    radial-gradient(
+      92% 76% at 10% 0%,
+      rgba(212, 181, 255, 0.2),
+      transparent 62%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(16, 14, 24, 0.08) 0%,
+      rgba(16, 14, 24, 0.9) 100%
+    );
   --theme-hero-gradient-opacity: 1;
   --theme-hero-pattern: none;
   --theme-hero-pattern-size: auto;
@@ -84,7 +102,11 @@
   --theme-hero-pattern-opacity: 0;
 
   --theme-modal-overlay: rgba(16, 14, 24, 0.84);
-  --theme-modal-gradient: linear-gradient(180deg, rgba(33, 28, 49, 0.98), rgba(22, 18, 34, 0.98));
+  --theme-modal-gradient: linear-gradient(
+    180deg,
+    rgba(33, 28, 49, 0.98),
+    rgba(22, 18, 34, 0.98)
+  );
   --theme-modal-pattern: none;
   --theme-modal-pattern-size: auto;
   --theme-modal-pattern-position: center;
@@ -115,9 +137,11 @@
   --theme-kicker-weight: 700;
 
   --theme-button-primary-shadow: 0 10px 24px -15px rgba(212, 181, 255, 0.58);
-  --theme-button-primary-shadow-hover: 0 14px 30px -16px rgba(212, 181, 255, 0.74);
+  --theme-button-primary-shadow-hover: 0 14px 30px -16px
+    rgba(212, 181, 255, 0.74);
   --theme-button-danger-shadow: 0 10px 24px -15px rgba(241, 127, 160, 0.62);
-  --theme-button-danger-shadow-hover: 0 14px 30px -16px rgba(241, 127, 160, 0.78);
+  --theme-button-danger-shadow-hover: 0 14px 30px -16px
+    rgba(241, 127, 160, 0.78);
 
   --module-cinema: #00ff88;
   --module-serial: #00cfff;
@@ -126,20 +150,20 @@
   --module-neutral: #9ca3af;
 
   /* Contribution heatmap palette (deterministic media-type combinations) */
-  --heatmap-mask-1-rgb: 59 130 246;   /* film */
-  --heatmap-mask-2-rgb: 34 197 94;    /* tv */
-  --heatmap-mask-3-rgb: 20 184 166;   /* film + tv */
-  --heatmap-mask-4-rgb: 239 68 68;    /* book */
-  --heatmap-mask-5-rgb: 139 92 246;   /* film + book */
-  --heatmap-mask-6-rgb: 217 119 6;    /* tv + book */
-  --heatmap-mask-7-rgb: 99 102 241;   /* film + tv + book */
-  --heatmap-mask-8-rgb: 234 179 8;    /* music */
-  --heatmap-mask-9-rgb: 14 165 233;   /* film + music */
-  --heatmap-mask-10-rgb: 132 204 22;  /* tv + music */
-  --heatmap-mask-11-rgb: 6 182 212;   /* film + tv + music */
-  --heatmap-mask-12-rgb: 249 115 22;  /* book + music */
-  --heatmap-mask-13-rgb: 168 85 247;  /* film + book + music */
-  --heatmap-mask-14-rgb: 202 138 4;   /* tv + book + music */
+  --heatmap-mask-1-rgb: 59 130 246; /* film */
+  --heatmap-mask-2-rgb: 34 197 94; /* tv */
+  --heatmap-mask-3-rgb: 20 184 166; /* film + tv */
+  --heatmap-mask-4-rgb: 239 68 68; /* book */
+  --heatmap-mask-5-rgb: 139 92 246; /* film + book */
+  --heatmap-mask-6-rgb: 217 119 6; /* tv + book */
+  --heatmap-mask-7-rgb: 99 102 241; /* film + tv + book */
+  --heatmap-mask-8-rgb: 234 179 8; /* music */
+  --heatmap-mask-9-rgb: 14 165 233; /* film + music */
+  --heatmap-mask-10-rgb: 132 204 22; /* tv + music */
+  --heatmap-mask-11-rgb: 6 182 212; /* film + tv + music */
+  --heatmap-mask-12-rgb: 249 115 22; /* book + music */
+  --heatmap-mask-13-rgb: 168 85 247; /* film + book + music */
+  --heatmap-mask-14-rgb: 202 138 4; /* tv + book + music */
   --heatmap-mask-15-rgb: 100 116 139; /* all media types */
 }
 
@@ -169,50 +193,66 @@
   --aura-muted: #2a2a2a;
 
   --theme-shell-gradient:
-    radial-gradient(880px 360px at 12% -16%, rgba(0, 255, 136, 0.12), transparent 66%),
-    radial-gradient(760px 320px at 88% 114%, rgba(0, 207, 255, 0.12), transparent 72%),
+    radial-gradient(
+      880px 360px at 12% -16%,
+      rgba(0, 255, 136, 0.12),
+      transparent 66%
+    ),
+    radial-gradient(
+      760px 320px at 88% 114%,
+      rgba(0, 207, 255, 0.12),
+      transparent 72%
+    ),
     linear-gradient(180deg, #080808 0%, #090909 52%, #070707 100%);
-  --theme-shell-pattern:
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.03) 0,
-      rgba(255, 255, 255, 0.03) 1px,
-      transparent 1px,
-      transparent 4px
-    );
+  --theme-shell-pattern: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.03) 0,
+    rgba(255, 255, 255, 0.03) 1px,
+    transparent 1px,
+    transparent 4px
+  );
   --theme-shell-pattern-size: auto;
   --theme-shell-pattern-position: center;
   --theme-shell-pattern-opacity: 0.72;
-  --theme-shell-vignette:
-    radial-gradient(140% 95% at 50% -12%, transparent 50%, rgba(0, 0, 0, 0.74) 100%);
+  --theme-shell-vignette: radial-gradient(
+    140% 95% at 50% -12%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.74) 100%
+  );
   --theme-shell-vignette-opacity: 0.86;
 
   --theme-hero-gradient:
-    radial-gradient(98% 80% at 10% 0%, rgba(0, 255, 136, 0.14), transparent 66%),
+    radial-gradient(
+      98% 80% at 10% 0%,
+      rgba(0, 255, 136, 0.14),
+      transparent 66%
+    ),
     linear-gradient(180deg, rgba(8, 8, 8, 0.08) 0%, rgba(8, 8, 8, 0.92) 100%);
   --theme-hero-gradient-opacity: 1;
-  --theme-hero-pattern:
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.04) 0,
-      rgba(255, 255, 255, 0.04) 1px,
-      transparent 1px,
-      transparent 5px
-    );
+  --theme-hero-pattern: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.04) 0,
+    rgba(255, 255, 255, 0.04) 1px,
+    transparent 1px,
+    transparent 5px
+  );
   --theme-hero-pattern-size: auto;
   --theme-hero-pattern-position: center;
   --theme-hero-pattern-opacity: 0.38;
 
   --theme-modal-overlay: rgba(3, 3, 3, 0.9);
-  --theme-modal-gradient: linear-gradient(180deg, rgba(14, 14, 14, 0.98), rgba(8, 8, 8, 0.98));
-  --theme-modal-pattern:
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.03) 0,
-      rgba(255, 255, 255, 0.03) 1px,
-      transparent 1px,
-      transparent 4px
-    );
+  --theme-modal-gradient: linear-gradient(
+    180deg,
+    rgba(14, 14, 14, 0.98),
+    rgba(8, 8, 8, 0.98)
+  );
+  --theme-modal-pattern: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.03) 0,
+    rgba(255, 255, 255, 0.03) 1px,
+    transparent 1px,
+    transparent 4px
+  );
   --theme-modal-pattern-size: auto;
   --theme-modal-pattern-position: center;
   --theme-modal-pattern-opacity: 0.52;
@@ -234,15 +274,19 @@
   --theme-segment-border: rgba(255, 255, 255, 0.08);
 
   --theme-body-font: "JetBrains Mono", "IBM Plex Mono", "Fira Code", monospace;
-  --theme-display-font: "JetBrains Mono", "IBM Plex Mono", "Fira Code", monospace;
+  --theme-display-font:
+    "JetBrains Mono", "IBM Plex Mono", "Fira Code", monospace;
   --theme-display-letter-spacing: -0.015em;
   --theme-display-shadow: none;
-  --theme-kicker-font: "JetBrains Mono", "IBM Plex Mono", "Fira Code", monospace;
+  --theme-kicker-font:
+    "JetBrains Mono", "IBM Plex Mono", "Fira Code", monospace;
   --theme-kicker-tracking: 0.16em;
   --theme-kicker-weight: 700;
 
-  --theme-button-primary-shadow: 0 0 0 1px rgba(0, 255, 136, 0.32) inset, 0 0 24px rgba(0, 255, 136, 0.32);
-  --theme-button-primary-shadow-hover: 0 0 0 1px rgba(0, 255, 136, 0.4) inset, 0 0 28px rgba(0, 255, 136, 0.42);
+  --theme-button-primary-shadow:
+    0 0 0 1px rgba(0, 255, 136, 0.32) inset, 0 0 24px rgba(0, 255, 136, 0.32);
+  --theme-button-primary-shadow-hover:
+    0 0 0 1px rgba(0, 255, 136, 0.4) inset, 0 0 28px rgba(0, 255, 136, 0.42);
   --theme-button-danger-shadow: 0 0 0 1px rgba(255, 107, 133, 0.36) inset;
   --theme-button-danger-shadow-hover: 0 0 0 1px rgba(255, 107, 133, 0.45) inset;
 
@@ -279,27 +323,45 @@
   --aura-muted: #7c6f64;
 
   --theme-shell-gradient:
-    radial-gradient(920px 420px at 14% -14%, rgba(215, 153, 33, 0.2), transparent 66%),
-    radial-gradient(760px 320px at 88% 112%, rgba(131, 165, 152, 0.14), transparent 72%),
+    radial-gradient(
+      920px 420px at 14% -14%,
+      rgba(215, 153, 33, 0.2),
+      transparent 66%
+    ),
+    radial-gradient(
+      760px 320px at 88% 112%,
+      rgba(131, 165, 152, 0.14),
+      transparent 72%
+    ),
     linear-gradient(180deg, #1d2021 0%, #232323 52%, #181818 100%);
-  --theme-shell-pattern:
-    repeating-linear-gradient(
-      0deg,
-      rgba(235, 219, 178, 0.04) 0,
-      rgba(235, 219, 178, 0.04) 1px,
-      transparent 1px,
-      transparent 4px
-    );
+  --theme-shell-pattern: repeating-linear-gradient(
+    0deg,
+    rgba(235, 219, 178, 0.04) 0,
+    rgba(235, 219, 178, 0.04) 1px,
+    transparent 1px,
+    transparent 4px
+  );
   --theme-shell-pattern-size: auto;
   --theme-shell-pattern-position: center;
   --theme-shell-pattern-opacity: 0.2;
-  --theme-shell-vignette:
-    radial-gradient(140% 95% at 50% -10%, transparent 54%, rgba(0, 0, 0, 0.66) 100%);
+  --theme-shell-vignette: radial-gradient(
+    140% 95% at 50% -10%,
+    transparent 54%,
+    rgba(0, 0, 0, 0.66) 100%
+  );
   --theme-shell-vignette-opacity: 0.78;
 
   --theme-hero-gradient:
-    radial-gradient(98% 78% at 14% 0%, rgba(215, 153, 33, 0.18), transparent 64%),
-    linear-gradient(180deg, rgba(29, 32, 33, 0.1) 0%, rgba(29, 32, 33, 0.9) 100%);
+    radial-gradient(
+      98% 78% at 14% 0%,
+      rgba(215, 153, 33, 0.18),
+      transparent 64%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(29, 32, 33, 0.1) 0%,
+      rgba(29, 32, 33, 0.9) 100%
+    );
   --theme-hero-gradient-opacity: 1;
   --theme-hero-pattern: none;
   --theme-hero-pattern-size: auto;
@@ -307,7 +369,11 @@
   --theme-hero-pattern-opacity: 0;
 
   --theme-modal-overlay: rgba(20, 21, 21, 0.84);
-  --theme-modal-gradient: linear-gradient(180deg, rgba(44, 42, 38, 0.98), rgba(31, 29, 27, 0.98));
+  --theme-modal-gradient: linear-gradient(
+    180deg,
+    rgba(44, 42, 38, 0.98),
+    rgba(31, 29, 27, 0.98)
+  );
   --theme-modal-pattern: none;
   --theme-modal-pattern-size: auto;
   --theme-modal-pattern-position: center;
@@ -338,7 +404,8 @@
   --theme-kicker-weight: 700;
 
   --theme-button-primary-shadow: 0 10px 24px -15px rgba(215, 153, 33, 0.68);
-  --theme-button-primary-shadow-hover: 0 14px 30px -16px rgba(250, 189, 47, 0.86);
+  --theme-button-primary-shadow-hover: 0 14px 30px -16px
+    rgba(250, 189, 47, 0.86);
   --theme-button-danger-shadow: 0 10px 24px -15px rgba(251, 73, 52, 0.72);
   --theme-button-danger-shadow-hover: 0 14px 30px -16px rgba(251, 73, 52, 0.86);
 
@@ -359,10 +426,8 @@
     min-height: 100vh;
     overflow-x: hidden;
     position: relative;
-    isolation: isolate;
     font-family: var(--theme-body-font);
     text-rendering: optimizeLegibility;
-    letter-spacing: 0.005em;
   }
 
   h1,
@@ -411,7 +476,7 @@
 
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: none;
   }
 }
 
