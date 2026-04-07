@@ -15,12 +15,7 @@ export const PageWrapper = ({
   children,
 }: PageWrapperProps) => {
   return (
-    <section
-      className={cn(
-        "mx-auto w-full max-w-[1600px] px-4 py-8",
-        className,
-      )}
-    >
+    <section className={cn("mx-auto w-full max-w-400 px-4 py-8", className)}>
       {(title || subtitle) && (
         <header className="mb-5 space-y-1.5 border-b border-border/60 pb-5 sm:mb-7">
           {title ? (

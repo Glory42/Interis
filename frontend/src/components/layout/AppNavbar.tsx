@@ -34,12 +34,12 @@ export const AppNavbar = () => {
         <div
           className="pointer-events-none h-px w-full"
           style={{
-              background:
-                "linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 30%, transparent), transparent)",
+            background:
+              "linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 30%, transparent), transparent)",
           }}
         />
 
-        <div className="mx-auto flex h-12 w-full max-w-[1600px] items-center justify-between gap-4 px-4">
+        <div className="mx-auto flex h-12 w-full max-w-400 items-center justify-between gap-4 px-4">
           <NavbarBrand />
 
           <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 md:flex">
@@ -73,7 +73,10 @@ export const AppNavbar = () => {
 
             {!isUserLoading && !user ? <DesktopGuestActions /> : null}
 
-            <MobileMenuToggle isOpen={isMobileMenuOpen} onToggle={toggleMobileMenu} />
+            <MobileMenuToggle
+              isOpen={isMobileMenuOpen}
+              onToggle={toggleMobileMenu}
+            />
           </div>
         </div>
 
