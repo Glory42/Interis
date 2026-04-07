@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fetchTMDB } from "./base-client";
 import {
+  TMDBSeriesAggregateCreditsSchema,
   TMDBDiscoverSeriesListSchema,
   TMDBSeriesDetailSchema,
   TMDBSeriesGenreListSchema,
@@ -8,6 +9,7 @@ import {
   TMDBSearchSeriesSchema,
 } from "./dto/serials-response.dto";
 import type {
+  TMDBSeriesAggregateCredits,
   TMDBDiscoverSeries,
   TMDBDiscoverSeriesSortBy,
   TMDBSeriesDetail,
@@ -17,6 +19,7 @@ import type {
 } from "./dto/serials-response.dto";
 
 export type {
+  TMDBSeriesAggregateCredits,
   TMDBDiscoverSeries,
   TMDBDiscoverSeriesList,
   TMDBDiscoverSeriesSortBy,
@@ -139,4 +142,11 @@ export const getSeriesSeasonDetails = async (
 ): Promise<TMDBSeriesSeasonDetail> => {
   const data = await fetchTMDB(`/tv/${tmdbId}/season/${seasonNumber}?language=en-US`);
   return TMDBSeriesSeasonDetailSchema.parse(data);
+};
+
+export const getSeriesAggregateCredits = async (
+  tmdbId: number,
+): Promise<TMDBSeriesAggregateCredits> => {
+  const data = await fetchTMDB(`/tv/${tmdbId}/aggregate_credits?language=en-US`);
+  return TMDBSeriesAggregateCreditsSchema.parse(data);
 };

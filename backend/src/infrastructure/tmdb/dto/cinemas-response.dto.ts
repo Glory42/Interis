@@ -63,15 +63,29 @@ export const TMDBDiscoverMoviesSchema = z.object({
   results: z.array(TMDBDiscoverMovieSchema),
 });
 
+export const TMDBMovieCreditCastSchema = z.object({
+  id: z.number(),
+  name: z.string().default(""),
+  character: z.string().optional().default(""),
+  known_for_department: z.string().nullable().optional().default(null),
+  profile_path: z.string().nullable(),
+  popularity: z.number().optional().default(0),
+  order: z.number().int().optional().default(0),
+});
+
+export const TMDBMovieCreditCrewSchema = z.object({
+  id: z.number(),
+  name: z.string().default(""),
+  job: z.string().default(""),
+  department: z.string().default(""),
+  known_for_department: z.string().nullable().optional().default(null),
+  profile_path: z.string().nullable(),
+  popularity: z.number().optional().default(0),
+});
+
 export const TMDBMovieCreditsSchema = z.object({
-  crew: z
-    .array(
-      z.object({
-        job: z.string().default(""),
-        name: z.string().default(""),
-      }),
-    )
-    .default([]),
+  cast: z.array(TMDBMovieCreditCastSchema).default([]),
+  crew: z.array(TMDBMovieCreditCrewSchema).default([]),
 });
 
 export type TMDBSearchMovie = z.infer<typeof TMDBSearchMovieSchema>;
@@ -79,6 +93,9 @@ export type TMDBMovieDetail = z.infer<typeof TMDBMovieDetailSchema>;
 export type TMDBMovieGenre = z.infer<typeof TMDBMovieGenreSchema>;
 export type TMDBDiscoverMovie = z.infer<typeof TMDBDiscoverMovieSchema>;
 export type TMDBDiscoverMovies = z.infer<typeof TMDBDiscoverMoviesSchema>;
+export type TMDBMovieCreditCast = z.infer<typeof TMDBMovieCreditCastSchema>;
+export type TMDBMovieCreditCrew = z.infer<typeof TMDBMovieCreditCrewSchema>;
+export type TMDBMovieCredits = z.infer<typeof TMDBMovieCreditsSchema>;
 export type TMDBDiscoverSortBy =
   | "popularity.desc"
   | "vote_average.desc"

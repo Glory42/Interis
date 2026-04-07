@@ -10,6 +10,7 @@ import {
 import type {
   TMDBDiscoverMovie,
   TMDBDiscoverSortBy,
+  TMDBMovieCredits,
   TMDBMovieDetail,
   TMDBMovieGenre,
   TMDBSearchMovie,
@@ -19,6 +20,7 @@ export type {
   TMDBDiscoverMovie,
   TMDBDiscoverMovies,
   TMDBDiscoverSortBy,
+  TMDBMovieCredits,
   TMDBMovieDetail,
   TMDBMovieGenre,
   TMDBSearchMovie,
@@ -178,6 +180,13 @@ export const getMovieDetails = async (
   return TMDBMovieDetailSchema.parse(data);
 };
 
+export const getMovieCredits = async (
+  tmdbId: number,
+): Promise<TMDBMovieCredits> => {
+  const data = await fetchTMDB(`/movie/${tmdbId}/credits?language=en-US`);
+  return TMDBMovieCreditsSchema.parse(data);
+};
+
 export const getMovieDirector = async (tmdbId: number): Promise<string | null> => {
   const now = Date.now();
   const cached = directorCache.get(tmdbId);
@@ -196,8 +205,7 @@ export const getMovieDirector = async (tmdbId: number): Promise<string | null> =
   }
 
   const requestPromise = (async () => {
-    const data = await fetchTMDB(`/movie/${tmdbId}/credits?language=en-US`);
-    const credits = TMDBMovieCreditsSchema.parse(data);
+    const credits = await getMovieCredits(tmdbId);
     const director = credits.crew.find((member) => member.job === "Director")?.name ?? null;
 
     directorCache.set(tmdbId, {

@@ -61,6 +61,8 @@ export const TMDBSeriesDetailSchema = z.object({
       z.object({
         id: z.number(),
         name: z.string().default(""),
+        known_for_department: z.string().nullable().optional().default(null),
+        profile_path: z.string().nullable().optional().default(null),
       }),
     )
     .default([]),
@@ -109,12 +111,62 @@ export const TMDBSeriesSeasonDetailSchema = z.object({
     .default([]),
 });
 
+export const TMDBSeriesAggregateCreditCastSchema = z.object({
+  id: z.number(),
+  name: z.string().default(""),
+  profile_path: z.string().nullable().optional().default(null),
+  known_for_department: z.string().nullable().optional().default(null),
+  popularity: z.number().optional().default(0),
+  order: z.number().int().optional().default(0),
+  total_episode_count: z.number().int().optional().default(0),
+  roles: z
+    .array(
+      z.object({
+        credit_id: z.string().optional().default(""),
+        character: z.string().default(""),
+        episode_count: z.number().int().optional().default(0),
+      }),
+    )
+    .default([]),
+});
+
+export const TMDBSeriesAggregateCreditCrewSchema = z.object({
+  id: z.number(),
+  name: z.string().default(""),
+  profile_path: z.string().nullable().optional().default(null),
+  known_for_department: z.string().nullable().optional().default(null),
+  popularity: z.number().optional().default(0),
+  department: z.string().default(""),
+  total_episode_count: z.number().int().optional().default(0),
+  jobs: z
+    .array(
+      z.object({
+        credit_id: z.string().optional().default(""),
+        job: z.string().default(""),
+        episode_count: z.number().int().optional().default(0),
+      }),
+    )
+    .default([]),
+});
+
+export const TMDBSeriesAggregateCreditsSchema = z.object({
+  cast: z.array(TMDBSeriesAggregateCreditCastSchema).default([]),
+  crew: z.array(TMDBSeriesAggregateCreditCrewSchema).default([]),
+});
+
 export type TMDBSearchSeries = z.infer<typeof TMDBSearchSeriesSchema>;
 export type TMDBSeriesGenre = z.infer<typeof TMDBSeriesGenreSchema>;
 export type TMDBDiscoverSeries = z.infer<typeof TMDBDiscoverSeriesSchema>;
 export type TMDBDiscoverSeriesList = z.infer<typeof TMDBDiscoverSeriesListSchema>;
 export type TMDBSeriesDetail = z.infer<typeof TMDBSeriesDetailSchema>;
 export type TMDBSeriesSeasonDetail = z.infer<typeof TMDBSeriesSeasonDetailSchema>;
+export type TMDBSeriesAggregateCreditCast = z.infer<
+  typeof TMDBSeriesAggregateCreditCastSchema
+>;
+export type TMDBSeriesAggregateCreditCrew = z.infer<
+  typeof TMDBSeriesAggregateCreditCrewSchema
+>;
+export type TMDBSeriesAggregateCredits = z.infer<typeof TMDBSeriesAggregateCreditsSchema>;
 export type TMDBDiscoverSeriesSortBy =
   | "popularity.desc"
   | "vote_average.desc"
