@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { apiRequest } from "@/lib/api-client";
+import { personLinkSchema } from "@/features/people/shared";
 
 const tmdbSearchSeriesSchema = z.object({
   id: z.number().int().positive(),
@@ -103,6 +104,9 @@ const serialDetailSeriesSchema = z.object({
   firstAirYear: z.number().int().nullable(),
   lastAirDate: z.string().nullable(),
   creator: z.string().nullable(),
+  creators: z.array(personLinkSchema).default([]),
+  cast: z.array(personLinkSchema).default([]),
+  crew: z.array(personLinkSchema).default([]),
   network: z.string().nullable(),
   episodeRuntime: z.number().int().nullable(),
   numberOfSeasons: z.number().int().nullable(),
