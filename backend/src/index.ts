@@ -49,7 +49,7 @@ export const createApp = () => {
   });
 
   app.get("/api/health", (req: Request, res: Response) => {
-    res.json({ status: "ok", message: "Arkheion API is alive" });
+    res.json({ status: "ok", message: "Interis API is alive" });
   });
 
   app.use("/api/movies", moviesRouter);

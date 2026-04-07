@@ -1,6 +1,6 @@
-# Arkheion
+# Interis
 
-Arkheion is a social movie journal app inspired by Letterboxd + timeline-style social apps.
+A social movie journal app inspired by Letterboxd + timeline-style social apps.
 
 - Log watches with dates, ratings, rewatches, and optional reviews
 - Follow people and browse a personalized activity feed
@@ -8,7 +8,7 @@ Arkheion is a social movie journal app inspired by Letterboxd + timeline-style s
 - Explore public profile pages, stats, heatmaps, lists, likes, and watchlists
 - Power external widgets through a small public API (`/api/public/*`)
 
-Live: [arkheion.gorkemkaryol.dev](https://arkheion.gorkemkaryol.dev)
+Live: [interis.gorkemkaryol.dev](https://interis.gorkemkaryol.dev)
 
 ## Tech stack
 
@@ -24,13 +24,15 @@ Live: [arkheion.gorkemkaryol.dev](https://arkheion.gorkemkaryol.dev)
 | Data | TanStack Query |
 | UI | Tailwind CSS + Radix/shadcn primitives |
 | External data | TMDB (on-demand fetch + local cache) |
+| Storage | Cloudflare R2 (avatars/backdrops) |
 
 ## Repository layout
 
 ```text
 .
-├── backend/   # Express API, domain modules, Drizzle schema/migrations
-├── frontend/  # React app (TanStack Router + Query)
+├── backend/          # Express API, domain modules, Drizzle schema/migrations
+├── frontend/         # React app (TanStack Router + Query)
+├── CONTRIBUTING.md   # Guidelines for contributors
 └── README.md
 ```
 
@@ -69,31 +71,35 @@ VITE_API_BASE_URL=
 3) Install and run
 
 ```bash
-# terminal 1
+# terminal 1 - backend
 cd backend
 bun install
 bun run dev
 
-# terminal 2
+# terminal 2 - frontend
 cd frontend
 bun install
 bun run dev
 ```
 
-Frontend runs on `http://localhost:5173` and proxies `/api` to backend.
+Frontend runs on `http://localhost:5173` and proxies `/api` to backend on port `5000`.
 
 ## Key API groups
 
-- `POST /api/auth/*` - Better Auth endpoints (session, sign-in, sign-up, update-user)
-- `GET /api/movies/*` - search, detail, logs, archive, trending
-- `GET|POST|PUT|DELETE /api/diary` - private diary CRUD
-- `GET /api/users/*` - profile, diary, reviews, films/cinema, likes, watchlist
-- `GET|POST|PUT|DELETE /api/reviews/*` - reviews, comments, likes
-- `GET|POST|DELETE /api/posts/*` - short posts, comments, likes
-- `GET|POST|DELETE /api/social/*` - feed + follow graph
-- `GET|PUT /api/interactions/:tmdbId` - watchlist/like/log interaction state
-- `POST /api/uploads/*` - signed upload flow (R2)
-- `GET /api/public/:username/*` - widget-friendly public endpoints
+| Prefix | Purpose |
+| --- | --- |
+| `POST /api/auth/*` | Better Auth endpoints (session, sign-in, sign-up, update-user) |
+| `GET /api/movies/*` | Search, detail, logs, archive, trending |
+| `GET /api/serials/*` | TV series search, detail, archive |
+| `GET /api/people/*` | Director/actor pages |
+| `GET\|POST\|PUT\|DELETE /api/diary` | Private diary CRUD |
+| `GET /api/users/*` | Profile, diary, reviews, films/cinema, likes, watchlist |
+| `GET\|POST\|PUT\|DELETE /api/reviews/*` | Reviews, comments, likes |
+| `GET\|POST\|DELETE /api/posts/*` | Short posts, comments, likes |
+| `GET\|POST\|DELETE /api/social/*` | Feed + follow graph |
+| `GET\|PUT /api/interactions/:tmdbId` | Watchlist/like/log interaction state |
+| `POST /api/uploads/*` | Signed upload flow (R2) |
+| `GET /api/public/:username/*` | Widget-friendly public endpoints |
 
 ## Quality checks
 
@@ -116,8 +122,12 @@ bun run build
 
 ## Architecture notes
 
-- Feature-first backend modules: each domain owns controller/service/repository/dto/helpers/types.
-- TMDB data is fetched on demand and cached locally; no bulk mirror/import.
-- Diary entries (watch logs) and reviews are modeled separately by design.
-- Public profile/stats routes are optimized for read-heavy usage and widget integration.
-- Frontend is route-driven and feature-oriented, with API contracts validated by Zod.
+- **Feature-first backend**: Each domain owns controller/service/repository/dto/helpers/types. See [backend/README.md](backend/README.md) for details.
+- **TMDB on-demand**: Movie data is fetched from TMDB on demand and cached locally; no bulk mirror/import.
+- **Separate models**: Diary entries (watch logs) and reviews are modeled separately by design.
+- **Read-optimized profiles**: Public profile/stats routes are optimized for read-heavy usage and widget integration.
+- **Route-driven frontend**: Frontend is route-driven and feature-oriented, with API contracts validated by Zod. See [frontend/README.md](frontend/README.md) for details.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines, architecture overview, coding conventions, and how to get started.
