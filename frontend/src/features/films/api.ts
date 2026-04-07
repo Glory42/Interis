@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { apiRequest } from "@/lib/api-client";
+import { personLinkSchema } from "@/features/people/shared";
 import {
   movieSchema,
   movieLogSchema,
@@ -82,6 +83,8 @@ const movieDetailMovieSchema = z.object({
   releaseDate: z.string().nullable(),
   releaseYear: z.number().int().nullable(),
   director: z.string().nullable(),
+  directors: z.array(personLinkSchema).default([]),
+  cast: z.array(personLinkSchema).default([]),
   runtime: z.number().int().nullable(),
   overview: z.string().nullable(),
   tagline: z.string().nullable(),
