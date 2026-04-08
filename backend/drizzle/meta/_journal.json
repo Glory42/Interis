@@ -148,6 +148,48 @@
       "when": 1775502587016,
       "tag": "0020_productive_violations",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1775606400000,
+      "tag": "0021_interaction_ratings",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1775651376790,
+      "tag": "0022_soft_cyclops",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1775680000000,
+      "tag": "0023_unified_top_picks",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1775661387319,
+      "tag": "0024_living_sage",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1775736000000,
+      "tag": "0025_remove_legacy_profile_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1775677255495,
+      "tag": "0026_big_green_goblin",
+      "breakpoints": true
     }
   ]
 }
