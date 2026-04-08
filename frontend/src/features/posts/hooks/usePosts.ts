@@ -36,13 +36,18 @@ const updatePostInFeedCaches = (
   postId: string,
   updater: (item: FeedItem) => FeedItem,
 ) => {
-  queryClient.setQueryData<FeedItem[]>(feedKeys.following, (currentItems) => {
-    if (!currentItems) {
-      return currentItems;
-    }
+  queryClient.setQueriesData<FeedItem[]>(
+    { queryKey: feedKeys.following, exact: false },
+    (currentItems) => {
+      if (!currentItems) {
+        return currentItems;
+      }
 
-    return currentItems.map((item) => (matchesPost(item, postId) ? updater(item) : item));
-  });
+      return currentItems.map((item) =>
+        matchesPost(item, postId) ? updater(item) : item,
+      );
+    },
+  );
 };
 
 export const useCreatePost = () => {

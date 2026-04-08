@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { apiRequest } from "@/lib/api-client";
 
-const uploadTypeSchema = z.enum(["avatar", "backdrop"]);
+const uploadTypeSchema = z.literal("avatar");
 const uploadContentTypeSchema = z.enum([
   "image/jpeg",
   "image/png",

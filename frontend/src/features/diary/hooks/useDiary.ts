@@ -34,7 +34,7 @@ export const useCreateDiaryEntry = () => {
       if (me?.username) {
         tasks.push(
           queryClient.invalidateQueries({ queryKey: profileKeys.detail(me.username) }),
-          queryClient.invalidateQueries({ queryKey: profileKeys.diary(me.username) }),
+          queryClient.invalidateQueries({ queryKey: profileKeys.recentActivity(me.username, 20) }),
         );
       }
 
