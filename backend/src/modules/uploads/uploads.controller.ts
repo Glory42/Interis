@@ -64,11 +64,8 @@ export class UploadsController {
       return;
     }
 
-    const field =
-      parsed.data.uploadType === "avatar" ? "avatarUrl" : "backdropUrl";
-
     const updated = await UsersService.updateProfile(req.user.id, {
-      [field]: parsed.data.publicUrl,
+      avatarUrl: parsed.data.publicUrl,
     });
 
     res.status(200).json(updated);

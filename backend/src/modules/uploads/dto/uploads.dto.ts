@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const RequestUploadSchema = z.object({
-  uploadType: z.enum(["avatar", "backdrop"]),
+  uploadType: z.literal("avatar"),
   contentType: z.enum(["image/jpeg", "image/png", "image/webp"]),
   fileSizeBytes: z
     .number()
@@ -11,7 +11,7 @@ export const RequestUploadSchema = z.object({
 });
 
 export const ConfirmUploadSchema = z.object({
-  uploadType: z.enum(["avatar", "backdrop"]),
+  uploadType: z.literal("avatar"),
   publicUrl: z.string().url(),
 });
 
