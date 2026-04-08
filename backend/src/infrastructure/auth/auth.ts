@@ -107,7 +107,6 @@ export const auth = betterAuth({
             userId: createdUser.id,
             themeId: DEFAULT_THEME_ID,
             isAdmin: false,
-            top4MovieIds: [],
           });
         },
       },
