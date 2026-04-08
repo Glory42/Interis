@@ -144,6 +144,60 @@ export const userStatsSchema = z.object({
   followingCount: z.number().int().nonnegative().optional(),
 });
 
+export const topPickCategoryIdSchema = z.union([
+  z.literal(1),
+  z.literal(2),
+  z.literal(3),
+  z.literal(4),
+]);
+
+export const topPickCategoryKeySchema = z.enum([
+  "cinema",
+  "serial",
+  "codex",
+  "echoes",
+]);
+
+export const topPickMediaTypeSchema = z.enum(["movie", "tv", "book", "music"]);
+
+export const topPickItemSchema = z.object({
+  slot: z.number().int().min(1).max(4),
+  mediaType: topPickMediaTypeSchema,
+  mediaSource: z.string(),
+  mediaSourceId: z.string(),
+  entityId: z.number().int().nullable(),
+  tmdbId: z.number().int().nullable(),
+  title: z.string().nullable(),
+  posterPath: z.string().nullable(),
+  releaseYear: z.number().int().nullable(),
+});
+
+export const topPickCategorySchema = z.object({
+  id: topPickCategoryIdSchema,
+  key: topPickCategoryKeySchema,
+  supported: z.boolean(),
+  items: z.array(topPickItemSchema),
+});
+
+export const publicTop4ResponseSchema = z.object({
+  categories: z.array(topPickCategorySchema).length(4),
+});
+
+export const updateTopPickItemInputSchema = z.object({
+  slot: z.number().int().min(1).max(4),
+  mediaType: topPickMediaTypeSchema,
+  mediaSource: z.string().trim().min(1).max(32),
+  mediaSourceId: z.string().trim().min(1).max(128),
+  title: z.string().trim().max(200).optional(),
+  posterPath: z.string().trim().max(500).nullable().optional(),
+  releaseYear: z.number().int().min(1800).max(2200).nullable().optional(),
+});
+
+export const updateTopPickCategoryInputSchema = z.object({
+  categoryId: topPickCategoryIdSchema,
+  items: z.array(updateTopPickItemInputSchema).max(4),
+});
+
 export const publicProfileSchema = z
   .object({
     id: z.string(),
@@ -154,8 +208,6 @@ export const publicProfileSchema = z
     bio: z.string().nullish(),
     location: z.string().nullish(),
     avatarUrl: z.string().nullish(),
-    backdropUrl: z.string().nullish(),
-    top4MovieIds: z.array(z.number().int()).nullish(),
     favoriteGenres: z.array(favoriteGenreSchema).nullish(),
     themeId: z.string().optional(),
     isAdmin: z.boolean(),
@@ -174,8 +226,6 @@ export const meProfileSchema = z
     bio: z.string().nullish(),
     location: z.string().nullish(),
     avatarUrl: z.string().nullish(),
-    backdropUrl: z.string().nullish(),
-    top4MovieIds: z.array(z.number().int()).nullish(),
     favoriteGenres: z.array(favoriteGenreSchema).nullish(),
     themeId: z.string().optional(),
     isAdmin: z.boolean(),
@@ -187,8 +237,7 @@ export const updateProfileInputSchema = z.object({
   bio: z.string().max(300).optional(),
   location: z.string().max(100).optional(),
   avatarUrl: z.string().url().optional().or(z.literal("")),
-  backdropUrl: z.string().url().optional().or(z.literal("")),
-  top4MovieIds: z.array(z.number().int().positive()).optional(),
+  topPicks: z.array(updateTopPickCategoryInputSchema).max(4).optional(),
   favoriteGenres: z.array(favoriteGenreSchema).max(8).optional(),
 });
 
@@ -198,8 +247,6 @@ export const profileUpdateResponseSchema = z
     bio: z.string().nullish(),
     location: z.string().nullish(),
     avatarUrl: z.string().nullish(),
-    backdropUrl: z.string().nullish(),
-    top4MovieIds: z.array(z.number().int()).nullish(),
     favoriteGenres: z.array(favoriteGenreSchema).nullish(),
     isAdmin: z.boolean(),
     createdAt: z.string(),
@@ -233,3 +280,6 @@ export type UpdateProfileInput = z.infer<typeof updateProfileInputSchema>;
 export type ProfileUpdateResponse = z.infer<typeof profileUpdateResponseSchema>;
 export type LoginInput = z.infer<typeof loginInputSchema>;
 export type RegisterInput = z.infer<typeof registerInputSchema>;
+export type TopPickItem = z.infer<typeof topPickItemSchema>;
+export type TopPickCategory = z.infer<typeof topPickCategorySchema>;
+export type PublicTop4Response = z.infer<typeof publicTop4ResponseSchema>;

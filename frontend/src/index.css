@@ -149,22 +149,23 @@
   --module-echoes: #ff44ff;
   --module-neutral: #9ca3af;
 
-  /* Contribution heatmap palette (deterministic media-type combinations) */
-  --heatmap-mask-1-rgb: 59 130 246; /* film */
-  --heatmap-mask-2-rgb: 34 197 94; /* tv */
-  --heatmap-mask-3-rgb: 20 184 166; /* film + tv */
-  --heatmap-mask-4-rgb: 239 68 68; /* book */
-  --heatmap-mask-5-rgb: 139 92 246; /* film + book */
-  --heatmap-mask-6-rgb: 217 119 6; /* tv + book */
-  --heatmap-mask-7-rgb: 99 102 241; /* film + tv + book */
-  --heatmap-mask-8-rgb: 234 179 8; /* music */
-  --heatmap-mask-9-rgb: 14 165 233; /* film + music */
-  --heatmap-mask-10-rgb: 132 204 22; /* tv + music */
-  --heatmap-mask-11-rgb: 6 182 212; /* film + tv + music */
-  --heatmap-mask-12-rgb: 249 115 22; /* book + music */
-  --heatmap-mask-13-rgb: 168 85 247; /* film + book + music */
-  --heatmap-mask-14-rgb: 202 138 4; /* tv + book + music */
-  --heatmap-mask-15-rgb: 100 116 139; /* all media types */
+  --profile-shell-bg: color-mix(in srgb, var(--background) 88%, black);
+  --profile-shell-fg: var(--foreground);
+  --profile-shell-muted: color-mix(in srgb, var(--foreground) 36%, transparent);
+  --profile-shell-accent: var(--primary);
+  --profile-shell-border: color-mix(in srgb, var(--primary) 24%, transparent);
+  --profile-shell-row-border: color-mix(in srgb, var(--primary) 12%, transparent);
+  --profile-shell-panel: color-mix(in srgb, var(--card) 78%, var(--background) 22%);
+
+  --settings-shell-bg: var(--profile-shell-bg);
+  --settings-shell-fg: var(--profile-shell-fg);
+  --settings-shell-muted: color-mix(in srgb, var(--foreground) 30%, transparent);
+  --settings-shell-dim: color-mix(in srgb, var(--foreground) 58%, transparent);
+  --settings-shell-accent: var(--primary);
+  --settings-shell-border: color-mix(in srgb, var(--primary) 22%, transparent);
+  --settings-shell-row-border: color-mix(in srgb, var(--primary) 12%, transparent);
+  --settings-shell-panel: color-mix(in srgb, var(--card) 76%, var(--background) 24%);
+
 }
 
 :root[data-theme-id="null-log"] {
@@ -631,6 +632,105 @@
 
   .theme-button-danger:hover {
     box-shadow: var(--theme-button-danger-shadow-hover);
+  }
+
+  .profile-shell {
+    background: var(--profile-shell-bg);
+    color: var(--profile-shell-fg);
+  }
+
+  .profile-shell-muted {
+    color: var(--profile-shell-muted);
+  }
+
+  .profile-shell-accent {
+    color: var(--profile-shell-accent);
+  }
+
+  .profile-shell-border {
+    border-color: var(--profile-shell-border);
+  }
+
+  .profile-shell-row-border {
+    border-color: var(--profile-shell-row-border);
+  }
+
+  .profile-shell-panel {
+    background: var(--profile-shell-panel);
+  }
+
+  .profile-shell-bio {
+    font-family: Georgia, "Times New Roman", serif;
+  }
+
+  .settings-shell {
+    background: var(--settings-shell-bg);
+    color: var(--settings-shell-fg);
+  }
+
+  .settings-shell-muted {
+    color: var(--settings-shell-muted);
+  }
+
+  .settings-shell-dim-text {
+    color: var(--settings-shell-dim);
+  }
+
+  .settings-shell-accent {
+    color: var(--settings-shell-accent);
+  }
+
+  .settings-shell-border {
+    border-color: var(--settings-shell-border);
+  }
+
+  .settings-shell-row-border {
+    border-color: var(--settings-shell-row-border);
+  }
+
+  .settings-shell-panel {
+    background: var(--settings-shell-panel);
+  }
+
+  .settings-shell-input {
+    background: var(--settings-shell-bg);
+  }
+
+  .settings-shell-bio {
+    font-family: Georgia, "Times New Roman", serif;
+  }
+
+  .settings-shell-dot {
+    background: var(--settings-shell-accent);
+  }
+
+  .settings-shell-active-pill {
+    background: color-mix(in srgb, var(--settings-shell-accent) 9%, transparent);
+  }
+
+  .settings-shell-nav-idle {
+    border-color: var(--settings-shell-row-border) var(--settings-shell-row-border)
+      var(--settings-shell-row-border) transparent;
+    background: transparent;
+    color: var(--settings-shell-dim);
+  }
+
+  .settings-shell-nav-active {
+    border-color: var(--settings-shell-row-border) var(--settings-shell-row-border)
+      var(--settings-shell-row-border) var(--settings-shell-accent);
+    background: color-mix(in srgb, var(--settings-shell-accent) 10%, transparent);
+    color: var(--settings-shell-accent);
+  }
+
+  .settings-shell-active-option {
+    border-color: var(--settings-shell-accent);
+    background: color-mix(in srgb, var(--settings-shell-accent) 7%, transparent);
+  }
+
+  .settings-shell-danger-option {
+    border-color: color-mix(in srgb, var(--destructive) 48%, transparent);
+    color: var(--destructive);
+    background: color-mix(in srgb, var(--destructive) 8%, transparent);
   }
 }
 

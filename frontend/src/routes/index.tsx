@@ -33,8 +33,8 @@ export const Route = createFileRoute("/")({
     if (user) {
       prefetchTasks.push(
         context.queryClient.prefetchQuery({
-          queryKey: feedKeys.following,
-          queryFn: ({ signal }) => getFollowingFeed(20, { signal }),
+          queryKey: feedKeys.followingByLimit(15),
+          queryFn: ({ signal }) => getFollowingFeed(15, { signal }),
         }),
         context.queryClient.prefetchQuery({
           queryKey: feedKeys.meSummary,

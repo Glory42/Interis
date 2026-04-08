@@ -22,6 +22,8 @@ import { Route as CinemaIndexRouteImport } from './routes/cinema/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as SettingsThemeRouteImport } from './routes/settings/theme'
 import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
+import { Route as SettingsGenresRouteImport } from './routes/settings/genres'
+import { Route as SettingsFavoritesRouteImport } from './routes/settings/favorites'
 import { Route as SettingsAuthRouteImport } from './routes/settings/auth'
 import { Route as SerialsTmdbIdRouteImport } from './routes/serials/$tmdbId'
 import { Route as FilmsTmdbIdRouteImport } from './routes/films/$tmdbId'
@@ -103,6 +105,16 @@ const SettingsThemeRoute = SettingsThemeRouteImport.update({
 const SettingsProfileRoute = SettingsProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => SettingsRouteRoute,
+} as any)
+const SettingsGenresRoute = SettingsGenresRouteImport.update({
+  id: '/genres',
+  path: '/genres',
+  getParentRoute: () => SettingsRouteRoute,
+} as any)
+const SettingsFavoritesRoute = SettingsFavoritesRouteImport.update({
+  id: '/favorites',
+  path: '/favorites',
   getParentRoute: () => SettingsRouteRoute,
 } as any)
 const SettingsAuthRoute = SettingsAuthRouteImport.update({
@@ -208,6 +220,8 @@ export interface FileRoutesByFullPath {
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
+  '/settings/favorites': typeof SettingsFavoritesRoute
+  '/settings/genres': typeof SettingsGenresRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/theme': typeof SettingsThemeRoute
   '/admin/': typeof AdminIndexRoute
@@ -238,6 +252,8 @@ export interface FileRoutesByTo {
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
+  '/settings/favorites': typeof SettingsFavoritesRoute
+  '/settings/genres': typeof SettingsGenresRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/theme': typeof SettingsThemeRoute
   '/admin': typeof AdminIndexRoute
@@ -271,6 +287,8 @@ export interface FileRoutesById {
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
+  '/settings/favorites': typeof SettingsFavoritesRoute
+  '/settings/genres': typeof SettingsGenresRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/theme': typeof SettingsThemeRoute
   '/admin/': typeof AdminIndexRoute
@@ -305,6 +323,8 @@ export interface FileRouteTypes {
     | '/films/$tmdbId'
     | '/serials/$tmdbId'
     | '/settings/auth'
+    | '/settings/favorites'
+    | '/settings/genres'
     | '/settings/profile'
     | '/settings/theme'
     | '/admin/'
@@ -335,6 +355,8 @@ export interface FileRouteTypes {
     | '/films/$tmdbId'
     | '/serials/$tmdbId'
     | '/settings/auth'
+    | '/settings/favorites'
+    | '/settings/genres'
     | '/settings/profile'
     | '/settings/theme'
     | '/admin'
@@ -367,6 +389,8 @@ export interface FileRouteTypes {
     | '/films/$tmdbId'
     | '/serials/$tmdbId'
     | '/settings/auth'
+    | '/settings/favorites'
+    | '/settings/genres'
     | '/settings/profile'
     | '/settings/theme'
     | '/admin/'
@@ -499,6 +523,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsProfileRouteImport
       parentRoute: typeof SettingsRouteRoute
     }
+    '/settings/genres': {
+      id: '/settings/genres'
+      path: '/genres'
+      fullPath: '/settings/genres'
+      preLoaderRoute: typeof SettingsGenresRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
+    '/settings/favorites': {
+      id: '/settings/favorites'
+      path: '/favorites'
+      fullPath: '/settings/favorites'
+      preLoaderRoute: typeof SettingsFavoritesRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
     '/settings/auth': {
       id: '/settings/auth'
       path: '/auth'
@@ -623,6 +661,8 @@ declare module '@tanstack/react-router' {
 
 interface SettingsRouteRouteChildren {
   SettingsAuthRoute: typeof SettingsAuthRoute
+  SettingsFavoritesRoute: typeof SettingsFavoritesRoute
+  SettingsGenresRoute: typeof SettingsGenresRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
   SettingsThemeRoute: typeof SettingsThemeRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
@@ -630,6 +670,8 @@ interface SettingsRouteRouteChildren {
 
 const SettingsRouteRouteChildren: SettingsRouteRouteChildren = {
   SettingsAuthRoute: SettingsAuthRoute,
+  SettingsFavoritesRoute: SettingsFavoritesRoute,
+  SettingsGenresRoute: SettingsGenresRoute,
   SettingsProfileRoute: SettingsProfileRoute,
   SettingsThemeRoute: SettingsThemeRoute,
   SettingsIndexRoute: SettingsIndexRoute,
