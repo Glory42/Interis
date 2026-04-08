@@ -19,6 +19,8 @@ export const AppNavbar = () => {
     isProfileMenuOpen,
     visiblePrimaryNavItems,
     profileMenuRef,
+    profileImageUrl,
+    profileInitial,
     closeMobileMenu,
     closeProfileMenu,
     openProfileMenu,
@@ -61,6 +63,8 @@ export const AppNavbar = () => {
             {user ? (
               <ProfileMenu
                 user={user}
+                profileImageUrl={profileImageUrl}
+                profileInitial={profileInitial}
                 isOpen={isProfileMenuOpen}
                 isLogoutPending={isLogoutPending}
                 onOpen={openProfileMenu}
