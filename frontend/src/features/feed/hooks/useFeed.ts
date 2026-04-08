@@ -9,15 +9,17 @@ import {
 export const feedKeys = {
   all: ["feed"] as const,
   following: ["feed", "following"] as const,
+  followingByLimit: (limit: number) => ["feed", "following", limit] as const,
   trending: ["feed", "trending"] as const,
   meSummary: ["feed", "me-summary"] as const,
   networkStats: ["feed", "network-stats"] as const,
 };
 
-export const useFollowingFeed = (enabled = true) =>
+export const useFollowingFeed = (enabled = true, limit = 20) =>
   useQuery({
-    queryKey: feedKeys.following,
-    queryFn: ({ signal }) => getFollowingFeed(20, { signal }),
+    queryKey: feedKeys.followingByLimit(limit),
+    queryFn: ({ signal }) => getFollowingFeed(limit, { signal }),
+    placeholderData: (previousData) => previousData,
     enabled,
   });
 

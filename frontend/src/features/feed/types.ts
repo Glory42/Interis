@@ -134,6 +134,8 @@ export const meFeedSummarySchema = z.object({
 
 export const networkStatsSchema = z.object({
   totalUsers: z.number().int().nonnegative(),
+  logsToday: z.number().int().nonnegative(),
+  liveReviews: z.number().int().nonnegative(),
 });
 
 export type FeedItem = z.infer<typeof feedItemSchema>;

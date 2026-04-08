@@ -27,9 +27,10 @@ const filterTabs: Array<{ id: FeedFilter; label: string }> = [
 export const HomePage = () => {
   const { user } = useAuth();
   const [activeFilter, setActiveFilter] = useState<FeedFilter>("all");
+  const [feedLimit, setFeedLimit] = useState(15);
 
   const isFollowingEnabled = Boolean(user);
-  const followingFeedQuery = useFollowingFeed(isFollowingEnabled);
+  const followingFeedQuery = useFollowingFeed(isFollowingEnabled, feedLimit);
   const cinemaTrendingQuery = useTrendingNow();
   const serialTrendingQuery = useTrendingSeries();
   const mySummaryQuery = useMyFeedSummary(Boolean(user));
@@ -44,18 +45,18 @@ export const HomePage = () => {
     : false;
   const isFeedError = isFollowingEnabled ? followingFeedQuery.isError : false;
 
-  const liveReviews = useMemo(
-    () =>
-      feedItems.filter(
-        (item) =>
-          item.kind === "review" ||
-          (item.kind === "diary_entry" && item.review),
-      ).length,
-    [feedItems],
-  );
-
   const totalUsers = networkStatsQuery.data?.totalUsers ?? null;
-  const logsToday = feedItems.length;
+  const liveReviews = networkStatsQuery.data?.liveReviews ?? null;
+  const logsToday = networkStatsQuery.data?.logsToday ?? null;
+  const isFetchingMoreFeed =
+    isFollowingEnabled &&
+    followingFeedQuery.isFetching &&
+    !followingFeedQuery.isPending;
+  const canShowMoreFeed =
+    isFollowingEnabled &&
+    !isFeedLoading &&
+    !isFeedError &&
+    feedItems.length >= feedLimit;
 
   const focusQuickLogComposer = () => {
     const composerNode = document.getElementById("quick-log-composer");
@@ -108,7 +109,7 @@ export const HomePage = () => {
               LIVE_REVIEWS:
             </span>
             <span className="font-mono text-[11px] font-bold text-(--module-cinema)">
-              {liveReviews}
+              {liveReviews ?? "--"}
             </span>
           </div>
 
@@ -128,7 +129,7 @@ export const HomePage = () => {
               LOGS_TODAY:
             </span>
             <span className="font-mono text-[11px] font-bold text-(--module-codex)">
-              {logsToday}
+              {logsToday ?? "--"}
             </span>
           </div>
         </div>
@@ -172,6 +173,21 @@ export const HomePage = () => {
             items={feedItems}
             activeFilter={activeFilter}
           />
+
+          {canShowMoreFeed ? (
+            <div className="mt-5 flex justify-center">
+              <button
+                type="button"
+                disabled={isFetchingMoreFeed}
+                onClick={() => {
+                  setFeedLimit((currentLimit) => currentLimit + 15);
+                }}
+                className="border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isFetchingMoreFeed ? "Loading..." : "Show more"}
+              </button>
+            </div>
+          ) : null}
         </div>
 
         <aside className="w-full shrink-0 space-y-6 lg:w-72">

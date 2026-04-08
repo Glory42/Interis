@@ -6,15 +6,14 @@ import {
   Loader2,
   MessageSquare,
   PenSquare,
-  Star,
   TriangleAlert,
 } from "lucide-react";
+import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
 import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
 import { FeedReviewEditDialog } from "@/features/feed/components/FeedReviewEditDialog";
 import {
   feedChannelMeta,
   getRelativeTime,
-  getRoundedStars,
 } from "@/features/feed/components/feed-row.utils";
 import type { FeedItem } from "@/features/feed/types";
 import { cn } from "@/lib/utils";
@@ -22,6 +21,37 @@ import { useReviewActivityCard } from "./review-activity-card/useReviewActivityC
 
 type ReviewActivityCardProps = {
   item: FeedItem;
+};
+
+const getReviewActionLabel = (item: FeedItem): string => {
+  switch (item.kind) {
+    case "review":
+      return "published a review";
+    case "diary_entry":
+      return "logged with a review";
+    case "liked_review":
+      return item.metadata.targetUsername
+        ? `liked @${item.metadata.targetUsername}'s review`
+        : "liked a review";
+    case "commented":
+      return item.metadata.targetUsername
+        ? `commented on @${item.metadata.targetUsername}'s review`
+        : "commented on a review";
+    default:
+      return "updated a review";
+  }
+};
+
+const getReviewBodyFallback = (item: FeedItem): string => {
+  if (item.kind === "commented") {
+    return "Left a comment on a review.";
+  }
+
+  if (item.kind === "liked_review") {
+    return "Liked a review.";
+  }
+
+  return "Shared a review.";
 };
 
 export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
@@ -49,11 +79,12 @@ export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
 
   const channel = movie?.mediaType === "tv" ? "serial" : "cinema";
   const channelMeta = feedChannelMeta[channel];
-  const starsToShow = getRoundedStars(
-    ratingOutOfFive ? Number.parseFloat(ratingOutOfFive) : null,
-  );
+  const ratingValue =
+    ratingOutOfFive === null ? null : Number.parseFloat(ratingOutOfFive);
   const reviewId = item.review?.id ?? item.metadata.reviewId ?? null;
   const isOwnReview = Boolean(user && reviewId && user.id === item.actor.id);
+  const actionLabel = getReviewActionLabel(item);
+  const showRating = item.kind === "review" || item.kind === "diary_entry";
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -103,6 +134,10 @@ export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
           </div>
         </div>
 
+        <p className="mt-2 ml-10 font-mono text-[10px] text-muted-foreground/85">
+          {actionLabel}
+        </p>
+
         <div className="mt-3 ml-10 flex flex-wrap items-center gap-3">
           <div className="flex min-w-0 items-center gap-2 border px-2.5 py-1" style={channelStyle}>
             <span className="font-mono text-[9px] uppercase tracking-[0.14em]">
@@ -126,17 +161,9 @@ export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
             ) : null}
           </div>
 
-          <div className="flex items-center gap-0.5" style={{ color: channelMeta.color }}>
-            {Array.from({ length: 5 }).map((_, index) => (
-              <Star
-                key={`review-star-${item.id}-${index}`}
-                className={cn(
-                  "h-3.5 w-3.5",
-                  index < starsToShow ? "fill-current" : "text-white/15",
-                )}
-              />
-            ))}
-          </div>
+          {showRating ? (
+            <SpaceRatingDisplay ratingOutOfFive={ratingValue} size="sm" />
+          ) : null}
         </div>
 
         {reviewContainsSpoilers && !isSpoilerRevealed ? (
@@ -156,7 +183,7 @@ export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
           </div>
         ) : (
           <p className="mt-3 ml-10 w-full pr-3 font-mono text-sm leading-relaxed text-foreground/80 transition-colors group-hover:text-foreground">
-            {reviewContent || "Shared a review."}
+            {reviewContent || getReviewBodyFallback(item)}
           </p>
         )}
 

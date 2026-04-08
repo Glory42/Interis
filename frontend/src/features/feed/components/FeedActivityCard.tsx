@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { Link } from "@tanstack/react-router";
-import { CornerDownRight, Heart, MessageSquare, Star } from "lucide-react";
+import { CornerDownRight, Heart, MessageSquare } from "lucide-react";
 import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
 import { PostActivityCard } from "@/features/feed/components/PostActivityCard";
 import { ReviewActivityCard } from "@/features/feed/components/ReviewActivityCard";
@@ -8,11 +8,10 @@ import {
   feedChannelMeta,
   getRatingOutOfFive,
   getRelativeTime,
-  getRoundedStars,
   inferFeedChannel,
 } from "@/features/feed/components/feed-row.utils";
+import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
 import type { FeedItem } from "@/features/feed/types";
-import { cn } from "@/lib/utils";
 
 type FeedActivityCardProps = {
   item: FeedItem;
@@ -80,7 +79,12 @@ export const FeedActivityCard = ({ item }: FeedActivityCardProps) => {
     return <PostActivityCard item={item} />;
   }
 
-  if (item.kind === "review" || (item.kind === "diary_entry" && item.review)) {
+  if (
+    item.kind === "review" ||
+    item.kind === "liked_review" ||
+    item.kind === "commented" ||
+    (item.kind === "diary_entry" && item.review)
+  ) {
     return <ReviewActivityCard item={item} />;
   }
 
@@ -92,7 +96,6 @@ export const FeedActivityCard = ({ item }: FeedActivityCardProps) => {
   const actorInitial = item.actor.username.slice(0, 1).toUpperCase();
   const actorAvatar = item.actor.avatarUrl ?? item.actor.image ?? null;
   const ratingOutOfFive = getRatingOutOfFive(item.metadata.rating);
-  const filledStars = getRoundedStars(ratingOutOfFive);
 
   const channelStyle = {
     borderColor: `color-mix(in srgb, ${channelColor} 36%, transparent)`,
@@ -135,17 +138,7 @@ export const FeedActivityCard = ({ item }: FeedActivityCardProps) => {
         </div>
 
         {ratingOutOfFive !== null ? (
-          <div className="flex items-center gap-0.5" style={{ color: channelColor }}>
-            {Array.from({ length: 5 }).map((_, index) => (
-              <Star
-                key={`feed-star-${item.id}-${index}`}
-                className={cn(
-                  "h-3.5 w-3.5",
-                  index < filledStars ? "fill-current" : "text-white/15",
-                )}
-              />
-            ))}
-          </div>
+          <SpaceRatingDisplay ratingOutOfFive={ratingOutOfFive} size="sm" />
         ) : null}
       </div>
 

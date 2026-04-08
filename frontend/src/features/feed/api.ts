@@ -15,7 +15,7 @@ const normalizeLimit = (limit: number, fallback: number): number => {
     return fallback;
   }
 
-  return Math.max(1, Math.min(Math.floor(limit), 40));
+  return Math.max(1, Math.min(Math.floor(limit), 300));
 };
 
 type QueryRequestOptions = {

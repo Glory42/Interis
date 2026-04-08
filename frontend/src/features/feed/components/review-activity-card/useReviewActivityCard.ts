@@ -47,9 +47,18 @@ export const useReviewActivityCard = (item: FeedItem): ReviewActivityCardViewMod
   const actorAvatar = item.actor.avatarUrl ?? item.actor.image ?? null;
   const actorInitial = item.actor.username.slice(0, 1).toUpperCase();
 
-  const reviewContent = item.review?.content ?? item.metadata.excerpt ?? "";
-  const reviewContainsSpoilers = item.review?.containsSpoilers === true;
-  const reviewOwnerUsername = item.actor.username;
+  const isLikeReviewActivity = item.kind === "liked_review";
+  const isCommentActivity = item.kind === "commented";
+  const isPrimaryReviewActivity =
+    item.kind === "review" || item.kind === "diary_entry";
+  const reviewContent = isCommentActivity
+    ? item.metadata.excerpt ?? item.review?.content ?? ""
+    : isLikeReviewActivity
+      ? item.metadata.excerpt ?? ""
+      : item.review?.content ?? item.metadata.excerpt ?? "";
+  const reviewContainsSpoilers =
+    isPrimaryReviewActivity && item.review?.containsSpoilers === true;
+  const reviewOwnerUsername = item.metadata.targetUsername ?? item.actor.username;
 
   const isLikePending = likeReviewMutation.isPending || unlikeReviewMutation.isPending;
 
