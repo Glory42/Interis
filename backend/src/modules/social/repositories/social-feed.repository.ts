@@ -1,4 +1,5 @@
 import { and, eq, inArray, or, sql } from "drizzle-orm";
+import { user } from "../../../infrastructure/database/auth.entity";
 import { db } from "../../../infrastructure/database/db";
 import { diaryEntries } from "../../diary/diary.entity";
 import { movies } from "../../movies/movies.entity";
@@ -27,6 +28,7 @@ export class SocialFeedRepository {
         .select({
           id: reviews.id,
           diaryEntryId: reviews.diaryEntryId,
+          reviewAuthorUsername: user.username,
           content: reviews.content,
           containsSpoilers: reviews.containsSpoilers,
           rating: diaryEntries.rating,
@@ -36,6 +38,7 @@ export class SocialFeedRepository {
           releaseYear: movies.releaseYear,
         })
         .from(reviews)
+        .innerJoin(user, eq(reviews.userId, user.id))
         .innerJoin(movies, eq(reviews.movieId, movies.id))
         .leftJoin(diaryEntries, eq(reviews.diaryEntryId, diaryEntries.id))
         .where(and(eq(reviews.mediaType, "movie"), whereClause)),
@@ -43,12 +46,14 @@ export class SocialFeedRepository {
         .select({
           id: reviews.id,
           diaryEntryId: reviews.diaryEntryId,
+          reviewAuthorUsername: user.username,
           content: reviews.content,
           containsSpoilers: reviews.containsSpoilers,
           rating: serialDiaryEntries.rating,
           tmdbId: reviews.mediaSourceId,
         })
         .from(reviews)
+        .innerJoin(user, eq(reviews.userId, user.id))
         .leftJoin(serialDiaryEntries, eq(reviews.diaryEntryId, serialDiaryEntries.id))
         .where(and(eq(reviews.mediaType, "tv"), whereClause)),
     ]);
@@ -82,6 +87,7 @@ export class SocialFeedRepository {
         return {
           id: row.id,
           diaryEntryId: row.diaryEntryId,
+          reviewAuthorUsername: row.reviewAuthorUsername,
           content: row.content,
           containsSpoilers: row.containsSpoilers,
           rating: row.rating,

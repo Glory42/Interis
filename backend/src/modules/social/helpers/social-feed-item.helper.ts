@@ -45,6 +45,12 @@ export const toFeedItem = async (
         }
       : null;
 
+  const metadataWithReviewContext = {
+    ...metadata,
+    targetUsername:
+      metadata.targetUsername ?? reviewDetails?.reviewAuthorUsername ?? null,
+  };
+
   const postId = post?.id ?? metadata.postId ?? (kind === "post" ? row.activity.entityId : null);
   const fallbackPostEngagement: PostEngagement = {
     likeCount: 0,
@@ -82,7 +88,7 @@ export const toFeedItem = async (
     movie,
     post,
     review,
-    metadata,
+    metadata: metadataWithReviewContext,
     engagement,
   };
 };

@@ -67,6 +67,7 @@ export const buildReviewContext = async (
     const context: ReviewFeedContext = {
       id: row.id,
       diaryEntryId: row.diaryEntryId,
+      reviewAuthorUsername: row.reviewAuthorUsername,
       content: row.content,
       containsSpoilers: row.containsSpoilers,
       rating: row.rating,

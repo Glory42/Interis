@@ -92,6 +92,7 @@ export type FeedItem = {
 export type ReviewFeedContext = {
   id: string;
   diaryEntryId: string | null;
+  reviewAuthorUsername: string | null;
   content: string;
   containsSpoilers: boolean;
   rating: number | null;
