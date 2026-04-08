@@ -178,19 +178,33 @@ export class MoviesRepository {
       return [];
     }
 
-    const rows = await db
-      .select({ tmdbId: movies.tmdbId })
-      .from(diaryEntries)
-      .innerJoin(movies, eq(diaryEntries.movieId, movies.id))
-      .where(
-        and(
-          eq(diaryEntries.userId, viewerUserId),
-          inArray(movies.tmdbId, uniqueTmdbIds),
-        ),
-      )
-      .groupBy(movies.tmdbId);
+    const [loggedRows, ratedRows] = await Promise.all([
+      db
+        .select({ tmdbId: movies.tmdbId })
+        .from(diaryEntries)
+        .innerJoin(movies, eq(diaryEntries.movieId, movies.id))
+        .where(
+          and(
+            eq(diaryEntries.userId, viewerUserId),
+            inArray(movies.tmdbId, uniqueTmdbIds),
+          ),
+        )
+        .groupBy(movies.tmdbId),
+      db
+        .select({ tmdbId: movies.tmdbId })
+        .from(movieInteractions)
+        .innerJoin(movies, eq(movieInteractions.movieId, movies.id))
+        .where(
+          and(
+            eq(movieInteractions.userId, viewerUserId),
+            inArray(movies.tmdbId, uniqueTmdbIds),
+            sql`${movieInteractions.rating} is not null`,
+          ),
+        )
+        .groupBy(movies.tmdbId),
+    ]);
 
-    return rows.map((row) => row.tmdbId);
+    return [...new Set([...loggedRows, ...ratedRows].map((row) => row.tmdbId))];
   }
 
   static async getViewerWatchlistedTmdbIds(viewerUserId: string, tmdbIds: number[]) {
