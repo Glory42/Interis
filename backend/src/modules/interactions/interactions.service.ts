@@ -3,7 +3,21 @@ import { db } from "../../infrastructure/database/db";
 import { movieInteractions } from "./interactions.entity";
 import { activities } from "../social/social.entity";
 import { MoviesService } from "../movies/movies.service";
+import { toRatingOutOfFive } from "../movies/helpers/movies-format.helper";
+import { resolveRatingOutOfTen } from "../diary/helpers/diary-rating.helper";
 import type { UpdateInteractionDto } from "./dto/interactions.dto";
+
+const toInteractionResponse = (row: {
+  liked: boolean;
+  watchlisted: boolean;
+  rating: number | null;
+}) => {
+  return {
+    liked: row.liked,
+    watchlisted: row.watchlisted,
+    ratingOutOfFive: toRatingOutOfFive(row.rating),
+  };
+};
 
 export class InteractionsService {
   // GET current state — null means no row yet (both false)
@@ -21,8 +35,12 @@ export class InteractionsService {
       )
       .limit(1);
 
-    return (
-      row ?? { userId, movieId: movie.id, liked: false, watchlisted: false }
+    return toInteractionResponse(
+      row ?? {
+        liked: false,
+        watchlisted: false,
+        rating: null,
+      },
     );
   }
 
@@ -33,6 +51,7 @@ export class InteractionsService {
     input: UpdateInteractionDto,
   ) {
     const movie = await MoviesService.findOrCreate(tmdbId);
+    const ratingOutOfTen = resolveRatingOutOfTen(input.ratingOutOfFive);
 
     const [upserted] = await db
       .insert(movieInteractions)
@@ -41,6 +60,7 @@ export class InteractionsService {
         movieId: movie.id,
         liked: input.liked ?? false,
         watchlisted: input.watchlisted ?? false,
+        rating: ratingOutOfTen ?? null,
       })
       .onConflictDoUpdate({
         target: [movieInteractions.userId, movieInteractions.movieId],
@@ -48,6 +68,9 @@ export class InteractionsService {
           ...(input.liked !== undefined && { liked: input.liked }),
           ...(input.watchlisted !== undefined && {
             watchlisted: input.watchlisted,
+          }),
+          ...(input.ratingOutOfFive !== undefined && {
+            rating: ratingOutOfTen ?? null,
           }),
         },
       })
@@ -85,6 +108,12 @@ export class InteractionsService {
       });
     }
 
-    return upserted;
+    return toInteractionResponse(
+      upserted ?? {
+        liked: input.liked ?? false,
+        watchlisted: input.watchlisted ?? false,
+        rating: ratingOutOfTen ?? null,
+      },
+    );
   }
 }

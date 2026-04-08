@@ -20,6 +20,7 @@ export const movieInteractions = pgTable(
       .references(() => movies.id, { onDelete: "cascade" }),
     liked: boolean("liked").default(false).notNull(),
     watchlisted: boolean("watchlisted").default(false).notNull(),
+    rating: integer("rating"),
     updatedAt: timestamp("updated_at")
       .defaultNow()
       .$onUpdate(() => new Date())
