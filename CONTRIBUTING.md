@@ -35,9 +35,9 @@ Both packages run on Bun. The frontend proxies `/api` requests to the backend du
 - Browse a cinema archive with genre/language/time/sort filters
 - TV series support with seasons/episodes
 - Director and actor pages
-- Public profile pages with stats, heatmaps, lists, likes, and watchlists
+- Public profile pages with stats, lists, likes, and watchlists
 - Public API endpoints (`/api/public/*`) for external widgets
-- Avatar/backdrop uploads via Cloudflare R2
+- Avatar uploads via Cloudflare R2
 - Theme system (rose-pine, null-log, gruvbox)
 
 ## Architecture

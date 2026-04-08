@@ -125,7 +125,7 @@ feature/
 | `settings/` | Settings pages |
 | `social/` | Follow graph, feed |
 | `theme/` | Theme system (rose-pine, null-log, gruvbox) |
-| `uploads/` | Avatar/backdrop uploads |
+| `uploads/` | Avatar uploads |
 
 ## Data flow conventions
 

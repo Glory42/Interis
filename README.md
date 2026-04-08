@@ -5,7 +5,7 @@ A social movie journal app inspired by Letterboxd + timeline-style social apps.
 - Log watches with dates, ratings, rewatches, and optional reviews
 - Follow people and browse a personalized activity feed
 - Browse a cinema archive with genre/language/time/sort filters
-- Explore public profile pages, stats, heatmaps, lists, likes, and watchlists
+- Explore public profile pages, stats, lists, likes, and watchlists
 - Power external widgets through a small public API (`/api/public/*`)
 
 Live: [interis.gorkemkaryol.dev](https://interis.gorkemkaryol.dev)
@@ -24,7 +24,7 @@ Live: [interis.gorkemkaryol.dev](https://interis.gorkemkaryol.dev)
 | Data | TanStack Query |
 | UI | Tailwind CSS + Radix/shadcn primitives |
 | External data | TMDB (on-demand fetch + local cache) |
-| Storage | Cloudflare R2 (avatars/backdrops) |
+| Storage | Cloudflare R2 (avatars) |
 
 ## Repository layout
 
@@ -93,7 +93,7 @@ Frontend runs on `http://localhost:5173` and proxies `/api` to backend on port `
 | `GET /api/serials/*` | TV series search, detail, archive |
 | `GET /api/people/*` | Director/actor pages |
 | `GET\|POST\|PUT\|DELETE /api/diary` | Private diary CRUD |
-| `GET /api/users/*` | Profile, diary, reviews, films/cinema, likes, watchlist |
+| `GET /api/users/*` | Profile, reviews, likes, watchlist |
 | `GET\|POST\|PUT\|DELETE /api/reviews/*` | Reviews, comments, likes |
 | `GET\|POST\|DELETE /api/posts/*` | Short posts, comments, likes |
 | `GET\|POST\|DELETE /api/social/*` | Feed + follow graph |
@@ -125,7 +125,7 @@ bun run build
 - **Feature-first backend**: Each domain owns controller/service/repository/dto/helpers/types. See [backend/README.md](backend/README.md) for details.
 - **TMDB on-demand**: Movie data is fetched from TMDB on demand and cached locally; no bulk mirror/import.
 - **Separate models**: Diary entries (watch logs) and reviews are modeled separately by design.
-- **Read-optimized profiles**: Public profile/stats routes are optimized for read-heavy usage and widget integration.
+- **Read-optimized profiles**: Public profile routes are optimized for read-heavy usage and widget integration.
 - **Route-driven frontend**: Frontend is route-driven and feature-oriented, with API contracts validated by Zod. See [frontend/README.md](frontend/README.md) for details.
 
 ## Contributing
