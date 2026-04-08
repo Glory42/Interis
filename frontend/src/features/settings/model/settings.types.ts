@@ -1,9 +1,16 @@
-export type SettingsSectionId = "profile" | "theme" | "auth";
+export type SettingsSectionId =
+  | "profile"
+  | "theme"
+  | "auth"
+  | "genres"
+  | "favorites";
 
 export type SettingsSectionTo =
   | "/settings/profile"
   | "/settings/theme"
-  | "/settings/auth";
+  | "/settings/auth"
+  | "/settings/genres"
+  | "/settings/favorites";
 
 export type SettingsSectionDefinition = {
   id: SettingsSectionId;

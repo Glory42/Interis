@@ -16,18 +16,12 @@ import type { MeProfile } from "@/types/api";
 
 type UseProfileImageUploadResult = {
   avatarInputRef: RefObject<HTMLInputElement | null>;
-  backdropInputRef: RefObject<HTMLInputElement | null>;
   acceptValue: string;
   isAvatarUploading: boolean;
   avatarUploadError: string | null;
   avatarUploadSuccess: string | null;
-  isBackdropUploading: boolean;
-  backdropUploadError: string | null;
-  backdropUploadSuccess: string | null;
   openAvatarPicker: () => void;
-  openBackdropPicker: () => void;
   handleAvatarFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  handleBackdropFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
 };
 
 export const useProfileImageUpload = (
@@ -36,7 +30,6 @@ export const useProfileImageUpload = (
   const queryClient = useQueryClient();
 
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
-  const backdropInputRef = useRef<HTMLInputElement | null>(null);
 
   const [isAvatarUploading, setIsAvatarUploading] = useState(false);
   const [avatarUploadError, setAvatarUploadError] = useState<string | null>(
@@ -46,14 +39,6 @@ export const useProfileImageUpload = (
     null,
   );
 
-  const [isBackdropUploading, setIsBackdropUploading] = useState(false);
-  const [backdropUploadError, setBackdropUploadError] = useState<string | null>(
-    null,
-  );
-  const [backdropUploadSuccess, setBackdropUploadSuccess] = useState<
-    string | null
-  >(null);
-
   const runProfileImageUpload = async (uploadType: ProfileUploadType, file: File) => {
     if (!user) {
       return;
@@ -61,15 +46,9 @@ export const useProfileImageUpload = (
 
     const contentType = file.type as ProfileUploadContentType;
 
-    if (uploadType === "avatar") {
-      setAvatarUploadError(null);
-      setAvatarUploadSuccess(null);
-      setIsAvatarUploading(true);
-    } else {
-      setBackdropUploadError(null);
-      setBackdropUploadSuccess(null);
-      setIsBackdropUploading(true);
-    }
+    setAvatarUploadError(null);
+    setAvatarUploadSuccess(null);
+    setIsAvatarUploading(true);
 
     try {
       const { signedUrl, publicUrl } = await requestProfileImageUpload({
@@ -97,27 +76,15 @@ export const useProfileImageUpload = (
         }),
       ]);
 
-      if (uploadType === "avatar") {
-        setAvatarUploadSuccess("Avatar image uploaded.");
-      } else {
-        setBackdropUploadSuccess("Backdrop image uploaded.");
-      }
+      setAvatarUploadSuccess("Avatar image uploaded.");
     } catch (error) {
       const message = isApiError(error)
         ? error.message
         : "Could not upload image right now.";
 
-      if (uploadType === "avatar") {
-        setAvatarUploadError(message);
-      } else {
-        setBackdropUploadError(message);
-      }
+      setAvatarUploadError(message);
     } finally {
-      if (uploadType === "avatar") {
-        setIsAvatarUploading(false);
-      } else {
-        setIsBackdropUploading(false);
-      }
+      setIsAvatarUploading(false);
     }
   };
 
@@ -140,38 +107,13 @@ export const useProfileImageUpload = (
     input.value = "";
   };
 
-  const handleBackdropFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const input = event.currentTarget;
-    const file = input.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    const validationError = getImageValidationError(file);
-    if (validationError) {
-      setBackdropUploadError(validationError);
-      setBackdropUploadSuccess(null);
-      input.value = "";
-      return;
-    }
-
-    void runProfileImageUpload("backdrop", file);
-    input.value = "";
-  };
-
   return {
     avatarInputRef,
-    backdropInputRef,
     acceptValue: IMAGE_UPLOAD_MIME_TYPES.join(","),
     isAvatarUploading,
     avatarUploadError,
     avatarUploadSuccess,
-    isBackdropUploading,
-    backdropUploadError,
-    backdropUploadSuccess,
     openAvatarPicker: () => avatarInputRef.current?.click(),
-    openBackdropPicker: () => backdropInputRef.current?.click(),
     handleAvatarFileChange,
-    handleBackdropFileChange,
   };
 };

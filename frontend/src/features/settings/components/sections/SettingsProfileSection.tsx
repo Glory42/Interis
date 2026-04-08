@@ -1,15 +1,6 @@
 import { useState, type FormEvent } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Globe } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
-import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import {
   USERNAME_MAX_LENGTH,
@@ -18,44 +9,33 @@ import {
   validateUsernameInput,
 } from "@/features/auth/username";
 import { useUpdateMyProfile } from "@/features/profile/hooks/useProfile";
-import { SettingsFavoriteGenresCard } from "@/features/settings/components/profile/SettingsFavoriteGenresCard";
-import { SettingsTopFilmsCard } from "@/features/settings/components/profile/SettingsTopFilmsCard";
 import { useProfileImageUpload } from "@/features/settings/hooks/useProfileImageUpload";
 import { isApiError } from "@/lib/api-client";
 
 export const SettingsProfileSection = () => {
-  const { user, isUserLoading, updateIdentity, isUpdateIdentityPending } =
-    useAuth();
+  const { user, isUserLoading, updateIdentity, isUpdateIdentityPending } = useAuth();
   const updateProfileMutation = useUpdateMyProfile();
 
   const [username, setUsername] = useState(() => user?.username ?? "");
   const [bio, setBio] = useState(() => user?.bio ?? "");
   const [location, setLocation] = useState(() => user?.location ?? "");
 
-  const [usernameError, setUsernameError] = useState<string | null>(null);
-  const [usernameSuccess, setUsernameSuccess] = useState<string | null>(null);
-  const [profileError, setProfileError] = useState<string | null>(null);
-  const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
   const {
     avatarInputRef,
-    backdropInputRef,
     acceptValue,
     isAvatarUploading,
     avatarUploadError,
     avatarUploadSuccess,
-    isBackdropUploading,
-    backdropUploadError,
-    backdropUploadSuccess,
     openAvatarPicker,
-    openBackdropPicker,
     handleAvatarFileChange,
-    handleBackdropFileChange,
   } = useProfileImageUpload(user);
 
   if (isUserLoading || !user) {
     return (
-      <div className=" border border-border/70 bg-card/60 p-4 text-sm text-muted-foreground">
+      <div className="border px-4 py-3 text-sm settings-shell-border settings-shell-muted settings-shell-panel">
         <p className="flex items-center gap-2">
           <Spinner /> Loading profile settings...
         </p>
@@ -63,269 +43,210 @@ export const SettingsProfileSection = () => {
     );
   }
 
-  const handleSaveUsername = async (event: FormEvent<HTMLFormElement>) => {
+  const isSaving = isUpdateIdentityPending || updateProfileMutation.isPending;
+
+  const handleSaveChanges = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setUsernameError(null);
-    setUsernameSuccess(null);
+
+    setSaveError(null);
+    setSaveSuccess(null);
 
     const normalizedUsername = normalizeUsername(username);
-    if (normalizedUsername === user.username) {
-      setUsernameSuccess("Username is already up to date.");
-      return;
-    }
+    const normalizedBio = bio.trim();
+    const normalizedLocation = location.trim();
 
     const usernameValidationError = validateUsernameInput(normalizedUsername);
     if (usernameValidationError) {
-      setUsernameError(usernameValidationError);
+      setSaveError(usernameValidationError);
+      return;
+    }
+
+    const hasUsernameChanged = normalizedUsername !== user.username;
+    const hasBioChanged = normalizedBio !== (user.bio ?? "");
+    const hasLocationChanged = normalizedLocation !== (user.location ?? "");
+
+    if (!hasUsernameChanged && !hasBioChanged && !hasLocationChanged) {
+      setSaveSuccess("No changes to save.");
       return;
     }
 
     try {
-      await updateIdentity({
-        username: normalizedUsername,
-      });
-      setUsernameSuccess("Username saved.");
-    } catch (error) {
-      if (isApiError(error)) {
-        setUsernameError(error.message);
-        return;
+      if (hasUsernameChanged) {
+        await updateIdentity({
+          username: normalizedUsername,
+        });
       }
 
-      setUsernameError("Could not update username right now.");
+      if (hasBioChanged || hasLocationChanged) {
+        await updateProfileMutation.mutateAsync({
+          bio: normalizedBio,
+          location: normalizedLocation,
+        });
+      }
+
+      setSaveSuccess("Profile settings saved.");
+    } catch (error) {
+      setSaveError(
+        isApiError(error)
+          ? error.message
+          : "Could not save profile settings right now.",
+      );
     }
   };
 
-  const handleSaveProfile = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setProfileError(null);
-    setProfileSuccess(null);
-
-    try {
-      await updateProfileMutation.mutateAsync({
-        bio: bio.trim(),
-        location: location.trim(),
-      });
-      setProfileSuccess("Profile details saved.");
-    } catch (error) {
-      if (isApiError(error)) {
-        setProfileError(error.message);
-        return;
-      }
-
-      setProfileError("Could not save profile details right now.");
-    }
-  };
+  const avatarImage = user.avatarUrl ?? user.image ?? null;
+  const avatarInitial = user.username.slice(0, 1).toUpperCase() || "U";
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[1fr_1fr]">
-      <Card className="xl:col-span-2">
-        <CardHeader>
-          <CardTitle>Images</CardTitle>
-          <CardDescription>
-            Upload avatar and backdrop images directly to storage. JPEG, PNG,
-            WebP up to 10MB.
-          </CardDescription>
-        </CardHeader>
+    <div className="space-y-6">
+      <form onSubmit={handleSaveChanges} className="border p-6 space-y-5 settings-shell-border settings-shell-panel">
+        <p className="font-mono text-[10px] uppercase tracking-[0.16em] settings-shell-accent">
+          Profile Info
+        </p>
 
-        <CardContent className="grid gap-4 sm:grid-cols-2">
-          <section className=" border border-border/70 bg-secondary/20 p-4">
-            <h3 className="text-sm font-semibold text-foreground">Avatar image</h3>
+        <div>
+          <p className="mb-3 font-mono text-[9px] uppercase tracking-[0.16em] settings-shell-muted">
+            Avatar
+          </p>
 
-            <div className="mt-3 flex items-center gap-3">
-              {user.avatarUrl || user.image ? (
-                <img
-                  src={user.avatarUrl ?? user.image ?? undefined}
-                  alt={`${user.username} avatar`}
-                  className="h-14 w-14  border border-border/70 object-cover"
-                />
-              ) : (
-                <span className="inline-flex h-14 w-14 items-center justify-center  border border-border/70 bg-muted text-xs text-muted-foreground">
-                  No image
-                </span>
-              )}
+          <div className="flex items-center gap-4">
+            {avatarImage ? (
+              <img
+                src={avatarImage}
+                alt={`${user.username} avatar`}
+                className="h-16 w-16 shrink-0 border-2 object-cover settings-shell-border"
+                style={{
+                  backgroundColor: "color-mix(in srgb, var(--primary) 8%, transparent)",
+                }}
+              />
+            ) : (
+              <div
+                className="flex h-16 w-16 shrink-0 items-center justify-center border-2 font-mono text-2xl font-bold settings-shell-border settings-shell-accent"
+                style={{
+                  backgroundColor: "color-mix(in srgb, var(--primary) 8%, transparent)",
+                }}
+              >
+                <span>{avatarInitial}</span>
+              </div>
+            )}
 
-              <Button
+            <div className="space-y-2">
+              <button
                 type="button"
-                size="sm"
-                variant="outline"
-                disabled={isAvatarUploading}
+                className="block border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors settings-shell-border settings-shell-dim-text hover:text-foreground"
                 onClick={openAvatarPicker}
+                disabled={isAvatarUploading}
               >
-                {isAvatarUploading ? "Uploading..." : "Upload avatar"}
-              </Button>
+                {isAvatarUploading ? "Uploading..." : "Upload Image"}
+              </button>
+              <p className="font-mono text-[9px] settings-shell-muted">
+                JPEG, PNG or WebP · max 10MB
+              </p>
             </div>
+          </div>
 
-            <input
-              ref={avatarInputRef}
-              type="file"
-              accept={acceptValue}
-              className="hidden"
-              onChange={handleAvatarFileChange}
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept={acceptValue}
+            className="hidden"
+            onChange={handleAvatarFileChange}
+          />
+
+          {avatarUploadError ? (
+            <p className="mt-3 border border-destructive/40 bg-destructive/10 px-3 py-2 font-mono text-xs text-destructive">
+              {avatarUploadError}
+            </p>
+          ) : null}
+
+          {avatarUploadSuccess ? (
+            <p className="mt-3 border px-3 py-2 font-mono text-xs settings-shell-border settings-shell-accent settings-shell-active-pill">
+              {avatarUploadSuccess}
+            </p>
+          ) : null}
+        </div>
+
+        <div>
+          <label
+            className="mb-2 block font-mono text-[9px] uppercase tracking-[0.16em] settings-shell-muted"
+            htmlFor="settings-username"
+          >
+            Username
+          </label>
+          <input
+            id="settings-username"
+            className="w-full border bg-transparent px-3 py-2 font-mono text-xs text-foreground focus:outline-none settings-shell-border settings-shell-input"
+            placeholder="username"
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            minLength={USERNAME_MIN_LENGTH}
+            maxLength={USERNAME_MAX_LENGTH}
+            required
+          />
+        </div>
+
+        <div>
+          <label
+            className="mb-2 block font-mono text-[9px] uppercase tracking-[0.16em] settings-shell-muted"
+            htmlFor="settings-bio"
+          >
+            Bio
+          </label>
+          <textarea
+            id="settings-bio"
+            rows={3}
+            className="w-full resize-none border bg-transparent px-3 py-2 font-mono text-xs text-foreground focus:outline-none settings-shell-border settings-shell-input settings-shell-bio"
+            placeholder="Write something about yourself..."
+            value={bio}
+            onChange={(event) => setBio(event.target.value)}
+            maxLength={300}
+          />
+        </div>
+
+        <div>
+          <label
+            className="mb-2 block font-mono text-[9px] uppercase tracking-[0.16em] settings-shell-muted"
+            htmlFor="settings-location"
+          >
+            Location
+          </label>
+
+          <div className="relative">
+            <Globe
+              className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 settings-shell-muted"
+              aria-hidden="true"
             />
-
-            {avatarUploadError ? (
-              <p className="mt-3  border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {avatarUploadError}
-              </p>
-            ) : null}
-
-            {avatarUploadSuccess ? (
-              <p className="mt-3  border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
-                {avatarUploadSuccess}
-              </p>
-            ) : null}
-          </section>
-
-          <section className=" border border-border/70 bg-secondary/20 p-4">
-            <h3 className="text-sm font-semibold text-foreground">Backdrop image</h3>
-
-            <div className="mt-3 space-y-3">
-              {user.backdropUrl ? (
-                <img
-                  src={user.backdropUrl}
-                  alt=""
-                  aria-hidden="true"
-                  className="h-24 w-full  border border-border/70 object-cover"
-                />
-              ) : (
-                <div className="flex h-24 w-full items-center justify-center  border border-dashed border-border/70 bg-muted/25 text-xs text-muted-foreground">
-                  No backdrop image
-                </div>
-              )}
-
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                disabled={isBackdropUploading}
-                onClick={openBackdropPicker}
-              >
-                {isBackdropUploading ? "Uploading..." : "Upload backdrop"}
-              </Button>
-            </div>
-
             <input
-              ref={backdropInputRef}
-              type="file"
-              accept={acceptValue}
-              className="hidden"
-              onChange={handleBackdropFileChange}
+              id="settings-location"
+              className="w-full border bg-transparent py-2 pl-8 pr-3 font-mono text-xs text-foreground focus:outline-none settings-shell-border settings-shell-input"
+              placeholder="City, Country"
+              value={location}
+              onChange={(event) => setLocation(event.target.value)}
+              maxLength={100}
             />
+          </div>
+        </div>
 
-            {backdropUploadError ? (
-              <p className="mt-3  border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {backdropUploadError}
-              </p>
-            ) : null}
+        {saveError ? (
+          <p className="border border-destructive/40 bg-destructive/10 px-3 py-2 font-mono text-xs text-destructive">
+            {saveError}
+          </p>
+        ) : null}
 
-            {backdropUploadSuccess ? (
-              <p className="mt-3  border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
-                {backdropUploadSuccess}
-              </p>
-            ) : null}
-          </section>
-        </CardContent>
-      </Card>
+        {saveSuccess ? (
+          <p className="border px-3 py-2 font-mono text-xs settings-shell-border settings-shell-accent settings-shell-active-pill">
+            {saveSuccess}
+          </p>
+        ) : null}
 
-      <SettingsTopFilmsCard username={user.username} />
-
-      <SettingsFavoriteGenresCard initialGenres={user.favoriteGenres} />
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Username</CardTitle>
-          <CardDescription>
-            Update your public username used across profile routes.
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          <form className="space-y-4" onSubmit={handleSaveUsername}>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground" htmlFor="username">
-                Username
-              </label>
-              <Input
-                id="username"
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-                minLength={USERNAME_MIN_LENGTH}
-                maxLength={USERNAME_MAX_LENGTH}
-                required
-              />
-            </div>
-
-            {usernameError ? (
-              <p className=" border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {usernameError}
-              </p>
-            ) : null}
-
-            {usernameSuccess ? (
-              <p className=" border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
-                {usernameSuccess}
-              </p>
-            ) : null}
-
-            <Button type="submit" disabled={isUpdateIdentityPending}>
-              {isUpdateIdentityPending ? "Saving..." : "Save username"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile details</CardTitle>
-          <CardDescription>Manage your profile bio and location.</CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          <form className="space-y-4" onSubmit={handleSaveProfile}>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground" htmlFor="bio">
-                Bio
-              </label>
-              <Textarea
-                id="bio"
-                value={bio}
-                onChange={(event) => setBio(event.target.value)}
-                maxLength={300}
-                placeholder="Tell people what you love watching..."
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground" htmlFor="location">
-                Location
-              </label>
-              <Input
-                id="location"
-                value={location}
-                onChange={(event) => setLocation(event.target.value)}
-                maxLength={100}
-                placeholder="Istanbul, Tokyo, Somewhere with good cinema"
-              />
-            </div>
-
-            {profileError ? (
-              <p className=" border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {profileError}
-              </p>
-            ) : null}
-
-            {profileSuccess ? (
-              <p className=" border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
-                {profileSuccess}
-              </p>
-            ) : null}
-
-            <Button type="submit" disabled={updateProfileMutation.isPending}>
-              {updateProfileMutation.isPending ? "Saving..." : "Save profile"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+        <button
+          type="submit"
+          disabled={isSaving}
+          className="border px-5 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors settings-shell-border settings-shell-accent settings-shell-active-pill disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSaving ? "Saving..." : "Save Changes"}
+        </button>
+      </form>
     </div>
   );
 };

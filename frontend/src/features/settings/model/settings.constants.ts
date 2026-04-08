@@ -22,18 +22,30 @@ export const settingsSections: SettingsSectionDefinition[] = [
     id: "profile",
     to: "/settings/profile",
     label: "Profile",
-    description: "Username, bio, location, avatar and backdrop uploads.",
+    description: "Profile image, username, bio, and location.",
   },
   {
     id: "theme",
     to: "/settings/theme",
     label: "Theme",
-    description: "Site theme and appearance settings.",
+    description: "Appearance theme selection.",
   },
   {
     id: "auth",
     to: "/settings/auth",
     label: "Auth",
     description: "Email and password security settings.",
+  },
+  {
+    id: "genres",
+    to: "/settings/genres",
+    label: "Genres",
+    description: "Favorite genres shown on your profile.",
+  },
+  {
+    id: "favorites",
+    to: "/settings/favorites",
+    label: "Favorites",
+    description: "Top picks showcased on your profile.",
   },
 ];
