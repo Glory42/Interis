@@ -1,29 +1,20 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
+import { Settings } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { ProfileHero } from "@/features/profile/components/ProfileHero";
-import { ProfileSidebar } from "@/features/profile/components/ProfileSidebar";
-import { ProfileStatsGrid } from "@/features/profile/components/ProfileStatsGrid";
+import { ProfileHeaderCompact } from "@/features/profile/components/ProfileHeaderCompact";
 import {
   ProfileTabs,
   type ProfileTab,
 } from "@/features/profile/components/ProfileTabs";
-import {
-  useUserFilms,
-  useUserProfile,
-} from "@/features/profile/hooks/useProfile";
+import { useUserProfile } from "@/features/profile/hooks/useProfile";
 import {
   useFollowState,
   useFollowUser,
   useUnfollowUser,
 } from "@/features/social/hooks/useSocial";
-import {
-  formatJoinedDate,
-  getLatestWatchedDate,
-  getRelativeTime,
-} from "@/features/profile/utils/profile.utils";
+import { formatJoinedDate } from "@/features/profile/utils/profile.utils";
 import { isApiError } from "@/lib/api-client";
 import type { PublicProfile } from "@/types/api";
 
@@ -40,7 +31,6 @@ export const ProfileLayout = ({
 }: ProfileLayoutProps) => {
   const { user, isUserLoading } = useAuth();
   const profileQuery = useUserProfile(username);
-  const userFilmsQuery = useUserFilms(username);
   const [followError, setFollowError] = useState<{
     username: string;
     message: string;
@@ -106,101 +96,80 @@ export const ProfileLayout = ({
     }
   };
 
+  const actionClassName =
+    "flex items-center gap-1.5 border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.16em] transition-colors profile-shell-border profile-shell-muted hover:text-foreground";
+
   const profileHeaderAction = isUserLoading ? null : isOwnProfile ? (
-    <Button
-      asChild
-      size="sm"
-      variant="ghost"
-      className="h-8  border border-border/60 bg-background/35 px-3 text-xs text-muted-foreground hover:text-foreground"
+    <Link
+      to="/settings/profile"
+      className={actionClassName}
+      aria-label="Open settings"
     >
-      <Link to="/settings/profile">Settings</Link>
-    </Button>
+      <Settings className="h-3 w-3" aria-hidden="true" />
+    </Link>
   ) : isViewerLoggedIn ? (
-    <Button
+    <button
       type="button"
-      size="sm"
-      variant={isFollowing ? "outline" : "secondary"}
-      className="h-8  px-3 text-xs"
+      className={actionClassName}
       disabled={followStateQuery.isPending || isFollowActionPending}
       onClick={() => {
         void handleToggleFollow();
       }}
+      aria-label="Follow user"
     >
       {followStateQuery.isPending
-        ? "Loading..."
+        ? "Loading"
         : isFollowActionPending
-          ? "Saving..."
+          ? "Saving"
           : isFollowing
             ? "Following"
             : "Follow"}
-    </Button>
+    </button>
   ) : (
-    <Button asChild size="sm" variant="outline" className="h-8  px-3 text-xs">
-      <Link
-        to="/login"
-        search={{
-          redirect: `/profile/${profile.username}`,
-        }}
-      >
-        Follow
-      </Link>
-    </Button>
+    <Link
+      to="/login"
+      search={{
+        redirect: `/profile/${profile.username}`,
+      }}
+      className={actionClassName}
+    >
+      Follow
+    </Link>
   );
 
   const joinedShortLabel = formatJoinedDate(profile.createdAt, "short");
-  const joinedLongLabel = formatJoinedDate(profile.createdAt, "long");
 
-  const favoriteGenres = profile.favoriteGenres ?? [];
-
-  let lastActiveLabel = "Loading...";
-  if (userFilmsQuery.isError) {
-    lastActiveLabel = "Unavailable";
-  } else if (!userFilmsQuery.isPending) {
-    const latestWatchedDate = getLatestWatchedDate(userFilmsQuery.data ?? []);
-    lastActiveLabel = getRelativeTime(latestWatchedDate);
-  }
-
+  const entryCount = profile.stats?.entryCount ?? 0;
   const followerCount = profile.stats?.followerCount ?? 0;
   const followingCount = profile.stats?.followingCount ?? 0;
   const reviewCount = profile.stats?.reviewCount ?? 0;
-  const listCount = profile.stats?.listCount ?? 0;
-
   return (
-    <div className="min-h-screen">
-      <ProfileHero
-        key={profile.username}
-        profile={profile}
-        joinedLabel={joinedShortLabel}
-        headerAction={profileHeaderAction}
-        actionError={
-          isOwnProfile || followError?.username !== profile.username
-            ? null
-            : followError.message
-        }
-      />
-
-      <div className="mx-auto w-full max-w-6xl px-4 pb-8">
-        <ProfileStatsGrid
-          followers={followerCount}
-          following={followingCount}
-          reviews={reviewCount}
-          lists={listCount}
-        />
-
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-          <div className="space-y-8 lg:col-span-2">
-            <ProfileTabs username={username} activeTab={activeTab} />
-            {typeof children === "function" ? children(profile) : children}
-          </div>
-
-          <ProfileSidebar
-            key={username}
-            username={username}
-            location={profile.location}
-            joinedLabel={joinedLongLabel}
-            lastActiveLabel={lastActiveLabel}
-            favoriteGenres={favoriteGenres}
+    <div className="min-h-screen profile-shell">
+      <div className="mx-auto w-full max-w-5xl px-4 py-8">
+        <div className="mb-8 border-b pb-8 profile-shell-border">
+          <ProfileHeaderCompact
+            key={profile.username}
+            profile={profile}
+            joinedLabel={joinedShortLabel}
+            headerAction={profileHeaderAction}
+            actionError={
+              isOwnProfile || followError?.username !== profile.username
+                ? null
+                : followError.message
+            }
+            stats={{
+              logged: entryCount,
+              reviews: reviewCount,
+              followers: followerCount,
+              following: followingCount,
+            }}
           />
+        </div>
+
+        <ProfileTabs username={username} activeTab={activeTab} />
+
+        <div>
+          {typeof children === "function" ? children(profile) : children}
         </div>
       </div>
     </div>

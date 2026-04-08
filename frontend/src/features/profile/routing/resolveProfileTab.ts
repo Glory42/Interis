@@ -18,7 +18,7 @@ export const resolveActiveProfileTab = (
   }
 
   if (suffix.startsWith("/cinema") || suffix.startsWith("/films")) {
-    return "cinema";
+    return "favorites";
   }
 
   if (suffix.startsWith("/watchlist")) {

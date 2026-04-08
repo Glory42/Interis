@@ -7,14 +7,12 @@ import {
 import {
   getUserLikedFilms,
   getMyProfile,
-  getUserDiary,
-  getUserFilms,
   getUserProfile,
   getUserReviews,
   getUserWatchlist,
   searchUsers,
-  getUserTop4Movies,
-  getUserContributions,
+  getUserRecentActivity,
+  getUserTopPicks,
   updateMyProfile,
 } from "@/features/profile/api";
 import { authKeys } from "@/features/auth/hooks/useAuth";
@@ -25,14 +23,12 @@ export const profileKeys = {
   search: (query: string, limit: number) =>
     ["profile", "search", query, limit] as const,
   detail: (username: string) => ["profile", "detail", username] as const,
-  diary: (username: string) => ["profile", "diary", username] as const,
-  films: (username: string) => ["profile", "films", username] as const,
   likes: (username: string) => ["profile", "likes", username] as const,
   watchlist: (username: string) => ["profile", "watchlist", username] as const,
   reviews: (username: string) => ["profile", "reviews", username] as const,
-  top4: (username: string) => ["profile", "top4", username] as const,
-  contributions: (username: string, range: number | "year") =>
-    ["profile", "contributions", username, range] as const,
+  topPicks: (username: string) => ["profile", "top-picks", username] as const,
+  recentActivity: (username: string, limit: number) =>
+    ["profile", "recent-activity", username, limit] as const,
   me: ["profile", "me"] as const,
 };
 
@@ -48,12 +44,10 @@ const invalidateCurrentUserProfile = async (
   if (me?.username) {
     tasks.push(
       queryClient.invalidateQueries({ queryKey: profileKeys.detail(me.username) }),
-      queryClient.invalidateQueries({ queryKey: profileKeys.diary(me.username) }),
-      queryClient.invalidateQueries({ queryKey: profileKeys.films(me.username) }),
       queryClient.invalidateQueries({ queryKey: profileKeys.likes(me.username) }),
       queryClient.invalidateQueries({ queryKey: profileKeys.watchlist(me.username) }),
       queryClient.invalidateQueries({ queryKey: profileKeys.reviews(me.username) }),
-      queryClient.invalidateQueries({ queryKey: profileKeys.top4(me.username) }),
+      queryClient.invalidateQueries({ queryKey: profileKeys.topPicks(me.username) }),
     );
   }
 
@@ -72,20 +66,6 @@ export const useUserSearch = (query: string, limit = 8) =>
     queryKey: profileKeys.search(query, limit),
     queryFn: ({ signal }) => searchUsers(query, { limit }, { signal }),
     enabled: query.trim().length > 0,
-  });
-
-export const useUserDiary = (username: string) =>
-  useQuery({
-    queryKey: profileKeys.diary(username),
-    queryFn: ({ signal }) => getUserDiary(username, { signal }),
-    enabled: username.trim().length > 0,
-  });
-
-export const useUserFilms = (username: string) =>
-  useQuery({
-    queryKey: profileKeys.films(username),
-    queryFn: ({ signal }) => getUserFilms(username, { signal }),
-    enabled: username.trim().length > 0,
   });
 
 export const useUserLikedFilms = (username: string) =>
@@ -109,22 +89,19 @@ export const useUserReviews = (username: string) =>
     enabled: username.trim().length > 0,
   });
 
-export const useUserTop4Movies = (username: string) =>
+export const useUserTopPicks = (username: string) =>
   useQuery({
-    queryKey: profileKeys.top4(username),
-    queryFn: ({ signal }) => getUserTop4Movies(username, { signal }),
+    queryKey: profileKeys.topPicks(username),
+    queryFn: ({ signal }) => getUserTopPicks(username, { signal }),
     enabled: username.trim().length > 0,
   });
 
-export const useUserContributions = (username: string, days?: number) => {
-  const rangeKey = typeof days === "number" ? days : "year";
-
-  return useQuery({
-    queryKey: profileKeys.contributions(username, rangeKey),
-    queryFn: ({ signal }) => getUserContributions(username, days, { signal }),
+export const useUserRecentActivity = (username: string, limit = 20) =>
+  useQuery({
+    queryKey: profileKeys.recentActivity(username, limit),
+    queryFn: ({ signal }) => getUserRecentActivity(username, limit, { signal }),
     enabled: username.trim().length > 0,
   });
-};
 
 export const useMyProfile = () =>
   useQuery({

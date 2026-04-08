@@ -1,17 +1,13 @@
-import type { DiaryEntry } from "@/types/api";
+import type { UserRecentActivity } from "@/features/profile/api";
 
 export type ProfileRecentActivityItem = {
   id: string;
   tmdbId: number;
-  movieTitle: string;
-  actionLabel: "Logged" | "Reviewed" | "Rated";
+  mediaType: "movie" | "tv";
+  mediaTitle: string;
+  actionLabel: string;
   ratingLabel: string | null;
   createdAt: string;
-};
-
-type ProfileMovieRating = {
-  ratingOutOfFive: number;
-  roundedStars: number;
 };
 
 const toFivePointRating = (ratingOutOfTen: number): number => {
@@ -19,7 +15,7 @@ const toFivePointRating = (ratingOutOfTen: number): number => {
   return normalized / 2;
 };
 
-const formatRatingOutOfFive = (value: number): string => {
+const formatRatingOutOfFiveLabel = (value: number): string => {
   const rounded = Math.round(value * 10) / 10;
   if (Number.isInteger(rounded)) {
     return `${rounded.toFixed(0)}/5`;
@@ -33,68 +29,97 @@ const getTimestamp = (value: string): number => {
   return Number.isNaN(parsed) ? 0 : parsed;
 };
 
-export const buildMovieRatingMap = (
-  entries: DiaryEntry[],
-): Map<number, ProfileMovieRating> => {
-  const map = new Map<number, ProfileMovieRating>();
-
-  for (const entry of entries) {
-    if (entry.rating === null) {
-      continue;
-    }
-
-    if (map.has(entry.movieTmdbId)) {
-      continue;
-    }
-
-    const ratingOutOfFive = toFivePointRating(entry.rating);
-    map.set(entry.movieTmdbId, {
-      ratingOutOfFive,
-      roundedStars: Math.max(0, Math.min(5, Math.round(ratingOutOfFive))),
-    });
-  }
-
-  return map;
-};
-
 export const buildRecentActivityItems = (
-  entries: DiaryEntry[],
-  limit = 4,
+  input: {
+    feedItems: UserRecentActivity[];
+    limit?: number;
+  },
 ): ProfileRecentActivityItem[] => {
+  const { feedItems, limit = 6 } = input;
   const items: ProfileRecentActivityItem[] = [];
 
-  for (const entry of entries) {
-    items.push({
-      id: `${entry.id}-logged`,
-      tmdbId: entry.movieTmdbId,
-      movieTitle: entry.movieTitle,
-      actionLabel: "Logged",
-      ratingLabel: null,
-      createdAt: entry.createdAt,
-    });
+  for (const activity of feedItems) {
+    const media = activity.movie;
+    if (!media || !Number.isInteger(media.tmdbId) || media.title.trim().length === 0) {
+      continue;
+    }
 
-    if (entry.reviewContent?.trim()) {
+    if (media.mediaType !== "movie" && media.mediaType !== "tv") {
+      continue;
+    }
+
+    if (activity.kind === "diary_entry") {
       items.push({
-        id: `${entry.id}-reviewed`,
-        tmdbId: entry.movieTmdbId,
-        movieTitle: entry.movieTitle,
-        actionLabel: "Reviewed",
+        id: `${activity.id}-logged`,
+        tmdbId: media.tmdbId,
+        mediaType: media.mediaType,
+        mediaTitle: media.title,
+        actionLabel: "Logged",
         ratingLabel: null,
-        createdAt: entry.reviewCreatedAt ?? entry.createdAt,
+        createdAt: activity.createdAt,
       });
+
+      if (activity.review || activity.metadata.hasReview) {
+        items.push({
+          id: `${activity.id}-reviewed`,
+          tmdbId: media.tmdbId,
+          mediaType: media.mediaType,
+          mediaTitle: media.title,
+          actionLabel: "Reviewed",
+          ratingLabel: null,
+          createdAt: activity.createdAt,
+        });
+      }
+
+      if (typeof activity.metadata.rating === "number") {
+        items.push({
+          id: `${activity.id}-rated`,
+          tmdbId: media.tmdbId,
+          mediaType: media.mediaType,
+          mediaTitle: media.title,
+          actionLabel: "Rated",
+          ratingLabel: formatRatingOutOfFiveLabel(
+            toFivePointRating(activity.metadata.rating),
+          ),
+          createdAt: activity.createdAt,
+        });
+      }
+
+      continue;
     }
 
-    if (entry.rating !== null) {
-      const ratingOutOfFive = toFivePointRating(entry.rating);
-      items.push({
-        id: `${entry.id}-rated`,
-        tmdbId: entry.movieTmdbId,
-        movieTitle: entry.movieTitle,
-        actionLabel: "Rated",
-        ratingLabel: formatRatingOutOfFive(ratingOutOfFive),
-        createdAt: entry.createdAt,
-      });
-    }
+    items.push({
+      id: activity.id,
+      tmdbId: media.tmdbId,
+      mediaType: media.mediaType,
+      mediaTitle: media.title,
+      actionLabel:
+        activity.kind === "review"
+          ? "Reviewed"
+          : activity.kind === "liked_movie"
+            ? "Liked"
+            : activity.kind === "watchlisted_movie"
+              ? "Watchlisted"
+              : activity.kind === "liked_review"
+                ? "Liked"
+                : activity.kind === "commented"
+                  ? "Commented"
+                  : activity.kind === "liked_comment"
+                    ? "Liked"
+                    : activity.kind === "liked_post"
+                      ? "Liked"
+                      : activity.kind === "commented_post"
+                        ? "Commented"
+                        : activity.kind === "post"
+                          ? "Posted"
+                          : activity.kind === "followed_user"
+                            ? "Followed"
+                            : activity.kind === "created_list"
+                              ? "Created"
+                              : "Updated",
+      ratingLabel: null,
+      createdAt: activity.createdAt,
+    });
   }
 
   return items

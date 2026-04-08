@@ -1,15 +1,10 @@
-import { Sparkles } from "lucide-react";
-import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import {
-  useUserContributions,
-  useUserDiary,
-  useUserTop4Movies,
+  useUserRecentActivity,
+  useUserTopPicks,
 } from "@/features/profile/hooks/useProfile";
-import { ProfileContributionHeatmapSection } from "./ProfileContributionHeatmapSection";
+import { ProfileFavoritesPreviewSection } from "./ProfileFavoritesPreviewSection";
 import { ProfileRecentActivitySection } from "./ProfileRecentActivitySection";
-import { ProfileTopFilmsSection } from "./ProfileTopFilmsSection";
 import {
-  buildMovieRatingMap,
   buildRecentActivityItems,
 } from "./profileOverview.utils";
 
@@ -18,19 +13,10 @@ type ProfileOverviewContentProps = {
 };
 
 export const ProfileOverviewContent = ({ username }: ProfileOverviewContentProps) => {
-  const diaryQuery = useUserDiary(username);
-  const topMoviesQuery = useUserTop4Movies(username);
-  const contributionsQuery = useUserContributions(username, 365);
+  const recentActivityQuery = useUserRecentActivity(username, 20);
+  const topPicksQuery = useUserTopPicks(username);
 
-  if (diaryQuery.isPending || topMoviesQuery.isPending) {
-    return (
-      <div className=" border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
-        Loading profile overview...
-      </div>
-    );
-  }
-
-  if (diaryQuery.isError || topMoviesQuery.isError) {
+  if (recentActivityQuery.isError && topPicksQuery.isError) {
     return (
       <div className=" border border-border/60 bg-card/30 p-4 text-sm text-destructive">
         Could not load profile overview.
@@ -38,37 +24,26 @@ export const ProfileOverviewContent = ({ username }: ProfileOverviewContentProps
     );
   }
 
-  const diaryEntries = diaryQuery.data ?? [];
-  const topMovies = topMoviesQuery.data ?? [];
-  const contributionActiveDays = contributionsQuery.data?.totals.activeDays ?? 0;
+  const recentActivity = recentActivityQuery.data ?? [];
+  const topPicks = topPicksQuery.data ?? null;
 
-  const ratingByTmdbId = buildMovieRatingMap(diaryEntries);
-  const activities = buildRecentActivityItems(diaryEntries, 4);
-
-  if (
-    topMovies.length === 0 &&
-    activities.length === 0 &&
-    !contributionsQuery.isPending &&
-    contributionActiveDays === 0
-  ) {
-    return (
-      <ProfileTabEmptyState
-        icon={Sparkles}
-        title="No activity yet"
-        description="This profile has not logged any diary entries or top films yet."
-      />
-    );
-  }
+  const activities = buildRecentActivityItems({
+    feedItems: recentActivity,
+    limit: 8,
+  });
 
   return (
-    <div className="space-y-8">
-      <ProfileTopFilmsSection movies={topMovies} ratingByTmdbId={ratingByTmdbId} />
-      <ProfileContributionHeatmapSection
-        calendar={contributionsQuery.data ?? null}
-        isPending={contributionsQuery.isPending}
-        isError={contributionsQuery.isError}
+    <div className="space-y-10">
+      <ProfileFavoritesPreviewSection
+        topPicks={topPicks}
+        isTopPicksPending={topPicksQuery.isPending}
+        isTopPicksError={topPicksQuery.isError}
       />
-      <ProfileRecentActivitySection activities={activities} />
+      <ProfileRecentActivitySection
+        activities={activities}
+        isPending={recentActivityQuery.isPending}
+        isError={recentActivityQuery.isError}
+      />
     </div>
   );
 };

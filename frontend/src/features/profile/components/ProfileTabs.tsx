@@ -1,10 +1,18 @@
 import { Link } from "@tanstack/react-router";
-import { cn } from "@/lib/utils";
+import {
+  Bookmark,
+  CalendarDays,
+  Heart,
+  List,
+  Star,
+  Trophy,
+  User,
+} from "lucide-react";
 
 export type ProfileTab =
   | "overview"
+  | "favorites"
   | "diary"
-  | "cinema"
   | "watchlist"
   | "liked"
   | "reviews"
@@ -16,111 +24,96 @@ type ProfileTabsProps = {
 };
 
 const tabClass =
-  "whitespace-nowrap border-b-2 px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] transition-all";
+  "flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.16em] transition-colors";
 
-const activeTabClass = "theme-segment-active";
+const activeTabStyle = {
+  borderBottomColor: "var(--profile-shell-accent)",
+  color: "var(--profile-shell-accent)",
+  marginBottom: "-1px",
+} as const;
+
+const inactiveTabStyle = {
+  borderBottomColor: "transparent",
+  color: "var(--profile-shell-muted)",
+  marginBottom: "-1px",
+} as const;
+
+const tabItems: Array<{
+  id: ProfileTab;
+  label: string;
+  to:
+    | "/profile/$username"
+    | "/profile/$username/diary"
+    | "/profile/$username/reviews"
+    | "/profile/$username/cinema"
+    | "/profile/$username/lists"
+    | "/profile/$username/liked"
+    | "/profile/$username/watchlist";
+  icon: typeof User;
+}> = [
+  { id: "overview", label: "Overview", to: "/profile/$username", icon: User },
+  {
+    id: "diary",
+    label: "Diary",
+    to: "/profile/$username/diary",
+    icon: CalendarDays,
+  },
+  {
+    id: "favorites",
+    label: "Favorites",
+    to: "/profile/$username/cinema",
+    icon: Trophy,
+  },
+  {
+    id: "reviews",
+    label: "Reviews",
+    to: "/profile/$username/reviews",
+    icon: Star,
+  },
+
+  {
+    id: "liked",
+    label: "Likes",
+    to: "/profile/$username/liked",
+    icon: Heart,
+  },
+  {
+    id: "watchlist",
+    label: "Watchlist",
+    to: "/profile/$username/watchlist",
+    icon: Bookmark,
+  },
+  {
+    id: "lists",
+    label: "Lists",
+    to: "/profile/$username/lists",
+    icon: List,
+  },
+];
 
 export const ProfileTabs = ({ username, activeTab }: ProfileTabsProps) => {
   return (
-    <nav className="flex items-center gap-0 overflow-x-auto border-b border-border/60">
-      <Link
-        to="/profile/$username"
-        params={{ username }}
-          className={cn(
-            tabClass,
-            activeTab === "overview"
-              ? activeTabClass
-              : "text-muted-foreground/80 hover:text-foreground",
-          )}
-        resetScroll={false}
-        viewTransition
-      >
-        Overview
-      </Link>
-      <Link
-        to="/profile/$username/diary"
-        params={{ username }}
-          className={cn(
-            tabClass,
-            activeTab === "diary"
-              ? activeTabClass
-              : "text-muted-foreground/80 hover:text-foreground",
-          )}
-        resetScroll={false}
-        viewTransition
-      >
-        Diary
-      </Link>
-      <Link
-        to="/profile/$username/cinema"
-        params={{ username }}
-          className={cn(
-            tabClass,
-            activeTab === "cinema"
-              ? activeTabClass
-              : "text-muted-foreground/80 hover:text-foreground",
-          )}
-        resetScroll={false}
-        viewTransition
-      >
-        Cinema
-      </Link>
-      <Link
-        to="/profile/$username/reviews"
-        params={{ username }}
-          className={cn(
-            tabClass,
-            activeTab === "reviews"
-              ? activeTabClass
-              : "text-muted-foreground/80 hover:text-foreground",
-          )}
-        resetScroll={false}
-        viewTransition
-      >
-        Reviews
-      </Link>
-      <Link
-        to="/profile/$username/watchlist"
-        params={{ username }}
-          className={cn(
-            tabClass,
-            activeTab === "watchlist"
-              ? activeTabClass
-              : "text-muted-foreground/80 hover:text-foreground",
-          )}
-        resetScroll={false}
-        viewTransition
-      >
-        Watchlist
-      </Link>
-      <Link
-        to="/profile/$username/liked"
-        params={{ username }}
-          className={cn(
-            tabClass,
-            activeTab === "liked"
-              ? activeTabClass
-              : "text-muted-foreground/80 hover:text-foreground",
-          )}
-        resetScroll={false}
-        viewTransition
-      >
-        Liked
-      </Link>
-      <Link
-        to="/profile/$username/lists"
-        params={{ username }}
-          className={cn(
-            tabClass,
-            activeTab === "lists"
-              ? activeTabClass
-              : "text-muted-foreground/80 hover:text-foreground",
-          )}
-        resetScroll={false}
-        viewTransition
-      >
-        Lists
-      </Link>
+    <nav className="mb-8 flex gap-0 overflow-x-auto border-b profile-shell-border">
+      {tabItems.map((tab) => {
+        const Icon = tab.icon;
+        const isActive = activeTab === tab.id;
+
+        return (
+          <Link
+            key={tab.id}
+            to={tab.to}
+            params={{ username }}
+            className={tabClass}
+            style={isActive ? activeTabStyle : inactiveTabStyle}
+            resetScroll={false}
+            viewTransition
+            aria-label={tab.label}
+          >
+            <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+            <span className="hidden sm:inline">{tab.label}</span>
+          </Link>
+        );
+      })}
     </nav>
   );
 };
