@@ -35,6 +35,9 @@ export const useUpdateMovieInteraction = (tmdbId: number) => {
           ...(input.watchlisted !== undefined
             ? { watchlisted: input.watchlisted }
             : {}),
+          ...(input.ratingOutOfFive !== undefined
+            ? { ratingOutOfFive: input.ratingOutOfFive }
+            : {}),
         });
       }
 
