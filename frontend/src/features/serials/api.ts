@@ -31,6 +31,8 @@ const serialArchiveItemSchema = z.object({
   avgRatingOutOfTen: z.number().nullable(),
   tmdbRatingOutOfTen: z.number().nullable(),
   ratedLogCount: z.number().int().nonnegative(),
+  viewerHasLogged: z.boolean(),
+  viewerWatchlisted: z.boolean(),
 });
 
 const serialArchiveFeaturedSchema = z.object({
@@ -208,6 +210,7 @@ const serialInteractionSchema = z
   .object({
     liked: z.boolean(),
     watchlisted: z.boolean(),
+    ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable(),
   })
   .passthrough();
 
@@ -215,10 +218,17 @@ const updateSerialInteractionInputSchema = z
   .object({
     liked: z.boolean().optional(),
     watchlisted: z.boolean().optional(),
+    ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
   })
-  .refine((payload) => payload.liked !== undefined || payload.watchlisted !== undefined, {
-    message: "At least one interaction field is required",
-  });
+  .refine(
+    (payload) =>
+      payload.liked !== undefined ||
+      payload.watchlisted !== undefined ||
+      payload.ratingOutOfFive !== undefined,
+    {
+      message: "At least one interaction field is required",
+    },
+  );
 
 const serialLogRatingOutOfFiveSchema = z.number().min(0.5).max(5).multipleOf(0.5);
 

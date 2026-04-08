@@ -9,11 +9,9 @@ import {
 import { ArchiveLoadingMoreRow } from "@/features/serials/components/serial-archive/ArchiveLoadingMoreRow";
 import { ArchiveSkeletonGrid } from "@/features/serials/components/serial-archive/ArchiveSkeletonGrid";
 import { GridSeriesCard } from "@/features/serials/components/serial-archive/GridSeriesCard";
-import { ListSeriesRow } from "@/features/serials/components/serial-archive/ListSeriesRow";
 import { SerialArchiveControls } from "@/features/serials/components/serial-archive/SerialArchiveControls";
 import {
   type ArchiveRatingSource,
-  type ArchiveViewMode,
   type OpenMenu,
 } from "@/features/serials/components/serial-archive/types";
 import { formatArchiveCount } from "@/features/serials/components/serial-archive/utils";
@@ -30,10 +28,8 @@ export const SerialsArchivePage = () => {
     useState<SerialArchiveSort>("trending");
   const [selectedPeriod, setSelectedPeriod] =
     useState<SerialArchivePeriod>("this_year");
-  const [viewMode, setViewMode] = useState<ArchiveViewMode>("grid");
   const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
 
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const controlsRef = useRef<HTMLDivElement | null>(null);
 
   const archiveQuery = useSeriesArchive(
@@ -111,34 +107,6 @@ export const SerialsArchivePage = () => {
     };
   }, [openMenu]);
 
-  useEffect(() => {
-    const sentinel = loadMoreRef.current;
-    if (!sentinel || !hasNextPage) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        if (!entry?.isIntersecting || !hasNextPage || isFetchingNextPage) {
-          return;
-        }
-
-        void fetchNextPage();
-      },
-      {
-        rootMargin: "300px 0px 300px 0px",
-        threshold: 0.01,
-      },
-    );
-
-    observer.observe(sentinel);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [archiveItems.length, fetchNextPage, hasNextPage, isFetchingNextPage]);
-
   return (
     <main className="relative mx-auto w-full max-w-400">
       <div className="px-4 py-8">
@@ -192,12 +160,10 @@ export const SerialsArchivePage = () => {
           selectedPeriodLabel={selectedPeriodLabel}
           availableGenres={firstPage?.availableGenres}
           archiveCountLabel={archiveCountLabel}
-          viewMode={viewMode}
           onSelectGenre={setSelectedGenre}
           onSelectSort={setSelectedSort}
           onSelectLanguage={setSelectedLanguage}
           onSelectPeriod={setSelectedPeriod}
-          onSetViewMode={setViewMode}
         />
 
         {archiveQuery.isPending ? <ArchiveSkeletonGrid /> : null}
@@ -234,43 +200,44 @@ export const SerialsArchivePage = () => {
         !archiveQuery.isError &&
         archiveItems.length > 0 ? (
           <>
-            {viewMode === "grid" ? (
-              <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-                {archiveItems.map((series) => (
-                  <GridSeriesCard
-                    key={`serial-archive-grid-${series.tmdbId}`}
-                    series={series}
-                    ratingSource={archiveRatingSource}
-                  />
-                ))}
+            <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+              {archiveItems.map((series) => (
+                <GridSeriesCard
+                  key={`serial-archive-grid-${series.tmdbId}`}
+                  series={series}
+                  ratingSource={archiveRatingSource}
+                />
+              ))}
+            </div>
+
+            {hasNextPage ? (
+              <div className="mt-5 flex justify-center">
+                <button
+                  type="button"
+                  disabled={isFetchingNextPage}
+                  className="border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+                  style={{
+                    borderColor: SERIAL_MODULE_STYLES.border,
+                    color: SERIAL_MODULE_STYLES.muted,
+                    background: "transparent",
+                  }}
+                  onClick={() => {
+                    void fetchNextPage();
+                  }}
+                >
+                  {isFetchingNextPage ? "Loading..." : "Show more"}
+                </button>
               </div>
             ) : (
-              <div className="space-y-2.5">
-                {archiveItems.map((series, index) => (
-                  <ListSeriesRow
-                    key={`serial-archive-list-${series.tmdbId}`}
-                    series={series}
-                    rank={index + 1}
-                    ratingSource={archiveRatingSource}
-                  />
-                ))}
-              </div>
-            )}
-
-            <div ref={loadMoreRef} className="h-4 w-full" aria-hidden />
-
-            {isFetchingNextPage ? (
-              <ArchiveLoadingMoreRow viewMode={viewMode} />
-            ) : null}
-
-            {!hasNextPage ? (
               <p
                 className="mt-5 text-center font-mono text-[11px]"
                 style={{ color: SERIAL_MODULE_STYLES.faint }}
               >
                 End of serial archive.
               </p>
-            ) : null}
+            )}
+
+            {isFetchingNextPage ? <ArchiveLoadingMoreRow /> : null}
           </>
         ) : null}
       </div>

@@ -7,7 +7,6 @@ import type {
 } from "@/features/serials/api";
 import { ArchiveMenuRadioOption } from "@/features/serials/components/serial-archive/ArchiveMenuRadioOption";
 import { ArchiveMenuTrigger } from "@/features/serials/components/serial-archive/ArchiveMenuTrigger";
-import { ArchiveViewModeToggle } from "@/features/serials/components/serial-archive/ArchiveViewModeToggle";
 import {
   languageOptions,
   periodOptions,
@@ -15,7 +14,6 @@ import {
   sortOptions,
 } from "@/features/serials/components/serial-archive/constants";
 import type {
-  ArchiveViewMode,
   OpenMenu,
 } from "@/features/serials/components/serial-archive/types";
 
@@ -34,12 +32,10 @@ type SerialArchiveControlsProps = {
   selectedPeriodLabel: string;
   availableGenres?: SerialArchiveResponse["availableGenres"];
   archiveCountLabel: string;
-  viewMode: ArchiveViewMode;
   onSelectGenre: (genre: string) => void;
   onSelectSort: (sort: SerialArchiveSort) => void;
   onSelectLanguage: (language: string) => void;
   onSelectPeriod: (period: SerialArchivePeriod) => void;
-  onSetViewMode: (mode: ArchiveViewMode) => void;
 };
 
 export const SerialArchiveControls = ({
@@ -57,12 +53,10 @@ export const SerialArchiveControls = ({
   selectedPeriodLabel,
   availableGenres,
   archiveCountLabel,
-  viewMode,
   onSelectGenre,
   onSelectSort,
   onSelectLanguage,
   onSelectPeriod,
-  onSetViewMode,
 }: SerialArchiveControlsProps) => {
   return (
     <div
@@ -190,10 +184,6 @@ export const SerialArchiveControls = ({
           {archiveCountLabel}
         </p>
 
-        <ArchiveViewModeToggle
-          viewMode={viewMode}
-          onSetViewMode={onSetViewMode}
-        />
       </div>
     </div>
   );

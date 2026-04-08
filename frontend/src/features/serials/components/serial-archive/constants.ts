@@ -3,7 +3,7 @@ import {
   type SerialArchiveSort,
 } from "@/features/serials/api";
 
-export const ARCHIVE_PAGE_SIZE = 20;
+export const ARCHIVE_PAGE_SIZE = 30;
 
 export const SERIAL_MODULE_STYLES = {
   accent: "var(--module-serial)",

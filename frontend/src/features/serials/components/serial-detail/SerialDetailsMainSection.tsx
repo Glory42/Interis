@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { SerialDetailResponse } from "@/features/serials/api";
 import { buildSerialFactRows } from "@/features/serials/components/serial-detail/facts";
 import { SerialFactsGrid } from "@/features/serials/components/serial-detail/SerialFactsGrid";
@@ -17,6 +18,7 @@ type SerialDetailsMainSectionProps = {
 export const SerialDetailsMainSection = ({
   detail,
 }: SerialDetailsMainSectionProps) => {
+  const [isCastExpanded, setIsCastExpanded] = useState(false);
   const series = detail.series;
 
   const runtimeLabel = formatEpisodeRuntimeLabel(series.episodeRuntime);
@@ -41,6 +43,7 @@ export const SerialDetailsMainSection = ({
     firstAirDateLabel,
     lastAirDateLabel,
   );
+  const visibleCast = isCastExpanded ? series.cast : series.cast.slice(0, 5);
 
   return (
     <section>
@@ -164,24 +167,44 @@ export const SerialDetailsMainSection = ({
             No cast metadata available.
           </p>
         ) : (
-          <div className="mb-4 flex flex-wrap gap-2">
-            {series.cast.slice(0, 18).map((castMember) => (
-              <PersonRouteLink
-                key={`series-cast-${castMember.tmdbPersonId}-${castMember.character ?? "cast"}`}
-                person={castMember}
-                className="border px-2 py-1 font-mono text-[10px]"
+          <>
+            <div className="mb-4 flex flex-wrap gap-2">
+              {visibleCast.map((castMember) => (
+                <PersonRouteLink
+                  key={`series-cast-${castMember.tmdbPersonId}-${castMember.character ?? "cast"}`}
+                  person={castMember}
+                  className="border px-2 py-1 font-mono text-[10px]"
+                  style={{
+                    borderColor: SERIAL_MODULE_STYLES.border,
+                    color: SERIAL_MODULE_STYLES.muted,
+                    background: SERIAL_MODULE_STYLES.panelSoft,
+                  }}
+                >
+                  {castMember.character
+                    ? `${castMember.name} as ${castMember.character}`
+                    : castMember.name}
+                </PersonRouteLink>
+              ))}
+            </div>
+
+            {series.cast.length > 5 ? (
+              <button
+                type="button"
+                className="border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors"
                 style={{
                   borderColor: SERIAL_MODULE_STYLES.border,
                   color: SERIAL_MODULE_STYLES.muted,
-                  background: SERIAL_MODULE_STYLES.panelSoft,
+                }}
+                onClick={() => {
+                  setIsCastExpanded((current) => !current);
                 }}
               >
-                {castMember.character
-                  ? `${castMember.name} as ${castMember.character}`
-                  : castMember.name}
-              </PersonRouteLink>
-            ))}
-          </div>
+                {isCastExpanded
+                  ? "Show less"
+                  : `Show all (${series.cast.length})`}
+              </button>
+            ) : null}
+          </>
         )}
       </div>
 

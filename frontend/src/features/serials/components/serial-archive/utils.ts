@@ -47,3 +47,17 @@ export const getRoundedStars = (ratingOutOfFive: number | null): number => {
 
   return Math.max(0, Math.min(5, Math.round(ratingOutOfFive)));
 };
+
+export const getSeriesStateLabel = (
+  series: SerialArchiveItem,
+): "Watched" | "Queued" | null => {
+  if (series.viewerHasLogged) {
+    return "Watched";
+  }
+
+  if (series.viewerWatchlisted) {
+    return "Queued";
+  }
+
+  return null;
+};

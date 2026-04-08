@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Award, Star } from "lucide-react";
+import { Award } from "lucide-react";
 import type { SerialArchiveItem } from "@/features/serials/api";
 import { getPosterUrl } from "@/features/serials/components/utils";
 import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-archive/constants";
@@ -7,9 +7,8 @@ import type { ArchiveRatingSource } from "@/features/serials/components/serial-a
 import {
   getCreatorYearLine,
   getRatingOutOfFive,
-  getRoundedStars,
+  getSeriesStateLabel,
 } from "@/features/serials/components/serial-archive/utils";
-import { cn } from "@/lib/utils";
 
 type GridSeriesCardProps = {
   series: SerialArchiveItem;
@@ -21,7 +20,7 @@ export const GridSeriesCard = ({
   ratingSource,
 }: GridSeriesCardProps) => {
   const ratingOutOfFive = getRatingOutOfFive(series, ratingSource);
-  const roundedStars = getRoundedStars(ratingOutOfFive);
+  const stateLabel = getSeriesStateLabel(series);
 
   return (
     <Link
@@ -67,6 +66,21 @@ export const GridSeriesCard = ({
           </div>
         )}
 
+        {stateLabel ? (
+          <div className="absolute right-2 top-2">
+            <span
+              className="border px-2 py-0.5 font-mono text-[9px] tracking-[0.16em]"
+              style={{
+                borderColor: SERIAL_MODULE_STYLES.accent,
+                color: SERIAL_MODULE_STYLES.accent,
+                background: SERIAL_MODULE_STYLES.badge,
+              }}
+            >
+              {stateLabel}
+            </span>
+          </div>
+        ) : null}
+
         {ratingOutOfFive !== null ? (
           <div className="absolute bottom-2 right-2">
             <span
@@ -97,29 +111,6 @@ export const GridSeriesCard = ({
       >
         {getCreatorYearLine(series)}
       </p>
-
-      <div className="mt-1 flex items-center justify-between">
-        <span
-          className="font-mono text-[9px]"
-          style={{ color: SERIAL_MODULE_STYLES.faint }}
-        >
-          {series.logCount.toLocaleString()} logs
-        </span>
-        <span
-          className="inline-flex items-center gap-0.5"
-          style={{ color: SERIAL_MODULE_STYLES.accent }}
-        >
-          {Array.from({ length: 5 }).map((_, index) => (
-            <Star
-              key={`serial-archive-grid-star-${series.tmdbId}-${index}`}
-              className={cn(
-                "h-2.5 w-2.5",
-                index < roundedStars ? "fill-current" : "opacity-35",
-              )}
-            />
-          ))}
-        </span>
-      </div>
     </Link>
   );
 };

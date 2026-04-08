@@ -9,8 +9,9 @@ import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detai
 
 type SerialActionsSidebarProps = {
   detail: SerialDetailResponse;
-  draftRatingOutOfFive: number | null;
-  onDraftRatingChange: (ratingOutOfFive: number | null) => void;
+  currentRatingOutOfFive: number | null;
+  isRatingSaving: boolean;
+  onRatingChange: (ratingOutOfFive: number | null) => void;
   isAuthenticated: boolean;
   watchlisted: boolean;
   liked: boolean;
@@ -21,8 +22,9 @@ type SerialActionsSidebarProps = {
 
 export const SerialActionsSidebar = ({
   detail,
-  draftRatingOutOfFive,
-  onDraftRatingChange,
+  currentRatingOutOfFive,
+  isRatingSaving,
+  onRatingChange,
   isAuthenticated,
   watchlisted,
   liked,
@@ -34,20 +36,14 @@ export const SerialActionsSidebar = ({
 
   const modalInitialState = {
     watchedDate: detail.userRating?.watchedDate ?? null,
-    ratingOutOfFive:
-      draftRatingOutOfFive ??
-      (detail.userRating?.ratingOutOfFive !== null &&
-      detail.userRating?.ratingOutOfFive !== undefined
-        ? detail.userRating.ratingOutOfFive
-        : null),
+    ratingOutOfFive: currentRatingOutOfFive,
     rewatch: detail.userRating?.rewatch ?? false,
     reviewContent: detail.userRating?.reviewContent ?? null,
     containsSpoilers: detail.userRating?.reviewContainsSpoilers ?? null,
   };
 
   const resolvedUserRatingLabel =
-    formatRatingOutOfFiveLabel(draftRatingOutOfFive) ??
-    formatRatingOutOfFiveLabel(detail.userRating?.ratingOutOfFive ?? null) ??
+    formatRatingOutOfFiveLabel(currentRatingOutOfFive) ??
     "No rating yet";
 
   return (
@@ -168,21 +164,27 @@ export const SerialActionsSidebar = ({
           >
             Your Rating
           </p>
-          <SpaceRatingInput
-            value={
-              draftRatingOutOfFive ??
-              (detail.userRating?.ratingOutOfFive !== null &&
-              detail.userRating?.ratingOutOfFive !== undefined
-                ? detail.userRating.ratingOutOfFive
-                : null)
-            }
-            onChange={onDraftRatingChange}
-          />
+          {isAuthenticated ? (
+            <SpaceRatingInput
+              value={currentRatingOutOfFive}
+              onChange={onRatingChange}
+              disabled={isRatingSaving}
+            />
+          ) : (
+            <Link
+              to="/login"
+              className="font-mono text-[10px]"
+              style={{ color: SERIAL_MODULE_STYLES.muted }}
+              viewTransition
+            >
+              Sign in to rate
+            </Link>
+          )}
           <p
             className="mt-2 font-mono text-[10px]"
             style={{ color: SERIAL_MODULE_STYLES.muted }}
           >
-            {resolvedUserRatingLabel}
+            {isRatingSaving ? "Saving..." : resolvedUserRatingLabel}
           </p>
         </div>
       </div>

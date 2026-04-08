@@ -54,9 +54,6 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
   const isValidTmdbId = Number.isInteger(tmdbId) && tmdbId > 0;
   const [reviewsSort, setReviewsSort] =
     useState<SerialDetailReviewSort>("popular");
-  const [draftRatingOutOfFive, setDraftRatingOutOfFive] = useState<
-    number | null
-  >(null);
   const [openSeasonNumber, setOpenSeasonNumber] = useState<
     number | null | undefined
   >(undefined);
@@ -92,6 +89,9 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
 
   const watchlisted = interactionQuery.data?.watchlisted ?? false;
   const liked = interactionQuery.data?.liked ?? false;
+  const interactionRatingOutOfFive = interactionQuery.data?.ratingOutOfFive ?? null;
+  const currentRatingOutOfFive =
+    interactionRatingOutOfFive ?? detail.userRating?.ratingOutOfFive ?? null;
   const isInteractionBusy =
     interactionQuery.isPending || updateInteractionMutation.isPending;
 
@@ -101,6 +101,16 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
 
   const handleToggleLike = () => {
     void updateInteractionMutation.mutateAsync({ liked: !liked });
+  };
+
+  const handleRatingChange = (nextRatingOutOfFive: number | null) => {
+    if (!user || nextRatingOutOfFive === currentRatingOutOfFive) {
+      return;
+    }
+
+    void updateInteractionMutation.mutateAsync({
+      ratingOutOfFive: nextRatingOutOfFive,
+    });
   };
 
   const handleToggleSeason = (seasonNumber: number) => {
@@ -126,8 +136,9 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-[220px_1fr]">
           <SerialActionsSidebar
             detail={detail}
-            draftRatingOutOfFive={draftRatingOutOfFive}
-            onDraftRatingChange={setDraftRatingOutOfFive}
+            currentRatingOutOfFive={currentRatingOutOfFive}
+            isRatingSaving={updateInteractionMutation.isPending}
+            onRatingChange={handleRatingChange}
             isAuthenticated={Boolean(user)}
             watchlisted={watchlisted}
             liked={liked}
