@@ -7,13 +7,34 @@ import { lists } from "../../lists/lists.entity";
 import { movies } from "../../movies/movies.entity";
 import { comments, reviewLikes, reviews } from "../../reviews/reviews.entity";
 import {
+  MAX_TOP_PICK_ITEMS_PER_CATEGORY,
+} from "../constants/top-picks.constants";
+import { profiles, profileTopPicks } from "../users.entity";
+import type { UpdateProfileDto, UpdateTopPicksInput } from "../dto/users.dto";
+import {
   serialDiaryEntries,
+  serialInteractions,
   tvSeries,
 } from "../../serials/serials.entity";
-import { follows } from "../../social/social.entity";
-import { profiles } from "../users.entity";
+import { activities, follows } from "../../social/social.entity";
 import type { ThemeId } from "../constants/theme.constants";
-import type { UpdateProfileDto } from "../dto/users.dto";
+
+type NormalizedTopPickCategory = UpdateTopPicksInput[number];
+
+type NormalizedTopPickItem = {
+  slot: number;
+  mediaType: string;
+  mediaSource: string;
+  mediaSourceId: string;
+  title: string | null;
+  posterPath: string | null;
+  releaseYear: number | null;
+};
+
+type NormalizedTopPickCategoryWithItems = {
+  categoryId: number;
+  items: NormalizedTopPickItem[];
+};
 
 const toRatingOutOfFive = (ratingOutOfTen: number | null): number | null => {
   if (ratingOutOfTen === null) {
@@ -33,8 +54,6 @@ const profileSelect = {
   bio: profiles.bio,
   location: profiles.location,
   avatarUrl: profiles.avatarUrl,
-  backdropUrl: profiles.backdropUrl,
-  top4MovieIds: profiles.top4MovieIds,
   favoriteGenres: profiles.favoriteGenres,
   themeId: profiles.themeId,
   isAdmin: profiles.isAdmin,
@@ -48,6 +67,41 @@ export class UsersRepository {
       .from(user);
 
     return rows[0]?.count ?? 0;
+  }
+
+  static async getNetworkStats(): Promise<{
+    totalUsers: number;
+    logsToday: number;
+    liveReviews: number;
+  }> {
+    const [totalUsersRows, todayActivityRows] = await Promise.all([
+      db
+        .select({ count: sql<number>`count(*)`.mapWith(Number) })
+        .from(user),
+      db
+        .select({
+          logsToday:
+            sql<number>`count(*) filter (where ${activities.type} = 'diary_entry')`.mapWith(
+              Number,
+            ),
+          liveReviews:
+            sql<number>`count(*) filter (
+              where ${activities.type} = 'review'
+                or (
+                  ${activities.type} = 'diary_entry'
+                  and coalesce(((${activities.metadata})::jsonb ->> 'hasReview')::boolean, false)
+                )
+            )`.mapWith(Number),
+        })
+        .from(activities)
+        .where(sql`${activities.createdAt}::date = current_date`),
+    ]);
+
+    return {
+      totalUsers: totalUsersRows[0]?.count ?? 0,
+      logsToday: todayActivityRows[0]?.logsToday ?? 0,
+      liveReviews: todayActivityRows[0]?.liveReviews ?? 0,
+    };
   }
 
   static async findProfileByUsername(username: string) {
@@ -103,27 +157,131 @@ export class UsersRepository {
       .limit(limit);
   }
 
-  static async updateProfile(userId: string, input: UpdateProfileDto) {
-    const [updated] = await db
-      .update(profiles)
-      .set({
-        ...(input.bio !== undefined && { bio: input.bio }),
-        ...(input.location !== undefined && { location: input.location }),
-        ...(input.avatarUrl !== undefined && { avatarUrl: input.avatarUrl }),
-        ...(input.backdropUrl !== undefined && {
-          backdropUrl: input.backdropUrl,
-        }),
-        ...(input.top4MovieIds !== undefined && {
-          top4MovieIds: input.top4MovieIds,
-        }),
-        ...(input.favoriteGenres !== undefined && {
-          favoriteGenres: input.favoriteGenres,
-        }),
-      })
-      .where(eq(profiles.userId, userId))
-      .returning();
+  private static normalizeTopPickCategories(
+    categories: UpdateTopPicksInput,
+  ): NormalizedTopPickCategoryWithItems[] {
+    return categories.map((category) => {
+      const items = [...category.items]
+        .sort((left, right) => left.slot - right.slot)
+        .slice(0, MAX_TOP_PICK_ITEMS_PER_CATEGORY)
+        .map((item): NormalizedTopPickItem => ({
+          slot: item.slot,
+          mediaType: item.mediaType,
+          mediaSource: item.mediaSource,
+          mediaSourceId: item.mediaSourceId,
+          title: item.title?.trim() || null,
+          posterPath: item.posterPath ?? null,
+          releaseYear: item.releaseYear ?? null,
+        }));
 
-    return updated ?? null;
+      return {
+        categoryId: category.categoryId,
+        items,
+      };
+    });
+  }
+
+  private static async replaceTopPicksForCategories(
+    userId: string,
+    categories: NormalizedTopPickCategoryWithItems[],
+  ): Promise<void> {
+    if (categories.length === 0) {
+      return;
+    }
+
+    const categoryIds = [...new Set(categories.map((category) => category.categoryId))];
+
+    if (categoryIds.length > 0) {
+      await db
+        .delete(profileTopPicks)
+        .where(
+          and(
+            eq(profileTopPicks.userId, userId),
+            inArray(profileTopPicks.categoryId, categoryIds),
+          ),
+        );
+    }
+
+    const rowsToInsert = categories.flatMap((category) =>
+      category.items.map((item) => ({
+        userId,
+        categoryId: category.categoryId,
+        slot: item.slot,
+        mediaType: item.mediaType,
+        mediaSource: item.mediaSource,
+        mediaSourceId: item.mediaSourceId,
+        title: item.title,
+        posterPath: item.posterPath,
+        releaseYear: item.releaseYear,
+      })),
+    );
+
+    if (rowsToInsert.length > 0) {
+      await db.insert(profileTopPicks).values(rowsToInsert);
+    }
+  }
+
+  static async getTopPicksByUserId(userId: string) {
+    return db
+      .select({
+        id: profileTopPicks.id,
+        categoryId: profileTopPicks.categoryId,
+        slot: profileTopPicks.slot,
+        mediaType: profileTopPicks.mediaType,
+        mediaSource: profileTopPicks.mediaSource,
+        mediaSourceId: profileTopPicks.mediaSourceId,
+        title: profileTopPicks.title,
+        posterPath: profileTopPicks.posterPath,
+        releaseYear: profileTopPicks.releaseYear,
+      })
+      .from(profileTopPicks)
+      .where(eq(profileTopPicks.userId, userId))
+      .orderBy(asc(profileTopPicks.categoryId), asc(profileTopPicks.slot));
+  }
+
+  static async updateProfile(userId: string, input: UpdateProfileDto) {
+    const normalizedTopPicks =
+      input.topPicks !== undefined
+        ? UsersRepository.normalizeTopPickCategories(input.topPicks)
+        : null;
+
+    if (normalizedTopPicks !== null) {
+      await UsersRepository.replaceTopPicksForCategories(userId, normalizedTopPicks);
+    }
+
+    const profileUpdatePayload: {
+      bio?: string;
+      location?: string;
+      avatarUrl?: string;
+      favoriteGenres?: string[];
+    } = {
+      ...(input.bio !== undefined && { bio: input.bio }),
+      ...(input.location !== undefined && { location: input.location }),
+      ...(input.avatarUrl !== undefined && { avatarUrl: input.avatarUrl }),
+      ...(input.favoriteGenres !== undefined && {
+        favoriteGenres: input.favoriteGenres,
+      }),
+    };
+
+    const hasProfilePatch = Object.keys(profileUpdatePayload).length > 0;
+
+    if (hasProfilePatch) {
+      const [updated] = await db
+        .update(profiles)
+        .set(profileUpdatePayload)
+        .where(eq(profiles.userId, userId))
+        .returning();
+
+      return updated ?? null;
+    }
+
+    const [existing] = await db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.userId, userId))
+      .limit(1);
+
+    return existing ?? null;
   }
 
   static async updateTheme(userId: string, themeId: ThemeId) {
@@ -134,39 +292,6 @@ export class UsersRepository {
       .returning({ themeId: profiles.themeId });
 
     return updated ?? null;
-  }
-
-  static async getDiaryWithMovies(userId: string) {
-    return db
-      .select({
-        id: diaryEntries.id,
-        watchedDate: diaryEntries.watchedDate,
-        rating: diaryEntries.rating,
-        rewatch: diaryEntries.rewatch,
-        movieId: diaryEntries.movieId,
-        createdAt: diaryEntries.createdAt,
-        updatedAt: diaryEntries.updatedAt,
-        movieTmdbId: movies.tmdbId,
-        movieTitle: movies.title,
-        moviePosterPath: movies.posterPath,
-        movieReleaseYear: movies.releaseYear,
-        reviewId: reviews.id,
-        reviewContent: reviews.content,
-        reviewContainsSpoilers: reviews.containsSpoilers,
-        reviewCreatedAt: reviews.createdAt,
-      })
-      .from(diaryEntries)
-      .innerJoin(movies, eq(diaryEntries.movieId, movies.id))
-      .leftJoin(
-        reviews,
-        and(
-          eq(reviews.userId, diaryEntries.userId),
-          eq(reviews.movieId, diaryEntries.movieId),
-          eq(reviews.mediaType, "movie"),
-        ),
-      )
-      .where(eq(diaryEntries.userId, userId))
-      .orderBy(desc(diaryEntries.watchedDate), desc(diaryEntries.createdAt));
   }
 
   static async getReviewsWithMovies(userId: string) {
@@ -182,10 +307,12 @@ export class UsersRepository {
           title: movies.title,
           posterPath: movies.posterPath,
           releaseYear: movies.releaseYear,
+          rating: diaryEntries.rating,
           mediaType: sql<"movie">`'movie'`,
         })
         .from(reviews)
         .innerJoin(movies, eq(reviews.movieId, movies.id))
+        .leftJoin(diaryEntries, eq(reviews.diaryEntryId, diaryEntries.id))
         .where(and(eq(reviews.userId, userId), eq(reviews.mediaType, "movie"))),
       db
         .select({
@@ -195,11 +322,27 @@ export class UsersRepository {
           createdAt: reviews.createdAt,
           updatedAt: reviews.updatedAt,
           tmdbId: reviews.mediaSourceId,
+          rating: serialDiaryEntries.rating,
           mediaType: sql<"tv">`'tv'`,
         })
         .from(reviews)
+        .leftJoin(serialDiaryEntries, eq(reviews.diaryEntryId, serialDiaryEntries.id))
         .where(and(eq(reviews.userId, userId), eq(reviews.mediaType, "tv"))),
     ]);
+
+    const normalizedMovieReviewRows = movieReviewRows.map((reviewRow) => ({
+      id: reviewRow.id,
+      content: reviewRow.content,
+      containsSpoilers: reviewRow.containsSpoilers,
+      createdAt: reviewRow.createdAt,
+      updatedAt: reviewRow.updatedAt,
+      tmdbId: reviewRow.tmdbId,
+      title: reviewRow.title,
+      posterPath: reviewRow.posterPath,
+      releaseYear: reviewRow.releaseYear,
+      ratingOutOfFive: toRatingOutOfFive(reviewRow.rating),
+      mediaType: "movie" as const,
+    }));
 
     const tvTmdbIds = tvReviewRows
       .map((reviewRow) => Number(reviewRow.tmdbId))
@@ -238,12 +381,13 @@ export class UsersRepository {
           title: series?.title ?? "Unknown series",
           posterPath: series?.posterPath ?? null,
           releaseYear: series?.releaseYear ?? null,
+          ratingOutOfFive: toRatingOutOfFive(reviewRow.rating),
           mediaType: "tv" as const,
         };
       })
       .filter((reviewRow): reviewRow is NonNullable<typeof reviewRow> => reviewRow !== null);
 
-    return [...movieReviewRows, ...serialReviewRows].sort(
+    return [...normalizedMovieReviewRows, ...serialReviewRows].sort(
       (leftReview, rightReview) =>
         rightReview.createdAt.getTime() - leftReview.createdAt.getTime(),
     );
@@ -438,60 +582,88 @@ export class UsersRepository {
     return null;
   }
 
-  static async getWatchedFilms(userId: string) {
-    return db
-      .selectDistinctOn([movies.id], {
-        tmdbId: movies.tmdbId,
-        title: movies.title,
-        posterPath: movies.posterPath,
-        releaseYear: movies.releaseYear,
-        genres: movies.genres,
-        runtime: movies.runtime,
-        lastWatched: diaryEntries.watchedDate,
-      })
-      .from(diaryEntries)
-      .innerJoin(movies, eq(diaryEntries.movieId, movies.id))
-      .where(eq(diaryEntries.userId, userId))
-      .orderBy(movies.id, desc(diaryEntries.watchedDate));
-  }
-
   static async getLikedFilms(userId: string) {
-    return db
-      .select({
-        tmdbId: movies.tmdbId,
-        title: movies.title,
-        posterPath: movies.posterPath,
-        releaseYear: movies.releaseYear,
-        runtime: movies.runtime,
-        genres: movies.genres,
-        lastInteractionAt: movieInteractions.updatedAt,
-      })
-      .from(movieInteractions)
-      .innerJoin(movies, eq(movieInteractions.movieId, movies.id))
-      .where(and(eq(movieInteractions.userId, userId), eq(movieInteractions.liked, true)))
-      .orderBy(desc(movieInteractions.updatedAt));
+    const [movieRows, serialRows] = await Promise.all([
+      db
+        .select({
+          tmdbId: movies.tmdbId,
+          title: movies.title,
+          posterPath: movies.posterPath,
+          releaseYear: movies.releaseYear,
+          runtime: movies.runtime,
+          genres: movies.genres,
+          mediaType: sql<"movie">`'movie'`,
+          lastInteractionAt: movieInteractions.updatedAt,
+        })
+        .from(movieInteractions)
+        .innerJoin(movies, eq(movieInteractions.movieId, movies.id))
+        .where(and(eq(movieInteractions.userId, userId), eq(movieInteractions.liked, true))),
+      db
+        .select({
+          tmdbId: tvSeries.tmdbId,
+          title: tvSeries.title,
+          posterPath: tvSeries.posterPath,
+          releaseYear: tvSeries.firstAirYear,
+          runtime: tvSeries.episodeRuntime,
+          genres: tvSeries.genres,
+          mediaType: sql<"tv">`'tv'`,
+          lastInteractionAt: serialInteractions.updatedAt,
+        })
+        .from(serialInteractions)
+        .innerJoin(tvSeries, eq(serialInteractions.seriesId, tvSeries.id))
+        .where(and(eq(serialInteractions.userId, userId), eq(serialInteractions.liked, true))),
+    ]);
+
+    return [...movieRows, ...serialRows].sort(
+      (left, right) => right.lastInteractionAt.getTime() - left.lastInteractionAt.getTime(),
+    );
   }
 
   static async getWatchlistedFilms(userId: string) {
-    return db
-      .select({
-        tmdbId: movies.tmdbId,
-        title: movies.title,
-        posterPath: movies.posterPath,
-        releaseYear: movies.releaseYear,
-        runtime: movies.runtime,
-        genres: movies.genres,
-        lastInteractionAt: movieInteractions.updatedAt,
-      })
-      .from(movieInteractions)
-      .innerJoin(movies, eq(movieInteractions.movieId, movies.id))
-      .where(
-        and(
-          eq(movieInteractions.userId, userId),
-          eq(movieInteractions.watchlisted, true),
+    const [movieRows, serialRows] = await Promise.all([
+      db
+        .select({
+          tmdbId: movies.tmdbId,
+          title: movies.title,
+          posterPath: movies.posterPath,
+          releaseYear: movies.releaseYear,
+          runtime: movies.runtime,
+          genres: movies.genres,
+          mediaType: sql<"movie">`'movie'`,
+          lastInteractionAt: movieInteractions.updatedAt,
+        })
+        .from(movieInteractions)
+        .innerJoin(movies, eq(movieInteractions.movieId, movies.id))
+        .where(
+          and(
+            eq(movieInteractions.userId, userId),
+            eq(movieInteractions.watchlisted, true),
+          ),
         ),
-      )
-      .orderBy(desc(movieInteractions.updatedAt));
+      db
+        .select({
+          tmdbId: tvSeries.tmdbId,
+          title: tvSeries.title,
+          posterPath: tvSeries.posterPath,
+          releaseYear: tvSeries.firstAirYear,
+          runtime: tvSeries.episodeRuntime,
+          genres: tvSeries.genres,
+          mediaType: sql<"tv">`'tv'`,
+          lastInteractionAt: serialInteractions.updatedAt,
+        })
+        .from(serialInteractions)
+        .innerJoin(tvSeries, eq(serialInteractions.seriesId, tvSeries.id))
+        .where(
+          and(
+            eq(serialInteractions.userId, userId),
+            eq(serialInteractions.watchlisted, true),
+          ),
+        ),
+    ]);
+
+    return [...movieRows, ...serialRows].sort(
+      (left, right) => right.lastInteractionAt.getTime() - left.lastInteractionAt.getTime(),
+    );
   }
 
   static async getStatsCounts(userId: string) {

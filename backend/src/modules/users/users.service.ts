@@ -8,6 +8,10 @@ export class UsersService {
     return UsersReadService.getTotalUsersCount();
   }
 
+  static async getNetworkStats() {
+    return UsersReadService.getNetworkStats();
+  }
+
   static async searchUsers(query: string, limit?: number) {
     return UsersReadService.searchUsers(query, limit);
   }
@@ -28,10 +32,6 @@ export class UsersService {
     return UsersProfileService.updateTheme(userId, themeId);
   }
 
-  static async getDiaryWithMovies(userId: string) {
-    return UsersReadService.getDiaryWithMovies(userId);
-  }
-
   static async getReviewsWithMovies(userId: string) {
     return UsersReadService.getReviewsWithMovies(userId);
   }
@@ -42,10 +42,6 @@ export class UsersService {
     viewerUserId?: string | null,
   ) {
     return UsersReadService.getReviewDetailByUsername(username, reviewId, viewerUserId);
-  }
-
-  static async getWatchedFilms(userId: string) {
-    return UsersReadService.getWatchedFilms(userId);
   }
 
   static async getLikedFilms(userId: string) {

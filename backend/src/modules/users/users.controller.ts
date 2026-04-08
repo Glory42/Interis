@@ -11,8 +11,8 @@ import {
 
 export class UsersController {
   static async getNetworkStats(_req: Request, res: Response): Promise<void> {
-    const totalUsers = await UsersService.getTotalUsersCount();
-    res.status(200).json({ totalUsers });
+    const stats = await UsersService.getNetworkStats();
+    res.status(200).json(stats);
   }
 
   static async search(
@@ -41,19 +41,6 @@ export class UsersController {
     const stats = await UsersService.getStats(profile.id);
     const { email, ...publicProfile } = profile;
     res.status(200).json({ ...publicProfile, stats });
-  }
-
-  static async getUserDiary(
-    req: Request<{ username: string }>,
-    res: Response,
-  ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
-    if (!profile) {
-      res.status(404).json({ error: "User not found" });
-      return;
-    }
-    const entries = await UsersService.getDiaryWithMovies(profile.id);
-    res.status(200).json(entries);
   }
 
   static async getUserReviews(
@@ -92,19 +79,6 @@ export class UsersController {
     }
 
     res.status(200).json(review);
-  }
-
-  static async getUserFilms(
-    req: Request<{ username: string }>,
-    res: Response,
-  ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
-    if (!profile) {
-      res.status(404).json({ error: "User not found" });
-      return;
-    }
-    const films = await UsersService.getWatchedFilms(profile.id);
-    res.status(200).json(films);
   }
 
   static async getUserLikes(

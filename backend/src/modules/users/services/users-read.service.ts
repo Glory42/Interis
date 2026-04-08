@@ -7,12 +7,12 @@ export class UsersReadService {
     return UsersRepository.getTotalUsersCount();
   }
 
-  static async searchUsers(query: string, limit = 8) {
-    return UsersRepository.searchProfilesByUsername(query, limit);
+  static async getNetworkStats() {
+    return UsersRepository.getNetworkStats();
   }
 
-  static async getDiaryWithMovies(userId: string) {
-    return UsersRepository.getDiaryWithMovies(userId);
+  static async searchUsers(query: string, limit = 8) {
+    return UsersRepository.searchProfilesByUsername(query, limit);
   }
 
   static async getReviewsWithMovies(userId: string) {
@@ -25,10 +25,6 @@ export class UsersReadService {
     viewerUserId?: string | null,
   ) {
     return UsersRepository.getReviewDetailByUsername(username, reviewId, viewerUserId);
-  }
-
-  static async getWatchedFilms(userId: string) {
-    return UsersRepository.getWatchedFilms(userId);
   }
 
   static async getLikedFilms(userId: string) {
