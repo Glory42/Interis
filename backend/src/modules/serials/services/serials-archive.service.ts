@@ -18,6 +18,7 @@ export class SerialsArchiveService {
     period?: string;
     page?: string;
     limit?: string;
+    viewerUserId?: string | null;
   }): Promise<SerialArchiveResponse> {
     const selectedGenre = normalizeArchiveGenre(input.genre);
     const selectedLanguage = normalizeArchiveLanguage(input.language);
@@ -33,6 +34,7 @@ export class SerialsArchiveService {
       sortBy,
       page,
       limit,
+      viewerUserId: input.viewerUserId ?? null,
     };
 
     try {

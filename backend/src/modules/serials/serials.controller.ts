@@ -188,6 +188,8 @@ export class SerialsController {
     req: Request<{}, {}, {}, SerialArchiveQuery>,
     res: Response,
   ): Promise<void> {
+    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
+
     const archive = await SerialsService.getArchive({
       genre: req.query.genre,
       language: req.query.language,
@@ -195,6 +197,7 @@ export class SerialsController {
       period: req.query.period,
       page: req.query.page,
       limit: req.query.limit,
+      viewerUserId,
     });
 
     res.setHeader("Cache-Control", "no-store");

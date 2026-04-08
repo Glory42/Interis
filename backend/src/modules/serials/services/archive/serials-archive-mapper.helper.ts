@@ -41,6 +41,8 @@ export const toArchiveItemFromLocalRow = (row: LocalArchiveRow): SerialArchiveIt
     avgRatingOutOfTen: row.avgRatingOutOfTen,
     tmdbRatingOutOfTen: null,
     ratedLogCount: row.ratedLogCount,
+    viewerHasLogged: false,
+    viewerWatchlisted: false,
   };
 };
 
@@ -107,5 +109,7 @@ export const mapTmdbArchiveSeries = (
       voteCount: tmdbSeries.vote_count,
     }),
     ratedLogCount: localAggregate?.ratedLogCount ?? 0,
+    viewerHasLogged: false,
+    viewerWatchlisted: false,
   };
 };

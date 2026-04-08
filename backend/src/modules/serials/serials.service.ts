@@ -45,6 +45,7 @@ export class SerialsService {
     period?: string;
     page?: string;
     limit?: string;
+    viewerUserId?: string | null;
   }) {
     return SerialsArchiveService.getArchive(input);
   }

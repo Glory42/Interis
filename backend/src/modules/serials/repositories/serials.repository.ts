@@ -436,6 +436,63 @@ export class SerialsRepository {
       .limit(1);
   }
 
+  static async getViewerLoggedTmdbIds(viewerUserId: string, tmdbIds: number[]) {
+    const uniqueTmdbIds = [...new Set(tmdbIds)];
+    if (uniqueTmdbIds.length === 0) {
+      return [];
+    }
+
+    const [loggedRows, ratedRows] = await Promise.all([
+      db
+        .select({ tmdbId: tvSeries.tmdbId })
+        .from(serialDiaryEntries)
+        .innerJoin(tvSeries, eq(serialDiaryEntries.seriesId, tvSeries.id))
+        .where(
+          and(
+            eq(serialDiaryEntries.userId, viewerUserId),
+            inArray(tvSeries.tmdbId, uniqueTmdbIds),
+          ),
+        )
+        .groupBy(tvSeries.tmdbId),
+      db
+        .select({ tmdbId: tvSeries.tmdbId })
+        .from(serialInteractions)
+        .innerJoin(tvSeries, eq(serialInteractions.seriesId, tvSeries.id))
+        .where(
+          and(
+            eq(serialInteractions.userId, viewerUserId),
+            inArray(tvSeries.tmdbId, uniqueTmdbIds),
+            sql`${serialInteractions.rating} is not null`,
+          ),
+        )
+        .groupBy(tvSeries.tmdbId),
+    ]);
+
+    return [...new Set([...loggedRows, ...ratedRows].map((row) => row.tmdbId))];
+  }
+
+  static async getViewerWatchlistedTmdbIds(viewerUserId: string, tmdbIds: number[]) {
+    const uniqueTmdbIds = [...new Set(tmdbIds)];
+    if (uniqueTmdbIds.length === 0) {
+      return [];
+    }
+
+    const rows = await db
+      .select({ tmdbId: tvSeries.tmdbId })
+      .from(serialInteractions)
+      .innerJoin(tvSeries, eq(serialInteractions.seriesId, tvSeries.id))
+      .where(
+        and(
+          eq(serialInteractions.userId, viewerUserId),
+          eq(serialInteractions.watchlisted, true),
+          inArray(tvSeries.tmdbId, uniqueTmdbIds),
+        ),
+      )
+      .groupBy(tvSeries.tmdbId);
+
+    return rows.map((row) => row.tmdbId);
+  }
+
   static async getInteractionRow(userId: string, seriesId: number) {
     const [row] = await db
       .select()
@@ -456,6 +513,7 @@ export class SerialsRepository {
     seriesId: number;
     liked?: boolean;
     watchlisted?: boolean;
+    rating?: number | null;
   }) {
     const [upserted] = await db
       .insert(serialInteractions)
@@ -464,6 +522,7 @@ export class SerialsRepository {
         seriesId: input.seriesId,
         liked: input.liked ?? false,
         watchlisted: input.watchlisted ?? false,
+        rating: input.rating ?? null,
       })
       .onConflictDoUpdate({
         target: [serialInteractions.userId, serialInteractions.seriesId],
@@ -471,6 +530,9 @@ export class SerialsRepository {
           ...(input.liked !== undefined && { liked: input.liked }),
           ...(input.watchlisted !== undefined && {
             watchlisted: input.watchlisted,
+          }),
+          ...(input.rating !== undefined && {
+            rating: input.rating,
           }),
         },
       })

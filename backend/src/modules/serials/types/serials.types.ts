@@ -26,6 +26,8 @@ export type SerialArchiveItem = {
   avgRatingOutOfTen: number | null;
   tmdbRatingOutOfTen: number | null;
   ratedLogCount: number;
+  viewerHasLogged: boolean;
+  viewerWatchlisted: boolean;
 };
 
 export type SerialArchiveFeaturedItem = {

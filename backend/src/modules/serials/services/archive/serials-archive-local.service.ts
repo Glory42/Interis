@@ -10,6 +10,30 @@ import {
 import type { SerialsArchiveQueryInput } from "./serials-archive.types";
 import { toArchiveItemFromLocalRow } from "./serials-archive-mapper.helper";
 
+const addViewerArchiveState = async (
+  viewerUserId: string | null,
+  pageItems: SerialArchiveResponse["items"],
+): Promise<SerialArchiveResponse["items"]> => {
+  if (!viewerUserId || pageItems.length === 0) {
+    return pageItems;
+  }
+
+  const tmdbIds = pageItems.map((item) => item.tmdbId);
+  const [viewerLoggedTmdbIds, viewerWatchlistedTmdbIds] = await Promise.all([
+    SerialsRepository.getViewerLoggedTmdbIds(viewerUserId, tmdbIds),
+    SerialsRepository.getViewerWatchlistedTmdbIds(viewerUserId, tmdbIds),
+  ]);
+
+  const viewerLoggedTmdbIdSet = new Set<number>(viewerLoggedTmdbIds);
+  const viewerWatchlistedTmdbIdSet = new Set<number>(viewerWatchlistedTmdbIds);
+
+  return pageItems.map((item) => ({
+    ...item,
+    viewerHasLogged: viewerLoggedTmdbIdSet.has(item.tmdbId),
+    viewerWatchlisted: viewerWatchlistedTmdbIdSet.has(item.tmdbId),
+  }));
+};
+
 export const getArchiveFromLocalCache = async (
   input: SerialsArchiveQueryInput,
 ): Promise<SerialArchiveResponse> => {
@@ -39,6 +63,10 @@ export const getArchiveFromLocalCache = async (
 
   const startIndex = (input.page - 1) * input.limit;
   const pageItems = sortedItems.slice(startIndex, startIndex + input.limit);
+  const pageItemsWithViewerState = await addViewerArchiveState(
+    input.viewerUserId,
+    pageItems,
+  );
   const hasMore = startIndex + input.limit < sortedItems.length;
 
   return {
@@ -48,12 +76,12 @@ export const getArchiveFromLocalCache = async (
     selectedLanguage: input.selectedLanguage,
     selectedSort: input.sortBy,
     selectedPeriod: input.selectedPeriod,
-    featuredSeries: toFeaturedSeries(pageItems),
+    featuredSeries: toFeaturedSeries(pageItemsWithViewerState),
     availableGenres: toAvailableGenresFromItems(periodFilteredItems),
     page: input.page,
     limit: input.limit,
     hasMore,
     nextPage: hasMore ? input.page + 1 : null,
-    items: pageItems,
+    items: pageItemsWithViewerState,
   };
 };

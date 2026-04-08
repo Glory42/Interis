@@ -4,6 +4,7 @@ import {
   type TMDBSeriesGenre,
 } from "../../../../infrastructure/tmdb/serials";
 import { toFeaturedSeries } from "../../helpers/serials-format.helper";
+import { SerialsRepository } from "../../repositories/serials.repository";
 import type { SerialArchiveResponse } from "../../types/serials.types";
 import { hydrateCreatorSignalsForItems } from "./serials-archive-creator-signal.service";
 import {
@@ -17,6 +18,30 @@ import {
   getLocalArchiveAggregatesByTmdbIds,
   mapTmdbArchiveSeries,
 } from "./serials-archive-mapper.helper";
+
+const addViewerArchiveState = async (
+  viewerUserId: string | null,
+  pageItems: SerialArchiveResponse["items"],
+): Promise<SerialArchiveResponse["items"]> => {
+  if (!viewerUserId || pageItems.length === 0) {
+    return pageItems;
+  }
+
+  const tmdbIds = pageItems.map((item) => item.tmdbId);
+  const [viewerLoggedTmdbIds, viewerWatchlistedTmdbIds] = await Promise.all([
+    SerialsRepository.getViewerLoggedTmdbIds(viewerUserId, tmdbIds),
+    SerialsRepository.getViewerWatchlistedTmdbIds(viewerUserId, tmdbIds),
+  ]);
+
+  const viewerLoggedTmdbIdSet = new Set<number>(viewerLoggedTmdbIds);
+  const viewerWatchlistedTmdbIdSet = new Set<number>(viewerWatchlistedTmdbIds);
+
+  return pageItems.map((item) => ({
+    ...item,
+    viewerHasLogged: viewerLoggedTmdbIdSet.has(item.tmdbId),
+    viewerWatchlisted: viewerWatchlistedTmdbIdSet.has(item.tmdbId),
+  }));
+};
 
 export const getArchiveFromTmdb = async (
   input: SerialsArchiveQueryInput,
@@ -109,6 +134,10 @@ export const getArchiveFromTmdb = async (
     : genreFilteredItems;
 
   const sortedItems = sortArchiveItems(filteredItems, input.sortBy);
+  const pageItemsWithViewerState = await addViewerArchiveState(
+    input.viewerUserId,
+    sortedItems,
+  );
   const hasMore = discovered.page < discovered.totalPages;
 
   return {
@@ -118,7 +147,7 @@ export const getArchiveFromTmdb = async (
     selectedLanguage: input.selectedLanguage,
     selectedSort: input.sortBy,
     selectedPeriod: input.selectedPeriod,
-    featuredSeries: toFeaturedSeries(sortedItems),
+    featuredSeries: toFeaturedSeries(pageItemsWithViewerState),
     availableGenres: availableTmdbGenres.map((genre) => ({
       id: genre.id,
       name: genre.name,
@@ -128,6 +157,6 @@ export const getArchiveFromTmdb = async (
     limit: input.limit,
     hasMore,
     nextPage: hasMore ? discovered.page + 1 : null,
-    items: sortedItems,
+    items: pageItemsWithViewerState,
   };
 };

@@ -7,6 +7,7 @@ export type SerialsArchiveQueryInput = {
   sortBy: SerialArchiveSort;
   page: number;
   limit: number;
+  viewerUserId: string | null;
 };
 
 export type SerialsArchivePeriodWindow = {
