@@ -1,6 +1,6 @@
 import type { MovieArchiveSort } from "@/features/films/api";
 
-export const ARCHIVE_PAGE_SIZE = 24;
+export const ARCHIVE_PAGE_SIZE = 30;
 
 export const CINEMA_MODULE_STYLES = {
   accent: "var(--module-cinema)",

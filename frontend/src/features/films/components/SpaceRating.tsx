@@ -102,9 +102,14 @@ export const SpaceRatingDisplay = ({
 type SpaceRatingInputProps = {
   value: number | null;
   onChange: (nextValue: number | null) => void;
+  disabled?: boolean;
 };
 
-export const SpaceRatingInput = ({ value, onChange }: SpaceRatingInputProps) => {
+export const SpaceRatingInput = ({
+  value,
+  onChange,
+  disabled = false,
+}: SpaceRatingInputProps) => {
   return (
     <div className="flex items-center gap-1">
       {Array.from({ length: MAX_SPACE_RATING }).map((_, index) => {
@@ -123,8 +128,9 @@ export const SpaceRatingInput = ({ value, onChange }: SpaceRatingInputProps) => 
 
             <button
               type="button"
-              className="absolute inset-y-0 left-0 w-1/2  focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/70"
+              className="absolute inset-y-0 left-0 w-1/2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/70 disabled:cursor-not-allowed"
               aria-label={`Rate ${toStepLabel(leftStepValue)} out of 5`}
+              disabled={disabled}
               onClick={() => {
                 onChange(isSameRating(value, leftStepValue) ? null : leftStepValue);
               }}
@@ -132,8 +138,9 @@ export const SpaceRatingInput = ({ value, onChange }: SpaceRatingInputProps) => 
 
             <button
               type="button"
-              className="absolute inset-y-0 right-0 w-1/2  focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/70"
+              className="absolute inset-y-0 right-0 w-1/2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/70 disabled:cursor-not-allowed"
               aria-label={`Rate ${toStepLabel(rightStepValue)} out of 5`}
+              disabled={disabled}
               onClick={() => {
                 onChange(isSameRating(value, rightStepValue) ? null : rightStepValue);
               }}

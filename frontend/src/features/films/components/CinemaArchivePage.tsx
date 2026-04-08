@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { ArchiveMovieCard } from "@/features/films/components/cinema-archive/ArchiveMovieCard";
 import { ArchiveSkeletonGrid } from "@/features/films/components/cinema-archive/ArchiveSkeletonGrid";
 import { ArchiveSortControls } from "@/features/films/components/cinema-archive/ArchiveSortControls";
@@ -13,7 +13,6 @@ import { useMovieArchive } from "@/features/films/hooks/useMovies";
 
 export const CinemaArchivePage = () => {
   const [activeSort, setActiveSort] = useState<ArchiveSortTab>("popular");
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   const selectedSort = useMemo(() => {
     return sortOptions.find((option) => option.id === activeSort)?.value ?? "trending";
@@ -35,34 +34,6 @@ export const CinemaArchivePage = () => {
 
   const archiveCount = firstPage?.filteredCount ?? archiveItems.length;
   const archiveCountLabel = formatArchiveCount(archiveCount);
-
-  useEffect(() => {
-    const sentinelNode = loadMoreRef.current;
-    if (!sentinelNode || !hasNextPage) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        if (!entry?.isIntersecting || isFetchingNextPage || !hasNextPage) {
-          return;
-        }
-
-        void fetchNextPage();
-      },
-      {
-        rootMargin: "280px 0px 280px 0px",
-        threshold: 0.01,
-      },
-    );
-
-    observer.observe(sentinelNode);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage, archiveItems.length]);
 
   return (
     <main className="relative mx-auto w-full max-w-400">
@@ -130,22 +101,32 @@ export const CinemaArchivePage = () => {
               ))}
             </div>
 
-            <div ref={loadMoreRef} className="h-4 w-full" aria-hidden />
-
-            {archiveQuery.isFetchingNextPage ? (
-              <p className="mt-5 font-mono text-[11px]" style={{ color: CINEMA_MODULE_STYLES.muted }}>
-                Loading more cinema titles...
-              </p>
-            ) : null}
-
-            {!archiveQuery.hasNextPage ? (
+            {hasNextPage ? (
+              <div className="mt-5 flex justify-center">
+                <button
+                  type="button"
+                  disabled={isFetchingNextPage}
+                  className="border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+                  style={{
+                    borderColor: CINEMA_MODULE_STYLES.border,
+                    color: CINEMA_MODULE_STYLES.muted,
+                    background: "transparent",
+                  }}
+                  onClick={() => {
+                    void fetchNextPage();
+                  }}
+                >
+                  {isFetchingNextPage ? "Loading..." : "Show more"}
+                </button>
+              </div>
+            ) : (
               <p
                 className="mt-5 text-center font-mono text-[11px]"
                 style={{ color: CINEMA_MODULE_STYLES.faint }}
               >
                 End of cinema archive.
               </p>
-            ) : null}
+            )}
           </>
         ) : null}
       </div>

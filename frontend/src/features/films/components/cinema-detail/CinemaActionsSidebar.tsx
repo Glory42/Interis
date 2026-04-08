@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Award, Check, Plus } from "lucide-react";
+import { Award, Check, Heart, Plus } from "lucide-react";
 import { LogFilmModal } from "@/features/diary/components/LogFilmModal";
 import type { MovieDetailResponse } from "@/features/films/api";
 import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
@@ -9,41 +9,41 @@ import { getPosterUrl } from "@/features/films/components/utils";
 
 type CinemaActionsSidebarProps = {
   detail: MovieDetailResponse;
-  draftRatingOutOfFive: number | null;
-  onDraftRatingChange: (ratingOutOfFive: number | null) => void;
+  currentRatingOutOfFive: number | null;
+  isRatingSaving: boolean;
+  onRatingChange: (ratingOutOfFive: number | null) => void;
   isAuthenticated: boolean;
   watchlisted: boolean;
+  liked: boolean;
   isInteractionBusy: boolean;
   onToggleWatchlist: () => void;
+  onToggleLike: () => void;
 };
 
 export const CinemaActionsSidebar = ({
   detail,
-  draftRatingOutOfFive,
-  onDraftRatingChange,
+  currentRatingOutOfFive,
+  isRatingSaving,
+  onRatingChange,
   isAuthenticated,
   watchlisted,
+  liked,
   isInteractionBusy,
   onToggleWatchlist,
+  onToggleLike,
 }: CinemaActionsSidebarProps) => {
   const movie = detail.movie;
 
   const modalInitialState = {
     watchedDate: detail.userRating?.watchedDate ?? null,
-    ratingOutOfFive:
-      draftRatingOutOfFive ??
-      (detail.userRating?.ratingOutOfFive !== null &&
-      detail.userRating?.ratingOutOfFive !== undefined
-        ? detail.userRating.ratingOutOfFive
-        : null),
+    ratingOutOfFive: currentRatingOutOfFive,
     rewatch: detail.userRating?.rewatch ?? false,
     reviewContent: detail.userRating?.reviewContent ?? null,
     containsSpoilers: detail.userRating?.reviewContainsSpoilers ?? null,
   };
 
   const resolvedUserRatingLabel =
-    formatRatingOutOfFiveLabel(draftRatingOutOfFive) ??
-    formatRatingOutOfFiveLabel(detail.userRating?.ratingOutOfFive ?? null) ??
+    formatRatingOutOfFiveLabel(currentRatingOutOfFive) ??
     "No rating yet";
 
   return (
@@ -140,6 +140,40 @@ export const CinemaActionsSidebar = ({
           )}
         </div>
 
+        {isAuthenticated ? (
+          <button
+            type="button"
+            disabled={isInteractionBusy}
+            className="flex w-full items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+            style={{
+              borderColor: liked
+                ? CINEMA_MODULE_STYLES.accent
+                : CINEMA_MODULE_STYLES.border,
+              color: liked
+                ? CINEMA_MODULE_STYLES.accent
+                : CINEMA_MODULE_STYLES.muted,
+              background: "transparent",
+            }}
+            onClick={onToggleLike}
+          >
+            <Heart className="h-3 w-3" />
+            <span>{liked ? "Liked" : "Like"}</span>
+          </button>
+        ) : (
+          <Link
+            to="/login"
+            className="flex w-full items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
+            style={{
+              borderColor: CINEMA_MODULE_STYLES.border,
+              color: CINEMA_MODULE_STYLES.muted,
+            }}
+            viewTransition
+          >
+            <Heart className="h-3 w-3" />
+            <span>Like</span>
+          </Link>
+        )}
+
         <div
           className="border p-3"
           style={{
@@ -154,22 +188,28 @@ export const CinemaActionsSidebar = ({
             Your Rating
           </p>
           <div className="flex items-center gap-3">
-            <SpaceRatingInput
-              value={
-                draftRatingOutOfFive ??
-                (detail.userRating?.ratingOutOfFive !== null &&
-                detail.userRating?.ratingOutOfFive !== undefined
-                  ? detail.userRating.ratingOutOfFive
-                  : null)
-              }
-              onChange={onDraftRatingChange}
-            />
+            {isAuthenticated ? (
+              <SpaceRatingInput
+                value={currentRatingOutOfFive}
+                onChange={onRatingChange}
+                disabled={isRatingSaving}
+              />
+            ) : (
+              <Link
+                to="/login"
+                className="font-mono text-[10px]"
+                style={{ color: CINEMA_MODULE_STYLES.muted }}
+                viewTransition
+              >
+                Sign in to rate
+              </Link>
+            )}
           </div>
           <p
             className="mt-2 font-mono text-[10px]"
             style={{ color: CINEMA_MODULE_STYLES.muted }}
           >
-            {resolvedUserRatingLabel}
+            {isRatingSaving ? "Saving..." : resolvedUserRatingLabel}
           </p>
         </div>
       </div>

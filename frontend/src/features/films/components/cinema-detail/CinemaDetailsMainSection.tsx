@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Award,
   Clock3,
@@ -70,6 +71,7 @@ const buildFactRows = (
 export const CinemaDetailsMainSection = ({
   detail,
 }: CinemaDetailsMainSectionProps) => {
+  const [isCastExpanded, setIsCastExpanded] = useState(false);
   const movie = detail.movie;
 
   const primaryDirectorName =
@@ -92,6 +94,7 @@ export const CinemaDetailsMainSection = ({
     runtimeLabel,
     languageLabel,
   );
+  const visibleCast = isCastExpanded ? movie.cast : movie.cast.slice(0, 5);
 
   return (
     <section>
@@ -215,24 +218,44 @@ export const CinemaDetailsMainSection = ({
             No cast metadata available.
           </p>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {movie.cast.slice(0, 16).map((castMember) => (
-              <PersonRouteLink
-                key={`movie-cast-${castMember.tmdbPersonId}-${castMember.character ?? "cast"}`}
-                person={castMember}
-                className="border px-2 py-1 font-mono text-[10px]"
+          <>
+            <div className="flex flex-wrap gap-2">
+              {visibleCast.map((castMember) => (
+                <PersonRouteLink
+                  key={`movie-cast-${castMember.tmdbPersonId}-${castMember.character ?? "cast"}`}
+                  person={castMember}
+                  className="border px-2 py-1 font-mono text-[10px]"
+                  style={{
+                    borderColor: CINEMA_MODULE_STYLES.border,
+                    color: CINEMA_MODULE_STYLES.muted,
+                    background: CINEMA_MODULE_STYLES.panelSoft,
+                  }}
+                >
+                  {castMember.character
+                    ? `${castMember.name} as ${castMember.character}`
+                    : castMember.name}
+                </PersonRouteLink>
+              ))}
+            </div>
+
+            {movie.cast.length > 5 ? (
+              <button
+                type="button"
+                className="mt-3 border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors"
                 style={{
                   borderColor: CINEMA_MODULE_STYLES.border,
                   color: CINEMA_MODULE_STYLES.muted,
-                  background: CINEMA_MODULE_STYLES.panelSoft,
+                }}
+                onClick={() => {
+                  setIsCastExpanded((current) => !current);
                 }}
               >
-                {castMember.character
-                  ? `${castMember.name} as ${castMember.character}`
-                  : castMember.name}
-              </PersonRouteLink>
-            ))}
-          </div>
+                {isCastExpanded
+                  ? "Show less"
+                  : `Show all (${movie.cast.length})`}
+              </button>
+            ) : null}
+          </>
         )}
       </div>
 

@@ -20,9 +20,6 @@ export function CinemaDetailPage({ tmdbId }: CinemaDetailPageProps) {
   const isValidTmdbId = Number.isInteger(tmdbId) && tmdbId > 0;
   const [reviewsSort, setReviewsSort] =
     useState<MovieDetailReviewSort>("popular");
-  const [draftRatingOutOfFive, setDraftRatingOutOfFive] = useState<
-    number | null
-  >(null);
 
   const detailQuery = useMovieDetailView(tmdbId, reviewsSort, isValidTmdbId);
 
@@ -49,11 +46,29 @@ export function CinemaDetailPage({ tmdbId }: CinemaDetailPageProps) {
   const movie = detail.movie;
 
   const watchlisted = interactionQuery.data?.watchlisted ?? false;
+  const liked = interactionQuery.data?.liked ?? false;
+  const interactionRatingOutOfFive = interactionQuery.data?.ratingOutOfFive ?? null;
+  const currentRatingOutOfFive =
+    interactionRatingOutOfFive ?? detail.userRating?.ratingOutOfFive ?? null;
   const isInteractionBusy =
     interactionQuery.isPending || updateInteractionMutation.isPending;
 
   const handleToggleWatchlist = () => {
     void updateInteractionMutation.mutateAsync({ watchlisted: !watchlisted });
+  };
+
+  const handleToggleLike = () => {
+    void updateInteractionMutation.mutateAsync({ liked: !liked });
+  };
+
+  const handleRatingChange = (nextRatingOutOfFive: number | null) => {
+    if (!user || nextRatingOutOfFive === currentRatingOutOfFive) {
+      return;
+    }
+
+    void updateInteractionMutation.mutateAsync({
+      ratingOutOfFive: nextRatingOutOfFive,
+    });
   };
 
   return (
@@ -64,12 +79,15 @@ export function CinemaDetailPage({ tmdbId }: CinemaDetailPageProps) {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-[220px_1fr]">
           <CinemaActionsSidebar
             detail={detail}
-            draftRatingOutOfFive={draftRatingOutOfFive}
-            onDraftRatingChange={setDraftRatingOutOfFive}
+            currentRatingOutOfFive={currentRatingOutOfFive}
+            isRatingSaving={updateInteractionMutation.isPending}
+            onRatingChange={handleRatingChange}
             isAuthenticated={Boolean(user)}
             watchlisted={watchlisted}
+            liked={liked}
             isInteractionBusy={isInteractionBusy}
             onToggleWatchlist={handleToggleWatchlist}
+            onToggleLike={handleToggleLike}
           />
 
           <CinemaDetailsMainSection detail={detail} />
