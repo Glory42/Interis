@@ -45,7 +45,7 @@ export const getTrendingMovies = async (
     signal: options.signal,
   });
 
-  return trendingMovieListSchema.parse(response).slice(0, 4);
+  return trendingMovieListSchema.parse(response).slice(0, 3);
 };
 
 export const getMyFeedSummary = async (

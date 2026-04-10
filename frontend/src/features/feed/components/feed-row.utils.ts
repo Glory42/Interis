@@ -1,7 +1,7 @@
 import type { FeedItem } from "@/features/feed/types";
 import { formatRelativeTime } from "@/lib/time";
 
-export type FeedChannel = "cinema" | "serial" | "codex" | "echoes";
+export type FeedChannel = "cinema" | "serial";
 
 export const inferFeedChannel = (item: FeedItem): FeedChannel | null => {
   if (item.movie?.mediaType === "movie") {
@@ -21,12 +21,12 @@ export const inferFeedChannel = (item: FeedItem): FeedChannel | null => {
   }
 
   const attachedMediaType = item.post?.mediaType ?? item.metadata.postMediaType;
-  if (attachedMediaType === "book") {
-    return "codex";
+  if (attachedMediaType === "movie") {
+    return "cinema";
   }
 
-  if (attachedMediaType === "music") {
-    return "echoes";
+  if (attachedMediaType === "tv") {
+    return "serial";
   }
 
   return null;
@@ -49,16 +49,6 @@ export const feedChannelMeta: Record<
     label: "SERIAL",
     color: "var(--module-serial)",
     tint: "rgba(0, 207, 255, 0.08)",
-  },
-  codex: {
-    label: "CODEX",
-    color: "var(--module-codex)",
-    tint: "rgba(255, 170, 0, 0.08)",
-  },
-  echoes: {
-    label: "ECHOES",
-    color: "var(--module-echoes)",
-    tint: "rgba(255, 68, 255, 0.08)",
   },
 };
 

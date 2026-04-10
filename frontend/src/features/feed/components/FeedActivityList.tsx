@@ -3,7 +3,7 @@ import { FeedActivityCard } from "@/features/feed/components/FeedActivityCard";
 import { inferFeedChannel } from "@/features/feed/components/feed-row.utils";
 import type { FeedItem } from "@/features/feed/types";
 
-export type FeedFilter = "all" | "cinema" | "serial" | "codex" | "echoes";
+export type FeedFilter = "all" | "cinema" | "serial";
 
 type FeedActivityListProps = {
   isAuthenticated: boolean;

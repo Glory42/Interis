@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { Plus } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import {
   FeedActivityList,
@@ -20,8 +19,6 @@ const filterTabs: Array<{ id: FeedFilter; label: string }> = [
   { id: "all", label: "ALL" },
   { id: "cinema", label: "CINEMA" },
   { id: "serial", label: "SERIAL" },
-  { id: "codex", label: "CODEX" },
-  { id: "echoes", label: "ECHOES" },
 ];
 
 export const HomePage = () => {
@@ -58,17 +55,6 @@ export const HomePage = () => {
     !isFeedError &&
     feedItems.length >= feedLimit;
 
-  const focusQuickLogComposer = () => {
-    const composerNode = document.getElementById("quick-log-composer");
-    if (!composerNode) {
-      return;
-    }
-
-    composerNode.scrollIntoView({ behavior: "smooth", block: "center" });
-    const focusTarget = composerNode.querySelector<HTMLElement>("textarea");
-    focusTarget?.focus();
-  };
-
   return (
     <section className="mx-auto w-full max-w-400 px-4 py-8">
       <div className="mb-10 border-b border-border/60 pb-8">
@@ -97,7 +83,7 @@ export const HomePage = () => {
         </h1>
 
         <p className="mt-3 max-w-xl font-mono text-sm text-muted-foreground/80">
-          // Live reviews from the network. Cinema · Serial · Codex · Echoes.
+          // Live reviews from the network. Cinema · Serial.
           <br />
           // Logged, not filtered. Unranked, not curated.
         </p>
@@ -124,11 +110,11 @@ export const HomePage = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 animate-pulse  bg-(--module-codex)" />
+            <span className="h-1.5 w-1.5 animate-pulse  bg-(--module-neutral)" />
             <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
               LOGS_TODAY:
             </span>
-            <span className="font-mono text-[11px] font-bold text-(--module-codex)">
+            <span className="font-mono text-[11px] font-bold text-(--module-neutral)">
               {logsToday ?? "--"}
             </span>
           </div>
@@ -209,15 +195,6 @@ export const HomePage = () => {
           />
         </aside>
       </div>
-
-      <button
-        type="button"
-        onClick={focusQuickLogComposer}
-        className="theme-button-primary fixed right-6 bottom-8 z-40 inline-flex items-center gap-2 border border-primary bg-primary px-5 py-3 font-mono text-xs font-bold uppercase tracking-[0.14em] text-primary-foreground transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
-      >
-        <Plus className="h-4 w-4" />
-        <span className="hidden sm:inline">LOG IT</span>
-      </button>
     </section>
   );
 };

@@ -45,7 +45,7 @@ export const feedMovieSchema = z
   })
   .nullable();
 
-export const feedPostMediaTypeSchema = z.enum(["movie", "tv", "book", "music"]);
+export const feedPostMediaTypeSchema = z.enum(["movie", "tv"]);
 
 export const feedPostSchema = z
   .object({
