@@ -12,10 +12,12 @@ import {
   toRatingOutOfFive,
   toTmdbRatingOutOfTen,
 } from "../helpers/serials-normalization.helper";
-import { normalizeDetailReviewSort } from "../helpers/serials-query-normalizer.helper";
-import { SerialsRepository } from "../repositories/serials.repository";
+import { buildMediaRatingBreakdown } from "../../media/helpers/media-rating-breakdown.helper";
+import { SerialsInteractionsRepository } from "../repositories/serials-interactions.repository";
+import { SerialsReviewsRepository } from "../repositories/serials-reviews.repository";
 import { SerialsCacheService } from "./serials-cache.service";
-import { PeopleService } from "../../people/people.service";
+import { PeopleCacheService } from "../../people/services/people-cache.service";
+import type { SerialDetailReviewSort } from "../dto/serials.dto";
 import type {
   SerialDetailRatingBreakdownBucket,
   SerialDetailResponse,
@@ -53,21 +55,21 @@ export class SerialsDetailService {
   static async getDetail(input: {
     tmdbId: number;
     viewerUserId?: string | null;
-    reviewsSort?: string;
+    reviewsSort: SerialDetailReviewSort;
   }): Promise<SerialDetailResponse | null> {
     const cachedSeries = await SerialsCacheService.findOrCreate(input.tmdbId);
     if (!cachedSeries) {
       return null;
     }
 
-    const reviewsSort = normalizeDetailReviewSort(input.reviewsSort);
+    const reviewsSort = input.reviewsSort;
     const viewerUserId = input.viewerUserId ?? null;
 
     const [tmdbDetail, tmdbAggregateCredits, logsCount, reviewRows] = await Promise.all([
       tmdbGetDetails(input.tmdbId).catch(() => null),
       tmdbGetAggregateCredits(input.tmdbId).catch(() => null),
-      SerialsRepository.getLogsCountBySeriesId(cachedSeries.id),
-      SerialsRepository.getReviewRowsBySeriesId(cachedSeries.id),
+      SerialsReviewsRepository.getLogsCountBySeriesId(cachedSeries.id),
+      SerialsReviewsRepository.getReviewRowsBySeriesId(cachedSeries.id),
     ]);
 
     const normalizedTmdbDetail = tmdbDetail ? normalizeTmdbSeriesDetail(tmdbDetail) : null;
@@ -82,9 +84,9 @@ export class SerialsDetailService {
     const reviewIds = reviewRows.map((reviewRow) => reviewRow.id);
 
     const [likeRows, viewerLikedRows] = await Promise.all([
-      SerialsRepository.getReviewLikeCounts(reviewIds),
+      SerialsReviewsRepository.getReviewLikeCounts(reviewIds),
       viewerUserId
-        ? SerialsRepository.getViewerLikedReviewRows(viewerUserId, reviewIds)
+        ? SerialsReviewsRepository.getViewerLikedReviewRows(viewerUserId, reviewIds)
         : Promise.resolve([]),
     ]);
 
@@ -135,66 +137,22 @@ export class SerialsDetailService {
       );
     }
 
-    const ratedReviewRows = reviewsWithEngagement.filter(
-      (reviewRow) => reviewRow.ratingOutOfTen !== null,
+    const ratingBreakdown = buildMediaRatingBreakdown(
+      reviewsWithEngagement,
+      toRatingBreakdownBucket,
     );
-
-    const ratingBucketCount = new Map<1 | 2 | 3 | 4 | 5, number>([
-      [1, 0],
-      [2, 0],
-      [3, 0],
-      [4, 0],
-      [5, 0],
-    ]);
-
-    for (const ratedReviewRow of ratedReviewRows) {
-      if (ratedReviewRow.ratingOutOfTen === null) {
-        continue;
-      }
-
-      const bucket = toRatingBreakdownBucket(ratedReviewRow.ratingOutOfTen);
-      ratingBucketCount.set(bucket, (ratingBucketCount.get(bucket) ?? 0) + 1);
-    }
-
-    const totalRatedReviews = ratedReviewRows.length;
-    const averageRatingOutOfFive =
-      totalRatedReviews > 0
-        ? Number(
-            (
-              ratedReviewRows.reduce((sum, ratedReviewRow) => {
-                return sum + (ratedReviewRow.ratingOutOfFive ?? 0);
-              }, 0) / totalRatedReviews
-            ).toFixed(2),
-          )
-        : null;
-
-    const ratingBreakdownBuckets: SerialDetailRatingBreakdownBucket[] = [
-      5, 4, 3, 2, 1,
-    ].map((ratingValueOutOfFive) => {
-      const ratingCount =
-        ratingBucketCount.get(ratingValueOutOfFive as 1 | 2 | 3 | 4 | 5) ?? 0;
-
-      return {
-        ratingValueOutOfFive: ratingValueOutOfFive as 1 | 2 | 3 | 4 | 5,
-        count: ratingCount,
-        percentage:
-          totalRatedReviews > 0
-            ? Math.round((ratingCount / totalRatedReviews) * 100)
-            : 0,
-      };
-    });
 
     const [viewerDiaryRow, viewerReviewRow] = viewerUserId
       ? await Promise.all([
-          SerialsRepository.getViewerDiaryRows(viewerUserId, cachedSeries.id),
-          SerialsRepository.getViewerReviewRows(viewerUserId, cachedSeries.id),
+          SerialsInteractionsRepository.getViewerDiaryRows(viewerUserId, cachedSeries.id),
+          SerialsReviewsRepository.getViewerReviewRows(viewerUserId, cachedSeries.id),
         ])
       : [[], []];
 
     const viewerDiary = viewerDiaryRow[0] ?? null;
     const viewerReview = viewerReviewRow[0] ?? null;
 
-    const creators = await PeopleService.ensurePersonLinks(
+    const creators = await PeopleCacheService.ensurePersonLinks(
       (tmdbDetail?.created_by ?? []).map((creator) => ({
         tmdbPersonId: creator.id,
         name: creator.name,
@@ -206,7 +164,7 @@ export class SerialsDetailService {
       })),
     );
 
-    const cast = await PeopleService.ensurePersonLinks(
+    const cast = await PeopleCacheService.ensurePersonLinks(
       [...(tmdbAggregateCredits?.cast ?? [])]
         .sort((leftMember, rightMember) => leftMember.order - rightMember.order)
         .slice(0, 24)
@@ -229,7 +187,7 @@ export class SerialsDetailService {
         }),
     );
 
-    const crew = await PeopleService.ensurePersonLinks(
+    const crew = await PeopleCacheService.ensurePersonLinks(
       [...(tmdbAggregateCredits?.crew ?? [])]
         .filter((crewMember) => RELEVANT_CREW_DEPARTMENTS.has(crewMember.department))
         .sort(
@@ -308,9 +266,9 @@ export class SerialsDetailService {
       reviewsSort,
       reviews: sortedReviews,
       ratingBreakdown: {
-        totalRatedReviews,
-        averageRatingOutOfFive,
-        buckets: ratingBreakdownBuckets,
+        totalRatedReviews: ratingBreakdown.totalRatedReviews,
+        averageRatingOutOfFive: ratingBreakdown.averageRatingOutOfFive,
+        buckets: ratingBreakdown.buckets as SerialDetailRatingBreakdownBucket[],
       },
     };
   }

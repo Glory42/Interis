@@ -8,18 +8,18 @@ import {
   toFirstAirYear,
 } from "../../helpers/serials-format.helper";
 import { toTmdbRatingOutOfTen } from "../../helpers/serials-normalization.helper";
-import { SerialsRepository } from "../../repositories/serials.repository";
+import { SerialsArchiveRepository } from "../../repositories/serials-archive.repository";
 import type {
   SerialArchiveItem,
   SerialGenre,
 } from "../../types/serials.types";
 
 type LocalArchiveRow = Awaited<
-  ReturnType<typeof SerialsRepository.getCachedArchiveRows>
+  ReturnType<typeof SerialsArchiveRepository.getCachedArchiveRows>
 >[number];
 
 type LocalArchiveAggregateRow = Awaited<
-  ReturnType<typeof SerialsRepository.getLocalArchiveAggregateRowsByTmdbIds>
+  ReturnType<typeof SerialsArchiveRepository.getLocalArchiveAggregateRowsByTmdbIds>
 >[number];
 
 export const toArchiveItemFromLocalRow = (row: LocalArchiveRow): SerialArchiveItem => {
@@ -49,7 +49,7 @@ export const toArchiveItemFromLocalRow = (row: LocalArchiveRow): SerialArchiveIt
 export const getLocalArchiveAggregatesByTmdbIds = async (
   tmdbIds: number[],
 ): Promise<Map<number, LocalArchiveAggregateRow & { genres: SerialGenre[] }>> => {
-  const rows = await SerialsRepository.getLocalArchiveAggregateRowsByTmdbIds(tmdbIds);
+  const rows = await SerialsArchiveRepository.getLocalArchiveAggregateRowsByTmdbIds(tmdbIds);
 
   return new Map(
     rows.map((row) => [

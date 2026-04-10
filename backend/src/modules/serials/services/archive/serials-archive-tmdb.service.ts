@@ -4,7 +4,7 @@ import {
   type TMDBSeriesGenre,
 } from "../../../../infrastructure/tmdb/serials";
 import { toFeaturedSeries } from "../../helpers/serials-format.helper";
-import { SerialsRepository } from "../../repositories/serials.repository";
+import { SerialsInteractionsRepository } from "../../repositories/serials-interactions.repository";
 import type { SerialArchiveResponse } from "../../types/serials.types";
 import { hydrateCreatorSignalsForItems } from "./serials-archive-creator-signal.service";
 import {
@@ -29,8 +29,8 @@ const addViewerArchiveState = async (
 
   const tmdbIds = pageItems.map((item) => item.tmdbId);
   const [viewerLoggedTmdbIds, viewerWatchlistedTmdbIds] = await Promise.all([
-    SerialsRepository.getViewerLoggedTmdbIds(viewerUserId, tmdbIds),
-    SerialsRepository.getViewerWatchlistedTmdbIds(viewerUserId, tmdbIds),
+    SerialsInteractionsRepository.getViewerLoggedTmdbIds(viewerUserId, tmdbIds),
+    SerialsInteractionsRepository.getViewerWatchlistedTmdbIds(viewerUserId, tmdbIds),
   ]);
 
   const viewerLoggedTmdbIdSet = new Set<number>(viewerLoggedTmdbIds);

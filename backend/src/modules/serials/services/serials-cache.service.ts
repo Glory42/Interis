@@ -1,10 +1,10 @@
 import { getSeriesDetails, type TMDBSeriesDetail } from "../../../infrastructure/tmdb/serials";
 import { normalizeTmdbSeriesDetail } from "../helpers/serials-normalization.helper";
-import { SerialsRepository } from "../repositories/serials.repository";
+import { SerialsCacheRepository } from "../repositories/serials-cache.repository";
 
 export class SerialsCacheService {
   static async findOrCreate(tmdbId: number) {
-    const existing = await SerialsRepository.findByTmdbId(tmdbId);
+    const existing = await SerialsCacheRepository.findByTmdbId(tmdbId);
     if (existing) {
       return existing;
     }
@@ -22,6 +22,6 @@ export class SerialsCacheService {
   static async cacheSeries(tmdbData: TMDBSeriesDetail) {
     const normalized = normalizeTmdbSeriesDetail(tmdbData);
 
-    return SerialsRepository.upsertCachedSeries(normalized);
+    return SerialsCacheRepository.upsertCachedSeries(normalized);
   }
 }

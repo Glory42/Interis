@@ -1,39 +1,25 @@
-import {
-  normalizeArchiveGenre,
-  normalizeArchiveLanguage,
-  normalizeArchiveLimit,
-  normalizeArchivePage,
-  normalizeArchivePeriod,
-  normalizeArchiveSort,
-} from "../helpers/serials-query-normalizer.helper";
+import type { SerialArchivePeriod, SerialArchiveSort } from "../dto/serials.dto";
 import type { SerialArchiveResponse } from "../types/serials.types";
 import { getArchiveFromLocalCache } from "./archive/serials-archive-local.service";
 import { getArchiveFromTmdb } from "./archive/serials-archive-tmdb.service";
 
 export class SerialsArchiveService {
   static async getArchive(input: {
-    genre?: string;
-    language?: string;
-    sort?: string;
-    period?: string;
-    page?: string;
-    limit?: string;
+    genre: string | null;
+    language: string | null;
+    sort: SerialArchiveSort;
+    period: SerialArchivePeriod;
+    page: number;
+    limit: number;
     viewerUserId?: string | null;
   }): Promise<SerialArchiveResponse> {
-    const selectedGenre = normalizeArchiveGenre(input.genre);
-    const selectedLanguage = normalizeArchiveLanguage(input.language);
-    const sortBy = normalizeArchiveSort(input.sort);
-    const selectedPeriod = normalizeArchivePeriod(input.period);
-    const page = normalizeArchivePage(input.page);
-    const limit = normalizeArchiveLimit(input.limit);
-
     const normalizedInput = {
-      selectedGenre,
-      selectedLanguage,
-      selectedPeriod,
-      sortBy,
-      page,
-      limit,
+      selectedGenre: input.genre,
+      selectedLanguage: input.language,
+      selectedPeriod: input.period,
+      sortBy: input.sort,
+      page: input.page,
+      limit: input.limit,
       viewerUserId: input.viewerUserId ?? null,
     };
 

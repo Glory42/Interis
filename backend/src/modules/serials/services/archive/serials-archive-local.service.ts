@@ -1,5 +1,6 @@
 import { toFeaturedSeries } from "../../helpers/serials-format.helper";
-import { SerialsRepository } from "../../repositories/serials.repository";
+import { SerialsArchiveRepository } from "../../repositories/serials-archive.repository";
+import { SerialsInteractionsRepository } from "../../repositories/serials-interactions.repository";
 import type { SerialArchiveResponse } from "../../types/serials.types";
 import {
   getArchivePeriodWindow,
@@ -20,8 +21,8 @@ const addViewerArchiveState = async (
 
   const tmdbIds = pageItems.map((item) => item.tmdbId);
   const [viewerLoggedTmdbIds, viewerWatchlistedTmdbIds] = await Promise.all([
-    SerialsRepository.getViewerLoggedTmdbIds(viewerUserId, tmdbIds),
-    SerialsRepository.getViewerWatchlistedTmdbIds(viewerUserId, tmdbIds),
+    SerialsInteractionsRepository.getViewerLoggedTmdbIds(viewerUserId, tmdbIds),
+    SerialsInteractionsRepository.getViewerWatchlistedTmdbIds(viewerUserId, tmdbIds),
   ]);
 
   const viewerLoggedTmdbIdSet = new Set<number>(viewerLoggedTmdbIds);
@@ -37,7 +38,7 @@ const addViewerArchiveState = async (
 export const getArchiveFromLocalCache = async (
   input: SerialsArchiveQueryInput,
 ): Promise<SerialArchiveResponse> => {
-  const rows = await SerialsRepository.getCachedArchiveRows();
+  const rows = await SerialsArchiveRepository.getCachedArchiveRows();
   const allItems = rows.map((row) => toArchiveItemFromLocalRow(row));
 
   const periodWindow = getArchivePeriodWindow(input.selectedPeriod);

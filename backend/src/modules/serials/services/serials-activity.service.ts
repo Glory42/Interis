@@ -9,7 +9,8 @@ import {
   buildSerialInteractionActivityMetadata,
 } from "../helpers/serials-activity.helper";
 import { toRatingOutOfFive } from "../helpers/serials-normalization.helper";
-import { SerialsRepository } from "../repositories/serials.repository";
+import { SerialsInteractionsRepository } from "../repositories/serials-interactions.repository";
+import { SerialsReviewsRepository } from "../repositories/serials-reviews.repository";
 import { SerialsCacheService } from "./serials-cache.service";
 
 export class SerialsActivityService {
@@ -19,7 +20,7 @@ export class SerialsActivityService {
       return null;
     }
 
-    const row = await SerialsRepository.getInteractionRow(userId, series.id);
+    const row = await SerialsInteractionsRepository.getInteractionRow(userId, series.id);
 
     return {
       liked: row?.liked ?? false,
@@ -38,13 +39,13 @@ export class SerialsActivityService {
       return null;
     }
 
-    const previousRow = await SerialsRepository.getInteractionRow(userId, series.id);
+    const previousRow = await SerialsInteractionsRepository.getInteractionRow(userId, series.id);
     const previousLiked = previousRow?.liked ?? false;
     const previousWatchlisted = previousRow?.watchlisted ?? false;
 
     const ratingOutOfTen = resolveRatingOutOfTen(input.ratingOutOfFive);
 
-    const row = await SerialsRepository.upsertInteraction({
+    const row = await SerialsInteractionsRepository.upsertInteraction({
       userId,
       seriesId: series.id,
       liked: input.liked,
@@ -121,7 +122,7 @@ export class SerialsActivityService {
     const ratingOutOfTen = resolveRatingOutOfTen(input.ratingOutOfFive) ?? null;
     const rewatch = input.rewatch ?? false;
 
-    const entry = await SerialsRepository.insertDiaryEntry({
+    const entry = await SerialsInteractionsRepository.insertDiaryEntry({
       userId,
       seriesId: series.id,
       watchedDate: input.watchedDate,
@@ -144,7 +145,7 @@ export class SerialsActivityService {
       | null = null;
 
     if (reviewContent) {
-      review = await SerialsRepository.upsertReview({
+      review = await SerialsReviewsRepository.upsertReview({
         userId,
         seriesTmdbId: series.tmdbId,
         diaryEntryId: entry.id,

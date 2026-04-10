@@ -1,6 +1,6 @@
 import { getSeriesDetails as tmdbGetDetails } from "../../../../infrastructure/tmdb/serials";
 import { normalizeTmdbSeriesDetail } from "../../helpers/serials-normalization.helper";
-import { SerialsRepository } from "../../repositories/serials.repository";
+import { SerialsCacheRepository } from "../../repositories/serials-cache.repository";
 import type { SerialArchiveItem } from "../../types/serials.types";
 
 type TmdbCreatorSignal = {
@@ -33,7 +33,7 @@ const getTmdbCreatorSignalByTmdbId = async (
     }
 
     const normalizedDetail = normalizeTmdbSeriesDetail(detail);
-    await SerialsRepository.upsertCachedSeries(normalizedDetail).catch(() => undefined);
+    await SerialsCacheRepository.upsertCachedSeries(normalizedDetail).catch(() => undefined);
 
     const signal = {
       creator: normalizedDetail.creator,

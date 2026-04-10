@@ -3,6 +3,7 @@ import {
   compareByFirstAirDesc,
   toFirstAirTimestamp,
 } from "../../helpers/serials-format.helper";
+import { buildAvailableGenresFromItems } from "../../../media/helpers/media-archive-genres.helper";
 import type { SerialArchivePeriod, SerialArchiveSort } from "../../dto/serials.dto";
 import type {
   SerialArchiveGenreOption,
@@ -13,41 +14,7 @@ import type { SerialsArchivePeriodWindow } from "./serials-archive.types";
 export const toAvailableGenresFromItems = (
   items: SerialArchiveItem[],
 ): SerialArchiveGenreOption[] => {
-  const availableGenreMap = new Map<string, SerialArchiveGenreOption>();
-
-  for (const item of items) {
-    const seenInItem = new Set<string>();
-
-    for (const genre of item.genres) {
-      const normalizedName = genre.name.trim();
-      if (!normalizedName) {
-        continue;
-      }
-
-      const genreKey = normalizedName.toLowerCase();
-      if (seenInItem.has(genreKey)) {
-        continue;
-      }
-
-      seenInItem.add(genreKey);
-
-      const existingGenre = availableGenreMap.get(genreKey);
-      if (existingGenre) {
-        existingGenre.count = (existingGenre.count ?? 0) + 1;
-        continue;
-      }
-
-      availableGenreMap.set(genreKey, {
-        id: genre.id,
-        name: normalizedName,
-        count: 1,
-      });
-    }
-  }
-
-  return [...availableGenreMap.values()].sort((leftGenre, rightGenre) =>
-    leftGenre.name.localeCompare(rightGenre.name),
-  );
+  return buildAvailableGenresFromItems(items) as SerialArchiveGenreOption[];
 };
 
 const toIsoDateUtc = (date: Date): string => {

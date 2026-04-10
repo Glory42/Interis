@@ -8,7 +8,9 @@ import { SerialsActivityService } from "./services/serials-activity.service";
 import { SerialsCacheService } from "./services/serials-cache.service";
 import { SerialsDetailService } from "./services/serials-detail.service";
 import type {
+  NormalizedSerialArchiveQuery,
   CreateSerialLogDto,
+  SerialDetailReviewSort,
   UpdateSerialInteractionDto,
 } from "./dto/serials.dto";
 
@@ -39,12 +41,12 @@ export class SerialsService {
   }
 
   static async getArchive(input: {
-    genre?: string;
-    language?: string;
-    sort?: string;
-    period?: string;
-    page?: string;
-    limit?: string;
+    genre: NormalizedSerialArchiveQuery["genre"];
+    language: NormalizedSerialArchiveQuery["language"];
+    sort: NormalizedSerialArchiveQuery["sort"];
+    period: NormalizedSerialArchiveQuery["period"];
+    page: number;
+    limit: number;
     viewerUserId?: string | null;
   }) {
     return SerialsArchiveService.getArchive(input);
@@ -53,7 +55,7 @@ export class SerialsService {
   static async getDetail(input: {
     tmdbId: number;
     viewerUserId?: string | null;
-    reviewsSort?: string;
+    reviewsSort: SerialDetailReviewSort;
   }) {
     return SerialsDetailService.getDetail(input);
   }

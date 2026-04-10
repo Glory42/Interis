@@ -15,6 +15,10 @@ import type {
 } from "./dto/serials.dto";
 import {
   CreateSerialLogSchema,
+  normalizeSerialArchiveQuery,
+  normalizeSerialDetailQuery,
+  SearchSerialsQuerySchema,
+  SerialSeasonParamsSchema,
   UpdateSerialInteractionSchema,
 } from "./dto/serials.dto";
 
@@ -23,13 +27,13 @@ export class SerialsController {
     req: Request<{}, {}, {}, SearchSerialsQuery>,
     res: Response,
   ): Promise<void> {
-    const query = req.query.query?.trim();
-    if (!query) {
-      sendBadRequest(res, "Search query is required");
+    const parsed = SearchSerialsQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
       return;
     }
 
-    const series = await SerialsService.search(query);
+    const series = await SerialsService.search(parsed.data.query);
     res.status(200).json(series);
   }
 
@@ -68,7 +72,7 @@ export class SerialsController {
     const detail = await SerialsService.getDetail({
       tmdbId,
       viewerUserId,
-      reviewsSort: req.query.reviewsSort,
+      reviewsSort: normalizeSerialDetailQuery(req.query).reviewsSort,
     });
 
     if (!detail) {
@@ -164,15 +168,15 @@ export class SerialsController {
       return;
     }
 
-    const seasonNumber = Number(req.params.seasonNumber);
-    if (!Number.isInteger(seasonNumber) || seasonNumber < 0) {
-      sendBadRequest(res, "Invalid season number");
+    const seasonParams = SerialSeasonParamsSchema.safeParse(req.params);
+    if (!seasonParams.success) {
+      sendValidationError(res, seasonParams.error);
       return;
     }
 
     const seasonDetail = await SerialsService.getSeasonDetail({
       tmdbId,
-      seasonNumber,
+      seasonNumber: seasonParams.data.seasonNumber,
     });
 
     if (!seasonDetail) {
@@ -191,12 +195,7 @@ export class SerialsController {
     const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
 
     const archive = await SerialsService.getArchive({
-      genre: req.query.genre,
-      language: req.query.language,
-      sort: req.query.sort,
-      period: req.query.period,
-      page: req.query.page,
-      limit: req.query.limit,
+      ...normalizeSerialArchiveQuery(req.query),
       viewerUserId,
     });
 
