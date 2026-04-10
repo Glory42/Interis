@@ -4,7 +4,7 @@ export const CreatePostSchema = z
   .object({
     content: z.string().min(1).max(250),
     mediaId: z.number().int().positive().optional(),
-    mediaType: z.enum(["movie", "tv", "book", "music"]).optional(),
+    mediaType: z.enum(["movie", "tv"]).optional(),
   })
   .refine((d) => !(d.mediaId && !d.mediaType) && !(!d.mediaId && d.mediaType), {
     message: "mediaId and mediaType must both be present or both absent",

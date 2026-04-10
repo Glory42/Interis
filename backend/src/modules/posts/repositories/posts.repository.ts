@@ -9,7 +9,7 @@ export class PostsRepository {
     userId: string;
     content: string;
     mediaId: number | null;
-    mediaType: "movie" | "tv" | "book" | "music" | null;
+    mediaType: "movie" | "tv" | null;
   }) {
     const [post] = await db
       .insert(posts)

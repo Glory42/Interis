@@ -12,8 +12,6 @@ import { user } from "../../infrastructure/database/auth.entity";
 export const postMediaTypeEnum = pgEnum("post_media_type", [
   "movie",
   "tv",
-  "book",
-  "music",
 ]);
 
 export const posts = pgTable("post", {
@@ -24,7 +22,7 @@ export const posts = pgTable("post", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
-  // Optional media attachment — Phase 3+ (tv/book/music extend this)
+  // Optional media attachment
   mediaId: integer("media_id"),
   mediaType: postMediaTypeEnum("media_type"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
