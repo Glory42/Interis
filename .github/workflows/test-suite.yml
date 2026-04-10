@@ -1,0 +1,65 @@
+name: Test Suite
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  frontend:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install frontend dependencies
+        run: bun install
+        working-directory: frontend
+
+      - name: Run frontend tests
+        run: bun run test
+        working-directory: frontend
+
+      - name: Run frontend typecheck
+        run: bun run typecheck
+        working-directory: frontend
+
+      - name: Run frontend lint
+        run: bun run lint
+        working-directory: frontend
+
+  backend:
+    name: Backend Integration Tests
+    runs-on: ubuntu-latest
+    if: ${{ secrets.DATABASE_URL_TEST != '' }}
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
+      BETTER_AUTH_URL: http://localhost:5000
+      BETTER_AUTH_SECRET: ci-test-secret
+      CORS_ORIGIN: http://localhost:5173
+      NODE_ENV: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install backend dependencies
+        run: bun install
+        working-directory: backend
+
+      - name: Apply database migrations
+        run: bun run test:db:migrate
+        working-directory: backend
+
+      - name: Run backend tests
+        run: bun run test
+        working-directory: backend
