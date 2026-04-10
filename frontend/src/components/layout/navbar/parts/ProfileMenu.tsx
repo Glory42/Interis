@@ -40,7 +40,7 @@ export const ProfileMenu = ({
       <button
         type="button"
         onClick={onToggle}
-        className="flex items-center gap-1.5 border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground transition-all hover:text-foreground"
+        className="flex max-w-[10rem] items-center gap-1.5 border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground transition-all hover:text-foreground"
         aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-label="Open profile menu"
@@ -67,7 +67,7 @@ export const ProfileMenu = ({
             {profileInitial}
           </span>
         )}
-        <span className="hidden sm:inline">{user.username}</span>
+        <span className="hidden max-w-[5.5rem] truncate sm:inline">{user.username}</span>
       </button>
 
       {isOpen ? (

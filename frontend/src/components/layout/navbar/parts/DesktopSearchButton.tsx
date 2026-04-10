@@ -20,9 +20,8 @@ export const DesktopSearchButton = ({
       placeholder="search..."
       aria-haspopup="dialog"
       aria-expanded={isSearchDialogOpen}
-      aria-label="Open cinema search"
-      className="w-36 border border-border/70 bg-background/45 py-1.5 pr-3 pl-7 font-mono text-[11px] text-foreground/80 transition-colors placeholder:text-muted-foreground/60 focus:w-48 focus:border-border focus:outline-none"
-      style={{ transition: "width 0.2s, border-color 0.2s" }}
+      aria-label="Open global search"
+      className="w-40 border border-border/70 bg-background/45 py-1.5 pr-3 pl-7 font-mono text-[11px] text-foreground/80 transition-colors placeholder:text-muted-foreground/60 focus:border-border focus:outline-none"
     />
   </div>
 );

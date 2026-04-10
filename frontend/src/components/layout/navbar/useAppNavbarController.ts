@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { useCinemaSearchDialog } from "@/features/films/components/useCinemaSearchDialog";
+import { useGlobalSearchDialog } from "@/features/search/components/useGlobalSearchDialog";
 import { primaryNavItems } from "./navbar.constants";
 
 const isEditableElement = (target: EventTarget | null): boolean => {
@@ -22,8 +22,8 @@ export const useAppNavbarController = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const { user, isUserLoading, logout, isLogoutPending } = useAuth();
-  const { isOpen: isSearchDialogOpen, open: openCinemaSearch } =
-    useCinemaSearchDialog();
+  const { isOpen: isSearchDialogOpen, open: openGlobalSearch } =
+    useGlobalSearchDialog();
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
@@ -81,7 +81,7 @@ export const useAppNavbarController = () => {
 
       if ((event.metaKey || event.ctrlKey) && loweredKey === "k") {
         event.preventDefault();
-        openCinemaSearch();
+        openGlobalSearch();
         setIsMobileMenuOpen(false);
         setIsProfileMenuOpen(false);
         return;
@@ -89,7 +89,7 @@ export const useAppNavbarController = () => {
 
       if (event.key === "/") {
         event.preventDefault();
-        openCinemaSearch();
+        openGlobalSearch();
         setIsMobileMenuOpen(false);
         setIsProfileMenuOpen(false);
       }
@@ -99,7 +99,7 @@ export const useAppNavbarController = () => {
     return () => {
       window.removeEventListener("keydown", handleGlobalShortcuts);
     };
-  }, [openCinemaSearch]);
+  }, [openGlobalSearch]);
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
@@ -123,7 +123,7 @@ export const useAppNavbarController = () => {
   };
 
   const openSearchDialog = () => {
-    openCinemaSearch();
+    openGlobalSearch();
     setIsMobileMenuOpen(false);
     setIsProfileMenuOpen(false);
   };

@@ -41,14 +41,16 @@ export const AppNavbar = () => {
           }}
         />
 
-        <div className="mx-auto flex h-12 w-full max-w-400 items-center justify-between gap-4 px-4">
-          <NavbarBrand />
+        <div className="mx-auto grid h-12 w-full max-w-400 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4">
+          <div className="col-start-1 flex min-w-0 items-center">
+            <NavbarBrand />
+          </div>
 
-          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 md:flex">
+          <nav className="col-start-2 hidden min-w-0 items-center justify-center gap-1 md:flex">
             <PrimaryNavLinks items={visiblePrimaryNavItems} />
           </nav>
 
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="col-start-3 flex min-w-0 items-center justify-end gap-3">
             <DesktopSearchButton
               isSearchDialogOpen={isSearchDialogOpen}
               onOpen={openSearchDialog}
