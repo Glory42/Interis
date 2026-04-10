@@ -5,13 +5,11 @@ import {
   Heart,
   List,
   Star,
-  Trophy,
   User,
 } from "lucide-react";
 
 export type ProfileTab =
   | "overview"
-  | "favorites"
   | "diary"
   | "watchlist"
   | "liked"
@@ -45,7 +43,6 @@ const tabItems: Array<{
     | "/profile/$username"
     | "/profile/$username/diary"
     | "/profile/$username/reviews"
-    | "/profile/$username/cinema"
     | "/profile/$username/lists"
     | "/profile/$username/liked"
     | "/profile/$username/watchlist";
@@ -57,12 +54,6 @@ const tabItems: Array<{
     label: "Diary",
     to: "/profile/$username/diary",
     icon: CalendarDays,
-  },
-  {
-    id: "favorites",
-    label: "Favorites",
-    to: "/profile/$username/cinema",
-    icon: Trophy,
   },
   {
     id: "reviews",

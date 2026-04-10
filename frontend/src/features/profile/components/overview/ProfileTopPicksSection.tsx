@@ -6,11 +6,16 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { getPosterUrl } from "@/features/films/components/utils";
-import type { UserTopPickCategory, UserTopPickItem } from "@/features/profile/api";
-import { useUserTopPicks } from "@/features/profile/hooks/useProfile";
+import type {
+  UserTopPickCategory,
+  UserTopPickItem,
+  UserTopPicks,
+} from "@/features/profile/api";
 
-type ProfileCinemaPageProps = {
-  username: string;
+type ProfileTopPicksSectionProps = {
+  topPicks: UserTopPicks | null;
+  isTopPicksPending: boolean;
+  isTopPicksError: boolean;
 };
 
 type TopPickCategoryKey = "cinema" | "serial";
@@ -61,7 +66,9 @@ const resolveTmdbId = (item: UserTopPickItem | null): number | null => {
   return null;
 };
 
-const toSlotItems = (category: UserTopPickCategory | undefined): Array<UserTopPickItem | null> => {
+const toSlotItems = (
+  category: UserTopPickCategory | undefined,
+): Array<UserTopPickItem | null> => {
   const bySlot = new Map<number, UserTopPickItem>();
 
   for (const item of category?.items ?? []) {
@@ -172,84 +179,85 @@ const TopPickSlot = ({
   return body;
 };
 
-export const ProfileCinemaPage = ({ username }: ProfileCinemaPageProps) => {
-  const favoritesQuery = useUserTopPicks(username);
+export const ProfileTopPicksSection = ({
+  topPicks,
+  isTopPicksPending,
+  isTopPicksError,
+}: ProfileTopPicksSectionProps) => {
   const categoriesByKey = new Map(
-    (favoritesQuery.data?.categories ?? []).map((category) => [category.key, category]),
+    (topPicks?.categories ?? []).map((category) => [category.key, category]),
   );
 
   return (
-    <>
-      {favoritesQuery.isPending ? (
+    <section className="space-y-5">
+      <p className="font-mono text-[10px] uppercase tracking-[0.16em] profile-shell-accent">
+        Top Picks
+      </p>
+
+      {isTopPicksPending ? (
         <div className="border px-4 py-3 text-sm profile-shell-border profile-shell-muted profile-shell-panel">
-          Loading favorites...
+          Loading top picks...
         </div>
       ) : null}
 
-      {favoritesQuery.isError ? (
+      {isTopPicksError ? (
         <div className="border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          Could not load favorites.
+          Could not load top picks.
         </div>
       ) : null}
 
-      <section className="space-y-5">
-        <p className="font-mono text-[10px] uppercase tracking-[0.16em] profile-shell-accent">
-          Top Picks
-        </p>
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        {topPickCategoryOrder.map((categoryKey) => {
+          const category = categoriesByKey.get(categoryKey);
+          const slots = toSlotItems(category);
+          const meta = topPickCategoryMeta[categoryKey];
+          const Icon = meta.icon;
+          const isCategorySupported = category?.supported ?? meta.defaultSupported;
+          const shouldLiftPanel = categoryKey === "cinema" || categoryKey === "serial";
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          {topPickCategoryOrder.map((categoryKey) => {
-            const category = categoriesByKey.get(categoryKey);
-            const slots = toSlotItems(category);
-            const meta = topPickCategoryMeta[categoryKey];
-            const Icon = meta.icon;
-            const isCategorySupported = category?.supported ?? meta.defaultSupported;
-            const shouldLiftPanel = categoryKey === "cinema" || categoryKey === "serial";
+          return (
+            <section
+              key={`top-pick-category-${categoryKey}`}
+              className={
+                shouldLiftPanel
+                  ? "relative z-0 border p-4 transition-transform duration-300 ease-out hover:z-10 hover:-translate-y-1 hover:scale-[1.01]"
+                  : "border p-4"
+              }
+              style={{
+                borderColor: "var(--profile-shell-border)",
+                background: "var(--profile-shell-panel)",
+              }}
+            >
+              <div className="mb-3 flex items-center gap-2">
+                <Icon
+                  className="h-3.5 w-3.5 shrink-0"
+                  style={{ color: meta.color }}
+                  aria-hidden="true"
+                />
+                <span
+                  className="font-mono text-[9px] uppercase tracking-widest"
+                  style={{ color: meta.color }}
+                >
+                  {meta.label}
+                </span>
+              </div>
 
-            return (
-              <section
-                key={`favorite-category-${categoryKey}`}
-                className={
-                  shouldLiftPanel
-                    ? "relative z-0 border p-4 transition-transform duration-300 ease-out hover:z-10 hover:-translate-y-1 hover:scale-[1.01]"
-                    : "border p-4"
-                }
-                style={{
-                  borderColor: "var(--profile-shell-border)",
-                  background: "var(--profile-shell-panel)",
-                }}
-              >
-                <div className="mb-3 flex items-center gap-2">
-                  <Icon
-                    className="h-3.5 w-3.5 shrink-0"
-                    style={{ color: meta.color }}
-                    aria-hidden="true"
+              <div className="grid grid-cols-4 gap-1.5">
+                {slots.map((slotItem, index) => (
+                  <TopPickSlot
+                    key={`top-pick-slot-${categoryKey}-${index + 1}`}
+                    categoryKey={categoryKey}
+                    categoryColor={meta.color}
+                    categoryIcon={Icon}
+                    item={slotItem}
+                    isCategorySupported={isCategorySupported}
                   />
-                  <span
-                    className="font-mono text-[9px] uppercase tracking-widest"
-                    style={{ color: meta.color }}
-                  >
-                    {meta.label}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-4 gap-1.5">
-                  {slots.map((slotItem, index) => (
-                    <TopPickSlot
-                      key={`favorite-slot-${categoryKey}-${index + 1}`}
-                      categoryKey={categoryKey}
-                      categoryColor={meta.color}
-                      categoryIcon={Icon}
-                      item={slotItem}
-                      isCategorySupported={isCategorySupported}
-                    />
-                  ))}
-                </div>
-              </section>
-            );
-          })}
-        </div>
-      </section>
-    </>
+                ))}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+    </section>
   );
 };

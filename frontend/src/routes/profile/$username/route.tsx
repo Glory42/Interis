@@ -42,13 +42,6 @@ function ProfileRouteLayout() {
       return "lists";
     }
 
-    if (
-      matchRoute({ to: "/profile/$username/cinema", params: routeParams, fuzzy: true }) ||
-      matchRoute({ to: "/profile/$username/films", params: routeParams, fuzzy: true })
-    ) {
-      return "favorites";
-    }
-
     return "overview";
   })();
 

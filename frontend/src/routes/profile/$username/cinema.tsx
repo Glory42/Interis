@@ -1,12 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ProfileCinemaPage } from "@/features/profile/pages/ProfileCinemaPage";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/profile/$username/cinema")({
-  component: ProfileCinemaRoute,
+  beforeLoad: ({ params }) => {
+    throw redirect({
+      to: "/profile/$username",
+      params: { username: params.username },
+    });
+  },
 });
-
-function ProfileCinemaRoute() {
-  const { username } = Route.useParams();
-
-  return <ProfileCinemaPage username={username} />;
-}

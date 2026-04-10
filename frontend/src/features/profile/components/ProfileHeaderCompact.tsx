@@ -4,7 +4,6 @@ import type { PublicProfile } from "@/types/api";
 
 type ProfileHeaderCompactProps = {
   profile: PublicProfile;
-  joinedLabel: string;
   headerAction?: ReactNode;
   actionError?: string | null;
   stats: {
@@ -17,7 +16,6 @@ type ProfileHeaderCompactProps = {
 
 export const ProfileHeaderCompact = ({
   profile,
-  joinedLabel,
   headerAction,
   actionError,
   stats,
@@ -34,6 +32,9 @@ export const ProfileHeaderCompact = ({
     rawAvatarUrl && rawAvatarUrl !== failedAvatarUrl ? rawAvatarUrl : null;
 
   const favoriteGenres = profile.favoriteGenres ?? [];
+  const locationLabel = profile.location?.trim().length
+    ? profile.location
+    : "Unknown Galaxy";
 
   return (
     <div className="flex flex-col items-start gap-6 sm:flex-row">
@@ -75,7 +76,7 @@ export const ProfileHeaderCompact = ({
             @{profile.username}
           </span>
           <span className="border px-2 py-0.5 font-mono text-[9px] tracking-[0.16em] profile-shell-border profile-shell-muted">
-            since {joinedLabel}
+            {locationLabel}
           </span>
           {headerAction ? <div>{headerAction}</div> : null}
         </div>
@@ -128,26 +129,26 @@ export const ProfileHeaderCompact = ({
               Logged
             </p>
           </div>
+        </div>
 
-          <div className="ml-2 flex flex-wrap items-center gap-1.5 pb-0.5">
-            <span className="font-mono text-[9px] uppercase tracking-[0.16em] profile-shell-muted">
-              Genres:
-            </span>
-            {favoriteGenres.length > 0 ? (
-              favoriteGenres.map((genre) => (
-                <span
-                  key={genre}
-                  className="border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.16em] profile-shell-accent profile-shell-border"
-                >
-                  {genre}
-                </span>
-              ))
-            ) : (
-              <span className="font-mono text-[10px] profile-shell-muted">
-                None
+        <div className="mt-4 flex flex-wrap items-center gap-1.5 pb-0.5">
+          <span className="font-mono text-[9px] uppercase tracking-[0.16em] profile-shell-muted">
+            Genres:
+          </span>
+          {favoriteGenres.length > 0 ? (
+            favoriteGenres.map((genre) => (
+              <span
+                key={genre}
+                className="border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.16em] profile-shell-accent profile-shell-border"
+              >
+                {genre}
               </span>
-            )}
-          </div>
+            ))
+          ) : (
+            <span className="font-mono text-[10px] profile-shell-muted">
+              None
+            </span>
+          )}
         </div>
       </div>
     </div>

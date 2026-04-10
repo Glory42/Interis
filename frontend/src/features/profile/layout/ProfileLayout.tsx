@@ -14,7 +14,6 @@ import {
   useFollowUser,
   useUnfollowUser,
 } from "@/features/social/hooks/useSocial";
-import { formatJoinedDate } from "@/features/profile/utils/profile.utils";
 import { isApiError } from "@/lib/api-client";
 import type { PublicProfile } from "@/types/api";
 
@@ -137,8 +136,6 @@ export const ProfileLayout = ({
     </Link>
   );
 
-  const joinedShortLabel = formatJoinedDate(profile.createdAt, "short");
-
   const entryCount = profile.stats?.entryCount ?? 0;
   const followerCount = profile.stats?.followerCount ?? 0;
   const followingCount = profile.stats?.followingCount ?? 0;
@@ -150,7 +147,6 @@ export const ProfileLayout = ({
           <ProfileHeaderCompact
             key={profile.username}
             profile={profile}
-            joinedLabel={joinedShortLabel}
             headerAction={profileHeaderAction}
             actionError={
               isOwnProfile || followError?.username !== profile.username

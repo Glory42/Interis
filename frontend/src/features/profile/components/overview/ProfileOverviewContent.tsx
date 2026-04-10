@@ -2,7 +2,7 @@ import {
   useUserRecentActivity,
   useUserTopPicks,
 } from "@/features/profile/hooks/useProfile";
-import { ProfileFavoritesPreviewSection } from "./ProfileFavoritesPreviewSection";
+import { ProfileTopPicksSection } from "./ProfileTopPicksSection";
 import { ProfileRecentActivitySection } from "./ProfileRecentActivitySection";
 import {
   buildRecentActivityItems,
@@ -34,7 +34,7 @@ export const ProfileOverviewContent = ({ username }: ProfileOverviewContentProps
 
   return (
     <div className="space-y-10">
-      <ProfileFavoritesPreviewSection
+      <ProfileTopPicksSection
         topPicks={topPicks}
         isTopPicksPending={topPicksQuery.isPending}
         isTopPicksError={topPicksQuery.isError}
