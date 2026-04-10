@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import {
+  getNavLinkActiveStyle,
   navLinkActiveClass,
   navLinkActiveOptions,
   navLinkClass,
@@ -39,6 +40,7 @@ export const PrimaryNavLinks = ({
         className={sharedClassName}
         activeProps={{
           className: sharedActiveClassName,
+          style: getNavLinkActiveStyle(item),
         }}
         activeOptions={
           item.exact
