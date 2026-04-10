@@ -12,7 +12,7 @@ export const RequestUploadSchema = z.object({
 
 export const ConfirmUploadSchema = z.object({
   uploadType: z.literal("avatar"),
-  publicUrl: z.string().url(),
+  publicUrl: z.url(),
 });
 
 export type RequestUploadDto = z.infer<typeof RequestUploadSchema>;

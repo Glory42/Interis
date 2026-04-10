@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import {
   generateUploadUrl,
   isR2ConfigurationError,
+  isOwnedUploadPublicUrl,
   type UploadType,
 } from "../../infrastructure/r2/client";
 import { sendValidationError } from "../../commons/http/validation-response.helper";
@@ -61,6 +62,19 @@ export class UploadsController {
 
     if (!parsed.success) {
       sendValidationError(res, parsed.error);
+      return;
+    }
+
+    if (
+      !isOwnedUploadPublicUrl(
+        req.user.id,
+        parsed.data.uploadType,
+        parsed.data.publicUrl,
+      )
+    ) {
+      res.status(400).json({
+        error: "Invalid upload URL. Please request a new signed upload URL.",
+      });
       return;
     }
 
