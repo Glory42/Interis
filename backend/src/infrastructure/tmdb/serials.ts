@@ -51,9 +51,33 @@ export const searchSeries = async (
 export const getTrendingSeries = async (
   timeWindow: "day" | "week" = "week",
 ): Promise<TMDBSearchSeries[]> => {
-  const data = await fetchTMDB(`/trending/tv/${timeWindow}?language=en-US`);
-  const results = (data as { results?: unknown }).results ?? [];
-  return z.array(TMDBSearchSeriesSchema).parse(results);
+  const trendingPage = await getTrendingSeriesPage(timeWindow);
+  return trendingPage.results;
+};
+
+export const getTrendingSeriesPage = async (
+  timeWindow: "day" | "week" = "week",
+  input: { page?: number; limit?: number } = {},
+): Promise<{
+  page: number;
+  totalPages: number;
+  totalResults: number;
+  results: TMDBDiscoverSeries[];
+}> => {
+  const page = Math.max(1, Math.floor(input.page ?? 1));
+  const limit = Math.max(1, Math.min(50, Math.floor(input.limit ?? 20)));
+
+  const data = await fetchTMDB(
+    `/trending/tv/${timeWindow}?language=en-US&page=${page}`,
+  );
+  const parsed = TMDBDiscoverSeriesListSchema.parse(data);
+
+  return {
+    page: parsed.page,
+    totalPages: parsed.total_pages,
+    totalResults: parsed.total_results,
+    results: parsed.results.slice(0, limit),
+  };
 };
 
 export const getSeriesGenres = async (): Promise<TMDBSeriesGenre[]> => {

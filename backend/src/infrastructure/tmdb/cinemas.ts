@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fetchTMDB } from "./base-client";
 import {
+  TMDBDiscoverMovieSchema,
   TMDBDiscoverMoviesSchema,
   TMDBMovieCreditsSchema,
   TMDBMovieDetailSchema,
@@ -89,9 +90,35 @@ export const getNowPlayingMovies = async (): Promise<TMDBSearchMovie[]> => {
 export const getTrendingMovies = async (
   timeWindow: "day" | "week" = "week",
 ): Promise<TMDBSearchMovie[]> => {
-  const data = await fetchTMDB(`/trending/movie/${timeWindow}?language=en-US`);
-  const results = (data as { results?: unknown }).results ?? [];
-  return z.array(TMDBSearchMovieSchema).parse(results);
+  const trendingPage = await getTrendingMoviesPage(timeWindow);
+  return trendingPage.results;
+};
+
+export const getTrendingMoviesPage = async (
+  timeWindow: "day" | "week" = "week",
+  input: { page?: number; limit?: number } = {},
+): Promise<{
+  page: number;
+  totalPages: number;
+  totalResults: number;
+  results: TMDBDiscoverMovie[];
+}> => {
+  const page = Math.max(1, Math.floor(input.page ?? 1));
+  const limit = Math.max(1, Math.min(50, Math.floor(input.limit ?? 20)));
+
+  const data = await fetchTMDB(
+    `/trending/movie/${timeWindow}?language=en-US&page=${page}`,
+  );
+  const parsed = TMDBDiscoverMoviesSchema.parse(data);
+
+  const results = z.array(TMDBDiscoverMovieSchema).parse(parsed.results).slice(0, limit);
+
+  return {
+    page: parsed.page,
+    totalPages: parsed.total_pages,
+    totalResults: parsed.total_results,
+    results,
+  };
 };
 
 export const getMovieGenres = async (): Promise<TMDBMovieGenre[]> => {
