@@ -89,9 +89,7 @@ export const getNowPlayingMovies = async (): Promise<TMDBSearchMovie[]> => {
 export const getTrendingMovies = async (
   timeWindow: "day" | "week" = "week",
 ): Promise<TMDBSearchMovie[]> => {
-  const data = await fetchTMDB(
-    `/trending/movie/${timeWindow}?language=en-US`,
-  );
+  const data = await fetchTMDB(`/trending/movie/${timeWindow}?language=en-US`);
   const results = (data as { results?: unknown }).results ?? [];
   return z.array(TMDBSearchMovieSchema).parse(results);
 };
@@ -149,14 +147,23 @@ export const discoverMovies = async (input: {
   }
 
   if (input.languageCode && /^[a-z]{2,3}$/i.test(input.languageCode)) {
-    searchParams.set("with_original_language", input.languageCode.toLowerCase());
+    searchParams.set(
+      "with_original_language",
+      input.languageCode.toLowerCase(),
+    );
   }
 
-  if (input.releaseDateGte && /^\d{4}-\d{2}-\d{2}$/.test(input.releaseDateGte)) {
+  if (
+    input.releaseDateGte &&
+    /^\d{4}-\d{2}-\d{2}$/.test(input.releaseDateGte)
+  ) {
     searchParams.set("primary_release_date.gte", input.releaseDateGte);
   }
 
-  if (input.releaseDateLte && /^\d{4}-\d{2}-\d{2}$/.test(input.releaseDateLte)) {
+  if (
+    input.releaseDateLte &&
+    /^\d{4}-\d{2}-\d{2}$/.test(input.releaseDateLte)
+  ) {
     searchParams.set("primary_release_date.lte", input.releaseDateLte);
   }
 
@@ -187,7 +194,9 @@ export const getMovieCredits = async (
   return TMDBMovieCreditsSchema.parse(data);
 };
 
-export const getMovieDirector = async (tmdbId: number): Promise<string | null> => {
+export const getMovieDirector = async (
+  tmdbId: number,
+): Promise<string | null> => {
   const now = Date.now();
   const cached = directorCache.get(tmdbId);
 
@@ -206,7 +215,8 @@ export const getMovieDirector = async (tmdbId: number): Promise<string | null> =
 
   const requestPromise = (async () => {
     const credits = await getMovieCredits(tmdbId);
-    const director = credits.crew.find((member) => member.job === "Director")?.name ?? null;
+    const director =
+      credits.crew.find((member) => member.job === "Director")?.name ?? null;
 
     directorCache.set(tmdbId, {
       value: director,
