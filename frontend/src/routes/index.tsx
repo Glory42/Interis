@@ -10,6 +10,7 @@ import { HomePage } from "@/features/feed/pages/HomePage";
 import { feedKeys } from "@/features/feed/hooks/useFeed";
 import { getTrendingSeries } from "@/features/serials/api";
 import { serialKeys } from "@/features/serials/hooks/useSerials";
+import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
 
 export const Route = createFileRoute("/")({
   loader: async ({ context }) => {
@@ -46,6 +47,7 @@ export const Route = createFileRoute("/")({
     await Promise.allSettled(prefetchTasks);
   },
   component: HomeRoute,
+  errorComponent: (props) => <RouteErrorBoundary {...props} title="Could not load home feed" />,
 });
 
 function HomeRoute() {

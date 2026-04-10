@@ -147,18 +147,14 @@ export const userStatsSchema = z.object({
 export const topPickCategoryIdSchema = z.union([
   z.literal(1),
   z.literal(2),
-  z.literal(3),
-  z.literal(4),
 ]);
 
 export const topPickCategoryKeySchema = z.enum([
   "cinema",
   "serial",
-  "codex",
-  "echoes",
 ]);
 
-export const topPickMediaTypeSchema = z.enum(["movie", "tv", "book", "music"]);
+export const topPickMediaTypeSchema = z.enum(["movie", "tv"]);
 
 export const topPickItemSchema = z.object({
   slot: z.number().int().min(1).max(4),
@@ -180,7 +176,7 @@ export const topPickCategorySchema = z.object({
 });
 
 export const publicTop4ResponseSchema = z.object({
-  categories: z.array(topPickCategorySchema).length(4),
+  categories: z.array(topPickCategorySchema).length(2),
 });
 
 export const updateTopPickItemInputSchema = z.object({
@@ -237,7 +233,7 @@ export const updateProfileInputSchema = z.object({
   bio: z.string().max(300).optional(),
   location: z.string().max(100).optional(),
   avatarUrl: z.string().url().optional().or(z.literal("")),
-  topPicks: z.array(updateTopPickCategoryInputSchema).max(4).optional(),
+  topPicks: z.array(updateTopPickCategoryInputSchema).max(2).optional(),
   favoriteGenres: z.array(favoriteGenreSchema).max(8).optional(),
 });
 

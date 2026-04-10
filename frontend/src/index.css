@@ -145,8 +145,6 @@
 
   --module-cinema: #00ff88;
   --module-serial: #00cfff;
-  --module-codex: #ffaa00;
-  --module-echoes: #ff44ff;
   --module-neutral: #9ca3af;
 
   --profile-shell-bg: color-mix(in srgb, var(--background) 88%, black);
@@ -293,8 +291,6 @@
 
   --module-cinema: #00ff88;
   --module-serial: #00cfff;
-  --module-codex: #ffaa00;
-  --module-echoes: #ff44ff;
   --module-neutral: #9ca3af;
 }
 
@@ -412,8 +408,6 @@
 
   --module-cinema: #8ec07c;
   --module-serial: #83a598;
-  --module-codex: #fabd2f;
-  --module-echoes: #d3869b;
   --module-neutral: #a89984;
 }
 

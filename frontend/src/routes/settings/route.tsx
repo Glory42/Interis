@@ -3,6 +3,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { SettingsLayout } from "@/features/settings/components/SettingsLayout";
 import { requireAuthenticatedUser } from "@/lib/router/auth-guards";
+import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
 
 export const Route = createFileRoute("/settings")({
   beforeLoad: async ({ context, location }) => {
@@ -12,6 +13,7 @@ export const Route = createFileRoute("/settings")({
     });
   },
   component: SettingsLayoutRoute,
+  errorComponent: (props) => <RouteErrorBoundary {...props} title="Settings unavailable" />,
 });
 
 function SettingsLayoutRoute() {

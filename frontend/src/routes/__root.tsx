@@ -7,7 +7,8 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { AppFooter } from "@/components/layout/AppFooter";
 import { AppNavbar } from "@/components/layout/AppNavbar";
-import { CinemaSearchDialogProvider } from "@/features/films/components/CinemaSearchDialogProvider";
+import { GlobalSearchDialogProvider } from "@/features/search/components/GlobalSearchDialogProvider";
+import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
 
 type RouterContext = {
   queryClient: QueryClient;
@@ -32,7 +33,7 @@ const NotFoundPage = () => (
 const RootLayout = () => {
   return (
     <>
-      <CinemaSearchDialogProvider>
+      <GlobalSearchDialogProvider>
         <div className="relative z-10 flex min-h-screen flex-col">
           <AppNavbar />
           <main className="min-w-0 flex-1 pb-10">
@@ -42,7 +43,7 @@ const RootLayout = () => {
           </main>
           <AppFooter />
         </div>
-      </CinemaSearchDialogProvider>
+      </GlobalSearchDialogProvider>
       {import.meta.env.DEV ? <TanStackRouterDevtools position="bottom-right" /> : null}
     </>
   );
@@ -51,4 +52,7 @@ const RootLayout = () => {
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootLayout,
   notFoundComponent: NotFoundPage,
+  errorComponent: (props) => (
+    <RouteErrorBoundary {...props} title="Application shell failed to load" />
+  ),
 });
