@@ -3,6 +3,7 @@ import { getMovieDetail } from "@/features/films/api";
 import { CinemaDetailPage } from "@/features/films/components/CinemaDetailPage";
 import { movieKeys } from "@/features/films/hooks/useMovies";
 import { parsePositiveIntParam } from "@/lib/router/params";
+import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
 
 export const Route = createFileRoute("/cinema/$tmdbId")({
   beforeLoad: ({ params }) => {
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/cinema/$tmdbId")({
     });
   },
   component: CinemaDetailRoute,
+  errorComponent: (props) => <RouteErrorBoundary {...props} title="Cinema detail unavailable" />,
 });
 
 function CinemaDetailRoute() {
