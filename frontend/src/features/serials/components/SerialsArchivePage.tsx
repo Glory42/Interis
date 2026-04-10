@@ -32,11 +32,14 @@ export const SerialsArchivePage = () => {
 
   const controlsRef = useRef<HTMLDivElement | null>(null);
 
+  const effectivePeriod = selectedSort === "trending" ? "all_time" : selectedPeriod;
+  const isPeriodDisabled = selectedSort === "trending";
+
   const archiveQuery = useSeriesArchive(
     selectedGenre === "all" ? "" : selectedGenre,
     selectedLanguage === "all" ? "" : selectedLanguage,
     selectedSort,
-    selectedPeriod,
+    effectivePeriod,
     ARCHIVE_PAGE_SIZE,
   );
 
@@ -64,11 +67,15 @@ export const SerialsArchivePage = () => {
   }, [selectedLanguage]);
 
   const selectedPeriodLabel = useMemo(() => {
+    if (selectedSort === "trending") {
+      return "Weekly trending";
+    }
+
     return (
       periodOptions.find((option) => option.value === selectedPeriod)?.label ??
       "This year"
     );
-  }, [selectedPeriod]);
+  }, [selectedPeriod, selectedSort]);
 
   const archiveRatingSource: ArchiveRatingSource =
     selectedSort === "rating_tmdb_desc" ? "tmdb" : "user";
@@ -148,6 +155,10 @@ export const SerialsArchivePage = () => {
             }
           }}
           onToggleMenu={(menu) => {
+            if (isPeriodDisabled && menu === "period") {
+              return;
+            }
+
             setOpenMenu((current) => (current === menu ? null : menu));
           }}
           onCloseMenu={() => setOpenMenu(null)}
@@ -158,6 +169,7 @@ export const SerialsArchivePage = () => {
           selectedSortLabel={selectedSortLabel}
           selectedLanguageLabel={selectedLanguageLabel}
           selectedPeriodLabel={selectedPeriodLabel}
+          isPeriodDisabled={isPeriodDisabled}
           availableGenres={firstPage?.availableGenres}
           archiveCountLabel={archiveCountLabel}
           onSelectGenre={setSelectedGenre}

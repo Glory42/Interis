@@ -30,6 +30,7 @@ type SerialArchiveControlsProps = {
   selectedSortLabel: string;
   selectedLanguageLabel: string;
   selectedPeriodLabel: string;
+  isPeriodDisabled: boolean;
   availableGenres?: SerialArchiveResponse["availableGenres"];
   archiveCountLabel: string;
   onSelectGenre: (genre: string) => void;
@@ -51,6 +52,7 @@ export const SerialArchiveControls = ({
   selectedSortLabel,
   selectedLanguageLabel,
   selectedPeriodLabel,
+  isPeriodDisabled,
   availableGenres,
   archiveCountLabel,
   onSelectGenre,
@@ -159,6 +161,7 @@ export const SerialArchiveControls = ({
           menu="period"
           openMenu={openMenu}
           onToggleMenu={onToggleMenu}
+          disabled={isPeriodDisabled}
           icon={<CalendarDays className="h-3 w-3" />}
           label={`Time: ${selectedPeriodLabel}`}
           menuClassName="min-w-40"
@@ -177,8 +180,17 @@ export const SerialArchiveControls = ({
           ))}
         </ArchiveMenuTrigger>
 
+        {isPeriodDisabled ? (
+          <p
+            className="font-mono text-[9px] uppercase tracking-[0.12em]"
+            style={{ color: SERIAL_MODULE_STYLES.faint }}
+          >
+            Weekly trending mode
+          </p>
+        ) : null}
+
         <p
-          className="mt-3 font-mono text-[10px]"
+          className="ml-auto shrink-0 font-mono text-[10px]"
           style={{ color: SERIAL_MODULE_STYLES.faint }}
         >
           {archiveCountLabel}

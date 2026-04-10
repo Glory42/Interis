@@ -22,8 +22,8 @@ export const quickLinks: QuickLink[] = [
     title: "Discover Users",
     description: "Search among all members",
     icon: Users,
-    color: "var(--module-serial)",
-    tint: "rgba(0, 207, 255, 0.1)",
+    color: "var(--destructive)",
+    tint: "color-mix(in srgb, var(--destructive) 14%, transparent)",
   },
   {
     target: "cinema",

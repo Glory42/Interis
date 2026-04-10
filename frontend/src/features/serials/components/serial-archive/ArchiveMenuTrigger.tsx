@@ -12,6 +12,7 @@ type ArchiveMenuTriggerProps = {
   label: ReactNode;
   menuClassName: string;
   children: ReactNode;
+  disabled?: boolean;
 };
 
 export const ArchiveMenuTrigger = ({
@@ -22,22 +23,36 @@ export const ArchiveMenuTrigger = ({
   label,
   menuClassName,
   children,
+  disabled = false,
 }: ArchiveMenuTriggerProps) => {
-  const isOpen = openMenu === menu;
+  const isOpen = !disabled && openMenu === menu;
 
   return (
     <div className="relative">
       <button
         type="button"
+        disabled={disabled}
         className="inline-flex items-center gap-2 border px-3 py-1.5 font-mono text-[10px] transition-colors"
         style={{
-          borderColor: isOpen ? SERIAL_MODULE_STYLES.accent : SERIAL_MODULE_STYLES.borderSoft,
-          color: isOpen ? SERIAL_MODULE_STYLES.accent : SERIAL_MODULE_STYLES.muted,
+          borderColor: disabled
+            ? SERIAL_MODULE_STYLES.borderSoft
+            : isOpen
+              ? SERIAL_MODULE_STYLES.accent
+              : SERIAL_MODULE_STYLES.borderSoft,
+          color: disabled
+            ? SERIAL_MODULE_STYLES.faint
+            : isOpen
+              ? SERIAL_MODULE_STYLES.accent
+              : SERIAL_MODULE_STYLES.muted,
           background: "transparent",
         }}
         aria-haspopup="menu"
         aria-expanded={isOpen}
-        onClick={() => onToggleMenu(menu)}
+        onClick={() => {
+          if (!disabled) {
+            onToggleMenu(menu);
+          }
+        }}
       >
         {icon}
         <span>{label}</span>
