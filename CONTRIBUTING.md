@@ -480,29 +480,35 @@ Use the provided guards from `@/lib/router/auth-guards`:
 
 ### Backend
 
-Tests use `bun:test`. The pattern is integration testing with a real Express server:
+Tests use `bun:test` and run against a real Express server instance.
+
+Core directories:
+
+- `backend/tests/integration/*` - route + auth + DB integration suites
+- `backend/tests/support/app/*` - server/http/cookie helpers
+- `backend/tests/support/factories/*` - deterministic test data builders
+
+Minimal pattern:
 
 ```typescript
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
-import { createApp } from '../index';
+import { afterAll, beforeAll, describe, expect, it } from "bun:test";
+import { apiRequest } from "../support/app/http-client";
+import { startTestServer } from "../support/app/test-server";
 
-describe('Example', () => {
-  let app: ReturnType<typeof createApp>;
+describe("health", () => {
+  let server: Awaited<ReturnType<typeof startTestServer>> | null = null;
 
-  beforeAll(() => {
-    app = createApp();
+  beforeAll(async () => {
+    server = await startTestServer();
   });
 
-  afterAll(() => {
-    // cleanup
+  afterAll(async () => {
+    await server?.close();
   });
 
-  it('should return 200', async () => {
-    const response = await app.inject({
-      method: 'GET',
-      url: '/api/health',
-    });
-    expect(response.statusCode).toBe(200);
+  it("returns 200", async () => {
+    const response = await apiRequest(server!.baseUrl, "/api/health");
+    expect(response.status).toBe(200);
   });
 });
 ```
@@ -511,11 +517,25 @@ Run tests:
 
 ```bash
 bun test
+bun run test:integration
 ```
 
 ### Frontend
 
-Currently, the frontend relies on type checking and linting for quality assurance. Add unit tests as the test framework is established.
+Frontend tests use Vitest + React Testing Library + MSW.
+
+Core directories:
+
+- `frontend/tests/unit/*` - pure helper/utility tests
+- `frontend/tests/integration/*` - feature/API integration tests
+- `frontend/tests/support/msw/*` - API handlers and server setup
+
+Run tests:
+
+```bash
+cd frontend
+bun run test
+```
 
 ## Quality checks
 
@@ -529,6 +549,7 @@ bun test
 
 # Frontend
 cd frontend
+bun run test
 bun run typecheck
 bun run lint
 bun run build

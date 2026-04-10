@@ -54,6 +54,23 @@ bun run typecheck        # route generation + TypeScript build check
 bun run lint             # ESLint
 bun run build            # production build
 bun run preview          # preview production build
+bun run test             # Vitest (run)
+bun run test:watch       # Vitest watch mode
+bun run test:coverage    # Vitest with coverage
+```
+
+## Testing
+
+- Test runner: Vitest (`jsdom`)
+- UI testing: React Testing Library
+- Network mocking: MSW (`tests/support/msw/*`)
+- Shared setup: `tests/support/setup.ts`
+
+Run tests:
+
+```bash
+cd frontend
+bun run test
 ```
 
 ## Route map
@@ -71,8 +88,6 @@ bun run preview          # preview production build
 | `/settings/*` | Account/profile/theme settings |
 | `/login`, `/register` | Auth |
 | `/admin` | Admin section |
-| `/echoes` | Placeholder (under construction) |
-| `/codex` | Placeholder (under construction) |
 
 ## Project structure
 
@@ -80,6 +95,8 @@ bun run preview          # preview production build
 frontend/
 ├── components.json
 ├── vite.config.ts
+├── vitest.config.ts
+├── tests/                     # Vitest + RTL + MSW suites and helpers
 └── src/
     ├── main.tsx                  # app bootstrap, router + query providers
     ├── routeTree.gen.ts          # generated TanStack Router tree
@@ -101,7 +118,12 @@ Each feature in `src/features/` follows a consistent structure:
 
 ```
 feature/
-├── api.ts           # API calls with Zod validation
+├── api.ts           # Stable feature API barrel
+├── api/             # API internals (requests/schemas/mappers/types)
+│   ├── requests.ts
+│   ├── schemas.ts
+│   ├── mappers.ts
+│   └── types.ts
 ├── hooks/           # React Query hooks + query key factories
 ├── components/      # Feature-specific UI components
 ├── pages/           # Page-level components (when needed)
@@ -129,17 +151,20 @@ feature/
 
 ## Data flow conventions
 
-- **API functions** live under each feature (`src/features/*/api.ts`) and validate responses with Zod.
+- **API functions** are exposed from `src/features/*/api.ts` and implemented in `src/features/*/api/requests.ts` with Zod-validated schemas.
 - **Data fetching hooks** live under feature hooks (`src/features/*/hooks/*`) using TanStack Query.
 - **Query key factories** are exported as `*Keys` objects (e.g., `movieKeys`, `authKeys`, `feedKeys`) for consistent cache key management.
 - **Requests include cookies** (`credentials: include`) for authenticated endpoints.
 - **Smart retry**: Queries do NOT retry on 400, 401, 403, 404, 422; retry up to 2 times for other errors.
+- **Architecture linting**: ESLint enforces file-size and API-layer import boundaries to prevent new monolith files and route/UI leakage into API modules.
 
 ## Routing patterns
 
 - **Auth guards**: `beforeLoad` hooks with `requireAuthenticatedUser` / `requireGuestUser` / `requireAdminUser`.
 - **Param validation**: `beforeLoad` validates route params (positive int, slug format) with redirects on failure.
 - **Data prefetching**: `loader` functions use `queryClient.prefetchQuery` for route-driven data loading.
+- **Route error boundaries**: Major routes define `errorComponent` boundaries for resilient failures.
+- **Route matching for active state**: Active tab/nav state derives from route matching APIs, not pathname string parsing.
 - **Legacy redirects**: `/films` routes redirect to `/cinema` for backward compatibility.
 - **Safe redirects**: `getSafeRedirectPath()` prevents open redirect attacks.
 

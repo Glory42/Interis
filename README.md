@@ -1,4 +1,4 @@
-# Interis
+# [Interis](https://interis.gorkemkaryol.dev)
 
 A social movie journal app inspired by Letterboxd + timeline-style social apps.
 
@@ -8,7 +8,6 @@ A social movie journal app inspired by Letterboxd + timeline-style social apps.
 - Explore public profile pages, stats, lists, likes, and watchlists
 - Power external widgets through a small public API (`/api/public/*`)
 
-Live: [interis.gorkemkaryol.dev](https://interis.gorkemkaryol.dev)
 
 ## Tech stack
 
@@ -32,6 +31,7 @@ Live: [interis.gorkemkaryol.dev](https://interis.gorkemkaryol.dev)
 .
 ├── backend/          # Express API, domain modules, Drizzle schema/migrations
 ├── frontend/         # React app (TanStack Router + Query)
+├── e2e/              # Playwright smoke and end-to-end tests
 ├── CONTRIBUTING.md   # Guidelines for contributors
 └── README.md
 ```
@@ -115,10 +115,21 @@ Frontend:
 
 ```bash
 cd frontend
+bun run test
 bun run typecheck
 bun run lint
 bun run build
 ```
+
+E2E smoke (optional package):
+
+```bash
+cd e2e
+bun install
+bun run test:smoke
+```
+
+CI note: backend integration tests in GitHub Actions run only when `DATABASE_URL_TEST` repository secret is configured.
 
 ## Architecture notes
 
@@ -126,7 +137,10 @@ bun run build
 - **TMDB on-demand**: Movie data is fetched from TMDB on demand and cached locally; no bulk mirror/import.
 - **Separate models**: Diary entries (watch logs) and reviews are modeled separately by design.
 - **Read-optimized profiles**: Public profile routes are optimized for read-heavy usage and widget integration.
-- **Route-driven frontend**: Frontend is route-driven and feature-oriented, with API contracts validated by Zod. See [frontend/README.md](frontend/README.md) for details.
+- **Route-driven frontend**: Frontend is route-driven and feature-oriented, with route-level error boundaries for major layouts.
+- **API decomposition**: Film/serial frontend APIs are split into `api/{schemas,types,mappers,requests}` submodules behind stable feature barrels.
+- **DTO normalization**: Backend query parsing is schema-first with explicit default/clamp normalization.
+- **Architecture enforcement**: Frontend lint rules and backend `bun run lint:arch` checks prevent large monolith files, cross-layer imports, and reintroduction of removed transitional wrappers.
 
 ## Contributing
 

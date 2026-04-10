@@ -59,7 +59,11 @@ Create `backend/.env`:
 bun run dev     # watch mode
 bun run start   # single run
 bun test        # test suite
-bunx tsc --noEmit  # type check
+bun run test:integration  # backend integration tests
+bun run test:db:migrate   # apply migrations for test DB
+bun run test:db:reset     # truncate tables (guarded)
+bun run typecheck  # type check
+bun run lint:arch  # architecture guard rails
 ```
 
 ## Database and migrations
@@ -81,6 +85,10 @@ bunx drizzle-kit migrate    # apply migrations
 backend/
 ├── drizzle/                        # SQL migrations
 ├── drizzle.config.ts
+├── scripts/
+│   ├── architecture-check.ts       # monolith and layering checks
+│   └── test-db-reset.ts            # guarded DB truncate helper
+├── tests/                          # bun:test integration/contract suites
 └── src/
     ├── index.ts                    # app bootstrap + router mounting
     ├── commons/                    # shared middleware/helpers
@@ -136,7 +144,7 @@ Each domain module follows a consistent layered pattern:
 ```
 <module>.routes.ts       -> Express Router, mounts controller methods
 <module>.controller.ts   -> HTTP layer: req/res handling, input validation
-<module>.service.ts      -> Facade delegating to sub-services
+<module>.service.ts      -> Module orchestration layer
 <module>.entity.ts       -> Drizzle pgTable schema
 dto/                     -> Zod schemas for request/response types
 repositories/            -> Direct DB access via Drizzle
@@ -149,15 +157,16 @@ constants/               -> Magic values, defaults, enums
 ### Key conventions
 
 - **Static classes**: Controllers, services, and repositories use `static` methods (no instantiation)
-- **Facade services**: Top-level `*Service.ts` delegates to specialized sub-services (e.g., `MoviesService` -> `MoviesCacheService`, `MoviesDetailService`, `MoviesArchiveService`)
+- **Composed services**: Top-level `*Service.ts` composes focused sub-services (e.g., `MoviesService` -> cache/detail/archive services)
 - **Read/write separation**: Services often split into `*-read.service.ts` and `*-write.service.ts`
 - **Find-or-create**: TMDB data cached on-demand (check local DB first, fetch from TMDB if missing)
-- **Zod validation**: All DTOs use Zod; controllers validate with `safeParse` and return 400 on failure
+- **Zod validation + normalization**: DTO/query schemas validate and normalize request input (defaulting/clamping in DTO layer)
 - **Async handler wrapper**: All route handlers wrapped with `asyncHandler()` for error propagation
 - **Viewer-aware responses**: Optional `resolveViewerUserIdFromHeaders` for personalizing public responses
 - **In-memory caching**: TMDB client uses Map-based caches with TTL and in-flight request deduplication
 - **Factory pattern**: `createApp()` for testable server creation
 - **FK order in schema**: `entities.ts` exports in dependency order to satisfy FK references
+- **Architecture guardrails**: `lint:arch` blocks cross-layer imports (controller->repository, dto->service/repository, etc.) and oversized module files
 
 ## Testing
 
@@ -165,7 +174,7 @@ constants/               -> Magic values, defaults, enums
 bun test
 ```
 
-Tests use `bun:test` and spin up a real Express server on a random port for integration testing. See `src/infrastructure/auth/auth-session.test.ts` for the pattern.
+Tests use `bun:test` and spin up a real Express server on a random port for integration testing. Current baseline suite lives at `tests/integration/auth/session-lifecycle.test.ts`.
 
 ## Notes
 
