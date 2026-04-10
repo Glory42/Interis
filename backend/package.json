@@ -6,7 +6,14 @@
   "scripts": {
     "dev": "bun run --watch src/index.ts",
     "start": "bun run src/index.ts",
-    "test": "bun test"
+    "test": "bun test",
+    "test:integration": "bun test tests/integration",
+    "test:contract": "bun test tests/contract",
+    "test:db:migrate": "bunx drizzle-kit migrate",
+    "test:db:reset": "bun run scripts/test-db-reset.ts",
+    "test:ci": "bun run test:integration",
+    "typecheck": "bunx tsc -p tsconfig.json --noEmit",
+    "lint:arch": "bun run scripts/architecture-check.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",

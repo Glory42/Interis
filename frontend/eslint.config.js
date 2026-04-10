@@ -19,5 +19,29 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      'max-lines': ['error', { max: 330, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  {
+    files: ['src/features/**/api.ts', 'src/features/**/api/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            '@/routes/**',
+            '@/features/*/components/**',
+            '@/features/*/pages/**',
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/routeTree.gen.ts'],
+    rules: {
+      'max-lines': 'off',
+    },
   },
 ])
