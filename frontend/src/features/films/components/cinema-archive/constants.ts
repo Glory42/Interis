@@ -1,4 +1,4 @@
-import type { MovieArchiveSort } from "@/features/films/api";
+import type { MovieArchivePeriod, MovieArchiveSort } from "@/features/films/api";
 
 export const ARCHIVE_PAGE_SIZE = 30;
 
@@ -16,14 +16,41 @@ export const CINEMA_MODULE_STYLES = {
 } as const;
 
 export const sortOptions = [
-  { id: "popular", label: "Popular", value: "trending" },
-  { id: "rating", label: "Rating", value: "rating_user_desc" },
-  { id: "year", label: "Year", value: "release_desc" },
-  { id: "az", label: "A -> Z", value: "title_asc" },
+  { value: "trending", label: "Trending" },
+  { value: "rating_user_desc", label: "Highest rated (Users)" },
+  { value: "release_desc", label: "Newest release" },
+  { value: "title_asc", label: "Title A-Z" },
 ] as const satisfies ReadonlyArray<{
-  id: string;
-  label: string;
   value: MovieArchiveSort;
+  label: string;
 }>;
 
-export type ArchiveSortTab = (typeof sortOptions)[number]["id"];
+export const periodOptions: Array<{ value: MovieArchivePeriod; label: string }> = [
+  { value: "all_time", label: "All time" },
+  { value: "this_year", label: "This year" },
+  { value: "last_10_years", label: "Last 10 years" },
+  { value: "this_week", label: "This week" },
+  { value: "today", label: "Today" },
+];
+
+export const languageOptions = [
+  { value: "all", label: "All languages" },
+  { value: "en", label: "English" },
+  { value: "es", label: "Spanish" },
+  { value: "fr", label: "French" },
+  { value: "de", label: "German" },
+  { value: "it", label: "Italian" },
+  { value: "pt", label: "Portuguese" },
+  { value: "ja", label: "Japanese" },
+  { value: "ko", label: "Korean" },
+  { value: "zh", label: "Chinese" },
+  { value: "hi", label: "Hindi" },
+  { value: "tr", label: "Turkish" },
+  { value: "ru", label: "Russian" },
+  { value: "ar", label: "Arabic" },
+  { value: "sv", label: "Swedish" },
+  { value: "da", label: "Danish" },
+  { value: "no", label: "Norwegian" },
+  { value: "fi", label: "Finnish" },
+  { value: "nl", label: "Dutch" },
+] as const;

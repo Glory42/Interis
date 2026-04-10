@@ -1,24 +1,57 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArchiveMovieCard } from "@/features/films/components/cinema-archive/ArchiveMovieCard";
 import { ArchiveSkeletonGrid } from "@/features/films/components/cinema-archive/ArchiveSkeletonGrid";
 import { ArchiveSortControls } from "@/features/films/components/cinema-archive/ArchiveSortControls";
 import {
-  type ArchiveSortTab,
   ARCHIVE_PAGE_SIZE,
   CINEMA_MODULE_STYLES,
+  languageOptions,
+  periodOptions,
   sortOptions,
 } from "@/features/films/components/cinema-archive/constants";
+import type { OpenMenu } from "@/features/films/components/cinema-archive/types";
 import { formatArchiveCount } from "@/features/films/components/cinema-archive/utils";
+import type { MovieArchivePeriod, MovieArchiveSort } from "@/features/films/api";
 import { useMovieArchive } from "@/features/films/hooks/useMovies";
 
 export const CinemaArchivePage = () => {
-  const [activeSort, setActiveSort] = useState<ArchiveSortTab>("popular");
+  const [selectedSort, setSelectedSort] = useState<MovieArchiveSort>("trending");
+  const [selectedGenre, setSelectedGenre] = useState("all");
+  const [selectedLanguage, setSelectedLanguage] = useState("all");
+  const [selectedPeriod, setSelectedPeriod] =
+    useState<MovieArchivePeriod>("this_year");
+  const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
 
-  const selectedSort = useMemo(() => {
-    return sortOptions.find((option) => option.id === activeSort)?.value ?? "trending";
-  }, [activeSort]);
+  const controlsRef = useRef<HTMLDivElement | null>(null);
 
-  const archiveQuery = useMovieArchive("", "", selectedSort, "all_time", ARCHIVE_PAGE_SIZE);
+  const selectedSortLabel = useMemo(() => {
+    return (
+      sortOptions.find((option) => option.value === selectedSort)?.label ?? "Trending"
+    );
+  }, [selectedSort]);
+
+  const selectedLanguageLabel = useMemo(() => {
+    return (
+      languageOptions.find((option) => option.value === selectedLanguage)?.label ??
+      "All languages"
+    );
+  }, [selectedLanguage]);
+
+  const effectivePeriod = selectedSort === "trending" ? "all_time" : selectedPeriod;
+  const isPeriodDisabled = selectedSort === "trending";
+  const selectedPeriodLabel =
+    isPeriodDisabled
+      ? "Weekly trending"
+      : (periodOptions.find((option) => option.value === selectedPeriod)?.label ??
+        "This year");
+
+  const archiveQuery = useMovieArchive(
+    selectedGenre === "all" ? "" : selectedGenre,
+    selectedLanguage === "all" ? "" : selectedLanguage,
+    selectedSort,
+    effectivePeriod,
+    ARCHIVE_PAGE_SIZE,
+  );
 
   const archivePages = archiveQuery.data?.pages;
   const firstPage = archivePages?.[0] ?? null;
@@ -34,6 +67,37 @@ export const CinemaArchivePage = () => {
 
   const archiveCount = firstPage?.filteredCount ?? archiveItems.length;
   const archiveCountLabel = formatArchiveCount(archiveCount);
+
+  useEffect(() => {
+    if (!openMenu) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) {
+        return;
+      }
+
+      if (!controlsRef.current?.contains(target)) {
+        setOpenMenu(null);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpenMenu(null);
+      }
+    };
+
+    window.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [openMenu]);
 
   return (
     <main className="relative mx-auto w-full max-w-400">
@@ -60,9 +124,43 @@ export const CinemaArchivePage = () => {
         </div>
 
         <ArchiveSortControls
-          activeSort={activeSort}
+          controlsRef={controlsRef}
+          openMenu={openMenu}
+          onBlurCapture={(event) => {
+            if (!openMenu) {
+              return;
+            }
+
+            const nextTarget = event.relatedTarget;
+            if (
+              !(nextTarget instanceof Node) ||
+              !event.currentTarget.contains(nextTarget)
+            ) {
+              setOpenMenu(null);
+            }
+          }}
+          onToggleMenu={(menu) => {
+            if (isPeriodDisabled && menu === "period") {
+              return;
+            }
+
+            setOpenMenu((current) => (current === menu ? null : menu));
+          }}
+          onCloseMenu={() => setOpenMenu(null)}
           archiveCountLabel={archiveCountLabel}
-          onSetSort={setActiveSort}
+          selectedGenre={selectedGenre}
+          selectedLanguage={selectedLanguage}
+          selectedSort={selectedSort}
+          selectedPeriod={selectedPeriod}
+          selectedSortLabel={selectedSortLabel}
+          selectedLanguageLabel={selectedLanguageLabel}
+          selectedPeriodLabel={selectedPeriodLabel}
+          availableGenres={firstPage?.availableGenres}
+          isPeriodDisabled={isPeriodDisabled}
+          onSelectGenre={setSelectedGenre}
+          onSelectSort={setSelectedSort}
+          onSelectLanguage={setSelectedLanguage}
+          onSelectPeriod={setSelectedPeriod}
         />
 
         {archiveQuery.isPending ? <ArchiveSkeletonGrid /> : null}
@@ -89,7 +187,7 @@ export const CinemaArchivePage = () => {
               background: CINEMA_MODULE_STYLES.panel,
             }}
           >
-            No titles match this sort right now.
+            No titles match these filters right now.
           </div>
         ) : null}
 
