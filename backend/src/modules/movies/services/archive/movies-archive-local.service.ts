@@ -45,9 +45,11 @@ const addViewerArchiveState = async (
 export const getArchiveFromLocalCatalog = async (
   input: MoviesArchiveQueryInput,
 ): Promise<CinemaArchiveResponse> => {
-  const periodWindow = getArchivePeriodWindow(input.selectedPeriod);
+  const effectivePeriod =
+    input.sortBy === "trending" ? "all_time" : input.selectedPeriod;
+  const periodWindow = getArchivePeriodWindow(effectivePeriod);
   const shouldFilterByActivityWindow =
-    isActivityWindowPeriod(input.selectedPeriod) &&
+    isActivityWindowPeriod(effectivePeriod) &&
     (input.sortBy === "logs_desc" || input.sortBy === "rating_user_desc");
 
   const rows =
@@ -130,7 +132,7 @@ export const getArchiveFromLocalCatalog = async (
   const periodFilteredItems = shouldFilterByActivityWindow
     ? itemsWithSignals
     : itemsWithSignals.filter((item) =>
-        isMovieInArchivePeriod(item, input.selectedPeriod, periodWindow),
+        isMovieInArchivePeriod(item, effectivePeriod, periodWindow),
       );
 
   const selectedGenreLower = input.selectedGenre?.toLowerCase() ?? null;

@@ -123,7 +123,25 @@ export const sortArchiveItems = (
 ): SerialArchiveItem[] => {
   const sortedItems = [...items];
 
-  if (sortBy === "first_air_desc" || sortBy === "trending") {
+  if (sortBy === "trending") {
+    sortedItems.sort((leftSeries, rightSeries) => {
+      if (rightSeries.logCount !== leftSeries.logCount) {
+        return rightSeries.logCount - leftSeries.logCount;
+      }
+
+      const leftRating = leftSeries.avgRatingOutOfTen ?? -1;
+      const rightRating = rightSeries.avgRatingOutOfTen ?? -1;
+      if (rightRating !== leftRating) {
+        return rightRating - leftRating;
+      }
+
+      return compareByFirstAirDesc(leftSeries, rightSeries);
+    });
+
+    return sortedItems;
+  }
+
+  if (sortBy === "first_air_desc") {
     sortedItems.sort(compareByFirstAirDesc);
     return sortedItems;
   }

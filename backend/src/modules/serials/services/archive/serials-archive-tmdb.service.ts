@@ -1,6 +1,7 @@
 import {
   discoverSeries as tmdbDiscover,
   getSeriesGenres,
+  getTrendingSeriesPage,
   type TMDBSeriesGenre,
 } from "../../../../infrastructure/tmdb/serials";
 import { toFeaturedSeries } from "../../helpers/serials-format.helper";
@@ -18,6 +19,29 @@ import {
   getLocalArchiveAggregatesByTmdbIds,
   mapTmdbArchiveSeries,
 } from "./serials-archive-mapper.helper";
+
+const filterArchiveItemsByGenreAndLanguage = (
+  items: SerialArchiveResponse["items"],
+  input: {
+    selectedGenre: string | null;
+    selectedLanguage: string | null;
+  },
+): SerialArchiveResponse["items"] => {
+  const selectedGenreLower = input.selectedGenre?.toLowerCase() ?? null;
+  const selectedLanguageLower = input.selectedLanguage?.toLowerCase() ?? null;
+
+  return items.filter((item) => {
+    const matchesGenre = selectedGenreLower
+      ? item.genres.some((genre) => genre.name.toLowerCase() === selectedGenreLower)
+      : true;
+
+    const matchesLanguage = selectedLanguageLower
+      ? item.languageCode?.toLowerCase() === selectedLanguageLower
+      : true;
+
+    return matchesGenre && matchesLanguage;
+  });
+};
 
 const addViewerArchiveState = async (
   viewerUserId: string | null,
@@ -89,7 +113,94 @@ export const getArchiveFromTmdb = async (
           ? "first_air_date.asc"
           : input.sortBy === "rating_tmdb_desc"
             ? "vote_average.desc"
-            : "name.asc";
+          : "name.asc";
+
+  if (input.sortBy === "trending") {
+    const startIndex = (input.page - 1) * input.limit;
+    const endIndex = startIndex + input.limit;
+
+    let tmdbPage = 1;
+    let tmdbTotalPages = 1;
+    let tmdbTotalResults = 0;
+
+    const filteredTrendingItems: SerialArchiveResponse["items"] = [];
+
+    while (tmdbPage <= tmdbTotalPages && filteredTrendingItems.length <= endIndex) {
+      const trendingPage = await getTrendingSeriesPage("week", {
+        page: tmdbPage,
+        limit: 20,
+      });
+
+      tmdbTotalPages = trendingPage.totalPages;
+      tmdbTotalResults = trendingPage.totalResults;
+
+      if (trendingPage.results.length === 0) {
+        break;
+      }
+
+      const localAggregateByTmdbId = await getLocalArchiveAggregatesByTmdbIds(
+        trendingPage.results.map((series) => series.id),
+      );
+
+      const mappedItems = trendingPage.results.map((series) =>
+        mapTmdbArchiveSeries(
+          series,
+          genreById,
+          localAggregateByTmdbId.get(series.id),
+        ),
+      );
+
+      const hydratedItems = await hydrateCreatorSignalsForItems(mappedItems);
+      const filteredItems = filterArchiveItemsByGenreAndLanguage(hydratedItems, {
+        selectedGenre: matchedGenre?.name ?? null,
+        selectedLanguage: input.selectedLanguage,
+      });
+
+      filteredTrendingItems.push(...filteredItems);
+      tmdbPage += 1;
+    }
+
+    const pageItems = filteredTrendingItems.slice(startIndex, endIndex);
+    const pageItemsWithViewerState = await addViewerArchiveState(
+      input.viewerUserId,
+      pageItems,
+    );
+
+    const hasActiveTrendingFilters =
+      matchedGenre !== null || input.selectedLanguage !== null;
+    const scannedAllTrendingPages = tmdbPage > tmdbTotalPages;
+    const hasMore = hasActiveTrendingFilters
+      ? filteredTrendingItems.length > endIndex || !scannedAllTrendingPages
+      : endIndex < tmdbTotalResults;
+    const filteredCount = hasActiveTrendingFilters
+      ? scannedAllTrendingPages
+        ? filteredTrendingItems.length
+        : Math.max(
+            filteredTrendingItems.length,
+            startIndex + pageItemsWithViewerState.length + (hasMore ? 1 : 0),
+          )
+      : tmdbTotalResults;
+
+    return {
+      totalCount: tmdbTotalResults,
+      filteredCount,
+      selectedGenre: matchedGenre?.name ?? input.selectedGenre,
+      selectedLanguage: input.selectedLanguage,
+      selectedSort: input.sortBy,
+      selectedPeriod: input.selectedPeriod,
+      featuredSeries: toFeaturedSeries(pageItemsWithViewerState),
+      availableGenres: availableTmdbGenres.map((genre) => ({
+        id: genre.id,
+        name: genre.name,
+        count: null,
+      })),
+      page: input.page,
+      limit: input.limit,
+      hasMore,
+      nextPage: hasMore ? input.page + 1 : null,
+      items: pageItemsWithViewerState,
+    };
+  }
 
   const periodWindow = getArchivePeriodWindow(input.selectedPeriod);
   const tmdbMinVoteCount = getTmdbMinVoteCountForPeriod(input.selectedPeriod);

@@ -41,9 +41,11 @@ export const getArchiveFromLocalCache = async (
   const rows = await SerialsArchiveRepository.getCachedArchiveRows();
   const allItems = rows.map((row) => toArchiveItemFromLocalRow(row));
 
-  const periodWindow = getArchivePeriodWindow(input.selectedPeriod);
+  const effectivePeriod =
+    input.sortBy === "trending" ? "all_time" : input.selectedPeriod;
+  const periodWindow = getArchivePeriodWindow(effectivePeriod);
   const periodFilteredItems = allItems.filter((item) =>
-    isSeriesInArchivePeriod(item, input.selectedPeriod, periodWindow),
+    isSeriesInArchivePeriod(item, effectivePeriod, periodWindow),
   );
 
   const selectedGenreLower = input.selectedGenre?.toLowerCase() ?? null;
