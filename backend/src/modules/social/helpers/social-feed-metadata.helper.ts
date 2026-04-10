@@ -57,7 +57,7 @@ export const readPostMediaType = (
 ): FeedPostMediaType | null => {
   const value = readString(metadata, key);
 
-  if (value === "movie" || value === "tv" || value === "book" || value === "music") {
+  if (value === "movie" || value === "tv") {
     return value;
   }
 

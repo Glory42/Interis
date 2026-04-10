@@ -31,7 +31,7 @@ export type FeedMovie = {
   mediaType: FeedMediaType;
 };
 
-export type FeedPostMediaType = "movie" | "tv" | "book" | "music";
+export type FeedPostMediaType = "movie" | "tv";
 
 export type FeedPost = {
   id: string;
