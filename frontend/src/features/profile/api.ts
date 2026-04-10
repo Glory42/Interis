@@ -40,7 +40,7 @@ const userInteractionMovieSchema = z
     releaseYear: z.number().int().nullable(),
     runtime: z.number().int().nullable(),
     genres: z.array(movieGenreSchema).nullish(),
-    mediaType: z.enum(["movie", "tv", "book", "music"]).default("movie"),
+    mediaType: z.enum(["movie", "tv"]).default("movie"),
     lastInteractionAt: z.string(),
   })
   .passthrough();

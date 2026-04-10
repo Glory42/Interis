@@ -1,8 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import {
-  BookOpen,
   Film,
-  Headphones,
   Tv,
   type LucideIcon,
 } from "lucide-react";
@@ -15,13 +13,11 @@ type ProfileCinemaPageProps = {
   username: string;
 };
 
-type TopPickCategoryKey = "cinema" | "serial" | "codex" | "echoes";
+type TopPickCategoryKey = "cinema" | "serial";
 
 const topPickCategoryOrder: TopPickCategoryKey[] = [
   "cinema",
   "serial",
-  "codex",
-  "echoes",
 ];
 
 const topPickCategoryMeta: Record<
@@ -44,18 +40,6 @@ const topPickCategoryMeta: Record<
     color: "var(--module-serial)",
     icon: Tv,
     defaultSupported: true,
-  },
-  codex: {
-    label: "Codex",
-    color: "var(--module-codex)",
-    icon: BookOpen,
-    defaultSupported: false,
-  },
-  echoes: {
-    label: "Echoes",
-    color: "var(--module-echoes)",
-    icon: Headphones,
-    defaultSupported: false,
   },
 };
 

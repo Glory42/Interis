@@ -1,4 +1,4 @@
-import { BookOpen, Film, Headphones, Tv } from "lucide-react";
+import { Film, Tv } from "lucide-react";
 import type { UserTopPickCategory, UserTopPicks } from "@/features/profile/api";
 import { ProfileFavoritesCategoryPanel } from "./ProfileFavoritesCategoryPanel";
 
@@ -42,8 +42,6 @@ export const ProfileFavoritesPreviewSection = ({
 
   const cinemaCategory = categories.find((category) => category.key === "cinema");
   const serialCategory = categories.find((category) => category.key === "serial");
-  const codexCategory = categories.find((category) => category.key === "codex");
-  const echoesCategory = categories.find((category) => category.key === "echoes");
 
   const cinemaItems = (cinemaCategory?.items ?? [])
     .slice(0, 4)
@@ -61,7 +59,7 @@ export const ProfileFavoritesPreviewSection = ({
         Favorites Preview
       </p>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4">
         <ProfileFavoritesCategoryPanel
           title="Cinema"
           icon={Film}
@@ -91,22 +89,6 @@ export const ProfileFavoritesPreviewSection = ({
           emptyText="No serial favorites selected yet."
           errorText="Could not load serial favorites."
           unsupportedText="Serial favorites are not configurable yet."
-        />
-
-        <ProfileFavoritesCategoryPanel
-          title="Codex"
-          icon={BookOpen}
-          state={resolvePanelState(codexCategory, 0, isTopPicksPending, isTopPicksError)}
-          accentColor="var(--module-codex)"
-          unsupportedText="Codex favorites are not backed by a profile API yet."
-        />
-
-        <ProfileFavoritesCategoryPanel
-          title="Echoes"
-          icon={Headphones}
-          state={resolvePanelState(echoesCategory, 0, isTopPicksPending, isTopPicksError)}
-          accentColor="var(--module-echoes)"
-          unsupportedText="Echoes favorites are not backed by a profile API yet."
         />
       </div>
     </section>
