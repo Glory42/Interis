@@ -4,6 +4,7 @@ import {
   compareByReleaseDesc,
   toReleaseTimestamp,
 } from "../../helpers/movies-format.helper";
+import { buildAvailableGenresFromItems } from "../../../media/helpers/media-archive-genres.helper";
 import type {
   ArchiveGenreOption,
   CinemaArchiveItem,
@@ -13,41 +14,7 @@ import type { MoviesArchivePeriodWindow } from "./movies-archive.types";
 export const toAvailableGenresFromItems = (
   items: CinemaArchiveItem[],
 ): ArchiveGenreOption[] => {
-  const availableGenreMap = new Map<string, ArchiveGenreOption>();
-
-  for (const item of items) {
-    const seenInItem = new Set<string>();
-
-    for (const genre of item.genres) {
-      const normalizedName = genre.name.trim();
-      if (!normalizedName) {
-        continue;
-      }
-
-      const genreKey = normalizedName.toLowerCase();
-      if (seenInItem.has(genreKey)) {
-        continue;
-      }
-
-      seenInItem.add(genreKey);
-
-      const existingGenre = availableGenreMap.get(genreKey);
-      if (existingGenre) {
-        existingGenre.count = (existingGenre.count ?? 0) + 1;
-        continue;
-      }
-
-      availableGenreMap.set(genreKey, {
-        id: genre.id,
-        name: normalizedName,
-        count: 1,
-      });
-    }
-  }
-
-  return [...availableGenreMap.values()].sort((left, right) =>
-    left.name.localeCompare(right.name),
-  );
+  return buildAvailableGenresFromItems(items) as ArchiveGenreOption[];
 };
 
 const toIsoDateUtc = (date: Date): string => {

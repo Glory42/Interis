@@ -1,6 +1,9 @@
 import type { Request, Response } from "express";
 import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
-import { sendBadRequest } from "../../commons/http/validation-response.helper";
+import {
+  sendBadRequest,
+  sendValidationError,
+} from "../../commons/http/validation-response.helper";
 import { parseTmdbIdParam } from "../../commons/validation/params.helper";
 import { MoviesService } from "./movies.service";
 import type {
@@ -9,19 +12,24 @@ import type {
   MovieParams,
   SearchMoviesQuery,
 } from "./dto/movies.dto";
+import {
+  normalizeCinemaArchiveQuery,
+  normalizeMovieDetailQuery,
+  SearchMoviesQuerySchema,
+} from "./dto/movies.dto";
 
 export class MoviesController {
   static async search(
     req: Request<{}, {}, {}, SearchMoviesQuery>,
     res: Response,
   ): Promise<void> {
-    const query = req.query.query?.trim();
-    if (!query) {
-      sendBadRequest(res, "Search query is required");
+    const parsed = SearchMoviesQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
       return;
     }
 
-    const movies = await MoviesService.search(query);
+    const movies = await MoviesService.search(parsed.data.query);
     res.status(200).json(movies);
   }
 
@@ -59,7 +67,7 @@ export class MoviesController {
     const detail = await MoviesService.getDetail({
       tmdbId,
       viewerUserId,
-      reviewsSort: req.query.reviewsSort,
+      reviewsSort: normalizeMovieDetailQuery(req.query).reviewsSort,
     });
 
     if (!detail) {
@@ -83,12 +91,7 @@ export class MoviesController {
     const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
 
     const archive = await MoviesService.getArchive({
-      genre: req.query.genre,
-      language: req.query.language,
-      sort: req.query.sort,
-      period: req.query.period,
-      page: req.query.page,
-      limit: req.query.limit,
+      ...normalizeCinemaArchiveQuery(req.query),
       viewerUserId,
     });
 

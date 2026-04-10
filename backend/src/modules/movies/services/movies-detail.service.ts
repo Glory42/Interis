@@ -7,10 +7,11 @@ import {
   toRatingBreakdownBucket,
   toRatingOutOfFive,
 } from "../helpers/movies-format.helper";
-import { normalizeDetailReviewSort } from "../helpers/movies-query-normalizer.helper";
+import { buildMediaRatingBreakdown } from "../../media/helpers/media-rating-breakdown.helper";
 import { MoviesRepository } from "../repositories/movies.repository";
 import { MoviesCacheService } from "./movies-cache.service";
-import { PeopleService } from "../../people/people.service";
+import { PeopleCacheService } from "../../people/services/people-cache.service";
+import type { MovieDetailReviewSort } from "../dto/movies.dto";
 import type {
   MovieDetailRatingBreakdownBucket,
   MovieDetailResponse,
@@ -30,14 +31,14 @@ export class MoviesDetailService {
   static async getDetail(input: {
     tmdbId: number;
     viewerUserId?: string | null;
-    reviewsSort?: string;
+    reviewsSort: MovieDetailReviewSort;
   }): Promise<MovieDetailResponse | null> {
     const movie = await MoviesCacheService.findOrCreate(input.tmdbId);
     if (!movie) {
       return null;
     }
 
-    const reviewsSort = normalizeDetailReviewSort(input.reviewsSort);
+    const reviewsSort = input.reviewsSort;
     const viewerUserId = input.viewerUserId ?? null;
 
     const [tmdbDetail, tmdbCredits, logsCount, reviewRows] = await Promise.all([
@@ -70,7 +71,7 @@ export class MoviesDetailService {
       );
     }
 
-    const directors = await PeopleService.ensurePersonLinks(
+    const directors = await PeopleCacheService.ensurePersonLinks(
       [...uniqueDirectorCredits.values()].map((directorCredit) => ({
         tmdbPersonId: directorCredit.id,
         name: directorCredit.name,
@@ -83,7 +84,7 @@ export class MoviesDetailService {
       })),
     );
 
-    const cast = await PeopleService.ensurePersonLinks(
+    const cast = await PeopleCacheService.ensurePersonLinks(
       [...(tmdbCredits?.cast ?? [])]
         .sort((leftMember, rightMember) => leftMember.order - rightMember.order)
         .slice(0, 20)
@@ -155,54 +156,10 @@ export class MoviesDetailService {
       );
     }
 
-    const ratedReviewRows = reviewsWithEngagement.filter(
-      (reviewRow) => reviewRow.ratingOutOfTen !== null,
+    const ratingBreakdown = buildMediaRatingBreakdown(
+      reviewsWithEngagement,
+      toRatingBreakdownBucket,
     );
-
-    const ratingBucketCount = new Map<1 | 2 | 3 | 4 | 5, number>([
-      [1, 0],
-      [2, 0],
-      [3, 0],
-      [4, 0],
-      [5, 0],
-    ]);
-
-    for (const ratedReviewRow of ratedReviewRows) {
-      if (ratedReviewRow.ratingOutOfTen === null) {
-        continue;
-      }
-
-      const bucket = toRatingBreakdownBucket(ratedReviewRow.ratingOutOfTen);
-      ratingBucketCount.set(bucket, (ratingBucketCount.get(bucket) ?? 0) + 1);
-    }
-
-    const totalRatedReviews = ratedReviewRows.length;
-    const averageRatingOutOfFive =
-      totalRatedReviews > 0
-        ? Number(
-            (
-              ratedReviewRows.reduce((sum, ratedReviewRow) => {
-                return sum + (ratedReviewRow.ratingOutOfFive ?? 0);
-              }, 0) / totalRatedReviews
-            ).toFixed(2),
-          )
-        : null;
-
-    const ratingBreakdownBuckets: MovieDetailRatingBreakdownBucket[] = [
-      5, 4, 3, 2, 1,
-    ].map((ratingValueOutOfFive) => {
-      const ratingCount =
-        ratingBucketCount.get(ratingValueOutOfFive as 1 | 2 | 3 | 4 | 5) ?? 0;
-
-      return {
-        ratingValueOutOfFive: ratingValueOutOfFive as 1 | 2 | 3 | 4 | 5,
-        count: ratingCount,
-        percentage:
-          totalRatedReviews > 0
-            ? Math.round((ratingCount / totalRatedReviews) * 100)
-            : 0,
-      };
-    });
 
     const [viewerDiaryRow, viewerReviewRow] = viewerUserId
       ? await Promise.all([
@@ -274,9 +231,9 @@ export class MoviesDetailService {
       reviewsSort,
       reviews: sortedReviews,
       ratingBreakdown: {
-        totalRatedReviews,
-        averageRatingOutOfFive,
-        buckets: ratingBreakdownBuckets,
+        totalRatedReviews: ratingBreakdown.totalRatedReviews,
+        averageRatingOutOfFive: ratingBreakdown.averageRatingOutOfFive,
+        buckets: ratingBreakdown.buckets as MovieDetailRatingBreakdownBucket[],
       },
     };
   }

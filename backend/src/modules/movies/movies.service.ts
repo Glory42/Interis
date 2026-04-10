@@ -5,6 +5,11 @@ import {
   type TMDBMovieDetail,
   type TMDBSearchMovie,
 } from "../../infrastructure/tmdb/cinemas";
+import type {
+  CinemaArchivePeriod,
+  CinemaArchiveSort,
+  MovieDetailReviewSort,
+} from "./dto/movies.dto";
 import { MoviesArchiveService } from "./services/movies-archive.service";
 import { MoviesCacheService } from "./services/movies-cache.service";
 import { MoviesDetailService } from "./services/movies-detail.service";
@@ -46,18 +51,18 @@ export class MoviesService {
   static async getDetail(input: {
     tmdbId: number;
     viewerUserId?: string | null;
-    reviewsSort?: string;
+    reviewsSort: MovieDetailReviewSort;
   }) {
     return MoviesDetailService.getDetail(input);
   }
 
   static async getArchive(input: {
-    genre?: string;
-    language?: string;
-    sort?: string;
-    period?: string;
-    page?: string;
-    limit?: string;
+    genre: string | null;
+    language: string | null;
+    sort: CinemaArchiveSort;
+    period: CinemaArchivePeriod;
+    page: number;
+    limit: number;
     viewerUserId?: string | null;
   }) {
     return MoviesArchiveService.getArchive(input);
