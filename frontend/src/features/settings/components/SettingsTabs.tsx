@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useRouterState } from "@tanstack/react-router";
+import { useMatchRoute } from "@tanstack/react-router";
 import { Layers, Lock, Palette, Trophy, User } from "lucide-react";
 import { settingsSections } from "@/features/settings/model/settings.constants";
 
@@ -15,16 +15,14 @@ const iconBySection = {
 } as const;
 
 export const SettingsTabs = () => {
-  const pathname = useRouterState({
-    select: (state) => state.location.pathname,
-  });
+  const matchRoute = useMatchRoute();
 
   return (
     <nav className="shrink-0 sm:w-44">
       <div className="space-y-0 border settings-shell-border">
         {settingsSections.map((section) => {
           const Icon = iconBySection[section.id];
-          const isActive = pathname === section.to;
+          const isActive = Boolean(matchRoute({ to: section.to }));
 
           return (
             <Link
