@@ -1,22 +1,25 @@
 import { dedupeRecentPosters } from "../helpers/users-summary.helper";
-import { UsersRepository } from "../repositories/users.repository";
+import { UsersMediaInteractionsRepository } from "../repositories/users-media-interactions.repository";
+import { UsersProfileRepository } from "../repositories/users-profile.repository";
+import { UsersReviewsRepository } from "../repositories/users-reviews.repository";
+import { UsersStatsRepository } from "../repositories/users-stats.repository";
 import { UsersProfileService } from "./users-profile.service";
 
 export class UsersReadService {
   static async getTotalUsersCount() {
-    return UsersRepository.getTotalUsersCount();
+    return UsersStatsRepository.getTotalUsersCount();
   }
 
   static async getNetworkStats() {
-    return UsersRepository.getNetworkStats();
+    return UsersStatsRepository.getNetworkStats();
   }
 
   static async searchUsers(query: string, limit = 8) {
-    return UsersRepository.searchProfilesByUsername(query, limit);
+    return UsersProfileRepository.searchProfilesByUsername(query, limit);
   }
 
   static async getReviewsWithMovies(userId: string) {
-    return UsersRepository.getReviewsWithMovies(userId);
+    return UsersReviewsRepository.getReviewsWithMovies(userId);
   }
 
   static async getReviewDetailByUsername(
@@ -24,19 +27,19 @@ export class UsersReadService {
     reviewId: string,
     viewerUserId?: string | null,
   ) {
-    return UsersRepository.getReviewDetailByUsername(username, reviewId, viewerUserId);
+    return UsersReviewsRepository.getReviewDetailByUsername(username, reviewId, viewerUserId);
   }
 
   static async getLikedFilms(userId: string) {
-    return UsersRepository.getLikedFilms(userId);
+    return UsersMediaInteractionsRepository.getLikedFilms(userId);
   }
 
   static async getWatchlistedFilms(userId: string) {
-    return UsersRepository.getWatchlistedFilms(userId);
+    return UsersMediaInteractionsRepository.getWatchlistedFilms(userId);
   }
 
   static async getStats(userId: string) {
-    return UsersRepository.getStatsCounts(userId);
+    return UsersStatsRepository.getStatsCounts(userId);
   }
 
   static async getMeSummary(userId: string) {
@@ -45,7 +48,7 @@ export class UsersReadService {
       return null;
     }
 
-    const summaryData = await UsersRepository.getMeSummaryData(userId);
+    const summaryData = await UsersStatsRepository.getMeSummaryData(userId);
     const recentPosters = dedupeRecentPosters(summaryData.recentRows, 5);
 
     return {

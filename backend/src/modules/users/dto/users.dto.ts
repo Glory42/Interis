@@ -4,6 +4,7 @@ import {
   MAX_FAVORITE_GENRES,
 } from "../constants/favorite-genres.constants";
 import {
+  TOP_PICK_CATEGORY_IDS,
   MAX_TOP_PICK_ITEMS_PER_CATEGORY,
   TOP_PICK_CATEGORY_ID_SET,
   TOP_PICK_DEFAULT_MEDIA_TYPE,
@@ -84,7 +85,7 @@ const TopPickCategorySchema = z
 
 const TopPicksSchema = z
   .array(TopPickCategorySchema)
-  .max(4)
+  .max(TOP_PICK_CATEGORY_IDS.length)
   .superRefine((categories, ctx) => {
     const seenCategoryIds = new Set<number>();
 

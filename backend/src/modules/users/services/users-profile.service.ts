@@ -1,10 +1,10 @@
 import { normalizeThemeId, type ThemeId } from "../constants/theme.constants";
 import type { UpdateProfileDto } from "../dto/users.dto";
-import { UsersRepository } from "../repositories/users.repository";
+import { UsersProfileRepository } from "../repositories/users-profile.repository";
 
 export class UsersProfileService {
   static async findByUsername(username: string) {
-    const result = await UsersRepository.findProfileByUsername(username);
+    const result = await UsersProfileRepository.findProfileByUsername(username);
 
     if (!result) {
       return null;
@@ -17,7 +17,7 @@ export class UsersProfileService {
   }
 
   static async findById(userId: string) {
-    const result = await UsersRepository.findProfileById(userId);
+    const result = await UsersProfileRepository.findProfileById(userId);
 
     if (!result) {
       return null;
@@ -30,11 +30,11 @@ export class UsersProfileService {
   }
 
   static async updateProfile(userId: string, input: UpdateProfileDto) {
-    return UsersRepository.updateProfile(userId, input);
+    return UsersProfileRepository.updateProfile(userId, input);
   }
 
   static async updateTheme(userId: string, themeId: ThemeId) {
-    const updated = await UsersRepository.updateTheme(userId, themeId);
+    const updated = await UsersProfileRepository.updateTheme(userId, themeId);
     if (!updated) {
       return null;
     }
