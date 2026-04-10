@@ -3,6 +3,7 @@ import { getSeriesDetail } from "@/features/serials/api";
 import { SerialDetailPage } from "@/features/serials/components/SerialDetailPage";
 import { serialKeys } from "@/features/serials/hooks/useSerials";
 import { parsePositiveIntParam } from "@/lib/router/params";
+import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
 
 export const Route = createFileRoute("/serials/$tmdbId")({
   beforeLoad: ({ params }) => {
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/serials/$tmdbId")({
     });
   },
   component: SerialsDetailRoute,
+  errorComponent: (props) => <RouteErrorBoundary {...props} title="Serial detail unavailable" />,
 });
 
 function SerialsDetailRoute() {
