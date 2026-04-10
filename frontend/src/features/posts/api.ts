@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { apiRequest } from "@/lib/api-client";
 
-const postMediaTypeSchema = z.enum(["movie", "tv", "book", "music"]);
+const postMediaTypeSchema = z.enum(["movie", "tv"]);
 
 const createPostInputSchema = z
   .object({
