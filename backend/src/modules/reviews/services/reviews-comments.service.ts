@@ -24,6 +24,11 @@ export class ReviewsCommentsService {
       throw new Error("Could not create comment");
     }
 
+    const activityMediaType =
+      review.mediaType === "movie" || review.mediaType === "tv"
+        ? review.mediaType
+        : null;
+
     await db.insert(activities).values({
       userId,
       type: "commented",
@@ -34,20 +39,15 @@ export class ReviewsCommentsService {
           commentId: comment.id,
           content,
           targetUsername: review.reviewAuthorUsername,
-          mediaMetadata: {
-            mediaType:
-              review.mediaType === "tv"
-                ? "tv"
-                : review.mediaType === "book"
-                  ? "book"
-                  : review.mediaType === "music"
-                    ? "music"
-                    : "movie",
-            tmdbId: review.tmdbId,
-            title: review.title,
-            posterPath: review.posterPath,
-            releaseYear: review.releaseYear,
-          },
+          mediaMetadata: activityMediaType
+            ? {
+                mediaType: activityMediaType,
+                tmdbId: review.tmdbId,
+                title: review.title,
+                posterPath: review.posterPath,
+                releaseYear: review.releaseYear,
+              }
+            : null,
         }),
       ),
     });

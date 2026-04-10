@@ -22,6 +22,10 @@ export class ReviewsLikesService {
     await db.insert(reviewLikes).values({ userId, reviewId });
 
     const review = await ReviewsRepository.getReviewWithMedia(reviewId);
+    const activityMediaType =
+      review?.mediaType === "movie" || review?.mediaType === "tv"
+        ? review.mediaType
+        : null;
 
     await db.insert(activities).values({
       userId,
@@ -30,16 +34,9 @@ export class ReviewsLikesService {
       metadata: JSON.stringify(
         buildReviewLikedActivityMetadata({
           reviewId,
-          mediaMetadata: review
+          mediaMetadata: review && activityMediaType
             ? {
-                mediaType:
-                  review.mediaType === "tv"
-                    ? "tv"
-                    : review.mediaType === "book"
-                      ? "book"
-                      : review.mediaType === "music"
-                        ? "music"
-                        : "movie",
+                mediaType: activityMediaType,
                 tmdbId: review.tmdbId,
                 title: review.title,
                 posterPath: review.posterPath,

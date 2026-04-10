@@ -1,4 +1,4 @@
-export type ReviewMediaType = "movie" | "tv" | "book" | "music";
+export type ReviewMediaType = "movie" | "tv";
 
 export type ReviewMediaMetadata = {
   mediaType: ReviewMediaType;

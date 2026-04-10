@@ -40,17 +40,17 @@ export const buildCommentCreatedActivityMetadata = (input: {
   reviewId: string;
   commentId: string;
   content: string;
-  mediaMetadata: ReviewMediaMetadata;
+  mediaMetadata: ReviewMediaMetadata | null;
   targetUsername: string | null;
 }) => ({
   action: "commented",
-  mediaType: input.mediaMetadata.mediaType,
+  mediaType: input.mediaMetadata?.mediaType ?? null,
   reviewId: input.reviewId,
   commentId: input.commentId,
   targetUsername: input.targetUsername,
   excerpt: toExcerpt(input.content),
-  tmdbId: input.mediaMetadata.tmdbId,
-  title: input.mediaMetadata.title,
-  posterPath: input.mediaMetadata.posterPath,
-  releaseYear: input.mediaMetadata.releaseYear,
+  tmdbId: input.mediaMetadata?.tmdbId ?? null,
+  title: input.mediaMetadata?.title ?? null,
+  posterPath: input.mediaMetadata?.posterPath ?? null,
+  releaseYear: input.mediaMetadata?.releaseYear ?? null,
 });
