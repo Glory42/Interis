@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { sendBadRequest } from "../../commons/http/validation-response.helper";
 import { normalizePersonRouteSlug } from "./helpers/people-slug.helper";
 import { personRouteRoleSchema, type PersonRouteParams } from "./dto/people.dto";
-import { PeopleService } from "./people.service";
+import { PeopleDetailService } from "./services/people-detail.service";
 
 export class PeopleController {
   static async getByRoleAndSlug(
@@ -21,7 +21,7 @@ export class PeopleController {
       return;
     }
 
-    const detail = await PeopleService.getPersonDetailByRoleAndSlug({
+    const detail = await PeopleDetailService.getPersonDetailByRoleAndSlug({
       role: parsedRole.data,
       slug: normalizedSlug,
     });
