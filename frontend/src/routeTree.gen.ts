@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as SettingsRouteRouteImport } from './routes/settings/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
@@ -48,6 +49,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeveloperRoute = DeveloperRouteImport.update({
+  id: '/developer',
+  path: '/developer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRouteRoute = SettingsRouteRouteImport.update({
@@ -197,6 +203,7 @@ const ProfileUsernameListsListIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRouteRouteWithChildren
+  '/developer': typeof DeveloperRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
@@ -228,6 +235,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/developer': typeof DeveloperRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/actor/$slug': typeof ActorSlugRoute
@@ -260,6 +268,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/settings': typeof SettingsRouteRouteWithChildren
+  '/developer': typeof DeveloperRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
@@ -294,6 +303,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/settings'
+    | '/developer'
     | '/login'
     | '/register'
     | '/profile/$username'
@@ -325,6 +335,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/developer'
     | '/login'
     | '/register'
     | '/actor/$slug'
@@ -356,6 +367,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/settings'
+    | '/developer'
     | '/login'
     | '/register'
     | '/profile/$username'
@@ -389,6 +401,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SettingsRouteRoute: typeof SettingsRouteRouteWithChildren
+  DeveloperRoute: typeof DeveloperRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   ProfileUsernameRouteRoute: typeof ProfileUsernameRouteRouteWithChildren
@@ -418,6 +431,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/developer': {
+      id: '/developer'
+      path: '/developer'
+      fullPath: '/developer'
+      preLoaderRoute: typeof DeveloperRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -671,6 +691,7 @@ const ProfileUsernameRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SettingsRouteRoute: SettingsRouteRouteWithChildren,
+  DeveloperRoute: DeveloperRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   ProfileUsernameRouteRoute: ProfileUsernameRouteRouteWithChildren,
