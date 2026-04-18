@@ -15,7 +15,14 @@ const router = Router();
 
 router.use(publicLimiter);
 
+router.get("/:username/profile", asyncHandler(PublicController.getProfile));
+router.get("/:username/activity", asyncHandler(PublicController.getActivity));
 router.get("/:username/recent", asyncHandler(PublicController.getRecent));
+router.get("/:username/reviews", asyncHandler(PublicController.getReviews));
+router.get("/:username/lists", asyncHandler(PublicController.getLists));
+router.get("/:username/likes", asyncHandler(PublicController.getLikes));
+router.get("/:username/watchlist", asyncHandler(PublicController.getWatchlist));
+router.get("/:username/diary", asyncHandler(PublicController.getDiary));
 router.get("/:username/top4", asyncHandler(PublicController.getTop4));
 
 export default router;
