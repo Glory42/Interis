@@ -1,9 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export const AppFooter = () => {
-  const { user } = useAuth();
-
   return (
     <footer className="border-t border-border/70">
       <div className="mx-auto flex w-full max-w-400 flex-col items-center justify-between gap-3 px-4 py-6 sm:flex-row">
@@ -16,29 +13,17 @@ export const AppFooter = () => {
         </p>
 
         <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-          <Link to="/" className="hover:text-primary" viewTransition>
-            feed
+          <Link to="/developer" className="hover:text-primary" viewTransition>
+            developer
           </Link>
-          <Link to="/cinema" className="hover:text-primary" viewTransition>
-            cinema
-          </Link>
-          <Link to="/serials" className="hover:text-primary" viewTransition>
-            serial
-          </Link>
-          {user ? (
-            <Link
-              to="/profile/$username"
-              params={{ username: user.username }}
-              className="hover:text-primary"
-              viewTransition
-            >
-              profile
-            </Link>
-          ) : (
-            <Link to="/login" className="hover:text-primary" viewTransition>
-              login
-            </Link>
-          )}
+          <a
+            href="https://docs.interis.gorkemkaryol.dev"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-primary"
+          >
+            docs
+          </a>
         </div>
       </div>
     </footer>
