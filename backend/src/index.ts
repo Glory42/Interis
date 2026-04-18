@@ -51,6 +51,15 @@ export const createApp = () => {
   app.use(securityHeaders);
 
   app.use(
+    "/api/public",
+    cors({
+      origin: "*",
+      methods: ["GET", "HEAD", "OPTIONS"],
+      credentials: false,
+    }),
+  );
+
+  app.use(
     cors({
       origin: (origin, callback) => {
         if (!origin) {
