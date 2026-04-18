@@ -9,7 +9,7 @@ Express 5 + TypeScript API for Interis.
 - Diary logging, reviews, comments, likes, follows
 - Social feed and profile APIs
 - Signed uploads for avatars (Cloudflare R2)
-- Public widget endpoints under `/api/public/*`
+- Public widget endpoints under `https://api.interis.gorkemkaryol.dev/api/public/*`
 
 ## Stack
 
@@ -133,7 +133,9 @@ backend/
 | `/api/social/*` | mixed | Feed and follow graph |
 | `/api/interactions/:tmdbId` | required | Per-movie interaction state |
 | `/api/uploads/*` | required | Signed upload request/confirm |
-| `/api/public/:username/*` | public | Rate-limited profile recent/top4 |
+| `/api/public/:username/*` | public | Rate-limited public profile, activity, and collection data |
+
+Public API base (production): `https://api.interis.gorkemkaryol.dev/api/public`
 
 ## Architecture patterns
 
