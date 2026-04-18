@@ -6,7 +6,7 @@ A social movie journal app inspired by Letterboxd + timeline-style social apps.
 - Follow people and browse a personalized activity feed
 - Browse a cinema archive with genre/language/time/sort filters
 - Explore public profile pages, stats, lists, likes, and watchlists
-- Power external widgets through a small public API (`/api/public/*`)
+- Power external widgets through a small public API (`https://api.interis.gorkemkaryol.dev/api/public/*`)
 
 
 ## Tech stack
@@ -30,6 +30,7 @@ A social movie journal app inspired by Letterboxd + timeline-style social apps.
 ```text
 .
 ├── backend/          # Express API, domain modules, Drizzle schema/migrations
+├── docs/             # Astro + Starlight docs site for public API
 ├── frontend/         # React app (TanStack Router + Query)
 ├── e2e/              # Playwright smoke and end-to-end tests
 ├── CONTRIBUTING.md   # Guidelines for contributors
@@ -83,6 +84,31 @@ bun run dev
 ```
 
 Frontend runs on `http://localhost:5173` and proxies `/api` to backend on port `5000`.
+
+## Documentation site
+
+This repository now includes a dedicated docs project in `docs/` for the Interis
+public API (`https://api.interis.gorkemkaryol.dev/api/public/:username/*`).
+
+- Stack: Astro + Starlight
+- Intended host: `https://docs.interis.gorkemkaryol.dev`
+- Public API base (production): `https://api.interis.gorkemkaryol.dev/api/public`
+- Main reference entry: `docs/src/content/docs/api/overview.md`
+
+Run docs locally:
+
+```bash
+cd docs
+bun install
+bun run dev
+```
+
+Build docs:
+
+```bash
+cd docs
+bun run build
+```
 
 ## Key API groups
 
