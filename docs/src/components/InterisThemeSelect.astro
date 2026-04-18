@@ -1,0 +1,97 @@
+<starlight-interis-theme-select>
+  <label class="theme-label" title="Interis theme">
+    <span class="sr-only">Interis theme</span>
+    <select autocomplete="off" aria-label="Interis theme">
+      <option value="null-log">NULL://LOG</option>
+      <option value="rose-pine">Rose Pine</option>
+      <option value="gruvbox">Gruvbox</option>
+    </select>
+  </label>
+</starlight-interis-theme-select>
+
+<script is:inline>
+  (() => {
+    const provider = window.InterisDocsThemeProvider;
+    const pickers = document.querySelectorAll("starlight-interis-theme-select select");
+
+    if (provider && typeof provider.updatePickers === "function") {
+      provider.updatePickers(provider.loadThemeId?.());
+    }
+
+    pickers.forEach((picker) => {
+      if (!(picker instanceof HTMLSelectElement)) {
+        return;
+      }
+
+      picker.addEventListener("change", (event) => {
+        const target = event.currentTarget;
+        if (!(target instanceof HTMLSelectElement)) {
+          return;
+        }
+
+        if (provider && typeof provider.setThemeId === "function") {
+          provider.setThemeId(target.value);
+        }
+      });
+    });
+  })();
+</script>
+
+<style>
+  @layer starlight.core {
+    starlight-interis-theme-select {
+      display: block;
+    }
+
+    .theme-label {
+      display: inline-flex;
+      align-items: center;
+      position: relative;
+      min-width: 8.5rem;
+    }
+
+    .theme-label::after {
+      content: "";
+      width: 0.55rem;
+      height: 0.55rem;
+      border-right: 1.5px solid var(--sl-color-text-accent);
+      border-bottom: 1.5px solid var(--sl-color-text-accent);
+      transform: rotate(45deg) translateY(-55%);
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      pointer-events: none;
+      opacity: 0.85;
+    }
+
+    .theme-label select {
+      width: 100%;
+      border: 1px solid color-mix(in srgb, var(--sl-color-accent) 28%, transparent);
+      background: color-mix(in srgb, var(--sl-color-bg-nav) 88%, var(--sl-color-bg) 12%);
+      color: var(--sl-color-text);
+      border-radius: 0.35rem;
+      padding: 0.48rem 1.95rem 0.48rem 0.66rem;
+      font-size: var(--sl-text-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      appearance: none;
+      font-family: "JetBrains Mono", "Fira Code", monospace;
+    }
+
+    .theme-label select:hover {
+      border-color: color-mix(in srgb, var(--sl-color-accent) 56%, transparent);
+      color: var(--sl-color-text-accent);
+    }
+
+    .theme-label select:focus-visible {
+      outline: 2px solid color-mix(in srgb, var(--sl-color-accent) 70%, transparent);
+      outline-offset: 2px;
+    }
+
+    .theme-label option {
+      background: var(--sl-color-bg-nav);
+      color: var(--sl-color-text);
+    }
+  }
+</style>

@@ -1,0 +1,159 @@
+<script is:inline>
+  window.__THIS_IS_CINEMA_THEME_REGISTRY__ = {
+    "rose-pine": {
+      id: "rose-pine",
+      label: "Rose Pine",
+      description: "Soft dark elegance with mauve, rose, and iris accents.",
+      preview: {
+        mode: "dark",
+        swatches: ["#171420", "#1f1b2b", "#d4b5ff", "#f4c2bf"],
+      },
+      tokens: {
+        "--background": "#171420",
+        "--foreground": "#e8e3f7",
+        "--card": "#1f1b2b",
+        "--card-foreground": "#e8e3f7",
+        "--popover": "#1c1927",
+        "--popover-foreground": "#e8e3f7",
+        "--primary": "#d4b5ff",
+        "--primary-foreground": "#181422",
+        "--secondary": "#26213a",
+        "--secondary-foreground": "#e8e3f7",
+        "--muted": "#151220",
+        "--muted-foreground": "#9f98bb",
+        "--accent": "#f4c2bf",
+        "--accent-foreground": "#171420",
+        "--border": "#3f3958",
+        "--input": "#26213a",
+        "--ring": "#9fd4df",
+        "--destructive": "#f17fa0",
+        "--aura-primary": "#d4b5ff",
+        "--aura-secondary": "#9fd4df",
+        "--aura-muted": "#6f6789",
+      },
+    },
+    "null-log": {
+      id: "null-log",
+      label: "NULL://LOG",
+      description:
+        "Near-black terminal shell with green-cyan signal accents and scanline energy.",
+      preview: {
+        mode: "dark",
+        swatches: ["#080808", "#0c0c0c", "#00ff88", "#00cfff"],
+      },
+      tokens: {
+        "--background": "#080808",
+        "--foreground": "#e0e0e0",
+        "--card": "#0c0c0c",
+        "--card-foreground": "#e0e0e0",
+        "--popover": "#0b0b0b",
+        "--popover-foreground": "#e0e0e0",
+        "--primary": "#00ff88",
+        "--primary-foreground": "#020202",
+        "--secondary": "#111111",
+        "--secondary-foreground": "#dedede",
+        "--muted": "#0a0a0a",
+        "--muted-foreground": "#8d8d8d",
+        "--accent": "#00cfff",
+        "--accent-foreground": "#020202",
+        "--border": "#232323",
+        "--input": "#101010",
+        "--ring": "#00ff88",
+        "--destructive": "#ff6b85",
+        "--aura-primary": "#00ff88",
+        "--aura-secondary": "#00cfff",
+        "--aura-muted": "#2a2a2a",
+      },
+    },
+    gruvbox: {
+      id: "gruvbox",
+      label: "Gruvbox",
+      description:
+        "Warm retro-dark contrast with earthy yellow, green, and orange accents.",
+      preview: {
+        mode: "dark",
+        swatches: ["#1d2021", "#272727", "#d79921", "#83a598"],
+      },
+      tokens: {
+        "--background": "#1d2021",
+        "--foreground": "#ebdbb2",
+        "--card": "#272727",
+        "--card-foreground": "#ebdbb2",
+        "--popover": "#242424",
+        "--popover-foreground": "#ebdbb2",
+        "--primary": "#d79921",
+        "--primary-foreground": "#1d2021",
+        "--secondary": "#3a3734",
+        "--secondary-foreground": "#ebdbb2",
+        "--muted": "#232323",
+        "--muted-foreground": "#a89984",
+        "--accent": "#83a598",
+        "--accent-foreground": "#1d2021",
+        "--border": "#504945",
+        "--input": "#32302f",
+        "--ring": "#fabd2f",
+        "--destructive": "#fb4934",
+        "--aura-primary": "#d79921",
+        "--aura-secondary": "#83a598",
+        "--aura-muted": "#7c6f64",
+      },
+    },
+  };
+
+  window.__THIS_IS_CINEMA_DEFAULT_THEME_ID__ = "null-log";
+
+  (() => {
+    const storageKey = "interis-docs-theme";
+    const registry = window.__THIS_IS_CINEMA_THEME_REGISTRY__;
+    const defaultThemeId = window.__THIS_IS_CINEMA_DEFAULT_THEME_ID__;
+
+    const parseThemeId = (value) => {
+      if (typeof value !== "string") {
+        return defaultThemeId;
+      }
+
+      return value in registry ? value : defaultThemeId;
+    };
+
+    const loadThemeId = () => {
+      if (typeof localStorage === "undefined") {
+        return defaultThemeId;
+      }
+
+      return parseThemeId(localStorage.getItem(storageKey));
+    };
+
+    const setThemeId = (themeId) => {
+      const resolvedThemeId = parseThemeId(themeId);
+      document.documentElement.dataset.interisTheme = resolvedThemeId;
+      document.documentElement.dataset.theme = "dark";
+
+      if (typeof localStorage !== "undefined") {
+        localStorage.setItem(storageKey, resolvedThemeId);
+      }
+
+      document.querySelectorAll("starlight-interis-theme-select select").forEach((select) => {
+        if (select instanceof HTMLSelectElement) {
+          select.value = resolvedThemeId;
+        }
+      });
+
+      return resolvedThemeId;
+    };
+
+    const themeProvider = {
+      updatePickers(themeId) {
+        setThemeId(themeId ?? loadThemeId());
+      },
+      setThemeId,
+      loadThemeId,
+    };
+
+    window.InterisDocsThemeProvider = themeProvider;
+    window.StarlightThemeProvider = {
+      updatePickers() {},
+    };
+
+    themeProvider.updatePickers(loadThemeId());
+  })();
+</script>

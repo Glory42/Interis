@@ -1,0 +1,170 @@
+:root {
+  --background: #080808;
+  --foreground: #e0e0e0;
+  --card: #0c0c0c;
+  --card-foreground: #e0e0e0;
+  --popover: #0b0b0b;
+  --popover-foreground: #e0e0e0;
+  --primary: #00ff88;
+  --primary-foreground: #020202;
+  --secondary: #111111;
+  --secondary-foreground: #dedede;
+  --muted: #0a0a0a;
+  --muted-foreground: #8d8d8d;
+  --accent: #00cfff;
+  --accent-foreground: #020202;
+  --border: #232323;
+  --input: #101010;
+  --ring: #00ff88;
+  --destructive: #ff6b85;
+  --aura-primary: #00ff88;
+  --aura-secondary: #00cfff;
+  --aura-muted: #2a2a2a;
+}
+
+:root[data-interis-theme="rose-pine"] {
+  --background: #171420;
+  --foreground: #e8e3f7;
+  --card: #1f1b2b;
+  --card-foreground: #e8e3f7;
+  --popover: #1c1927;
+  --popover-foreground: #e8e3f7;
+  --primary: #d4b5ff;
+  --primary-foreground: #181422;
+  --secondary: #26213a;
+  --secondary-foreground: #e8e3f7;
+  --muted: #151220;
+  --muted-foreground: #9f98bb;
+  --accent: #f4c2bf;
+  --accent-foreground: #171420;
+  --border: #3f3958;
+  --input: #26213a;
+  --ring: #9fd4df;
+  --destructive: #f17fa0;
+  --aura-primary: #d4b5ff;
+  --aura-secondary: #9fd4df;
+  --aura-muted: #6f6789;
+}
+
+:root[data-interis-theme="null-log"] {
+  --background: #080808;
+  --foreground: #e0e0e0;
+  --card: #0c0c0c;
+  --card-foreground: #e0e0e0;
+  --popover: #0b0b0b;
+  --popover-foreground: #e0e0e0;
+  --primary: #00ff88;
+  --primary-foreground: #020202;
+  --secondary: #111111;
+  --secondary-foreground: #dedede;
+  --muted: #0a0a0a;
+  --muted-foreground: #8d8d8d;
+  --accent: #00cfff;
+  --accent-foreground: #020202;
+  --border: #232323;
+  --input: #101010;
+  --ring: #00ff88;
+  --destructive: #ff6b85;
+  --aura-primary: #00ff88;
+  --aura-secondary: #00cfff;
+  --aura-muted: #2a2a2a;
+}
+
+:root[data-interis-theme="gruvbox"] {
+  --background: #1d2021;
+  --foreground: #ebdbb2;
+  --card: #272727;
+  --card-foreground: #ebdbb2;
+  --popover: #242424;
+  --popover-foreground: #ebdbb2;
+  --primary: #d79921;
+  --primary-foreground: #1d2021;
+  --secondary: #3a3734;
+  --secondary-foreground: #ebdbb2;
+  --muted: #232323;
+  --muted-foreground: #a89984;
+  --accent: #83a598;
+  --accent-foreground: #1d2021;
+  --border: #504945;
+  --input: #32302f;
+  --ring: #fabd2f;
+  --destructive: #fb4934;
+  --aura-primary: #d79921;
+  --aura-secondary: #83a598;
+  --aura-muted: #7c6f64;
+}
+
+:root[data-theme="dark"][data-interis-theme] {
+  --sl-color-white: var(--foreground);
+  --sl-color-black: color-mix(in srgb, black 72%, var(--background) 28%);
+
+  --sl-color-gray-1: color-mix(in srgb, var(--foreground) 94%, var(--background) 6%);
+  --sl-color-gray-2: color-mix(in srgb, var(--foreground) 80%, var(--background) 20%);
+  --sl-color-gray-3: color-mix(in srgb, var(--foreground) 60%, var(--background) 40%);
+  --sl-color-gray-4: color-mix(in srgb, var(--foreground) 44%, var(--background) 56%);
+  --sl-color-gray-5: color-mix(in srgb, var(--foreground) 28%, var(--background) 72%);
+  --sl-color-gray-6: color-mix(in srgb, var(--foreground) 16%, var(--background) 84%);
+
+  --sl-color-orange-low: color-mix(in srgb, #f59e0b 24%, var(--background) 76%);
+  --sl-color-orange: color-mix(in srgb, #f59e0b 78%, var(--foreground) 22%);
+  --sl-color-orange-high: color-mix(in srgb, #f59e0b 78%, var(--foreground) 22%);
+
+  --sl-color-green-low: color-mix(in srgb, var(--primary) 24%, var(--background) 76%);
+  --sl-color-green: color-mix(in srgb, var(--primary) 80%, var(--foreground) 20%);
+  --sl-color-green-high: color-mix(in srgb, var(--primary) 80%, var(--foreground) 20%);
+
+  --sl-color-blue-low: color-mix(in srgb, var(--accent) 24%, var(--background) 76%);
+  --sl-color-blue: color-mix(in srgb, var(--accent) 78%, var(--foreground) 22%);
+  --sl-color-blue-high: color-mix(in srgb, var(--accent) 78%, var(--foreground) 22%);
+
+  --sl-color-purple-low: color-mix(in srgb, var(--aura-primary) 24%, var(--background) 76%);
+  --sl-color-purple: color-mix(in srgb, var(--aura-primary) 82%, var(--foreground) 18%);
+  --sl-color-purple-high: color-mix(in srgb, var(--aura-primary) 82%, var(--foreground) 18%);
+
+  --sl-color-red-low: color-mix(in srgb, var(--destructive) 20%, var(--background) 80%);
+  --sl-color-red: color-mix(in srgb, var(--destructive) 82%, var(--foreground) 18%);
+  --sl-color-red-high: color-mix(in srgb, var(--destructive) 82%, var(--foreground) 18%);
+
+  --sl-color-accent-low: color-mix(in srgb, var(--primary) 24%, var(--background) 76%);
+  --sl-color-accent: color-mix(in srgb, var(--primary) 80%, var(--foreground) 20%);
+  --sl-color-accent-high: color-mix(in srgb, var(--primary) 80%, var(--foreground) 20%);
+
+  --sl-color-text: color-mix(in srgb, var(--foreground) 84%, transparent);
+  --sl-color-text-accent: color-mix(in srgb, var(--primary) 64%, var(--foreground) 36%);
+  --sl-color-text-invert: var(--primary-foreground);
+
+  --sl-color-bg: var(--background);
+  --sl-color-bg-nav: color-mix(in srgb, var(--card) 82%, var(--background) 18%);
+  --sl-color-bg-sidebar: color-mix(in srgb, var(--card) 74%, var(--background) 26%);
+  --sl-color-bg-inline-code: color-mix(in srgb, var(--secondary) 70%, var(--background) 30%);
+  --sl-color-bg-accent: color-mix(in srgb, var(--primary) 32%, var(--background) 68%);
+
+  --sl-color-hairline-light: color-mix(in srgb, var(--border) 70%, transparent);
+  --sl-color-hairline: color-mix(in srgb, var(--border) 58%, transparent);
+  --sl-color-hairline-shade: color-mix(in srgb, black 74%, var(--background) 26%);
+
+  --sl-color-backdrop-overlay: color-mix(in srgb, var(--background) 82%, black 18%);
+}
+
+:root[data-theme="dark"][data-interis-theme] body {
+  background:
+    radial-gradient(
+      980px 420px at 12% -12%,
+      color-mix(in srgb, var(--aura-primary) 18%, transparent),
+      transparent 66%
+    ),
+    radial-gradient(
+      820px 320px at 86% 114%,
+      color-mix(in srgb, var(--aura-secondary) 12%, transparent),
+      transparent 72%
+    ),
+    var(--background);
+}
+
+code {
+  font-variant-ligatures: none;
+}
+
+pre code {
+  line-height: 1.55;
+}
