@@ -22,6 +22,9 @@ router.get(
   asyncHandler(UsersController.getUserReviewDetail),
 );
 router.get("/:username/likes", asyncHandler(UsersController.getUserLikes));
+router.get("/:username/liked-reviews", asyncHandler(UsersController.getUserLikedReviews));
+router.get("/:username/liked-lists", asyncHandler(UsersController.getUserLikedLists));
 router.get("/:username/watchlist", asyncHandler(UsersController.getUserWatchlist));
+router.get("/:username/lists", asyncHandler(UsersController.getUserLists));
 
 export default router;

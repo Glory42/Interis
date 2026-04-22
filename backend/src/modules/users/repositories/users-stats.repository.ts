@@ -1,4 +1,4 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { diaryEntries } from "../../diary/diary.entity";
@@ -75,7 +75,7 @@ export class UsersStatsRepository {
       db
         .select({ count: sql<number>`count(*)`.mapWith(Number) })
         .from(lists)
-        .where(eq(lists.userId, userId)),
+        .where(and(eq(lists.userId, userId), eq(lists.isPublic, true))),
       db
         .select({ count: sql<number>`count(*)`.mapWith(Number) })
         .from(follows)

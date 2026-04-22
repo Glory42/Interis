@@ -1,5 +1,6 @@
 import type { ThemeId } from "./constants/theme.constants";
 import type { UpdateProfileDto } from "./dto/users.dto";
+import { UsersLikesRepository } from "./repositories/users-likes.repository";
 import { UsersProfileService } from "./services/users-profile.service";
 import { UsersReadService } from "./services/users-read.service";
 
@@ -58,5 +59,13 @@ export class UsersService {
 
   static async getMeSummary(userId: string) {
     return UsersReadService.getMeSummary(userId);
+  }
+
+  static async getLikedReviews(userId: string) {
+    return UsersLikesRepository.getLikedReviews(userId);
+  }
+
+  static async getLikedLists(userId: string) {
+    return UsersLikesRepository.getLikedLists(userId);
   }
 }

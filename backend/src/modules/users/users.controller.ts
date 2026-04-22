@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
 import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
 import { sendValidationError } from "../../commons/http/validation-response.helper";
+import { ListsService } from "../lists/lists.service";
+import { GetUserListsQuerySchema } from "../lists/dto/lists.dto";
 import { UsersService } from "./users.service";
 import {
   SearchUsersQuerySchema,
@@ -94,6 +96,32 @@ export class UsersController {
     res.status(200).json(liked);
   }
 
+  static async getUserLikedReviews(
+    req: Request<{ username: string }>,
+    res: Response,
+  ): Promise<void> {
+    const profile = await UsersService.findByUsername(req.params.username);
+    if (!profile) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+    const liked = await UsersService.getLikedReviews(profile.id);
+    res.status(200).json(liked);
+  }
+
+  static async getUserLikedLists(
+    req: Request<{ username: string }>,
+    res: Response,
+  ): Promise<void> {
+    const profile = await UsersService.findByUsername(req.params.username);
+    if (!profile) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+    const liked = await UsersService.getLikedLists(profile.id);
+    res.status(200).json(liked);
+  }
+
   static async getUserWatchlist(
     req: Request<{ username: string }>,
     res: Response,
@@ -155,5 +183,34 @@ export class UsersController {
     }
 
     res.status(200).json(updated);
+  }
+
+  static async getUserLists(
+    req: Request<{ username: string }>,
+    res: Response,
+  ): Promise<void> {
+    const parsed = GetUserListsQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    const profile = await UsersService.findByUsername(req.params.username);
+    if (!profile) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
+    const publicOnly = viewerUserId !== profile.id;
+
+    const lists = await ListsService.getUserLists(
+      profile.id,
+      publicOnly,
+      parsed.data.tmdbId,
+      parsed.data.itemType,
+    );
+
+    res.status(200).json(lists);
   }
 }
