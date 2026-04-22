@@ -6,6 +6,7 @@ import { getPosterUrl } from "@/features/serials/components/utils";
 import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
 import { formatRatingOutOfFiveLabel } from "@/features/films/components/spaceRating.utils";
 import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
+import { AddToListDialog } from "@/features/lists/components/AddToListDialog";
 
 type SerialActionsSidebarProps = {
   detail: SerialDetailResponse;
@@ -150,6 +151,18 @@ export const SerialActionsSidebar = ({
             <span>Like</span>
           </Link>
         )}
+
+        {isAuthenticated ? (
+          <AddToListDialog
+            tmdbId={series.tmdbId}
+            itemType="serial"
+            triggerClassName="flex w-full items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all"
+            triggerStyle={{
+              borderColor: SERIAL_MODULE_STYLES.border,
+              color: SERIAL_MODULE_STYLES.muted,
+            }}
+          />
+        ) : null}
 
         <div
           className="border p-3"

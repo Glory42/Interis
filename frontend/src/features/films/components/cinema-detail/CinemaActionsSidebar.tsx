@@ -6,6 +6,7 @@ import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
 import { formatRatingOutOfFiveLabel } from "@/features/films/components/spaceRating.utils";
 import { CINEMA_MODULE_STYLES } from "@/features/films/components/cinema-detail/styles";
 import { getPosterUrl } from "@/features/films/components/utils";
+import { AddToListDialog } from "@/features/lists/components/AddToListDialog";
 
 type CinemaActionsSidebarProps = {
   detail: MovieDetailResponse;
@@ -173,6 +174,18 @@ export const CinemaActionsSidebar = ({
             <span>Like</span>
           </Link>
         )}
+
+        {isAuthenticated ? (
+          <AddToListDialog
+            tmdbId={movie.tmdbId}
+            itemType="cinema"
+            triggerClassName="flex w-full items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all"
+            triggerStyle={{
+              borderColor: CINEMA_MODULE_STYLES.border,
+              color: CINEMA_MODULE_STYLES.muted,
+            }}
+          />
+        ) : null}
 
         <div
           className="border p-3"

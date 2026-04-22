@@ -39,7 +39,9 @@ import { Route as ProfileUsernameFilmsRouteImport } from './routes/profile/$user
 import { Route as ProfileUsernameDiaryRouteImport } from './routes/profile/$username/diary'
 import { Route as ProfileUsernameCinemaRouteImport } from './routes/profile/$username/cinema'
 import { Route as ProfileUsernameListsIndexRouteImport } from './routes/profile/$username/lists/index'
-import { Route as ProfileUsernameListsListIdRouteImport } from './routes/profile/$username/lists/$listId'
+import { Route as ProfileUsernameListsNewRouteImport } from './routes/profile/$username/lists/new'
+import { Route as ProfileUsernameListsListIdIndexRouteImport } from './routes/profile/$username/lists/$listId/index'
+import { Route as ProfileUsernameListsListIdEditRouteImport } from './routes/profile/$username/lists/$listId/edit'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -193,10 +195,21 @@ const ProfileUsernameListsIndexRoute =
     path: '/lists/',
     getParentRoute: () => ProfileUsernameRouteRoute,
   } as any)
-const ProfileUsernameListsListIdRoute =
-  ProfileUsernameListsListIdRouteImport.update({
-    id: '/lists/$listId',
-    path: '/lists/$listId',
+const ProfileUsernameListsNewRoute = ProfileUsernameListsNewRouteImport.update({
+  id: '/lists/new',
+  path: '/lists/new',
+  getParentRoute: () => ProfileUsernameRouteRoute,
+} as any)
+const ProfileUsernameListsListIdIndexRoute =
+  ProfileUsernameListsListIdIndexRouteImport.update({
+    id: '/lists/$listId/',
+    path: '/lists/$listId/',
+    getParentRoute: () => ProfileUsernameRouteRoute,
+  } as any)
+const ProfileUsernameListsListIdEditRoute =
+  ProfileUsernameListsListIdEditRouteImport.update({
+    id: '/lists/$listId/edit',
+    path: '/lists/$listId/edit',
     getParentRoute: () => ProfileUsernameRouteRoute,
   } as any)
 
@@ -230,8 +243,10 @@ export interface FileRoutesByFullPath {
   '/profile/$username/watchlist': typeof ProfileUsernameWatchlistRoute
   '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
   '/profile/$username/': typeof ProfileUsernameIndexRoute
-  '/profile/$username/lists/$listId': typeof ProfileUsernameListsListIdRoute
+  '/profile/$username/lists/new': typeof ProfileUsernameListsNewRoute
   '/profile/$username/lists/': typeof ProfileUsernameListsIndexRoute
+  '/profile/$username/lists/$listId/edit': typeof ProfileUsernameListsListIdEditRoute
+  '/profile/$username/lists/$listId/': typeof ProfileUsernameListsListIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -261,8 +276,10 @@ export interface FileRoutesByTo {
   '/profile/$username/watchlist': typeof ProfileUsernameWatchlistRoute
   '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
   '/profile/$username': typeof ProfileUsernameIndexRoute
-  '/profile/$username/lists/$listId': typeof ProfileUsernameListsListIdRoute
+  '/profile/$username/lists/new': typeof ProfileUsernameListsNewRoute
   '/profile/$username/lists': typeof ProfileUsernameListsIndexRoute
+  '/profile/$username/lists/$listId/edit': typeof ProfileUsernameListsListIdEditRoute
+  '/profile/$username/lists/$listId': typeof ProfileUsernameListsListIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -295,8 +312,10 @@ export interface FileRoutesById {
   '/profile/$username/watchlist': typeof ProfileUsernameWatchlistRoute
   '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
   '/profile/$username/': typeof ProfileUsernameIndexRoute
-  '/profile/$username/lists/$listId': typeof ProfileUsernameListsListIdRoute
+  '/profile/$username/lists/new': typeof ProfileUsernameListsNewRoute
   '/profile/$username/lists/': typeof ProfileUsernameListsIndexRoute
+  '/profile/$username/lists/$listId/edit': typeof ProfileUsernameListsListIdEditRoute
+  '/profile/$username/lists/$listId/': typeof ProfileUsernameListsListIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -330,8 +349,10 @@ export interface FileRouteTypes {
     | '/profile/$username/watchlist'
     | '/reviews/$username/$reviewId'
     | '/profile/$username/'
-    | '/profile/$username/lists/$listId'
+    | '/profile/$username/lists/new'
     | '/profile/$username/lists/'
+    | '/profile/$username/lists/$listId/edit'
+    | '/profile/$username/lists/$listId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -361,8 +382,10 @@ export interface FileRouteTypes {
     | '/profile/$username/watchlist'
     | '/reviews/$username/$reviewId'
     | '/profile/$username'
-    | '/profile/$username/lists/$listId'
+    | '/profile/$username/lists/new'
     | '/profile/$username/lists'
+    | '/profile/$username/lists/$listId/edit'
+    | '/profile/$username/lists/$listId'
   id:
     | '__root__'
     | '/'
@@ -394,8 +417,10 @@ export interface FileRouteTypes {
     | '/profile/$username/watchlist'
     | '/reviews/$username/$reviewId'
     | '/profile/$username/'
-    | '/profile/$username/lists/$listId'
+    | '/profile/$username/lists/new'
     | '/profile/$username/lists/'
+    | '/profile/$username/lists/$listId/edit'
+    | '/profile/$username/lists/$listId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -629,11 +654,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileUsernameListsIndexRouteImport
       parentRoute: typeof ProfileUsernameRouteRoute
     }
-    '/profile/$username/lists/$listId': {
-      id: '/profile/$username/lists/$listId'
+    '/profile/$username/lists/new': {
+      id: '/profile/$username/lists/new'
+      path: '/lists/new'
+      fullPath: '/profile/$username/lists/new'
+      preLoaderRoute: typeof ProfileUsernameListsNewRouteImport
+      parentRoute: typeof ProfileUsernameRouteRoute
+    }
+    '/profile/$username/lists/$listId/': {
+      id: '/profile/$username/lists/$listId/'
       path: '/lists/$listId'
-      fullPath: '/profile/$username/lists/$listId'
-      preLoaderRoute: typeof ProfileUsernameListsListIdRouteImport
+      fullPath: '/profile/$username/lists/$listId/'
+      preLoaderRoute: typeof ProfileUsernameListsListIdIndexRouteImport
+      parentRoute: typeof ProfileUsernameRouteRoute
+    }
+    '/profile/$username/lists/$listId/edit': {
+      id: '/profile/$username/lists/$listId/edit'
+      path: '/lists/$listId/edit'
+      fullPath: '/profile/$username/lists/$listId/edit'
+      preLoaderRoute: typeof ProfileUsernameListsListIdEditRouteImport
       parentRoute: typeof ProfileUsernameRouteRoute
     }
   }
@@ -669,8 +708,10 @@ interface ProfileUsernameRouteRouteChildren {
   ProfileUsernameReviewsRoute: typeof ProfileUsernameReviewsRoute
   ProfileUsernameWatchlistRoute: typeof ProfileUsernameWatchlistRoute
   ProfileUsernameIndexRoute: typeof ProfileUsernameIndexRoute
-  ProfileUsernameListsListIdRoute: typeof ProfileUsernameListsListIdRoute
+  ProfileUsernameListsNewRoute: typeof ProfileUsernameListsNewRoute
   ProfileUsernameListsIndexRoute: typeof ProfileUsernameListsIndexRoute
+  ProfileUsernameListsListIdEditRoute: typeof ProfileUsernameListsListIdEditRoute
+  ProfileUsernameListsListIdIndexRoute: typeof ProfileUsernameListsListIdIndexRoute
 }
 
 const ProfileUsernameRouteRouteChildren: ProfileUsernameRouteRouteChildren = {
@@ -681,8 +722,10 @@ const ProfileUsernameRouteRouteChildren: ProfileUsernameRouteRouteChildren = {
   ProfileUsernameReviewsRoute: ProfileUsernameReviewsRoute,
   ProfileUsernameWatchlistRoute: ProfileUsernameWatchlistRoute,
   ProfileUsernameIndexRoute: ProfileUsernameIndexRoute,
-  ProfileUsernameListsListIdRoute: ProfileUsernameListsListIdRoute,
+  ProfileUsernameListsNewRoute: ProfileUsernameListsNewRoute,
   ProfileUsernameListsIndexRoute: ProfileUsernameListsIndexRoute,
+  ProfileUsernameListsListIdEditRoute: ProfileUsernameListsListIdEditRoute,
+  ProfileUsernameListsListIdIndexRoute: ProfileUsernameListsListIdIndexRoute,
 }
 
 const ProfileUsernameRouteRouteWithChildren =
