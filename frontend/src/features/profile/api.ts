@@ -126,6 +126,63 @@ export const getUserLikedFilms = async (
   return userInteractionMovieListSchema.parse(response);
 };
 
+const likedReviewSchema = z.object({
+  id: z.string(),
+  content: z.string(),
+  containsSpoilers: z.boolean(),
+  createdAt: z.string(),
+  likedAt: z.string(),
+  mediaType: z.enum(["movie", "tv"]),
+  reviewerUsername: z.string(),
+  reviewerDisplayUsername: z.string().nullable().optional(),
+  mediaTitle: z.string().nullable(),
+  mediaPosterPath: z.string().nullable(),
+  mediaTmdbId: z.number().int().nullable(),
+  mediaReleaseYear: z.number().int().nullable(),
+});
+
+export type LikedReview = z.infer<typeof likedReviewSchema>;
+
+const likedListSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string().nullable(),
+  isRanked: z.boolean(),
+  isPublic: z.boolean(),
+  derivedType: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  likedAt: z.string(),
+  itemCount: z.number().int().nonnegative(),
+  coverImages: z.array(z.object({ itemType: z.string(), posterPath: z.string().nullable() })),
+  ownerUsername: z.string(),
+  ownerDisplayUsername: z.string().nullable().optional(),
+});
+
+export type LikedList = z.infer<typeof likedListSchema>;
+
+export const getUserLikedReviews = async (
+  username: string,
+  options: QueryRequestOptions = {},
+): Promise<LikedReview[]> => {
+  const response = await apiRequest<unknown>(
+    `/api/users/${encodePathSegment(username)}/liked-reviews`,
+    { method: "GET", signal: options.signal },
+  );
+  return z.array(likedReviewSchema).parse(response);
+};
+
+export const getUserLikedLists = async (
+  username: string,
+  options: QueryRequestOptions = {},
+): Promise<LikedList[]> => {
+  const response = await apiRequest<unknown>(
+    `/api/users/${encodePathSegment(username)}/liked-lists`,
+    { method: "GET", signal: options.signal },
+  );
+  return z.array(likedListSchema).parse(response);
+};
+
 export const getUserWatchlist = async (
   username: string,
   options: QueryRequestOptions = {},

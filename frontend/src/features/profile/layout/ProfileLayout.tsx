@@ -9,6 +9,7 @@ import {
   type ProfileTab,
 } from "@/features/profile/components/ProfileTabs";
 import { useUserProfile } from "@/features/profile/hooks/useProfile";
+import { FollowListDialog } from "@/features/social/components/FollowListDialog";
 import {
   useFollowState,
   useFollowUser,
@@ -34,6 +35,9 @@ export const ProfileLayout = ({
     username: string;
     message: string;
   } | null>(null);
+  const [followListDialog, setFollowListDialog] = useState<
+    "followers" | "following" | null
+  >(null);
 
   const isViewerLoggedIn = Boolean(user);
   const isOwnProfileByRoute =
@@ -142,6 +146,14 @@ export const ProfileLayout = ({
   const reviewCount = profile.stats?.reviewCount ?? 0;
   return (
     <div className="min-h-screen profile-shell">
+      <FollowListDialog
+        isOpen={followListDialog !== null}
+        onClose={() => setFollowListDialog(null)}
+        mode={followListDialog ?? "followers"}
+        profileUsername={profile.username}
+        isOwnProfile={isOwnProfile}
+      />
+
       <div className="mx-auto w-full max-w-5xl px-4 py-8">
         <div className="mb-8 border-b pb-8 profile-shell-border">
           <ProfileHeaderCompact
@@ -159,6 +171,8 @@ export const ProfileLayout = ({
               followers: followerCount,
               following: followingCount,
             }}
+            onFollowingClick={() => setFollowListDialog("following")}
+            onFollowersClick={() => setFollowListDialog("followers")}
           />
         </div>
 

@@ -6,6 +6,8 @@ import {
 } from "@tanstack/react-query";
 import {
   getUserLikedFilms,
+  getUserLikedReviews,
+  getUserLikedLists,
   getMyProfile,
   getUserProfile,
   getUserReviews,
@@ -24,6 +26,8 @@ export const profileKeys = {
     ["profile", "search", query, limit] as const,
   detail: (username: string) => ["profile", "detail", username] as const,
   likes: (username: string) => ["profile", "likes", username] as const,
+  likedReviews: (username: string) => ["profile", "liked-reviews", username] as const,
+  likedLists: (username: string) => ["profile", "liked-lists", username] as const,
   watchlist: (username: string) => ["profile", "watchlist", username] as const,
   reviews: (username: string) => ["profile", "reviews", username] as const,
   topPicks: (username: string) => ["profile", "top-picks", username] as const,
@@ -100,6 +104,20 @@ export const useUserRecentActivity = (username: string, limit = 20) =>
   useQuery({
     queryKey: profileKeys.recentActivity(username, limit),
     queryFn: ({ signal }) => getUserRecentActivity(username, limit, { signal }),
+    enabled: username.trim().length > 0,
+  });
+
+export const useUserLikedReviews = (username: string) =>
+  useQuery({
+    queryKey: profileKeys.likedReviews(username),
+    queryFn: ({ signal }) => getUserLikedReviews(username, { signal }),
+    enabled: username.trim().length > 0,
+  });
+
+export const useUserLikedLists = (username: string) =>
+  useQuery({
+    queryKey: profileKeys.likedLists(username),
+    queryFn: ({ signal }) => getUserLikedLists(username, { signal }),
     enabled: username.trim().length > 0,
   });
 

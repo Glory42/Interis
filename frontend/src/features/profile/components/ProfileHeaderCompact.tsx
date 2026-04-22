@@ -12,6 +12,8 @@ type ProfileHeaderCompactProps = {
     following: number;
     followers: number;
   };
+  onFollowingClick?: () => void;
+  onFollowersClick?: () => void;
 };
 
 export const ProfileHeaderCompact = ({
@@ -19,6 +21,8 @@ export const ProfileHeaderCompact = ({
   headerAction,
   actionError,
   stats,
+  onFollowingClick,
+  onFollowersClick,
 }: ProfileHeaderCompactProps) => {
   const displayName = getProfileDisplayName(profile);
   const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
@@ -103,23 +107,33 @@ export const ProfileHeaderCompact = ({
             </p>
           </div>
 
-          <div>
+          <button
+            type="button"
+            onClick={onFollowingClick}
+            className="text-left transition-opacity hover:opacity-70 disabled:cursor-default"
+            disabled={!onFollowingClick}
+          >
             <p className="font-mono text-lg font-bold text-foreground">
               {stats.following}
             </p>
             <p className="font-mono text-[9px] uppercase tracking-[0.16em] profile-shell-muted">
               Following
             </p>
-          </div>
+          </button>
 
-          <div>
+          <button
+            type="button"
+            onClick={onFollowersClick}
+            className="text-left transition-opacity hover:opacity-70 disabled:cursor-default"
+            disabled={!onFollowersClick}
+          >
             <p className="font-mono text-lg font-bold text-foreground">
               {stats.followers}
             </p>
             <p className="font-mono text-[9px] uppercase tracking-[0.16em] profile-shell-muted">
               Followers
             </p>
-          </div>
+          </button>
 
           <div>
             <p className="font-mono text-lg font-bold text-foreground">
