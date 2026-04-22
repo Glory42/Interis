@@ -37,6 +37,10 @@ export class SocialService {
     return SocialFollowService.isFollowing(followerId, followingId);
   }
 
+  static async removeFollower(userId: string, followerUserId: string) {
+    return SocialFollowService.removeFollower(userId, followerUserId);
+  }
+
   static async getFeed(userId: string, cursor?: string, limit?: number) {
     return SocialFeedService.getFeed(userId, cursor, limit);
   }

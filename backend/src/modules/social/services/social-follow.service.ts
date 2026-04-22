@@ -43,4 +43,9 @@ export class SocialFollowService {
   static async isFollowing(followerId: string, followingId: string) {
     return SocialRepository.isFollowing(followerId, followingId);
   }
+
+  static async removeFollower(userId: string, followerUserId: string) {
+    await SocialRepository.removeFollower(userId, followerUserId);
+    return { success: true } as const;
+  }
 }

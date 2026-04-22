@@ -100,4 +100,18 @@ export class SocialController {
     const following = await SocialService.getFollowing(target.id);
     res.status(200).json(following);
   }
+
+  static async removeFollower(
+    req: Request<UsernameParamsDto>,
+    res: Response,
+  ): Promise<void> {
+    const follower = await UsersService.findByUsername(req.params.username);
+    if (!follower) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    await SocialService.removeFollower(req.user.id, follower.id);
+    res.status(200).json({ success: true });
+  }
 }

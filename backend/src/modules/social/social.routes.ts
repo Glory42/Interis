@@ -22,6 +22,11 @@ router.delete(
   requireAuth,
   asyncHandler(SocialController.unfollow),
 );
+router.delete(
+  "/follower/:username",
+  requireAuth,
+  asyncHandler(SocialController.removeFollower),
+);
 
 // Protected
 router.get(

@@ -44,6 +44,12 @@ export class SocialRepository {
       .where(and(eq(follows.followerId, followerId), eq(follows.followingId, followingId)));
   }
 
+  static async removeFollower(userId: string, followerUserId: string) {
+    await db
+      .delete(follows)
+      .where(and(eq(follows.followerId, followerUserId), eq(follows.followingId, userId)));
+  }
+
   static async getFollowers(userId: string) {
     return db
       .select({
