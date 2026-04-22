@@ -16,6 +16,7 @@ import {
   getTrustedOriginsFromEnv,
   isTrustedOrigin,
 } from "./infrastructure/config/origins";
+import listsRouter from "./modules/lists/lists.routes";
 import moviesRouter from "./modules/movies/movies.routes";
 import serialsRouter from "./modules/serials/serials.routes";
 import peopleRouter from "./modules/people/people.routes";
@@ -122,6 +123,7 @@ export const createApp = () => {
   app.use("/api/uploads", uploadsRouter);
   app.use("/api/public", publicRouter);
   app.use("/api/posts", postsRouter);
+  app.use("/api/lists", listsRouter);
 
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     if (err.message === "Not allowed by CORS") {
