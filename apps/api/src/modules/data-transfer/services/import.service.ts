@@ -1,6 +1,7 @@
 import { searchMovieByTitleAndYear } from "../../../infrastructure/tmdb/cinemas";
 import { MoviesService } from "../../movies/movies.service";
 import { DiaryRepository } from "../../diary/repositories/diary.repository";
+import { InteractionsService } from "../../interactions/interactions.service";
 import { parseCsv, getCsvHeaders } from "../helpers/csv-parser";
 
 export type ImportStreamEvent =
@@ -8,20 +9,26 @@ export type ImportStreamEvent =
   | { type: "row"; title: string; year: number | null; status: "imported" | "skipped" | "failed"; reason?: string }
   | { type: "done"; total: number; imported: number; skipped: number; failed: number };
 
-type ImportFormat = "letterboxd" | "letterboxd-watched" | "interis" | "unknown";
+type ImportFormat = "letterboxd" | "letterboxd-watched" | "letterboxd-watchlist" | "interis" | "unknown";
 
 const FORMAT_LABELS: Record<ImportFormat, string> = {
   letterboxd: "Letterboxd diary",
   "letterboxd-watched": "Letterboxd watched",
+  "letterboxd-watchlist": "Letterboxd watchlist",
   interis: "Interis export",
   unknown: "unknown",
 };
 
-function detectFormat(headers: string[]): ImportFormat {
+function detectFormat(headers: string[], filename?: string): ImportFormat {
   const set = new Set(headers);
   if (set.has("TmdbId") && set.has("WatchedDate")) return "interis";
   if (set.has("Name") && set.has("Watched Date")) return "letterboxd";
-  if (set.has("Name") && set.has("Date") && set.has("Year")) return "letterboxd-watched";
+  if (set.has("Name") && set.has("Date") && set.has("Year")) {
+    // watched.csv and watchlist.csv have identical headers — use filename to tell them apart
+    const name = (filename ?? "").toLowerCase();
+    if (name.includes("watchlist")) return "letterboxd-watchlist";
+    return "letterboxd-watched";
+  }
   return "unknown";
 }
 
@@ -79,6 +86,10 @@ function normalizeLetterboxdRow(row: Record<string, string>): NormalizedRow | nu
     review: (row["Review"] ?? "").trim(),
     spoilers: false,
   };
+}
+
+function normalizeLetterboxdWatchlistRow(row: Record<string, string>): NormalizedRow | null {
+  return normalizeLetterboxdWatchedRow(row);
 }
 
 function normalizeLetterboxdWatchedRow(row: Record<string, string>): NormalizedRow | null {
@@ -139,9 +150,10 @@ export class DataImportService {
     userId: string,
     csvText: string,
     write: (event: ImportStreamEvent) => void,
+    filename?: string,
   ): Promise<void> {
     const headers = getCsvHeaders(csvText);
-    const format = detectFormat(headers);
+    const format = detectFormat(headers, filename);
 
     if (format === "unknown") {
       write({ type: "row", title: "", year: null, status: "failed", reason: "Unrecognized CSV format. Expected Letterboxd diary.csv, reviews.csv, watched.csv, or an Interis export." });
@@ -165,7 +177,9 @@ export class DataImportService {
           ? normalizeLetterboxdRow(rawRow)
           : format === "letterboxd-watched"
             ? normalizeLetterboxdWatchedRow(rawRow)
-            : normalizeInterisRow(rawRow);
+            : format === "letterboxd-watchlist"
+              ? normalizeLetterboxdWatchlistRow(rawRow)
+              : normalizeInterisRow(rawRow);
 
       const displayTitle = (rawRow["Name"] ?? rawRow["Title"] ?? "").trim();
       const displayYear = Number.parseInt(rawRow["Year"] ?? "", 10);
@@ -207,6 +221,20 @@ export class DataImportService {
         continue;
       }
 
+      // --- Watchlist path ---
+      if (format === "letterboxd-watchlist") {
+        try {
+          await InteractionsService.setWatchlisted(userId, movie.id);
+          imported++;
+          write({ type: "row", title: normalized.title, year: normalized.year, status: "imported" });
+        } catch {
+          failed++;
+          write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "Failed to save to watchlist." });
+        }
+        continue;
+      }
+
+      // --- Diary path ---
       const alreadyExists =
         format === "letterboxd-watched"
           ? await DiaryRepository.existsByUserAndMovie(userId, movie.id)

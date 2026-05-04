@@ -28,9 +28,11 @@ export class DataTransferController {
     res.setHeader("X-Accel-Buffering", "no");
     res.flushHeaders();
 
+    const filename = typeof req.query.filename === "string" ? req.query.filename : undefined;
+
     await DataImportService.importCsvStreaming(req.user.id, body, (event) => {
       res.write(`${JSON.stringify(event)}\n`);
-    });
+    }, filename);
 
     res.end();
   }
