@@ -1,6 +1,9 @@
 import { searchMovieByTitleAndYear } from "../../../infrastructure/tmdb/cinemas";
+import { searchSeriesByTitleAndYear } from "../../../infrastructure/tmdb/serials";
 import { MoviesService } from "../../movies/movies.service";
+import { SerialsService } from "../../serials/serials.service";
 import { DiaryRepository } from "../../diary/repositories/diary.repository";
+import { SerialsInteractionsRepository } from "../../serials/repositories/serials-interactions.repository";
 import { InteractionsService } from "../../interactions/interactions.service";
 import { parseCsv, getCsvHeaders } from "../helpers/csv-parser";
 
@@ -139,19 +142,35 @@ function normalizeInterisRow(row: Record<string, string>): NormalizedRow | null 
   };
 }
 
-async function resolveTmdbId(row: NormalizedRow): Promise<number | null> {
-  if (row.tmdbId) return row.tmdbId;
+type ResolvedMedia =
+  | { mediaType: "movie"; tmdbId: number }
+  | { mediaType: "series"; tmdbId: number };
 
-  // First pass: search with year for precision
+async function resolveMedia(row: NormalizedRow): Promise<ResolvedMedia | null> {
+  // Interis format already has a tmdbId — always treated as movie for now
+  if (row.tmdbId) return { mediaType: "movie", tmdbId: row.tmdbId };
+
+  // 1. Movie search with year
   if (row.year) {
     const results = await searchMovieByTitleAndYear(row.title, row.year);
-    if (results.length > 0) return results[0]?.id ?? null;
+    if (results.length > 0 && results[0]) return { mediaType: "movie", tmdbId: results[0].id };
   }
 
-  // Fallback: search without year — catches Letterboxd/TMDB year mismatches
-  // (e.g. late-December releases catalogued differently on each platform)
-  const fallback = await searchMovieByTitleAndYear(row.title, 0);
-  return fallback[0]?.id ?? null;
+  // 2. Movie search without year (year mismatch fallback)
+  const movieFallback = await searchMovieByTitleAndYear(row.title, 0);
+  if (movieFallback.length > 0 && movieFallback[0]) return { mediaType: "movie", tmdbId: movieFallback[0].id };
+
+  // 3. TV series search with year
+  if (row.year) {
+    const seriesResults = await searchSeriesByTitleAndYear(row.title, row.year);
+    if (seriesResults.length > 0 && seriesResults[0]) return { mediaType: "series", tmdbId: seriesResults[0].id };
+  }
+
+  // 4. TV series search without year
+  const seriesFallback = await searchSeriesByTitleAndYear(row.title, 0);
+  if (seriesFallback.length > 0 && seriesFallback[0]) return { mediaType: "series", tmdbId: seriesFallback[0].id };
+
+  return null;
 }
 
 async function runPool(
@@ -215,24 +234,85 @@ export class DataImportService {
         return;
       }
 
-      let tmdbId: number | null;
+      let resolved: ResolvedMedia | null;
       try {
-        tmdbId = await resolveTmdbId(normalized);
+        resolved = await resolveMedia(normalized);
       } catch {
         failed++;
         write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "TMDB search failed." });
         return;
       }
 
-      if (!tmdbId) {
+      if (!resolved) {
         failed++;
-        write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "Not found on TMDB." });
+        write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "Not found on TMDB as movie or TV series." });
         return;
       }
 
+      // --- Watchlist path ---
+      if (format === "letterboxd-watchlist") {
+        try {
+          if (resolved.mediaType === "series") {
+            const series = await SerialsService.findOrCreate(resolved.tmdbId);
+            await SerialsInteractionsRepository.setWatchlisted(userId, series.id);
+          } else {
+            const movie = await MoviesService.findOrCreate(resolved.tmdbId);
+            await InteractionsService.setWatchlisted(userId, movie.id);
+          }
+          imported++;
+          write({ type: "row", title: normalized.title, year: normalized.year, status: "imported" });
+        } catch {
+          failed++;
+          write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "Failed to save to watchlist." });
+        }
+        return;
+      }
+
+      // --- Diary path (series) ---
+      if (resolved.mediaType === "series") {
+        let series: { id: number; tmdbId: number };
+        try {
+          series = await SerialsService.findOrCreate(resolved.tmdbId);
+        } catch {
+          failed++;
+          write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "Failed to fetch series details." });
+          return;
+        }
+
+        const alreadyExists =
+          format === "letterboxd-watched"
+            ? await SerialsInteractionsRepository.existsByUserAndSeries(userId, series.id)
+            : await SerialsInteractionsRepository.existsByUserSeriesAndDate(userId, series.id, normalized.watchedDate);
+
+        if (alreadyExists) {
+          skipped++;
+          write({ type: "row", title: normalized.title, year: normalized.year, status: "skipped", reason: "Already in diary." });
+          return;
+        }
+
+        const entry = await SerialsInteractionsRepository.insertSerialDiaryEntry({
+          userId,
+          seriesId: series.id,
+          watchedDate: normalized.watchedDate,
+          rating: toRatingOutOfTen(normalized.rating),
+          rewatch: normalized.rewatch,
+        });
+
+        if (!entry) {
+          failed++;
+          write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "Failed to save diary entry." });
+          return;
+        }
+
+        imported++;
+        write({ type: "row", title: normalized.title, year: normalized.year, status: "imported" });
+        return;
+      }
+
+      // --- Diary path (movie) ---
       let movie: { id: number; tmdbId: number } | null;
       try {
-        movie = await MoviesService.findOrCreate(tmdbId);
+        movie = await MoviesService.findOrCreate(resolved.tmdbId);
       } catch {
         failed++;
         write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "Failed to fetch movie details." });
@@ -245,20 +325,6 @@ export class DataImportService {
         return;
       }
 
-      // --- Watchlist path ---
-      if (format === "letterboxd-watchlist") {
-        try {
-          await InteractionsService.setWatchlisted(userId, movie.id);
-          imported++;
-          write({ type: "row", title: normalized.title, year: normalized.year, status: "imported" });
-        } catch {
-          failed++;
-          write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "Failed to save to watchlist." });
-        }
-        return;
-      }
-
-      // --- Diary path ---
       const alreadyExists =
         format === "letterboxd-watched"
           ? await DiaryRepository.existsByUserAndMovie(userId, movie.id)
