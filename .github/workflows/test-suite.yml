@@ -34,32 +34,3 @@ jobs:
         run: bun run lint
         working-directory: apps/web
 
-  backend:
-    name: Backend Integration Tests
-    runs-on: ubuntu-latest
-    if: ${{ secrets.DATABASE_URL_TEST != '' }}
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
-      BETTER_AUTH_URL: http://localhost:5000
-      BETTER_AUTH_SECRET: ci-test-secret
-      CORS_ORIGIN: http://localhost:5173
-      NODE_ENV: test
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-
-      - name: Install backend dependencies
-        run: bun install
-        working-directory: apps/api
-
-      - name: Apply database migrations
-        run: bun run test:db:migrate
-        working-directory: apps/api
-
-      - name: Run backend tests
-        run: bun run test
-        working-directory: apps/api

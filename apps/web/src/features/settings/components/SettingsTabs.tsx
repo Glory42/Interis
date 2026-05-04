@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useMatchRoute } from "@tanstack/react-router";
-import { Layers, Lock, Palette, Trophy, User } from "lucide-react";
+import { Download, Layers, Lock, Palette, Trophy, User } from "lucide-react";
 import { settingsSections } from "@/features/settings/model/settings.constants";
 
 const tabClass =
@@ -12,6 +12,7 @@ const iconBySection = {
   auth: Lock,
   genres: Layers,
   favorites: Trophy,
+  data: Download,
 } as const;
 
 export const SettingsTabs = () => {

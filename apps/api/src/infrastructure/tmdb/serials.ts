@@ -48,6 +48,24 @@ export const searchSeries = async (
   return z.array(TMDBSearchSeriesSchema).parse(results);
 };
 
+export const searchSeriesByTitleAndYear = async (
+  title: string,
+  year: number,
+): Promise<TMDBSearchSeries[]> => {
+  const params = new URLSearchParams({
+    query: title,
+    include_adult: "false",
+    language: "en-US",
+    page: "1",
+  });
+  // TV uses first_air_date_year, not year
+  if (year > 0) params.set("first_air_date_year", String(year));
+
+  const data = await fetchTMDB(`/search/tv?${params.toString()}`);
+  const results = (data as { results?: unknown }).results ?? [];
+  return z.array(TMDBSearchSeriesSchema).parse(results);
+};
+
 export const getTrendingSeries = async (
   timeWindow: "day" | "week" = "week",
 ): Promise<TMDBSearchSeries[]> => {

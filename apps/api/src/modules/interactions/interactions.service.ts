@@ -116,4 +116,14 @@ export class InteractionsService {
       },
     );
   }
+
+  static async setWatchlisted(userId: string, movieId: number): Promise<void> {
+    await db
+      .insert(movieInteractions)
+      .values({ userId, movieId, liked: false, watchlisted: true })
+      .onConflictDoUpdate({
+        target: [movieInteractions.userId, movieInteractions.movieId],
+        set: { watchlisted: true },
+      });
+  }
 }

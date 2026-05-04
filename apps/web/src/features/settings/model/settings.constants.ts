@@ -48,4 +48,10 @@ export const settingsSections: SettingsSectionDefinition[] = [
     label: "Favorites",
     description: "Top picks showcased on your profile.",
   },
+  {
+    id: "data",
+    to: "/settings/data",
+    label: "Data",
+    description: "Export your diary or import from Letterboxd.",
+  },
 ];

@@ -23,6 +23,7 @@ import { Route as SettingsThemeRouteImport } from './routes/settings/theme'
 import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
 import { Route as SettingsGenresRouteImport } from './routes/settings/genres'
 import { Route as SettingsFavoritesRouteImport } from './routes/settings/favorites'
+import { Route as SettingsDataRouteImport } from './routes/settings/data'
 import { Route as SettingsAuthRouteImport } from './routes/settings/auth'
 import { Route as SerialsTmdbIdRouteImport } from './routes/serials/$tmdbId'
 import { Route as FilmsTmdbIdRouteImport } from './routes/films/$tmdbId'
@@ -111,6 +112,11 @@ const SettingsGenresRoute = SettingsGenresRouteImport.update({
 const SettingsFavoritesRoute = SettingsFavoritesRouteImport.update({
   id: '/favorites',
   path: '/favorites',
+  getParentRoute: () => SettingsRouteRoute,
+} as any)
+const SettingsDataRoute = SettingsDataRouteImport.update({
+  id: '/data',
+  path: '/data',
   getParentRoute: () => SettingsRouteRoute,
 } as any)
 const SettingsAuthRoute = SettingsAuthRouteImport.update({
@@ -226,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
+  '/settings/data': typeof SettingsDataRoute
   '/settings/favorites': typeof SettingsFavoritesRoute
   '/settings/genres': typeof SettingsGenresRoute
   '/settings/profile': typeof SettingsProfileRoute
@@ -259,6 +266,7 @@ export interface FileRoutesByTo {
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
+  '/settings/data': typeof SettingsDataRoute
   '/settings/favorites': typeof SettingsFavoritesRoute
   '/settings/genres': typeof SettingsGenresRoute
   '/settings/profile': typeof SettingsProfileRoute
@@ -295,6 +303,7 @@ export interface FileRoutesById {
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
+  '/settings/data': typeof SettingsDataRoute
   '/settings/favorites': typeof SettingsFavoritesRoute
   '/settings/genres': typeof SettingsGenresRoute
   '/settings/profile': typeof SettingsProfileRoute
@@ -332,6 +341,7 @@ export interface FileRouteTypes {
     | '/films/$tmdbId'
     | '/serials/$tmdbId'
     | '/settings/auth'
+    | '/settings/data'
     | '/settings/favorites'
     | '/settings/genres'
     | '/settings/profile'
@@ -365,6 +375,7 @@ export interface FileRouteTypes {
     | '/films/$tmdbId'
     | '/serials/$tmdbId'
     | '/settings/auth'
+    | '/settings/data'
     | '/settings/favorites'
     | '/settings/genres'
     | '/settings/profile'
@@ -400,6 +411,7 @@ export interface FileRouteTypes {
     | '/films/$tmdbId'
     | '/serials/$tmdbId'
     | '/settings/auth'
+    | '/settings/data'
     | '/settings/favorites'
     | '/settings/genres'
     | '/settings/profile'
@@ -542,6 +554,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsFavoritesRouteImport
       parentRoute: typeof SettingsRouteRoute
     }
+    '/settings/data': {
+      id: '/settings/data'
+      path: '/data'
+      fullPath: '/settings/data'
+      preLoaderRoute: typeof SettingsDataRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
     '/settings/auth': {
       id: '/settings/auth'
       path: '/auth'
@@ -680,6 +699,7 @@ declare module '@tanstack/react-router' {
 
 interface SettingsRouteRouteChildren {
   SettingsAuthRoute: typeof SettingsAuthRoute
+  SettingsDataRoute: typeof SettingsDataRoute
   SettingsFavoritesRoute: typeof SettingsFavoritesRoute
   SettingsGenresRoute: typeof SettingsGenresRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
@@ -689,6 +709,7 @@ interface SettingsRouteRouteChildren {
 
 const SettingsRouteRouteChildren: SettingsRouteRouteChildren = {
   SettingsAuthRoute: SettingsAuthRoute,
+  SettingsDataRoute: SettingsDataRoute,
   SettingsFavoritesRoute: SettingsFavoritesRoute,
   SettingsGenresRoute: SettingsGenresRoute,
   SettingsProfileRoute: SettingsProfileRoute,

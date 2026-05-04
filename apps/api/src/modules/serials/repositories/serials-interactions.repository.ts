@@ -147,4 +147,52 @@ export class SerialsInteractionsRepository {
 
     return entry ?? null;
   }
+
+  static async existsByUserAndSeries(userId: string, seriesId: number): Promise<boolean> {
+    const [row] = await db
+      .select({ id: serialDiaryEntries.id })
+      .from(serialDiaryEntries)
+      .where(and(eq(serialDiaryEntries.userId, userId), eq(serialDiaryEntries.seriesId, seriesId)))
+      .limit(1);
+    return Boolean(row);
+  }
+
+  static async existsByUserSeriesAndDate(userId: string, seriesId: number, watchedDate: string): Promise<boolean> {
+    const [row] = await db
+      .select({ id: serialDiaryEntries.id })
+      .from(serialDiaryEntries)
+      .where(
+        and(
+          eq(serialDiaryEntries.userId, userId),
+          eq(serialDiaryEntries.seriesId, seriesId),
+          eq(serialDiaryEntries.watchedDate, watchedDate),
+        ),
+      )
+      .limit(1);
+    return Boolean(row);
+  }
+
+  static async insertSerialDiaryEntry(input: {
+    userId: string;
+    seriesId: number;
+    watchedDate: string;
+    rating: number | null;
+    rewatch: boolean;
+  }): Promise<{ id: string } | null> {
+    const [entry] = await db
+      .insert(serialDiaryEntries)
+      .values(input)
+      .returning({ id: serialDiaryEntries.id });
+    return entry ?? null;
+  }
+
+  static async setWatchlisted(userId: string, seriesId: number): Promise<void> {
+    await db
+      .insert(serialInteractions)
+      .values({ userId, seriesId, liked: false, watchlisted: true })
+      .onConflictDoUpdate({
+        target: [serialInteractions.userId, serialInteractions.seriesId],
+        set: { watchlisted: true },
+      });
+  }
 }
