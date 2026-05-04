@@ -141,8 +141,33 @@ function normalizeInterisRow(row: Record<string, string>): NormalizedRow | null 
 
 async function resolveTmdbId(row: NormalizedRow): Promise<number | null> {
   if (row.tmdbId) return row.tmdbId;
-  const results = await searchMovieByTitleAndYear(row.title, row.year ?? 0);
-  return results[0]?.id ?? null;
+
+  // First pass: search with year for precision
+  if (row.year) {
+    const results = await searchMovieByTitleAndYear(row.title, row.year);
+    if (results.length > 0) return results[0]?.id ?? null;
+  }
+
+  // Fallback: search without year — catches Letterboxd/TMDB year mismatches
+  // (e.g. late-December releases catalogued differently on each platform)
+  const fallback = await searchMovieByTitleAndYear(row.title, 0);
+  return fallback[0]?.id ?? null;
+}
+
+async function runPool(
+  tasks: (() => Promise<void>)[],
+  concurrency: number,
+): Promise<void> {
+  const queue = [...tasks];
+  async function worker() {
+    while (queue.length > 0) {
+      const task = queue.shift();
+      if (task) await task();
+    }
+  }
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, tasks.length) }, worker),
+  );
 }
 
 export class DataImportService {
@@ -168,9 +193,8 @@ export class DataImportService {
     let skipped = 0;
     let failed = 0;
 
-    for (let i = 0; i < rawRows.length; i++) {
-      const rawRow = rawRows[i];
-      if (!rawRow) continue;
+    const tasks = rawRows.map((rawRow) => async () => {
+      if (!rawRow) return;
 
       const normalized =
         format === "letterboxd"
@@ -188,7 +212,7 @@ export class DataImportService {
       if (!normalized) {
         failed++;
         write({ type: "row", title: displayTitle, year, status: "failed", reason: "Missing required fields." });
-        continue;
+        return;
       }
 
       let tmdbId: number | null;
@@ -197,13 +221,13 @@ export class DataImportService {
       } catch {
         failed++;
         write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "TMDB search failed." });
-        continue;
+        return;
       }
 
       if (!tmdbId) {
         failed++;
         write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "Not found on TMDB." });
-        continue;
+        return;
       }
 
       let movie: { id: number; tmdbId: number } | null;
@@ -212,13 +236,13 @@ export class DataImportService {
       } catch {
         failed++;
         write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "Failed to fetch movie details." });
-        continue;
+        return;
       }
 
       if (!movie) {
         failed++;
         write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "Not found on TMDB." });
-        continue;
+        return;
       }
 
       // --- Watchlist path ---
@@ -231,7 +255,7 @@ export class DataImportService {
           failed++;
           write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "Failed to save to watchlist." });
         }
-        continue;
+        return;
       }
 
       // --- Diary path ---
@@ -243,7 +267,7 @@ export class DataImportService {
       if (alreadyExists) {
         skipped++;
         write({ type: "row", title: normalized.title, year: normalized.year, status: "skipped", reason: "Already in diary." });
-        continue;
+        return;
       }
 
       let entry: { id: string } | null;
@@ -258,16 +282,16 @@ export class DataImportService {
       } catch {
         failed++;
         write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "Failed to save entry." });
-        continue;
+        return;
       }
 
       if (!entry) {
         failed++;
         write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "Failed to save entry." });
-        continue;
+        return;
       }
 
-      if (normalized.review && entry) {
+      if (normalized.review) {
         try {
           await DiaryRepository.upsertReview({
             userId,
@@ -284,7 +308,9 @@ export class DataImportService {
 
       imported++;
       write({ type: "row", title: normalized.title, year: normalized.year, status: "imported" });
-    }
+    });
+
+    await runPool(tasks, 5);
 
     write({ type: "done", total: rawRows.length, imported, skipped, failed });
   }
