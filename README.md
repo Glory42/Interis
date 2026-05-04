@@ -29,10 +29,10 @@ A social movie journal app inspired by Letterboxd + timeline-style social apps.
 
 ```text
 .
-├── backend/          # Express API, domain modules, Drizzle schema/migrations
-├── docs/             # Astro + Starlight docs site for public API
-├── frontend/         # React app (TanStack Router + Query)
-├── e2e/              # Playwright smoke and end-to-end tests
+├── apps/api/          # Express API, domain modules, Drizzle schema/migrations
+├── apps/docs/             # Astro + Starlight docs site for public API
+├── apps/web/         # React app (TanStack Router + Query)
+├── apps/e2e/              # Playwright smoke and end-to-end tests
 ├── CONTRIBUTING.md   # Guidelines for contributors
 └── README.md
 ```
@@ -44,7 +44,7 @@ Prerequisites:
 - PostgreSQL (Neon recommended)
 - TMDB API access token
 
-1) Configure backend env (`backend/.env`)
+1) Configure backend env (`apps/api/.env`)
 
 ```env
 DATABASE_URL=
@@ -62,7 +62,7 @@ R2_BUCKET_NAME=
 R2_PUBLIC_URL=
 ```
 
-2) Configure frontend env (`frontend/.env`)
+2) Configure frontend env (`apps/web/.env`)
 
 ```env
 VITE_API_PROXY_TARGET=http://localhost:5000
@@ -73,12 +73,12 @@ VITE_API_BASE_URL=
 
 ```bash
 # terminal 1 - backend
-cd backend
+cd apps/api
 bun install
 bun run dev
 
 # terminal 2 - frontend
-cd frontend
+cd apps/web
 bun install
 bun run dev
 ```
@@ -98,7 +98,7 @@ public API (`https://api.interis.gorkemkaryol.dev/api/public/:username/*`).
 Run docs locally:
 
 ```bash
-cd docs
+cd apps/docs
 bun install
 bun run dev
 ```
@@ -106,7 +106,7 @@ bun run dev
 Build docs:
 
 ```bash
-cd docs
+cd apps/docs
 bun run build
 ```
 
@@ -132,7 +132,7 @@ bun run build
 Backend:
 
 ```bash
-cd backend
+cd apps/api
 bunx tsc --noEmit
 bun test
 ```
@@ -140,7 +140,7 @@ bun test
 Frontend:
 
 ```bash
-cd frontend
+cd apps/web
 bun run test
 bun run typecheck
 bun run lint
@@ -150,7 +150,7 @@ bun run build
 E2E smoke (optional package):
 
 ```bash
-cd e2e
+cd apps/e2e
 bun install
 bun run test:smoke
 ```
@@ -159,7 +159,7 @@ CI note: backend integration tests in GitHub Actions run only when `DATABASE_URL
 
 ## Architecture notes
 
-- **Feature-first backend**: Each domain owns controller/service/repository/dto/helpers/types. See [backend/README.md](backend/README.md) for details.
+- **Feature-first backend**: Each domain owns controller/service/repository/dto/helpers/types. See [apps/api/README.md](apps/api/README.md) for details.
 - **TMDB on-demand**: Movie data is fetched from TMDB on demand and cached locally; no bulk mirror/import.
 - **Separate models**: Diary entries (watch logs) and reviews are modeled separately by design.
 - **Read-optimized profiles**: Public profile routes are optimized for read-heavy usage and widget integration.

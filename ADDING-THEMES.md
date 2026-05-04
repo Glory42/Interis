@@ -54,7 +54,7 @@ Every theme must define these token groups:
 
 ### Step 1: Backend — register the theme ID
 
-**File:** `backend/src/modules/users/constants/theme.constants.ts`
+**File:** `apps/api/src/modules/users/constants/theme.constants.ts`
 
 Add your theme ID to `SUPPORTED_THEME_IDS`:
 
@@ -78,7 +78,7 @@ If you are retiring an existing theme, move it from `SUPPORTED_THEME_IDS` to the
 
 ### Step 2: Frontend — register the theme ID
 
-**File:** `frontend/src/features/theme/theme-registry.ts`
+**File:** `apps/web/src/features/theme/theme-registry.ts`
 
 Add your theme ID to `SUPPORTED_THEME_IDS` (line 16):
 
@@ -94,7 +94,7 @@ If retiring an existing theme, add it to the `LEGACY_THEME_IDS` set (lines 24-47
 
 ### Step 3: Frontend — add theme to the registry data file
 
-**File:** `frontend/public/theme-registry.js`
+**File:** `apps/web/public/theme-registry.js`
 
 This file is loaded as a plain `<script>` tag before React hydrates. It populates `window.__THIS_IS_CINEMA_THEME_REGISTRY__`. Add your theme definition:
 
@@ -152,7 +152,7 @@ window.__THIS_IS_CINEMA_DEFAULT_THEME_ID__ = "your-theme-id";
 
 ### Step 4: Frontend — add full CSS token overrides
 
-**File:** `frontend/src/index.css`
+**File:** `apps/web/src/index.css`
 
 Add a `:root[data-theme-id="your-theme-id"]` block with ALL tokens. Use an existing theme block (e.g., `:root[data-theme-id="gruvbox"]` starting at line 300) as a template.
 
@@ -264,7 +264,7 @@ You must define every token that appears in the `:root` default block. Tokens no
 
 ### Step 5: Frontend — update TypeScript type declaration
 
-**File:** `frontend/src/types/theme-registry.d.ts`
+**File:** `apps/web/src/types/theme-registry.d.ts`
 
 Update the `ThemeRegistryId` union type to include your theme:
 
@@ -276,7 +276,7 @@ type ThemeRegistryId = "rose-pine" | "null-log" | "gruvbox" | "your-theme-id";
 
 ### Step 6: Frontend — update the settings page description
 
-**File:** `frontend/src/features/settings/components/sections/SettingsThemeSection.tsx`
+**File:** `apps/web/src/features/settings/components/sections/SettingsThemeSection.tsx`
 
 Update the `CardDescription` text (around line 72) to include your theme name in the list:
 
@@ -294,11 +294,11 @@ Run the full quality check suite:
 
 ```bash
 # Backend
-cd backend
+cd apps/api
 bunx tsc --noEmit
 
 # Frontend
-cd frontend
+cd apps/web
 bun run typecheck
 bun run lint
 bun run build
@@ -327,12 +327,12 @@ Every file that needs modification when adding a theme:
 
 | # | File | Change |
 | --- | --- | --- |
-| 1 | `backend/src/modules/users/constants/theme.constants.ts` | Add to `SUPPORTED_THEME_IDS` |
-| 2 | `frontend/src/features/theme/theme-registry.ts` | Add to `SUPPORTED_THEME_IDS` |
-| 3 | `frontend/public/theme-registry.js` | Add full theme definition (core + aura tokens) |
-| 4 | `frontend/src/index.css` | Add `:root[data-theme-id="..."]` block with all tokens |
-| 5 | `frontend/src/types/theme-registry.d.ts` | Add to `ThemeRegistryId` union |
-| 6 | `frontend/src/features/settings/components/sections/SettingsThemeSection.tsx` | Update description text |
+| 1 | `apps/api/src/modules/users/constants/theme.constants.ts` | Add to `SUPPORTED_THEME_IDS` |
+| 2 | `apps/web/src/features/theme/theme-registry.ts` | Add to `SUPPORTED_THEME_IDS` |
+| 3 | `apps/web/public/theme-registry.js` | Add full theme definition (core + aura tokens) |
+| 4 | `apps/web/src/index.css` | Add `:root[data-theme-id="..."]` block with all tokens |
+| 5 | `apps/web/src/types/theme-registry.d.ts` | Add to `ThemeRegistryId` union |
+| 6 | `apps/web/src/features/settings/components/sections/SettingsThemeSection.tsx` | Update description text |
 
 ---
 

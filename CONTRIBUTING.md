@@ -23,8 +23,8 @@ Interis is a social movie journal app inspired by Letterboxd. It is a monorepo w
 
 | Package | Purpose |
 | --- | --- |
-| `backend/` | Express 5 API with Drizzle ORM, Better Auth, TMDB integration |
-| `frontend/` | React 19 SPA with TanStack Router + Query, Tailwind CSS |
+| `apps/api/` | Express 5 API with Drizzle ORM, Better Auth, TMDB integration |
+| `apps/web/` | React 19 SPA with TanStack Router + Query, Tailwind CSS |
 
 Both packages run on Bun. The frontend proxies `/api` requests to the backend during development.
 
@@ -144,11 +144,11 @@ feature/
 2. Set up the backend environment:
 
 ```bash
-cd backend
+cd apps/api
 cp .env.example .env  # if available, otherwise create manually
 ```
 
-Fill in `backend/.env`:
+Fill in `apps/api/.env`:
 
 ```env
 DATABASE_URL=postgresql://...
@@ -162,10 +162,10 @@ PORT=5000
 3. Set up the frontend environment:
 
 ```bash
-cd ../frontend
+cd ../web
 ```
 
-Create `frontend/.env`:
+Create `apps/web/.env`:
 
 ```env
 VITE_API_PROXY_TARGET=http://localhost:5000
@@ -175,7 +175,7 @@ VITE_API_BASE_URL=
 4. Run database migrations:
 
 ```bash
-cd ../backend
+cd ../api
 bun install
 bunx drizzle-kit migrate
 ```
@@ -184,11 +184,11 @@ bunx drizzle-kit migrate
 
 ```bash
 # Terminal 1 - backend
-cd backend
+cd apps/api
 bun run dev
 
 # Terminal 2 - frontend
-cd frontend
+cd apps/web
 bun install
 bun run dev
 ```
@@ -484,9 +484,9 @@ Tests use `bun:test` and run against a real Express server instance.
 
 Core directories:
 
-- `backend/tests/integration/*` - route + auth + DB integration suites
-- `backend/tests/support/app/*` - server/http/cookie helpers
-- `backend/tests/support/factories/*` - deterministic test data builders
+- `apps/api/tests/integration/*` - route + auth + DB integration suites
+- `apps/api/tests/support/app/*` - server/http/cookie helpers
+- `apps/api/tests/support/factories/*` - deterministic test data builders
 
 Minimal pattern:
 
@@ -526,14 +526,14 @@ Frontend tests use Vitest + React Testing Library + MSW.
 
 Core directories:
 
-- `frontend/tests/unit/*` - pure helper/utility tests
-- `frontend/tests/integration/*` - feature/API integration tests
-- `frontend/tests/support/msw/*` - API handlers and server setup
+- `apps/web/tests/unit/*` - pure helper/utility tests
+- `apps/web/tests/integration/*` - feature/API integration tests
+- `apps/web/tests/support/msw/*` - API handlers and server setup
 
 Run tests:
 
 ```bash
-cd frontend
+cd apps/web
 bun run test
 ```
 
@@ -543,12 +543,12 @@ Run these before submitting a PR:
 
 ```bash
 # Backend
-cd backend
+cd apps/api
 bunx tsc --noEmit
 bun test
 
 # Frontend
-cd frontend
+cd apps/web
 bun run test
 bun run typecheck
 bun run lint

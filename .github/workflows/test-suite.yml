@@ -20,19 +20,19 @@ jobs:
 
       - name: Install frontend dependencies
         run: bun install
-        working-directory: frontend
+        working-directory: apps/web
 
       - name: Run frontend tests
         run: bun run test
-        working-directory: frontend
+        working-directory: apps/web
 
       - name: Run frontend typecheck
         run: bun run typecheck
-        working-directory: frontend
+        working-directory: apps/web
 
       - name: Run frontend lint
         run: bun run lint
-        working-directory: frontend
+        working-directory: apps/web
 
   backend:
     name: Backend Integration Tests
@@ -54,12 +54,12 @@ jobs:
 
       - name: Install backend dependencies
         run: bun install
-        working-directory: backend
+        working-directory: apps/api
 
       - name: Apply database migrations
         run: bun run test:db:migrate
-        working-directory: backend
+        working-directory: apps/api
 
       - name: Run backend tests
         run: bun run test
-        working-directory: backend
+        working-directory: apps/api
