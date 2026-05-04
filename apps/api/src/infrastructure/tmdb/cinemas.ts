@@ -79,6 +79,23 @@ export const searchMovies = async (
   return z.array(TMDBSearchMovieSchema).parse(results);
 };
 
+export const searchMovieByTitleAndYear = async (
+  title: string,
+  year: number,
+): Promise<TMDBSearchMovie[]> => {
+  const params = new URLSearchParams({
+    query: title,
+    include_adult: "false",
+    language: "en-US",
+    page: "1",
+  });
+  if (year > 0) params.set("year", String(year));
+
+  const data = await fetchTMDB(`/search/movie?${params.toString()}`);
+  const results = (data as { results?: unknown }).results ?? [];
+  return z.array(TMDBSearchMovieSchema).parse(results);
+};
+
 export const getNowPlayingMovies = async (): Promise<TMDBSearchMovie[]> => {
   const data = await fetchTMDB(
     "/movie/now_playing?language=en-US&page=1&region=US",

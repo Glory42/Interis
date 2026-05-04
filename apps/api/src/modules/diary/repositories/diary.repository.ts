@@ -173,6 +173,34 @@ export class DiaryRepository {
     return updated ?? null;
   }
 
+  static async existsByUserAndMovie(userId: string, movieId: number): Promise<boolean> {
+    const [entry] = await db
+      .select({ id: diaryEntries.id })
+      .from(diaryEntries)
+      .where(and(eq(diaryEntries.userId, userId), eq(diaryEntries.movieId, movieId)))
+      .limit(1);
+    return Boolean(entry);
+  }
+
+  static async existsByUserMovieAndDate(
+    userId: string,
+    movieId: number,
+    watchedDate: string,
+  ): Promise<boolean> {
+    const [entry] = await db
+      .select({ id: diaryEntries.id })
+      .from(diaryEntries)
+      .where(
+        and(
+          eq(diaryEntries.userId, userId),
+          eq(diaryEntries.movieId, movieId),
+          eq(diaryEntries.watchedDate, watchedDate),
+        ),
+      )
+      .limit(1);
+    return Boolean(entry);
+  }
+
   static async deleteByIdAndUser(entryId: string, userId: string) {
     const [deleted] = await db
       .delete(diaryEntries)
