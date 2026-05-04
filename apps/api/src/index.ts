@@ -28,6 +28,7 @@ import interactionsRouter from "./modules/interactions/interactions.routes";
 import uploadsRouter from "./modules/uploads/uploads.routes";
 import publicRouter from "./modules/public/public.routes";
 import postsRouter from "./modules/posts/posts.routes";
+import dataTransferRouter from "./modules/data-transfer/data-transfer.routes";
 
 export const createApp = () => {
   const app = express();
@@ -124,6 +125,7 @@ export const createApp = () => {
   app.use("/api/public", publicRouter);
   app.use("/api/posts", postsRouter);
   app.use("/api/lists", listsRouter);
+  app.use("/api/data", dataTransferRouter);
 
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     if (err.message === "Not allowed by CORS") {
