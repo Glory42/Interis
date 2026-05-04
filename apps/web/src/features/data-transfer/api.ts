@@ -23,7 +23,9 @@ export async function* importDiaryStream(
 ): AsyncGenerator<ImportStreamEvent> {
   const text = await file.text();
 
-  const res = await fetch("/api/data/import", {
+  const url = `/api/data/import?filename=${encodeURIComponent(file.name)}`;
+
+  const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "text/csv" },
     credentials: "include",

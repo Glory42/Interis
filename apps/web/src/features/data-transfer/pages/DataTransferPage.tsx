@@ -83,9 +83,11 @@ export const DataTransferPage = () => {
             <p className="mt-1 font-mono text-xs settings-shell-muted">
               Import from a Letterboxd export —{" "}
               <span className="settings-shell-accent">diary.csv</span>,{" "}
-              <span className="settings-shell-accent">reviews.csv</span>, or{" "}
-              <span className="settings-shell-accent">watched.csv</span> — or a
-              previous Interis export. Duplicates are skipped automatically.
+              <span className="settings-shell-accent">reviews.csv</span>,{" "}
+              <span className="settings-shell-accent">watched.csv</span>, or{" "}
+              <span className="settings-shell-accent">watchlist.csv</span> — or
+              a previous Interis export. Reviews and watchlist entries are
+              imported automatically. Duplicates are skipped.
             </p>
           </div>
 
