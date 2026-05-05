@@ -1,10 +1,12 @@
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
+
 export type ImportStreamEvent =
   | { type: "start"; total: number; format: string }
   | { type: "row"; title: string; year: number | null; status: "imported" | "skipped" | "failed"; reason?: string }
   | { type: "done"; total: number; imported: number; skipped: number; failed: number };
 
 export async function exportDiary(): Promise<void> {
-  const res = await fetch("/api/data/export", { credentials: "include" });
+  const res = await fetch(`${API_BASE}/api/data/export`, { credentials: "include" });
   if (!res.ok) throw new Error("Export failed");
 
   const blob = await res.blob();
@@ -23,7 +25,7 @@ export async function* importDiaryStream(
 ): AsyncGenerator<ImportStreamEvent> {
   const text = await file.text();
 
-  const url = `/api/data/import?filename=${encodeURIComponent(file.name)}`;
+  const url = `${API_BASE}/api/data/import?filename=${encodeURIComponent(file.name)}`;
 
   const res = await fetch(url, {
     method: "POST",
