@@ -195,4 +195,23 @@ export class SerialsInteractionsRepository {
         set: { watchlisted: true },
       });
   }
+
+  static async setRating(userId: string, seriesId: number, ratingOutOfTen: number): Promise<void> {
+    await db
+      .insert(serialInteractions)
+      .values({ userId, seriesId, liked: false, watchlisted: false, rating: ratingOutOfTen })
+      .onConflictDoUpdate({
+        target: [serialInteractions.userId, serialInteractions.seriesId],
+        set: { rating: ratingOutOfTen },
+      });
+  }
+
+  static async hasRating(userId: string, seriesId: number): Promise<boolean> {
+    const [row] = await db
+      .select({ rating: serialInteractions.rating })
+      .from(serialInteractions)
+      .where(and(eq(serialInteractions.userId, userId), eq(serialInteractions.seriesId, seriesId)))
+      .limit(1);
+    return row?.rating !== null && row?.rating !== undefined;
+  }
 }

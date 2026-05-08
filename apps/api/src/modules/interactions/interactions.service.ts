@@ -126,4 +126,23 @@ export class InteractionsService {
         set: { watchlisted: true },
       });
   }
+
+  static async setRating(userId: string, movieId: number, ratingOutOfTen: number): Promise<void> {
+    await db
+      .insert(movieInteractions)
+      .values({ userId, movieId, liked: false, watchlisted: false, rating: ratingOutOfTen })
+      .onConflictDoUpdate({
+        target: [movieInteractions.userId, movieInteractions.movieId],
+        set: { rating: ratingOutOfTen },
+      });
+  }
+
+  static async hasRating(userId: string, movieId: number): Promise<boolean> {
+    const [row] = await db
+      .select({ rating: movieInteractions.rating })
+      .from(movieInteractions)
+      .where(and(eq(movieInteractions.userId, userId), eq(movieInteractions.movieId, movieId)))
+      .limit(1);
+    return row?.rating !== null && row?.rating !== undefined;
+  }
 }
