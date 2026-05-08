@@ -12,12 +12,13 @@ export type ImportStreamEvent =
   | { type: "row"; title: string; year: number | null; status: "imported" | "skipped" | "failed"; reason?: string }
   | { type: "done"; total: number; imported: number; skipped: number; failed: number };
 
-type ImportFormat = "letterboxd" | "letterboxd-watched" | "letterboxd-watchlist" | "interis" | "unknown";
+type ImportFormat = "letterboxd" | "letterboxd-watched" | "letterboxd-watchlist" | "letterboxd-ratings" | "interis" | "unknown";
 
 const FORMAT_LABELS: Record<ImportFormat, string> = {
   letterboxd: "Letterboxd diary",
   "letterboxd-watched": "Letterboxd watched",
   "letterboxd-watchlist": "Letterboxd watchlist",
+  "letterboxd-ratings": "Letterboxd ratings",
   interis: "Interis export",
   unknown: "unknown",
 };
@@ -27,9 +28,10 @@ function detectFormat(headers: string[], filename?: string): ImportFormat {
   if (set.has("TmdbId") && set.has("WatchedDate")) return "interis";
   if (set.has("Name") && set.has("Watched Date")) return "letterboxd";
   if (set.has("Name") && set.has("Date") && set.has("Year")) {
-    // watched.csv and watchlist.csv have identical headers — use filename to tell them apart
     const name = (filename ?? "").toLowerCase();
     if (name.includes("watchlist")) return "letterboxd-watchlist";
+    // ratings.csv has a Rating column; watched.csv does not
+    if (set.has("Rating") || name.includes("ratings")) return "letterboxd-ratings";
     return "letterboxd-watched";
   }
   return "unknown";
@@ -93,6 +95,31 @@ function normalizeLetterboxdRow(row: Record<string, string>): NormalizedRow | nu
 
 function normalizeLetterboxdWatchlistRow(row: Record<string, string>): NormalizedRow | null {
   return normalizeLetterboxdWatchedRow(row);
+}
+
+function normalizeLetterboxdRatingsRow(row: Record<string, string>): NormalizedRow | null {
+  const watchedDate = parseDate(row["Date"] ?? "");
+  if (!watchedDate) return null;
+
+  const title = (row["Name"] ?? "").trim();
+  if (!title) return null;
+
+  const yearRaw = Number.parseInt(row["Year"] ?? "", 10);
+  const year = Number.isNaN(yearRaw) ? null : yearRaw;
+
+  const rating = parseRating(row["Rating"] ?? "");
+  if (!rating) return null; // no point importing a row with no rating
+
+  return {
+    title,
+    year,
+    tmdbId: null,
+    watchedDate,
+    rating,
+    rewatch: false,
+    review: "",
+    spoilers: false,
+  };
 }
 
 function normalizeLetterboxdWatchedRow(row: Record<string, string>): NormalizedRow | null {
@@ -222,7 +249,9 @@ export class DataImportService {
             ? normalizeLetterboxdWatchedRow(rawRow)
             : format === "letterboxd-watchlist"
               ? normalizeLetterboxdWatchlistRow(rawRow)
-              : normalizeInterisRow(rawRow);
+              : format === "letterboxd-ratings"
+                ? normalizeLetterboxdRatingsRow(rawRow)
+                : normalizeInterisRow(rawRow);
 
       const displayTitle = (rawRow["Name"] ?? rawRow["Title"] ?? "").trim();
       const displayYear = Number.parseInt(rawRow["Year"] ?? "", 10);
@@ -246,6 +275,44 @@ export class DataImportService {
       if (!resolved) {
         failed++;
         write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "Not found on TMDB as movie or TV series." });
+        return;
+      }
+
+      // --- Ratings path ---
+      if (format === "letterboxd-ratings") {
+        const ratingOutOfTen = toRatingOutOfTen(normalized.rating);
+        if (!ratingOutOfTen) {
+          skipped++;
+          write({ type: "row", title: normalized.title, year: normalized.year, status: "skipped", reason: "No rating." });
+          return;
+        }
+
+        try {
+          if (resolved.mediaType === "series") {
+            const series = await SerialsService.findOrCreate(resolved.tmdbId);
+            const already = await SerialsInteractionsRepository.hasRating(userId, series.id);
+            if (already) {
+              skipped++;
+              write({ type: "row", title: normalized.title, year: normalized.year, status: "skipped", reason: "Rating already set." });
+              return;
+            }
+            await SerialsInteractionsRepository.setRating(userId, series.id, ratingOutOfTen);
+          } else {
+            const movie = await MoviesService.findOrCreate(resolved.tmdbId);
+            const already = await InteractionsService.hasRating(userId, movie.id);
+            if (already) {
+              skipped++;
+              write({ type: "row", title: normalized.title, year: normalized.year, status: "skipped", reason: "Rating already set." });
+              return;
+            }
+            await InteractionsService.setRating(userId, movie.id, ratingOutOfTen);
+          }
+          imported++;
+          write({ type: "row", title: normalized.title, year: normalized.year, status: "imported" });
+        } catch {
+          failed++;
+          write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "Failed to save rating." });
+        }
         return;
       }
 
@@ -290,11 +357,12 @@ export class DataImportService {
           return;
         }
 
+        const seriesRating = toRatingOutOfTen(normalized.rating);
         const entry = await SerialsInteractionsRepository.insertSerialDiaryEntry({
           userId,
           seriesId: series.id,
           watchedDate: normalized.watchedDate,
-          rating: toRatingOutOfTen(normalized.rating),
+          rating: seriesRating,
           rewatch: normalized.rewatch,
         });
 
@@ -302,6 +370,14 @@ export class DataImportService {
           failed++;
           write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "Failed to save diary entry." });
           return;
+        }
+
+        if (seriesRating) {
+          try {
+            await SerialsInteractionsRepository.setRating(userId, series.id, seriesRating);
+          } catch {
+            // non-fatal
+          }
         }
 
         imported++;
@@ -355,6 +431,15 @@ export class DataImportService {
         failed++;
         write({ type: "row", title: normalized.title, year: normalized.year, status: "failed", reason: "Failed to save entry." });
         return;
+      }
+
+      const ratingOutOfTen = toRatingOutOfTen(normalized.rating);
+      if (ratingOutOfTen) {
+        try {
+          await InteractionsService.setRating(userId, movie.id, ratingOutOfTen);
+        } catch {
+          // non-fatal
+        }
       }
 
       if (normalized.review) {
