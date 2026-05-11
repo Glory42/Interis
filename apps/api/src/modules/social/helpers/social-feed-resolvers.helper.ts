@@ -1,3 +1,7 @@
+import { eq } from "drizzle-orm";
+import { db } from "../../../infrastructure/database/db";
+import { albums } from "../../music/music.entity";
+import { books } from "../../books/books.entity";
 import { readBoolean, readNumber, readPostMediaType, readString } from "./social-feed-metadata.helper";
 import { SocialFeedRepository } from "../repositories/social-feed.repository";
 import type {
@@ -10,14 +14,10 @@ import type {
 } from "../types/social-feed.types";
 
 const toFeedMediaType = (value: string | null): FeedMediaType | null => {
-  if (value === "tv") {
-    return "tv";
-  }
-
-  if (value === "movie") {
-    return "movie";
-  }
-
+  if (value === "tv") return "tv";
+  if (value === "movie") return "movie";
+  if (value === "album") return "album";
+  if (value === "book") return "book";
   return null;
 };
 
@@ -36,6 +36,8 @@ export const toFeedMetadata = (rawMetadata: FeedRawMetadata): FeedMetadata => {
     reviewId: readString(rawMetadata, "reviewId"),
     commentId: readString(rawMetadata, "commentId"),
     movieId: readNumber(rawMetadata, "movieId"),
+    mbid: readString(rawMetadata, "mbid"),
+    volumeId: readString(rawMetadata, "volumeId"),
     postId: readString(rawMetadata, "postId"),
     postMediaId: readNumber(rawMetadata, "mediaId"),
     postMediaType: readPostMediaType(rawMetadata, "mediaType"),
@@ -96,10 +98,84 @@ export const resolveMovie = async (
   activity: SocialActivity,
   metadata: FeedMetadata,
 ): Promise<FeedMovie | null> => {
-  const tmdbId = readNumber(rawMetadata, "tmdbId");
-  const title = readString(rawMetadata, "title");
   const mediaType = toFeedMediaType(readPostMediaType(rawMetadata, "mediaType"));
+  const title = readString(rawMetadata, "title");
 
+  // Album
+  if (mediaType === "album") {
+    const mbid = readString(rawMetadata, "mbid") ?? metadata.mbid;
+    if (mbid && title) {
+      return {
+        tmdbId: null,
+        title,
+        posterPath: null,
+        coverArtUrl: readString(rawMetadata, "coverArtUrl"),
+        releaseYear: readNumber(rawMetadata, "releaseYear"),
+        mediaType: "album",
+        mbid,
+        artistName: readString(rawMetadata, "artistName"),
+      };
+    }
+    if (mbid) {
+      const [album] = await db
+        .select({ title: albums.title, coverArtUrl: albums.coverArtUrl, firstReleaseYear: albums.firstReleaseYear, artistName: albums.artistName })
+        .from(albums)
+        .where(eq(albums.mbid, mbid))
+        .limit(1);
+      if (album) {
+        return {
+          tmdbId: null,
+          title: album.title,
+          posterPath: null,
+          coverArtUrl: album.coverArtUrl ?? null,
+          releaseYear: album.firstReleaseYear ?? null,
+          mediaType: "album",
+          mbid,
+          artistName: album.artistName,
+        };
+      }
+    }
+    return null;
+  }
+
+  // Book
+  if (mediaType === "book") {
+    const volumeId = readString(rawMetadata, "volumeId") ?? metadata.volumeId;
+    if (volumeId && title) {
+      return {
+        tmdbId: null,
+        title,
+        posterPath: null,
+        coverArtUrl: readString(rawMetadata, "coverArtUrl"),
+        releaseYear: readNumber(rawMetadata, "releaseYear"),
+        mediaType: "book",
+        volumeId,
+        authors: (rawMetadata.authors as string[] | null) ?? null,
+      };
+    }
+    if (volumeId) {
+      const [book] = await db
+        .select({ title: books.title, coverImageUrl: books.coverImageUrl, publishedYear: books.publishedYear, authors: books.authors })
+        .from(books)
+        .where(eq(books.googleVolumeId, volumeId))
+        .limit(1);
+      if (book) {
+        return {
+          tmdbId: null,
+          title: book.title,
+          posterPath: null,
+          coverArtUrl: book.coverImageUrl ?? null,
+          releaseYear: book.publishedYear ?? null,
+          mediaType: "book",
+          volumeId,
+          authors: (book.authors as string[]) ?? null,
+        };
+      }
+    }
+    return null;
+  }
+
+  const tmdbId = readNumber(rawMetadata, "tmdbId");
   if (tmdbId !== null && title) {
     return {
       tmdbId,

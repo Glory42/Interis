@@ -37,15 +37,20 @@ export const feedActorSchema = z.object({
 
 export const feedMovieSchema = z
   .object({
-    tmdbId: z.number().int().positive(),
+    tmdbId: z.number().int().nullable().optional(),
     title: z.string(),
     posterPath: z.string().nullable(),
+    coverArtUrl: z.string().nullable().optional(),
     releaseYear: z.number().int().nullable(),
-    mediaType: z.enum(["movie", "tv"]).default("movie"),
+    mediaType: z.enum(["movie", "tv", "album", "book"]).default("movie"),
+    mbid: z.string().nullable().optional(),
+    artistName: z.string().nullable().optional(),
+    volumeId: z.string().nullable().optional(),
+    authors: z.array(z.string()).nullable().optional(),
   })
   .nullable();
 
-export const feedPostMediaTypeSchema = z.enum(["movie", "tv"]);
+export const feedPostMediaTypeSchema = z.enum(["movie", "tv", "album", "book"]);
 
 export const feedPostSchema = z
   .object({
@@ -72,11 +77,13 @@ export const feedMetadataSchema = z.object({
   rating: z.number().nullable(),
   rewatch: z.boolean().nullable(),
   hasReview: z.boolean().nullable().optional(),
-  mediaType: z.enum(["movie", "tv"]).nullable().optional(),
+  mediaType: z.enum(["movie", "tv", "album", "book"]).nullable().optional(),
   containsSpoilers: z.boolean().nullable(),
   reviewId: z.string().nullable(),
   commentId: z.string().nullable(),
   movieId: z.number().nullable(),
+  mbid: z.string().nullable().optional(),
+  volumeId: z.string().nullable().optional(),
   postId: z.string().nullable(),
   postMediaId: z.number().nullable(),
   postMediaType: feedPostMediaTypeSchema.nullable(),

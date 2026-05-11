@@ -28,7 +28,16 @@ const buildTopLoggedThings = (items: FeedItem[]): LoggedThing[] => {
       continue;
     }
 
-    const key = `${item.movie.mediaType}:${item.movie.tmdbId}`;
+    const { tmdbId, mediaType } = item.movie;
+    if (mediaType !== "movie" && mediaType !== "tv") {
+      continue;
+    }
+
+    if (typeof tmdbId !== "number") {
+      continue;
+    }
+
+    const key = `${mediaType}:${tmdbId}`;
     const existing = counts.get(key);
     if (existing) {
       existing.count += 1;
@@ -38,12 +47,9 @@ const buildTopLoggedThings = (items: FeedItem[]): LoggedThing[] => {
     counts.set(key, {
       id: key,
       title: item.movie.title,
-      to:
-        item.movie.mediaType === "tv"
-          ? "/serials/$tmdbId"
-          : "/cinema/$tmdbId",
-      tmdbId: item.movie.tmdbId,
-      module: item.movie.mediaType === "tv" ? "SERIAL" : "CINEMA",
+      to: mediaType === "tv" ? "/serials/$tmdbId" : "/cinema/$tmdbId",
+      tmdbId,
+      module: mediaType === "tv" ? "SERIAL" : "CINEMA",
       count: 1,
     });
   }

@@ -1,33 +1,21 @@
 import type { FeedItem } from "@/features/feed/types";
 import { formatRelativeTime } from "@/lib/time";
 
-export type FeedChannel = "cinema" | "serial";
+export type FeedChannel = "cinema" | "serial" | "music" | "books";
 
 export const inferFeedChannel = (item: FeedItem): FeedChannel | null => {
-  if (item.movie?.mediaType === "movie") {
-    return "cinema";
-  }
+  const mediaType = item.movie?.mediaType ?? item.metadata.mediaType;
 
-  if (item.movie?.mediaType === "tv") {
-    return "serial";
-  }
-
-  if (item.metadata.mediaType === "movie") {
-    return "cinema";
-  }
-
-  if (item.metadata.mediaType === "tv") {
-    return "serial";
-  }
+  if (mediaType === "movie") return "cinema";
+  if (mediaType === "tv") return "serial";
+  if (mediaType === "album") return "music";
+  if (mediaType === "book") return "books";
 
   const attachedMediaType = item.post?.mediaType ?? item.metadata.postMediaType;
-  if (attachedMediaType === "movie") {
-    return "cinema";
-  }
-
-  if (attachedMediaType === "tv") {
-    return "serial";
-  }
+  if (attachedMediaType === "movie") return "cinema";
+  if (attachedMediaType === "tv") return "serial";
+  if (attachedMediaType === "album") return "music";
+  if (attachedMediaType === "book") return "books";
 
   return null;
 };
@@ -49,6 +37,16 @@ export const feedChannelMeta: Record<
     label: "SERIAL",
     color: "var(--module-serial)",
     tint: "rgba(0, 207, 255, 0.08)",
+  },
+  music: {
+    label: "MUSIC",
+    color: "var(--module-music)",
+    tint: "rgba(168, 85, 247, 0.08)",
+  },
+  books: {
+    label: "BOOKS",
+    color: "var(--module-book)",
+    tint: "rgba(249, 115, 22, 0.08)",
   },
 };
 

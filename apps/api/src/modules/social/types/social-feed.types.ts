@@ -21,17 +21,22 @@ export type FeedActivityKind =
   | "liked_post"
   | "commented_post";
 
-export type FeedMediaType = "movie" | "tv";
+export type FeedMediaType = "movie" | "tv" | "album" | "book";
 
 export type FeedMovie = {
-  tmdbId: number;
+  tmdbId: number | null;
   title: string;
   posterPath: string | null;
+  coverArtUrl?: string | null;
   releaseYear: number | null;
   mediaType: FeedMediaType;
+  mbid?: string | null;
+  artistName?: string | null;
+  volumeId?: string | null;
+  authors?: string[] | null;
 };
 
-export type FeedPostMediaType = "movie" | "tv";
+export type FeedPostMediaType = "movie" | "tv" | "album" | "book";
 
 export type FeedPost = {
   id: string;
@@ -59,6 +64,8 @@ export type FeedMetadata = {
   reviewId: string | null;
   commentId: string | null;
   movieId: number | null;
+  mbid: string | null;
+  volumeId: string | null;
   postId: string | null;
   postMediaId: number | null;
   postMediaType: FeedPostMediaType | null;
