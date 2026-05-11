@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import {
+  BookOpen,
   Film,
+  Music,
   Tv,
   type LucideIcon,
 } from "lucide-react";
@@ -18,11 +20,13 @@ type ProfileTopPicksSectionProps = {
   isTopPicksError: boolean;
 };
 
-type TopPickCategoryKey = "cinema" | "serial";
+type TopPickCategoryKey = "cinema" | "serial" | "music" | "books";
 
 const topPickCategoryOrder: TopPickCategoryKey[] = [
   "cinema",
   "serial",
+  "music",
+  "books",
 ];
 
 const topPickCategoryMeta: Record<
@@ -46,23 +50,28 @@ const topPickCategoryMeta: Record<
     icon: Tv,
     defaultSupported: true,
   },
+  music: {
+    label: "Music",
+    color: "var(--module-music)",
+    icon: Music,
+    defaultSupported: true,
+  },
+  books: {
+    label: "Books",
+    color: "var(--module-book)",
+    icon: BookOpen,
+    defaultSupported: true,
+  },
 };
 
 const resolveTmdbId = (item: UserTopPickItem | null): number | null => {
-  if (!item) {
-    return null;
-  }
-
+  if (!item) return null;
   const directTmdbId = item.tmdbId;
-  if (Number.isInteger(directTmdbId)) {
-    return directTmdbId;
-  }
-
+  if (Number.isInteger(directTmdbId)) return directTmdbId;
   if (item.mediaSource === "tmdb") {
     const parsed = Number(item.mediaSourceId);
     return Number.isInteger(parsed) ? parsed : null;
   }
-
   return null;
 };
 
@@ -70,13 +79,9 @@ const toSlotItems = (
   category: UserTopPickCategory | undefined,
 ): Array<UserTopPickItem | null> => {
   const bySlot = new Map<number, UserTopPickItem>();
-
   for (const item of category?.items ?? []) {
-    if (!bySlot.has(item.slot)) {
-      bySlot.set(item.slot, item);
-    }
+    if (!bySlot.has(item.slot)) bySlot.set(item.slot, item);
   }
-
   return [1, 2, 3, 4].map((slot) => bySlot.get(slot) ?? null);
 };
 
@@ -95,12 +100,19 @@ const TopPickSlot = ({
 }) => {
   const [didPosterFail, setDidPosterFail] = useState(false);
   const tmdbId = resolveTmdbId(item);
-  const shouldLiftOnHover = categoryKey === "cinema" || categoryKey === "serial";
   const title =
     item?.title?.trim() ||
     (isCategorySupported ? "Not set" : "Not supported");
-  const posterUrl = item?.posterPath ? getPosterUrl(item.posterPath) : null;
-  const showPoster = Boolean(posterUrl && !didPosterFail);
+
+  const coverUrl = item
+    ? categoryKey === "music" || categoryKey === "books"
+      ? (item.coverArtUrl ?? null)
+      : item.posterPath
+        ? getPosterUrl(item.posterPath)
+        : null
+    : null;
+
+  const showPoster = Boolean(coverUrl && !didPosterFail);
 
   const body = (
     <div
@@ -112,12 +124,10 @@ const TopPickSlot = ({
     >
       {showPoster ? (
         <img
-          src={posterUrl ?? undefined}
+          src={coverUrl ?? undefined}
           alt={title}
           className="h-full w-full object-cover"
-          onError={() => {
-            setDidPosterFail(true);
-          }}
+          onError={() => { setDidPosterFail(true); }}
         />
       ) : (
         <div className="flex h-full w-full flex-col items-center justify-center p-1">
@@ -139,11 +149,7 @@ const TopPickSlot = ({
       <Link
         to="/cinema/$tmdbId"
         params={{ tmdbId: String(tmdbId) }}
-        className={
-          shouldLiftOnHover
-            ? "relative z-0 block transition-transform duration-200 ease-out hover:z-20 hover:-translate-y-1 hover:scale-[1.06] hover:shadow-[0_10px_24px_rgba(0,0,0,0.35)]"
-            : "block"
-        }
+        className="relative z-0 block transition-transform duration-200 ease-out hover:z-20 hover:-translate-y-1 hover:scale-[1.06] hover:shadow-[0_10px_24px_rgba(0,0,0,0.35)]"
         viewTransition
       >
         {body}
@@ -156,11 +162,7 @@ const TopPickSlot = ({
       <Link
         to="/serials/$tmdbId"
         params={{ tmdbId: String(tmdbId) }}
-        className={
-          shouldLiftOnHover
-            ? "relative z-0 block transition-transform duration-200 ease-out hover:z-20 hover:-translate-y-1 hover:scale-[1.06] hover:shadow-[0_10px_24px_rgba(0,0,0,0.35)]"
-            : "block"
-        }
+        className="relative z-0 block transition-transform duration-200 ease-out hover:z-20 hover:-translate-y-1 hover:scale-[1.06] hover:shadow-[0_10px_24px_rgba(0,0,0,0.35)]"
         viewTransition
       >
         {body}
@@ -168,15 +170,37 @@ const TopPickSlot = ({
     );
   }
 
-  if (shouldLiftOnHover) {
+  if (categoryKey === "music" && item?.mediaSourceId) {
     return (
-      <div className="relative z-0 transition-transform duration-200 ease-out hover:z-20 hover:-translate-y-1 hover:scale-[1.06] hover:shadow-[0_10px_24px_rgba(0,0,0,0.35)]">
+      <Link
+        to="/music/$mbid"
+        params={{ mbid: item.mediaSourceId }}
+        className="relative z-0 block transition-transform duration-200 ease-out hover:z-20 hover:-translate-y-1 hover:scale-[1.06] hover:shadow-[0_10px_24px_rgba(0,0,0,0.35)]"
+        viewTransition
+      >
         {body}
-      </div>
+      </Link>
     );
   }
 
-  return body;
+  if (categoryKey === "books" && item?.mediaSourceId) {
+    return (
+      <Link
+        to="/books/$volumeId"
+        params={{ volumeId: item.mediaSourceId }}
+        className="relative z-0 block transition-transform duration-200 ease-out hover:z-20 hover:-translate-y-1 hover:scale-[1.06] hover:shadow-[0_10px_24px_rgba(0,0,0,0.35)]"
+        viewTransition
+      >
+        {body}
+      </Link>
+    );
+  }
+
+  return (
+    <div className="relative z-0 transition-transform duration-200 ease-out hover:z-20 hover:-translate-y-1 hover:scale-[1.06] hover:shadow-[0_10px_24px_rgba(0,0,0,0.35)]">
+      {body}
+    </div>
+  );
 };
 
 export const ProfileTopPicksSection = ({
@@ -213,16 +237,11 @@ export const ProfileTopPicksSection = ({
           const meta = topPickCategoryMeta[categoryKey];
           const Icon = meta.icon;
           const isCategorySupported = category?.supported ?? meta.defaultSupported;
-          const shouldLiftPanel = categoryKey === "cinema" || categoryKey === "serial";
 
           return (
             <section
               key={`top-pick-category-${categoryKey}`}
-              className={
-                shouldLiftPanel
-                  ? "relative z-0 border p-4 transition-transform duration-300 ease-out hover:z-10 hover:-translate-y-1 hover:scale-[1.01]"
-                  : "border p-4"
-              }
+              className="relative z-0 border p-4 transition-transform duration-300 ease-out hover:z-10 hover:-translate-y-1 hover:scale-[1.01]"
               style={{
                 borderColor: "var(--profile-shell-border)",
                 background: "var(--profile-shell-panel)",

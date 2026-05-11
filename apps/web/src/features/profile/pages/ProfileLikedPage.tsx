@@ -14,7 +14,7 @@ import { getRelativeTime } from "@/features/profile/utils/profile.utils";
 import { formatRelativeTime } from "@/lib/time";
 
 type LikedTab = "medias" | "reviews" | "lists";
-type MediaFilter = "all" | "cinema" | "serial";
+type MediaFilter = "all" | "cinema" | "serial" | "music" | "books";
 type ListFilter = "all" | "cinema" | "serial" | "mixed";
 
 const topTabs: Array<{ key: LikedTab; label: string }> = [
@@ -27,6 +27,8 @@ const mediaSubFilters: Array<{ key: MediaFilter; label: string }> = [
   { key: "all", label: "All" },
   { key: "cinema", label: "Cinema" },
   { key: "serial", label: "Serial" },
+  { key: "music", label: "Music" },
+  { key: "books", label: "Books" },
 ];
 
 const listSubFilters: Array<{ key: ListFilter; label: string }> = [
@@ -59,11 +61,6 @@ const tabButtonStyle = (isActive: boolean): React.CSSProperties =>
       };
 
 // ── Media grid (inlined to share the sub-filter row with top tabs) ──────────
-const routeByMediaType: Record<string, "/cinema/$tmdbId" | "/serials/$tmdbId" | null> = {
-  movie: "/cinema/$tmdbId",
-  tv: "/serials/$tmdbId",
-};
-
 const MediaGrid = ({
   items,
   filter,
@@ -74,7 +71,10 @@ const MediaGrid = ({
   const filtered = useMemo(() => {
     if (filter === "all") return items;
     if (filter === "cinema") return items.filter((i) => i.mediaType === "movie");
-    return items.filter((i) => i.mediaType === "tv");
+    if (filter === "serial") return items.filter((i) => i.mediaType === "tv");
+    if (filter === "music") return items.filter((i) => i.mediaType === "album");
+    if (filter === "books") return items.filter((i) => i.mediaType === "book");
+    return items;
   }, [items, filter]);
 
   if (filtered.length === 0) {
@@ -88,16 +88,26 @@ const MediaGrid = ({
   return (
     <div className="grid grid-cols-5 gap-3 sm:grid-cols-4 lg:grid-cols-6">
       {filtered.map((item) => {
-        const mediaRoute = routeByMediaType[item.mediaType];
+        const coverUrl = item.mediaType === "album" || item.mediaType === "book"
+          ? (item.coverArtUrl ?? item.coverImageUrl ?? null)
+          : getPosterUrl(item.posterPath ?? null);
+        const itemKey = item.mediaType === "album"
+          ? `media-album-${item.mbid}`
+          : item.mediaType === "book"
+            ? `media-book-${item.volumeId}`
+            : `media-${item.mediaType}-${item.tmdbId}`;
+
         const card = (
           <>
             <div className="relative mb-1.5 aspect-2/3 overflow-hidden border border-border/70 bg-card/25">
-              <img
-                src={getPosterUrl(item.posterPath)}
-                alt={item.title}
-                className="h-full w-full object-cover opacity-90 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
-                loading="lazy"
-              />
+              {coverUrl ? (
+                <img
+                  src={coverUrl}
+                  alt={item.title}
+                  className="h-full w-full object-cover opacity-90 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+                  loading="lazy"
+                />
+              ) : null}
             </div>
             <p className="line-clamp-1 text-[11px] font-semibold text-foreground/95 transition-colors group-hover:text-primary">
               {item.title}
@@ -108,22 +118,37 @@ const MediaGrid = ({
           </>
         );
 
-        if (mediaRoute) {
+        if (item.mediaType === "movie" && item.tmdbId) {
           return (
-            <Link
-              key={`media-${item.mediaType}-${item.tmdbId}`}
-              to={mediaRoute}
-              params={{ tmdbId: String(item.tmdbId) }}
-              className="group block"
-              viewTransition
-            >
+            <Link key={itemKey} to="/cinema/$tmdbId" params={{ tmdbId: String(item.tmdbId) }} className="group block" viewTransition>
+              {card}
+            </Link>
+          );
+        }
+        if (item.mediaType === "tv" && item.tmdbId) {
+          return (
+            <Link key={itemKey} to="/serials/$tmdbId" params={{ tmdbId: String(item.tmdbId) }} className="group block" viewTransition>
+              {card}
+            </Link>
+          );
+        }
+        if (item.mediaType === "album" && item.mbid) {
+          return (
+            <Link key={itemKey} to="/music/$mbid" params={{ mbid: item.mbid }} className="group block" viewTransition>
+              {card}
+            </Link>
+          );
+        }
+        if (item.mediaType === "book" && item.volumeId) {
+          return (
+            <Link key={itemKey} to="/books/$volumeId" params={{ volumeId: item.volumeId }} className="group block" viewTransition>
               {card}
             </Link>
           );
         }
 
         return (
-          <div key={`media-${item.mediaType}-${item.tmdbId}`} className="group block">
+          <div key={itemKey} className="group block">
             {card}
           </div>
         );
@@ -315,7 +340,10 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
   const filteredReviews = useMemo(() => {
     if (reviewFilter === "all") return reviewItems;
     if (reviewFilter === "cinema") return reviewItems.filter((r) => r.mediaType === "movie");
-    return reviewItems.filter((r) => r.mediaType === "tv");
+    if (reviewFilter === "serial") return reviewItems.filter((r) => r.mediaType === "tv");
+    if (reviewFilter === "music") return reviewItems.filter((r) => r.mediaType === "album");
+    if (reviewFilter === "books") return reviewItems.filter((r) => r.mediaType === "book");
+    return reviewItems;
   }, [reviewItems, reviewFilter]);
 
   const filteredLists = useMemo(() => {

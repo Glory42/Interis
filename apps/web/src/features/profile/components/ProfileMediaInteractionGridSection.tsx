@@ -1,38 +1,129 @@
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { Disc3, BookOpen } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { getPosterUrl } from "@/features/films/components/utils";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import type { UserInteractionMovie } from "@/features/profile/api";
 import { getRelativeTime } from "@/features/profile/utils/profile.utils";
 
-type FavoritesFilter = "all" | "cinema" | "serial";
+type FavoritesFilter = "all" | "cinema" | "serial" | "music" | "books";
 
 const filterTabs: Array<{ key: FavoritesFilter; label: string }> = [
   { key: "all", label: "All" },
   { key: "cinema", label: "Cinema" },
   { key: "serial", label: "Serial" },
+  { key: "music", label: "Music" },
+  { key: "books", label: "Books" },
 ];
 
-const routeByMediaType: Record<string, "/cinema/$tmdbId" | "/serials/$tmdbId" | null> = {
-  movie: "/cinema/$tmdbId",
-  tv: "/serials/$tmdbId",
+const filterMatches = (item: UserInteractionMovie, filter: FavoritesFilter): boolean => {
+  if (filter === "all") return true;
+  if (filter === "cinema") return item.mediaType === "movie";
+  if (filter === "serial") return item.mediaType === "tv";
+  if (filter === "music") return item.mediaType === "album";
+  if (filter === "books") return item.mediaType === "book";
+  return false;
 };
 
-const filterMatches = (item: UserInteractionMovie, filter: FavoritesFilter): boolean => {
-  if (filter === "all") {
-    return true;
+const getItemKey = (item: UserInteractionMovie, prefix: string): string => {
+  if (item.mediaType === "album" && item.mbid) return `${prefix}-album-${item.mbid}`;
+  if (item.mediaType === "book" && item.volumeId) return `${prefix}-book-${item.volumeId}`;
+  return `${prefix}-${item.mediaType}-${item.tmdbId}`;
+};
+
+type ItemCardProps = {
+  item: UserInteractionMovie;
+  interactionVerb: string;
+  sectionTitle: string;
+};
+
+const ItemCard = ({ item, interactionVerb, sectionTitle }: ItemCardProps) => {
+  const coverUrl = item.coverArtUrl ?? item.coverImageUrl ?? null;
+  const posterUrl = item.posterPath ? getPosterUrl(item.posterPath) : null;
+  const imageUrl = posterUrl ?? coverUrl;
+
+  const isAlbum = item.mediaType === "album";
+  const isBook = item.mediaType === "book";
+
+  const cardContent = (
+    <>
+      <div className="relative mb-1.5 overflow-hidden border border-border/70 bg-card/25" style={{ aspectRatio: isAlbum ? "1/1" : "2/3" }}>
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={item.title}
+            className="h-full w-full object-cover opacity-90 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+            loading="lazy"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-muted/20">
+            {isAlbum ? (
+              <Disc3 className="h-8 w-8 opacity-40" style={{ color: "var(--module-music)" }} />
+            ) : isBook ? (
+              <BookOpen className="h-8 w-8 opacity-40" style={{ color: "var(--module-book)" }} />
+            ) : null}
+          </div>
+        )}
+      </div>
+      <p className="line-clamp-1 text-[11px] font-semibold text-foreground/95 transition-colors group-hover:text-primary">
+        {item.title}
+      </p>
+      <p className="mt-0.5 text-[10px] text-muted-foreground/85">
+        {item.releaseYear ?? "Unknown year"} · {interactionVerb}{" "}
+        {getRelativeTime(item.lastInteractionAt)}
+      </p>
+    </>
+  );
+
+  if (isAlbum && item.mbid) {
+    return (
+      <Link
+        key={getItemKey(item, sectionTitle)}
+        to="/music/$mbid"
+        params={{ mbid: item.mbid }}
+        className="group block"
+        viewTransition
+      >
+        {cardContent}
+      </Link>
+    );
   }
 
-  if (filter === "cinema") {
-    return item.mediaType === "movie";
+  if (isBook && item.volumeId) {
+    return (
+      <Link
+        key={getItemKey(item, sectionTitle)}
+        to="/books/$volumeId"
+        params={{ volumeId: item.volumeId }}
+        className="group block"
+        viewTransition
+      >
+        {cardContent}
+      </Link>
+    );
   }
 
-  if (filter === "serial") {
-    return item.mediaType === "tv";
+  if ((item.mediaType === "movie" || item.mediaType === "tv") && item.tmdbId != null) {
+    const to = item.mediaType === "tv" ? "/serials/$tmdbId" : "/cinema/$tmdbId";
+    return (
+      <Link
+        key={getItemKey(item, sectionTitle)}
+        to={to}
+        params={{ tmdbId: String(item.tmdbId) }}
+        className="group block"
+        viewTransition
+      >
+        {cardContent}
+      </Link>
+    );
   }
 
-  return false;
+  return (
+    <div key={getItemKey(item, sectionTitle)} className="group block">
+      {cardContent}
+    </div>
+  );
 };
 
 type ProfileMediaInteractionGridSectionProps = {
@@ -134,53 +225,14 @@ export const ProfileMediaInteractionGridSection = ({
             </div>
           ) : (
             <div className="grid grid-cols-5 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-              {filteredItems.map((item) => {
-                const mediaRoute = routeByMediaType[item.mediaType];
-
-                const card = (
-                  <>
-                    <div className="relative mb-1.5 aspect-2/3 overflow-hidden border border-border/70 bg-card/25">
-                      <img
-                        src={getPosterUrl(item.posterPath)}
-                        alt={item.title}
-                        className="h-full w-full object-cover opacity-90 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
-                        loading="lazy"
-                      />
-                    </div>
-
-                    <p className="line-clamp-1 text-[11px] font-semibold text-foreground/95 transition-colors group-hover:text-primary">
-                      {item.title}
-                    </p>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground/85">
-                      {item.releaseYear ?? "Unknown year"} · {interactionVerb}{" "}
-                      {getRelativeTime(item.lastInteractionAt)}
-                    </p>
-                  </>
-                );
-
-                if (mediaRoute) {
-                  return (
-                    <Link
-                      key={`${sectionTitle}-${item.mediaType}-${item.tmdbId}`}
-                      to={mediaRoute}
-                      params={{ tmdbId: String(item.tmdbId) }}
-                      className="group block"
-                      viewTransition
-                    >
-                      {card}
-                    </Link>
-                  );
-                }
-
-                return (
-                  <div
-                    key={`${sectionTitle}-${item.mediaType}-${item.tmdbId}`}
-                    className="group block"
-                  >
-                    {card}
-                  </div>
-                );
-              })}
+              {filteredItems.map((item) => (
+                <ItemCard
+                  key={getItemKey(item, sectionTitle)}
+                  item={item}
+                  interactionVerb={interactionVerb}
+                  sectionTitle={sectionTitle}
+                />
+              ))}
             </div>
           )}
         </div>

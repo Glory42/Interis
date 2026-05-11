@@ -9,7 +9,10 @@ export type DiaryRow = {
   channel: FeedChannel;
   title: string;
   posterPath: string | null;
+  coverArtUrl: string | null;
   tmdbId: number | null;
+  mbid: string | null;
+  volumeId: string | null;
   releaseYear: number | null;
   createdAt: string;
   ratingOutOfFive: number | null;
@@ -29,6 +32,8 @@ export type DiaryRow = {
 export const channelDisplayLabel: Record<FeedChannel, string> = {
   cinema: "Cinema",
   serial: "Serial",
+  music: "Music",
+  books: "Books",
 };
 
 export const toDateParts = (value: string): {
@@ -145,7 +150,10 @@ export const toDiaryRows = (
         channel,
         title,
         posterPath: item.movie?.posterPath ?? null,
+        coverArtUrl: item.movie?.coverArtUrl ?? null,
         tmdbId,
+        mbid: item.movie?.mbid ?? null,
+        volumeId: item.movie?.volumeId ?? null,
         releaseYear: item.movie?.releaseYear ?? null,
         createdAt: item.createdAt,
         ratingOutOfFive,

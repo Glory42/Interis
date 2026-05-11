@@ -17,8 +17,8 @@ export const ProfileDiaryPage = ({ username }: ProfileDiaryPageProps) => {
   const likedTmdbIdSet = useMemo(() => {
     return new Set(
       (likedQuery.data ?? [])
-        .filter((item) => item.mediaType === "movie")
-        .map((movie) => movie.tmdbId),
+        .filter((item) => item.mediaType === "movie" && typeof item.tmdbId === "number")
+        .map((movie) => movie.tmdbId as number),
     );
   }, [likedQuery.data]);
 
