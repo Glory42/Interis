@@ -2,9 +2,11 @@ import type { ComponentType, CSSProperties } from "react";
 import type { UserSearchResult } from "@/features/profile/api";
 import type { TmdbSearchSeries } from "@/features/serials/api";
 import type { TmdbSearchMovie } from "@/types/api";
+import type { MbSearchResult } from "@/features/music/api";
+import type { GoogleBooksVolume } from "@/features/books/api";
 
 export type SearchMode = "home" | "scoped";
-export type ScopedTarget = "users" | "cinema" | "serials";
+export type ScopedTarget = "users" | "cinema" | "serials" | "music" | "books";
 
 export type UserResultEntry = {
   kind: "users";
@@ -32,10 +34,32 @@ export type SerialResultEntry = {
   firstAirDate: string;
 };
 
+export type MusicResultEntry = {
+  kind: "music";
+  id: string;
+  mbid: string;
+  title: string;
+  artistName: string;
+  primaryType: string | null;
+  firstReleaseDate: string | null;
+};
+
+export type BookResultEntry = {
+  kind: "books";
+  id: string;
+  volumeId: string;
+  title: string;
+  authors: string[];
+  coverImageUrl: string | null;
+  publishedDate: string | null;
+};
+
 export type SearchResultEntry =
   | UserResultEntry
   | CinemaResultEntry
-  | SerialResultEntry;
+  | SerialResultEntry
+  | MusicResultEntry
+  | BookResultEntry;
 
 export type SearchSection = {
   target: ScopedTarget;
@@ -63,4 +87,6 @@ export type SearchResultMappers = {
   toUserEntry: (profile: UserSearchResult) => UserResultEntry;
   toCinemaEntry: (movie: TmdbSearchMovie) => CinemaResultEntry;
   toSerialEntry: (series: TmdbSearchSeries) => SerialResultEntry;
+  toMusicEntry: (result: MbSearchResult) => MusicResultEntry;
+  toBookEntry: (volume: GoogleBooksVolume) => BookResultEntry;
 };

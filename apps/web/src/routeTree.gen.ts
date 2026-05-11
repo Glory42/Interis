@@ -16,8 +16,10 @@ import { Route as SettingsRouteRouteImport } from './routes/settings/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as SerialsIndexRouteImport } from './routes/serials/index'
+import { Route as MusicIndexRouteImport } from './routes/music/index'
 import { Route as FilmsIndexRouteImport } from './routes/films/index'
 import { Route as CinemaIndexRouteImport } from './routes/cinema/index'
+import { Route as BooksIndexRouteImport } from './routes/books/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as SettingsThemeRouteImport } from './routes/settings/theme'
 import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
@@ -26,9 +28,11 @@ import { Route as SettingsFavoritesRouteImport } from './routes/settings/favorit
 import { Route as SettingsDataRouteImport } from './routes/settings/data'
 import { Route as SettingsAuthRouteImport } from './routes/settings/auth'
 import { Route as SerialsTmdbIdRouteImport } from './routes/serials/$tmdbId'
+import { Route as MusicMbidRouteImport } from './routes/music/$mbid'
 import { Route as FilmsTmdbIdRouteImport } from './routes/films/$tmdbId'
 import { Route as DirectorSlugRouteImport } from './routes/director/$slug'
 import { Route as CinemaTmdbIdRouteImport } from './routes/cinema/$tmdbId'
+import { Route as BooksVolumeIdRouteImport } from './routes/books/$volumeId'
 import { Route as ActorSlugRouteImport } from './routes/actor/$slug'
 import { Route as ProfileUsernameRouteRouteImport } from './routes/profile/$username/route'
 import { Route as ProfileUsernameIndexRouteImport } from './routes/profile/$username/index'
@@ -79,6 +83,11 @@ const SerialsIndexRoute = SerialsIndexRouteImport.update({
   path: '/serials/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MusicIndexRoute = MusicIndexRouteImport.update({
+  id: '/music/',
+  path: '/music/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FilmsIndexRoute = FilmsIndexRouteImport.update({
   id: '/films/',
   path: '/films/',
@@ -87,6 +96,11 @@ const FilmsIndexRoute = FilmsIndexRouteImport.update({
 const CinemaIndexRoute = CinemaIndexRouteImport.update({
   id: '/cinema/',
   path: '/cinema/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BooksIndexRoute = BooksIndexRouteImport.update({
+  id: '/books/',
+  path: '/books/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -129,6 +143,11 @@ const SerialsTmdbIdRoute = SerialsTmdbIdRouteImport.update({
   path: '/serials/$tmdbId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MusicMbidRoute = MusicMbidRouteImport.update({
+  id: '/music/$mbid',
+  path: '/music/$mbid',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FilmsTmdbIdRoute = FilmsTmdbIdRouteImport.update({
   id: '/films/$tmdbId',
   path: '/films/$tmdbId',
@@ -142,6 +161,11 @@ const DirectorSlugRoute = DirectorSlugRouteImport.update({
 const CinemaTmdbIdRoute = CinemaTmdbIdRouteImport.update({
   id: '/cinema/$tmdbId',
   path: '/cinema/$tmdbId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BooksVolumeIdRoute = BooksVolumeIdRouteImport.update({
+  id: '/books/$volumeId',
+  path: '/books/$volumeId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ActorSlugRoute = ActorSlugRouteImport.update({
@@ -227,9 +251,11 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
   '/actor/$slug': typeof ActorSlugRoute
+  '/books/$volumeId': typeof BooksVolumeIdRoute
   '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
   '/director/$slug': typeof DirectorSlugRoute
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
+  '/music/$mbid': typeof MusicMbidRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
   '/settings/data': typeof SettingsDataRoute
@@ -238,8 +264,10 @@ export interface FileRoutesByFullPath {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/theme': typeof SettingsThemeRoute
   '/admin/': typeof AdminIndexRoute
+  '/books/': typeof BooksIndexRoute
   '/cinema/': typeof CinemaIndexRoute
   '/films/': typeof FilmsIndexRoute
+  '/music/': typeof MusicIndexRoute
   '/serials/': typeof SerialsIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/profile/$username/cinema': typeof ProfileUsernameCinemaRoute
@@ -261,9 +289,11 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/actor/$slug': typeof ActorSlugRoute
+  '/books/$volumeId': typeof BooksVolumeIdRoute
   '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
   '/director/$slug': typeof DirectorSlugRoute
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
+  '/music/$mbid': typeof MusicMbidRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
   '/settings/data': typeof SettingsDataRoute
@@ -272,8 +302,10 @@ export interface FileRoutesByTo {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/theme': typeof SettingsThemeRoute
   '/admin': typeof AdminIndexRoute
+  '/books': typeof BooksIndexRoute
   '/cinema': typeof CinemaIndexRoute
   '/films': typeof FilmsIndexRoute
+  '/music': typeof MusicIndexRoute
   '/serials': typeof SerialsIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/profile/$username/cinema': typeof ProfileUsernameCinemaRoute
@@ -298,9 +330,11 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
   '/actor/$slug': typeof ActorSlugRoute
+  '/books/$volumeId': typeof BooksVolumeIdRoute
   '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
   '/director/$slug': typeof DirectorSlugRoute
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
+  '/music/$mbid': typeof MusicMbidRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
   '/settings/data': typeof SettingsDataRoute
@@ -309,8 +343,10 @@ export interface FileRoutesById {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/theme': typeof SettingsThemeRoute
   '/admin/': typeof AdminIndexRoute
+  '/books/': typeof BooksIndexRoute
   '/cinema/': typeof CinemaIndexRoute
   '/films/': typeof FilmsIndexRoute
+  '/music/': typeof MusicIndexRoute
   '/serials/': typeof SerialsIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/profile/$username/cinema': typeof ProfileUsernameCinemaRoute
@@ -336,9 +372,11 @@ export interface FileRouteTypes {
     | '/register'
     | '/profile/$username'
     | '/actor/$slug'
+    | '/books/$volumeId'
     | '/cinema/$tmdbId'
     | '/director/$slug'
     | '/films/$tmdbId'
+    | '/music/$mbid'
     | '/serials/$tmdbId'
     | '/settings/auth'
     | '/settings/data'
@@ -347,8 +385,10 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/theme'
     | '/admin/'
+    | '/books/'
     | '/cinema/'
     | '/films/'
+    | '/music/'
     | '/serials/'
     | '/settings/'
     | '/profile/$username/cinema'
@@ -370,9 +410,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/actor/$slug'
+    | '/books/$volumeId'
     | '/cinema/$tmdbId'
     | '/director/$slug'
     | '/films/$tmdbId'
+    | '/music/$mbid'
     | '/serials/$tmdbId'
     | '/settings/auth'
     | '/settings/data'
@@ -381,8 +423,10 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/theme'
     | '/admin'
+    | '/books'
     | '/cinema'
     | '/films'
+    | '/music'
     | '/serials'
     | '/settings'
     | '/profile/$username/cinema'
@@ -406,9 +450,11 @@ export interface FileRouteTypes {
     | '/register'
     | '/profile/$username'
     | '/actor/$slug'
+    | '/books/$volumeId'
     | '/cinema/$tmdbId'
     | '/director/$slug'
     | '/films/$tmdbId'
+    | '/music/$mbid'
     | '/serials/$tmdbId'
     | '/settings/auth'
     | '/settings/data'
@@ -417,8 +463,10 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/theme'
     | '/admin/'
+    | '/books/'
     | '/cinema/'
     | '/films/'
+    | '/music/'
     | '/serials/'
     | '/settings/'
     | '/profile/$username/cinema'
@@ -443,13 +491,17 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   ProfileUsernameRouteRoute: typeof ProfileUsernameRouteRouteWithChildren
   ActorSlugRoute: typeof ActorSlugRoute
+  BooksVolumeIdRoute: typeof BooksVolumeIdRoute
   CinemaTmdbIdRoute: typeof CinemaTmdbIdRoute
   DirectorSlugRoute: typeof DirectorSlugRoute
   FilmsTmdbIdRoute: typeof FilmsTmdbIdRoute
+  MusicMbidRoute: typeof MusicMbidRoute
   SerialsTmdbIdRoute: typeof SerialsTmdbIdRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  BooksIndexRoute: typeof BooksIndexRoute
   CinemaIndexRoute: typeof CinemaIndexRoute
   FilmsIndexRoute: typeof FilmsIndexRoute
+  MusicIndexRoute: typeof MusicIndexRoute
   SerialsIndexRoute: typeof SerialsIndexRoute
   ReviewsUsernameReviewIdRoute: typeof ReviewsUsernameReviewIdRoute
 }
@@ -505,6 +557,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SerialsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/music/': {
+      id: '/music/'
+      path: '/music'
+      fullPath: '/music/'
+      preLoaderRoute: typeof MusicIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/films/': {
       id: '/films/'
       path: '/films'
@@ -517,6 +576,13 @@ declare module '@tanstack/react-router' {
       path: '/cinema'
       fullPath: '/cinema/'
       preLoaderRoute: typeof CinemaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/books/': {
+      id: '/books/'
+      path: '/books'
+      fullPath: '/books/'
+      preLoaderRoute: typeof BooksIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -575,6 +641,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SerialsTmdbIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/music/$mbid': {
+      id: '/music/$mbid'
+      path: '/music/$mbid'
+      fullPath: '/music/$mbid'
+      preLoaderRoute: typeof MusicMbidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/films/$tmdbId': {
       id: '/films/$tmdbId'
       path: '/films/$tmdbId'
@@ -594,6 +667,13 @@ declare module '@tanstack/react-router' {
       path: '/cinema/$tmdbId'
       fullPath: '/cinema/$tmdbId'
       preLoaderRoute: typeof CinemaTmdbIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/books/$volumeId': {
+      id: '/books/$volumeId'
+      path: '/books/$volumeId'
+      fullPath: '/books/$volumeId'
+      preLoaderRoute: typeof BooksVolumeIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/actor/$slug': {
@@ -760,13 +840,17 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   ProfileUsernameRouteRoute: ProfileUsernameRouteRouteWithChildren,
   ActorSlugRoute: ActorSlugRoute,
+  BooksVolumeIdRoute: BooksVolumeIdRoute,
   CinemaTmdbIdRoute: CinemaTmdbIdRoute,
   DirectorSlugRoute: DirectorSlugRoute,
   FilmsTmdbIdRoute: FilmsTmdbIdRoute,
+  MusicMbidRoute: MusicMbidRoute,
   SerialsTmdbIdRoute: SerialsTmdbIdRoute,
   AdminIndexRoute: AdminIndexRoute,
+  BooksIndexRoute: BooksIndexRoute,
   CinemaIndexRoute: CinemaIndexRoute,
   FilmsIndexRoute: FilmsIndexRoute,
+  MusicIndexRoute: MusicIndexRoute,
   SerialsIndexRoute: SerialsIndexRoute,
   ReviewsUsernameReviewIdRoute: ReviewsUsernameReviewIdRoute,
 }
