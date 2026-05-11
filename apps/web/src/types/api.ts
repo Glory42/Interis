@@ -136,7 +136,8 @@ export const createDiaryEntryResponseSchema = z
   .passthrough();
 
 export const userStatsSchema = z.object({
-  entryCount: z.number().int().nonnegative(),
+  filmEntryCount: z.number().int().nonnegative(),
+  serialEntryCount: z.number().int().nonnegative().optional(),
   reviewCount: z.number().int().nonnegative(),
   filmCount: z.number().int().nonnegative().optional(),
   listCount: z.number().int().nonnegative().optional(),

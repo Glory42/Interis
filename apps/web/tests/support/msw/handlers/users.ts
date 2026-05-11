@@ -73,7 +73,8 @@ export const usersHandlers = [
     return HttpResponse.json({
       ...currentUser,
       stats: {
-        entryCount: 18,
+        filmEntryCount: 18,
+        serialEntryCount: 0,
         reviewCount: 6,
         filmCount: 15,
         listCount: 1,

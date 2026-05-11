@@ -1,19 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authKeys } from "@/features/auth/hooks/useAuth";
-import { createDiaryEntry, getMyDiary } from "@/features/diary/api";
+import { createDiaryEntry, getMyFilmLogs } from "@/features/diary/api";
 import { movieKeys } from "@/features/films/hooks/useMovies";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import type { CreateDiaryEntryInput, MeProfile } from "@/types/api";
 
 export const diaryKeys = {
   all: ["diary"] as const,
-  me: ["diary", "me"] as const,
+  myLogs: ["diary", "my-logs"] as const,
 };
 
-export const useMyDiary = () =>
+export const useMyFilmLogs = () =>
   useQuery({
-    queryKey: diaryKeys.me,
-    queryFn: getMyDiary,
+    queryKey: diaryKeys.myLogs,
+    queryFn: getMyFilmLogs,
   });
 
 export const useCreateDiaryEntry = () => {
@@ -24,7 +24,7 @@ export const useCreateDiaryEntry = () => {
     onSuccess: async (_data, variables) => {
       const me = queryClient.getQueryData<MeProfile | null>(authKeys.me);
       const tasks = [
-        queryClient.invalidateQueries({ queryKey: diaryKeys.me }),
+        queryClient.invalidateQueries({ queryKey: diaryKeys.myLogs }),
         queryClient.invalidateQueries({ queryKey: movieKeys.logs(variables.tmdbId) }),
         queryClient.invalidateQueries({
           queryKey: ["movies", "detail-view", variables.tmdbId],
