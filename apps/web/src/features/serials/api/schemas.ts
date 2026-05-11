@@ -305,4 +305,46 @@ export const trendingSeriesSchema = z.object({
 export const trendingSeriesListSchema = z.array(trendingSeriesSchema);
 export const tmdbSearchSeriesListSchema = z.array(tmdbSearchSeriesSchema);
 
+export const serialDiaryEntrySchema = z.object({
+  id: z.string(),
+  watchedDate: z.string(),
+  rating: z.number().int().nullable(),
+  rewatch: z.boolean(),
+  seriesId: z.number().int(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  seriesTmdbId: z.number().int(),
+  seriesTitle: z.string(),
+  seriesPosterPath: z.string().nullable(),
+  seriesFirstAirYear: z.number().int().nullable(),
+  reviewId: z.string().nullable(),
+  reviewContent: z.string().nullable(),
+  reviewContainsSpoilers: z.boolean().nullable(),
+  reviewCreatedAt: z.string().nullable(),
+});
+
+export const serialDiaryListSchema = z.array(serialDiaryEntrySchema);
+
+export const updateSerialLogInputSchema = z.object({
+  watchedDate: z.string().optional(),
+  ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+  rewatch: z.boolean().optional(),
+});
+
+export const serialLogSchema = z.object({
+  diaryEntryId: z.string(),
+  watchedDate: z.string(),
+  rating: z.number().int().nullable(),
+  rewatch: z.boolean(),
+  createdAt: z.string(),
+  username: z.string(),
+  userDisplayName: z.string().nullable(),
+  avatarUrl: z.string().nullable(),
+  reviewContent: z.string().nullable(),
+  reviewContainsSpoilers: z.boolean().nullable(),
+  reviewUpdatedAt: z.string().nullable(),
+});
+
+export const serialLogsListSchema = z.array(serialLogSchema);
+
 export { serialArchiveItemSchema };

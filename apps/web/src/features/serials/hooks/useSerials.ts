@@ -6,10 +6,14 @@ import {
 } from "@tanstack/react-query";
 import {
   createSeriesLog,
+  deleteSerialLog,
+  getMySerialLogs,
+  getRecentSeries,
   getSeriesArchive,
   getSeriesByTmdbId,
   getSeriesDetail,
   getSeriesInteraction,
+  getSeriesLogs,
   getSeriesSeasonDetail,
   getTrendingSeries,
   searchSeries,
@@ -17,8 +21,11 @@ import {
   type SerialArchiveSort,
   type CreateSeriesLogInput,
   type SerialDetailReviewSort,
+  type SerialDiaryEntry,
   type SerialInteraction,
   type UpdateSerialInteractionInput,
+  type UpdateSerialLogInput,
+  updateSerialLog,
   updateSeriesInteraction,
 } from "@/features/serials/api";
 
@@ -32,6 +39,9 @@ export const serialKeys = {
     ["serials", "season-detail", tmdbId, seasonNumber] as const,
   interaction: (tmdbId: number) => ["serials", "interaction", tmdbId] as const,
   trending: ["serials", "trending"] as const,
+  recent: ["serials", "recent"] as const,
+  logs: (tmdbId: number) => ["serials", "logs", tmdbId] as const,
+  myLogs: ["serials", "my-logs"] as const,
   archive: (
     genre: string,
     language: string,
@@ -146,6 +156,51 @@ export const useTrendingSeries = () =>
     queryKey: serialKeys.trending,
     queryFn: ({ signal }) => getTrendingSeries({ signal }),
   });
+
+export const useRecentSeries = () =>
+  useQuery({
+    queryKey: serialKeys.recent,
+    queryFn: ({ signal }) => getRecentSeries({ signal }),
+  });
+
+export const useSeriesLogs = (tmdbId: number, enabled = true) =>
+  useQuery({
+    queryKey: serialKeys.logs(tmdbId),
+    queryFn: ({ signal }) => getSeriesLogs(tmdbId, { signal }),
+    enabled,
+  });
+
+export const useMySerialLogs = () =>
+  useQuery({
+    queryKey: serialKeys.myLogs,
+    queryFn: getMySerialLogs,
+  });
+
+export const useUpdateSerialLog = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ entryId, input }: { entryId: string; input: UpdateSerialLogInput }) =>
+      updateSerialLog(entryId, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: serialKeys.myLogs });
+    },
+  });
+};
+
+export const useDeleteSerialLog = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (entryId: string) => deleteSerialLog(entryId),
+    onSuccess: (_data, entryId) => {
+      queryClient.invalidateQueries({ queryKey: serialKeys.myLogs });
+      queryClient.setQueryData<SerialDiaryEntry[]>(serialKeys.myLogs, (prev) =>
+        prev ? prev.filter((e) => e.id !== entryId) : prev,
+      );
+    },
+  });
+};
 
 export const useSeriesArchive = (
   genre: string,

@@ -1,12 +1,17 @@
 export {
   createSeriesLog,
+  deleteSerialLog,
+  getMySerialLogs,
+  getRecentSeries,
   getSeriesArchive,
   getSeriesByTmdbId,
   getSeriesDetail,
   getSeriesInteraction,
+  getSeriesLogs,
   getSeriesSeasonDetail,
   getTrendingSeries,
   searchSeries,
+  updateSerialLog,
   updateSeriesInteraction,
 } from "./api/requests";
 
@@ -23,9 +28,14 @@ export type {
   SerialDetailInput,
   SerialDetailResponse,
   SerialDetailReviewSort,
+  SerialDiaryEntry,
+  SerialDiaryList,
   SerialInteraction,
+  SerialLog,
+  SerialLogsList,
   SerialSeasonDetailResponse,
   TmdbSearchSeries,
   TrendingSeries,
   UpdateSerialInteractionInput,
+  UpdateSerialLogInput,
 } from "./api/types";

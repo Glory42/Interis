@@ -9,11 +9,16 @@ import {
   serialArchiveSortSchema,
   serialDetailResponseSchema,
   serialDetailReviewSortSchema,
+  serialDiaryEntrySchema,
+  serialDiaryListSchema,
   serialInteractionSchema,
+  serialLogSchema,
+  serialLogsListSchema,
   serialSeasonDetailSchema,
   tmdbSearchSeriesSchema,
   trendingSeriesSchema,
   updateSerialInteractionInputSchema,
+  updateSerialLogInputSchema,
 } from "./schemas";
 
 export type TmdbSearchSeries = z.infer<typeof tmdbSearchSeriesSchema>;
@@ -49,3 +54,9 @@ export type SerialArchiveInput = {
 export type SerialDetailInput = {
   reviewsSort?: SerialDetailReviewSort;
 };
+
+export type SerialDiaryEntry = z.infer<typeof serialDiaryEntrySchema>;
+export type SerialDiaryList = z.infer<typeof serialDiaryListSchema>;
+export type SerialLog = z.infer<typeof serialLogSchema>;
+export type SerialLogsList = z.infer<typeof serialLogsListSchema>;
+export type UpdateSerialLogInput = z.infer<typeof updateSerialLogInputSchema>;

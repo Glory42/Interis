@@ -5,11 +5,14 @@ import {
   createSeriesLogResponseSchema,
   serialArchiveResponseSchema,
   serialDetailResponseSchema,
+  serialDiaryListSchema,
   serialInteractionSchema,
+  serialLogsListSchema,
   serialSeasonDetailSchema,
   tmdbSearchSeriesListSchema,
   trendingSeriesListSchema,
   updateSerialInteractionInputSchema,
+  updateSerialLogInputSchema,
 } from "./schemas";
 import {
   normalizeSeriesSearchQuery,
@@ -25,11 +28,15 @@ import type {
   SerialArchiveResponse,
   SerialDetailInput,
   SerialDetailResponse,
+  SerialDiaryEntry,
+  SerialDiaryList,
   SerialInteraction,
+  SerialLogsList,
   SerialSeasonDetailResponse,
   TmdbSearchSeries,
   TrendingSeries,
   UpdateSerialInteractionInput,
+  UpdateSerialLogInput,
 } from "./types";
 
 export const searchSeries = async (
@@ -168,3 +175,46 @@ export const createSeriesLog = async (
 
   return createSeriesLogResponseSchema.parse(response);
 };
+
+export const getMySerialLogs = async (): Promise<SerialDiaryList> => {
+  const response = await apiRequest<unknown>("/api/serials/logs", { method: "GET" });
+  return serialDiaryListSchema.parse(response);
+};
+
+export const updateSerialLog = async (
+  entryId: string,
+  input: UpdateSerialLogInput,
+): Promise<SerialDiaryEntry> => {
+  const payload = updateSerialLogInputSchema.parse(input);
+  const response = await apiRequest<unknown, UpdateSerialLogInput>(
+    `/api/serials/logs/${entryId}`,
+    { method: "PUT", body: payload },
+  );
+  return serialDiaryListSchema.element.parse(response);
+};
+
+export const deleteSerialLog = async (entryId: string): Promise<void> => {
+  await apiRequest<unknown>(`/api/serials/logs/${entryId}`, { method: "DELETE" });
+};
+
+export const getSeriesLogs = async (
+  tmdbId: number,
+  options: QueryRequestOptions = {},
+): Promise<SerialLogsList> => {
+  const response = await apiRequest<unknown>(`/api/serials/${tmdbId}/logs`, {
+    method: "GET",
+    signal: options.signal,
+  });
+  return serialLogsListSchema.parse(response);
+};
+
+export const getRecentSeries = async (
+  options: QueryRequestOptions = {},
+): Promise<TmdbSearchSeries[]> => {
+  const response = await apiRequest<unknown>("/api/serials/recent", {
+    method: "GET",
+    signal: options.signal,
+  });
+  return tmdbSearchSeriesListSchema.parse(response);
+};
+
