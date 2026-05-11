@@ -63,6 +63,7 @@ type NormalizedRow = {
   title: string;
   year: number | null;
   tmdbId: number | null;
+  mediaType: "movie" | "tv";
   watchedDate: string;
   rating: number | null;
   rewatch: boolean;
@@ -85,6 +86,7 @@ function normalizeLetterboxdRow(row: Record<string, string>): NormalizedRow | nu
     title,
     year,
     tmdbId: null,
+    mediaType: "movie",
     watchedDate,
     rating: parseRating(row["Rating"] ?? ""),
     rewatch: parseRewatch(row["Rewatch"] ?? ""),
@@ -114,6 +116,7 @@ function normalizeLetterboxdRatingsRow(row: Record<string, string>): NormalizedR
     title,
     year,
     tmdbId: null,
+    mediaType: "movie",
     watchedDate,
     rating,
     rewatch: false,
@@ -136,6 +139,7 @@ function normalizeLetterboxdWatchedRow(row: Record<string, string>): NormalizedR
     title,
     year,
     tmdbId: null,
+    mediaType: "movie",
     watchedDate,
     rating: null,
     rewatch: false,
@@ -157,10 +161,14 @@ function normalizeInterisRow(row: Record<string, string>): NormalizedRow | null 
   const yearRaw = Number.parseInt(row["Year"] ?? "", 10);
   const year = Number.isNaN(yearRaw) ? null : yearRaw;
 
+  const mediaTypeRaw = (row["MediaType"] ?? "").trim().toLowerCase();
+  const mediaType: "movie" | "tv" = mediaTypeRaw === "tv" ? "tv" : "movie";
+
   return {
     title,
     year,
     tmdbId,
+    mediaType,
     watchedDate,
     rating: parseRating(row["Rating"] ?? ""),
     rewatch: parseRewatch(row["Rewatch"] ?? ""),
@@ -174,8 +182,11 @@ type ResolvedMedia =
   | { mediaType: "series"; tmdbId: number };
 
 async function resolveMedia(row: NormalizedRow): Promise<ResolvedMedia | null> {
-  // Interis format already has a tmdbId — always treated as movie for now
-  if (row.tmdbId) return { mediaType: "movie", tmdbId: row.tmdbId };
+  // Interis format: tmdbId + explicit mediaType from export
+  if (row.tmdbId) {
+    const mediaType = row.mediaType === "tv" ? "series" : "movie";
+    return { mediaType, tmdbId: row.tmdbId };
+  }
 
   // 1. Movie search with year
   if (row.year) {
