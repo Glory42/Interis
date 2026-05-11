@@ -31,7 +31,7 @@ export const FavoritesSlotList = ({
             disabled={isBusy}
           >
             <span className={slot ? "text-foreground" : "settings-shell-muted"}>
-              {slot?.title ?? `${category === "cinema" ? "Cinema" : "Serial"} #${index + 1}`}
+              {slot?.title ?? `${category === "cinema" ? "Cinema" : category === "serial" ? "Serial" : category === "music" ? "Music" : "Books"} #${index + 1}`}
             </span>
           </button>
 
