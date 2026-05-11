@@ -1,14 +1,12 @@
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { db } from "../../infrastructure/database/db";
 import { user } from "../../infrastructure/database/auth.entity";
-import { DiaryRepository } from "../diary/repositories/diary.repository";
 import { listEntries, lists } from "../lists/lists.entity";
 import { UsersService } from "../users/users.service";
 import { movies } from "../movies/movies.entity";
-import { reviews } from "../reviews/reviews.entity";
-import { serialDiaryEntries, tvSeries } from "../serials/serials.entity";
 import { SocialFeedService } from "../social/services/social-feed.service";
 import { PublicTopPicksService } from "./services/public-top-picks.service";
+import { PublicDiaryService } from "./services/public-diary.service";
 
 // Thin, read-only service for the public portfolio API
 // All responses are cached-friendly — no auth required
@@ -35,29 +33,6 @@ type PublicProfileResponse = {
   };
 };
 
-type PublicDiaryItem = {
-  id: string;
-  mediaType: "movie" | "tv";
-  watchedDate: string;
-  ratingOutOfTen: number | null;
-  ratingOutOfFive: number | null;
-  rewatch: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  media: {
-    tmdbId: number;
-    title: string;
-    posterPath: string | null;
-    releaseYear: number | null;
-  };
-  review: {
-    id: string;
-    content: string;
-    containsSpoilers: boolean;
-    createdAt: Date;
-  } | null;
-};
-
 type PublicListEntry = {
   position: number;
   note: string | null;
@@ -76,22 +51,6 @@ type PublicList = {
   updatedAt: Date;
   itemCount: number;
   items: PublicListEntry[];
-};
-
-const toRatingOutOfFive = (ratingOutOfTen: number | null): number | null => {
-  if (ratingOutOfTen === null || !Number.isFinite(ratingOutOfTen)) {
-    return null;
-  }
-
-  return Number((ratingOutOfTen / 2).toFixed(1));
-};
-
-const toTimestamp = (value: string | Date): number => {
-  if (value instanceof Date) {
-    return value.getTime();
-  }
-
-  return Date.parse(value);
 };
 
 export class PublicService {
@@ -150,8 +109,8 @@ export class PublicService {
       return null;
     }
 
-    const reviews = await UsersService.getReviewsWithMovies(userId);
-    return reviews.slice(0, limit);
+    const reviewList = await UsersService.getReviewsWithMovies(userId);
+    return reviewList.slice(0, limit);
   }
 
   static async getLikes(username: string, limit = 50) {
@@ -174,109 +133,13 @@ export class PublicService {
     return watchlist.slice(0, limit);
   }
 
-  static async getDiary(username: string, limit = 50): Promise<PublicDiaryItem[] | null> {
+  static async getDiary(username: string, limit = 50) {
     const userId = await PublicService.findUserIdByUsername(username);
     if (!userId) {
       return null;
     }
 
-    const [movieEntries, serialEntries] = await Promise.all([
-      DiaryRepository.findAllByUser(userId),
-      db
-        .select({
-          id: serialDiaryEntries.id,
-          watchedDate: serialDiaryEntries.watchedDate,
-          rating: serialDiaryEntries.rating,
-          rewatch: serialDiaryEntries.rewatch,
-          createdAt: serialDiaryEntries.createdAt,
-          updatedAt: serialDiaryEntries.updatedAt,
-          tmdbId: tvSeries.tmdbId,
-          title: tvSeries.title,
-          posterPath: tvSeries.posterPath,
-          releaseYear: tvSeries.firstAirYear,
-          reviewId: reviews.id,
-          reviewContent: reviews.content,
-          reviewContainsSpoilers: reviews.containsSpoilers,
-          reviewCreatedAt: reviews.createdAt,
-        })
-        .from(serialDiaryEntries)
-        .innerJoin(tvSeries, eq(tvSeries.id, serialDiaryEntries.seriesId))
-        .leftJoin(
-          reviews,
-          and(
-            eq(reviews.userId, serialDiaryEntries.userId),
-            eq(reviews.diaryEntryId, serialDiaryEntries.id),
-            eq(reviews.mediaType, "tv"),
-          ),
-        )
-        .where(eq(serialDiaryEntries.userId, userId))
-        .orderBy(desc(serialDiaryEntries.watchedDate), desc(serialDiaryEntries.createdAt)),
-    ]);
-
-    const normalizedMovieEntries: PublicDiaryItem[] = movieEntries.map((entry) => ({
-      id: entry.id,
-      mediaType: "movie",
-      watchedDate: entry.watchedDate,
-      ratingOutOfTen: entry.rating,
-      ratingOutOfFive: toRatingOutOfFive(entry.rating),
-      rewatch: entry.rewatch,
-      createdAt: entry.createdAt,
-      updatedAt: entry.updatedAt,
-      media: {
-        tmdbId: entry.movieTmdbId,
-        title: entry.movieTitle,
-        posterPath: entry.moviePosterPath,
-        releaseYear: entry.movieReleaseYear,
-      },
-      review: entry.reviewId
-        ? {
-            id: entry.reviewId,
-            content: entry.reviewContent ?? "",
-            containsSpoilers: entry.reviewContainsSpoilers ?? false,
-            createdAt: entry.reviewCreatedAt ?? entry.createdAt,
-          }
-        : null,
-    }));
-
-    const normalizedSerialEntries: PublicDiaryItem[] = serialEntries.map((entry) => ({
-      id: entry.id,
-      mediaType: "tv",
-      watchedDate: entry.watchedDate,
-      ratingOutOfTen: entry.rating,
-      ratingOutOfFive: toRatingOutOfFive(entry.rating),
-      rewatch: entry.rewatch,
-      createdAt: entry.createdAt,
-      updatedAt: entry.updatedAt,
-      media: {
-        tmdbId: entry.tmdbId,
-        title: entry.title,
-        posterPath: entry.posterPath,
-        releaseYear: entry.releaseYear,
-      },
-      review: entry.reviewId
-        ? {
-            id: entry.reviewId,
-            content: entry.reviewContent ?? "",
-            containsSpoilers: entry.reviewContainsSpoilers ?? false,
-            createdAt: entry.reviewCreatedAt ?? entry.createdAt,
-          }
-        : null,
-    }));
-
-    const combined = [...normalizedMovieEntries, ...normalizedSerialEntries]
-      .sort((left, right) => {
-        const watchedDateDelta =
-          toTimestamp(right.watchedDate) - toTimestamp(left.watchedDate);
-
-        if (watchedDateDelta !== 0) {
-          return watchedDateDelta;
-        }
-
-        return toTimestamp(right.createdAt) - toTimestamp(left.createdAt);
-      })
-      .slice(0, limit);
-
-    return combined;
+    return PublicDiaryService.getDiary(userId, limit);
   }
 
   static async getLists(username: string, limit = 20): Promise<PublicList[] | null> {
