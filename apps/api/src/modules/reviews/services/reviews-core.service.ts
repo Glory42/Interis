@@ -3,6 +3,8 @@ import { db } from "../../../infrastructure/database/db";
 import { MoviesService } from "../../movies/movies.service";
 import { SerialsService } from "../../serials/serials.service";
 import { SerialsReviewsRepository } from "../../serials/repositories/serials-reviews.repository";
+import { MusicCacheService } from "../../music/services/music-cache.service";
+import { BooksCacheService } from "../../books/services/books-cache.service";
 import { activities } from "../../social/social.entity";
 import { reviewLikes, reviews } from "../reviews.entity";
 import { buildReviewCreatedActivityMetadata } from "../helpers/reviews-activity.helper";
@@ -11,7 +13,9 @@ import type { CreateReviewDto, UpdateReviewDto } from "../dto/reviews.dto";
 export class ReviewsCoreService {
   static async create(userId: string, input: CreateReviewDto) {
     if (input.mediaType === "tv") {
-      const series = await SerialsService.findOrCreate(input.tmdbId);
+      const tmdbId = Number.parseInt(input.mediaSourceId, 10);
+      if (!Number.isFinite(tmdbId)) throw new Error("Invalid tmdbId for tv");
+      const series = await SerialsService.findOrCreate(tmdbId);
       if (!series) throw new Error("Series not found");
 
       const review = await SerialsReviewsRepository.upsertReview({
@@ -47,7 +51,116 @@ export class ReviewsCoreService {
       return { review, series };
     }
 
-    const movie = await MoviesService.findOrCreate(input.tmdbId);
+    if (input.mediaType === "album") {
+      const album = await MusicCacheService.findOrCreate(input.mediaSourceId);
+      if (!album) throw new Error("Album not found");
+
+      const [review] = await db
+        .insert(reviews)
+        .values({
+          userId,
+          mediaType: "album",
+          mediaSource: "musicbrainz",
+          mediaSourceId: album.mbid,
+          movieId: null,
+          diaryEntryId: input.diaryEntryId ?? null,
+          content: input.content,
+          containsSpoilers: input.containsSpoilers ?? false,
+        })
+        .onConflictDoUpdate({
+          target: [reviews.userId, reviews.mediaType, reviews.mediaSource, reviews.mediaSourceId],
+          set: {
+            diaryEntryId: input.diaryEntryId ?? null,
+            content: input.content,
+            containsSpoilers: input.containsSpoilers ?? false,
+            updatedAt: new Date(),
+          },
+        })
+        .returning();
+
+      if (!review) throw new Error("Could not create review");
+
+      await db.insert(activities).values({
+        userId,
+        type: "review",
+        entityId: review.id,
+        metadata: JSON.stringify(
+          buildReviewCreatedActivityMetadata({
+            reviewId: review.id,
+            content: input.content,
+            containsSpoilers: review.containsSpoilers,
+            media: {
+              mediaType: "album",
+              mbid: album.mbid,
+              title: album.title,
+              coverArtUrl: album.coverArtUrl ?? null,
+              artistName: album.artistName,
+              releaseYear: album.firstReleaseYear ?? null,
+            },
+          }),
+        ),
+      });
+
+      return { review, album };
+    }
+
+    if (input.mediaType === "book") {
+      const book = await BooksCacheService.findOrCreate(input.mediaSourceId);
+      if (!book) throw new Error("Book not found");
+
+      const [review] = await db
+        .insert(reviews)
+        .values({
+          userId,
+          mediaType: "book",
+          mediaSource: "googlebooks",
+          mediaSourceId: book.googleVolumeId,
+          movieId: null,
+          diaryEntryId: input.diaryEntryId ?? null,
+          content: input.content,
+          containsSpoilers: input.containsSpoilers ?? false,
+        })
+        .onConflictDoUpdate({
+          target: [reviews.userId, reviews.mediaType, reviews.mediaSource, reviews.mediaSourceId],
+          set: {
+            diaryEntryId: input.diaryEntryId ?? null,
+            content: input.content,
+            containsSpoilers: input.containsSpoilers ?? false,
+            updatedAt: new Date(),
+          },
+        })
+        .returning();
+
+      if (!review) throw new Error("Could not create review");
+
+      await db.insert(activities).values({
+        userId,
+        type: "review",
+        entityId: review.id,
+        metadata: JSON.stringify(
+          buildReviewCreatedActivityMetadata({
+            reviewId: review.id,
+            content: input.content,
+            containsSpoilers: review.containsSpoilers,
+            media: {
+              mediaType: "book",
+              volumeId: book.googleVolumeId,
+              title: book.title,
+              coverArtUrl: book.coverImageUrl ?? null,
+              authors: (book.authors as string[]) ?? [],
+              releaseYear: book.publishedYear ?? null,
+            },
+          }),
+        ),
+      });
+
+      return { review, book };
+    }
+
+    // movie (default)
+    const tmdbId = Number.parseInt(input.mediaSourceId, 10);
+    if (!Number.isFinite(tmdbId)) throw new Error("Invalid tmdbId for movie");
+    const movie = await MoviesService.findOrCreate(tmdbId);
 
     const [review] = await db
       .insert(reviews)
