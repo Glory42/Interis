@@ -19,6 +19,8 @@ import {
 import listsRouter from "./modules/lists/lists.routes";
 import moviesRouter from "./modules/movies/movies.routes";
 import serialsRouter from "./modules/serials/serials.routes";
+import musicRouter from "./modules/music/music.routes";
+import booksRouter from "./modules/books/books.routes";
 import peopleRouter from "./modules/people/people.routes";
 import diaryRouter from "./modules/diary/diary.routes";
 import usersRouter from "./modules/users/users.routes";
@@ -115,6 +117,8 @@ export const createApp = () => {
 
   app.use("/api/movies", moviesRouter);
   app.use("/api/serials", serialsRouter);
+  app.use("/api/music", musicRouter);
+  app.use("/api/books", booksRouter);
   app.use("/api/people", peopleRouter);
   app.use("/api/diary", diaryRouter);
   app.use("/api/users", usersRouter);

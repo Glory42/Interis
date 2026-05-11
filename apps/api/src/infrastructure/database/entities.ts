@@ -2,9 +2,11 @@
 export * from "./auth.entity";
 
 // Modules — order matters for FK references:
-// movies/serials → diary/reviews/interactions/lists → social/users
+// movies/serials/music/books → diary/reviews/interactions/lists → social/users
 export * from "../../modules/movies/movies.entity";
 export * from "../../modules/serials/serials.entity";
+export * from "../../modules/music/music.entity";
+export * from "../../modules/books/books.entity";
 export * from "../../modules/people/people.entity";
 export * from "../../modules/users/users.entity";
 export * from "../../modules/diary/diary.entity";
