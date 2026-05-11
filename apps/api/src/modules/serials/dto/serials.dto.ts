@@ -224,5 +224,12 @@ export const CreateSerialLogSchema = z.object({
   containsSpoilers: z.boolean().optional(),
 });
 
+export const UpdateSerialLogSchema = z.object({
+  watchedDate: isoDateSchema.optional(),
+  ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+  rewatch: z.boolean().optional(),
+});
+
 export type UpdateSerialInteractionDto = z.infer<typeof UpdateSerialInteractionSchema>;
 export type CreateSerialLogDto = z.infer<typeof CreateSerialLogSchema>;
+export type UpdateSerialLogDto = z.infer<typeof UpdateSerialLogSchema>;

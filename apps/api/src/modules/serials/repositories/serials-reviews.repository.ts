@@ -314,7 +314,7 @@ export class SerialsReviewsRepository {
   static async upsertReview(input: {
     userId: string;
     seriesTmdbId: number;
-    diaryEntryId: string;
+    diaryEntryId: string | null;
     content: string;
     containsSpoilers: boolean;
   }) {

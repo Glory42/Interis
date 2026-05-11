@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const CreateReviewSchema = z.object({
   tmdbId: z.number().int().positive(),
+  mediaType: z.enum(["movie", "tv"]).default("movie"),
   content: z.string().min(1).max(10000),
   containsSpoilers: z.boolean().optional(),
   diaryEntryId: z.uuid().optional(),

@@ -1,5 +1,8 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
+import { user } from "../../../infrastructure/database/auth.entity";
+import { profiles } from "../../users/users.entity";
+import { reviews } from "../../reviews/reviews.entity";
 import { serialDiaryEntries, serialInteractions, tvSeries } from "../serials.entity";
 
 export class SerialsInteractionsRepository {
@@ -213,5 +216,95 @@ export class SerialsInteractionsRepository {
       .where(and(eq(serialInteractions.userId, userId), eq(serialInteractions.seriesId, seriesId)))
       .limit(1);
     return row?.rating !== null && row?.rating !== undefined;
+  }
+
+  static async findAllDiaryByUser(userId: string) {
+    return db
+      .select({
+        id: serialDiaryEntries.id,
+        watchedDate: serialDiaryEntries.watchedDate,
+        rating: serialDiaryEntries.rating,
+        rewatch: serialDiaryEntries.rewatch,
+        seriesId: serialDiaryEntries.seriesId,
+        createdAt: serialDiaryEntries.createdAt,
+        updatedAt: serialDiaryEntries.updatedAt,
+        seriesTmdbId: tvSeries.tmdbId,
+        seriesTitle: tvSeries.title,
+        seriesPosterPath: tvSeries.posterPath,
+        seriesFirstAirYear: tvSeries.firstAirYear,
+        reviewId: reviews.id,
+        reviewContent: reviews.content,
+        reviewContainsSpoilers: reviews.containsSpoilers,
+        reviewCreatedAt: reviews.createdAt,
+      })
+      .from(serialDiaryEntries)
+      .innerJoin(tvSeries, eq(tvSeries.id, serialDiaryEntries.seriesId))
+      .leftJoin(
+        reviews,
+        and(
+          eq(reviews.userId, serialDiaryEntries.userId),
+          eq(reviews.diaryEntryId, serialDiaryEntries.id),
+          eq(reviews.mediaType, "tv"),
+        ),
+      )
+      .where(eq(serialDiaryEntries.userId, userId))
+      .orderBy(desc(serialDiaryEntries.watchedDate), desc(serialDiaryEntries.createdAt));
+  }
+
+  static async updateDiaryEntry(
+    entryId: string,
+    userId: string,
+    input: { watchedDate?: string; ratingOutOfTen?: number | null; rewatch?: boolean },
+  ) {
+    const [updated] = await db
+      .update(serialDiaryEntries)
+      .set({
+        ...(input.watchedDate !== undefined && { watchedDate: input.watchedDate }),
+        ...(input.ratingOutOfTen !== undefined && { rating: input.ratingOutOfTen }),
+        ...(input.rewatch !== undefined && { rewatch: input.rewatch }),
+      })
+      .where(and(eq(serialDiaryEntries.id, entryId), eq(serialDiaryEntries.userId, userId)))
+      .returning();
+
+    return updated ?? null;
+  }
+
+  static async deleteDiaryEntry(entryId: string, userId: string) {
+    const [deleted] = await db
+      .delete(serialDiaryEntries)
+      .where(and(eq(serialDiaryEntries.id, entryId), eq(serialDiaryEntries.userId, userId)))
+      .returning({ id: serialDiaryEntries.id });
+
+    return deleted ?? null;
+  }
+
+  static async getLogsBySeriesId(seriesId: number) {
+    return db
+      .select({
+        diaryEntryId: serialDiaryEntries.id,
+        watchedDate: serialDiaryEntries.watchedDate,
+        rating: serialDiaryEntries.rating,
+        rewatch: serialDiaryEntries.rewatch,
+        createdAt: serialDiaryEntries.createdAt,
+        username: user.username,
+        userDisplayName: user.name,
+        avatarUrl: profiles.avatarUrl,
+        reviewContent: reviews.content,
+        reviewContainsSpoilers: reviews.containsSpoilers,
+        reviewUpdatedAt: reviews.updatedAt,
+      })
+      .from(serialDiaryEntries)
+      .innerJoin(user, eq(user.id, serialDiaryEntries.userId))
+      .innerJoin(profiles, eq(profiles.userId, serialDiaryEntries.userId))
+      .leftJoin(
+        reviews,
+        and(
+          eq(reviews.userId, serialDiaryEntries.userId),
+          eq(reviews.diaryEntryId, serialDiaryEntries.id),
+          eq(reviews.mediaType, "tv"),
+        ),
+      )
+      .where(eq(serialDiaryEntries.seriesId, seriesId))
+      .orderBy(desc(serialDiaryEntries.createdAt));
   }
 }

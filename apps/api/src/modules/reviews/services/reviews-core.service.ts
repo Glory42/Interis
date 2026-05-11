@@ -1,6 +1,8 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { MoviesService } from "../../movies/movies.service";
+import { SerialsService } from "../../serials/serials.service";
+import { SerialsReviewsRepository } from "../../serials/repositories/serials-reviews.repository";
 import { activities } from "../../social/social.entity";
 import { reviewLikes, reviews } from "../reviews.entity";
 import { buildReviewCreatedActivityMetadata } from "../helpers/reviews-activity.helper";
@@ -8,6 +10,43 @@ import type { CreateReviewDto, UpdateReviewDto } from "../dto/reviews.dto";
 
 export class ReviewsCoreService {
   static async create(userId: string, input: CreateReviewDto) {
+    if (input.mediaType === "tv") {
+      const series = await SerialsService.findOrCreate(input.tmdbId);
+      if (!series) throw new Error("Series not found");
+
+      const review = await SerialsReviewsRepository.upsertReview({
+        userId,
+        seriesTmdbId: series.tmdbId,
+        diaryEntryId: input.diaryEntryId ?? null,
+        content: input.content,
+        containsSpoilers: input.containsSpoilers ?? false,
+      });
+
+      if (!review) throw new Error("Could not create review");
+
+      await db.insert(activities).values({
+        userId,
+        type: "review",
+        entityId: review.id,
+        metadata: JSON.stringify(
+          buildReviewCreatedActivityMetadata({
+            reviewId: review.id,
+            content: input.content,
+            containsSpoilers: review.containsSpoilers,
+            media: {
+              mediaType: "tv",
+              tmdbId: series.tmdbId,
+              title: series.title,
+              posterPath: series.posterPath,
+              releaseYear: series.firstAirYear,
+            },
+          }),
+        ),
+      });
+
+      return { review, series };
+    }
+
     const movie = await MoviesService.findOrCreate(input.tmdbId);
 
     const [review] = await db

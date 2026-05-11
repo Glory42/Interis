@@ -3,6 +3,7 @@ import { SocialRepository } from "../../social/repositories/social.repository";
 import type {
   CreateSerialLogDto,
   UpdateSerialInteractionDto,
+  UpdateSerialLogDto,
 } from "../dto/serials.dto";
 import {
   buildSerialDiaryEntryActivityMetadata,
@@ -175,5 +176,30 @@ export class SerialsActivityService {
     });
 
     return { entry, series, review };
+  }
+
+  static async getMyLogs(userId: string) {
+    return SerialsInteractionsRepository.findAllDiaryByUser(userId);
+  }
+
+  static async updateLog(entryId: string, userId: string, input: UpdateSerialLogDto) {
+    const ratingOutOfTen =
+      input.ratingOutOfFive !== undefined
+        ? (resolveRatingOutOfTen(input.ratingOutOfFive) ?? null)
+        : undefined;
+
+    return SerialsInteractionsRepository.updateDiaryEntry(entryId, userId, {
+      watchedDate: input.watchedDate,
+      ratingOutOfTen,
+      rewatch: input.rewatch,
+    });
+  }
+
+  static async deleteLog(entryId: string, userId: string) {
+    return SerialsInteractionsRepository.deleteDiaryEntry(entryId, userId);
+  }
+
+  static async getLogs(seriesId: number) {
+    return SerialsInteractionsRepository.getLogsBySeriesId(seriesId);
   }
 }

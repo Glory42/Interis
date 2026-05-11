@@ -20,6 +20,7 @@ import {
   SearchSerialsQuerySchema,
   SerialSeasonParamsSchema,
   UpdateSerialInteractionSchema,
+  UpdateSerialLogSchema,
 } from "./dto/serials.dto";
 
 export class SerialsController {
@@ -207,5 +208,67 @@ export class SerialsController {
     const series = await SerialsService.getTrending();
     res.setHeader("Cache-Control", "public, max-age=300");
     res.status(200).json(series);
+  }
+
+  static async getRecent(_req: Request, res: Response): Promise<void> {
+    const series = await SerialsService.getRecent();
+    res.setHeader("Cache-Control", "public, max-age=300");
+    res.status(200).json(series);
+  }
+
+  static async getLogsByTmdbId(
+    req: Request<SerialParams>,
+    res: Response,
+  ): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
+    if (tmdbId === null) {
+      sendBadRequest(res, "Invalid series ID");
+      return;
+    }
+
+    const logs = await SerialsService.getLogs(tmdbId);
+    if (logs === null) {
+      res.status(404).json({ error: "Series not found" });
+      return;
+    }
+
+    res.status(200).json(logs);
+  }
+
+  static async getMyLogs(req: Request, res: Response): Promise<void> {
+    const logs = await SerialsService.getMyLogs(req.user.id);
+    res.status(200).json(logs);
+  }
+
+  static async updateLog(
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> {
+    const parsed = UpdateSerialLogSchema.safeParse(req.body);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    const updated = await SerialsService.updateLog(req.params.id, req.user.id, parsed.data);
+    if (!updated) {
+      res.status(404).json({ error: "Serial log not found" });
+      return;
+    }
+
+    res.status(200).json(updated);
+  }
+
+  static async deleteLog(
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> {
+    const deleted = await SerialsService.deleteLog(req.params.id, req.user.id);
+    if (!deleted) {
+      res.status(404).json({ error: "Serial log not found" });
+      return;
+    }
+
+    res.status(200).json({ success: true });
   }
 }

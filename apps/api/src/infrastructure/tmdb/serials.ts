@@ -192,3 +192,9 @@ export const getSeriesAggregateCredits = async (
   const data = await fetchTMDB(`/tv/${tmdbId}/aggregate_credits?language=en-US`);
   return TMDBSeriesAggregateCreditsSchema.parse(data);
 };
+
+export const getOnAirSeries = async (): Promise<TMDBSearchSeries[]> => {
+  const data = await fetchTMDB("/tv/on_the_air?language=en-US&page=1");
+  const results = (data as { results?: unknown }).results ?? [];
+  return z.array(TMDBSearchSeriesSchema).parse(results);
+};

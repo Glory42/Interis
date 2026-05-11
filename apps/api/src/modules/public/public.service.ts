@@ -25,7 +25,8 @@ type PublicProfileResponse = {
   themeId: string;
   createdAt: Date;
   stats: {
-    entryCount: number;
+    filmEntryCount: number;
+    serialEntryCount: number;
     reviewCount: number;
     filmCount: number;
     listCount: number;

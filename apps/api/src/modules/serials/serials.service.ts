@@ -1,5 +1,6 @@
 import {
   getTrendingSeries as tmdbTrending,
+  getOnAirSeries as tmdbOnAir,
   searchSeries as tmdbSearch,
   type TMDBSearchSeries,
 } from "../../infrastructure/tmdb/serials";
@@ -12,6 +13,7 @@ import type {
   CreateSerialLogDto,
   SerialDetailReviewSort,
   UpdateSerialInteractionDto,
+  UpdateSerialLogDto,
 } from "./dto/serials.dto";
 
 export class SerialsService {
@@ -78,5 +80,27 @@ export class SerialsService {
 
   static async createLog(userId: string, tmdbId: number, input: CreateSerialLogDto) {
     return SerialsActivityService.createLog(userId, tmdbId, input);
+  }
+
+  static async getMyLogs(userId: string) {
+    return SerialsActivityService.getMyLogs(userId);
+  }
+
+  static async updateLog(entryId: string, userId: string, input: UpdateSerialLogDto) {
+    return SerialsActivityService.updateLog(entryId, userId, input);
+  }
+
+  static async deleteLog(entryId: string, userId: string) {
+    return SerialsActivityService.deleteLog(entryId, userId);
+  }
+
+  static async getLogs(tmdbId: number) {
+    const series = await SerialsCacheService.findOrCreate(tmdbId);
+    if (!series) return null;
+    return SerialsActivityService.getLogs(series.id);
+  }
+
+  static async getRecent(): Promise<TMDBSearchSeries[]> {
+    return tmdbOnAir();
   }
 }

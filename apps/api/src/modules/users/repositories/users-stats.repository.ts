@@ -5,6 +5,7 @@ import { diaryEntries } from "../../diary/diary.entity";
 import { lists } from "../../lists/lists.entity";
 import { movies } from "../../movies/movies.entity";
 import { reviews } from "../../reviews/reviews.entity";
+import { serialDiaryEntries } from "../../serials/serials.entity";
 import { activities, follows } from "../../social/social.entity";
 
 export class UsersStatsRepository {
@@ -54,6 +55,7 @@ export class UsersStatsRepository {
   static async getStatsCounts(userId: string) {
     const [
       entryRows,
+      serialEntryRows,
       reviewRows,
       filmRows,
       listRows,
@@ -64,6 +66,10 @@ export class UsersStatsRepository {
         .select({ count: sql<number>`count(*)`.mapWith(Number) })
         .from(diaryEntries)
         .where(eq(diaryEntries.userId, userId)),
+      db
+        .select({ count: sql<number>`count(*)`.mapWith(Number) })
+        .from(serialDiaryEntries)
+        .where(eq(serialDiaryEntries.userId, userId)),
       db
         .select({ count: sql<number>`count(*)`.mapWith(Number) })
         .from(reviews)
@@ -87,7 +93,8 @@ export class UsersStatsRepository {
     ]);
 
     return {
-      entryCount: entryRows[0]?.count ?? 0,
+      filmEntryCount: entryRows[0]?.count ?? 0,
+      serialEntryCount: serialEntryRows[0]?.count ?? 0,
       reviewCount: reviewRows[0]?.count ?? 0,
       filmCount: filmRows[0]?.count ?? 0,
       listCount: listRows[0]?.count ?? 0,
