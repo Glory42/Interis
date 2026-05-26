@@ -31,18 +31,22 @@ All routes are `GET` and use `:username` path params.
 
 - **HTTP 200** for successful reads.
 - **HTTP 404** with `{ "error": "User not found" }` when username is missing.
-- **HTTP 429** when public rate limit is exceeded.
+- **HTTP 429** when a rate limit is exceeded.
 - **HTTP 500** with `{ "error": "Internal server error" }` for unhandled errors.
-- `Cache-Control: no-store` is set on successful public responses.
+- `Cache-Control: public, max-age=60, stale-while-revalidate=120` is set on successful public responses.
 
 ## Rate limiting
 
-Public routes use a dedicated limiter:
+Public routes use two stacked dedicated limiters:
 
-- window: `1 minute`
-- max: `60 requests per IP`
+| Limiter | Window | Max | Key |
+| --- | --- | --- | --- |
+| Per-IP | 1 min | 60 requests | `IP` |
+| Per-IP + username | 1 min | 10 requests | `IP:username` |
 
-The broader `/api` limiter is configured to skip `/public/*`, so public traffic is governed by the dedicated limiter above.
+A request must pass both. See [Rate Limits](/reference/rate-limits/) for full details.
+
+The broader `/api` limiter is configured to skip `/public/*`, so public traffic is governed by the dedicated limiters above.
 
 ## Data visibility notes
 
