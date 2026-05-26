@@ -17,7 +17,8 @@ export class PublicController {
   }
 
   private static sendPublicResponse(res: Response, payload: unknown): void {
-    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
+    res.setHeader("Vary", "Accept-Encoding");
     res.status(200).json(payload);
   }
 
