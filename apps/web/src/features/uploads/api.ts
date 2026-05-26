@@ -15,13 +15,13 @@ const requestUploadInputSchema = z.object({
 });
 
 const requestUploadResponseSchema = z.object({
-  signedUrl: z.string().url(),
-  publicUrl: z.string().url(),
+  signedUrl: z.url(),
+  publicUrl: z.url(),
 });
 
 const confirmUploadInputSchema = z.object({
   uploadType: uploadTypeSchema,
-  publicUrl: z.string().url(),
+  publicUrl: z.url(),
 });
 
 export type ProfileUploadType = z.infer<typeof uploadTypeSchema>;
@@ -33,10 +33,13 @@ export const requestProfileImageUpload = async (input: {
   fileSizeBytes: number;
 }): Promise<{ signedUrl: string; publicUrl: string }> => {
   const payload = requestUploadInputSchema.parse(input);
-  const response = await apiRequest<unknown, typeof payload>("/api/uploads/request", {
-    method: "POST",
-    body: payload,
-  });
+  const response = await apiRequest<unknown, typeof payload>(
+    "/api/uploads/request",
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
 
   return requestUploadResponseSchema.parse(response);
 };
