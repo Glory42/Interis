@@ -9,6 +9,7 @@ import { reviews } from "../reviews/reviews.entity";
 import { serialDiaryEntries, tvSeries } from "../serials/serials.entity";
 import { SocialFeedService } from "../social/services/social-feed.service";
 import { PublicTopPicksService } from "./services/public-top-picks.service";
+import { toRatingOutOfFive } from "../../commons/utils/rating";
 
 // Thin, read-only service for the public portfolio API
 // All responses are cached-friendly — no auth required
@@ -78,14 +79,6 @@ type PublicList = {
   items: PublicListEntry[];
 };
 
-const toRatingOutOfFive = (ratingOutOfTen: number | null): number | null => {
-  if (ratingOutOfTen === null || !Number.isFinite(ratingOutOfTen)) {
-    return null;
-  }
-
-  return Number((ratingOutOfTen / 2).toFixed(1));
-};
-
 const toTimestamp = (value: string | Date): number => {
   if (value instanceof Date) {
     return value.getTime();
@@ -150,8 +143,8 @@ export class PublicService {
       return null;
     }
 
-    const reviews = await UsersService.getReviewsWithMovies(userId);
-    return reviews.slice(0, limit);
+    const allReviews = await UsersService.getReviewsWithMovies(userId, limit);
+    return allReviews.slice(0, limit);
   }
 
   static async getLikes(username: string, limit = 50) {
@@ -160,7 +153,7 @@ export class PublicService {
       return null;
     }
 
-    const likes = await UsersService.getLikedFilms(userId);
+    const likes = await UsersService.getLikedFilms(userId, limit);
     return likes.slice(0, limit);
   }
 
@@ -170,7 +163,7 @@ export class PublicService {
       return null;
     }
 
-    const watchlist = await UsersService.getWatchlistedFilms(userId);
+    const watchlist = await UsersService.getWatchlistedFilms(userId, limit);
     return watchlist.slice(0, limit);
   }
 
@@ -181,7 +174,7 @@ export class PublicService {
     }
 
     const [movieEntries, serialEntries] = await Promise.all([
-      DiaryRepository.findAllByUser(userId),
+      DiaryRepository.findAllByUser(userId, limit),
       db
         .select({
           id: serialDiaryEntries.id,
@@ -210,7 +203,8 @@ export class PublicService {
           ),
         )
         .where(eq(serialDiaryEntries.userId, userId))
-        .orderBy(desc(serialDiaryEntries.watchedDate), desc(serialDiaryEntries.createdAt)),
+        .orderBy(desc(serialDiaryEntries.watchedDate), desc(serialDiaryEntries.createdAt))
+        .limit(limit),
     ]);
 
     const normalizedMovieEntries: PublicDiaryItem[] = movieEntries.map((entry) => ({

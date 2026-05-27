@@ -6,50 +6,47 @@ import { comments, reviewLikes, reviews } from "../../reviews/reviews.entity";
 import { serialDiaryEntries, tvSeries } from "../../serials/serials.entity";
 import { movies } from "../../movies/movies.entity";
 import { profiles } from "../users.entity";
-
-const toRatingOutOfFive = (ratingOutOfTen: number | null): number | null => {
-  if (ratingOutOfTen === null) {
-    return null;
-  }
-
-  return Number((ratingOutOfTen / 2).toFixed(1));
-};
+import { toRatingOutOfFive } from "../../../commons/utils/rating";
 
 export class UsersReviewsRepository {
-  static async getReviewsWithMovies(userId: string) {
+  static async getReviewsWithMovies(userId: string, limit?: number) {
+    const movieQ = db
+      .select({
+        id: reviews.id,
+        content: reviews.content,
+        containsSpoilers: reviews.containsSpoilers,
+        createdAt: reviews.createdAt,
+        updatedAt: reviews.updatedAt,
+        tmdbId: movies.tmdbId,
+        title: movies.title,
+        posterPath: movies.posterPath,
+        releaseYear: movies.releaseYear,
+        rating: diaryEntries.rating,
+        mediaType: sql<"movie">`'movie'`,
+      })
+      .from(reviews)
+      .innerJoin(movies, eq(reviews.movieId, movies.id))
+      .leftJoin(diaryEntries, eq(reviews.diaryEntryId, diaryEntries.id))
+      .where(and(eq(reviews.userId, userId), eq(reviews.mediaType, "movie")));
+
+    const tvQ = db
+      .select({
+        id: reviews.id,
+        content: reviews.content,
+        containsSpoilers: reviews.containsSpoilers,
+        createdAt: reviews.createdAt,
+        updatedAt: reviews.updatedAt,
+        tmdbId: reviews.mediaSourceId,
+        rating: serialDiaryEntries.rating,
+        mediaType: sql<"tv">`'tv'`,
+      })
+      .from(reviews)
+      .leftJoin(serialDiaryEntries, eq(reviews.diaryEntryId, serialDiaryEntries.id))
+      .where(and(eq(reviews.userId, userId), eq(reviews.mediaType, "tv")));
+
     const [movieReviewRows, tvReviewRows] = await Promise.all([
-      db
-        .select({
-          id: reviews.id,
-          content: reviews.content,
-          containsSpoilers: reviews.containsSpoilers,
-          createdAt: reviews.createdAt,
-          updatedAt: reviews.updatedAt,
-          tmdbId: movies.tmdbId,
-          title: movies.title,
-          posterPath: movies.posterPath,
-          releaseYear: movies.releaseYear,
-          rating: diaryEntries.rating,
-          mediaType: sql<"movie">`'movie'`,
-        })
-        .from(reviews)
-        .innerJoin(movies, eq(reviews.movieId, movies.id))
-        .leftJoin(diaryEntries, eq(reviews.diaryEntryId, diaryEntries.id))
-        .where(and(eq(reviews.userId, userId), eq(reviews.mediaType, "movie"))),
-      db
-        .select({
-          id: reviews.id,
-          content: reviews.content,
-          containsSpoilers: reviews.containsSpoilers,
-          createdAt: reviews.createdAt,
-          updatedAt: reviews.updatedAt,
-          tmdbId: reviews.mediaSourceId,
-          rating: serialDiaryEntries.rating,
-          mediaType: sql<"tv">`'tv'`,
-        })
-        .from(reviews)
-        .leftJoin(serialDiaryEntries, eq(reviews.diaryEntryId, serialDiaryEntries.id))
-        .where(and(eq(reviews.userId, userId), eq(reviews.mediaType, "tv"))),
+      limit ? movieQ.orderBy(desc(reviews.createdAt)).limit(limit) : movieQ,
+      limit ? tvQ.orderBy(desc(reviews.createdAt)).limit(limit) : tvQ,
     ]);
 
     const normalizedMovieReviewRows = movieReviewRows.map((reviewRow) => ({
