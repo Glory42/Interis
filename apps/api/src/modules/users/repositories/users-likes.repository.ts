@@ -1,4 +1,4 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
@@ -77,8 +77,6 @@ export class UsersLikesRepository {
 
     const listIds = likedRows.map((r) => r.listId);
 
-    // Get item counts
-    const { inArray, count } = await import("drizzle-orm");
     const countRows = await db
       .select({ listId: listEntries.listId, n: count() })
       .from(listEntries)
@@ -86,30 +84,31 @@ export class UsersLikesRepository {
       .groupBy(listEntries.listId);
     const countMap = new Map(countRows.map((r) => [r.listId, Number(r.n)]));
 
-    // Get cover images (first 4 per list)
-    const coverRows = await db
-      .select({
-        listId: listEntries.listId,
-        itemType: listEntries.itemType,
-        moviePoster: movies.posterPath,
-        serialPoster: tvSeries.posterPath,
-      })
-      .from(listEntries)
-      .leftJoin(movies, eq(listEntries.movieId, movies.id))
-      .leftJoin(tvSeries, eq(listEntries.tvSeriesId, tvSeries.id))
-      .where(inArray(listEntries.listId, listIds))
-      .orderBy(listEntries.position);
+    // First 4 cover images per list via window function — avoids loading all entries
+    const coverRows = await db.execute<{
+      list_id: string;
+      item_type: string;
+      poster_path: string | null;
+    }>(sql`
+      WITH ranked AS (
+        SELECT
+          le.list_id,
+          le.item_type,
+          COALESCE(m.poster_path, ts.poster_path) AS poster_path,
+          ROW_NUMBER() OVER (PARTITION BY le.list_id ORDER BY le.position) AS rn
+        FROM list_entries le
+        LEFT JOIN movies m ON le.movie_id = m.id
+        LEFT JOIN tv_series ts ON le.tv_series_id = ts.id
+        WHERE le.list_id = ANY(${listIds})
+      )
+      SELECT list_id, item_type, poster_path FROM ranked WHERE rn <= 4
+    `);
 
     const coversByList = new Map<string, Array<{ itemType: string; posterPath: string | null }>>();
-    for (const row of coverRows) {
-      const arr = coversByList.get(row.listId) ?? [];
-      if (arr.length < 4) {
-        arr.push({
-          itemType: row.itemType,
-          posterPath: row.moviePoster ?? row.serialPoster ?? null,
-        });
-        coversByList.set(row.listId, arr);
-      }
+    for (const row of coverRows.rows) {
+      const arr = coversByList.get(row.list_id) ?? [];
+      arr.push({ itemType: row.item_type, posterPath: row.poster_path });
+      coversByList.set(row.list_id, arr);
     }
 
     return likedRows.map((row) => ({
