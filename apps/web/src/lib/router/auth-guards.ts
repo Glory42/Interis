@@ -26,7 +26,16 @@ export const requireAuthenticatedUser = async ({
 };
 
 export const requireGuestUser = async (queryClient: QueryClient) => {
-  const user = await queryClient.ensureQueryData(authQueryOptions);
+  let user = queryClient.getQueryData(authQueryOptions.queryKey);
+
+  if (user === undefined) {
+    try {
+      user = await queryClient.fetchQuery({ ...authQueryOptions, retry: false });
+    } catch {
+      user = null;
+    }
+  }
+
   if (user) {
     throw redirect({ to: "/cinema" });
   }

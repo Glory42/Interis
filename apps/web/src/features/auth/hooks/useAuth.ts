@@ -20,6 +20,8 @@ export const authKeys = {
 export const authQueryOptions = queryOptions({
   queryKey: authKeys.me,
   queryFn: getCurrentUser,
+  retry: false,
+  staleTime: 60_000,
 });
 
 export const useAuth = () => {
