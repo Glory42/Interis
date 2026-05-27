@@ -22,6 +22,34 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes("node_modules")) return;
+            if (id.includes("/react/") || id.includes("/react-dom/") || id.includes("/scheduler/")) {
+              return "react-vendor";
+            }
+            if (id.includes("/@tanstack/")) {
+              return "tanstack-vendor";
+            }
+            if (
+              id.includes("/@radix-ui/") ||
+              id.includes("/radix-ui/") ||
+              id.includes("/lucide-react/") ||
+              id.includes("/class-variance-authority/") ||
+              id.includes("/clsx/") ||
+              id.includes("/tailwind-merge/")
+            ) {
+              return "ui-vendor";
+            }
+            if (id.includes("/zod/")) {
+              return "zod-vendor";
+            }
+          },
+        },
+      },
+    },
     server: {
       proxy: {
         "/api": {
