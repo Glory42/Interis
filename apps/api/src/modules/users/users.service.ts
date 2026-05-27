@@ -33,8 +33,8 @@ export class UsersService {
     return UsersProfileService.updateTheme(userId, themeId);
   }
 
-  static async getReviewsWithMovies(userId: string) {
-    return UsersReadService.getReviewsWithMovies(userId);
+  static async getReviewsWithMovies(userId: string, limit?: number) {
+    return UsersReadService.getReviewsWithMovies(userId, limit);
   }
 
   static async getReviewDetailByUsername(
@@ -45,12 +45,12 @@ export class UsersService {
     return UsersReadService.getReviewDetailByUsername(username, reviewId, viewerUserId);
   }
 
-  static async getLikedFilms(userId: string) {
-    return UsersReadService.getLikedFilms(userId);
+  static async getLikedFilms(userId: string, limit?: number) {
+    return UsersReadService.getLikedFilms(userId, limit);
   }
 
-  static async getWatchlistedFilms(userId: string) {
-    return UsersReadService.getWatchlistedFilms(userId);
+  static async getWatchlistedFilms(userId: string, limit?: number) {
+    return UsersReadService.getWatchlistedFilms(userId, limit);
   }
 
   static async getStats(userId: string) {

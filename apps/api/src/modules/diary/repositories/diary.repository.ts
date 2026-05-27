@@ -85,8 +85,8 @@ export class DiaryRepository {
     });
   }
 
-  static async findAllByUser(userId: string) {
-    return db
+  static async findAllByUser(userId: string, limit?: number) {
+    const query = db
       .select({
         id: diaryEntries.id,
         watchedDate: diaryEntries.watchedDate,
@@ -116,6 +116,8 @@ export class DiaryRepository {
       )
       .where(eq(diaryEntries.userId, userId))
       .orderBy(desc(diaryEntries.watchedDate), desc(diaryEntries.createdAt));
+
+    return limit ? query.limit(limit) : query;
   }
 
   static async findOneByIdAndUser(entryId: string, userId: string) {

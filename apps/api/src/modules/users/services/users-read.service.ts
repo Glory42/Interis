@@ -18,8 +18,8 @@ export class UsersReadService {
     return UsersProfileRepository.searchProfilesByUsername(query, limit);
   }
 
-  static async getReviewsWithMovies(userId: string) {
-    return UsersReviewsRepository.getReviewsWithMovies(userId);
+  static async getReviewsWithMovies(userId: string, limit?: number) {
+    return UsersReviewsRepository.getReviewsWithMovies(userId, limit);
   }
 
   static async getReviewDetailByUsername(
@@ -30,12 +30,12 @@ export class UsersReadService {
     return UsersReviewsRepository.getReviewDetailByUsername(username, reviewId, viewerUserId);
   }
 
-  static async getLikedFilms(userId: string) {
-    return UsersMediaInteractionsRepository.getLikedFilms(userId);
+  static async getLikedFilms(userId: string, limit?: number) {
+    return UsersMediaInteractionsRepository.getLikedFilms(userId, limit);
   }
 
-  static async getWatchlistedFilms(userId: string) {
-    return UsersMediaInteractionsRepository.getWatchlistedFilms(userId);
+  static async getWatchlistedFilms(userId: string, limit?: number) {
+    return UsersMediaInteractionsRepository.getWatchlistedFilms(userId, limit);
   }
 
   static async getStats(userId: string) {
