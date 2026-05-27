@@ -42,7 +42,7 @@ export const auth = betterAuth({
   user: {
     changeEmail: {
       enabled: true,
-      updateEmailWithoutVerification: true,
+      updateEmailWithoutVerification: false,
     },
   },
 
@@ -67,7 +67,7 @@ export const auth = betterAuth({
     },
     defaultCookieAttributes: {
       httpOnly: true,
-      secure: isProduction ? true : false,
+      secure: isProduction,
       sameSite: isProduction ? "none" : "lax",
     },
   },
