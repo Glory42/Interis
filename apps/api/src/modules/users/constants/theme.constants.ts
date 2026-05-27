@@ -4,6 +4,7 @@ export const SUPPORTED_THEME_IDS = [
   "rose-pine",
   "null-log",
   "gruvbox",
+  "amoled",
 ] as const;
 
 export type ThemeId = (typeof SUPPORTED_THEME_IDS)[number];

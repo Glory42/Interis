@@ -97,6 +97,38 @@ window.__THIS_IS_CINEMA_THEME_REGISTRY__ = {
       "--aura-muted": "#7c6f64",
     },
   },
+  amoled: {
+    id: "amoled",
+    label: "AMOLED",
+    description: "Pure black AMOLED base with violet accent and a subtle purple grid.",
+    preview: {
+      mode: "dark",
+      swatches: ["#000000", "#0d0d0d", "#a855f7", "#d4a8ff"],
+    },
+    tokens: {
+      "--background": "#000000",
+      "--foreground": "#ffffff",
+      "--card": "#0d0d0d",
+      "--card-foreground": "#ffffff",
+      "--popover": "#080808",
+      "--popover-foreground": "#ffffff",
+      "--primary": "#a855f7",
+      "--primary-foreground": "#000000",
+      "--secondary": "#1f1f1f",
+      "--secondary-foreground": "#ffffff",
+      "--muted": "#0a0a0a",
+      "--muted-foreground": "#888888",
+      "--accent": "#d4a8ff",
+      "--accent-foreground": "#000000",
+      "--border": "#333333",
+      "--input": "#1f1f1f",
+      "--ring": "#a855f7",
+      "--destructive": "#ef4444",
+      "--aura-primary": "#a855f7",
+      "--aura-secondary": "#d4a8ff",
+      "--aura-muted": "#1f1f1f",
+    },
+  },
 };
 
 window.__THIS_IS_CINEMA_DEFAULT_THEME_ID__ = "rose-pine";

@@ -13,7 +13,7 @@ export type ThemeDefinition = {
 
 const DEFAULT_THEME_ID = "rose-pine";
 
-const SUPPORTED_THEME_IDS = ["rose-pine", "null-log", "gruvbox"] as const;
+const SUPPORTED_THEME_IDS = ["rose-pine", "null-log", "gruvbox", "amoled"] as const;
 
 const SUPPORTED_THEME_ID_SET = new Set<string>(SUPPORTED_THEME_IDS);
 
