@@ -22,7 +22,7 @@ const filterTabs: Array<{ id: FeedFilter; label: string }> = [
 ];
 
 export const HomePage = () => {
-  const { user } = useAuth();
+  const { user, isUserLoading } = useAuth();
   const [activeFilter, setActiveFilter] = useState<FeedFilter>("all");
   const [feedLimit, setFeedLimit] = useState(15);
 
@@ -37,9 +37,7 @@ export const HomePage = () => {
     () => followingFeedQuery.data ?? [],
     [followingFeedQuery.data],
   );
-  const isFeedLoading = isFollowingEnabled
-    ? followingFeedQuery.isPending
-    : false;
+  const isFeedLoading = isUserLoading || (isFollowingEnabled && followingFeedQuery.isPending);
   const isFeedError = isFollowingEnabled ? followingFeedQuery.isError : false;
 
   const totalUsers = networkStatsQuery.data?.totalUsers ?? null;

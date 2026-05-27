@@ -1,4 +1,3 @@
-import { Spinner } from "@/components/ui/spinner";
 import { FeedActivityCard } from "@/features/feed/components/FeedActivityCard";
 import { inferFeedChannel } from "@/features/feed/components/feed-row.utils";
 import type { FeedItem } from "@/features/feed/types";
@@ -22,10 +21,30 @@ export const FeedActivityList = ({
 }: FeedActivityListProps) => {
   if (isLoading) {
     return (
-      <div className="border border-border/70 bg-card/70 px-4 py-4 font-mono text-xs text-muted-foreground">
-        <p className="flex items-center gap-2">
-          <Spinner /> loading feed stream...
-        </p>
+      <div className="border-y border-border/60">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="animate-pulse border-b border-border/60 py-6">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 shrink-0 bg-muted/50" />
+              <div className="flex flex-1 items-center gap-2">
+                <div className="h-3 w-20 bg-muted/50" />
+                <div className="h-3 w-14 bg-muted/30" />
+                <div className="ml-auto h-3 w-10 bg-muted/30" />
+              </div>
+            </div>
+            <div className="mt-3 ml-10">
+              <div className="h-5 w-52 bg-muted/40" />
+            </div>
+            <div className="mt-3 ml-10 space-y-2">
+              <div className="h-3 w-full bg-muted/25" />
+              <div className="h-3 w-2/3 bg-muted/25" />
+            </div>
+            <div className="mt-3 ml-10 flex gap-5">
+              <div className="h-3 w-8 bg-muted/30" />
+              <div className="h-3 w-8 bg-muted/30" />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }

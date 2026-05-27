@@ -1,6 +1,5 @@
 import type { CSSProperties } from "react";
 import { Link } from "@tanstack/react-router";
-import { Spinner } from "@/components/ui/spinner";
 import type { TrendingMovie } from "@/features/feed/types";
 import type { TrendingSeries } from "@/features/serials/api";
 
@@ -59,9 +58,17 @@ export const TrendingNowRail = ({
       </p>
 
       {isLoading ? (
-        <p className="flex items-center gap-2 font-mono text-[11px] text-muted-foreground">
-          <Spinner /> loading trends...
-        </p>
+        <div className="animate-pulse space-y-3">
+          {[75, 100, 60, 85, 70, 90].map((w, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <span className="w-4 font-mono text-[10px] text-muted-foreground/30">{i + 1}</span>
+              <div className="min-w-0 flex-1">
+                <div className="h-3 bg-muted/50" style={{ width: `${w}%` }} />
+              </div>
+              <div className="h-4 w-10 shrink-0 bg-muted/40" />
+            </div>
+          ))}
+        </div>
       ) : null}
 
       {isError ? (
