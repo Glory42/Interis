@@ -13,38 +13,32 @@ import { serialKeys } from "@/features/serials/hooks/useSerials";
 import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
 
 export const Route = createFileRoute("/")({
-  loader: async ({ context }) => {
-    const user = await context.queryClient.ensureQueryData(authQueryOptions);
+  loader: ({ context }) => {
+    void context.queryClient.prefetchQuery(authQueryOptions);
+    void context.queryClient.prefetchQuery({
+      queryKey: feedKeys.trending,
+      queryFn: ({ signal }) => getTrendingMovies({ signal }),
+    });
+    void context.queryClient.prefetchQuery({
+      queryKey: serialKeys.trending,
+      queryFn: ({ signal }) => getTrendingSeries({ signal }),
+    });
+    void context.queryClient.prefetchQuery({
+      queryKey: feedKeys.networkStats,
+      queryFn: ({ signal }) => getNetworkStats({ signal }),
+    });
 
-    const prefetchTasks: Array<Promise<unknown>> = [
-      context.queryClient.prefetchQuery({
-        queryKey: feedKeys.trending,
-        queryFn: ({ signal }) => getTrendingMovies({ signal }),
-      }),
-      context.queryClient.prefetchQuery({
-        queryKey: serialKeys.trending,
-        queryFn: ({ signal }) => getTrendingSeries({ signal }),
-      }),
-      context.queryClient.prefetchQuery({
-        queryKey: feedKeys.networkStats,
-        queryFn: ({ signal }) => getNetworkStats({ signal }),
-      }),
-    ];
-
-    if (user) {
-      prefetchTasks.push(
-        context.queryClient.prefetchQuery({
-          queryKey: feedKeys.followingByLimit(15),
-          queryFn: ({ signal }) => getFollowingFeed(15, { signal }),
-        }),
-        context.queryClient.prefetchQuery({
-          queryKey: feedKeys.meSummary,
-          queryFn: ({ signal }) => getMyFeedSummary({ signal }),
-        }),
-      );
+    const cachedUser = context.queryClient.getQueryData(authQueryOptions.queryKey);
+    if (cachedUser) {
+      void context.queryClient.prefetchQuery({
+        queryKey: feedKeys.followingByLimit(15),
+        queryFn: ({ signal }) => getFollowingFeed(15, { signal }),
+      });
+      void context.queryClient.prefetchQuery({
+        queryKey: feedKeys.meSummary,
+        queryFn: ({ signal }) => getMyFeedSummary({ signal }),
+      });
     }
-
-    await Promise.allSettled(prefetchTasks);
   },
   component: HomeRoute,
   errorComponent: (props) => <RouteErrorBoundary {...props} title="Could not load home feed" />,
