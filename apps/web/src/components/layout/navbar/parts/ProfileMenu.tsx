@@ -1,6 +1,7 @@
-import { useState, type RefObject } from "react";
+import { useState, useEffect, useRef, type RefObject } from "react";
 import { Link } from "@tanstack/react-router";
 import { dropdownItemClass } from "@/components/layout/navbar/navbar.constants";
+import { NavbarThemeSubmenu } from "@/components/layout/navbar/parts/NavbarThemeSubmenu";
 import type { NavbarUser } from "@/components/layout/navbar/parts/types";
 
 type ProfileMenuProps = {
@@ -28,9 +29,20 @@ export const ProfileMenu = ({
   onSignOut,
   menuRef,
 }: ProfileMenuProps) => {
-  const [failedProfileImageUrl, setFailedProfileImageUrl] = useState<string | null>(
-    null,
-  );
+  const [failedProfileImageUrl, setFailedProfileImageUrl] = useState<string | null>(null);
+  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+  const themeMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isThemeMenuOpen) return;
+    const handleOutside = (e: MouseEvent) => {
+      if (themeMenuRef.current && !themeMenuRef.current.contains(e.target as Node)) {
+        setIsThemeMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [isThemeMenuOpen]);
   const shouldShowProfileImage = Boolean(
     profileImageUrl && profileImageUrl !== failedProfileImageUrl,
   );
@@ -85,6 +97,19 @@ export const ProfileMenu = ({
           >
             Profile
           </Link>
+          <div ref={themeMenuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setIsThemeMenuOpen((prev) => !prev)}
+              className={dropdownItemClass + " justify-between"}
+            >
+              Theme
+              <span className="text-[10px] text-muted-foreground/60">›</span>
+            </button>
+            {isThemeMenuOpen ? (
+              <NavbarThemeSubmenu />
+            ) : null}
+          </div>
           <Link
             to="/settings"
             viewTransition
