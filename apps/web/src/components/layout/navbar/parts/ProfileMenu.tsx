@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, type RefObject } from "react";
+import { useState, type RefObject } from "react";
 import { Link } from "@tanstack/react-router";
+import { ChevronRight } from "lucide-react";
 import { dropdownItemClass } from "@/components/layout/navbar/navbar.constants";
 import { NavbarThemeSubmenu } from "@/components/layout/navbar/parts/NavbarThemeSubmenu";
 import type { NavbarUser } from "@/components/layout/navbar/parts/types";
@@ -31,24 +32,12 @@ export const ProfileMenu = ({
 }: ProfileMenuProps) => {
   const [failedProfileImageUrl, setFailedProfileImageUrl] = useState<string | null>(null);
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
-  const themeMenuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!isThemeMenuOpen) return;
-    const handleOutside = (e: MouseEvent) => {
-      if (themeMenuRef.current && !themeMenuRef.current.contains(e.target as Node)) {
-        setIsThemeMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
-  }, [isThemeMenuOpen]);
   const shouldShowProfileImage = Boolean(
     profileImageUrl && profileImageUrl !== failedProfileImageUrl,
   );
 
   return (
-    <div ref={menuRef} className="relative" onMouseEnter={onOpen}>
+    <div ref={menuRef} className="relative self-stretch flex items-center" onMouseEnter={onOpen}>
       <button
         type="button"
         onClick={onToggle}
@@ -84,7 +73,8 @@ export const ProfileMenu = ({
 
       {isOpen ? (
         <div
-          className="absolute right-0 top-[calc(100%+0.35rem)] z-50 w-44 border border-border/80 bg-popover/95 p-1 backdrop-blur-md animate-fade-up"
+          className="absolute right-0 top-[calc(100%-1px)] z-50 w-44 border bg-popover/95 p-1 backdrop-blur-md animate-fade-up"
+          style={{ borderColor: "color-mix(in srgb, var(--primary) 30%, transparent)" }}
           role="menu"
           aria-label="Profile options"
         >
@@ -97,14 +87,17 @@ export const ProfileMenu = ({
           >
             Profile
           </Link>
-          <div ref={themeMenuRef} className="relative">
+          <div>
             <button
               type="button"
               onClick={() => setIsThemeMenuOpen((prev) => !prev)}
               className={dropdownItemClass + " justify-between"}
             >
               Theme
-              <span className="text-[10px] text-muted-foreground/60">›</span>
+              <ChevronRight
+                size={10}
+                className={"text-muted-foreground/60 transition-transform duration-200 " + (isThemeMenuOpen ? "rotate-90" : "")}
+              />
             </button>
             {isThemeMenuOpen ? (
               <NavbarThemeSubmenu />

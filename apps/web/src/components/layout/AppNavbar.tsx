@@ -50,7 +50,7 @@ export const AppNavbar = () => {
             <PrimaryNavLinks items={visiblePrimaryNavItems} />
           </nav>
 
-          <div className="col-start-3 flex min-w-0 items-center justify-end gap-3">
+          <div className="col-start-3 flex min-w-0 items-center justify-end gap-3 self-stretch">
             <DesktopSearchButton
               isSearchDialogOpen={isSearchDialogOpen}
               onOpen={openSearchDialog}

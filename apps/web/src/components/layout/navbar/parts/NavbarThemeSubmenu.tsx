@@ -31,7 +31,7 @@ export const NavbarThemeSubmenu = () => {
 
   return (
     <div
-      className="absolute right-full top-0 mr-1.5 z-50 w-48 border border-border/80 bg-popover/95 p-1 backdrop-blur-md animate-fade-up"
+      className="border-t border-border/40 pt-1 mt-1 animate-fade-up"
       role="menu"
       aria-label="Theme options"
     >
@@ -46,7 +46,7 @@ export const NavbarThemeSubmenu = () => {
             onClick={() => { void handleSelect(theme.id); }}
             disabled={updateThemeMutation.isPending}
             className={
-              "flex w-full items-center gap-2.5 px-2.5 py-2 text-left transition-colors " +
+              "flex w-full items-center gap-2.5 px-2.5 py-1.5 text-left transition-colors " +
               (isActive
                 ? "bg-secondary/65 text-foreground"
                 : "text-muted-foreground hover:bg-secondary/65 hover:text-foreground")
