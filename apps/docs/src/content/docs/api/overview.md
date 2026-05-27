@@ -37,16 +37,15 @@ All routes are `GET` and use `:username` path params.
 
 ## Rate limiting
 
-Public routes use two stacked dedicated limiters:
+Public routes use a dedicated per-IP limiter:
 
 | Limiter | Window | Max | Key |
 | --- | --- | --- | --- |
 | Per-IP | 1 min | 60 requests | `IP` |
-| Per-IP + username | 1 min | 10 requests | `IP:username` |
 
-A request must pass both. See [Rate Limits](/reference/rate-limits/) for full details.
+See [Rate Limits](/reference/rate-limits/) for full details.
 
-The broader `/api` limiter is configured to skip `/public/*`, so public traffic is governed by the dedicated limiters above.
+The broader `/api` limiter is configured to skip `/public/*`, so public traffic is governed by the dedicated limiter above.
 
 ## Data visibility notes
 
