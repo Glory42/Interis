@@ -46,10 +46,9 @@ export const LogFilmModal = ({
 }: LogFilmModalProps) => {
   const { user } = useAuth();
   const createDiaryMutation = useCreateDiaryEntry();
+  const [isOpen, setIsOpen] = useState(false);
   const interactionQuery = useMovieInteraction(tmdbId, isOpen);
   const updateInteractionMutation = useUpdateMovieInteraction(tmdbId);
-
-  const [isOpen, setIsOpen] = useState(false);
   const [watchedDate, setWatchedDate] = useState(todayAsDateInput);
   const [ratingOutOfFive, setRatingOutOfFive] = useState<number | null>(null);
   const [rewatch, setRewatch] = useState(false);

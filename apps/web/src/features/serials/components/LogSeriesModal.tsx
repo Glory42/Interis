@@ -45,10 +45,9 @@ export const LogSeriesModal = ({
 }: LogSeriesModalProps) => {
   const { user } = useAuth();
   const createSeriesLogMutation = useCreateSeriesLog(tmdbId);
+  const [isOpen, setIsOpen] = useState(false);
   const interactionQuery = useSeriesInteraction(tmdbId, isOpen);
   const updateInteractionMutation = useUpdateSeriesInteraction(tmdbId);
-
-  const [isOpen, setIsOpen] = useState(false);
   const [watchedDate, setWatchedDate] = useState(todayAsDateInput);
   const [ratingOutOfFive, setRatingOutOfFive] = useState<number | null>(null);
   const [rewatch, setRewatch] = useState(false);
