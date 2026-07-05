@@ -1,6 +1,7 @@
 import {
   getMovieCredits,
   getMovieDetails as tmdbGetDetails,
+  getSimilarMovies,
 } from "../../../infrastructure/tmdb/cinemas";
 import {
   normalizeMovieGenres,
@@ -41,11 +42,12 @@ export class MoviesDetailService {
     const reviewsSort = input.reviewsSort;
     const viewerUserId = input.viewerUserId ?? null;
 
-    const [tmdbDetail, tmdbCredits, logsCount, reviewRows] = await Promise.all([
+    const [tmdbDetail, tmdbCredits, logsCount, reviewRows, tmdbSimilar] = await Promise.all([
       tmdbGetDetails(input.tmdbId).catch(() => null),
       getMovieCredits(input.tmdbId).catch(() => null),
       MoviesRepository.getLogsCountByMovieId(movie.id),
       MoviesRepository.getReviewRowsByMovieId(movie.id),
+      getSimilarMovies(input.tmdbId).catch(() => []),
     ]);
 
     const directorCredits = (tmdbCredits?.crew ?? []).filter(
@@ -161,6 +163,19 @@ export class MoviesDetailService {
       toRatingBreakdownBucket,
     );
 
+    const similar = (tmdbSimilar ?? []).slice(0, 12).map((sim) => {
+      const releaseYear = sim.release_date
+        ? Number.parseInt(sim.release_date.slice(0, 4), 10)
+        : null;
+
+      return {
+        tmdbId: sim.id,
+        title: sim.title,
+        posterPath: sim.poster_path,
+        releaseYear: Number.isNaN(releaseYear) ? null : releaseYear,
+      };
+    });
+
     const [viewerDiaryRow, viewerReviewRow] = viewerUserId
       ? await Promise.all([
           MoviesRepository.getViewerDiaryRows(viewerUserId, movie.id),
@@ -235,6 +250,7 @@ export class MoviesDetailService {
         averageRatingOutOfFive: ratingBreakdown.averageRatingOutOfFive,
         buckets: ratingBreakdown.buckets as MovieDetailRatingBreakdownBucket[],
       },
+      similar,
     };
   }
 

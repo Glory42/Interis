@@ -279,3 +279,25 @@ export const getMovieDirector = async (
     directorInFlight.delete(tmdbId);
   }
 };
+
+export const getSimilarMovies = async (
+  tmdbId: number,
+): Promise<TMDBDiscoverMovie[]> => {
+  try {
+    const data = await fetchTMDB(`/movie/${tmdbId}/recommendations?language=en-US&page=1`);
+    const parsed = TMDBDiscoverMoviesSchema.parse(data);
+    if (parsed.results.length > 0) {
+      return parsed.results;
+    }
+  } catch (error) {
+    // Fail silently to try similar fallback
+  }
+
+  try {
+    const data = await fetchTMDB(`/movie/${tmdbId}/similar?language=en-US&page=1`);
+    const parsed = TMDBDiscoverMoviesSchema.parse(data);
+    return parsed.results;
+  } catch (error) {
+    return [];
+  }
+};

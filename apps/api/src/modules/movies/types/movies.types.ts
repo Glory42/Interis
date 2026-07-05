@@ -146,4 +146,12 @@ export type MovieDetailResponse = {
     averageRatingOutOfFive: number | null;
     buckets: MovieDetailRatingBreakdownBucket[];
   };
+  similar: SimilarMovieItem[];
+};
+
+export type SimilarMovieItem = {
+  tmdbId: number;
+  title: string;
+  posterPath: string | null;
+  releaseYear: number | null;
 };

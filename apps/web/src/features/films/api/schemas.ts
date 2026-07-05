@@ -131,6 +131,13 @@ const movieDetailRatingBreakdownBucketSchema = z.object({
   percentage: z.number().int().min(0).max(100),
 });
 
+const similarMovieItemSchema = z.object({
+  tmdbId: z.number().int(),
+  title: z.string(),
+  posterPath: z.string().nullable(),
+  releaseYear: z.number().int().nullable(),
+});
+
 export const movieDetailResponseSchema = z.object({
   movie: movieDetailMovieSchema,
   logsCount: z.number().int().nonnegative(),
@@ -143,6 +150,7 @@ export const movieDetailResponseSchema = z.object({
     averageRatingOutOfFive: z.number().nullable(),
     buckets: z.array(movieDetailRatingBreakdownBucketSchema),
   }),
+  similar: z.array(similarMovieItemSchema),
 });
 
 export const movieArchiveResponseSchema = z.object({

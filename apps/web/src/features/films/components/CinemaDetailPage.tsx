@@ -6,6 +6,7 @@ import { CinemaDetailsMainSection } from "@/features/films/components/cinema-det
 import { CinemaDetailStatusPanel } from "@/features/films/components/cinema-detail/CinemaDetailStatusPanel";
 import { CinemaDetailTopBar } from "@/features/films/components/cinema-detail/CinemaDetailTopBar";
 import { CinemaReviewsSection } from "@/features/films/components/cinema-detail/CinemaReviewsSection";
+import { CinemaSimilarSection } from "@/features/films/components/cinema-detail/CinemaSimilarSection";
 import { useMovieDetailView } from "@/features/films/hooks/useMovies";
 import {
   useMovieInteraction,
@@ -98,6 +99,8 @@ export function CinemaDetailPage({ tmdbId }: CinemaDetailPageProps) {
           onSortChange={setReviewsSort}
           reviews={detail.reviews}
         />
+
+        <CinemaSimilarSection similar={detail.similar} />
       </main>
     </div>
   );
