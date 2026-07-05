@@ -123,6 +123,7 @@ export const useUpdateSeriesInteraction = (tmdbId: number) => {
           ...(input.ratingOutOfFive !== undefined
             ? { ratingOutOfFive: input.ratingOutOfFive }
             : {}),
+          ...(input.watched !== undefined ? { watched: input.watched } : {}),
         });
       }
 
@@ -136,9 +137,14 @@ export const useUpdateSeriesInteraction = (tmdbId: number) => {
       queryClient.setQueryData(serialKeys.interaction(tmdbId), context.previousState);
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: serialKeys.interaction(tmdbId),
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: serialKeys.interaction(tmdbId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["serials"],
+        }),
+      ]);
     },
   });
 };

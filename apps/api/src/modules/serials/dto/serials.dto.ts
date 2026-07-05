@@ -203,14 +203,16 @@ export const UpdateSerialInteractionSchema = z
     liked: z.boolean().optional(),
     watchlisted: z.boolean().optional(),
     ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+    watched: z.boolean().optional(),
   })
   .refine(
     (payload) =>
       payload.liked !== undefined ||
       payload.watchlisted !== undefined ||
-      payload.ratingOutOfFive !== undefined,
+      payload.ratingOutOfFive !== undefined ||
+      payload.watched !== undefined,
     {
-      message: "At least one of liked, watchlisted, or ratingOutOfFive must be provided",
+      message: "At least one of liked, watchlisted, ratingOutOfFive, or watched must be provided",
     },
   );
 

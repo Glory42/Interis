@@ -13,6 +13,8 @@ import { toRatingOutOfFive } from "../helpers/serials-normalization.helper";
 import { SerialsInteractionsRepository } from "../repositories/serials-interactions.repository";
 import { SerialsReviewsRepository } from "../repositories/serials-reviews.repository";
 import { SerialsCacheService } from "./serials-cache.service";
+import { SerialsEpisodeInteractionsRepository } from "../repositories/serials-episode-interactions.repository";
+import { SerialsTrackingService } from "./serials-tracking.service";
 
 export class SerialsActivityService {
   static async getInteraction(userId: string, tmdbId: number) {
@@ -22,11 +24,21 @@ export class SerialsActivityService {
     }
 
     const row = await SerialsInteractionsRepository.getInteractionRow(userId, series.id);
+    const userEpisodeInteractions =
+      await SerialsEpisodeInteractionsRepository.getAllViewerEpisodeInteractions(
+        userId,
+        series.id,
+        series.tmdbId,
+      );
+    const watchedEpisodesCount = userEpisodeInteractions.filter((i) => i.watched).length;
+    const allEpisodesWatched =
+      watchedEpisodesCount === series.numberOfEpisodes && series.numberOfEpisodes > 0;
 
     return {
       liked: row?.liked ?? false,
       watchlisted: row?.watchlisted ?? false,
       ratingOutOfFive: toRatingOutOfFive(row?.rating ?? null),
+      watched: allEpisodesWatched,
     };
   }
 
@@ -38,6 +50,21 @@ export class SerialsActivityService {
     const series = await SerialsCacheService.findOrCreate(tmdbId);
     if (!series) {
       return null;
+    }
+
+    if (input.watched !== undefined) {
+      const numberOfSeasons = series.numberOfSeasons;
+      if (numberOfSeasons && numberOfSeasons > 0) {
+        const promises: Promise<unknown>[] = [];
+        for (let seasonNum = 1; seasonNum <= numberOfSeasons; seasonNum++) {
+          promises.push(
+            SerialsTrackingService.updateSeasonInteraction(userId, tmdbId, seasonNum, {
+              watched: input.watched,
+            })
+          );
+        }
+        await Promise.all(promises);
+      }
     }
 
     const previousRow = await SerialsInteractionsRepository.getInteractionRow(userId, series.id);
@@ -99,18 +126,21 @@ export class SerialsActivityService {
       await Promise.all(activityTasks);
     }
 
-    if (!row) {
-      return {
-        liked: resolvedLiked,
-        watchlisted: resolvedWatchlisted,
-        ratingOutOfFive: toRatingOutOfFive(ratingOutOfTen ?? null),
-      };
-    }
+    const userEpisodeInteractions =
+      await SerialsEpisodeInteractionsRepository.getAllViewerEpisodeInteractions(
+        userId,
+        series.id,
+        series.tmdbId,
+      );
+    const watchedEpisodesCount = userEpisodeInteractions.filter((i) => i.watched).length;
+    const allEpisodesWatched =
+      watchedEpisodesCount === series.numberOfEpisodes && series.numberOfEpisodes > 0;
 
     return {
-      liked: row.liked,
-      watchlisted: row.watchlisted,
-      ratingOutOfFive: toRatingOutOfFive(row.rating),
+      liked: resolvedLiked,
+      watchlisted: resolvedWatchlisted,
+      ratingOutOfFive: toRatingOutOfFive(row?.rating ?? null),
+      watched: allEpisodesWatched,
     };
   }
 
