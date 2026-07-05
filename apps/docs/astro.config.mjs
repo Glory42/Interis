@@ -35,6 +35,7 @@ export default defineConfig({
 						{ label: 'Watchlist', slug: 'api/endpoints/watchlist' },
 						{ label: 'Diary', slug: 'api/endpoints/diary' },
 						{ label: 'Activity', slug: 'api/endpoints/activity' },
+						{ label: 'Serials Progress', slug: 'api/endpoints/serials-progress' },
 					],
 				},
 				{

@@ -26,6 +26,7 @@ All routes are `GET` and use `:username` path params.
 | `/api/public/:username/likes` | 50 | 200 | Liked movie + TV media |
 | `/api/public/:username/watchlist` | 50 | 200 | Watchlisted movie + TV media |
 | `/api/public/:username/diary` | 50 | 200 | Movie + TV diary entries |
+| `/api/public/:username/serials/:tmdbId` | - | - | Serial progress + stats |
 
 ## Response conventions
 
@@ -67,3 +68,4 @@ Use the detailed pages for params, field notes, and examples:
 - [Watchlist](/api/endpoints/watchlist/)
 - [Diary](/api/endpoints/diary/)
 - [Activity](/api/endpoints/activity/)
+- [Serials Progress](/api/endpoints/serials-progress/)

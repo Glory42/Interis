@@ -105,3 +105,15 @@ Key fields:
 - ratings: `ratingOutOfTen`, `ratingOutOfFive`
 - `media` object (`tmdbId`, `title`, `posterPath`, `releaseYear`)
 - optional `review` object (`id`, `content`, `containsSpoilers`, `createdAt`) or `null`
+
+## Serials Progress payload (`/serials/:tmdbId`)
+
+Key fields:
+
+- `series` basic info: `id`, `tmdbId`, `title`, `posterPath`, `numberOfSeasons`, `numberOfEpisodes`
+- `viewerTracking` progress:
+  - `watchedEpisodesCount`: total count of watched episodes.
+  - `watchedEpisodes[]` list: `{ seasonNumber, episodeNumber }` mappings.
+  - `currentEpisode` (Up Next): `{ seasonNumber, episodeNumber, name }` or `null` if series completed.
+  - interaction aggregations: `ratingsCount`, `likesCount`, `reviewsCount`.
+- `seasons[]` array list: `seasonNumber`, `name`, `episodeCount`, and season-level `viewerInteraction` object (`watched`, `liked`, `ratingOutOfFive`, `hasReview`).
