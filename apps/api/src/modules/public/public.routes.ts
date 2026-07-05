@@ -24,5 +24,6 @@ router.get("/:username/likes", asyncHandler(PublicController.getLikes));
 router.get("/:username/watchlist", asyncHandler(PublicController.getWatchlist));
 router.get("/:username/diary", asyncHandler(PublicController.getDiary));
 router.get("/:username/top4", asyncHandler(PublicController.getTop4));
+router.get("/:username/serials/:tmdbId", asyncHandler(PublicController.getSerialProgress));
 
 export default router;

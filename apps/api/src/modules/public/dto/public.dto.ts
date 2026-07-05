@@ -9,3 +9,68 @@ export type PublicActivityQueryDto = {
 export type PublicCollectionQueryDto = {
   limit?: string;
 };
+
+export type PublicProfileResponse = {
+  username: string;
+  displayUsername: string | null;
+  name: string;
+  image: string | null;
+  avatarUrl: string | null;
+  bio: string | null;
+  location: string | null;
+  favoriteGenres: string[];
+  themeId: string;
+  createdAt: Date;
+  stats: {
+    filmEntryCount: number;
+    serialEntryCount: number;
+    reviewCount: number;
+    filmCount: number;
+    listCount: number;
+    followerCount: number;
+    followingCount: number;
+  };
+};
+
+export type PublicDiaryItem = {
+  id: string;
+  mediaType: "movie" | "tv";
+  watchedDate: string;
+  ratingOutOfTen: number | null;
+  ratingOutOfFive: number | null;
+  rewatch: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  media: {
+    tmdbId: number;
+    title: string;
+    posterPath: string | null;
+    releaseYear: number | null;
+  };
+  review: {
+    id: string;
+    content: string;
+    containsSpoilers: boolean;
+    createdAt: Date;
+  } | null;
+};
+
+export type PublicListEntry = {
+  position: number;
+  note: string | null;
+  tmdbId: number;
+  title: string;
+  posterPath: string | null;
+  releaseYear: number | null;
+};
+
+export type PublicList = {
+  id: string;
+  title: string;
+  description: string | null;
+  isRanked: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  itemCount: number;
+  items: PublicListEntry[];
+};

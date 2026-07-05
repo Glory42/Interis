@@ -14,70 +14,8 @@ import { toRatingOutOfFive } from "../../commons/utils/rating";
 // Thin, read-only service for the public portfolio API
 // All responses are cached-friendly — no auth required
 
-type PublicProfileResponse = {
-  username: string;
-  displayUsername: string | null;
-  name: string;
-  image: string | null;
-  avatarUrl: string | null;
-  bio: string | null;
-  location: string | null;
-  favoriteGenres: string[];
-  themeId: string;
-  createdAt: Date;
-  stats: {
-    filmEntryCount: number;
-    serialEntryCount: number;
-    reviewCount: number;
-    filmCount: number;
-    listCount: number;
-    followerCount: number;
-    followingCount: number;
-  };
-};
-
-type PublicDiaryItem = {
-  id: string;
-  mediaType: "movie" | "tv";
-  watchedDate: string;
-  ratingOutOfTen: number | null;
-  ratingOutOfFive: number | null;
-  rewatch: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  media: {
-    tmdbId: number;
-    title: string;
-    posterPath: string | null;
-    releaseYear: number | null;
-  };
-  review: {
-    id: string;
-    content: string;
-    containsSpoilers: boolean;
-    createdAt: Date;
-  } | null;
-};
-
-type PublicListEntry = {
-  position: number;
-  note: string | null;
-  tmdbId: number;
-  title: string;
-  posterPath: string | null;
-  releaseYear: number | null;
-};
-
-type PublicList = {
-  id: string;
-  title: string;
-  description: string | null;
-  isRanked: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  itemCount: number;
-  items: PublicListEntry[];
-};
+import type { PublicProfileResponse, PublicDiaryItem } from "./dto/public.dto";
+import { SerialsDetailService } from "../serials/services/serials-detail.service";
 
 const toTimestamp = (value: string | Date): number => {
   if (value instanceof Date) {
@@ -353,5 +291,36 @@ export class PublicService {
     }
 
     return PublicTopPicksService.getTop4ByUserId(userId);
+  }
+
+  static async getSerialProgress(username: string, tmdbId: number) {
+    const userId = await PublicService.findUserIdByUsername(username);
+    if (!userId) return null;
+
+    const detail = await SerialsDetailService.getDetail({
+      tmdbId,
+      viewerUserId: userId,
+      reviewsSort: "recent",
+    });
+
+    if (!detail) return null;
+
+    return {
+      series: {
+        id: detail.series.id,
+        tmdbId: detail.series.tmdbId,
+        title: detail.series.title,
+        posterPath: detail.series.posterPath,
+        numberOfSeasons: detail.series.numberOfSeasons,
+        numberOfEpisodes: detail.series.numberOfEpisodes,
+      },
+      viewerTracking: detail.viewerTracking,
+      seasons: detail.series.seasons.map((s) => ({
+        seasonNumber: s.seasonNumber,
+        name: s.name,
+        episodeCount: s.episodeCount,
+        viewerInteraction: s.viewerInteraction,
+      })),
+    };
   }
 }

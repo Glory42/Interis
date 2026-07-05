@@ -166,4 +166,25 @@ export class PublicController {
 
     PublicController.sendPublicResponse(res, data);
   }
+
+  // GET /api/public/:username/serials/:tmdbId
+  static async getSerialProgress(
+    req: Request<{ username: string; tmdbId: string }>,
+    res: Response,
+  ): Promise<void> {
+    const tmdbId = Number.parseInt(req.params.tmdbId, 10);
+    if (Number.isNaN(tmdbId)) {
+      res.status(400).json({ error: "Invalid tmdbId" });
+      return;
+    }
+
+    const data = await PublicService.getSerialProgress(req.params.username, tmdbId);
+
+    if (!data) {
+      PublicController.sendUserNotFound(res);
+      return;
+    }
+
+    PublicController.sendPublicResponse(res, data);
+  }
 }
