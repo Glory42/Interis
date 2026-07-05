@@ -29,6 +29,11 @@ export const useUpdateMovieInteraction = (tmdbId: number) => {
 
       const previousState = queryClient.getQueryData<MovieInteraction>(queryKey);
       if (previousState) {
+        // Any rating/like interaction implicitly watched: true
+        const isImplicitlyWatched =
+          input.liked === true ||
+          (input.ratingOutOfFive !== undefined && input.ratingOutOfFive !== null);
+
         queryClient.setQueryData<MovieInteraction>(queryKey, {
           ...previousState,
           ...(input.liked !== undefined ? { liked: input.liked } : {}),
@@ -38,6 +43,8 @@ export const useUpdateMovieInteraction = (tmdbId: number) => {
           ...(input.ratingOutOfFive !== undefined
             ? { ratingOutOfFive: input.ratingOutOfFive }
             : {}),
+          ...(input.watched !== undefined ? { watched: input.watched } : {}),
+          ...(isImplicitlyWatched ? { watched: true } : {}),
         });
       }
 
@@ -54,9 +61,14 @@ export const useUpdateMovieInteraction = (tmdbId: number) => {
       );
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: interactionKeys.detail(tmdbId),
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: interactionKeys.detail(tmdbId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["movies"],
+        }),
+      ]);
     },
   });
 };

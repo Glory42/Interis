@@ -48,6 +48,7 @@ export function CinemaDetailPage({ tmdbId }: CinemaDetailPageProps) {
 
   const watchlisted = interactionQuery.data?.watchlisted ?? false;
   const liked = interactionQuery.data?.liked ?? false;
+  const watched = interactionQuery.data?.watched ?? false;
   const interactionRatingOutOfFive = interactionQuery.data?.ratingOutOfFive ?? null;
   const currentRatingOutOfFive =
     interactionRatingOutOfFive ?? detail.userRating?.ratingOutOfFive ?? null;
@@ -60,6 +61,10 @@ export function CinemaDetailPage({ tmdbId }: CinemaDetailPageProps) {
 
   const handleToggleLike = () => {
     void updateInteractionMutation.mutateAsync({ liked: !liked });
+  };
+
+  const handleToggleWatched = () => {
+    void updateInteractionMutation.mutateAsync({ watched: !watched });
   };
 
   const handleRatingChange = (nextRatingOutOfFive: number | null) => {
@@ -86,9 +91,11 @@ export function CinemaDetailPage({ tmdbId }: CinemaDetailPageProps) {
             isAuthenticated={Boolean(user)}
             watchlisted={watchlisted}
             liked={liked}
+            watched={watched}
             isInteractionBusy={isInteractionBusy}
             onToggleWatchlist={handleToggleWatchlist}
             onToggleLike={handleToggleLike}
+            onToggleWatched={handleToggleWatched}
           />
 
           <CinemaDetailsMainSection detail={detail} />

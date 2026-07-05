@@ -16,9 +16,11 @@ type CinemaActionsSidebarProps = {
   isAuthenticated: boolean;
   watchlisted: boolean;
   liked: boolean;
+  watched: boolean;
   isInteractionBusy: boolean;
   onToggleWatchlist: () => void;
   onToggleLike: () => void;
+  onToggleWatched: () => void;
 };
 
 export const CinemaActionsSidebar = ({
@@ -29,9 +31,11 @@ export const CinemaActionsSidebar = ({
   isAuthenticated,
   watchlisted,
   liked,
+  watched,
   isInteractionBusy,
   onToggleWatchlist,
   onToggleLike,
+  onToggleWatched,
 }: CinemaActionsSidebarProps) => {
   const movie = detail.movie;
 
@@ -141,39 +145,75 @@ export const CinemaActionsSidebar = ({
           )}
         </div>
 
-        {isAuthenticated ? (
-          <button
-            type="button"
-            disabled={isInteractionBusy}
-            className="flex w-full items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
-            style={{
-              borderColor: liked
-                ? CINEMA_MODULE_STYLES.accent
-                : CINEMA_MODULE_STYLES.border,
-              color: liked
-                ? CINEMA_MODULE_STYLES.accent
-                : CINEMA_MODULE_STYLES.muted,
-              background: "transparent",
-            }}
-            onClick={onToggleLike}
-          >
-            <Heart className="h-3 w-3" />
-            <span>{liked ? "Liked" : "Like"}</span>
-          </button>
-        ) : (
-          <Link
-            to="/login"
-            className="flex w-full items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
-            style={{
-              borderColor: CINEMA_MODULE_STYLES.border,
-              color: CINEMA_MODULE_STYLES.muted,
-            }}
-            viewTransition
-          >
-            <Heart className="h-3 w-3" />
-            <span>Like</span>
-          </Link>
-        )}
+        <div className="flex gap-2">
+          {isAuthenticated ? (
+            <button
+              type="button"
+              disabled={isInteractionBusy}
+              className="flex flex-1 items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+              style={{
+                borderColor: watched
+                  ? CINEMA_MODULE_STYLES.accent
+                  : CINEMA_MODULE_STYLES.border,
+                color: watched
+                  ? CINEMA_MODULE_STYLES.accent
+                  : CINEMA_MODULE_STYLES.muted,
+                background: "transparent",
+              }}
+              onClick={onToggleWatched}
+            >
+              <Check className="h-3 w-3" />
+              <span>{watched ? "Watched" : "Watch"}</span>
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="flex flex-1 items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
+              style={{
+                borderColor: CINEMA_MODULE_STYLES.border,
+                color: CINEMA_MODULE_STYLES.muted,
+              }}
+              viewTransition
+            >
+              <Check className="h-3 w-3" />
+              <span>Watch</span>
+            </Link>
+          )}
+
+          {isAuthenticated ? (
+            <button
+              type="button"
+              disabled={isInteractionBusy}
+              className="flex flex-1 items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+              style={{
+                borderColor: liked
+                  ? CINEMA_MODULE_STYLES.accent
+                  : CINEMA_MODULE_STYLES.border,
+                color: liked
+                  ? CINEMA_MODULE_STYLES.accent
+                  : CINEMA_MODULE_STYLES.muted,
+                background: "transparent",
+              }}
+              onClick={onToggleLike}
+            >
+              <Heart className="h-3 w-3" />
+              <span>{liked ? "Liked" : "Like"}</span>
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="flex flex-1 items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
+              style={{
+                borderColor: CINEMA_MODULE_STYLES.border,
+                color: CINEMA_MODULE_STYLES.muted,
+              }}
+              viewTransition
+            >
+              <Heart className="h-3 w-3" />
+              <span>Like</span>
+            </Link>
+          )}
+        </div>
 
         {isAuthenticated ? (
           <AddToListDialog

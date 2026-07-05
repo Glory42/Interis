@@ -6,6 +6,7 @@ const movieInteractionSchema = z
     liked: z.boolean(),
     watchlisted: z.boolean(),
     ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable(),
+    watched: z.boolean(),
   })
   .passthrough();
 
@@ -14,12 +15,14 @@ const updateMovieInteractionInputSchema = z
     liked: z.boolean().optional(),
     watchlisted: z.boolean().optional(),
     ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+    watched: z.boolean().optional(),
   })
   .refine(
     (payload) =>
       payload.liked !== undefined ||
       payload.watchlisted !== undefined ||
-      payload.ratingOutOfFive !== undefined,
+      payload.ratingOutOfFive !== undefined ||
+      payload.watched !== undefined,
     {
       message: "At least one interaction field is required",
     },
