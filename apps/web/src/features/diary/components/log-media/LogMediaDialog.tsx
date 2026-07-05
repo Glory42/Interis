@@ -5,12 +5,13 @@ import {
   MessageSquare,
   Rocket,
   X,
+  Heart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
 import { formatRatingOutOfFiveLabel } from "@/features/films/components/spaceRating.utils";
+import { CalendarPicker } from "@/components/ui/CalendarPicker";
 
 const todayAsDateInput = (): string => new Date().toISOString().slice(0, 10);
 
@@ -24,6 +25,7 @@ type LogMediaDialogProps = {
   rewatch: boolean;
   review: string;
   containsSpoilers: boolean;
+  liked: boolean;
   formError: string | null;
   reviewMaxLength: number;
   reviewPlaceholder: string;
@@ -35,6 +37,7 @@ type LogMediaDialogProps = {
   onRewatchChange: (nextValue: boolean) => void;
   onReviewChange: (nextValue: string) => void;
   onContainsSpoilersChange: (nextValue: boolean) => void;
+  onLikedChange: (nextValue: boolean) => void;
 };
 
 export const LogMediaDialog = ({
@@ -47,6 +50,7 @@ export const LogMediaDialog = ({
   rewatch,
   review,
   containsSpoilers,
+  liked,
   formError,
   reviewMaxLength,
   reviewPlaceholder,
@@ -58,6 +62,7 @@ export const LogMediaDialog = ({
   onRewatchChange,
   onReviewChange,
   onContainsSpoilersChange,
+  onLikedChange,
 }: LogMediaDialogProps) => {
   return (
     <div
@@ -121,13 +126,10 @@ export const LogMediaDialog = ({
                       <span>Watched on</span>
                     </span>
                   </label>
-                  <Input
-                    type="date"
-                    required
+                  <CalendarPicker
                     value={watchedDate}
                     max={todayAsDateInput()}
-                    onChange={(event) => onWatchedDateChange(event.target.value)}
-                    className="h-10 border-border/70 bg-background/45 sm:h-11"
+                    onChange={onWatchedDateChange}
                   />
                 </section>
 
@@ -139,12 +141,26 @@ export const LogMediaDialog = ({
                     </span>
                   </label>
 
-                  <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                  <div className="flex items-center gap-2.5 sm:gap-3">
                     <SpaceRatingInput value={ratingOutOfFive} onChange={onRatingChange} />
 
                     <div className="border border-border/70 bg-secondary/35 px-2.5 py-1 text-xs font-semibold text-foreground sm:px-3 sm:py-1.5 sm:text-sm">
                       {formatRatingOutOfFiveLabel(ratingOutOfFive) ?? "Unrated"}
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => onLikedChange(!liked)}
+                      className="ml-auto inline-flex items-center justify-center gap-1.5 border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] transition-all hover:bg-secondary/30"
+                      style={{
+                        borderColor: liked ? "var(--primary)" : "var(--border)",
+                        color: liked ? "var(--primary)" : "var(--muted-foreground)",
+                        background: liked ? "color-mix(in srgb, var(--primary) 10%, transparent)" : "transparent",
+                      }}
+                    >
+                      <Heart className="h-3.5 w-3.5" fill={liked ? "currentColor" : "transparent"} />
+                      <span>{liked ? "Liked" : "Like"}</span>
+                    </button>
                   </div>
                 </section>
 

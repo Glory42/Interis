@@ -12,7 +12,7 @@ import { LogMediaDialog } from "@/features/diary/components/log-media/LogMediaDi
 import { LogMediaLoginTrigger } from "@/features/diary/components/log-media/LogMediaLoginTrigger";
 import type { LogMediaInitialState } from "@/features/diary/components/log-media/types";
 import { getPosterUrl } from "@/features/serials/components/utils";
-import { useCreateSeriesLog } from "@/features/serials/hooks/useSerials";
+import { useCreateSeriesLog, useSeriesInteraction, useUpdateSeriesInteraction } from "@/features/serials/hooks/useSerials";
 import { isApiError } from "@/lib/api-client";
 
 type LogSeriesModalProps = {
@@ -45,6 +45,8 @@ export const LogSeriesModal = ({
 }: LogSeriesModalProps) => {
   const { user } = useAuth();
   const createSeriesLogMutation = useCreateSeriesLog(tmdbId);
+  const interactionQuery = useSeriesInteraction(tmdbId, isOpen);
+  const updateInteractionMutation = useUpdateSeriesInteraction(tmdbId);
 
   const [isOpen, setIsOpen] = useState(false);
   const [watchedDate, setWatchedDate] = useState(todayAsDateInput);
@@ -52,7 +54,14 @@ export const LogSeriesModal = ({
   const [rewatch, setRewatch] = useState(false);
   const [review, setReview] = useState("");
   const [containsSpoilers, setContainsSpoilers] = useState(false);
+  const [liked, setLiked] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (interactionQuery.data) {
+      setLiked(interactionQuery.data.liked);
+    }
+  }, [interactionQuery.data, isOpen]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -78,6 +87,7 @@ export const LogSeriesModal = ({
     setRewatch(initialState?.rewatch ?? false);
     setReview(initialState?.reviewContent ?? "");
     setContainsSpoilers(initialState?.containsSpoilers ?? false);
+    setLiked(interactionQuery.data?.liked ?? false);
     setFormError(null);
     setIsOpen(true);
   };
@@ -89,17 +99,22 @@ export const LogSeriesModal = ({
     const normalizedReview = review.trim();
 
     try {
-      await createSeriesLogMutation.mutateAsync({
-        watchedDate,
-        ...(ratingOutOfFive !== null ? { ratingOutOfFive } : {}),
-        rewatch,
-        ...(normalizedReview.length > 0
-          ? {
-              review: normalizedReview,
-              containsSpoilers,
-            }
-          : {}),
-      });
+      await Promise.all([
+        createSeriesLogMutation.mutateAsync({
+          watchedDate,
+          ...(ratingOutOfFive !== null ? { ratingOutOfFive } : {}),
+          rewatch,
+          ...(normalizedReview.length > 0
+            ? {
+                review: normalizedReview,
+                containsSpoilers,
+              }
+            : {}),
+        }),
+        updateInteractionMutation.mutateAsync({
+          liked,
+        }),
+      ]);
 
       closeModal();
     } catch (error) {
@@ -141,10 +156,11 @@ export const LogSeriesModal = ({
               rewatch={rewatch}
               review={review}
               containsSpoilers={containsSpoilers}
+              liked={liked}
               formError={formError}
               reviewMaxLength={REVIEW_MAX_LENGTH}
               reviewPlaceholder="Share your thoughts about this series..."
-              isSubmitting={createSeriesLogMutation.isPending}
+              isSubmitting={createSeriesLogMutation.isPending || updateInteractionMutation.isPending}
               onClose={closeModal}
               onSubmit={handleSubmit}
               onWatchedDateChange={setWatchedDate}
@@ -152,6 +168,7 @@ export const LogSeriesModal = ({
               onRewatchChange={setRewatch}
               onReviewChange={setReview}
               onContainsSpoilersChange={setContainsSpoilers}
+              onLikedChange={setLiked}
             />,
             document.body,
           )

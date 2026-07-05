@@ -14,6 +14,7 @@ import type { LogMediaInitialState } from "@/features/diary/components/log-media
 import { useCreateDiaryEntry } from "@/features/diary/hooks/useDiary";
 import { getPosterUrl } from "@/features/films/components/utils";
 import { isApiError } from "@/lib/api-client";
+import { useMovieInteraction, useUpdateMovieInteraction } from "@/features/interactions/hooks/useInteractions";
 
 type LogFilmModalProps = {
   tmdbId: number;
@@ -45,6 +46,8 @@ export const LogFilmModal = ({
 }: LogFilmModalProps) => {
   const { user } = useAuth();
   const createDiaryMutation = useCreateDiaryEntry();
+  const interactionQuery = useMovieInteraction(tmdbId, isOpen);
+  const updateInteractionMutation = useUpdateMovieInteraction(tmdbId);
 
   const [isOpen, setIsOpen] = useState(false);
   const [watchedDate, setWatchedDate] = useState(todayAsDateInput);
@@ -52,7 +55,14 @@ export const LogFilmModal = ({
   const [rewatch, setRewatch] = useState(false);
   const [review, setReview] = useState("");
   const [containsSpoilers, setContainsSpoilers] = useState(false);
+  const [liked, setLiked] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (interactionQuery.data) {
+      setLiked(interactionQuery.data.liked);
+    }
+  }, [interactionQuery.data, isOpen]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -78,6 +88,7 @@ export const LogFilmModal = ({
     setRewatch(initialState?.rewatch ?? false);
     setReview(initialState?.reviewContent ?? "");
     setContainsSpoilers(initialState?.containsSpoilers ?? false);
+    setLiked(interactionQuery.data?.liked ?? false);
     setFormError(null);
     setIsOpen(true);
   };
@@ -89,18 +100,23 @@ export const LogFilmModal = ({
     const normalizedReview = review.trim();
 
     try {
-      await createDiaryMutation.mutateAsync({
-        tmdbId,
-        watchedDate,
-        ...(ratingOutOfFive !== null ? { ratingOutOfFive } : {}),
-        rewatch,
-        ...(normalizedReview.length > 0
-          ? {
-              review: normalizedReview,
-              containsSpoilers,
-            }
-          : {}),
-      });
+      await Promise.all([
+        createDiaryMutation.mutateAsync({
+          tmdbId,
+          watchedDate,
+          ...(ratingOutOfFive !== null ? { ratingOutOfFive } : {}),
+          rewatch,
+          ...(normalizedReview.length > 0
+            ? {
+                review: normalizedReview,
+                containsSpoilers,
+              }
+            : {}),
+        }),
+        updateInteractionMutation.mutateAsync({
+          liked,
+        }),
+      ]);
 
       closeModal();
     } catch (error) {
@@ -142,10 +158,11 @@ export const LogFilmModal = ({
               rewatch={rewatch}
               review={review}
               containsSpoilers={containsSpoilers}
+              liked={liked}
               formError={formError}
               reviewMaxLength={REVIEW_MAX_LENGTH}
               reviewPlaceholder="Share your thoughts about this film..."
-              isSubmitting={createDiaryMutation.isPending}
+              isSubmitting={createDiaryMutation.isPending || updateInteractionMutation.isPending}
               onClose={closeModal}
               onSubmit={handleSubmit}
               onWatchedDateChange={setWatchedDate}
@@ -153,6 +170,7 @@ export const LogFilmModal = ({
               onRewatchChange={setRewatch}
               onReviewChange={setReview}
               onContainsSpoilersChange={setContainsSpoilers}
+              onLikedChange={setLiked}
             />,
             document.body,
           )
