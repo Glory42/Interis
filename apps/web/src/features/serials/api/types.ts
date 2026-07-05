@@ -28,6 +28,7 @@ export type SerialDetailReviewSort = z.infer<typeof serialDetailReviewSortSchema
 export type SerialArchiveItem = z.infer<typeof serialArchiveItemSchema>;
 export type SerialArchiveResponse = z.infer<typeof serialArchiveResponseSchema>;
 export type SerialDetailResponse = z.infer<typeof serialDetailResponseSchema>;
+export type SerialDetailViewerTracking = NonNullable<SerialDetailResponse["viewerTracking"]>;
 export type SerialSeasonDetailResponse = z.infer<typeof serialSeasonDetailSchema>;
 export type CachedSeries = z.infer<typeof cachedSeriesSchema>;
 export type TrendingSeries = z.infer<typeof trendingSeriesSchema>;

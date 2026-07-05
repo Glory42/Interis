@@ -198,3 +198,25 @@ export const getOnAirSeries = async (): Promise<TMDBSearchSeries[]> => {
   const results = (data as { results?: unknown }).results ?? [];
   return z.array(TMDBSearchSeriesSchema).parse(results);
 };
+
+export const getSimilarSeries = async (
+  tmdbId: number,
+): Promise<TMDBDiscoverSeries[]> => {
+  try {
+    const data = await fetchTMDB(`/tv/${tmdbId}/recommendations?language=en-US&page=1`);
+    const parsed = TMDBDiscoverSeriesListSchema.parse(data);
+    if (parsed.results.length > 0) {
+      return parsed.results;
+    }
+  } catch (error) {
+    // Fail silently to try similar fallback
+  }
+
+  try {
+    const data = await fetchTMDB(`/tv/${tmdbId}/similar?language=en-US&page=1`);
+    const parsed = TMDBDiscoverSeriesListSchema.parse(data);
+    return parsed.results;
+  } catch (error) {
+    return [];
+  }
+};

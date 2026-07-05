@@ -62,7 +62,11 @@ export class SerialsService {
     return SerialsDetailService.getDetail(input);
   }
 
-  static async getSeasonDetail(input: { tmdbId: number; seasonNumber: number }) {
+  static async getSeasonDetail(input: {
+    tmdbId: number;
+    seasonNumber: number;
+    viewerUserId?: string | null;
+  }) {
     return SerialsDetailService.getSeasonDetail(input);
   }
 

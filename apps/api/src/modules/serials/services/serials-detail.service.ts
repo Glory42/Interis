@@ -2,7 +2,10 @@ import {
   getSeriesAggregateCredits as tmdbGetAggregateCredits,
   getSeriesDetails as tmdbGetDetails,
   getSeriesSeasonDetails as tmdbGetSeasonDetails,
+  getSimilarSeries,
 } from "../../../infrastructure/tmdb/serials";
+import { SerialsSeasonInteractionsRepository } from "../repositories/serials-season-interactions.repository";
+import { SerialsEpisodeInteractionsRepository } from "../repositories/serials-episode-interactions.repository";
 import {
   normalizeSeriesGenres,
   toNormalizedSeasonDetail,
@@ -11,10 +14,13 @@ import {
   toRatingBreakdownBucket,
   toRatingOutOfFive,
   toTmdbRatingOutOfTen,
+  toDistinctValues,
+  toNullableTrimmedText,
 } from "../helpers/serials-normalization.helper";
 import { buildMediaRatingBreakdown } from "../../media/helpers/media-rating-breakdown.helper";
 import { SerialsInteractionsRepository } from "../repositories/serials-interactions.repository";
 import { SerialsReviewsRepository } from "../repositories/serials-reviews.repository";
+import { calculateViewerTracking } from "../helpers/serials-tracking.helper";
 import { SerialsCacheService } from "./serials-cache.service";
 import { PeopleCacheService } from "../../people/services/people-cache.service";
 import type { SerialDetailReviewSort } from "../dto/serials.dto";
@@ -23,33 +29,12 @@ import type {
   SerialDetailResponse,
   SerialDetailReviewItem,
   SerialSeasonDetailResponse,
+  SerialDetailViewerTracking,
 } from "../types/serials.types";
 
 const RELEVANT_CREW_DEPARTMENTS = new Set(["Directing", "Writing", "Production"]);
 
-const toNullableTrimmedText = (value: string | null | undefined): string | null => {
-  if (!value) {
-    return null;
-  }
 
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-};
-
-const toDistinctValues = (values: Array<string | null | undefined>): string[] => {
-  const seen = new Set<string>();
-
-  for (const value of values) {
-    const normalized = toNullableTrimmedText(value);
-    if (!normalized) {
-      continue;
-    }
-
-    seen.add(normalized);
-  }
-
-  return [...seen];
-};
 
 export class SerialsDetailService {
   static async getDetail(input: {
@@ -65,11 +50,12 @@ export class SerialsDetailService {
     const reviewsSort = input.reviewsSort;
     const viewerUserId = input.viewerUserId ?? null;
 
-    const [tmdbDetail, tmdbAggregateCredits, logsCount, reviewRows] = await Promise.all([
+    const [tmdbDetail, tmdbAggregateCredits, logsCount, reviewRows, tmdbSimilar] = await Promise.all([
       tmdbGetDetails(input.tmdbId).catch(() => null),
       tmdbGetAggregateCredits(input.tmdbId).catch(() => null),
       SerialsReviewsRepository.getLogsCountBySeriesId(cachedSeries.id),
       SerialsReviewsRepository.getReviewRowsBySeriesId(cachedSeries.id),
+      getSimilarSeries(input.tmdbId).catch(() => []),
     ]);
 
     const normalizedTmdbDetail = tmdbDetail ? normalizeTmdbSeriesDetail(tmdbDetail) : null;
@@ -215,7 +201,34 @@ export class SerialsDetailService {
     const resolvedCreatorName =
       creators[0]?.name ?? cachedSeries.creator ?? normalizedTmdbDetail?.creator ?? null;
 
-    return {
+    const userSeasonInteractions = viewerUserId
+      ? await SerialsSeasonInteractionsRepository.getViewerSeasonInteractions(
+          viewerUserId,
+          cachedSeries.id,
+          cachedSeries.tmdbId,
+        )
+      : [];
+
+    const userSeasonInteractionsMap = new Map<number, typeof userSeasonInteractions[number]>(
+      userSeasonInteractions.map((i) => [i.seasonNumber, i])
+    );
+
+    const mappedSeasons = (tmdbDetail ? toNormalizedSeasonItems(tmdbDetail) : []).map((season) => {
+      const interaction = userSeasonInteractionsMap.get(season.seasonNumber);
+      return {
+        ...season,
+        viewerInteraction: viewerUserId
+          ? {
+              watched: interaction?.watched ?? false,
+              liked: interaction?.liked ?? false,
+              ratingOutOfFive: interaction?.rating ? toRatingOutOfFive(interaction.rating) : null,
+              hasReview: interaction?.hasReview ?? false,
+            }
+          : null,
+      };
+    });
+
+    const response = {
       series: {
         id: cachedSeries.id,
         tmdbId: cachedSeries.tmdbId,
@@ -247,7 +260,7 @@ export class SerialsDetailService {
         globalRatingVoteCount:
           tmdbDetail && tmdbDetail.vote_count > 0 ? tmdbDetail.vote_count : null,
         inProduction: tmdbDetail ? tmdbDetail.in_production : null,
-        seasons: tmdbDetail ? toNormalizedSeasonItems(tmdbDetail) : [],
+        seasons: mappedSeasons,
       },
       logsCount,
       reviewCount: reviewsWithEngagement.length,
@@ -271,11 +284,41 @@ export class SerialsDetailService {
         buckets: ratingBreakdown.buckets as SerialDetailRatingBreakdownBucket[],
       },
     };
+
+    const viewerTracking = viewerUserId
+      ? await calculateViewerTracking(
+          viewerUserId,
+          cachedSeries.id,
+          cachedSeries.tmdbId,
+          tmdbDetail,
+          userSeasonInteractions,
+        )
+      : null;
+
+    const similar = (tmdbSimilar ?? []).slice(0, 12).map((sim) => {
+      const firstAirYear = sim.first_air_date
+        ? Number.parseInt(sim.first_air_date.slice(0, 4), 10)
+        : null;
+
+      return {
+        tmdbId: sim.id,
+        title: sim.name,
+        posterPath: sim.poster_path,
+        firstAirYear: Number.isNaN(firstAirYear) ? null : firstAirYear,
+      };
+    });
+
+    return {
+      ...response,
+      similar,
+      viewerTracking,
+    };
   }
 
   static async getSeasonDetail(input: {
     tmdbId: number;
     seasonNumber: number;
+    viewerUserId?: string | null;
   }): Promise<SerialSeasonDetailResponse | null> {
     const cachedSeries = await SerialsCacheService.findOrCreate(input.tmdbId);
     if (!cachedSeries) {
@@ -291,6 +334,37 @@ export class SerialsDetailService {
       return null;
     }
 
-    return toNormalizedSeasonDetail(input.tmdbId, tmdbSeasonDetail);
+    const normalizedSeasonDetail = toNormalizedSeasonDetail(input.tmdbId, tmdbSeasonDetail);
+
+    const viewerUserId = input.viewerUserId ?? null;
+    const userEpisodeInteractions = viewerUserId
+      ? await SerialsEpisodeInteractionsRepository.getViewerEpisodeInteractions(
+          viewerUserId,
+          cachedSeries.id,
+          cachedSeries.tmdbId,
+          input.seasonNumber,
+        )
+      : [];
+
+    const userEpisodeInteractionsMap = new Map<number, typeof userEpisodeInteractions[number]>(
+      userEpisodeInteractions.map((i) => [i.episodeNumber, i])
+    );
+
+    normalizedSeasonDetail.episodes = normalizedSeasonDetail.episodes.map((episode) => {
+      const interaction = userEpisodeInteractionsMap.get(episode.episodeNumber);
+      return {
+        ...episode,
+        viewerInteraction: viewerUserId
+          ? {
+              watched: interaction?.watched ?? false,
+              liked: interaction?.liked ?? false,
+              ratingOutOfFive: interaction?.rating ? toRatingOutOfFive(interaction.rating) : null,
+              hasReview: interaction?.hasReview ?? false,
+            }
+          : null,
+      };
+    });
+
+    return normalizedSeasonDetail;
   }
 }

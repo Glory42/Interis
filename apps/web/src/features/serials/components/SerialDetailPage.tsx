@@ -6,6 +6,7 @@ import { SerialDetailsMainSection } from "@/features/serials/components/serial-d
 import { SerialDetailTopBar } from "@/features/serials/components/serial-detail/SerialDetailTopBar";
 import { SerialReviewsSection } from "@/features/serials/components/serial-detail/SerialReviewsSection";
 import { SerialSeasonsSection } from "@/features/serials/components/serial-detail/SerialSeasonsSection";
+import { SerialSimilarSection } from "@/features/serials/components/serial-detail/SerialSimilarSection";
 import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
 import {
   useSeriesDetailView,
@@ -162,6 +163,8 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
           resolvedOpenSeasonNumber={resolvedOpenSeasonNumber}
           onToggleSeason={handleToggleSeason}
         />
+
+        <SerialSimilarSection similar={detail.similar} />
       </main>
     </div>
   );

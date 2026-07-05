@@ -85,6 +85,15 @@ export const serialArchiveResponseSchema = z.object({
   items: z.array(serialArchiveItemSchema),
 });
 
+const viewerInteractionSchema = z
+  .object({
+    watched: z.boolean(),
+    liked: z.boolean(),
+    ratingOutOfFive: z.number().nullable(),
+    hasReview: z.boolean(),
+  })
+  .nullable();
+
 const serialDetailSeasonSchema = z.object({
   id: z.number().int().positive(),
   seasonNumber: z.number().int(),
@@ -92,6 +101,7 @@ const serialDetailSeasonSchema = z.object({
   episodeCount: z.number().int().nullable(),
   airDate: z.string().nullable(),
   posterPath: z.string().nullable(),
+  viewerInteraction: viewerInteractionSchema,
 });
 
 const serialDetailSeriesSchema = z.object({
@@ -165,6 +175,35 @@ const serialDetailRatingBreakdownBucketSchema = z.object({
   percentage: z.number().int().min(0).max(100),
 });
 
+const similarSeriesItemSchema = z.object({
+  tmdbId: z.number().int(),
+  title: z.string(),
+  posterPath: z.string().nullable(),
+  firstAirYear: z.number().int().nullable(),
+});
+
+const serialDetailViewerTrackingSchema = z
+  .object({
+    watchedEpisodesCount: z.number().int().nonnegative(),
+    watchedEpisodes: z.array(
+      z.object({
+        seasonNumber: z.number().int(),
+        episodeNumber: z.number().int(),
+      }),
+    ),
+    currentEpisode: z
+      .object({
+        seasonNumber: z.number().int(),
+        episodeNumber: z.number().int(),
+        name: z.string(),
+      })
+      .nullable(),
+    ratingsCount: z.number().int().nonnegative(),
+    likesCount: z.number().int().nonnegative(),
+    reviewsCount: z.number().int().nonnegative(),
+  })
+  .nullable();
+
 export const serialDetailResponseSchema = z.object({
   series: serialDetailSeriesSchema,
   logsCount: z.number().int().nonnegative(),
@@ -177,6 +216,8 @@ export const serialDetailResponseSchema = z.object({
     averageRatingOutOfFive: z.number().nullable(),
     buckets: z.array(serialDetailRatingBreakdownBucketSchema),
   }),
+  similar: z.array(similarSeriesItemSchema),
+  viewerTracking: serialDetailViewerTrackingSchema,
 });
 
 const serialSeasonDetailEpisodeSchema = z.object({
@@ -189,6 +230,7 @@ const serialSeasonDetailEpisodeSchema = z.object({
   stillPath: z.string().nullable(),
   runtimeMinutes: z.number().int().nullable(),
   runtimeLabel: z.string().nullable(),
+  viewerInteraction: viewerInteractionSchema,
 });
 
 export const serialSeasonDetailSchema = z.object({

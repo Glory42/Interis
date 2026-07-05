@@ -13,6 +13,14 @@ export {
   searchSeries,
   updateSerialLog,
   updateSeriesInteraction,
+  updateSeasonInteraction,
+  updateEpisodeInteraction,
+  getSeasonReview,
+  upsertSeasonReview,
+  deleteSeasonReview,
+  getEpisodeReview,
+  upsertEpisodeReview,
+  deleteEpisodeReview,
 } from "./api/requests";
 
 export type {
@@ -27,6 +35,7 @@ export type {
   SerialArchiveSort,
   SerialDetailInput,
   SerialDetailResponse,
+  SerialDetailViewerTracking,
   SerialDetailReviewSort,
   SerialDiaryEntry,
   SerialDiaryList,

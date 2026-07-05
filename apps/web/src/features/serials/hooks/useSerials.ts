@@ -27,6 +27,14 @@ import {
   type UpdateSerialLogInput,
   updateSerialLog,
   updateSeriesInteraction,
+  updateSeasonInteraction,
+  updateEpisodeInteraction,
+  getSeasonReview,
+  upsertSeasonReview,
+  deleteSeasonReview,
+  getEpisodeReview,
+  upsertEpisodeReview,
+  deleteEpisodeReview,
 } from "@/features/serials/api";
 
 export const serialKeys = {
@@ -229,3 +237,149 @@ export const useSeriesArchive = (
     },
     getNextPageParam: (lastPage) => lastPage.nextPage ?? undefined,
   });
+
+export const useUpdateSeasonInteraction = (tmdbId: number) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      seasonNumber,
+      input,
+    }: {
+      seasonNumber: number;
+      input: { watched?: boolean; liked?: boolean; ratingOutOfFive?: number | null };
+    }) => updateSeasonInteraction(tmdbId, seasonNumber, input),
+    onSuccess: async (_data, variables) => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["serials", "detail-view", tmdbId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["serials", "season-detail", tmdbId, variables.seasonNumber],
+        }),
+      ]);
+    },
+  });
+};
+
+export const useUpdateEpisodeInteraction = (tmdbId: number, seasonNumber: number) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      episodeNumber,
+      input,
+    }: {
+      episodeNumber: number;
+      input: { watched?: boolean; liked?: boolean; ratingOutOfFive?: number | null };
+    }) => updateEpisodeInteraction(tmdbId, seasonNumber, episodeNumber, input),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["serials", "season-detail", tmdbId, seasonNumber],
+        }),
+      ]);
+    },
+  });
+};
+
+export const useSeasonReview = (tmdbId: number, seasonNumber: number, enabled = true) =>
+  useQuery({
+    queryKey: ["serials", "season-review", tmdbId, seasonNumber],
+    queryFn: () => getSeasonReview(tmdbId, seasonNumber),
+    enabled,
+  });
+
+export const useUpsertSeasonReview = (tmdbId: number, seasonNumber: number) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: { content: string; containsSpoilers?: boolean }) =>
+      upsertSeasonReview(tmdbId, seasonNumber, input),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["serials", "season-review", tmdbId, seasonNumber],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["serials", "detail-view", tmdbId],
+        }),
+      ]);
+    },
+  });
+};
+
+export const useDeleteSeasonReview = (tmdbId: number, seasonNumber: number) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => deleteSeasonReview(tmdbId, seasonNumber),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["serials", "season-review", tmdbId, seasonNumber],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["serials", "detail-view", tmdbId],
+        }),
+      ]);
+    },
+  });
+};
+
+export const useEpisodeReview = (
+  tmdbId: number,
+  seasonNumber: number,
+  episodeNumber: number,
+  enabled = true,
+) =>
+  useQuery({
+    queryKey: ["serials", "episode-review", tmdbId, seasonNumber, episodeNumber],
+    queryFn: () => getEpisodeReview(tmdbId, seasonNumber, episodeNumber),
+    enabled,
+  });
+
+export const useUpsertEpisodeReview = (
+  tmdbId: number,
+  seasonNumber: number,
+  episodeNumber: number,
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: { content: string; containsSpoilers?: boolean }) =>
+      upsertEpisodeReview(tmdbId, seasonNumber, episodeNumber, input),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["serials", "episode-review", tmdbId, seasonNumber, episodeNumber],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["serials", "season-detail", tmdbId, seasonNumber],
+        }),
+      ]);
+    },
+  });
+};
+
+export const useDeleteEpisodeReview = (
+  tmdbId: number,
+  seasonNumber: number,
+  episodeNumber: number,
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => deleteEpisodeReview(tmdbId, seasonNumber, episodeNumber),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["serials", "episode-review", tmdbId, seasonNumber, episodeNumber],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["serials", "season-detail", tmdbId, seasonNumber],
+        }),
+      ]);
+    },
+  });
+};

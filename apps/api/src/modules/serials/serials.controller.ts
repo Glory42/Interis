@@ -175,9 +175,12 @@ export class SerialsController {
       return;
     }
 
+    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
+
     const seasonDetail = await SerialsService.getSeasonDetail({
       tmdbId,
       seasonNumber: seasonParams.data.seasonNumber,
+      viewerUserId,
     });
 
     if (!seasonDetail) {

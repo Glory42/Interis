@@ -29,8 +29,10 @@ const toYear = (isoDate: string | null): number | null => {
   const parsedYear = Number.parseInt(isoDate.slice(0, 4), 10);
   return Number.isNaN(parsedYear) ? null : parsedYear;
 };
-
-const toNullableTrimmedText = (value: string): string | null => {
+export const toNullableTrimmedText = (value: string | null | undefined): string | null => {
+  if (!value) {
+    return null;
+  }
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
 };
@@ -146,6 +148,7 @@ export const toNormalizedSeasonItems = (
       episodeCount: toNonNegativeIntegerOrNull(season.episode_count),
       airDate: toIsoDate(season.air_date),
       posterPath: season.poster_path,
+      viewerInteraction: null,
     }))
     .sort((leftSeason, rightSeason) => leftSeason.seasonNumber - rightSeason.seasonNumber);
 };
@@ -201,6 +204,7 @@ export const toNormalizedSeasonEpisodeItems = (
       stillPath: episode.still_path,
       runtimeMinutes: toNonNegativeIntegerOrNull(episode.runtime ?? null),
       runtimeLabel: toEpisodeRuntimeLabel(episode.runtime),
+      viewerInteraction: null,
     }))
     .sort((leftEpisode, rightEpisode) => leftEpisode.episodeNumber - rightEpisode.episodeNumber);
 };
@@ -222,4 +226,21 @@ export const toNormalizedSeasonDetail = (
     },
     episodes: toNormalizedSeasonEpisodeItems(seasonDetail),
   };
+};
+
+
+
+export const toDistinctValues = (values: Array<string | null | undefined>): string[] => {
+  const seen = new Set<string>();
+
+  for (const value of values) {
+    const normalized = toNullableTrimmedText(value);
+    if (!normalized) {
+      continue;
+    }
+
+    seen.add(normalized);
+  }
+
+  return [...seen];
 };

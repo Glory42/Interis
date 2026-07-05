@@ -70,6 +70,12 @@ export type SerialDetailSeason = {
   episodeCount: number | null;
   airDate: string | null;
   posterPath: string | null;
+  viewerInteraction: {
+    watched: boolean;
+    liked: boolean;
+    ratingOutOfFive: number | null;
+    hasReview: boolean;
+  } | null;
 };
 
 export type SerialDetailEpisode = {
@@ -82,6 +88,12 @@ export type SerialDetailEpisode = {
   stillPath: string | null;
   runtimeMinutes: number | null;
   runtimeLabel: string | null;
+  viewerInteraction: {
+    watched: boolean;
+    liked: boolean;
+    ratingOutOfFive: number | null;
+    hasReview: boolean;
+  } | null;
 };
 
 export type SerialSeasonDetailResponse = {
@@ -175,4 +187,22 @@ export type SerialDetailResponse = {
     averageRatingOutOfFive: number | null;
     buckets: SerialDetailRatingBreakdownBucket[];
   };
+  similar: SimilarSerialItem[];
+  viewerTracking: SerialDetailViewerTracking | null;
+};
+
+export type SerialDetailViewerTracking = {
+  watchedEpisodesCount: number;
+  watchedEpisodes: { seasonNumber: number; episodeNumber: number }[];
+  currentEpisode: { seasonNumber: number; episodeNumber: number; name: string } | null;
+  ratingsCount: number;
+  likesCount: number;
+  reviewsCount: number;
+};
+
+export type SimilarSerialItem = {
+  tmdbId: number;
+  title: string;
+  posterPath: string | null;
+  firstAirYear: number | null;
 };

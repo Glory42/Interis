@@ -233,3 +233,26 @@ export const UpdateSerialLogSchema = z.object({
 export type UpdateSerialInteractionDto = z.infer<typeof UpdateSerialInteractionSchema>;
 export type CreateSerialLogDto = z.infer<typeof CreateSerialLogSchema>;
 export type UpdateSerialLogDto = z.infer<typeof UpdateSerialLogSchema>;
+
+export const SerialEpisodeParamsSchema = z.object({
+  tmdbId: z.string(),
+  seasonNumber: z.coerce.number().int().min(0),
+  episodeNumber: z.coerce.number().int().min(1),
+});
+
+export type SerialEpisodeParams = z.input<typeof SerialEpisodeParamsSchema>;
+
+export const UpdateSeasonInteractionSchema = z.object({
+  watched: z.boolean().optional(),
+  liked: z.boolean().optional(),
+  ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+});
+
+export type UpdateSeasonInteractionDto = z.infer<typeof UpdateSeasonInteractionSchema>;
+
+export const SeasonReviewInputSchema = z.object({
+  content: z.string().min(1).max(10000),
+  containsSpoilers: z.boolean().optional(),
+});
+
+export type SeasonReviewInputDto = z.infer<typeof SeasonReviewInputSchema>;

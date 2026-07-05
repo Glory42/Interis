@@ -74,3 +74,59 @@ export const serialInteractions = pgTable(
   },
   (table) => [unique("serial_interactions_unique").on(table.userId, table.seriesId)],
 );
+
+export const serialSeasonInteractions = pgTable(
+  "serial_season_interaction",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    seriesId: integer("series_id")
+      .notNull()
+      .references(() => tvSeries.id, { onDelete: "cascade" }),
+    seasonNumber: integer("season_number").notNull(),
+    watched: boolean("watched").default(false).notNull(),
+    liked: boolean("liked").default(false).notNull(),
+    rating: integer("rating"),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    unique("serial_season_interactions_unique").on(
+      table.userId,
+      table.seriesId,
+      table.seasonNumber,
+    ),
+  ],
+);
+
+export const serialEpisodeInteractions = pgTable(
+  "serial_episode_interaction",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    seriesId: integer("series_id")
+      .notNull()
+      .references(() => tvSeries.id, { onDelete: "cascade" }),
+    seasonNumber: integer("season_number").notNull(),
+    episodeNumber: integer("episode_number").notNull(),
+    watched: boolean("watched").default(false).notNull(),
+    liked: boolean("liked").default(false).notNull(),
+    rating: integer("rating"),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    unique("serial_episode_interactions_unique").on(
+      table.userId,
+      table.seriesId,
+      table.seasonNumber,
+      table.episodeNumber,
+    ),
+  ],
+);
