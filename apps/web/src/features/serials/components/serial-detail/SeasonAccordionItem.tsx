@@ -466,27 +466,48 @@ export const SeasonAccordionItem = ({
         <SeasonEpisodeReviewDialog
           title={season.name || `Season ${season.seasonNumber}`}
           subtitle="Season Review"
+          posterUrl={getPosterUrl(season.posterPath || seriesPosterPath)}
           initialContent={seasonReviewQuery.data?.content ?? ""}
           initialContainsSpoilers={seasonReviewQuery.data?.containsSpoilers ?? false}
           isSubmitting={upsertSeasonReviewMutation.isPending || deleteSeasonReviewMutation.isPending}
           onClose={() => setActiveReviewModal(null)}
           onSubmit={handleSeasonReviewSubmit}
           onDelete={handleSeasonReviewDelete}
+          ratingOutOfFive={seasonRating}
+          onRatingChange={handleSeasonRatingChange}
+          liked={seasonLiked}
+          onLikedChange={handleSeasonLikedToggle}
+          watched={seasonWatched}
+          onWatchedChange={handleSeasonWatchedToggle}
         />
       )}
 
-      {activeReviewModal?.type === "episode" && (
-        <SeasonEpisodeReviewDialog
-          title={season.name || `Season ${season.seasonNumber}`}
-          subtitle={`Episode ${activeReviewModal.episodeNumber}: ${activeReviewModal.episodeName}`}
-          initialContent={episodeReviewQuery.data?.content ?? ""}
-          initialContainsSpoilers={episodeReviewQuery.data?.containsSpoilers ?? false}
-          isSubmitting={upsertEpisodeReviewMutation.isPending || deleteEpisodeReviewMutation.isPending}
-          onClose={() => setActiveReviewModal(null)}
-          onSubmit={handleEpisodeReviewSubmit}
-          onDelete={handleEpisodeReviewDelete}
-        />
-      )}
+      {activeReviewModal?.type === "episode" && (() => {
+        const selectedEpisode = episodes.find((e) => e.episodeNumber === activeReviewModal.episodeNumber);
+        const epWatched = selectedEpisode?.viewerInteraction?.watched ?? false;
+        const epLiked = selectedEpisode?.viewerInteraction?.liked ?? false;
+        const epRating = selectedEpisode?.viewerInteraction?.ratingOutOfFive ?? null;
+
+        return (
+          <SeasonEpisodeReviewDialog
+            title={season.name || `Season ${season.seasonNumber}`}
+            subtitle={`Episode ${activeReviewModal.episodeNumber}: ${activeReviewModal.episodeName}`}
+            posterUrl={getPosterUrl(season.posterPath || seriesPosterPath)}
+            initialContent={episodeReviewQuery.data?.content ?? ""}
+            initialContainsSpoilers={episodeReviewQuery.data?.containsSpoilers ?? false}
+            isSubmitting={upsertEpisodeReviewMutation.isPending || deleteEpisodeReviewMutation.isPending}
+            onClose={() => setActiveReviewModal(null)}
+            onSubmit={handleEpisodeReviewSubmit}
+            onDelete={handleEpisodeReviewDelete}
+            ratingOutOfFive={epRating}
+            onRatingChange={(nextRating) => handleEpisodeRatingChange(activeReviewModal.episodeNumber, nextRating)}
+            liked={epLiked}
+            onLikedChange={() => handleEpisodeLikedToggle(activeReviewModal.episodeNumber, epLiked)}
+            watched={epWatched}
+            onWatchedChange={() => handleEpisodeWatchedToggle(activeReviewModal.episodeNumber, epWatched)}
+          />
+        );
+      })()}
     </div>
   );
 };
