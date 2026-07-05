@@ -23,18 +23,23 @@ export class SerialsTrackingService {
         ? (resolveRatingOutOfTen(input.ratingOutOfFive) ?? null)
         : undefined;
 
+    const isImplicitlyWatched =
+      input.liked === true ||
+      (input.ratingOutOfFive !== undefined && input.ratingOutOfFive !== null);
+
     const row = await SerialsSeasonInteractionsRepository.upsertSeasonInteraction({
       userId,
       seriesId: series.id,
       seasonNumber,
-      watched: input.watched,
+      watched: input.watched !== undefined ? input.watched : (isImplicitlyWatched ? true : undefined),
       liked: input.liked,
       rating,
     });
 
     if (!row) return null;
 
-    if (input.watched !== undefined) {
+    if (input.watched === false || row.watched) {
+      const targetWatchState = row.watched;
       const tmdbSeasonDetail = await tmdbGetSeasonDetails(
         tmdbId,
         seasonNumber,
@@ -48,7 +53,7 @@ export class SerialsTrackingService {
               seriesId: series.id,
               seasonNumber,
               episodeNumber: episode.episode_number,
-              watched: input.watched,
+              watched: targetWatchState,
             }),
           ),
         );
@@ -77,12 +82,16 @@ export class SerialsTrackingService {
         ? (resolveRatingOutOfTen(input.ratingOutOfFive) ?? null)
         : undefined;
 
+    const isImplicitlyWatched =
+      input.liked === true ||
+      (input.ratingOutOfFive !== undefined && input.ratingOutOfFive !== null);
+
     const row = await SerialsEpisodeInteractionsRepository.upsertEpisodeInteraction({
       userId,
       seriesId: series.id,
       seasonNumber,
       episodeNumber,
-      watched: input.watched,
+      watched: input.watched !== undefined ? input.watched : (isImplicitlyWatched ? true : undefined),
       liked: input.liked,
       rating,
     });

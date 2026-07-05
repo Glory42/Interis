@@ -75,9 +75,17 @@ export class UsersStatsRepository {
         .from(reviews)
         .where(eq(reviews.userId, userId)),
       db
-        .select({ count: sql<number>`count(distinct ${diaryEntries.movieId})`.mapWith(Number) })
-        .from(diaryEntries)
-        .where(eq(diaryEntries.userId, userId)),
+        .select({
+          count: sql<number>`(
+            SELECT count(distinct id) FROM (
+              SELECT movie_id AS id FROM diary_entry WHERE user_id = ${userId}
+              UNION
+              SELECT movie_id AS id FROM movie_interaction WHERE user_id = ${userId} AND is_watched = true
+            ) unique_films
+          )`.mapWith(Number),
+        })
+        .from(diaryEntries) // Keep dummy from/where so structure is clean
+        .limit(1),
       db
         .select({ count: sql<number>`count(*)`.mapWith(Number) })
         .from(lists)

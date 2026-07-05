@@ -11,11 +11,13 @@ const toInteractionResponse = (row: {
   liked: boolean;
   watchlisted: boolean;
   rating: number | null;
+  isWatched: boolean;
 }) => {
   return {
     liked: row.liked,
     watchlisted: row.watchlisted,
     ratingOutOfFive: toRatingOutOfFive(row.rating),
+    watched: row.isWatched,
   };
 };
 
@@ -40,6 +42,7 @@ export class InteractionsService {
         liked: false,
         watchlisted: false,
         rating: null,
+        isWatched: false,
       },
     );
   }
@@ -53,6 +56,11 @@ export class InteractionsService {
     const movie = await MoviesService.findOrCreate(tmdbId);
     const ratingOutOfTen = resolveRatingOutOfTen(input.ratingOutOfFive);
 
+    // Implicit watch if user liked or rated the movie
+    const isImplicitlyWatched =
+      input.liked === true ||
+      (input.ratingOutOfFive !== undefined && input.ratingOutOfFive !== null);
+
     const [upserted] = await db
       .insert(movieInteractions)
       .values({
@@ -61,6 +69,7 @@ export class InteractionsService {
         liked: input.liked ?? false,
         watchlisted: input.watchlisted ?? false,
         rating: ratingOutOfTen ?? null,
+        isWatched: input.watched ?? isImplicitlyWatched ?? false,
       })
       .onConflictDoUpdate({
         target: [movieInteractions.userId, movieInteractions.movieId],
@@ -72,6 +81,8 @@ export class InteractionsService {
           ...(input.ratingOutOfFive !== undefined && {
             rating: ratingOutOfTen ?? null,
           }),
+          ...(input.watched !== undefined && { isWatched: input.watched }),
+          ...(isImplicitlyWatched && { isWatched: true }),
         },
       })
       .returning();
@@ -113,6 +124,7 @@ export class InteractionsService {
         liked: input.liked ?? false,
         watchlisted: input.watchlisted ?? false,
         rating: ratingOutOfTen ?? null,
+        isWatched: input.watched ?? isImplicitlyWatched ?? false,
       },
     );
   }

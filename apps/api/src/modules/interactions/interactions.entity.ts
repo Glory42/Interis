@@ -21,6 +21,7 @@ export const movieInteractions = pgTable(
     liked: boolean("liked").default(false).notNull(),
     watchlisted: boolean("watchlisted").default(false).notNull(),
     rating: integer("rating"),
+    isWatched: boolean("is_watched").default(false).notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
       .$onUpdate(() => new Date())

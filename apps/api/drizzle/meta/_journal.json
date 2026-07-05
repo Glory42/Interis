@@ -225,6 +225,13 @@
       "when": 1783247676048,
       "tag": "0031_zippy_mentor",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1783254058072,
+      "tag": "0032_lumpy_starjammers",
+      "breakpoints": true
     }
   ]
 }
