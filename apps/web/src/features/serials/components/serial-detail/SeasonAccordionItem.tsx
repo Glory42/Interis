@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Heart, MessageSquare } from "lucide-react";
 import type { SerialDetailResponse } from "@/features/serials/api";
-import { getStillUrl } from "@/features/serials/components/utils";
+import { getStillUrl, getPosterUrl } from "@/features/serials/components/utils";
 import {
   useSeriesSeasonDetail,
   useUpdateSeasonInteraction,
@@ -466,7 +466,7 @@ export const SeasonAccordionItem = ({
         <SeasonEpisodeReviewDialog
           title={season.name || `Season ${season.seasonNumber}`}
           subtitle="Season Review"
-          posterUrl={getPosterUrl(season.posterPath || seriesPosterPath)}
+          posterUrl={getPosterUrl(season.posterPath)}
           initialContent={seasonReviewQuery.data?.content ?? ""}
           initialContainsSpoilers={seasonReviewQuery.data?.containsSpoilers ?? false}
           isSubmitting={upsertSeasonReviewMutation.isPending || deleteSeasonReviewMutation.isPending}
@@ -492,7 +492,7 @@ export const SeasonAccordionItem = ({
           <SeasonEpisodeReviewDialog
             title={season.name || `Season ${season.seasonNumber}`}
             subtitle={`Episode ${activeReviewModal.episodeNumber}: ${activeReviewModal.episodeName}`}
-            posterUrl={getPosterUrl(season.posterPath || seriesPosterPath)}
+            posterUrl={getPosterUrl(season.posterPath)}
             initialContent={episodeReviewQuery.data?.content ?? ""}
             initialContainsSpoilers={episodeReviewQuery.data?.containsSpoilers ?? false}
             isSubmitting={upsertEpisodeReviewMutation.isPending || deleteEpisodeReviewMutation.isPending}
