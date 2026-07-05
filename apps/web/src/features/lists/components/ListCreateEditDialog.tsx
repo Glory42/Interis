@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { useCreateList, useUpdateList } from "@/features/lists/hooks/useLists";
@@ -83,7 +84,7 @@ export const ListCreateEditDialog = (props: ListCreateEditDialogProps) => {
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="theme-modal-overlay fixed inset-0 z-140 bg-background/70 backdrop-blur-sm">
       <button
         type="button"
@@ -91,7 +92,7 @@ export const ListCreateEditDialog = (props: ListCreateEditDialogProps) => {
         className="absolute inset-0"
         onClick={onClose}
       />
-      <div className="relative mx-auto flex h-full w-full max-w-md items-start px-4 pt-16 sm:pt-20">
+      <div className="relative mx-auto flex h-full w-full max-w-md items-center justify-center p-4">
         <section className="theme-modal-panel relative w-full overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
           <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
             <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
@@ -235,6 +236,7 @@ export const ListCreateEditDialog = (props: ListCreateEditDialogProps) => {
           </div>
         </section>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };

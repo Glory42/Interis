@@ -1,4 +1,5 @@
 import { useState, useEffect, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,14 +39,14 @@ export const SeasonEpisodeReviewDialog = ({
     onSubmit({ content: content.trim(), containsSpoilers });
   };
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-150 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="relative w-full max-w-lg border border-border/70 bg-card/95 p-6 shadow-2xl backdrop-blur-xl">
+      <div className="relative w-full max-w-lg border border-border/70 bg-card/95 p-6 shadow-2xl backdrop-blur-xl animate-fade-up">
         <div className="mb-4 flex items-start justify-between">
           <div>
             <h2 className="font-mono text-base font-bold text-foreground">Write a Review</h2>
@@ -124,6 +125,7 @@ export const SeasonEpisodeReviewDialog = ({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };

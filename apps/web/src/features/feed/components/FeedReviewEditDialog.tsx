@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Loader2, X } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useUpdateReview } from "@/features/reviews/hooks/useReviews";
@@ -18,9 +19,14 @@ export const FeedReviewEditDialog = ({
   initialContent,
   containsSpoilers,
 }: FeedReviewEditDialogProps) => {
+  const [draftContent, setDraftContent] = useState(initialContent);
   const updateReviewMutation = useUpdateReview(reviewId);
 
-  const [draftContent, setDraftContent] = useState(initialContent);
+  useEffect(() => {
+    if (isOpen) {
+      setDraftContent(initialContent);
+    }
+  }, [isOpen, initialContent]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -42,6 +48,7 @@ export const FeedReviewEditDialog = ({
   const canSave =
     draftContent.trim().length > 0 &&
     draftContent.trim().length <= 10_000 &&
+    draftContent !== initialContent &&
     !updateReviewMutation.isPending;
 
   const handleSave = async () => {
@@ -60,7 +67,7 @@ export const FeedReviewEditDialog = ({
     return null;
   }
 
-  return (
+  return createPortal(
     <div className="theme-modal-overlay fixed inset-0 z-140 bg-background/70 backdrop-blur-sm">
       <button
         type="button"
@@ -69,7 +76,7 @@ export const FeedReviewEditDialog = ({
         onClick={onClose}
       />
 
-      <div className="relative mx-auto flex h-full w-full max-w-2xl items-start px-4 pt-16 sm:pt-20">
+      <div className="relative mx-auto flex h-full w-full max-w-2xl items-center justify-center p-4">
         <section className="theme-modal-panel relative w-full overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
           <div className="flex items-start justify-between border-b border-border/70 px-4 py-3">
             <div>
@@ -138,6 +145,7 @@ export const FeedReviewEditDialog = ({
           </div>
         </section>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
