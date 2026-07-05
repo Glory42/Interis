@@ -88,7 +88,7 @@ export const CinemaActionsSidebar = ({
       </div>
 
       <div className="space-y-2">
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <LogFilmModal
             tmdbId={movie.tmdbId}
             movieTitle={movie.title}
@@ -145,7 +145,7 @@ export const CinemaActionsSidebar = ({
           )}
         </div>
 
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {isAuthenticated ? (
             <button
               type="button"
