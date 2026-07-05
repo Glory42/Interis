@@ -14,7 +14,12 @@ import { toRatingOutOfFive } from "../../commons/utils/rating";
 // Thin, read-only service for the public portfolio API
 // All responses are cached-friendly — no auth required
 
-import type { PublicProfileResponse, PublicDiaryItem } from "./dto/public.dto";
+import type {
+  PublicProfileResponse,
+  PublicDiaryItem,
+  PublicList,
+  PublicListEntry,
+} from "./dto/public.dto";
 import { SerialsDetailService } from "../serials/services/serials-detail.service";
 
 const toTimestamp = (value: string | Date): number => {
