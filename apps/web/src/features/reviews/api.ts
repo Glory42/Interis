@@ -52,8 +52,7 @@ const reviewDetailSchema = z.object({
   containsSpoilers: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
-  ratingOutOfTen: z.number().nullable(),
-  ratingOutOfFive: z.number().nullable(),
+  rating: z.number().nullable(),
   author: z.object({
     id: z.string(),
     username: z.string(),
