@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown, ChevronUp, Heart, MessageSquare } from "lucide-react";
 import type { SerialDetailResponse } from "@/features/serials/api";
 import { getStillUrl, getPosterUrl } from "@/features/serials/components/utils";
@@ -20,7 +21,7 @@ import {
   toYearFromDateLabel,
 } from "@/features/serials/components/serial-detail/utils";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { SeasonEpisodeReviewDialog } from "./SeasonEpisodeReviewDialog";
+import { LogMediaDialog } from "@/features/diary/components/log-media/LogMediaDialog";
 
 type SeasonAccordionItemProps = {
   tmdbId: number;
@@ -52,6 +53,13 @@ export const SeasonAccordionItem = ({
     episodeName: string;
   } | null>(null);
 
+  const [seasonReviewContent, setSeasonReviewContent] = useState("");
+  const [seasonReviewContainsSpoilers, setSeasonReviewContainsSpoilers] = useState(false);
+  const [seasonFormError, setSeasonFormError] = useState<string | null>(null);
+  const [episodeReviewContent, setEpisodeReviewContent] = useState("");
+  const [episodeReviewContainsSpoilers, setEpisodeReviewContainsSpoilers] = useState(false);
+  const [episodeFormError, setEpisodeFormError] = useState<string | null>(null);
+
   const seasonReviewQuery = useSeasonReview(
     tmdbId,
     season.seasonNumber,
@@ -75,32 +83,57 @@ export const SeasonAccordionItem = ({
   const upsertEpisodeReviewMutation = useUpsertEpisodeReview(tmdbId, season.seasonNumber, activeEpisodeNumber ?? 0);
   const deleteEpisodeReviewMutation = useDeleteEpisodeReview(tmdbId, season.seasonNumber, activeEpisodeNumber ?? 0);
 
-  const handleSeasonWatchedToggle = () => {
-    const nextWatched = !(season.viewerInteraction?.watched ?? false);
+  useEffect(() => {
+    setSeasonReviewContent(seasonReviewQuery.data?.content ?? "");
+    setSeasonReviewContainsSpoilers(seasonReviewQuery.data?.containsSpoilers ?? false);
+  }, [seasonReviewQuery.data]);
+
+  useEffect(() => {
+    setEpisodeReviewContent(episodeReviewQuery.data?.content ?? "");
+    setEpisodeReviewContainsSpoilers(episodeReviewQuery.data?.containsSpoilers ?? false);
+  }, [episodeReviewQuery.data]);
+
+  const handleSeasonWatchedChange = (nextWatched: boolean) => {
     updateSeasonInteractionMutation.mutate({
       seasonNumber: season.seasonNumber,
       input: { watched: nextWatched },
     });
   };
 
-  const handleSeasonLikedToggle = () => {
-    const nextLiked = !(season.viewerInteraction?.liked ?? false);
+  const handleSeasonWatchedToggle = () => handleSeasonWatchedChange(!(season.viewerInteraction?.watched ?? false));
+
+  const handleSeasonLikedChange = (nextLiked: boolean) => {
     updateSeasonInteractionMutation.mutate({
       seasonNumber: season.seasonNumber,
       input: { liked: nextLiked },
     });
   };
 
+  const handleSeasonLikedToggle = () => handleSeasonLikedChange(!(season.viewerInteraction?.liked ?? false));
+
   const handleSeasonRatingChange = (nextRating: number | null) => {
     updateSeasonInteractionMutation.mutate({
       seasonNumber: season.seasonNumber,
-      input: { ratingOutOfFive: nextRating },
+      input: { rating: nextRating },
     });
   };
 
-  const handleSeasonReviewSubmit = async (data: { content: string; containsSpoilers: boolean }) => {
-    await upsertSeasonReviewMutation.mutateAsync(data);
-    setActiveReviewModal(null);
+  const handleSeasonReviewSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!seasonReviewContent.trim()) {
+      setSeasonFormError("Please write a review before saving.");
+      return;
+    }
+    setSeasonFormError(null);
+    try {
+      await upsertSeasonReviewMutation.mutateAsync({
+        content: seasonReviewContent.trim(),
+        containsSpoilers: seasonReviewContainsSpoilers,
+      });
+      setActiveReviewModal(null);
+    } catch {
+      setSeasonFormError("Failed to save the review. Please try again.");
+    }
   };
 
   const handleSeasonReviewDelete = async () => {
@@ -108,31 +141,52 @@ export const SeasonAccordionItem = ({
     setActiveReviewModal(null);
   };
 
-  const handleEpisodeWatchedToggle = (episodeNumber: number, currentWatched: boolean) => {
+  const handleEpisodeWatchedChange = (episodeNumber: number, nextWatched: boolean) => {
     updateEpisodeInteractionMutation.mutate({
       episodeNumber,
-      input: { watched: !currentWatched },
+      input: { watched: nextWatched },
+    });
+  };
+
+  const handleEpisodeWatchedToggle = (episodeNumber: number, currentWatched: boolean) => {
+    handleEpisodeWatchedChange(episodeNumber, !currentWatched);
+  };
+
+  const handleEpisodeLikedChange = (episodeNumber: number, nextLiked: boolean) => {
+    updateEpisodeInteractionMutation.mutate({
+      episodeNumber,
+      input: { liked: nextLiked },
     });
   };
 
   const handleEpisodeLikedToggle = (episodeNumber: number, currentLiked: boolean) => {
-    updateEpisodeInteractionMutation.mutate({
-      episodeNumber,
-      input: { liked: !currentLiked },
-    });
+    handleEpisodeLikedChange(episodeNumber, !currentLiked);
   };
 
   const handleEpisodeRatingChange = (episodeNumber: number, nextRating: number | null) => {
     updateEpisodeInteractionMutation.mutate({
       episodeNumber,
-      input: { ratingOutOfFive: nextRating },
+      input: { rating: nextRating },
     });
   };
 
-  const handleEpisodeReviewSubmit = async (data: { content: string; containsSpoilers: boolean }) => {
+  const handleEpisodeReviewSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     if (activeReviewModal?.type !== "episode") return;
-    await upsertEpisodeReviewMutation.mutateAsync(data);
-    setActiveReviewModal(null);
+    if (!episodeReviewContent.trim()) {
+      setEpisodeFormError("Please write a review before saving.");
+      return;
+    }
+    setEpisodeFormError(null);
+    try {
+      await upsertEpisodeReviewMutation.mutateAsync({
+        content: episodeReviewContent.trim(),
+        containsSpoilers: episodeReviewContainsSpoilers,
+      });
+      setActiveReviewModal(null);
+    } catch {
+      setEpisodeFormError("Failed to save the review. Please try again.");
+    }
   };
 
   const handleEpisodeReviewDelete = async () => {
@@ -143,7 +197,7 @@ export const SeasonAccordionItem = ({
 
   const seasonWatched = season.viewerInteraction?.watched ?? false;
   const seasonLiked = season.viewerInteraction?.liked ?? false;
-  const seasonRating = season.viewerInteraction?.ratingOutOfFive ?? null;
+  const seasonRating = season.viewerInteraction?.rating ?? null;
   const seasonHasReview = season.viewerInteraction?.hasReview ?? false;
 
   return (
@@ -240,6 +294,16 @@ export const SeasonAccordionItem = ({
                 <option value="4" className="bg-card">★ 4.0</option>
                 <option value="4.5" className="bg-card">★ 4.5</option>
                 <option value="5" className="bg-card">★ 5.0</option>
+                <option value="5.5" className="bg-card">★ 5.5</option>
+                <option value="6" className="bg-card">★ 6.0</option>
+                <option value="6.5" className="bg-card">★ 6.5</option>
+                <option value="7" className="bg-card">★ 7.0</option>
+                <option value="7.5" className="bg-card">★ 7.5</option>
+                <option value="8" className="bg-card">★ 8.0</option>
+                <option value="8.5" className="bg-card">★ 8.5</option>
+                <option value="9" className="bg-card">★ 9.0</option>
+                <option value="9.5" className="bg-card">★ 9.5</option>
+                <option value="10" className="bg-card">★ 10.0</option>
               </select>
 
               <button
@@ -316,7 +380,7 @@ export const SeasonAccordionItem = ({
             ? episodes.map((episode, index) => {
                 const epWatched = episode.viewerInteraction?.watched ?? false;
                 const epLiked = episode.viewerInteraction?.liked ?? false;
-                const epRating = episode.viewerInteraction?.ratingOutOfFive ?? null;
+                const epRating = episode.viewerInteraction?.rating ?? null;
                 const epHasReview = episode.viewerInteraction?.hasReview ?? false;
 
                 return (
@@ -435,6 +499,16 @@ export const SeasonAccordionItem = ({
                               <option value="4" className="bg-card">★ 4.0</option>
                               <option value="4.5" className="bg-card">★ 4.5</option>
                               <option value="5" className="bg-card">★ 5.0</option>
+                              <option value="5.5" className="bg-card">★ 5.5</option>
+                              <option value="6" className="bg-card">★ 6.0</option>
+                              <option value="6.5" className="bg-card">★ 6.5</option>
+                              <option value="7" className="bg-card">★ 7.0</option>
+                              <option value="7.5" className="bg-card">★ 7.5</option>
+                              <option value="8" className="bg-card">★ 8.0</option>
+                              <option value="8.5" className="bg-card">★ 8.5</option>
+                              <option value="9" className="bg-card">★ 9.0</option>
+                              <option value="9.5" className="bg-card">★ 9.5</option>
+                              <option value="10" className="bg-card">★ 10.0</option>
                             </select>
 
                             <button
@@ -462,50 +536,64 @@ export const SeasonAccordionItem = ({
         </div>
       ) : null}
 
-      {activeReviewModal?.type === "season" && (
-        <SeasonEpisodeReviewDialog
+      {activeReviewModal?.type === "season" && createPortal(
+        <LogMediaDialog
           title={season.name || `Season ${season.seasonNumber}`}
           subtitle="Season Review"
           posterUrl={getPosterUrl(season.posterPath)}
-          initialContent={seasonReviewQuery.data?.content ?? ""}
-          initialContainsSpoilers={seasonReviewQuery.data?.containsSpoilers ?? false}
-          isSubmitting={upsertSeasonReviewMutation.isPending || deleteSeasonReviewMutation.isPending}
-          onClose={() => setActiveReviewModal(null)}
-          onSubmit={handleSeasonReviewSubmit}
-          onDelete={handleSeasonReviewDelete}
-          ratingOutOfFive={seasonRating}
+          review={seasonReviewContent}
+          onReviewChange={setSeasonReviewContent}
+          containsSpoilers={seasonReviewContainsSpoilers}
+          onContainsSpoilersChange={setSeasonReviewContainsSpoilers}
+          rating={seasonRating}
           onRatingChange={handleSeasonRatingChange}
           liked={seasonLiked}
-          onLikedChange={handleSeasonLikedToggle}
+          onLikedChange={handleSeasonLikedChange}
           watched={seasonWatched}
-          onWatchedChange={handleSeasonWatchedToggle}
-        />
+          onWatchedChange={handleSeasonWatchedChange}
+          isSubmitting={upsertSeasonReviewMutation.isPending || deleteSeasonReviewMutation.isPending}
+          onClose={() => { setActiveReviewModal(null); setSeasonFormError(null); }}
+          onSubmit={handleSeasonReviewSubmit}
+          onDelete={seasonReviewQuery.data?.content ? handleSeasonReviewDelete : undefined}
+          submitLabel="Save"
+          formError={seasonFormError}
+          reviewMaxLength={10000}
+          reviewPlaceholder="Share your thoughts about this season..."
+        />,
+        document.body,
       )}
 
       {activeReviewModal?.type === "episode" && (() => {
         const selectedEpisode = episodes.find((e) => e.episodeNumber === activeReviewModal.episodeNumber);
         const epWatched = selectedEpisode?.viewerInteraction?.watched ?? false;
         const epLiked = selectedEpisode?.viewerInteraction?.liked ?? false;
-        const epRating = selectedEpisode?.viewerInteraction?.ratingOutOfFive ?? null;
+        const epRating = selectedEpisode?.viewerInteraction?.rating ?? null;
 
-        return (
-          <SeasonEpisodeReviewDialog
+        return createPortal(
+          <LogMediaDialog
             title={season.name || `Season ${season.seasonNumber}`}
             subtitle={`Episode ${activeReviewModal.episodeNumber}: ${activeReviewModal.episodeName}`}
             posterUrl={getPosterUrl(season.posterPath)}
-            initialContent={episodeReviewQuery.data?.content ?? ""}
-            initialContainsSpoilers={episodeReviewQuery.data?.containsSpoilers ?? false}
-            isSubmitting={upsertEpisodeReviewMutation.isPending || deleteEpisodeReviewMutation.isPending}
-            onClose={() => setActiveReviewModal(null)}
-            onSubmit={handleEpisodeReviewSubmit}
-            onDelete={handleEpisodeReviewDelete}
-            ratingOutOfFive={epRating}
+            review={episodeReviewContent}
+            onReviewChange={setEpisodeReviewContent}
+            containsSpoilers={episodeReviewContainsSpoilers}
+            onContainsSpoilersChange={setEpisodeReviewContainsSpoilers}
+            rating={epRating}
             onRatingChange={(nextRating) => handleEpisodeRatingChange(activeReviewModal.episodeNumber, nextRating)}
             liked={epLiked}
-            onLikedChange={() => handleEpisodeLikedToggle(activeReviewModal.episodeNumber, epLiked)}
+            onLikedChange={(nextLiked) => handleEpisodeLikedChange(activeReviewModal.episodeNumber, nextLiked)}
             watched={epWatched}
-            onWatchedChange={() => handleEpisodeWatchedToggle(activeReviewModal.episodeNumber, epWatched)}
-          />
+            onWatchedChange={(nextWatched) => handleEpisodeWatchedChange(activeReviewModal.episodeNumber, nextWatched)}
+            isSubmitting={upsertEpisodeReviewMutation.isPending || deleteEpisodeReviewMutation.isPending}
+            onClose={() => { setActiveReviewModal(null); setEpisodeFormError(null); }}
+            onSubmit={handleEpisodeReviewSubmit}
+            onDelete={episodeReviewQuery.data?.content ? handleEpisodeReviewDelete : undefined}
+            submitLabel="Save"
+            formError={episodeFormError}
+            reviewMaxLength={10000}
+            reviewPlaceholder="Share your thoughts about this episode..."
+          />,
+          document.body,
         );
       })()}
     </div>
