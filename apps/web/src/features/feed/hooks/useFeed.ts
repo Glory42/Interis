@@ -1,9 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getFollowingFeed,
   getMyFeedSummary,
   getNetworkStats,
   getTrendingMovies,
+  likeActivity,
+  unlikeActivity,
 } from "@/features/feed/api";
 
 export const feedKeys = {
@@ -43,3 +45,23 @@ export const useNetworkStats = () =>
     queryFn: ({ signal }) => getNetworkStats({ signal }),
     staleTime: 300_000,
   });
+
+export const useLikeActivity = (activityId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => likeActivity(activityId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: feedKeys.all });
+    },
+  });
+};
+
+export const useUnlikeActivity = (activityId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => unlikeActivity(activityId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: feedKeys.all });
+    },
+  });
+};

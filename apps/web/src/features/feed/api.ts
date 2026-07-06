@@ -69,3 +69,15 @@ export const getNetworkStats = async (
 
   return networkStatsSchema.parse(response);
 };
+
+export const likeActivity = async (activityId: string): Promise<void> => {
+  await apiRequest<unknown>(`/api/social/activities/${activityId}/like`, {
+    method: "POST",
+  });
+};
+
+export const unlikeActivity = async (activityId: string): Promise<void> => {
+  await apiRequest<unknown>(`/api/social/activities/${activityId}/like`, {
+    method: "DELETE",
+  });
+};

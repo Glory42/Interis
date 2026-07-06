@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { CornerDownRight, Heart, MessageSquare } from "lucide-react";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
 import { PostActivityCard } from "@/features/feed/components/PostActivityCard";
 import { ReviewActivityCard } from "@/features/feed/components/ReviewActivityCard";
@@ -9,8 +10,10 @@ import {
   getRelativeTime,
   inferFeedChannel,
 } from "@/features/feed/components/feed-row.utils";
+import { useLikeActivity, useUnlikeActivity } from "@/features/feed/hooks/useFeed";
 import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
 import type { FeedItem } from "@/features/feed/types";
+import { cn } from "@/lib/utils";
 
 type FeedActivityCardProps = {
   item: FeedItem;
@@ -54,13 +57,26 @@ const getActivityCopy = (item: FeedItem): string => {
         ? `followed @${item.metadata.targetUsername}`
         : "followed someone";
     case "created_list":
-      return "created a list";
+      return item.metadata.listTitle ? `created list "${item.metadata.listTitle}"` : "created a list";
     default:
       return "updated activity";
   }
 };
 
 const renderAttachedTitle = (item: FeedItem) => {
+  if (item.kind === "created_list" && item.metadata.listId) {
+    return (
+      <Link
+        to="/profile/$username/lists/$listId"
+        params={{ username: item.actor.username, listId: item.metadata.listId }}
+        className="line-clamp-1 font-mono text-xs font-bold text-foreground hover:text-primary"
+        viewTransition
+      >
+        {item.metadata.listTitle ?? "a list"}
+      </Link>
+    );
+  }
+
   if (!item.movie) {
     return <span className="font-mono text-xs font-bold text-foreground">{getActivityCopy(item)}</span>;
   }
@@ -83,6 +99,55 @@ const renderAttachedTitle = (item: FeedItem) => {
         </span>
       ) : null}
     </>
+  );
+};
+
+const ActivityEngagement = ({ item }: { item: FeedItem }) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const likeMutation = useLikeActivity(item.id);
+  const unlikeMutation = useUnlikeActivity(item.id);
+
+  const viewerHasLiked = item.engagement.viewerHasLiked === true;
+  const isLikePending = likeMutation.isPending || unlikeMutation.isPending;
+
+  const handleToggleLike = async () => {
+    if (isLikePending) return;
+
+    if (!user) {
+      const redirectPath = `${window.location.pathname}${window.location.search}`;
+      await navigate({ to: "/login", search: { redirect: redirectPath } });
+      return;
+    }
+
+    if (viewerHasLiked) {
+      await unlikeMutation.mutateAsync();
+    } else {
+      await likeMutation.mutateAsync();
+    }
+  };
+
+  return (
+    <div className="mt-3 ml-10 flex items-center gap-5">
+      <button
+        type="button"
+        disabled={isLikePending}
+        onClick={() => void handleToggleLike()}
+        className={cn(
+          "inline-flex items-center gap-1.5 font-mono text-[11px] transition-colors disabled:cursor-not-allowed",
+          viewerHasLiked
+            ? "text-primary"
+            : "text-muted-foreground hover:text-foreground",
+        )}
+      >
+        <Heart className={cn("h-3.5 w-3.5", viewerHasLiked && "fill-current")} />
+        {item.engagement.likeCount}
+      </button>
+      <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
+        <MessageSquare className="h-3.5 w-3.5" />
+        {item.engagement.commentCount}
+      </span>
+    </div>
   );
 };
 
@@ -157,16 +222,7 @@ export const FeedActivityCard = ({ item }: FeedActivityCardProps) => {
         {item.metadata.excerpt ?? getActivityCopy(item)}
       </p>
 
-      <div className="mt-3 ml-10 flex items-center gap-5">
-        <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
-          <Heart className="h-3.5 w-3.5" />
-          {item.engagement.likeCount}
-        </span>
-        <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
-          <MessageSquare className="h-3.5 w-3.5" />
-          {item.engagement.commentCount}
-        </span>
-      </div>
+      <ActivityEngagement item={item} />
     </article>
   );
 };
