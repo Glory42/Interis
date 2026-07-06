@@ -3,10 +3,9 @@ import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { diaryEntries } from "../../diary/diary.entity";
 import { comments, reviewLikes, reviews } from "../../reviews/reviews.entity";
-import { serialDiaryEntries, tvSeries } from "../../serials/serials.entity";
+import { serialDiaryEntries, serialSeasonInteractions, serialEpisodeInteractions, tvSeries } from "../../serials/serials.entity";
 import { movies } from "../../movies/movies.entity";
 import { profiles } from "../users.entity";
-import { toRatingOutOfFive } from "../../../commons/utils/rating";
 
 export class UsersReviewsRepository {
   static async getReviewsWithMovies(userId: string, limit?: number) {
@@ -45,8 +44,8 @@ export class UsersReviewsRepository {
       .where(and(eq(reviews.userId, userId), eq(reviews.mediaType, "tv")));
 
     const [movieReviewRows, tvReviewRows] = await Promise.all([
-      limit ? movieQ.orderBy(desc(reviews.createdAt)).limit(limit) : movieQ,
-      limit ? tvQ.orderBy(desc(reviews.createdAt)).limit(limit) : tvQ,
+      limit ? movieQ.limit(limit) : movieQ,
+      limit ? tvQ.limit(limit) : tvQ,
     ]);
 
     const normalizedMovieReviewRows = movieReviewRows.map((reviewRow) => ({
@@ -59,7 +58,7 @@ export class UsersReviewsRepository {
       title: reviewRow.title,
       posterPath: reviewRow.posterPath,
       releaseYear: reviewRow.releaseYear,
-      ratingOutOfFive: toRatingOutOfFive(reviewRow.rating),
+      rating: reviewRow.rating,
       mediaType: "movie" as const,
     }));
 
@@ -68,18 +67,10 @@ export class UsersReviewsRepository {
       .filter((tmdbId) => Number.isInteger(tmdbId) && tmdbId > 0);
 
     const tvRows = tvTmdbIds.length
-      ? await db
-          .select({
-            tmdbId: tvSeries.tmdbId,
-            title: tvSeries.title,
-            posterPath: tvSeries.posterPath,
-            releaseYear: tvSeries.firstAirYear,
-          })
-          .from(tvSeries)
-          .where(inArray(tvSeries.tmdbId, [...new Set(tvTmdbIds)]))
+      ? await db.select().from(tvSeries).where(inArray(tvSeries.tmdbId, tvTmdbIds))
       : [];
 
-    const tvByTmdbId = new Map(tvRows.map((tvRow) => [tvRow.tmdbId, tvRow]));
+    const tvSeriesByTmdbId = new Map(tvRows.map((row) => [row.tmdbId, row]));
 
     const serialReviewRows = tvReviewRows
       .map((reviewRow) => {
@@ -88,7 +79,7 @@ export class UsersReviewsRepository {
           return null;
         }
 
-        const series = tvByTmdbId.get(tmdbId);
+        const series = tvSeriesByTmdbId.get(tmdbId);
 
         return {
           id: reviewRow.id,
@@ -99,8 +90,8 @@ export class UsersReviewsRepository {
           tmdbId,
           title: series?.title ?? "Unknown series",
           posterPath: series?.posterPath ?? null,
-          releaseYear: series?.releaseYear ?? null,
-          ratingOutOfFive: toRatingOutOfFive(reviewRow.rating),
+          releaseYear: series?.firstAirYear ?? null,
+          rating: reviewRow.rating,
           mediaType: "tv" as const,
         };
       })
@@ -108,7 +99,7 @@ export class UsersReviewsRepository {
 
     return [...normalizedMovieReviewRows, ...serialReviewRows].sort(
       (leftReview, rightReview) =>
-        rightReview.createdAt.getTime() - leftReview.createdAt.getTime(),
+        rightReview.createdAt.getTime() - leftReview.createdAt.getTime()
     );
   }
 
@@ -187,7 +178,7 @@ export class UsersReviewsRepository {
           : Promise.resolve([]),
         reviewRow.diaryEntryId
           ? db
-              .select({ ratingOutOfTen: diaryEntries.rating })
+              .select({ rating: diaryEntries.rating })
               .from(diaryEntries)
               .where(eq(diaryEntries.id, reviewRow.diaryEntryId))
               .limit(1)
@@ -200,7 +191,7 @@ export class UsersReviewsRepository {
         return null;
       }
 
-      const ratingOutOfTen = diaryRow[0]?.ratingOutOfTen ?? null;
+      const rating = diaryRow[0]?.rating ?? null;
 
       return {
         id: reviewRow.id,
@@ -209,8 +200,7 @@ export class UsersReviewsRepository {
         containsSpoilers: reviewRow.containsSpoilers,
         createdAt: reviewRow.createdAt,
         updatedAt: reviewRow.updatedAt,
-        ratingOutOfTen,
-        ratingOutOfFive: toRatingOutOfFive(ratingOutOfTen),
+        rating,
         author: {
           id: reviewRow.authorId,
           username: reviewRow.authorUsername,
@@ -257,14 +247,14 @@ export class UsersReviewsRepository {
           .limit(1),
         reviewRow.diaryEntryId
           ? db
-              .select({ ratingOutOfTen: serialDiaryEntries.rating })
+              .select({ rating: serialDiaryEntries.rating })
               .from(serialDiaryEntries)
               .where(eq(serialDiaryEntries.id, reviewRow.diaryEntryId))
               .limit(1)
           : Promise.resolve([]),
       ]);
 
-      const ratingOutOfTen = serialDiaryRow[0]?.ratingOutOfTen ?? null;
+      const rating = serialDiaryRow[0]?.rating ?? null;
 
       return {
         id: reviewRow.id,
@@ -273,8 +263,7 @@ export class UsersReviewsRepository {
         containsSpoilers: reviewRow.containsSpoilers,
         createdAt: reviewRow.createdAt,
         updatedAt: reviewRow.updatedAt,
-        ratingOutOfTen,
-        ratingOutOfFive: toRatingOutOfFive(ratingOutOfTen),
+        rating,
         author: {
           id: reviewRow.authorId,
           username: reviewRow.authorUsername,
@@ -290,6 +279,95 @@ export class UsersReviewsRepository {
           genres: seriesRow[0]?.genres ?? [],
           director: null,
           creator: seriesRow[0]?.creator ?? null,
+        },
+        engagement: {
+          likeCount: likeRow[0]?.count ?? 0,
+          commentCount: commentRow[0]?.count ?? 0,
+          viewerHasLiked: viewerUserId ? viewerLikeRow.length > 0 : null,
+        },
+      };
+    }
+
+    if (reviewRow.mediaType === "tv_season" || reviewRow.mediaType === "tv_episode") {
+      const parts = reviewRow.mediaSourceId.split(":");
+      const seriesTmdbId = Number(parts[0]);
+      const seasonNumber = Number(parts[1]);
+      const episodeNumber = reviewRow.mediaType === "tv_episode" ? Number(parts[2]) : null;
+
+      if (!Number.isInteger(seriesTmdbId) || seriesTmdbId <= 0) {
+        return null;
+      }
+
+      const [seriesRow, interactionRow] = await Promise.all([
+        db
+          .select({
+            id: tvSeries.id,
+            tmdbId: tvSeries.tmdbId,
+            title: tvSeries.title,
+            posterPath: tvSeries.posterPath,
+            releaseYear: tvSeries.firstAirYear,
+            genres: tvSeries.genres,
+            creator: tvSeries.creator,
+          })
+          .from(tvSeries)
+          .where(eq(tvSeries.tmdbId, seriesTmdbId))
+          .limit(1),
+        episodeNumber !== null
+          ? db
+              .select({ rating: serialEpisodeInteractions.rating })
+              .from(serialEpisodeInteractions)
+              .innerJoin(tvSeries, eq(serialEpisodeInteractions.seriesId, tvSeries.id))
+              .where(
+                and(
+                  eq(serialEpisodeInteractions.userId, reviewRow.authorId),
+                  eq(tvSeries.tmdbId, seriesTmdbId),
+                  eq(serialEpisodeInteractions.seasonNumber, seasonNumber),
+                  eq(serialEpisodeInteractions.episodeNumber, episodeNumber),
+                ),
+              )
+              .limit(1)
+          : db
+              .select({ rating: serialSeasonInteractions.rating })
+              .from(serialSeasonInteractions)
+              .innerJoin(tvSeries, eq(serialSeasonInteractions.seriesId, tvSeries.id))
+              .where(
+                and(
+                  eq(serialSeasonInteractions.userId, reviewRow.authorId),
+                  eq(tvSeries.tmdbId, seriesTmdbId),
+                  eq(serialSeasonInteractions.seasonNumber, seasonNumber),
+                ),
+              )
+              .limit(1),
+      ]);
+
+      const seriesLabel = episodeNumber !== null
+        ? `S${seasonNumber}E${episodeNumber}`
+        : `Season ${seasonNumber}`;
+      const seriesData = seriesRow[0];
+
+      return {
+        id: reviewRow.id,
+        mediaType: "tv" as const,
+        content: reviewRow.content,
+        containsSpoilers: reviewRow.containsSpoilers,
+        createdAt: reviewRow.createdAt,
+        updatedAt: reviewRow.updatedAt,
+        rating: interactionRow[0]?.rating ?? null,
+        author: {
+          id: reviewRow.authorId,
+          username: reviewRow.authorUsername,
+          displayUsername: reviewRow.authorDisplayUsername,
+          image: reviewRow.authorImage,
+          avatarUrl: reviewRow.authorAvatarUrl,
+        },
+        media: {
+          tmdbId: seriesTmdbId,
+          title: seriesData ? `${seriesData.title} · ${seriesLabel}` : `Unknown series · ${seriesLabel}`,
+          posterPath: seriesData?.posterPath ?? null,
+          releaseYear: seriesData?.releaseYear ?? null,
+          genres: seriesData?.genres ?? [],
+          director: null,
+          creator: seriesData?.creator ?? null,
         },
         engagement: {
           likeCount: likeRow[0]?.count ?? 0,

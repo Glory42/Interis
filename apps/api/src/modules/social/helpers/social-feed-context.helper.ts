@@ -1,4 +1,7 @@
 import { parseMetadata, readString } from "./social-feed-metadata.helper";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isUuid = (s: string) => UUID_RE.test(s);
 import { resolveReviewId, toFeedMetadata } from "./social-feed-resolvers.helper";
 import { SocialFeedRepository } from "../repositories/social-feed.repository";
 import type {
@@ -23,7 +26,7 @@ export const buildReviewContext = async (
       reviewIds.add(reviewId);
     }
 
-    if (row.activity.type === "diary_entry") {
+    if (row.activity.type === "diary_entry" && isUuid(row.activity.entityId)) {
       diaryEntryIds.add(row.activity.entityId);
     }
   }

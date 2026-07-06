@@ -39,6 +39,8 @@ export const toFeedMetadata = (rawMetadata: FeedRawMetadata): FeedMetadata => {
     postId: readString(rawMetadata, "postId"),
     postMediaId: readNumber(rawMetadata, "mediaId"),
     postMediaType: readPostMediaType(rawMetadata, "mediaType"),
+    seasonNumber: readNumber(rawMetadata, "seasonNumber"),
+    episodeNumber: readNumber(rawMetadata, "episodeNumber"),
   };
 };
 

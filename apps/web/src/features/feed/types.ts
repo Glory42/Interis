@@ -80,6 +80,8 @@ export const feedMetadataSchema = z.object({
   postId: z.string().nullable(),
   postMediaId: z.number().nullable(),
   postMediaType: feedPostMediaTypeSchema.nullable(),
+  seasonNumber: z.number().nullable().optional(),
+  episodeNumber: z.number().nullable().optional(),
 });
 
 export const feedEngagementSchema = z.object({
