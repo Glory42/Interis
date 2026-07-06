@@ -1,6 +1,5 @@
 import { MoviesService } from "../../movies/movies.service";
 import { buildDiaryEntryActivityMetadata } from "../helpers/diary-activity.helper";
-import { resolveRatingOutOfTen } from "../helpers/diary-rating.helper";
 import { DiaryRepository } from "../repositories/diary.repository";
 import type { CreateDiaryDto, UpdateDiaryDto } from "../dto/diary.dto";
 
@@ -11,14 +10,14 @@ export class DiaryWriteService {
       throw new Error("Movie not found");
     }
 
-    const ratingOutOfTen = resolveRatingOutOfTen(input.ratingOutOfFive) ?? null;
+    const rating = input.rating ?? null;
     const rewatch = input.rewatch ?? false;
 
     const entry = await DiaryRepository.insertEntry({
       userId,
       movieId: movie.id,
       watchedDate: input.watchedDate,
-      rating: ratingOutOfTen,
+      rating,
       rewatch,
     });
 
@@ -59,7 +58,7 @@ export class DiaryWriteService {
             posterPath: movie.posterPath,
             releaseYear: movie.releaseYear,
           },
-          rating: ratingOutOfTen,
+          rating,
           rewatch,
           hasReview: Boolean(review),
           reviewId: review?.id ?? null,
@@ -71,13 +70,11 @@ export class DiaryWriteService {
   }
 
   static async update(entryId: string, userId: string, input: UpdateDiaryDto) {
-    const ratingOutOfTen = resolveRatingOutOfTen(input.ratingOutOfFive);
-
     return DiaryRepository.updateByIdAndUser({
       entryId,
       userId,
       watchedDate: input.watchedDate,
-      rating: ratingOutOfTen,
+      rating: input.rating,
       rewatch: input.rewatch,
     });
   }

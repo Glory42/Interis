@@ -70,7 +70,7 @@ export const DiaryRow = ({ row, username }: DiaryRowProps) => {
         </DiaryMediaLink>
 
         <div className="mt-1 flex items-center gap-3 md:hidden">
-          <DiaryRatingStars ratingOutOfFive={row.ratingOutOfFive} color={channelMeta.color} />
+          <DiaryRatingStars rating={row.rating} color={channelMeta.color} />
           <span className="font-mono text-[9px] profile-shell-muted">{row.releaseYear ?? "----"}</span>
           {row.reviewId ? (
             <Link
@@ -91,7 +91,7 @@ export const DiaryRow = ({ row, username }: DiaryRowProps) => {
       </div>
 
       <div className="hidden items-center md:flex">
-        <DiaryRatingStars ratingOutOfFive={row.ratingOutOfFive} color={channelMeta.color} />
+        <DiaryRatingStars rating={row.rating} color={channelMeta.color} />
       </div>
 
       <div className="hidden justify-center md:flex">

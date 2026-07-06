@@ -3,11 +3,7 @@ import {
   getMovieDetails as tmdbGetDetails,
   getSimilarMovies,
 } from "../../../infrastructure/tmdb/cinemas";
-import {
-  normalizeMovieGenres,
-  toRatingBreakdownBucket,
-  toRatingOutOfFive,
-} from "../helpers/movies-format.helper";
+import { normalizeMovieGenres } from "../helpers/movies-format.helper";
 import { buildMediaRatingBreakdown } from "../../media/helpers/media-rating-breakdown.helper";
 import { MoviesRepository } from "../repositories/movies.repository";
 import { MoviesCacheService } from "./movies-cache.service";
@@ -119,7 +115,7 @@ export class MoviesDetailService {
     );
 
     const reviewsWithEngagement: MovieDetailReviewItem[] = reviewRows.map((reviewRow) => {
-      const ratingOutOfTen = reviewRow.ratingOutOfTen;
+      const rating = reviewRow.rating;
 
       return {
         id: reviewRow.id,
@@ -128,8 +124,7 @@ export class MoviesDetailService {
         createdAt: reviewRow.createdAt,
         updatedAt: reviewRow.updatedAt,
         watchedDate: reviewRow.watchedDate,
-        ratingOutOfTen,
-        ratingOutOfFive: toRatingOutOfFive(ratingOutOfTen),
+        rating,
         likeCount: likeCountByReviewId.get(reviewRow.id) ?? 0,
         viewerHasLiked: viewerLikedReviewIds.has(reviewRow.id),
         author: {
@@ -159,8 +154,7 @@ export class MoviesDetailService {
     }
 
     const ratingBreakdown = buildMediaRatingBreakdown(
-      reviewsWithEngagement,
-      toRatingBreakdownBucket,
+      reviewsWithEngagement.map((r) => ({ rating: r.rating })),
     );
 
     const similar = (tmdbSimilar ?? []).slice(0, 12).map((sim) => {
@@ -186,7 +180,7 @@ export class MoviesDetailService {
     const viewerDiary = viewerDiaryRow[0] ?? null;
     const viewerReview = viewerReviewRow[0] ?? null;
 
-    const globalRatingOutOfTen =
+    const globalRating =
       tmdbDetail && Number.isFinite(tmdbDetail.vote_average)
         ? Number(tmdbDetail.vote_average.toFixed(1))
         : null;
@@ -224,8 +218,7 @@ export class MoviesDetailService {
           tmdbDetail && tmdbDetail.revenue > 0 && Number.isFinite(tmdbDetail.revenue)
             ? tmdbDetail.revenue
             : null,
-        globalRatingOutOfTen,
-        globalRatingOutOfFive: toRatingOutOfFive(globalRatingOutOfTen),
+        globalRating,
         globalRatingVoteCount:
           tmdbDetail && tmdbDetail.vote_count > 0 ? tmdbDetail.vote_count : null,
       },
@@ -237,8 +230,7 @@ export class MoviesDetailService {
             reviewId: viewerReview?.id ?? null,
             watchedDate: viewerDiary?.watchedDate ?? null,
             rewatch: viewerDiary?.rewatch ?? false,
-            ratingOutOfTen: viewerDiary?.ratingOutOfTen ?? null,
-            ratingOutOfFive: toRatingOutOfFive(viewerDiary?.ratingOutOfTen ?? null),
+            rating: viewerDiary?.rating ?? null,
             reviewContent: viewerReview?.content ?? null,
             reviewContainsSpoilers: viewerReview?.containsSpoilers ?? null,
           }
@@ -247,7 +239,7 @@ export class MoviesDetailService {
       reviews: sortedReviews,
       ratingBreakdown: {
         totalRatedReviews: ratingBreakdown.totalRatedReviews,
-        averageRatingOutOfFive: ratingBreakdown.averageRatingOutOfFive,
+        averageRating: ratingBreakdown.averageRating,
         buckets: ratingBreakdown.buckets as MovieDetailRatingBreakdownBucket[],
       },
       similar,

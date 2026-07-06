@@ -10,18 +10,13 @@ export type ProfileRecentActivityItem = {
   createdAt: string;
 };
 
-const toFivePointRating = (ratingOutOfTen: number): number => {
-  const normalized = Math.max(0, Math.min(10, ratingOutOfTen));
-  return normalized / 2;
-};
-
-const formatRatingOutOfFiveLabel = (value: number): string => {
-  const rounded = Math.round(value * 10) / 10;
+const formatRatingLabel = (rating: number): string => {
+  const rounded = Math.round(rating * 10) / 10;
   if (Number.isInteger(rounded)) {
-    return `${rounded.toFixed(0)}/5`;
+    return `${rounded.toFixed(0)}/10`;
   }
 
-  return `${rounded.toFixed(1)}/5`;
+  return `${rounded.toFixed(1)}/10`;
 };
 
 const getTimestamp = (value: string): number => {
@@ -78,9 +73,7 @@ export const buildRecentActivityItems = (
           mediaType: media.mediaType,
           mediaTitle: media.title,
           actionLabel: "Rated",
-          ratingLabel: formatRatingOutOfFiveLabel(
-            toFivePointRating(activity.metadata.rating),
-          ),
+          ratingLabel: formatRatingLabel(activity.metadata.rating),
           createdAt: activity.createdAt,
         });
       }

@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
 import {
-  formatRatingOutOfFiveLabel,
-  toFivePointFromTen,
+  formatRatingLabel,
 } from "@/features/films/components/spaceRating.utils";
 import { useMovieLogs } from "@/features/films/hooks/useMovies";
 
@@ -79,10 +78,10 @@ export const MovieLogs = ({ tmdbId }: MovieLogsProps) => {
                   {log.rating !== null ? (
                     <span className="inline-flex items-center gap-1  border border-border/65 bg-secondary/40 px-2 py-1 text-xs text-foreground">
                       <SpaceRatingDisplay
-                        ratingOutOfFive={toFivePointFromTen(log.rating)}
+                        rating={log.rating}
                         size="sm"
                       />
-                      <span>{formatRatingOutOfFiveLabel(toFivePointFromTen(log.rating))}</span>
+                      <span>{formatRatingLabel(log.rating)}</span>
                     </span>
                   ) : null}
                   {log.rewatch ? <Badge variant="primary">Rewatch</Badge> : null}

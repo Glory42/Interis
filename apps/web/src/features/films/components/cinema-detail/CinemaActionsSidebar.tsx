@@ -3,16 +3,15 @@ import { Award, Check, Heart, Plus } from "lucide-react";
 import { LogFilmModal } from "@/features/diary/components/LogFilmModal";
 import type { MovieDetailResponse } from "@/features/films/api";
 import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
-import { formatRatingOutOfFiveLabel } from "@/features/films/components/spaceRating.utils";
 import { CINEMA_MODULE_STYLES } from "@/features/films/components/cinema-detail/styles";
 import { getPosterUrl } from "@/features/films/components/utils";
 import { AddToListDialog } from "@/features/lists/components/AddToListDialog";
 
 type CinemaActionsSidebarProps = {
   detail: MovieDetailResponse;
-  currentRatingOutOfFive: number | null;
+  currentRating: number | null;
   isRatingSaving: boolean;
-  onRatingChange: (ratingOutOfFive: number | null) => void;
+  onRatingChange: (rating: number | null) => void;
   isAuthenticated: boolean;
   watchlisted: boolean;
   liked: boolean;
@@ -25,7 +24,7 @@ type CinemaActionsSidebarProps = {
 
 export const CinemaActionsSidebar = ({
   detail,
-  currentRatingOutOfFive,
+  currentRating,
   isRatingSaving,
   onRatingChange,
   isAuthenticated,
@@ -41,15 +40,11 @@ export const CinemaActionsSidebar = ({
 
   const modalInitialState = {
     watchedDate: detail.userRating?.watchedDate ?? null,
-    ratingOutOfFive: currentRatingOutOfFive,
+    rating: currentRating,
     rewatch: detail.userRating?.rewatch ?? false,
     reviewContent: detail.userRating?.reviewContent ?? null,
     containsSpoilers: detail.userRating?.reviewContainsSpoilers ?? null,
   };
-
-  const resolvedUserRatingLabel =
-    formatRatingOutOfFiveLabel(currentRatingOutOfFive) ??
-    "No rating yet";
 
   return (
     <aside>
@@ -243,7 +238,7 @@ export const CinemaActionsSidebar = ({
           <div className="flex items-center gap-3">
             {isAuthenticated ? (
               <SpaceRatingInput
-                value={currentRatingOutOfFive}
+                value={currentRating}
                 onChange={onRatingChange}
                 disabled={isRatingSaving}
               />
@@ -258,12 +253,6 @@ export const CinemaActionsSidebar = ({
               </Link>
             )}
           </div>
-          <p
-            className="mt-2 font-mono text-[10px]"
-            style={{ color: CINEMA_MODULE_STYLES.muted }}
-          >
-            {isRatingSaving ? "Saving..." : resolvedUserRatingLabel}
-          </p>
         </div>
       </div>
     </aside>

@@ -6,6 +6,7 @@ import {
   boolean,
   date,
   uuid,
+  real,
 } from "drizzle-orm/pg-core";
 import { user } from "../../infrastructure/database/auth.entity";
 import { movies } from "../movies/movies.entity";
@@ -21,8 +22,8 @@ export const diaryEntries = pgTable("diary_entry", {
     .notNull()
     .references(() => movies.id, { onDelete: "cascade" }),
   watchedDate: date("watched_date").notNull(),
-  // 0–10 stored as integer, displayed as plain score on frontend
-  rating: integer("rating"),
+  // 0–10 stored directly as float (real), displayed as plain score on frontend
+  rating: real("rating"),
   rewatch: boolean("rewatch").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")

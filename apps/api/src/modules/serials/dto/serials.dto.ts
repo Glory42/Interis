@@ -202,25 +202,25 @@ export const UpdateSerialInteractionSchema = z
   .object({
     liked: z.boolean().optional(),
     watchlisted: z.boolean().optional(),
-    ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+    rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
     watched: z.boolean().optional(),
   })
   .refine(
     (payload) =>
       payload.liked !== undefined ||
       payload.watchlisted !== undefined ||
-      payload.ratingOutOfFive !== undefined ||
+      payload.rating !== undefined ||
       payload.watched !== undefined,
     {
-      message: "At least one of liked, watchlisted, ratingOutOfFive, or watched must be provided",
+      message: "At least one of liked, watchlisted, rating, or watched must be provided",
     },
   );
 
-const ratingOutOfFiveSchema = z.number().min(0.5).max(5).multipleOf(0.5);
+const ratingSchema = z.number().min(0.5).max(10).multipleOf(0.5);
 
 export const CreateSerialLogSchema = z.object({
   watchedDate: isoDateSchema,
-  ratingOutOfFive: ratingOutOfFiveSchema.optional(),
+  rating: ratingSchema.optional(),
   rewatch: z.boolean().optional(),
   review: z.string().max(5000).optional(),
   containsSpoilers: z.boolean().optional(),
@@ -228,7 +228,7 @@ export const CreateSerialLogSchema = z.object({
 
 export const UpdateSerialLogSchema = z.object({
   watchedDate: isoDateSchema.optional(),
-  ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+  rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
   rewatch: z.boolean().optional(),
 });
 
@@ -247,7 +247,7 @@ export type SerialEpisodeParams = z.input<typeof SerialEpisodeParamsSchema>;
 export const UpdateSeasonInteractionSchema = z.object({
   watched: z.boolean().optional(),
   liked: z.boolean().optional(),
-  ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+  rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
 });
 
 export type UpdateSeasonInteractionDto = z.infer<typeof UpdateSeasonInteractionSchema>;

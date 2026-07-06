@@ -5,6 +5,7 @@ import {
   boolean,
   timestamp,
   unique,
+  real,
 } from "drizzle-orm/pg-core";
 import { user } from "../../infrastructure/database/auth.entity";
 import { movies } from "../movies/movies.entity";
@@ -20,7 +21,7 @@ export const movieInteractions = pgTable(
       .references(() => movies.id, { onDelete: "cascade" }),
     liked: boolean("liked").default(false).notNull(),
     watchlisted: boolean("watchlisted").default(false).notNull(),
-    rating: integer("rating"),
+    rating: real("rating"),
     isWatched: boolean("is_watched").default(false).notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()

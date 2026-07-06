@@ -3,8 +3,6 @@ import { db } from "../../infrastructure/database/db";
 import { movieInteractions } from "./interactions.entity";
 import { activities } from "../social/social.entity";
 import { MoviesService } from "../movies/movies.service";
-import { toRatingOutOfFive } from "../movies/helpers/movies-format.helper";
-import { resolveRatingOutOfTen } from "../diary/helpers/diary-rating.helper";
 import type { UpdateInteractionDto } from "./dto/interactions.dto";
 
 const toInteractionResponse = (row: {
@@ -16,7 +14,7 @@ const toInteractionResponse = (row: {
   return {
     liked: row.liked,
     watchlisted: row.watchlisted,
-    ratingOutOfFive: toRatingOutOfFive(row.rating),
+    rating: row.rating,
     watched: row.isWatched,
   };
 };
@@ -54,12 +52,12 @@ export class InteractionsService {
     input: UpdateInteractionDto,
   ) {
     const movie = await MoviesService.findOrCreate(tmdbId);
-    const ratingOutOfTen = resolveRatingOutOfTen(input.ratingOutOfFive);
+    const rating = input.rating;
 
     // Implicit watch if user liked or rated the movie
     const isImplicitlyWatched =
       input.liked === true ||
-      (input.ratingOutOfFive !== undefined && input.ratingOutOfFive !== null);
+      (input.rating !== undefined && input.rating !== null);
 
     const [upserted] = await db
       .insert(movieInteractions)
@@ -68,7 +66,7 @@ export class InteractionsService {
         movieId: movie.id,
         liked: input.liked ?? false,
         watchlisted: input.watchlisted ?? false,
-        rating: ratingOutOfTen ?? null,
+        rating: rating ?? null,
         isWatched: input.watched ?? isImplicitlyWatched ?? false,
       })
       .onConflictDoUpdate({
@@ -78,8 +76,8 @@ export class InteractionsService {
           ...(input.watchlisted !== undefined && {
             watchlisted: input.watchlisted,
           }),
-          ...(input.ratingOutOfFive !== undefined && {
-            rating: ratingOutOfTen ?? null,
+          ...(input.rating !== undefined && {
+            rating: rating ?? null,
           }),
           ...(input.watched !== undefined && { isWatched: input.watched }),
           ...(isImplicitlyWatched && { isWatched: true }),
@@ -102,7 +100,7 @@ export class InteractionsService {
             posterPath: movie.posterPath,
           }),
         })
-        .onConflictDoNothing(); // activities table has no unique — this is just defensive
+        .onConflictDoNothing();
     }
 
     if (input.watchlisted === true) {
@@ -123,7 +121,7 @@ export class InteractionsService {
       upserted ?? {
         liked: input.liked ?? false,
         watchlisted: input.watchlisted ?? false,
-        rating: ratingOutOfTen ?? null,
+        rating: rating ?? null,
         isWatched: input.watched ?? isImplicitlyWatched ?? false,
       },
     );

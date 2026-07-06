@@ -232,6 +232,13 @@
       "when": 1783254058072,
       "tag": "0032_lumpy_starjammers",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1783269435512,
+      "tag": "0033_change_rating_to_real",
+      "breakpoints": true
     }
   ]
 }

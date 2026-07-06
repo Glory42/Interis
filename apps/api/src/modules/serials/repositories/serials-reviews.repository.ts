@@ -36,7 +36,7 @@ export class SerialsReviewsRepository {
         createdAt: reviews.createdAt,
         updatedAt: reviews.updatedAt,
         watchedDate: serialDiaryEntries.watchedDate,
-        ratingOutOfTen: serialDiaryEntries.rating,
+        rating: serialDiaryEntries.rating,
         authorUsername: user.username,
         authorDisplayUsername: user.displayUsername,
         authorImage: user.image,

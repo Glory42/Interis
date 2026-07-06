@@ -9,6 +9,7 @@ import {
   timestamp,
   unique,
   uuid,
+  real,
 } from "drizzle-orm/pg-core";
 import { user } from "../../infrastructure/database/auth.entity";
 
@@ -46,7 +47,7 @@ export const serialDiaryEntries = pgTable("serial_diary_entry", {
     .notNull()
     .references(() => tvSeries.id, { onDelete: "cascade" }),
   watchedDate: date("watched_date").notNull(),
-  rating: integer("rating"),
+  rating: real("rating"),
   rewatch: boolean("rewatch").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
@@ -66,7 +67,7 @@ export const serialInteractions = pgTable(
       .references(() => tvSeries.id, { onDelete: "cascade" }),
     liked: boolean("liked").default(false).notNull(),
     watchlisted: boolean("watchlisted").default(false).notNull(),
-    rating: integer("rating"),
+    rating: real("rating"),
     updatedAt: timestamp("updated_at")
       .defaultNow()
       .$onUpdate(() => new Date())
@@ -87,7 +88,7 @@ export const serialSeasonInteractions = pgTable(
     seasonNumber: integer("season_number").notNull(),
     watched: boolean("watched").default(false).notNull(),
     liked: boolean("liked").default(false).notNull(),
-    rating: integer("rating"),
+    rating: real("rating"),
     updatedAt: timestamp("updated_at")
       .defaultNow()
       .$onUpdate(() => new Date())
@@ -115,7 +116,7 @@ export const serialEpisodeInteractions = pgTable(
     episodeNumber: integer("episode_number").notNull(),
     watched: boolean("watched").default(false).notNull(),
     liked: boolean("liked").default(false).notNull(),
-    rating: integer("rating"),
+    rating: real("rating"),
     updatedAt: timestamp("updated_at")
       .defaultNow()
       .$onUpdate(() => new Date())

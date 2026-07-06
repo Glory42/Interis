@@ -61,7 +61,7 @@ export const createdDiaryEntrySchema = z
     userId: z.string(),
     movieId: z.number().int(),
     watchedDate: z.string(),
-    rating: z.number().int().nullable(),
+    rating: z.number().nullable(),
     rewatch: z.boolean(),
     createdAt: z.string(),
     updatedAt: z.string(),
@@ -72,7 +72,7 @@ export const diaryEntrySchema = z
   .object({
     id: z.string(),
     watchedDate: z.string(),
-    rating: z.number().int().nullable(),
+    rating: z.number().nullable(),
     rewatch: z.boolean(),
     movieId: z.number().int(),
     createdAt: z.string(),
@@ -92,7 +92,7 @@ export const movieLogSchema = z
   .object({
     diaryEntryId: z.string(),
     watchedDate: z.string(),
-    rating: z.number().int().nullable(),
+    rating: z.number().nullable(),
     rewatch: z.boolean(),
     createdAt: z.string(),
     username: z.string(),
@@ -104,16 +104,16 @@ export const movieLogSchema = z
   })
   .passthrough();
 
-const ratingOutOfFiveInputSchema = z
+const ratingInputSchema = z
   .number()
   .min(0.5)
-  .max(5)
+  .max(10)
   .multipleOf(0.5);
 
 export const createDiaryEntryInputSchema = z.object({
   tmdbId: z.number().int().positive(),
   watchedDate: z.string(),
-  ratingOutOfFive: ratingOutOfFiveInputSchema.optional(),
+  rating: ratingInputSchema.optional(),
   rewatch: z.boolean().optional(),
   review: z.string().max(5000).optional(),
   containsSpoilers: z.boolean().optional(),

@@ -98,7 +98,7 @@ export const serialsHandlers = [
         languageCode: "en",
         genres: [{ id: 10765, name: "Sci-Fi & Fantasy" }],
         globalRatingOutOfTen: 8.9,
-        globalRatingOutOfFive: 4.5,
+        globalRating: 4.5,
         globalRatingVoteCount: 100,
         inProduction: false,
         seasons: [],
@@ -110,7 +110,7 @@ export const serialsHandlers = [
       reviews: [],
       ratingBreakdown: {
         totalRatedReviews: 0,
-        averageRatingOutOfFive: null,
+        averageRating: null,
         buckets: [],
       },
     });
@@ -134,7 +134,7 @@ export const serialsHandlers = [
     return HttpResponse.json({
       liked: false,
       watchlisted: false,
-      ratingOutOfFive: null,
+      rating: null,
     });
   }),
   http.put("*/api/serials/:tmdbId/interaction", async ({ request }) => {
@@ -143,9 +143,9 @@ export const serialsHandlers = [
     return HttpResponse.json({
       liked: payload.liked === true,
       watchlisted: payload.watchlisted === true,
-      ratingOutOfFive:
-        typeof payload.ratingOutOfFive === "number"
-          ? payload.ratingOutOfFive
+      rating:
+        typeof payload.rating === "number"
+          ? payload.rating
           : null,
     });
   }),

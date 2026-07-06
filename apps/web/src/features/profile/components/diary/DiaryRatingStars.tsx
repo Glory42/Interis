@@ -1,21 +1,21 @@
 import { toRatingTokens } from "./diary-model";
 
 type DiaryRatingStarsProps = {
-  ratingOutOfFive: number | null;
+  rating: number | null;
   color: string;
 };
 
 export const DiaryRatingStars = ({
-  ratingOutOfFive,
+  rating,
   color,
 }: DiaryRatingStarsProps) => {
-  const tokens = toRatingTokens(ratingOutOfFive);
+  const tokens = toRatingTokens(rating);
   const ratingLabel =
-    ratingOutOfFive === null
+    rating === null
       ? "Unrated"
-      : Number.isInteger(ratingOutOfFive)
-        ? `${ratingOutOfFive.toFixed(0)} stars`
-        : `${ratingOutOfFive.toFixed(1)} stars`;
+      : Number.isInteger(rating)
+        ? `${rating}/10`
+        : `${rating.toFixed(1)}/10`;
 
   return (
     <span className="flex items-center gap-0.5" aria-label={ratingLabel}>

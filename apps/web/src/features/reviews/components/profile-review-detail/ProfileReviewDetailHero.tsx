@@ -135,7 +135,7 @@ export const ProfileReviewDetailHero = ({
               </div>
 
               <div className="inline-flex items-center gap-1.5 border border-border/70 bg-secondary/40 px-2.5 py-1 text-xs font-semibold text-foreground">
-                <SpaceRatingDisplay ratingOutOfFive={detail.ratingOutOfFive} size="sm" />
+                <SpaceRatingDisplay rating={detail.rating} size="sm" />
                 <span>{ratingLabel ?? "Unrated"}</span>
               </div>
             </div>

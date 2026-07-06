@@ -9,7 +9,6 @@ import { reviews } from "../reviews/reviews.entity";
 import { serialDiaryEntries, tvSeries } from "../serials/serials.entity";
 import { SocialFeedService } from "../social/services/social-feed.service";
 import { PublicTopPicksService } from "./services/public-top-picks.service";
-import { toRatingOutOfFive } from "../../commons/utils/rating";
 
 // Thin, read-only service for the public portfolio API
 // All responses are cached-friendly — no auth required
@@ -154,8 +153,7 @@ export class PublicService {
       id: entry.id,
       mediaType: "movie",
       watchedDate: entry.watchedDate,
-      ratingOutOfTen: entry.rating,
-      ratingOutOfFive: toRatingOutOfFive(entry.rating),
+      rating: entry.rating,
       rewatch: entry.rewatch,
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,
@@ -179,8 +177,7 @@ export class PublicService {
       id: entry.id,
       mediaType: "tv",
       watchedDate: entry.watchedDate,
-      ratingOutOfTen: entry.rating,
-      ratingOutOfFive: toRatingOutOfFive(entry.rating),
+      rating: entry.rating,
       rewatch: entry.rewatch,
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,

@@ -1,10 +1,10 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import type { FeedItem } from "@/features/feed/types";
 import { useLikeReview, useUnlikeReview } from "@/features/reviews/hooks/useReviews";
 import { navigateWithViewTransitionFallback } from "@/lib/view-transition";
-import { getRatingOutOfFive, getRoundedStarCount } from "./reviewActivityCard.utils";
+import { getRating } from "./reviewActivityCard.utils";
 
 type ReviewActivityCardViewModel = {
   user: ReturnType<typeof useAuth>["user"];
@@ -16,8 +16,7 @@ type ReviewActivityCardViewModel = {
   reviewContainsSpoilers: boolean;
   movie: FeedItem["movie"];
   itemId: string;
-  ratingOutOfFive: string | null;
-  filledStars: number;
+  rating: string | null;
   commentCount: number;
   likeCount: number;
   viewerHasLiked: boolean;
@@ -66,11 +65,7 @@ export const useReviewActivityCard = (item: FeedItem): ReviewActivityCardViewMod
   const likeCount = item.engagement.likeCount;
   const viewerHasLiked = item.engagement.viewerHasLiked === true;
 
-  const ratingOutOfFive = getRatingOutOfFive(item.review?.rating ?? item.metadata.rating);
-  const filledStars = useMemo(
-    () => getRoundedStarCount(ratingOutOfFive),
-    [ratingOutOfFive],
-  );
+  const rating = getRating(item.review?.rating ?? item.metadata.rating);
 
   const goToLogin = async () => {
     const redirectPath = `${window.location.pathname}${window.location.search}`;
@@ -150,8 +145,7 @@ export const useReviewActivityCard = (item: FeedItem): ReviewActivityCardViewMod
     reviewContainsSpoilers,
     movie: item.movie,
     itemId: item.id,
-    ratingOutOfFive,
-    filledStars,
+    rating,
     commentCount,
     likeCount,
     viewerHasLiked,

@@ -120,8 +120,8 @@ export const useUpdateSeriesInteraction = (tmdbId: number) => {
           ...(input.watchlisted !== undefined
             ? { watchlisted: input.watchlisted }
             : {}),
-          ...(input.ratingOutOfFive !== undefined
-            ? { ratingOutOfFive: input.ratingOutOfFive }
+          ...(input.rating !== undefined
+            ? { rating: input.rating }
             : {}),
           ...(input.watched !== undefined ? { watched: input.watched } : {}),
         });
@@ -253,7 +253,7 @@ export const useUpdateSeasonInteraction = (tmdbId: number) => {
       input,
     }: {
       seasonNumber: number;
-      input: { watched?: boolean; liked?: boolean; ratingOutOfFive?: number | null };
+      input: { watched?: boolean; liked?: boolean; rating?: number | null };
     }) => updateSeasonInteraction(tmdbId, seasonNumber, input),
     onSuccess: async (_data, variables) => {
       await Promise.all([
@@ -277,7 +277,7 @@ export const useUpdateEpisodeInteraction = (tmdbId: number, seasonNumber: number
       input,
     }: {
       episodeNumber: number;
-      input: { watched?: boolean; liked?: boolean; ratingOutOfFive?: number | null };
+      input: { watched?: boolean; liked?: boolean; rating?: number | null };
     }) => updateEpisodeInteraction(tmdbId, seasonNumber, episodeNumber, input),
     onSuccess: async () => {
       await Promise.all([

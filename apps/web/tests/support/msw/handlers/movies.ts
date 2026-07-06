@@ -103,7 +103,7 @@ export const moviesHandlers = [
       revenue: null,
       cachedAt: "2026-01-01T00:00:00.000Z",
       globalRatingOutOfTen: 8.4,
-      globalRatingOutOfFive: 4,
+      globalRating: 4,
         globalRatingVoteCount: 100,
       },
       logsCount: 0,
@@ -113,7 +113,7 @@ export const moviesHandlers = [
       reviews: [],
       ratingBreakdown: {
         totalRatedReviews: 0,
-        averageRatingOutOfFive: null,
+        averageRating: null,
         buckets: [],
       },
     });

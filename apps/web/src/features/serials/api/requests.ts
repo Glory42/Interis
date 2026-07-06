@@ -221,32 +221,38 @@ export const getRecentSeries = async (
 export const updateSeasonInteraction = async (
   tmdbId: number,
   seasonNumber: number,
-  input: { watched?: boolean; liked?: boolean; ratingOutOfFive?: number | null },
-): Promise<{ watched: boolean; liked: boolean; ratingOutOfFive: number | null }> => {
-  const response = await apiRequest<unknown>(
+  input: { watched?: boolean; liked?: boolean; rating?: number | null },
+): Promise<{ watched: boolean; liked: boolean; rating: number | null }> => {
+  const response = await apiRequest<
+    { watched: boolean; liked: boolean; rating: number | null },
+    { watched?: boolean; liked?: boolean; rating?: number | null }
+  >(
     `/api/serials/${tmdbId}/seasons/${seasonNumber}/interaction`,
     {
       method: "PUT",
       body: input,
     },
   );
-  return response as { watched: boolean; liked: boolean; ratingOutOfFive: number | null };
+  return response;
 };
 
 export const updateEpisodeInteraction = async (
   tmdbId: number,
   seasonNumber: number,
   episodeNumber: number,
-  input: { watched?: boolean; liked?: boolean; ratingOutOfFive?: number | null },
-): Promise<{ watched: boolean; liked: boolean; ratingOutOfFive: number | null }> => {
-  const response = await apiRequest<unknown>(
+  input: { watched?: boolean; liked?: boolean; rating?: number | null },
+): Promise<{ watched: boolean; liked: boolean; rating: number | null }> => {
+  const response = await apiRequest<
+    { watched: boolean; liked: boolean; rating: number | null },
+    { watched?: boolean; liked?: boolean; rating?: number | null }
+  >(
     `/api/serials/${tmdbId}/seasons/${seasonNumber}/episodes/${episodeNumber}/interaction`,
     {
       method: "PUT",
       body: input,
     },
   );
-  return response as { watched: boolean; liked: boolean; ratingOutOfFive: number | null };
+  return response;
 };
 
 export interface SeasonEpisodeReview {
@@ -275,14 +281,14 @@ export const upsertSeasonReview = async (
   seasonNumber: number,
   input: { content: string; containsSpoilers?: boolean },
 ): Promise<SeasonEpisodeReview> => {
-  const response = await apiRequest<unknown>(
+  const response = await apiRequest<SeasonEpisodeReview, { content: string; containsSpoilers?: boolean }>(
     `/api/serials/${tmdbId}/seasons/${seasonNumber}/review`,
     {
       method: "POST",
       body: input,
     },
   );
-  return response as SeasonEpisodeReview;
+  return response;
 };
 
 export const deleteSeasonReview = async (
@@ -317,14 +323,14 @@ export const upsertEpisodeReview = async (
   episodeNumber: number,
   input: { content: string; containsSpoilers?: boolean },
 ): Promise<SeasonEpisodeReview> => {
-  const response = await apiRequest<unknown>(
+  const response = await apiRequest<SeasonEpisodeReview, { content: string; containsSpoilers?: boolean }>(
     `/api/serials/${tmdbId}/seasons/${seasonNumber}/episodes/${episodeNumber}/review`,
     {
       method: "POST",
       body: input,
     },
   );
-  return response as SeasonEpisodeReview;
+  return response;
 };
 
 export const deleteEpisodeReview = async (

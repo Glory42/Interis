@@ -75,7 +75,7 @@ export type LocalArchiveAggregate = {
 };
 
 export type MovieDetailRatingBreakdownBucket = {
-  ratingValueOutOfFive: 1 | 2 | 3 | 4 | 5;
+  ratingValue: number;
   count: number;
   percentage: number;
 };
@@ -87,8 +87,7 @@ export type MovieDetailReviewItem = {
   createdAt: Date;
   updatedAt: Date;
   watchedDate: string | null;
-  ratingOutOfTen: number | null;
-  ratingOutOfFive: number | null;
+  rating: number | null;
   likeCount: number;
   viewerHasLiked: boolean;
   author: {
@@ -105,8 +104,7 @@ export type MovieDetailUserRating = {
   reviewId: string | null;
   watchedDate: string | null;
   rewatch: boolean;
-  ratingOutOfTen: number | null;
-  ratingOutOfFive: number | null;
+  rating: number | null;
   reviewContent: string | null;
   reviewContainsSpoilers: boolean | null;
 };
@@ -132,8 +130,7 @@ export type MovieDetailResponse = {
     productionCountries: string[];
     budget: number | null;
     revenue: number | null;
-    globalRatingOutOfTen: number | null;
-    globalRatingOutOfFive: number | null;
+    globalRating: number | null;
     globalRatingVoteCount: number | null;
   };
   logsCount: number;
@@ -143,7 +140,7 @@ export type MovieDetailResponse = {
   reviews: MovieDetailReviewItem[];
   ratingBreakdown: {
     totalRatedReviews: number;
-    averageRatingOutOfFive: number | null;
+    averageRating: number | null;
     buckets: MovieDetailRatingBreakdownBucket[];
   };
   similar: SimilarMovieItem[];

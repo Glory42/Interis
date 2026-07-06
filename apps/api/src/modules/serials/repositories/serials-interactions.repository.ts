@@ -12,7 +12,7 @@ export class SerialsInteractionsRepository {
         id: serialDiaryEntries.id,
         watchedDate: serialDiaryEntries.watchedDate,
         rewatch: serialDiaryEntries.rewatch,
-        ratingOutOfTen: serialDiaryEntries.rating,
+        rating: serialDiaryEntries.rating,
       })
       .from(serialDiaryEntries)
       .where(
@@ -254,13 +254,13 @@ export class SerialsInteractionsRepository {
   static async updateDiaryEntry(
     entryId: string,
     userId: string,
-    input: { watchedDate?: string; ratingOutOfTen?: number | null; rewatch?: boolean },
+    input: { watchedDate?: string; rating?: number | null; rewatch?: boolean },
   ) {
     const [updated] = await db
       .update(serialDiaryEntries)
       .set({
         ...(input.watchedDate !== undefined && { watchedDate: input.watchedDate }),
-        ...(input.ratingOutOfTen !== undefined && { rating: input.ratingOutOfTen }),
+        ...(input.rating !== undefined && { rating: input.rating }),
         ...(input.rewatch !== undefined && { rewatch: input.rewatch }),
       })
       .where(and(eq(serialDiaryEntries.id, entryId), eq(serialDiaryEntries.userId, userId)))

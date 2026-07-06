@@ -6,7 +6,7 @@ import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-archi
 import type { ArchiveRatingSource } from "@/features/serials/components/serial-archive/types";
 import {
   getCreatorYearLine,
-  getRatingOutOfFive,
+  getRating,
   getSeriesStateLabel,
 } from "@/features/serials/components/serial-archive/utils";
 
@@ -19,7 +19,7 @@ export const GridSeriesCard = ({
   series,
   ratingSource,
 }: GridSeriesCardProps) => {
-  const ratingOutOfFive = getRatingOutOfFive(series, ratingSource);
+  const rating = getRating(series, ratingSource);
   const stateLabel = getSeriesStateLabel(series);
 
   return (
@@ -81,7 +81,7 @@ export const GridSeriesCard = ({
           </div>
         ) : null}
 
-        {ratingOutOfFive !== null ? (
+        {rating !== null ? (
           <div className="absolute bottom-2 right-2">
             <span
               className="border px-2 py-0.5 font-mono text-[9px]"
@@ -92,8 +92,8 @@ export const GridSeriesCard = ({
               }}
             >
               {ratingSource === "tmdb"
-                ? `TMDB ${ratingOutOfFive.toFixed(1)}`
-                : ratingOutOfFive.toFixed(1)}
+                ? `TMDB ${rating.toFixed(1)}`
+                : rating.toFixed(1)}
             </span>
           </div>
         ) : null}

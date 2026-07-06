@@ -64,7 +64,7 @@ export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
     reviewContent,
     reviewContainsSpoilers,
     movie,
-    ratingOutOfFive,
+    rating,
     isSpoilerRevealed,
     commentCount,
     likeCount,
@@ -80,7 +80,7 @@ export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
   const channel = movie?.mediaType === "tv" ? "serial" : "cinema";
   const channelMeta = feedChannelMeta[channel];
   const ratingValue =
-    ratingOutOfFive === null ? null : Number.parseFloat(ratingOutOfFive);
+    rating === null ? null : Number.parseFloat(rating);
   const reviewId = item.review?.id ?? item.metadata.reviewId ?? null;
   const isOwnReview = Boolean(user && reviewId && user.id === item.actor.id);
   const actionLabel = getReviewActionLabel(item);
@@ -162,7 +162,7 @@ export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
           </div>
 
           {showRating ? (
-            <SpaceRatingDisplay ratingOutOfFive={ratingValue} size="sm" />
+            <SpaceRatingDisplay rating={ratingValue} size="sm" />
           ) : null}
         </div>
 

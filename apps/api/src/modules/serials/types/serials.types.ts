@@ -73,7 +73,7 @@ export type SerialDetailSeason = {
   viewerInteraction: {
     watched: boolean;
     liked: boolean;
-    ratingOutOfFive: number | null;
+    rating: number | null;
     hasReview: boolean;
   } | null;
 };
@@ -91,7 +91,7 @@ export type SerialDetailEpisode = {
   viewerInteraction: {
     watched: boolean;
     liked: boolean;
-    ratingOutOfFive: number | null;
+    rating: number | null;
     hasReview: boolean;
   } | null;
 };
@@ -111,7 +111,7 @@ export type SerialSeasonDetailResponse = {
 };
 
 export type SerialDetailRatingBreakdownBucket = {
-  ratingValueOutOfFive: 1 | 2 | 3 | 4 | 5;
+  ratingValue: number;
   count: number;
   percentage: number;
 };
@@ -123,8 +123,7 @@ export type SerialDetailReviewItem = {
   createdAt: Date;
   updatedAt: Date;
   watchedDate: string | null;
-  ratingOutOfTen: number | null;
-  ratingOutOfFive: number | null;
+  rating: number | null;
   likeCount: number;
   viewerHasLiked: boolean;
   author: {
@@ -141,8 +140,7 @@ export type SerialDetailUserRating = {
   reviewId: string | null;
   watchedDate: string | null;
   rewatch: boolean;
-  ratingOutOfTen: number | null;
-  ratingOutOfFive: number | null;
+  rating: number | null;
   reviewContent: string | null;
   reviewContainsSpoilers: boolean | null;
 };
@@ -171,8 +169,7 @@ export type SerialDetailResponse = {
     tagline: string | null;
     languageCode: string | null;
     genres: SerialGenre[];
-    globalRatingOutOfTen: number | null;
-    globalRatingOutOfFive: number | null;
+    globalRating: number | null;
     globalRatingVoteCount: number | null;
     inProduction: boolean | null;
     seasons: SerialDetailSeason[];
@@ -184,7 +181,7 @@ export type SerialDetailResponse = {
   reviews: SerialDetailReviewItem[];
   ratingBreakdown: {
     totalRatedReviews: number;
-    averageRatingOutOfFive: number | null;
+    averageRating: number | null;
     buckets: SerialDetailRatingBreakdownBucket[];
   };
   similar: SimilarSerialItem[];

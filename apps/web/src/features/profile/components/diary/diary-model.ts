@@ -12,7 +12,7 @@ export type DiaryRow = {
   tmdbId: number | null;
   releaseYear: number | null;
   createdAt: string;
-  ratingOutOfFive: number | null;
+  rating: number | null;
   rewatch: boolean;
   reviewId: string | null;
   hasReview: boolean;
@@ -63,13 +63,6 @@ const toTimestamp = (value: string): number => {
   return Number.isNaN(parsed) ? 0 : parsed;
 };
 
-const toRatingOutOfFive = (ratingOutOfTen: number | null): number | null => {
-  if (ratingOutOfTen === null) {
-    return null;
-  }
-
-  return Math.max(0, Math.min(5, ratingOutOfTen / 2));
-};
 
 const toReviewId = (item: UserRecentActivity): string | null => {
   if (item.review?.id) {
@@ -83,21 +76,17 @@ const toReviewId = (item: UserRecentActivity): string | null => {
   return null;
 };
 
-export const toRatingTokens = (ratingOutOfFive: number | null): RatingToken[] => {
-  if (ratingOutOfFive === null || Number.isNaN(ratingOutOfFive)) {
-    return ["empty", "empty", "empty", "empty", "empty"];
+export const toRatingTokens = (rating: number | null): RatingToken[] => {
+  if (rating === null || Number.isNaN(rating)) {
+    return Array.from({ length: 10 }, () => "empty" as RatingToken);
   }
 
-  return Array.from({ length: 5 }, (_, index) => {
-    const delta = ratingOutOfFive - index;
-    if (delta >= 1) {
-      return "full";
-    }
+  const normalized = Math.max(0, Math.min(10, rating));
 
-    if (delta >= 0.5) {
-      return "half";
-    }
-
+  return Array.from({ length: 10 }, (_, index) => {
+    const delta = normalized - index;
+    if (delta >= 1) return "full";
+    if (delta >= 0.5) return "half";
     return "empty";
   });
 };
@@ -132,10 +121,10 @@ export const toDiaryRows = (
 
       const title = item.movie?.title ?? item.post?.content ?? "Untitled entry";
       const tmdbId = item.movie?.tmdbId ?? null;
-      const ratingOutOfFive =
+      const rating =
         item.kind === "diary_entry"
-          ? toRatingOutOfFive(item.metadata.rating)
-          : toRatingOutOfFive(item.review?.rating ?? item.metadata.rating);
+          ? item.metadata.rating ?? null
+          : (item.review?.rating ?? item.metadata.rating) ?? null;
       const reviewId = toReviewId(item);
       const hasReview =
         item.kind === "review" || item.metadata.hasReview === true || !!reviewId;
@@ -148,7 +137,7 @@ export const toDiaryRows = (
         tmdbId,
         releaseYear: item.movie?.releaseYear ?? null,
         createdAt: item.createdAt,
-        ratingOutOfFive,
+        rating,
         rewatch: item.metadata.rewatch === true,
         reviewId,
         hasReview,

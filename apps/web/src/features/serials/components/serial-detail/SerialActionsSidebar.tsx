@@ -4,15 +4,14 @@ import type { SerialDetailResponse } from "@/features/serials/api";
 import { LogSeriesModal } from "@/features/serials/components/LogSeriesModal";
 import { getPosterUrl } from "@/features/serials/components/utils";
 import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
-import { formatRatingOutOfFiveLabel } from "@/features/films/components/spaceRating.utils";
 import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
 import { AddToListDialog } from "@/features/lists/components/AddToListDialog";
 
 type SerialActionsSidebarProps = {
   detail: SerialDetailResponse;
-  currentRatingOutOfFive: number | null;
+  currentRating: number | null;
   isRatingSaving: boolean;
-  onRatingChange: (ratingOutOfFive: number | null) => void;
+  onRatingChange: (rating: number | null) => void;
   isAuthenticated: boolean;
   watchlisted: boolean;
   liked: boolean;
@@ -25,7 +24,7 @@ type SerialActionsSidebarProps = {
 
 export const SerialActionsSidebar = ({
   detail,
-  currentRatingOutOfFive,
+  currentRating,
   isRatingSaving,
   onRatingChange,
   isAuthenticated,
@@ -41,15 +40,11 @@ export const SerialActionsSidebar = ({
 
   const modalInitialState = {
     watchedDate: detail.userRating?.watchedDate ?? null,
-    ratingOutOfFive: currentRatingOutOfFive,
+    rating: currentRating,
     rewatch: detail.userRating?.rewatch ?? false,
     reviewContent: detail.userRating?.reviewContent ?? null,
     containsSpoilers: detail.userRating?.reviewContainsSpoilers ?? null,
   };
-
-  const resolvedUserRatingLabel =
-    formatRatingOutOfFiveLabel(currentRatingOutOfFive) ??
-    "No rating yet";
 
   return (
     <aside>
@@ -219,7 +214,7 @@ export const SerialActionsSidebar = ({
           </p>
           {isAuthenticated ? (
             <SpaceRatingInput
-              value={currentRatingOutOfFive}
+              value={currentRating}
               onChange={onRatingChange}
               disabled={isRatingSaving}
             />
@@ -233,12 +228,6 @@ export const SerialActionsSidebar = ({
               Sign in to rate
             </Link>
           )}
-          <p
-            className="mt-2 font-mono text-[10px]"
-            style={{ color: SERIAL_MODULE_STYLES.muted }}
-          >
-            {isRatingSaving ? "Saving..." : resolvedUserRatingLabel}
-          </p>
         </div>
 
         {isAuthenticated && detail.viewerTracking && (

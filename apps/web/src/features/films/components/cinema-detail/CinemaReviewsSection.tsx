@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
 import type { MovieDetailResponse, MovieDetailReviewSort } from "@/features/films/api";
 import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
-import { formatRatingOutOfFiveLabel } from "@/features/films/components/spaceRating.utils";
+import { formatRatingLabel } from "@/features/films/components/spaceRating.utils";
 import { CINEMA_MODULE_STYLES } from "@/features/films/components/cinema-detail/styles";
 import { formatRelativeTime } from "@/features/films/components/cinema-detail/utils";
 
@@ -135,14 +135,14 @@ export const CinemaReviewsSection = ({
 
                       <div className="mt-0.5 flex items-center gap-2">
                         <SpaceRatingDisplay
-                          ratingOutOfFive={review.ratingOutOfFive}
+                          rating={review.rating}
                           size="sm"
                         />
                         <span
                           className="font-mono text-[10px]"
                           style={{ color: CINEMA_MODULE_STYLES.faint }}
                         >
-                          {formatRatingOutOfFiveLabel(review.ratingOutOfFive) ?? "Unrated"}
+                          {formatRatingLabel(review.rating) ?? "Unrated"}
                         </span>
                         <span
                           className="font-mono text-[10px]"

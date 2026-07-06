@@ -32,7 +32,7 @@ export const useUpdateMovieInteraction = (tmdbId: number) => {
         // Any rating/like interaction implicitly watched: true
         const isImplicitlyWatched =
           input.liked === true ||
-          (input.ratingOutOfFive !== undefined && input.ratingOutOfFive !== null);
+          (input.rating !== undefined && input.rating !== null);
 
         queryClient.setQueryData<MovieInteraction>(queryKey, {
           ...previousState,
@@ -40,8 +40,8 @@ export const useUpdateMovieInteraction = (tmdbId: number) => {
           ...(input.watchlisted !== undefined
             ? { watchlisted: input.watchlisted }
             : {}),
-          ...(input.ratingOutOfFive !== undefined
-            ? { ratingOutOfFive: input.ratingOutOfFive }
+          ...(input.rating !== undefined
+            ? { rating: input.rating }
             : {}),
           ...(input.watched !== undefined ? { watched: input.watched } : {}),
           ...(isImplicitlyWatched ? { watched: true } : {}),

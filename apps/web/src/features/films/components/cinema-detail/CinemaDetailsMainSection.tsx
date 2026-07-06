@@ -80,12 +80,12 @@ export const CinemaDetailsMainSection = ({
   const runtimeLabel = formatRuntimeLabel(movie.runtime);
   const languageLabel = toLanguageLabel(movie.languageCode);
   const communityRatingLabel =
-    detail.ratingBreakdown.averageRatingOutOfFive !== null
-      ? detail.ratingBreakdown.averageRatingOutOfFive.toFixed(1)
+    detail.ratingBreakdown.averageRating !== null
+      ? detail.ratingBreakdown.averageRating.toFixed(1)
       : "--";
   const tmdbRatingLabel =
-    movie.globalRatingOutOfTen !== null
-      ? movie.globalRatingOutOfTen.toFixed(1)
+    movie.globalRating !== null
+      ? movie.globalRating.toFixed(1)
       : "--";
 
   const factRows = buildFactRows(

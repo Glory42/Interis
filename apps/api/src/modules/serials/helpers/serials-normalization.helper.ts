@@ -153,14 +153,6 @@ export const toNormalizedSeasonItems = (
     .sort((leftSeason, rightSeason) => leftSeason.seasonNumber - rightSeason.seasonNumber);
 };
 
-export const toRatingOutOfFive = (ratingOutOfTen: number | null): number | null => {
-  if (ratingOutOfTen === null || !Number.isFinite(ratingOutOfTen)) {
-    return null;
-  }
-
-  return Math.max(0, Math.min(5, ratingOutOfTen / 2));
-};
-
 export const toTmdbRatingOutOfTen = (input: {
   voteAverage: number;
   voteCount: number;
@@ -172,10 +164,6 @@ export const toTmdbRatingOutOfTen = (input: {
   return Number(input.voteAverage.toFixed(1));
 };
 
-export const toRatingBreakdownBucket = (ratingOutOfTen: number): 1 | 2 | 3 | 4 | 5 => {
-  const normalized = Math.round(Math.max(1, Math.min(10, ratingOutOfTen)) / 2);
-  return Math.max(1, Math.min(5, normalized)) as 1 | 2 | 3 | 4 | 5;
-};
 
 const toEpisodeRuntimeLabel = (runtimeMinutes: number | null | undefined): string | null => {
   if (

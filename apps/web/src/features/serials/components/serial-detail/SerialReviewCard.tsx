@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
 import type { SerialDetailResponse } from "@/features/serials/api";
 import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
-import { formatRatingOutOfFiveLabel } from "@/features/films/components/spaceRating.utils";
+import { formatRatingLabel } from "@/features/films/components/spaceRating.utils";
 import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
 import { formatRelativeTime } from "@/features/serials/components/serial-detail/utils";
 
@@ -56,12 +56,12 @@ export const SerialReviewCard = ({ review }: SerialReviewCardProps) => {
             </Link>
 
             <div className="mt-0.5 flex items-center gap-2">
-              <SpaceRatingDisplay ratingOutOfFive={review.ratingOutOfFive} size="sm" />
+              <SpaceRatingDisplay rating={review.rating} size="sm" />
               <span
                 className="font-mono text-[10px]"
                 style={{ color: SERIAL_MODULE_STYLES.faint }}
               >
-                {formatRatingOutOfFiveLabel(review.ratingOutOfFive) ?? "Unrated"}
+                {formatRatingLabel(review.rating) ?? "Unrated"}
               </span>
               <span
                 className="font-mono text-[10px]"

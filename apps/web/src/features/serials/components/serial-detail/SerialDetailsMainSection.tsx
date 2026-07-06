@@ -27,13 +27,13 @@ export const SerialDetailsMainSection = ({
   const lastAirDateLabel = toDateLabel(series.lastAirDate);
 
   const communityRatingLabel =
-    detail.ratingBreakdown.averageRatingOutOfFive !== null
-      ? detail.ratingBreakdown.averageRatingOutOfFive.toFixed(1)
+    detail.ratingBreakdown.averageRating !== null
+      ? detail.ratingBreakdown.averageRating.toFixed(1)
       : "--";
 
   const tmdbRatingLabel =
-    series.globalRatingOutOfTen !== null
-      ? series.globalRatingOutOfTen.toFixed(1)
+    series.globalRating !== null
+      ? series.globalRating.toFixed(1)
       : "--";
 
   const factRows = buildSerialFactRows(

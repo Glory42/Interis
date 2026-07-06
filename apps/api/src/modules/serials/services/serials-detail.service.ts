@@ -11,8 +11,6 @@ import {
   toNormalizedSeasonDetail,
   normalizeTmdbSeriesDetail,
   toNormalizedSeasonItems,
-  toRatingBreakdownBucket,
-  toRatingOutOfFive,
   toTmdbRatingOutOfTen,
   toDistinctValues,
   toNullableTrimmedText,
@@ -29,12 +27,9 @@ import type {
   SerialDetailResponse,
   SerialDetailReviewItem,
   SerialSeasonDetailResponse,
-  SerialDetailViewerTracking,
 } from "../types/serials.types";
 
 const RELEVANT_CREW_DEPARTMENTS = new Set(["Directing", "Writing", "Production"]);
-
-
 
 export class SerialsDetailService {
   static async getDetail(input: {
@@ -84,7 +79,7 @@ export class SerialsDetailService {
     );
 
     const reviewsWithEngagement: SerialDetailReviewItem[] = reviewRows.map((reviewRow) => {
-      const ratingOutOfTen = reviewRow.ratingOutOfTen;
+      const ratingOutOfTen = reviewRow.rating;
 
       return {
         id: reviewRow.id,
@@ -93,8 +88,7 @@ export class SerialsDetailService {
         createdAt: reviewRow.createdAt,
         updatedAt: reviewRow.updatedAt,
         watchedDate: reviewRow.watchedDate,
-        ratingOutOfTen,
-        ratingOutOfFive: toRatingOutOfFive(ratingOutOfTen),
+        rating: ratingOutOfTen,
         likeCount: likeCountByReviewId.get(reviewRow.id) ?? 0,
         viewerHasLiked: viewerLikedReviewIds.has(reviewRow.id),
         author: {
@@ -124,8 +118,7 @@ export class SerialsDetailService {
     }
 
     const ratingBreakdown = buildMediaRatingBreakdown(
-      reviewsWithEngagement,
-      toRatingBreakdownBucket,
+      reviewsWithEngagement.map((r) => ({ rating: r.rating })),
     );
 
     const [viewerDiaryRow, viewerReviewRow] = viewerUserId
@@ -221,7 +214,7 @@ export class SerialsDetailService {
           ? {
               watched: interaction?.watched ?? false,
               liked: interaction?.liked ?? false,
-              ratingOutOfFive: interaction?.rating ? toRatingOutOfFive(interaction.rating) : null,
+              rating: interaction?.rating ?? null,
               hasReview: interaction?.hasReview ?? false,
             }
           : null,
@@ -255,8 +248,7 @@ export class SerialsDetailService {
         tagline: cachedSeries.tagline,
         languageCode: cachedSeries.languageCode ?? normalizedTmdbDetail?.languageCode ?? null,
         genres: normalizeSeriesGenres(cachedSeries.genres),
-        globalRatingOutOfTen: tmdbRatingOutOfTen,
-        globalRatingOutOfFive: toRatingOutOfFive(tmdbRatingOutOfTen),
+        globalRating: tmdbRatingOutOfTen,
         globalRatingVoteCount:
           tmdbDetail && tmdbDetail.vote_count > 0 ? tmdbDetail.vote_count : null,
         inProduction: tmdbDetail ? tmdbDetail.in_production : null,
@@ -270,8 +262,7 @@ export class SerialsDetailService {
             reviewId: viewerReview?.id ?? null,
             watchedDate: viewerDiary?.watchedDate ?? null,
             rewatch: viewerDiary?.rewatch ?? false,
-            ratingOutOfTen: viewerDiary?.ratingOutOfTen ?? null,
-            ratingOutOfFive: toRatingOutOfFive(viewerDiary?.ratingOutOfTen ?? null),
+            rating: viewerDiary?.rating ?? null,
             reviewContent: viewerReview?.content ?? null,
             reviewContainsSpoilers: viewerReview?.containsSpoilers ?? null,
           }
@@ -280,7 +271,7 @@ export class SerialsDetailService {
       reviews: sortedReviews,
       ratingBreakdown: {
         totalRatedReviews: ratingBreakdown.totalRatedReviews,
-        averageRatingOutOfFive: ratingBreakdown.averageRatingOutOfFive,
+        averageRating: ratingBreakdown.averageRating,
         buckets: ratingBreakdown.buckets as SerialDetailRatingBreakdownBucket[],
       },
     };
@@ -358,7 +349,7 @@ export class SerialsDetailService {
           ? {
               watched: interaction?.watched ?? false,
               liked: interaction?.liked ?? false,
-              ratingOutOfFive: interaction?.rating ? toRatingOutOfFive(interaction.rating) : null,
+              rating: interaction?.rating ?? null,
               hasReview: interaction?.hasReview ?? false,
             }
           : null,

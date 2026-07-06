@@ -55,20 +55,3 @@ export const feedChannelMeta: Record<
 export const getRelativeTime = (value: string): string => {
   return formatRelativeTime(value);
 };
-
-export const getRatingOutOfFive = (ratingOutOfTen: number | null): number | null => {
-  if (ratingOutOfTen === null || Number.isNaN(ratingOutOfTen)) {
-    return null;
-  }
-
-  const normalized = Math.max(0, Math.min(10, ratingOutOfTen));
-  return normalized / 2;
-};
-
-export const getRoundedStars = (ratingOutOfFive: number | null): number => {
-  if (ratingOutOfFive === null) {
-    return 0;
-  }
-
-  return Math.max(0, Math.min(5, Math.round(ratingOutOfFive)));
-};

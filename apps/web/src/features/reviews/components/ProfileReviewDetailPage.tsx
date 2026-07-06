@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { formatRatingOutOfFiveLabel } from "@/features/films/components/spaceRating.utils";
+import { formatRatingLabel } from "@/features/films/components/spaceRating.utils";
 import { ProfileReviewCommentsSection } from "@/features/reviews/components/profile-review-detail/ProfileReviewCommentsSection";
 import { ProfileReviewDetailHero } from "@/features/reviews/components/profile-review-detail/ProfileReviewDetailHero";
 import {
@@ -65,7 +65,7 @@ export function ProfileReviewDetailPage({
   const likeBusy =
     likeReviewMutation.isPending || unlikeReviewMutation.isPending;
   const comments = commentsQuery.data ?? [];
-  const ratingLabel = formatRatingOutOfFiveLabel(detail.ratingOutOfFive);
+  const ratingLabel = formatRatingLabel(detail.rating);
   const mediaCreditParts = [
     detail.media.releaseYear ? String(detail.media.releaseYear) : null,
     detail.media.director,

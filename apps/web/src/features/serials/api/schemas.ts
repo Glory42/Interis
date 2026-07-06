@@ -89,7 +89,7 @@ const viewerInteractionSchema = z
   .object({
     watched: z.boolean(),
     liked: z.boolean(),
-    ratingOutOfFive: z.number().nullable(),
+    rating: z.number().nullable(),
     hasReview: z.boolean(),
   })
   .nullable();
@@ -127,8 +127,7 @@ const serialDetailSeriesSchema = z.object({
   tagline: z.string().nullable(),
   languageCode: z.string().nullable(),
   genres: z.array(serialGenreSchema),
-  globalRatingOutOfTen: z.number().nullable(),
-  globalRatingOutOfFive: z.number().nullable(),
+  globalRating: z.number().nullable(),
   globalRatingVoteCount: z.number().int().nullable(),
   inProduction: z.boolean().nullable(),
   seasons: z.array(serialDetailSeasonSchema),
@@ -142,8 +141,7 @@ const serialDetailUserRatingSchema = z
     reviewId: z.string().nullable(),
     watchedDate: z.string().nullable(),
     rewatch: z.boolean(),
-    ratingOutOfTen: z.number().nullable(),
-    ratingOutOfFive: z.number().nullable(),
+    rating: z.number().nullable(),
     reviewContent: z.string().nullable(),
     reviewContainsSpoilers: z.boolean().nullable(),
   })
@@ -156,8 +154,7 @@ const serialDetailReviewSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   watchedDate: z.string().nullable(),
-  ratingOutOfTen: z.number().nullable(),
-  ratingOutOfFive: z.number().nullable(),
+  rating: z.number().nullable(),
   likeCount: z.number().int().nonnegative(),
   viewerHasLiked: z.boolean(),
   author: z.object({
@@ -170,7 +167,7 @@ const serialDetailReviewSchema = z.object({
 });
 
 const serialDetailRatingBreakdownBucketSchema = z.object({
-  ratingValueOutOfFive: z.number().int().min(1).max(5),
+  ratingValue: z.number().int().min(1).max(10),
   count: z.number().int().nonnegative(),
   percentage: z.number().int().min(0).max(100),
 });
@@ -213,7 +210,7 @@ export const serialDetailResponseSchema = z.object({
   reviews: z.array(serialDetailReviewSchema),
   ratingBreakdown: z.object({
     totalRatedReviews: z.number().int().nonnegative(),
-    averageRatingOutOfFive: z.number().nullable(),
+    averageRating: z.number().nullable(),
     buckets: z.array(serialDetailRatingBreakdownBucketSchema),
   }),
   similar: z.array(similarSeriesItemSchema),
@@ -251,7 +248,7 @@ export const serialInteractionSchema = z
   .object({
     liked: z.boolean(),
     watchlisted: z.boolean(),
-    ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable(),
+    rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable(),
     watched: z.boolean(),
   })
   .passthrough();
@@ -260,25 +257,25 @@ export const updateSerialInteractionInputSchema = z
   .object({
     liked: z.boolean().optional(),
     watchlisted: z.boolean().optional(),
-    ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+    rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
     watched: z.boolean().optional(),
   })
   .refine(
     (payload) =>
       payload.liked !== undefined ||
       payload.watchlisted !== undefined ||
-      payload.ratingOutOfFive !== undefined ||
+      payload.rating !== undefined ||
       payload.watched !== undefined,
     {
       message: "At least one interaction field is required",
     },
   );
 
-const serialLogRatingOutOfFiveSchema = z.number().min(0.5).max(5).multipleOf(0.5);
+const serialLogRatingSchema = z.number().min(0.5).max(10).multipleOf(0.5);
 
 export const createSeriesLogInputSchema = z.object({
   watchedDate: z.string(),
-  ratingOutOfFive: serialLogRatingOutOfFiveSchema.optional(),
+  rating: serialLogRatingSchema.optional(),
   rewatch: z.boolean().optional(),
   review: z.string().max(5000).optional(),
   containsSpoilers: z.boolean().optional(),
@@ -372,14 +369,14 @@ export const serialDiaryListSchema = z.array(serialDiaryEntrySchema);
 
 export const updateSerialLogInputSchema = z.object({
   watchedDate: z.string().optional(),
-  ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+  rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
   rewatch: z.boolean().optional(),
 });
 
 export const serialLogSchema = z.object({
   diaryEntryId: z.string(),
   watchedDate: z.string(),
-  rating: z.number().int().nullable(),
+  rating: z.number().nullable(),
   rewatch: z.boolean(),
   createdAt: z.string(),
   username: z.string(),

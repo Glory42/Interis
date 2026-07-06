@@ -90,7 +90,7 @@ export class MoviesRepository {
         createdAt: reviews.createdAt,
         updatedAt: reviews.updatedAt,
         watchedDate: diaryEntries.watchedDate,
-        ratingOutOfTen: diaryEntries.rating,
+        rating: diaryEntries.rating,
         authorUsername: user.username,
         authorDisplayUsername: user.displayUsername,
         authorImage: user.image,
@@ -141,7 +141,7 @@ export class MoviesRepository {
         id: diaryEntries.id,
         watchedDate: diaryEntries.watchedDate,
         rewatch: diaryEntries.rewatch,
-        ratingOutOfTen: diaryEntries.rating,
+        rating: diaryEntries.rating,
       })
       .from(diaryEntries)
       .where(

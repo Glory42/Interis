@@ -87,8 +87,7 @@ const movieDetailMovieSchema = z.object({
   productionCountries: z.array(z.string()),
   budget: z.number().nullable(),
   revenue: z.number().nullable(),
-  globalRatingOutOfTen: z.number().nullable(),
-  globalRatingOutOfFive: z.number().nullable(),
+  globalRating: z.number().nullable(),
   globalRatingVoteCount: z.number().int().nullable(),
 });
 
@@ -98,8 +97,7 @@ const movieDetailUserRatingSchema = z
     reviewId: z.string().nullable(),
     watchedDate: z.string().nullable(),
     rewatch: z.boolean(),
-    ratingOutOfTen: z.number().nullable(),
-    ratingOutOfFive: z.number().nullable(),
+    rating: z.number().nullable(),
     reviewContent: z.string().nullable(),
     reviewContainsSpoilers: z.boolean().nullable(),
   })
@@ -112,8 +110,7 @@ const movieDetailReviewSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   watchedDate: z.string().nullable(),
-  ratingOutOfTen: z.number().nullable(),
-  ratingOutOfFive: z.number().nullable(),
+  rating: z.number().nullable(),
   likeCount: z.number().int().nonnegative(),
   viewerHasLiked: z.boolean(),
   author: z.object({
@@ -126,7 +123,7 @@ const movieDetailReviewSchema = z.object({
 });
 
 const movieDetailRatingBreakdownBucketSchema = z.object({
-  ratingValueOutOfFive: z.number().int().min(1).max(5),
+  ratingValue: z.number().int().min(1).max(10),
   count: z.number().int().nonnegative(),
   percentage: z.number().int().min(0).max(100),
 });
@@ -147,7 +144,7 @@ export const movieDetailResponseSchema = z.object({
   reviews: z.array(movieDetailReviewSchema),
   ratingBreakdown: z.object({
     totalRatedReviews: z.number().int().nonnegative(),
-    averageRatingOutOfFive: z.number().nullable(),
+    averageRating: z.number().nullable(),
     buckets: z.array(movieDetailRatingBreakdownBucketSchema),
   }),
   similar: z.array(similarMovieItemSchema),

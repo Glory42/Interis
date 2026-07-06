@@ -42,43 +42,33 @@ const formatDate = (value: string | null): string => {
   return date.toLocaleDateString("en-US");
 };
 
-const toRatingTokens = (ratingOutOfFive: number | null | undefined): RatingToken[] => {
-  if (
-    ratingOutOfFive === null ||
-    ratingOutOfFive === undefined ||
-    Number.isNaN(ratingOutOfFive)
-  ) {
-    return ["empty", "empty", "empty", "empty", "empty"];
+const toRatingTokens = (rating: number | null | undefined): RatingToken[] => {
+  if (rating === null || rating === undefined || Number.isNaN(rating)) {
+    return Array.from({ length: 10 }, () => "empty" as RatingToken);
   }
 
-  const normalized = Math.max(0, Math.min(5, ratingOutOfFive));
+  const normalized = Math.max(0, Math.min(10, rating));
 
-  return Array.from({ length: 5 }, (_, index) => {
+  return Array.from({ length: 10 }, (_, index) => {
     const delta = normalized - index;
-    if (delta >= 1) {
-      return "full";
-    }
-
-    if (delta >= 0.5) {
-      return "half";
-    }
-
+    if (delta >= 1) return "full";
+    if (delta >= 0.5) return "half";
     return "empty";
   });
 };
 
 const ReviewStars = ({
-  ratingOutOfFive,
+  rating,
 }: {
-  ratingOutOfFive: number | null | undefined;
+  rating: number | null | undefined;
 }) => {
-  const tokens = toRatingTokens(ratingOutOfFive);
+  const tokens = toRatingTokens(rating);
   const label =
-    ratingOutOfFive === null || ratingOutOfFive === undefined
+    rating === null || rating === undefined
       ? "Unrated"
-      : Number.isInteger(ratingOutOfFive)
-        ? `${ratingOutOfFive.toFixed(0)} stars`
-        : `${ratingOutOfFive.toFixed(1)} stars`;
+      : Number.isInteger(rating)
+        ? `${rating}/10`
+        : `${rating.toFixed(1)}/10`;
 
   return (
     <span className="flex items-center gap-0.5" aria-label={label}>
@@ -242,7 +232,7 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <ReviewStars ratingOutOfFive={entry.ratingOutOfFive} />
+                  <ReviewStars rating={entry.rating} />
                   <span className="font-mono text-[9px] profile-shell-muted">
                     Reviewed on {formatDate(entry.createdAt)}
                   </span>

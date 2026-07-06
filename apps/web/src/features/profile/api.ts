@@ -19,7 +19,7 @@ const userReviewSchema = z
     id: z.string(),
     content: z.string(),
     containsSpoilers: z.boolean(),
-    ratingOutOfFive: z.number().nullable().optional(),
+    rating: z.number().nullable().optional(),
     createdAt: z.string(),
     updatedAt: z.string(),
     tmdbId: z.number().int(),

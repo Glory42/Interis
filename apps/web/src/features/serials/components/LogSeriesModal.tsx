@@ -49,7 +49,7 @@ export const LogSeriesModal = ({
   const interactionQuery = useSeriesInteraction(tmdbId, isOpen);
   const updateInteractionMutation = useUpdateSeriesInteraction(tmdbId);
   const [watchedDate, setWatchedDate] = useState(todayAsDateInput);
-  const [ratingOutOfFive, setRatingOutOfFive] = useState<number | null>(null);
+  const [rating, setRating] = useState<number | null>(null);
   const [rewatch, setRewatch] = useState(false);
   const [review, setReview] = useState("");
   const [containsSpoilers, setContainsSpoilers] = useState(false);
@@ -82,7 +82,7 @@ export const LogSeriesModal = ({
 
   const openModal = () => {
     setWatchedDate(initialState?.watchedDate ?? todayAsDateInput());
-    setRatingOutOfFive(initialState?.ratingOutOfFive ?? null);
+    setRating(initialState?.rating ?? null);
     setRewatch(initialState?.rewatch ?? false);
     setReview(initialState?.reviewContent ?? "");
     setContainsSpoilers(initialState?.containsSpoilers ?? false);
@@ -101,7 +101,7 @@ export const LogSeriesModal = ({
       await Promise.all([
         createSeriesLogMutation.mutateAsync({
           watchedDate,
-          ...(ratingOutOfFive !== null ? { ratingOutOfFive } : {}),
+          ...(rating !== null ? { rating } : {}),
           rewatch,
           ...(normalizedReview.length > 0
             ? {
@@ -151,7 +151,7 @@ export const LogSeriesModal = ({
               yearDescriptionLabel="First aired in"
               posterUrl={getPosterUrl(seriesPosterPath)}
               watchedDate={watchedDate}
-              ratingOutOfFive={ratingOutOfFive}
+              rating={rating}
               rewatch={rewatch}
               review={review}
               containsSpoilers={containsSpoilers}
@@ -163,7 +163,7 @@ export const LogSeriesModal = ({
               onClose={closeModal}
               onSubmit={handleSubmit}
               onWatchedDateChange={setWatchedDate}
-              onRatingChange={setRatingOutOfFive}
+              onRatingChange={setRating}
               onRewatchChange={setRewatch}
               onReviewChange={setReview}
               onContainsSpoilersChange={setContainsSpoilers}

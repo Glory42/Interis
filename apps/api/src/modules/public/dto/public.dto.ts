@@ -36,8 +36,7 @@ export type PublicDiaryItem = {
   id: string;
   mediaType: "movie" | "tv";
   watchedDate: string;
-  ratingOutOfTen: number | null;
-  ratingOutOfFive: number | null;
+  rating: number | null;
   rewatch: boolean;
   createdAt: Date;
   updatedAt: Date;

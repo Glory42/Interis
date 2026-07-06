@@ -1,4 +1,3 @@
-import { resolveRatingOutOfTen } from "../../diary/helpers/diary-rating.helper";
 import { SocialRepository } from "../../social/repositories/social.repository";
 import type {
   CreateSerialLogDto,
@@ -9,7 +8,6 @@ import {
   buildSerialDiaryEntryActivityMetadata,
   buildSerialInteractionActivityMetadata,
 } from "../helpers/serials-activity.helper";
-import { toRatingOutOfFive } from "../helpers/serials-normalization.helper";
 import { SerialsInteractionsRepository } from "../repositories/serials-interactions.repository";
 import { SerialsReviewsRepository } from "../repositories/serials-reviews.repository";
 import { SerialsCacheService } from "./serials-cache.service";
@@ -37,7 +35,7 @@ export class SerialsActivityService {
     return {
       liked: row?.liked ?? false,
       watchlisted: row?.watchlisted ?? false,
-      ratingOutOfFive: toRatingOutOfFive(row?.rating ?? null),
+      rating: row?.rating ?? null,
       watched: allEpisodesWatched,
     };
   }
@@ -71,15 +69,12 @@ export class SerialsActivityService {
     const previousLiked = previousRow?.liked ?? false;
     const previousWatchlisted = previousRow?.watchlisted ?? false;
 
-    const ratingOutOfTen = resolveRatingOutOfTen(input.ratingOutOfFive);
-
     const row = await SerialsInteractionsRepository.upsertInteraction({
       userId,
       seriesId: series.id,
       liked: input.liked,
       watchlisted: input.watchlisted,
-      rating:
-        input.ratingOutOfFive === undefined ? undefined : (ratingOutOfTen ?? null),
+      rating: input.rating,
     });
 
     const resolvedLiked = row?.liked ?? input.liked ?? previousLiked;
@@ -139,7 +134,7 @@ export class SerialsActivityService {
     return {
       liked: resolvedLiked,
       watchlisted: resolvedWatchlisted,
-      ratingOutOfFive: toRatingOutOfFive(row?.rating ?? null),
+      rating: row?.rating ?? null,
       watched: allEpisodesWatched,
     };
   }
@@ -150,14 +145,14 @@ export class SerialsActivityService {
       return null;
     }
 
-    const ratingOutOfTen = resolveRatingOutOfTen(input.ratingOutOfFive) ?? null;
+    const rating = input.rating ?? null;
     const rewatch = input.rewatch ?? false;
 
     const entry = await SerialsInteractionsRepository.insertDiaryEntry({
       userId,
       seriesId: series.id,
       watchedDate: input.watchedDate,
-      rating: ratingOutOfTen,
+      rating: rating,
       rewatch,
     });
 
@@ -198,7 +193,7 @@ export class SerialsActivityService {
             posterPath: series.posterPath,
             firstAirYear: series.firstAirYear,
           },
-          rating: ratingOutOfTen,
+          rating: rating,
           rewatch,
           review,
         }),
@@ -213,14 +208,9 @@ export class SerialsActivityService {
   }
 
   static async updateLog(entryId: string, userId: string, input: UpdateSerialLogDto) {
-    const ratingOutOfTen =
-      input.ratingOutOfFive !== undefined
-        ? (resolveRatingOutOfTen(input.ratingOutOfFive) ?? null)
-        : undefined;
-
     return SerialsInteractionsRepository.updateDiaryEntry(entryId, userId, {
       watchedDate: input.watchedDate,
-      ratingOutOfTen,
+      rating: input.rating,
       rewatch: input.rewatch,
     });
   }

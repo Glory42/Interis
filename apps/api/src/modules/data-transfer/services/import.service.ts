@@ -44,9 +44,9 @@ function parseRating(raw: string): number | null {
   return Math.round(clamped * 2) / 2;
 }
 
-function toRatingOutOfTen(ratingOutOfFive: number | null): number | null {
-  if (ratingOutOfFive === null) return null;
-  return Math.round(ratingOutOfFive * 2);
+function toRatingOutOfTen(sourceRating: number | null): number | null {
+  if (sourceRating === null) return null;
+  return Number((sourceRating * 2).toFixed(1));
 }
 
 function parseDate(raw: string): string | null {
