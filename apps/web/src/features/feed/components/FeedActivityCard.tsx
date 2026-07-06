@@ -6,7 +6,6 @@ import { PostActivityCard } from "@/features/feed/components/PostActivityCard";
 import { ReviewActivityCard } from "@/features/feed/components/ReviewActivityCard";
 import {
   feedChannelMeta,
-  getRatingOutOfFive,
   getRelativeTime,
   inferFeedChannel,
 } from "@/features/feed/components/feed-row.utils";
@@ -17,12 +16,24 @@ type FeedActivityCardProps = {
   item: FeedItem;
 };
 
+const toSeasonEpisodeLabel = (item: FeedItem): string | null => {
+  const { seasonNumber, episodeNumber } = item.metadata;
+  if (episodeNumber != null && seasonNumber != null) {
+    return `S${seasonNumber}E${episodeNumber}`;
+  }
+  if (seasonNumber != null) {
+    return `Season ${seasonNumber}`;
+  }
+  return null;
+};
+
 const getActivityCopy = (item: FeedItem): string => {
+  const seLabel = toSeasonEpisodeLabel(item);
   switch (item.kind) {
     case "diary_entry":
       return "logged a watch entry";
     case "review":
-      return "published a review";
+      return seLabel ? `reviewed ${seLabel}` : "published a review";
     case "commented":
       return "commented on a review";
     case "liked_review":
@@ -34,7 +45,8 @@ const getActivityCopy = (item: FeedItem): string => {
     case "commented_post":
       return "commented on a post";
     case "liked_movie":
-      return "liked a title";
+      if (seLabel && item.metadata.rating !== null) return `rated ${seLabel}`;
+      return seLabel ? `liked ${seLabel}` : "liked a title";
     case "watchlisted_movie":
       return "updated watchlist";
     case "followed_user":
@@ -95,7 +107,6 @@ export const FeedActivityCard = ({ item }: FeedActivityCardProps) => {
   const actorName = item.actor.displayUsername ?? item.actor.username;
   const actorInitial = item.actor.username.slice(0, 1).toUpperCase();
   const actorAvatar = item.actor.avatarUrl ?? item.actor.image ?? null;
-  const ratingOutOfFive = getRatingOutOfFive(item.metadata.rating);
 
   const channelStyle = {
     borderColor: `color-mix(in srgb, ${channelColor} 36%, transparent)`,
@@ -137,8 +148,8 @@ export const FeedActivityCard = ({ item }: FeedActivityCardProps) => {
           {renderAttachedTitle(item)}
         </div>
 
-        {ratingOutOfFive !== null ? (
-          <SpaceRatingDisplay ratingOutOfFive={ratingOutOfFive} size="sm" />
+        {item.metadata.rating !== null ? (
+          <SpaceRatingDisplay rating={item.metadata.rating} size="sm" />
         ) : null}
       </div>
 
