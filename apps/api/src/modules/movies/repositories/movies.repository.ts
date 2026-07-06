@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNotNull, lte, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { diaryEntries } from "../../diary/diary.entity";
@@ -102,6 +102,13 @@ export class MoviesRepository {
       .leftJoin(diaryEntries, eq(diaryEntries.id, reviews.diaryEntryId))
       .where(and(eq(reviews.movieId, movieId), eq(reviews.mediaType, "movie")))
       .orderBy(desc(reviews.createdAt));
+  }
+
+  static async getAllDiaryRatingsByMovieId(movieId: number) {
+    return db
+      .select({ rating: diaryEntries.rating })
+      .from(diaryEntries)
+      .where(and(eq(diaryEntries.movieId, movieId), isNotNull(diaryEntries.rating)));
   }
 
   static async getReviewLikeCounts(reviewIds: string[]) {

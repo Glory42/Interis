@@ -38,12 +38,13 @@ export class MoviesDetailService {
     const reviewsSort = input.reviewsSort;
     const viewerUserId = input.viewerUserId ?? null;
 
-    const [tmdbDetail, tmdbCredits, logsCount, reviewRows, tmdbSimilar] = await Promise.all([
+    const [tmdbDetail, tmdbCredits, logsCount, reviewRows, tmdbSimilar, interactionRatings] = await Promise.all([
       tmdbGetDetails(input.tmdbId).catch(() => null),
       getMovieCredits(input.tmdbId).catch(() => null),
       MoviesRepository.getLogsCountByMovieId(movie.id),
       MoviesRepository.getReviewRowsByMovieId(movie.id),
       getSimilarMovies(input.tmdbId).catch(() => []),
+      MoviesRepository.getAllDiaryRatingsByMovieId(movie.id),
     ]);
 
     const directorCredits = (tmdbCredits?.crew ?? []).filter(
@@ -153,9 +154,7 @@ export class MoviesDetailService {
       );
     }
 
-    const ratingBreakdown = buildMediaRatingBreakdown(
-      reviewsWithEngagement.map((r) => ({ rating: r.rating })),
-    );
+    const ratingBreakdown = buildMediaRatingBreakdown(interactionRatings);
 
     const similar = (tmdbSimilar ?? []).slice(0, 12).map((sim) => {
       const releaseYear = sim.release_date
