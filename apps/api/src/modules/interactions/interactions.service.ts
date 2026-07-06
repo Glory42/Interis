@@ -127,6 +127,16 @@ export class InteractionsService {
     );
   }
 
+  static async setWatched(userId: string, movieId: number): Promise<void> {
+    await db
+      .insert(movieInteractions)
+      .values({ userId, movieId, liked: false, watchlisted: false, isWatched: true })
+      .onConflictDoUpdate({
+        target: [movieInteractions.userId, movieInteractions.movieId],
+        set: { isWatched: true },
+      });
+  }
+
   static async setWatchlisted(userId: string, movieId: number): Promise<void> {
     await db
       .insert(movieInteractions)

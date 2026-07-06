@@ -1,3 +1,4 @@
+import { InteractionsService } from "../../interactions/interactions.service";
 import { MoviesService } from "../../movies/movies.service";
 import { buildDiaryEntryActivityMetadata } from "../helpers/diary-activity.helper";
 import { DiaryRepository } from "../repositories/diary.repository";
@@ -44,6 +45,8 @@ export class DiaryWriteService {
         containsSpoilers: input.containsSpoilers ?? false,
       });
     }
+
+    await InteractionsService.setWatched(userId, movie.id);
 
     await DiaryRepository.insertActivity({
       userId,
