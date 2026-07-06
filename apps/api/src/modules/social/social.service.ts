@@ -1,5 +1,6 @@
 import { SocialFeedService } from "./services/social-feed.service";
 import { SocialFollowService } from "./services/social-follow.service";
+import { SocialRepository } from "./repositories/social.repository";
 
 export type {
   FeedActivityKind,
@@ -47,5 +48,19 @@ export class SocialService {
 
   static async getFollowingFeed(userId: string, limit?: number) {
     return SocialFeedService.getFollowingFeed(userId, limit);
+  }
+
+  static async likeActivity(userId: string, activityId: string) {
+    const activity = await SocialRepository.findActivityById(activityId);
+    if (!activity) {
+      return { error: "Activity not found" } as const;
+    }
+    await SocialRepository.likeActivity(userId, activityId);
+    return { success: true } as const;
+  }
+
+  static async unlikeActivity(userId: string, activityId: string) {
+    await SocialRepository.unlikeActivity(userId, activityId);
+    return { success: true } as const;
   }
 }

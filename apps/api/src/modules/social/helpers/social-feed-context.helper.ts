@@ -4,8 +4,10 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const isUuid = (s: string) => UUID_RE.test(s);
 import { resolveReviewId, toFeedMetadata } from "./social-feed-resolvers.helper";
 import { SocialFeedRepository } from "../repositories/social-feed.repository";
+import { SocialRepository } from "../repositories/social.repository";
 import type {
   ActivityRow,
+  FeedEngagement,
   PostEngagement,
   ReviewContext,
   ReviewFeedContext,
@@ -142,6 +144,39 @@ export const buildPostEngagementContext = async (
         commentCount: commentCountsByPostId.get(postId) ?? 0,
         viewerHasLiked: viewerId ? viewerLikedPostIds.has(postId) : null,
       },
+    ]),
+  );
+};
+
+const REVIEW_TYPES = new Set(["diary_entry", "review", "liked_review", "commented"]);
+const POST_TYPES = new Set(["post"]);
+
+export const buildActivityEngagementContext = async (
+  rows: ActivityRow[],
+  viewerId?: string,
+): Promise<Map<string, FeedEngagement>> => {
+  const activityIds = rows
+    .filter((r) => !REVIEW_TYPES.has(r.activity.type) && !POST_TYPES.has(r.activity.type))
+    .map((r) => r.activity.id);
+
+  if (activityIds.length === 0) return new Map();
+
+  const [likeCounts, viewerLikes] = await Promise.all([
+    SocialRepository.getActivityLikeCounts(activityIds),
+    viewerId ? SocialRepository.getViewerActivityLikes(viewerId, activityIds) : Promise.resolve([]),
+  ]);
+
+  const likeCountById = new Map(likeCounts.map((r) => [r.activityId, r.count]));
+  const viewerLikedIds = new Set(viewerLikes.map((r) => r.activityId));
+
+  return new Map(
+    activityIds.map((id) => [
+      id,
+      {
+        likeCount: likeCountById.get(id) ?? 0,
+        commentCount: 0,
+        viewerHasLiked: viewerId ? viewerLikedIds.has(id) : null,
+      } satisfies FeedEngagement,
     ]),
   );
 };

@@ -114,4 +114,24 @@ export class SocialController {
     await SocialService.removeFollower(req.user.id, follower.id);
     res.status(200).json({ success: true });
   }
+
+  static async likeActivity(
+    req: Request<{ activityId: string }>,
+    res: Response,
+  ): Promise<void> {
+    const result = await SocialService.likeActivity(req.user.id, req.params.activityId);
+    if ("error" in result) {
+      res.status(404).json({ error: result.error });
+      return;
+    }
+    res.status(200).json(result);
+  }
+
+  static async unlikeActivity(
+    req: Request<{ activityId: string }>,
+    res: Response,
+  ): Promise<void> {
+    await SocialService.unlikeActivity(req.user.id, req.params.activityId);
+    res.status(200).json({ success: true });
+  }
 }

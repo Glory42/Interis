@@ -47,3 +47,17 @@ export const activities = pgTable("activity", {
   metadata: text("metadata"), // JSON string
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const activityLikes = pgTable(
+  "activity_like",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    activityId: uuid("activity_id")
+      .notNull()
+      .references(() => activities.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [unique("activity_likes_unique").on(table.userId, table.activityId)],
+);

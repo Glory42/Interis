@@ -1,5 +1,6 @@
 import { normalizeLimit } from "../helpers/social-feed-metadata.helper";
 import {
+  buildActivityEngagementContext,
   buildPostEngagementContext,
   buildReviewContext,
 } from "../helpers/social-feed-context.helper";
@@ -13,13 +14,14 @@ export class SocialFeedService {
     rows: ActivityRow[],
     viewerId?: string,
   ): Promise<FeedItem[]> {
-    const [reviewContext, postEngagementByPostId] = await Promise.all([
+    const [reviewContext, postEngagementByPostId, activityEngagementById] = await Promise.all([
       buildReviewContext(rows, viewerId),
       buildPostEngagementContext(rows, viewerId),
+      buildActivityEngagementContext(rows, viewerId),
     ]);
 
     const feedItems = await Promise.all(
-      rows.map((row) => toFeedItem(row, reviewContext, postEngagementByPostId)),
+      rows.map((row) => toFeedItem(row, reviewContext, postEngagementByPostId, activityEngagementById)),
     );
 
     return dedupeReviewFeedItems(feedItems);

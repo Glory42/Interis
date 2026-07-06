@@ -1,8 +1,8 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { profiles } from "../../users/users.entity";
-import { activities, follows } from "../social.entity";
+import { activities, activityLikes, follows } from "../social.entity";
 
 export class SocialRepository {
   static async insertFollow(followerId: string, followingId: string) {
@@ -113,5 +113,47 @@ export class SocialRepository {
       .where(inArray(activities.userId, userIds))
       .orderBy(desc(activities.createdAt))
       .limit(limit);
+  }
+
+  static async likeActivity(userId: string, activityId: string) {
+    await db
+      .insert(activityLikes)
+      .values({ userId, activityId })
+      .onConflictDoNothing();
+  }
+
+  static async unlikeActivity(userId: string, activityId: string) {
+    await db
+      .delete(activityLikes)
+      .where(and(eq(activityLikes.userId, userId), eq(activityLikes.activityId, activityId)));
+  }
+
+  static async getActivityLikeCounts(activityIds: string[]) {
+    if (activityIds.length === 0) return [];
+    return db
+      .select({
+        activityId: activityLikes.activityId,
+        count: sql<number>`count(*)::int`.as("count"),
+      })
+      .from(activityLikes)
+      .where(inArray(activityLikes.activityId, activityIds))
+      .groupBy(activityLikes.activityId);
+  }
+
+  static async getViewerActivityLikes(userId: string, activityIds: string[]) {
+    if (activityIds.length === 0) return [];
+    return db
+      .select({ activityId: activityLikes.activityId })
+      .from(activityLikes)
+      .where(and(eq(activityLikes.userId, userId), inArray(activityLikes.activityId, activityIds)));
+  }
+
+  static async findActivityById(activityId: string) {
+    const [row] = await db
+      .select()
+      .from(activities)
+      .where(eq(activities.id, activityId))
+      .limit(1);
+    return row ?? null;
   }
 }

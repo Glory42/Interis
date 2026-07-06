@@ -64,6 +64,8 @@ export type FeedMetadata = {
   postMediaType: FeedPostMediaType | null;
   seasonNumber: number | null;
   episodeNumber: number | null;
+  listId: string | null;
+  listTitle: string | null;
 };
 
 export type FeedEngagement = {
