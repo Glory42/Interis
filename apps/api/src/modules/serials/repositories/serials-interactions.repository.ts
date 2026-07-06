@@ -102,6 +102,7 @@ export class SerialsInteractionsRepository {
     seriesId: number;
     liked?: boolean;
     watchlisted?: boolean;
+    isWatched?: boolean;
     rating?: number | null;
   }) {
     const [upserted] = await db
@@ -111,23 +112,31 @@ export class SerialsInteractionsRepository {
         seriesId: input.seriesId,
         liked: input.liked ?? false,
         watchlisted: input.watchlisted ?? false,
+        isWatched: input.isWatched ?? false,
         rating: input.rating ?? null,
       })
       .onConflictDoUpdate({
         target: [serialInteractions.userId, serialInteractions.seriesId],
         set: {
           ...(input.liked !== undefined && { liked: input.liked }),
-          ...(input.watchlisted !== undefined && {
-            watchlisted: input.watchlisted,
-          }),
-          ...(input.rating !== undefined && {
-            rating: input.rating,
-          }),
+          ...(input.watchlisted !== undefined && { watchlisted: input.watchlisted }),
+          ...(input.isWatched === true && { isWatched: true }),
+          ...(input.rating !== undefined && { rating: input.rating }),
         },
       })
       .returning();
 
     return upserted ?? null;
+  }
+
+  static async setWatched(userId: string, seriesId: number): Promise<void> {
+    await db
+      .insert(serialInteractions)
+      .values({ userId, seriesId, liked: false, watchlisted: false, isWatched: true })
+      .onConflictDoUpdate({
+        target: [serialInteractions.userId, serialInteractions.seriesId],
+        set: { isWatched: true },
+      });
   }
 
   static async insertDiaryEntry(input: {

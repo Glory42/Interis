@@ -28,7 +28,7 @@ export class SerialsActivityService {
         series.id,
         series.tmdbId,
       );
-    const watchedEpisodesCount = userEpisodeInteractions.filter((i) => i.watched).length;
+    const watchedEpisodesCount = userEpisodeInteractions.filter((i) => i.watched && i.seasonNumber > 0).length;
     const allEpisodesWatched =
       watchedEpisodesCount === series.numberOfEpisodes && series.numberOfEpisodes > 0;
 
@@ -36,7 +36,7 @@ export class SerialsActivityService {
       liked: row?.liked ?? false,
       watchlisted: row?.watchlisted ?? false,
       rating: row?.rating ?? null,
-      watched: allEpisodesWatched,
+      watched: allEpisodesWatched || (row?.isWatched === true),
     };
   }
 
@@ -69,12 +69,18 @@ export class SerialsActivityService {
     const previousLiked = previousRow?.liked ?? false;
     const previousWatchlisted = previousRow?.watchlisted ?? false;
 
+    const isImplicitlyWatched =
+      input.watched === true ||
+      input.liked === true ||
+      (input.rating !== undefined && input.rating !== null);
+
     const row = await SerialsInteractionsRepository.upsertInteraction({
       userId,
       seriesId: series.id,
       liked: input.liked,
       watchlisted: input.watchlisted,
       rating: input.rating,
+      isWatched: isImplicitlyWatched || undefined,
     });
 
     const resolvedLiked = row?.liked ?? input.liked ?? previousLiked;
@@ -127,7 +133,7 @@ export class SerialsActivityService {
         series.id,
         series.tmdbId,
       );
-    const watchedEpisodesCount = userEpisodeInteractions.filter((i) => i.watched).length;
+    const watchedEpisodesCount = userEpisodeInteractions.filter((i) => i.watched && i.seasonNumber > 0).length;
     const allEpisodesWatched =
       watchedEpisodesCount === series.numberOfEpisodes && series.numberOfEpisodes > 0;
 
@@ -135,7 +141,7 @@ export class SerialsActivityService {
       liked: resolvedLiked,
       watchlisted: resolvedWatchlisted,
       rating: row?.rating ?? null,
-      watched: allEpisodesWatched,
+      watched: allEpisodesWatched || (row?.isWatched === true),
     };
   }
 
@@ -180,25 +186,28 @@ export class SerialsActivityService {
       });
     }
 
-    await SocialRepository.insertActivity({
-      userId,
-      type: "diary_entry",
-      entityId: entry.id,
-      metadata: JSON.stringify(
-        buildSerialDiaryEntryActivityMetadata({
-          series: {
-            id: series.id,
-            tmdbId: series.tmdbId,
-            title: series.title,
-            posterPath: series.posterPath,
-            firstAirYear: series.firstAirYear,
-          },
-          rating: rating,
-          rewatch,
-          review,
-        }),
-      ),
-    });
+    await Promise.all([
+      SocialRepository.insertActivity({
+        userId,
+        type: "diary_entry",
+        entityId: entry.id,
+        metadata: JSON.stringify(
+          buildSerialDiaryEntryActivityMetadata({
+            series: {
+              id: series.id,
+              tmdbId: series.tmdbId,
+              title: series.title,
+              posterPath: series.posterPath,
+              firstAirYear: series.firstAirYear,
+            },
+            rating: rating,
+            rewatch,
+            review,
+          }),
+        ),
+      }),
+      SerialsInteractionsRepository.setWatched(userId, series.id),
+    ]);
 
     return { entry, series, review };
   }

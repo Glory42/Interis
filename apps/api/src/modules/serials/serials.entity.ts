@@ -67,6 +67,7 @@ export const serialInteractions = pgTable(
       .references(() => tvSeries.id, { onDelete: "cascade" }),
     liked: boolean("liked").default(false).notNull(),
     watchlisted: boolean("watchlisted").default(false).notNull(),
+    isWatched: boolean("is_watched").default(false).notNull(),
     rating: real("rating"),
     updatedAt: timestamp("updated_at")
       .defaultNow()
