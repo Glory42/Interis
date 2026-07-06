@@ -52,6 +52,7 @@ export function CinemaDetailPage({ tmdbId }: CinemaDetailPageProps) {
   const interactionRating = interactionQuery.data?.rating ?? null;
   const currentRating =
     interactionRating ?? detail.userRating?.rating ?? null;
+  const isInteractionLoading = Boolean(user) && interactionQuery.isLoading;
   const isInteractionBusy =
     interactionQuery.isPending || updateInteractionMutation.isPending;
 
@@ -93,6 +94,7 @@ export function CinemaDetailPage({ tmdbId }: CinemaDetailPageProps) {
             liked={liked}
             watched={watched}
             isInteractionBusy={isInteractionBusy}
+            isInteractionLoading={isInteractionLoading}
             onToggleWatchlist={handleToggleWatchlist}
             onToggleLike={handleToggleLike}
             onToggleWatched={handleToggleWatched}

@@ -17,6 +17,7 @@ type CinemaActionsSidebarProps = {
   liked: boolean;
   watched: boolean;
   isInteractionBusy: boolean;
+  isInteractionLoading: boolean;
   onToggleWatchlist: () => void;
   onToggleLike: () => void;
   onToggleWatched: () => void;
@@ -32,6 +33,7 @@ export const CinemaActionsSidebar = ({
   liked,
   watched,
   isInteractionBusy,
+  isInteractionLoading,
   onToggleWatchlist,
   onToggleLike,
   onToggleWatched,
@@ -107,22 +109,22 @@ export const CinemaActionsSidebar = ({
               disabled={isInteractionBusy}
               className="flex flex-1 items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
               style={{
-                borderColor: watchlisted
+                borderColor: !isInteractionLoading && watchlisted
                   ? CINEMA_MODULE_STYLES.accent
                   : CINEMA_MODULE_STYLES.border,
-                color: watchlisted
+                color: !isInteractionLoading && watchlisted
                   ? CINEMA_MODULE_STYLES.accent
                   : CINEMA_MODULE_STYLES.muted,
                 background: "transparent",
               }}
               onClick={onToggleWatchlist}
             >
-              {watchlisted ? (
+              {!isInteractionLoading && watchlisted ? (
                 <Check className="h-3 w-3" />
               ) : (
                 <Plus className="h-3 w-3" />
               )}
-              <span>{watchlisted ? "watchlisted" : "watchlist"}</span>
+              <span>{!isInteractionLoading && watchlisted ? "watchlisted" : "watchlist"}</span>
             </button>
           ) : (
             <Link
@@ -147,10 +149,10 @@ export const CinemaActionsSidebar = ({
               disabled={isInteractionBusy}
               className="flex flex-1 items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
               style={{
-                borderColor: watched
+                borderColor: !isInteractionLoading && watched
                   ? CINEMA_MODULE_STYLES.accent
                   : CINEMA_MODULE_STYLES.border,
-                color: watched
+                color: !isInteractionLoading && watched
                   ? CINEMA_MODULE_STYLES.accent
                   : CINEMA_MODULE_STYLES.muted,
                 background: "transparent",
@@ -158,7 +160,7 @@ export const CinemaActionsSidebar = ({
               onClick={onToggleWatched}
             >
               <Check className="h-3 w-3" />
-              <span>{watched ? "Watched" : "Watch"}</span>
+              <span>{!isInteractionLoading && watched ? "Watched" : "Watch"}</span>
             </button>
           ) : (
             <Link
@@ -181,10 +183,10 @@ export const CinemaActionsSidebar = ({
               disabled={isInteractionBusy}
               className="flex flex-1 items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
               style={{
-                borderColor: liked
+                borderColor: !isInteractionLoading && liked
                   ? CINEMA_MODULE_STYLES.accent
                   : CINEMA_MODULE_STYLES.border,
-                color: liked
+                color: !isInteractionLoading && liked
                   ? CINEMA_MODULE_STYLES.accent
                   : CINEMA_MODULE_STYLES.muted,
                 background: "transparent",
@@ -192,7 +194,7 @@ export const CinemaActionsSidebar = ({
               onClick={onToggleLike}
             >
               <Heart className="h-3 w-3" />
-              <span>{liked ? "Liked" : "Like"}</span>
+              <span>{!isInteractionLoading && liked ? "Liked" : "Like"}</span>
             </button>
           ) : (
             <Link
