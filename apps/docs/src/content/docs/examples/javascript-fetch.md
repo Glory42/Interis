@@ -58,7 +58,7 @@ const reviews = await getPublic('your_username', '/reviews', { limit: 8 });
 const widgetRows = reviews.map((review) => ({
   id: review.id,
   media: `${review.title} (${review.mediaType})`,
-  rating: review.ratingOutOfFive,
+  rating: review.rating,
 }));
 ```
 

@@ -58,7 +58,7 @@ None.
       "viewerInteraction": {
         "watched": false,
         "liked": true,
-        "ratingOutOfFive": 4.5,
+        "rating": 4.5,
         "hasReview": true
       }
     }

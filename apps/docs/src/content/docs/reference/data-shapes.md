@@ -58,7 +58,9 @@ Both endpoints return `FeedItem[]`.
     "movieId": null,
     "postId": null,
     "postMediaId": null,
-    "postMediaType": null
+    "postMediaType": null,
+    "seasonNumber": null,
+    "episodeNumber": null
   },
   "engagement": {
     "likeCount": 0,
@@ -73,6 +75,8 @@ Both endpoints return `FeedItem[]`.
 - `viewerHasLiked` is currently `null` in public feed responses (no viewer context is passed).
 - Depending on activity type, `movie`, `post`, or `review` can be `null`.
 - `kind` may be a derived value (for example `liked_comment`, `liked_post`, `commented_post`).
+- `seasonNumber` and `episodeNumber` are populated for season/episode interactions (`liked_movie`, `review`). Both are `null` for movie/series-level activities.
+- For `liked_movie` activities on seasons/episodes, `metadata.rating` will be non-null when the action was a rating (not a like); `metadata.rating` is `null` for pure like actions.
 
 ## Review row (`/reviews`)
 
@@ -80,7 +84,7 @@ Key fields:
 
 - `id`, `content`, `containsSpoilers`, `createdAt`, `updatedAt`
 - media fields: `tmdbId`, `title`, `posterPath`, `releaseYear`, `mediaType`
-- score field: `ratingOutOfFive`
+- score field: `rating` (0.5–10, or `null`)
 
 ## Interaction rows (`/likes`, `/watchlist`)
 
@@ -102,7 +106,7 @@ Key fields:
 Key fields:
 
 - diary fields: `id`, `mediaType`, `watchedDate`, `rewatch`, `createdAt`, `updatedAt`
-- ratings: `ratingOutOfTen`, `ratingOutOfFive`
+- rating: `rating` (0.5–10, or `null`)
 - `media` object (`tmdbId`, `title`, `posterPath`, `releaseYear`)
 - optional `review` object (`id`, `content`, `containsSpoilers`, `createdAt`) or `null`
 
@@ -116,4 +120,4 @@ Key fields:
   - `watchedEpisodes[]` list: `{ seasonNumber, episodeNumber }` mappings.
   - `currentEpisode` (Up Next): `{ seasonNumber, episodeNumber, name }` or `null` if series completed.
   - interaction aggregations: `ratingsCount`, `likesCount`, `reviewsCount`.
-- `seasons[]` array list: `seasonNumber`, `name`, `episodeCount`, and season-level `viewerInteraction` object (`watched`, `liked`, `ratingOutOfFive`, `hasReview`).
+- `seasons[]` array list: `seasonNumber`, `name`, `episodeCount`, and season-level `viewerInteraction` object (`watched`, `liked`, `rating`, `hasReview`).
