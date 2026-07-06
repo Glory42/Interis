@@ -18,12 +18,12 @@ export async function calculateViewerTracking(
     );
 
   const watchedEpisodes = userEpisodeInteractions
-    .filter((i) => i.watched)
+    .filter((i) => i.watched && i.seasonNumber > 0)
     .map((i) => ({ seasonNumber: i.seasonNumber, episodeNumber: i.episodeNumber }));
 
   const watchedKeys = new Set(
     userEpisodeInteractions
-      .filter((i) => i.watched)
+      .filter((i) => i.watched && i.seasonNumber > 0)
       .map((i) => `${i.seasonNumber}:${i.episodeNumber}`),
   );
 

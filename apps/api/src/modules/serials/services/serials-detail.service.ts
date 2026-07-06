@@ -241,8 +241,11 @@ export class SerialsDetailService {
           cachedSeries.episodeRuntime ?? normalizedTmdbDetail?.episodeRuntime ?? null,
         numberOfSeasons:
           cachedSeries.numberOfSeasons ?? normalizedTmdbDetail?.numberOfSeasons ?? null,
-        numberOfEpisodes:
-          cachedSeries.numberOfEpisodes ?? normalizedTmdbDetail?.numberOfEpisodes ?? null,
+        numberOfEpisodes: tmdbDetail
+          ? tmdbDetail.seasons
+              .filter((s) => s.season_number > 0)
+              .reduce((sum, s) => sum + (s.episode_count ?? 0), 0) || null
+          : cachedSeries.numberOfEpisodes ?? normalizedTmdbDetail?.numberOfEpisodes ?? null,
         status: cachedSeries.status ?? normalizedTmdbDetail?.status ?? null,
         overview: cachedSeries.overview,
         tagline: cachedSeries.tagline,

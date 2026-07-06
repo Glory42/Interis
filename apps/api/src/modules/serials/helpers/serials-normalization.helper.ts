@@ -128,7 +128,10 @@ export const normalizeTmdbSeriesDetail = (detail: TMDBSeriesDetail) => {
     network: toPrimaryName(detail.networks),
     episodeRuntime: toPrimaryEpisodeRuntime(detail.episode_run_time),
     numberOfSeasons: toNonNegativeIntegerOrNull(detail.number_of_seasons),
-    numberOfEpisodes: toNonNegativeIntegerOrNull(detail.number_of_episodes),
+    numberOfEpisodes:
+      detail.seasons
+        .filter((s) => s.season_number > 0)
+        .reduce((sum, s) => sum + (s.episode_count ?? 0), 0) || null,
     status: toNullableTrimmedText(detail.status),
     overview: toNullableTrimmedText(detail.overview),
     tagline: toNullableTrimmedText(detail.tagline),
