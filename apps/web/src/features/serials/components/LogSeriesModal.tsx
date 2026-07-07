@@ -53,14 +53,11 @@ export const LogSeriesModal = ({
   const [rewatch, setRewatch] = useState(false);
   const [review, setReview] = useState("");
   const [containsSpoilers, setContainsSpoilers] = useState(false);
-  const [liked, setLiked] = useState(false);
+  // null = no manual toggle yet this session; falls back to the fetched
+  // interaction once it resolves, so no effect is needed to sync it in.
+  const [likedOverride, setLikedOverride] = useState<boolean | null>(null);
+  const liked = likedOverride ?? interactionQuery.data?.liked ?? false;
   const [formError, setFormError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (interactionQuery.data) {
-      setLiked(interactionQuery.data.liked);
-    }
-  }, [interactionQuery.data, isOpen]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -86,7 +83,7 @@ export const LogSeriesModal = ({
     setRewatch(initialState?.rewatch ?? false);
     setReview(initialState?.reviewContent ?? "");
     setContainsSpoilers(initialState?.containsSpoilers ?? false);
-    setLiked(interactionQuery.data?.liked ?? false);
+    setLikedOverride(null);
     setFormError(null);
     setIsOpen(true);
   };
@@ -167,7 +164,7 @@ export const LogSeriesModal = ({
               onRewatchChange={setRewatch}
               onReviewChange={setReview}
               onContainsSpoilersChange={setContainsSpoilers}
-              onLikedChange={setLiked}
+              onLikedChange={setLikedOverride}
             />,
             document.body,
           )

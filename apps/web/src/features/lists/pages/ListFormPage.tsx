@@ -7,7 +7,7 @@ import { searchMovies } from "@/features/films/api/requests";
 import { searchSeries } from "@/features/serials/api/requests";
 import type { TmdbSearchMovie } from "@/types/api";
 import type { TmdbSearchSeries } from "@/features/serials/api/types";
-import { addListItem } from "@/features/lists/api";
+import { addListItem, type ListDetail } from "@/features/lists/api";
 import {
   useAddListItem,
   useCreateList,
@@ -55,24 +55,59 @@ type ListFormPageProps = CreateProps | EditProps;
 export const ListFormPage = (props: ListFormPageProps) => {
   const { mode, username } = props;
   const listId = mode === "edit" ? props.listId : "";
-  const navigate = useNavigate();
 
   const detailQuery = useListDetail(listId, mode === "edit");
-  const list = mode === "edit" ? detailQuery.data : null;
+  const list = mode === "edit" ? (detailQuery.data ?? null) : null;
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [isPublic, setIsPublic] = useState(true);
-  const [isRanked, setIsRanked] = useState(false);
+  if (mode === "edit" && detailQuery.isPending) {
+    return (
+      <div className="flex items-center gap-2 py-10 text-sm text-muted-foreground">
+        <Spinner /> Loading list...
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    if (list) {
-      setTitle(list.title);
-      setDescription(list.description ?? "");
-      setIsPublic(list.isPublic);
-      setIsRanked(list.isRanked);
-    }
-  }, [list?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (mode === "edit" && (detailQuery.isError || !list)) {
+    return (
+      <div className="border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+        This list could not be loaded.
+      </div>
+    );
+  }
+
+  return (
+    <ListFormPageContent
+      // Keying by the list id (or "create") remounts the form fresh each
+      // time it loads a different list, so field state naturally
+      // initializes from `list` without an effect syncing it in.
+      key={mode === "edit" ? (list?.id ?? "loading") : "create"}
+      mode={mode}
+      username={username}
+      listId={listId}
+      list={list}
+    />
+  );
+};
+
+type ListFormPageContentProps = {
+  mode: "create" | "edit";
+  username: string;
+  listId: string;
+  list: ListDetail | null;
+};
+
+const ListFormPageContent = ({
+  mode,
+  username,
+  listId,
+  list,
+}: ListFormPageContentProps) => {
+  const navigate = useNavigate();
+
+  const [title, setTitle] = useState(() => list?.title ?? "");
+  const [description, setDescription] = useState(() => list?.description ?? "");
+  const [isPublic, setIsPublic] = useState(() => list?.isPublic ?? true);
+  const [isRanked, setIsRanked] = useState(() => list?.isRanked ?? false);
 
   const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
 
@@ -249,22 +284,6 @@ export const ListFormPage = (props: ListFormPageProps) => {
 
   const currentItems = mode === "edit" ? (list?.items ?? []) : pendingItems;
   const showRanked = mode === "edit" ? (list?.isRanked ?? isRanked) : isRanked;
-
-  if (mode === "edit" && detailQuery.isPending) {
-    return (
-      <div className="flex items-center gap-2 py-10 text-sm text-muted-foreground">
-        <Spinner /> Loading list...
-      </div>
-    );
-  }
-
-  if (mode === "edit" && (detailQuery.isError || !list)) {
-    return (
-      <div className="border border-border/60 bg-card/30 p-4 text-sm text-destructive">
-        This list could not be loaded.
-      </div>
-    );
-  }
 
   return (
     <div>

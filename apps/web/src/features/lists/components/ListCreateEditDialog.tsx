@@ -22,7 +22,18 @@ type ListCreateEditDialogProps = (CreateMode | EditMode) & {
 };
 
 export const ListCreateEditDialog = (props: ListCreateEditDialogProps) => {
-  const { isOpen, onClose } = props;
+  if (!props.isOpen) {
+    return null;
+  }
+
+  // Keying by the list id (or "create") remounts the dialog fresh each
+  // time it opens, so form state naturally resets without an effect.
+  const key = props.mode === "edit" ? props.list.id : "create";
+  return <ListCreateEditDialogContent key={key} {...props} />;
+};
+
+const ListCreateEditDialogContent = (props: ListCreateEditDialogProps) => {
+  const { onClose } = props;
 
   const initialTitle = props.mode === "edit" ? props.list.title : "";
   const initialDesc =
@@ -36,23 +47,12 @@ export const ListCreateEditDialog = (props: ListCreateEditDialogProps) => {
   const [isRanked, setIsRanked] = useState(initialRanked);
 
   useEffect(() => {
-    if (!isOpen) return;
-    setTitle(props.mode === "edit" ? props.list.title : "");
-    setDescription(
-      props.mode === "edit" ? (props.list.description ?? "") : "",
-    );
-    setIsPublic(props.mode === "edit" ? props.list.isPublic : true);
-    setIsRanked(props.mode === "edit" ? props.list.isRanked : false);
-  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!isOpen) return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isOpen, onClose]);
+  }, [onClose]);
 
   const createMutation = useCreateList(props.ownerUsername);
   const editListId = props.mode === "edit" ? props.list.id : "";
@@ -81,8 +81,6 @@ export const ListCreateEditDialog = (props: ListCreateEditDialogProps) => {
     }
     onClose();
   };
-
-  if (!isOpen) return null;
 
   return createPortal(
     <div className="theme-modal-overlay fixed inset-0 z-140 bg-background/70 backdrop-blur-sm">

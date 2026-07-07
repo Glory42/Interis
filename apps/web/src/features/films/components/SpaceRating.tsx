@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { Rocket } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -110,10 +110,14 @@ export const SpaceRatingInput = ({
   const dragging = useRef(false);
   const [draft, setDraft] = useState<number | null>(value);
 
-  // Keep draft in sync when the saved value changes externally (e.g. after a successful save)
-  useEffect(() => {
+  // Keep draft in sync when the saved value changes externally (e.g. after a
+  // successful save). Adjusted during render rather than in an effect to
+  // avoid an extra commit + repaint on every value change.
+  const [prevValue, setPrevValue] = useState(value);
+  if (value !== prevValue) {
+    setPrevValue(value);
     setDraft(value);
-  }, [value]);
+  }
 
   const isDirty = draft !== value;
 

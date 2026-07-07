@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, ChevronUp, Heart, MessageSquare } from "lucide-react";
 import type { SerialDetailResponse } from "@/features/serials/api";
@@ -83,15 +83,22 @@ export const SeasonAccordionItem = ({
   const upsertEpisodeReviewMutation = useUpsertEpisodeReview(tmdbId, season.seasonNumber, activeEpisodeNumber ?? 0);
   const deleteEpisodeReviewMutation = useDeleteEpisodeReview(tmdbId, season.seasonNumber, activeEpisodeNumber ?? 0);
 
-  useEffect(() => {
+  // Hydrate the draft fields once each review query resolves (or when a
+  // different season/episode's review loads). Adjusted during render
+  // instead of in an effect to avoid an extra commit + repaint.
+  const [prevSeasonReviewData, setPrevSeasonReviewData] = useState(seasonReviewQuery.data);
+  if (seasonReviewQuery.data !== prevSeasonReviewData) {
+    setPrevSeasonReviewData(seasonReviewQuery.data);
     setSeasonReviewContent(seasonReviewQuery.data?.content ?? "");
     setSeasonReviewContainsSpoilers(seasonReviewQuery.data?.containsSpoilers ?? false);
-  }, [seasonReviewQuery.data]);
+  }
 
-  useEffect(() => {
+  const [prevEpisodeReviewData, setPrevEpisodeReviewData] = useState(episodeReviewQuery.data);
+  if (episodeReviewQuery.data !== prevEpisodeReviewData) {
+    setPrevEpisodeReviewData(episodeReviewQuery.data);
     setEpisodeReviewContent(episodeReviewQuery.data?.content ?? "");
     setEpisodeReviewContainsSpoilers(episodeReviewQuery.data?.containsSpoilers ?? false);
-  }, [episodeReviewQuery.data]);
+  }
 
   const handleSeasonWatchedChange = (nextWatched: boolean) => {
     updateSeasonInteractionMutation.mutate({

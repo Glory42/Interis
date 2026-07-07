@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Link } from "@tanstack/react-router";
 import { Award } from "lucide-react";
 import type { ArchiveMovie } from "@/features/films/api";
@@ -12,7 +13,10 @@ type ArchiveMovieCardProps = {
   movie: ArchiveMovie;
 };
 
-export const ArchiveMovieCard = ({ movie }: ArchiveMovieCardProps) => {
+// Memoized because the archive grid re-renders on unrelated local state
+// (e.g. a filter dropdown opening) - this skips re-rendering every card
+// in a potentially large grid when only `openMenu` etc. changed.
+export const ArchiveMovieCard = memo(function ArchiveMovieCard({ movie }: ArchiveMovieCardProps) {
   const stateLabel = getMovieStateLabel(movie);
 
   return (
@@ -89,4 +93,4 @@ export const ArchiveMovieCard = ({ movie }: ArchiveMovieCardProps) => {
       </p>
     </Link>
   );
-};
+});

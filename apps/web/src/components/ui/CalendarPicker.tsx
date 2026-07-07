@@ -40,8 +40,12 @@ export const CalendarPicker = ({
   const [currentYear, setCurrentYear] = useState(initialDate.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(initialDate.getMonth()); // 0-11
 
-  // Synchronize internal display month when date value changes externally
-  useEffect(() => {
+  // Synchronize internal display month when date value changes externally.
+  // Adjusted during render (rather than in an effect) to avoid an extra
+  // commit + repaint on every value change.
+  const [prevValue, setPrevValue] = useState(value);
+  if (value !== prevValue) {
+    setPrevValue(value);
     if (value) {
       const d = new Date(value + "T00:00:00");
       if (!isNaN(d.getTime())) {
@@ -49,7 +53,7 @@ export const CalendarPicker = ({
         setCurrentMonth(d.getMonth());
       }
     }
-  }, [value]);
+  }
 
   // Click outside to close calendar
   useEffect(() => {

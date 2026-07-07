@@ -12,27 +12,25 @@ type FeedReviewEditDialogProps = {
   containsSpoilers: boolean;
 };
 
-export const FeedReviewEditDialog = ({
-  isOpen,
+export const FeedReviewEditDialog = ({ isOpen, ...rest }: FeedReviewEditDialogProps) => {
+  // Keying by reviewId remounts the dialog fresh each time it opens (or
+  // when it opens for a different review), so draft state naturally
+  // resets without an effect syncing it from props.
+  return isOpen ? <FeedReviewEditDialogContent key={rest.reviewId} {...rest} /> : null;
+};
+
+type FeedReviewEditDialogContentProps = Omit<FeedReviewEditDialogProps, "isOpen">;
+
+const FeedReviewEditDialogContent = ({
   onClose,
   reviewId,
   initialContent,
   containsSpoilers,
-}: FeedReviewEditDialogProps) => {
+}: FeedReviewEditDialogContentProps) => {
   const [draftContent, setDraftContent] = useState(initialContent);
   const updateReviewMutation = useUpdateReview(reviewId);
 
   useEffect(() => {
-    if (isOpen) {
-      setDraftContent(initialContent);
-    }
-  }, [isOpen, initialContent]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         onClose();
@@ -43,7 +41,7 @@ export const FeedReviewEditDialog = ({
     return () => {
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [onClose]);
 
   const canSave =
     draftContent.trim().length > 0 &&
@@ -62,10 +60,6 @@ export const FeedReviewEditDialog = ({
     });
     onClose();
   };
-
-  if (!isOpen) {
-    return null;
-  }
 
   return createPortal(
     <div className="theme-modal-overlay fixed inset-0 z-140 bg-background/70 backdrop-blur-sm">

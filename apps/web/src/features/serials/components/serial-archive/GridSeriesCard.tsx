@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Link } from "@tanstack/react-router";
 import { Award } from "lucide-react";
 import type { SerialArchiveItem } from "@/features/serials/api";
@@ -15,10 +16,13 @@ type GridSeriesCardProps = {
   ratingSource: ArchiveRatingSource;
 };
 
-export const GridSeriesCard = ({
+// Memoized because the archive grid re-renders on unrelated local state
+// (e.g. a filter dropdown opening) - this skips re-rendering every card
+// in a potentially large grid when only `openMenu` etc. changed.
+export const GridSeriesCard = memo(function GridSeriesCard({
   series,
   ratingSource,
-}: GridSeriesCardProps) => {
+}: GridSeriesCardProps) {
   const rating = getRating(series, ratingSource);
   const stateLabel = getSeriesStateLabel(series);
 
@@ -113,4 +117,4 @@ export const GridSeriesCard = ({
       </p>
     </Link>
   );
-};
+});
