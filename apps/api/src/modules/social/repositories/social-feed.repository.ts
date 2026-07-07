@@ -189,8 +189,9 @@ export class SocialFeedRepository {
       .where(and(eq(postLikes.userId, viewerId), inArray(postLikes.postId, postIds)));
   }
 
-  static async getPostById(postId: string) {
-    const [post] = await db
+  static async getPostsByIds(postIds: string[]) {
+    if (postIds.length === 0) return [];
+    return db
       .select({
         id: posts.id,
         content: posts.content,
@@ -198,24 +199,20 @@ export class SocialFeedRepository {
         mediaType: posts.mediaType,
       })
       .from(posts)
-      .where(eq(posts.id, postId))
-      .limit(1);
-
-    return post ?? null;
+      .where(inArray(posts.id, postIds));
   }
 
-  static async getMovieById(movieId: number) {
-    const [movie] = await db
+  static async getMoviesByIds(movieIds: number[]) {
+    if (movieIds.length === 0) return [];
+    return db
       .select({
+        id: movies.id,
         tmdbId: movies.tmdbId,
         title: movies.title,
         posterPath: movies.posterPath,
         releaseYear: movies.releaseYear,
       })
       .from(movies)
-      .where(eq(movies.id, movieId))
-      .limit(1);
-
-    return movie ?? null;
+      .where(inArray(movies.id, movieIds));
   }
 }

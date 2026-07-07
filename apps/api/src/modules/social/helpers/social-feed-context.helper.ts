@@ -2,12 +2,18 @@ import { parseMetadata, readString } from "./social-feed-metadata.helper";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const isUuid = (s: string) => UUID_RE.test(s);
-import { resolveReviewId, toFeedMetadata } from "./social-feed-resolvers.helper";
+import {
+  resolveMovieFallbackId,
+  resolvePostFallbackId,
+  resolveReviewId,
+  toFeedMetadata,
+} from "./social-feed-resolvers.helper";
 import { SocialFeedRepository } from "../repositories/social-feed.repository";
 import { SocialRepository } from "../repositories/social.repository";
 import type {
   ActivityRow,
   FeedEngagement,
+  FeedFallbackMediaContext,
   PostEngagement,
   ReviewContext,
   ReviewFeedContext,
@@ -146,6 +152,51 @@ export const buildPostEngagementContext = async (
       },
     ]),
   );
+};
+
+// Batches the per-row post/movie fallback lookups (used when an activity's
+// metadata doesn't already embed the full movie/post data) into two
+// queries total instead of one query per feed row.
+export const buildFeedFallbackMediaContext = async (
+  rows: ActivityRow[],
+  reviewContext: ReviewContext,
+): Promise<FeedFallbackMediaContext> => {
+  const postIds = new Set<string>();
+  const movieIds = new Set<number>();
+
+  for (const row of rows) {
+    const rawMetadata = parseMetadata(row.activity.metadata);
+    const metadata = toFeedMetadata(rawMetadata);
+
+    const postId = resolvePostFallbackId(rawMetadata, row.activity);
+    if (postId) {
+      postIds.add(postId);
+    }
+
+    const reviewId = resolveReviewId(row.activity, metadata);
+    const reviewDetails =
+      (reviewId ? reviewContext.byReviewId.get(reviewId) : null) ??
+      (row.activity.type === "diary_entry"
+        ? reviewContext.byDiaryEntryId.get(row.activity.entityId)
+        : null);
+
+    if (!reviewDetails?.movie) {
+      const movieId = resolveMovieFallbackId(rawMetadata, row.activity, metadata);
+      if (movieId !== null) {
+        movieIds.add(movieId);
+      }
+    }
+  }
+
+  const [postRows, movieRows] = await Promise.all([
+    SocialFeedRepository.getPostsByIds([...postIds]),
+    SocialFeedRepository.getMoviesByIds([...movieIds]),
+  ]);
+
+  return {
+    postsById: new Map(postRows.map((post) => [post.id, post])),
+    moviesById: new Map(movieRows.map((movie) => [movie.id, movie])),
+  };
 };
 
 const REVIEW_TYPES = new Set(["diary_entry", "review", "liked_review", "commented"]);

@@ -116,3 +116,23 @@ export type PostEngagement = {
   commentCount: number;
   viewerHasLiked: boolean | null;
 };
+
+export type FeedFallbackPostRow = {
+  id: string;
+  content: string;
+  mediaId: number | null;
+  mediaType: FeedPostMediaType | null;
+};
+
+export type FeedFallbackMovieRow = {
+  id: number;
+  tmdbId: number;
+  title: string;
+  posterPath: string | null;
+  releaseYear: number | null;
+};
+
+export type FeedFallbackMediaContext = {
+  postsById: Map<string, FeedFallbackPostRow>;
+  moviesById: Map<number, FeedFallbackMovieRow>;
+};

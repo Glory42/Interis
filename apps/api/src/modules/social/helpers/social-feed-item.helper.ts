@@ -3,17 +3,19 @@ import { resolveMovie, resolvePost, resolveReviewId, toFeedMetadata } from "./so
 import type {
   ActivityRow,
   FeedEngagement,
+  FeedFallbackMediaContext,
   FeedItem,
   PostEngagement,
   ReviewContext,
 } from "../types/social-feed.types";
 
-export const toFeedItem = async (
+export const toFeedItem = (
   row: ActivityRow,
   reviewContext: ReviewContext,
   postEngagementByPostId: Map<string, PostEngagement>,
   activityEngagementById: Map<string, FeedEngagement>,
-): Promise<FeedItem> => {
+  fallbackMedia: FeedFallbackMediaContext,
+): FeedItem => {
   const rawMetadata = parseMetadata(row.activity.metadata);
   const metadata = toFeedMetadata(rawMetadata);
   const kind = resolveActivityKind(row.activity.type, metadata.action);
@@ -26,9 +28,10 @@ export const toFeedItem = async (
       : null;
   const reviewDetails = reviewById ?? reviewByDiaryEntry;
 
-  const movie = reviewDetails?.movie ?? (await resolveMovie(rawMetadata, row.activity, metadata));
+  const movie =
+    reviewDetails?.movie ?? resolveMovie(rawMetadata, row.activity, metadata, fallbackMedia);
 
-  const post = await resolvePost(rawMetadata, row.activity);
+  const post = resolvePost(rawMetadata, row.activity, fallbackMedia);
 
   const review = reviewDetails
     ? {

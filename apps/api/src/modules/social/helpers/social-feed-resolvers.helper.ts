@@ -1,6 +1,6 @@
 import { readBoolean, readNumber, readPostMediaType, readString } from "./social-feed-metadata.helper";
-import { SocialFeedRepository } from "../repositories/social-feed.repository";
 import type {
+  FeedFallbackMediaContext,
   FeedMetadata,
   FeedMediaType,
   FeedMovie,
@@ -57,17 +57,31 @@ export const resolveReviewId = (
   return metadata.reviewId;
 };
 
-export const resolvePost = async (
+// The id of the post to fetch as a fallback when metadata doesn't already
+// embed the post's content - null when no DB lookup is needed at all.
+export const resolvePostFallbackId = (
   rawMetadata: FeedRawMetadata,
   activity: SocialActivity,
-): Promise<FeedPost | null> => {
+): string | null => {
   const postIdFromMetadata = readString(rawMetadata, "postId");
   if (activity.type !== "post" && !postIdFromMetadata) {
     return null;
   }
 
-  const postId = postIdFromMetadata ?? activity.entityId;
-  const post = await SocialFeedRepository.getPostById(postId);
+  return postIdFromMetadata ?? activity.entityId;
+};
+
+export const resolvePost = (
+  rawMetadata: FeedRawMetadata,
+  activity: SocialActivity,
+  fallbackMedia: FeedFallbackMediaContext,
+): FeedPost | null => {
+  const postId = resolvePostFallbackId(rawMetadata, activity);
+  if (!postId) {
+    return null;
+  }
+
+  const post = fallbackMedia.postsById.get(postId);
 
   if (post) {
     return {
@@ -95,23 +109,19 @@ export const resolvePost = async (
   return null;
 };
 
-export const resolveMovie = async (
+// The internal movie id to fetch as a fallback when metadata doesn't
+// already embed the movie's tmdbId+title - null when no DB lookup is
+// needed at all (either embedded data suffices, or there's no movie).
+export const resolveMovieFallbackId = (
   rawMetadata: FeedRawMetadata,
   activity: SocialActivity,
   metadata: FeedMetadata,
-): Promise<FeedMovie | null> => {
+): number | null => {
   const tmdbId = readNumber(rawMetadata, "tmdbId");
   const title = readString(rawMetadata, "title");
-  const mediaType = toFeedMediaType(readPostMediaType(rawMetadata, "mediaType"));
 
   if (tmdbId !== null && title) {
-    return {
-      tmdbId,
-      title,
-      posterPath: readString(rawMetadata, "posterPath"),
-      releaseYear: readNumber(rawMetadata, "releaseYear"),
-      mediaType: mediaType ?? "movie",
-    };
+    return null;
   }
 
   const fallbackMovieId =
@@ -127,7 +137,43 @@ export const resolveMovie = async (
     return null;
   }
 
-  const movie = await SocialFeedRepository.getMovieById(fallbackMovieId);
+  return fallbackMovieId;
+};
 
-  return movie ? { ...movie, mediaType: "movie" } : null;
+export const resolveMovie = (
+  rawMetadata: FeedRawMetadata,
+  activity: SocialActivity,
+  metadata: FeedMetadata,
+  fallbackMedia: FeedFallbackMediaContext,
+): FeedMovie | null => {
+  const tmdbId = readNumber(rawMetadata, "tmdbId");
+  const title = readString(rawMetadata, "title");
+  const mediaType = toFeedMediaType(readPostMediaType(rawMetadata, "mediaType"));
+
+  if (tmdbId !== null && title) {
+    return {
+      tmdbId,
+      title,
+      posterPath: readString(rawMetadata, "posterPath"),
+      releaseYear: readNumber(rawMetadata, "releaseYear"),
+      mediaType: mediaType ?? "movie",
+    };
+  }
+
+  const fallbackMovieId = resolveMovieFallbackId(rawMetadata, activity, metadata);
+  if (fallbackMovieId === null) {
+    return null;
+  }
+
+  const movie = fallbackMedia.moviesById.get(fallbackMovieId);
+
+  return movie
+    ? {
+        tmdbId: movie.tmdbId,
+        title: movie.title,
+        posterPath: movie.posterPath,
+        releaseYear: movie.releaseYear,
+        mediaType: "movie",
+      }
+    : null;
 };
