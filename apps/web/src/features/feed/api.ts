@@ -1,10 +1,10 @@
 import { apiRequest } from "@/lib/api-client";
 import {
-  feedListSchema,
+  feedPageSchema,
   meFeedSummarySchema,
   networkStatsSchema,
   trendingMovieListSchema,
-  type FeedItem,
+  type FeedPage,
   type MeFeedSummary,
   type NetworkStats,
   type TrendingMovie,
@@ -24,17 +24,23 @@ type QueryRequestOptions = {
 
 export const getFollowingFeed = async (
   limit = 20,
+  cursor?: string,
   options: QueryRequestOptions = {},
-): Promise<FeedItem[]> => {
+): Promise<FeedPage> => {
+  const params = new URLSearchParams({ limit: String(normalizeLimit(limit, 20)) });
+  if (cursor) {
+    params.set("cursor", cursor);
+  }
+
   const response = await apiRequest<unknown>(
-    `/api/social/feed/following?limit=${normalizeLimit(limit, 20)}`,
+    `/api/social/feed/following?${params.toString()}`,
     {
       method: "GET",
       signal: options.signal,
     },
   );
 
-  return feedListSchema.parse(response);
+  return feedPageSchema.parse(response);
 };
 
 export const getTrendingMovies = async (

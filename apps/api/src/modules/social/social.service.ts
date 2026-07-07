@@ -46,8 +46,8 @@ export class SocialService {
     return SocialFeedService.getFeed(userId, cursor, limit);
   }
 
-  static async getFollowingFeed(userId: string, limit?: number) {
-    return SocialFeedService.getFollowingFeed(userId, limit);
+  static async getFollowingFeed(userId: string, limit?: number, cursor?: string) {
+    return SocialFeedService.getFollowingFeed(userId, limit, cursor);
   }
 
   static async likeActivity(userId: string, activityId: string) {

@@ -1,8 +1,9 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, lt, or, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { profiles } from "../../users/users.entity";
 import { activities, activityLikes, follows } from "../social.entity";
+import type { FeedCursor } from "../helpers/social-feed-cursor.helper";
 
 export class SocialRepository {
   static async insertFollow(followerId: string, followingId: string) {
@@ -97,7 +98,21 @@ export class SocialRepository {
       .where(eq(follows.followerId, followerId));
   }
 
-  static async getFeedActivityRows(userIds: string[], limit: number) {
+  static async getFeedActivityRows(
+    userIds: string[],
+    limit: number,
+    before?: FeedCursor,
+  ) {
+    const whereCondition = before
+      ? and(
+          inArray(activities.userId, userIds),
+          or(
+            lt(activities.createdAt, before.createdAt),
+            and(eq(activities.createdAt, before.createdAt), lt(activities.id, before.id)),
+          ),
+        )
+      : inArray(activities.userId, userIds);
+
     return db
       .select({
         activity: activities,
@@ -110,8 +125,10 @@ export class SocialRepository {
       .from(activities)
       .innerJoin(user, eq(activities.userId, user.id))
       .leftJoin(profiles, eq(activities.userId, profiles.userId))
-      .where(inArray(activities.userId, userIds))
-      .orderBy(desc(activities.createdAt))
+      .where(whereCondition)
+      // Secondary sort by id keeps keyset pagination deterministic when
+      // multiple activities share the same createdAt timestamp.
+      .orderBy(desc(activities.createdAt), desc(activities.id))
       .limit(limit);
   }
 

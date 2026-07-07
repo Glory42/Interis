@@ -24,17 +24,16 @@ const filterTabs: Array<{ id: FeedFilter; label: string }> = [
 export const HomePage = () => {
   const { user, isUserLoading } = useAuth();
   const [activeFilter, setActiveFilter] = useState<FeedFilter>("all");
-  const [feedLimit, setFeedLimit] = useState(15);
 
   const isFollowingEnabled = Boolean(user);
-  const followingFeedQuery = useFollowingFeed(isFollowingEnabled, feedLimit);
+  const followingFeedQuery = useFollowingFeed(isFollowingEnabled);
   const cinemaTrendingQuery = useTrendingNow();
   const serialTrendingQuery = useTrendingSeries();
   const mySummaryQuery = useMyFeedSummary(Boolean(user));
   const networkStatsQuery = useNetworkStats();
 
   const feedItems = useMemo(
-    () => followingFeedQuery.data ?? [],
+    () => followingFeedQuery.data?.pages.flatMap((page) => page.items) ?? [],
     [followingFeedQuery.data],
   );
   const isFeedLoading = isUserLoading || (isFollowingEnabled && followingFeedQuery.isPending);
@@ -43,15 +42,12 @@ export const HomePage = () => {
   const totalUsers = networkStatsQuery.data?.totalUsers ?? null;
   const liveReviews = networkStatsQuery.data?.liveReviews ?? null;
   const logsToday = networkStatsQuery.data?.logsToday ?? null;
-  const isFetchingMoreFeed =
-    isFollowingEnabled &&
-    followingFeedQuery.isFetching &&
-    !followingFeedQuery.isPending;
+  const isFetchingMoreFeed = isFollowingEnabled && followingFeedQuery.isFetchingNextPage;
   const canShowMoreFeed =
     isFollowingEnabled &&
     !isFeedLoading &&
     !isFeedError &&
-    feedItems.length >= feedLimit;
+    followingFeedQuery.hasNextPage;
 
   return (
     <section className="mx-auto w-full max-w-400 px-4 py-8">
@@ -164,7 +160,7 @@ export const HomePage = () => {
                 type="button"
                 disabled={isFetchingMoreFeed}
                 onClick={() => {
-                  setFeedLimit((currentLimit) => currentLimit + 15);
+                  void followingFeedQuery.fetchNextPage();
                 }}
                 className="border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
               >

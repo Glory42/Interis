@@ -10,7 +10,7 @@ export class SocialController {
     res: Response,
   ): Promise<void> {
     const limit = normalizeSocialFeedLimit(req.query.limit, 20);
-    const feed = await SocialService.getFeed(req.user.id, undefined, limit);
+    const feed = await SocialService.getFeed(req.user.id, req.query.cursor, limit);
     res.status(200).json(feed);
   }
 
@@ -19,7 +19,7 @@ export class SocialController {
     res: Response,
   ): Promise<void> {
     const limit = normalizeSocialFeedLimit(req.query.limit, 20);
-    const feed = await SocialService.getFollowingFeed(req.user.id, limit);
+    const feed = await SocialService.getFollowingFeed(req.user.id, limit, req.query.cursor);
     res.status(200).json(feed);
   }
 

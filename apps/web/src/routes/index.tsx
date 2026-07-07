@@ -1,13 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { authQueryOptions } from "@/features/auth/hooks/useAuth";
 import {
-  getFollowingFeed,
   getMyFeedSummary,
   getNetworkStats,
   getTrendingMovies,
 } from "@/features/feed/api";
 import { HomePage } from "@/features/feed/pages/HomePage";
-import { feedKeys } from "@/features/feed/hooks/useFeed";
+import { feedKeys, followingFeedInfiniteQueryOptions } from "@/features/feed/hooks/useFeed";
 import { getTrendingSeries } from "@/features/serials/api";
 import { serialKeys } from "@/features/serials/hooks/useSerials";
 import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
@@ -30,10 +29,7 @@ export const Route = createFileRoute("/")({
 
     const cachedUser = context.queryClient.getQueryData(authQueryOptions.queryKey);
     if (cachedUser) {
-      void context.queryClient.prefetchQuery({
-        queryKey: feedKeys.followingByLimit(15),
-        queryFn: ({ signal }) => getFollowingFeed(15, { signal }),
-      });
+      void context.queryClient.prefetchInfiniteQuery(followingFeedInfiniteQueryOptions());
       void context.queryClient.prefetchQuery({
         queryKey: feedKeys.meSummary,
         queryFn: ({ signal }) => getMyFeedSummary({ signal }),
