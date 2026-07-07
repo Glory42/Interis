@@ -70,17 +70,13 @@ export class SerialsTrackingService {
       ).catch(() => null);
 
       if (tmdbSeasonDetail && tmdbSeasonDetail.episodes) {
-        await Promise.all(
-          tmdbSeasonDetail.episodes.map((episode) =>
-            SerialsEpisodeInteractionsRepository.upsertEpisodeInteraction({
-              userId,
-              seriesId: series.id,
-              seasonNumber,
-              episodeNumber: episode.episode_number,
-              watched: targetWatchState,
-            }),
-          ),
-        );
+        await SerialsEpisodeInteractionsRepository.upsertManyEpisodeWatchedState({
+          userId,
+          seriesId: series.id,
+          seasonNumber,
+          episodeNumbers: tmdbSeasonDetail.episodes.map((episode) => episode.episode_number),
+          watched: targetWatchState,
+        });
       }
     }
 

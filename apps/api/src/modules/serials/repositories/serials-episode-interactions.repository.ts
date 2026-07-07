@@ -111,6 +111,45 @@ export class SerialsEpisodeInteractionsRepository {
     return row ?? null;
   }
 
+  // Batches the whole-season "mark watched" cascade into a single
+  // multi-row upsert instead of one upsert query per episode.
+  static async upsertManyEpisodeWatchedState(input: {
+    userId: string;
+    seriesId: number;
+    seasonNumber: number;
+    episodeNumbers: number[];
+    watched: boolean;
+  }) {
+    if (input.episodeNumbers.length === 0) {
+      return [];
+    }
+
+    return db
+      .insert(serialEpisodeInteractions)
+      .values(
+        input.episodeNumbers.map((episodeNumber) => ({
+          userId: input.userId,
+          seriesId: input.seriesId,
+          seasonNumber: input.seasonNumber,
+          episodeNumber,
+          watched: input.watched,
+        })),
+      )
+      .onConflictDoUpdate({
+        target: [
+          serialEpisodeInteractions.userId,
+          serialEpisodeInteractions.seriesId,
+          serialEpisodeInteractions.seasonNumber,
+          serialEpisodeInteractions.episodeNumber,
+        ],
+        set: {
+          watched: input.watched,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+  }
+
   static async getAllViewerEpisodeInteractions(
     userId: string,
     seriesId: number,
