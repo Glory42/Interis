@@ -48,6 +48,9 @@ type ProfileMediaInteractionGridSectionProps = {
   isPending: boolean;
   isError: boolean;
   items: UserInteractionMovie[];
+  hasMore?: boolean;
+  isLoadingMore?: boolean;
+  onLoadMore?: () => void;
 };
 
 export const ProfileMediaInteractionGridSection = ({
@@ -59,6 +62,9 @@ export const ProfileMediaInteractionGridSection = ({
   isPending,
   isError,
   items,
+  hasMore = false,
+  isLoadingMore = false,
+  onLoadMore,
 }: ProfileMediaInteractionGridSectionProps) => {
   const [activeFilter, setActiveFilter] = useState<FavoritesFilter>("all");
 
@@ -183,6 +189,19 @@ export const ProfileMediaInteractionGridSection = ({
               })}
             </div>
           )}
+
+          {hasMore ? (
+            <div className="mt-5 flex justify-center">
+              <button
+                type="button"
+                disabled={isLoadingMore}
+                onClick={onLoadMore}
+                className="border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isLoadingMore ? "Loading..." : "Load more"}
+              </button>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </>

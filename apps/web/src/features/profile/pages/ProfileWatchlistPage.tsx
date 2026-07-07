@@ -10,7 +10,7 @@ export const ProfileWatchlistPage = ({
   username,
 }: ProfileWatchlistPageProps) => {
   const watchlistQuery = useUserWatchlist(username);
-  const items = watchlistQuery.data ?? [];
+  const items = watchlistQuery.data?.pages.flat() ?? [];
 
   return (
     <ProfileMediaInteractionGridSection
@@ -26,6 +26,9 @@ export const ProfileWatchlistPage = ({
       isPending={watchlistQuery.isPending}
       isError={watchlistQuery.isError}
       items={items}
+      hasMore={Boolean(watchlistQuery.hasNextPage)}
+      isLoadingMore={watchlistQuery.isFetchingNextPage}
+      onLoadMore={() => { void watchlistQuery.fetchNextPage(); }}
     />
   );
 };

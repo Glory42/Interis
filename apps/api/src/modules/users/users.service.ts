@@ -33,8 +33,8 @@ export class UsersService {
     return UsersProfileService.updateTheme(userId, themeId);
   }
 
-  static async getReviewsWithMovies(userId: string, limit?: number) {
-    return UsersReadService.getReviewsWithMovies(userId, limit);
+  static async getReviewsWithMovies(userId: string, limit?: number, offset?: number) {
+    return UsersReadService.getReviewsWithMovies(userId, limit, offset);
   }
 
   static async getReviewDetailByUsername(
@@ -45,12 +45,12 @@ export class UsersService {
     return UsersReadService.getReviewDetailByUsername(username, reviewId, viewerUserId);
   }
 
-  static async getLikedFilms(userId: string, limit?: number) {
-    return UsersReadService.getLikedFilms(userId, limit);
+  static async getLikedFilms(userId: string, limit?: number, offset?: number) {
+    return UsersReadService.getLikedFilms(userId, limit, offset);
   }
 
-  static async getWatchlistedFilms(userId: string, limit?: number) {
-    return UsersReadService.getWatchlistedFilms(userId, limit);
+  static async getWatchlistedFilms(userId: string, limit?: number, offset?: number) {
+    return UsersReadService.getWatchlistedFilms(userId, limit, offset);
   }
 
   static async getStats(userId: string) {
@@ -61,11 +61,11 @@ export class UsersService {
     return UsersReadService.getMeSummary(userId);
   }
 
-  static async getLikedReviews(userId: string) {
-    return UsersLikesRepository.getLikedReviews(userId);
+  static async getLikedReviews(userId: string, limit?: number, offset?: number) {
+    return UsersLikesRepository.getLikedReviews(userId, limit, offset);
   }
 
-  static async getLikedLists(userId: string) {
-    return UsersLikesRepository.getLikedLists(userId);
+  static async getLikedLists(userId: string, limit?: number, offset?: number) {
+    return UsersLikesRepository.getLikedLists(userId, limit, offset);
   }
 }

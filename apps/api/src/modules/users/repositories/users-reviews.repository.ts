@@ -8,7 +8,12 @@ import { movies } from "../../movies/movies.entity";
 import { profiles } from "../users.entity";
 
 export class UsersReviewsRepository {
-  static async getReviewsWithMovies(userId: string, limit?: number) {
+  static async getReviewsWithMovies(userId: string, limit?: number, offset?: number) {
+    // Fetch enough of each source to cover through offset+limit, then merge,
+    // sort, and slice the exact page - avoids ever pulling the whole
+    // collection just to paginate it.
+    const fetchCap = limit ? limit + (offset ?? 0) : undefined;
+
     const movieQ = db
       .select({
         id: reviews.id,
@@ -44,8 +49,8 @@ export class UsersReviewsRepository {
       .where(and(eq(reviews.userId, userId), eq(reviews.mediaType, "tv")));
 
     const [movieReviewRows, tvReviewRows] = await Promise.all([
-      limit ? movieQ.limit(limit) : movieQ,
-      limit ? tvQ.limit(limit) : tvQ,
+      fetchCap ? movieQ.limit(fetchCap) : movieQ,
+      fetchCap ? tvQ.limit(fetchCap) : tvQ,
     ]);
 
     const normalizedMovieReviewRows = movieReviewRows.map((reviewRow) => ({
@@ -97,10 +102,12 @@ export class UsersReviewsRepository {
       })
       .filter((reviewRow): reviewRow is NonNullable<typeof reviewRow> => reviewRow !== null);
 
-    return [...normalizedMovieReviewRows, ...serialReviewRows].sort(
+    const merged = [...normalizedMovieReviewRows, ...serialReviewRows].sort(
       (leftReview, rightReview) =>
         rightReview.createdAt.getTime() - leftReview.createdAt.getTime()
     );
+
+    return limit ? merged.slice(offset ?? 0, (offset ?? 0) + limit) : merged;
   }
 
   static async getReviewDetailByUsername(

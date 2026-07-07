@@ -8,8 +8,8 @@ import { lists, listLikes, listEntries } from "../../lists/lists.entity";
 import { profiles } from "../users.entity";
 
 export class UsersLikesRepository {
-  static async getLikedReviews(userId: string) {
-    const rows = await db
+  static async getLikedReviews(userId: string, limit?: number, offset?: number) {
+    const baseQuery = db
       .select({
         id: reviews.id,
         content: reviews.content,
@@ -32,7 +32,10 @@ export class UsersLikesRepository {
       .innerJoin(user, eq(reviews.userId, user.id))
       .leftJoin(movies, eq(reviews.movieId, movies.id))
       .where(eq(reviewLikes.userId, userId))
-      .orderBy(desc(reviewLikes.createdAt));
+      .orderBy(desc(reviewLikes.createdAt))
+      .$dynamic();
+
+    const rows = await (limit ? baseQuery.limit(limit).offset(offset ?? 0) : baseQuery);
 
     return rows.map((row) => ({
       id: row.id,
@@ -51,8 +54,8 @@ export class UsersLikesRepository {
     }));
   }
 
-  static async getLikedLists(userId: string) {
-    const likedRows = await db
+  static async getLikedLists(userId: string, limit?: number, offset?: number) {
+    const baseQuery = db
       .select({
         listId: listLikes.listId,
         likedAt: listLikes.createdAt,
@@ -71,7 +74,10 @@ export class UsersLikesRepository {
       .innerJoin(lists, eq(listLikes.listId, lists.id))
       .innerJoin(user, eq(lists.userId, user.id))
       .where(eq(listLikes.userId, userId))
-      .orderBy(desc(listLikes.createdAt));
+      .orderBy(desc(listLikes.createdAt))
+      .$dynamic();
+
+    const likedRows = await (limit ? baseQuery.limit(limit).offset(offset ?? 0) : baseQuery);
 
     if (likedRows.length === 0) return [];
 

@@ -96,12 +96,17 @@ export const getUserProfile = async (
   return publicProfileSchema.parse(response);
 };
 
+const toPaginationParams = (limit: number, offset: number): string =>
+  new URLSearchParams({ limit: String(limit), offset: String(offset) }).toString();
+
 export const getUserReviews = async (
   username: string,
+  limit: number,
+  offset: number,
   options: QueryRequestOptions = {},
 ): Promise<UserReview[]> => {
   const response = await apiRequest<unknown>(
-    `/api/users/${encodePathSegment(username)}/reviews`,
+    `/api/users/${encodePathSegment(username)}/reviews?${toPaginationParams(limit, offset)}`,
     {
       method: "GET",
       signal: options.signal,
@@ -113,10 +118,12 @@ export const getUserReviews = async (
 
 export const getUserLikedFilms = async (
   username: string,
+  limit: number,
+  offset: number,
   options: QueryRequestOptions = {},
 ): Promise<UserInteractionMovie[]> => {
   const response = await apiRequest<unknown>(
-    `/api/users/${encodePathSegment(username)}/likes`,
+    `/api/users/${encodePathSegment(username)}/likes?${toPaginationParams(limit, offset)}`,
     {
       method: "GET",
       signal: options.signal,
@@ -163,10 +170,12 @@ export type LikedList = z.infer<typeof likedListSchema>;
 
 export const getUserLikedReviews = async (
   username: string,
+  limit: number,
+  offset: number,
   options: QueryRequestOptions = {},
 ): Promise<LikedReview[]> => {
   const response = await apiRequest<unknown>(
-    `/api/users/${encodePathSegment(username)}/liked-reviews`,
+    `/api/users/${encodePathSegment(username)}/liked-reviews?${toPaginationParams(limit, offset)}`,
     { method: "GET", signal: options.signal },
   );
   return z.array(likedReviewSchema).parse(response);
@@ -174,10 +183,12 @@ export const getUserLikedReviews = async (
 
 export const getUserLikedLists = async (
   username: string,
+  limit: number,
+  offset: number,
   options: QueryRequestOptions = {},
 ): Promise<LikedList[]> => {
   const response = await apiRequest<unknown>(
-    `/api/users/${encodePathSegment(username)}/liked-lists`,
+    `/api/users/${encodePathSegment(username)}/liked-lists?${toPaginationParams(limit, offset)}`,
     { method: "GET", signal: options.signal },
   );
   return z.array(likedListSchema).parse(response);
@@ -185,10 +196,12 @@ export const getUserLikedLists = async (
 
 export const getUserWatchlist = async (
   username: string,
+  limit: number,
+  offset: number,
   options: QueryRequestOptions = {},
 ): Promise<UserInteractionMovie[]> => {
   const response = await apiRequest<unknown>(
-    `/api/users/${encodePathSegment(username)}/watchlist`,
+    `/api/users/${encodePathSegment(username)}/watchlist?${toPaginationParams(limit, offset)}`,
     {
       method: "GET",
       signal: options.signal,

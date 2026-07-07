@@ -1,5 +1,6 @@
 import {
   QueryClient,
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
@@ -72,24 +73,41 @@ export const useUserSearch = (query: string, limit = 8) =>
     enabled: query.trim().length > 0,
   });
 
+// Bounds the underlying request to PROFILE_LIST_PAGE_SIZE items per page
+// instead of fetching a profile's entire collection unbounded - a "load
+// more" click (or none, for small profiles) fetches the next page.
+export const PROFILE_LIST_PAGE_SIZE = 60;
+
+const getNextProfileListPageParam = <T>(lastPage: T[], allPages: T[][]): number | undefined =>
+  lastPage.length === PROFILE_LIST_PAGE_SIZE ? allPages.length * PROFILE_LIST_PAGE_SIZE : undefined;
+
 export const useUserLikedFilms = (username: string) =>
-  useQuery({
+  useInfiniteQuery({
     queryKey: profileKeys.likes(username),
-    queryFn: ({ signal }) => getUserLikedFilms(username, { signal }),
+    queryFn: ({ signal, pageParam }) =>
+      getUserLikedFilms(username, PROFILE_LIST_PAGE_SIZE, pageParam, { signal }),
+    initialPageParam: 0,
+    getNextPageParam: getNextProfileListPageParam,
     enabled: username.trim().length > 0,
   });
 
 export const useUserWatchlist = (username: string) =>
-  useQuery({
+  useInfiniteQuery({
     queryKey: profileKeys.watchlist(username),
-    queryFn: ({ signal }) => getUserWatchlist(username, { signal }),
+    queryFn: ({ signal, pageParam }) =>
+      getUserWatchlist(username, PROFILE_LIST_PAGE_SIZE, pageParam, { signal }),
+    initialPageParam: 0,
+    getNextPageParam: getNextProfileListPageParam,
     enabled: username.trim().length > 0,
   });
 
 export const useUserReviews = (username: string) =>
-  useQuery({
+  useInfiniteQuery({
     queryKey: profileKeys.reviews(username),
-    queryFn: ({ signal }) => getUserReviews(username, { signal }),
+    queryFn: ({ signal, pageParam }) =>
+      getUserReviews(username, PROFILE_LIST_PAGE_SIZE, pageParam, { signal }),
+    initialPageParam: 0,
+    getNextPageParam: getNextProfileListPageParam,
     enabled: username.trim().length > 0,
   });
 
@@ -108,16 +126,22 @@ export const useUserRecentActivity = (username: string, limit = 20) =>
   });
 
 export const useUserLikedReviews = (username: string) =>
-  useQuery({
+  useInfiniteQuery({
     queryKey: profileKeys.likedReviews(username),
-    queryFn: ({ signal }) => getUserLikedReviews(username, { signal }),
+    queryFn: ({ signal, pageParam }) =>
+      getUserLikedReviews(username, PROFILE_LIST_PAGE_SIZE, pageParam, { signal }),
+    initialPageParam: 0,
+    getNextPageParam: getNextProfileListPageParam,
     enabled: username.trim().length > 0,
   });
 
 export const useUserLikedLists = (username: string) =>
-  useQuery({
+  useInfiniteQuery({
     queryKey: profileKeys.likedLists(username),
-    queryFn: ({ signal }) => getUserLikedLists(username, { signal }),
+    queryFn: ({ signal, pageParam }) =>
+      getUserLikedLists(username, PROFILE_LIST_PAGE_SIZE, pageParam, { signal }),
+    initialPageParam: 0,
+    getNextPageParam: getNextProfileListPageParam,
     enabled: username.trim().length > 0,
   });
 

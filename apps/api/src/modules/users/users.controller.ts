@@ -8,8 +8,10 @@ import {
   SearchUsersQuerySchema,
   UpdateProfileSchema,
   UpdateThemeSchema,
+  type ProfileListQueryDto,
   type SearchUsersQueryDto,
 } from "./dto/users.dto";
+import { parseProfileListPagination } from "./helpers/users-pagination.helper";
 
 export class UsersController {
   static async getNetworkStats(_req: Request, res: Response): Promise<void> {
@@ -46,7 +48,7 @@ export class UsersController {
   }
 
   static async getUserReviews(
-    req: Request<{ username: string }>,
+    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
     res: Response,
   ): Promise<void> {
     const profile = await UsersService.findByUsername(req.params.username);
@@ -54,7 +56,8 @@ export class UsersController {
       res.status(404).json({ error: "User not found" });
       return;
     }
-    const userReviews = await UsersService.getReviewsWithMovies(profile.id);
+    const { limit, offset } = parseProfileListPagination(req.query);
+    const userReviews = await UsersService.getReviewsWithMovies(profile.id, limit, offset);
     res.status(200).json(userReviews);
   }
 
@@ -84,7 +87,7 @@ export class UsersController {
   }
 
   static async getUserLikes(
-    req: Request<{ username: string }>,
+    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
     res: Response,
   ): Promise<void> {
     const profile = await UsersService.findByUsername(req.params.username);
@@ -92,12 +95,13 @@ export class UsersController {
       res.status(404).json({ error: "User not found" });
       return;
     }
-    const liked = await UsersService.getLikedFilms(profile.id);
+    const { limit, offset } = parseProfileListPagination(req.query);
+    const liked = await UsersService.getLikedFilms(profile.id, limit, offset);
     res.status(200).json(liked);
   }
 
   static async getUserLikedReviews(
-    req: Request<{ username: string }>,
+    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
     res: Response,
   ): Promise<void> {
     const profile = await UsersService.findByUsername(req.params.username);
@@ -105,12 +109,13 @@ export class UsersController {
       res.status(404).json({ error: "User not found" });
       return;
     }
-    const liked = await UsersService.getLikedReviews(profile.id);
+    const { limit, offset } = parseProfileListPagination(req.query);
+    const liked = await UsersService.getLikedReviews(profile.id, limit, offset);
     res.status(200).json(liked);
   }
 
   static async getUserLikedLists(
-    req: Request<{ username: string }>,
+    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
     res: Response,
   ): Promise<void> {
     const profile = await UsersService.findByUsername(req.params.username);
@@ -118,12 +123,13 @@ export class UsersController {
       res.status(404).json({ error: "User not found" });
       return;
     }
-    const liked = await UsersService.getLikedLists(profile.id);
+    const { limit, offset } = parseProfileListPagination(req.query);
+    const liked = await UsersService.getLikedLists(profile.id, limit, offset);
     res.status(200).json(liked);
   }
 
   static async getUserWatchlist(
-    req: Request<{ username: string }>,
+    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
     res: Response,
   ): Promise<void> {
     const profile = await UsersService.findByUsername(req.params.username);
@@ -132,7 +138,8 @@ export class UsersController {
       return;
     }
 
-    const watchlist = await UsersService.getWatchlistedFilms(profile.id);
+    const { limit, offset } = parseProfileListPagination(req.query);
+    const watchlist = await UsersService.getWatchlistedFilms(profile.id, limit, offset);
     res.status(200).json(watchlist);
   }
 

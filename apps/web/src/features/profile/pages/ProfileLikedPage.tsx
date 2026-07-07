@@ -308,9 +308,9 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
   const reviewsQuery = useUserLikedReviews(username);
   const listsQuery = useUserLikedLists(username);
 
-  const mediaItems = mediasQuery.data ?? [];
-  const reviewItems = reviewsQuery.data ?? [];
-  const listItems = listsQuery.data ?? [];
+  const mediaItems = mediasQuery.data?.pages.flat() ?? [];
+  const reviewItems = reviewsQuery.data?.pages.flat() ?? [];
+  const listItems = listsQuery.data?.pages.flat() ?? [];
 
   const filteredReviews = useMemo(() => {
     if (reviewFilter === "all") return reviewItems;
@@ -398,6 +398,19 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
           ) : (
             <MediaGrid items={mediaItems} filter={mediaFilter} />
           )}
+
+          {mediasQuery.hasNextPage ? (
+            <div className="mt-5 flex justify-center">
+              <button
+                type="button"
+                disabled={mediasQuery.isFetchingNextPage}
+                onClick={() => { void mediasQuery.fetchNextPage(); }}
+                className="border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {mediasQuery.isFetchingNextPage ? "Loading..." : "Load more"}
+              </button>
+            </div>
+          ) : null}
         </>
       ) : null}
 
@@ -428,6 +441,19 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
               ))}
             </div>
           )}
+
+          {reviewsQuery.hasNextPage ? (
+            <div className="mt-5 flex justify-center">
+              <button
+                type="button"
+                disabled={reviewsQuery.isFetchingNextPage}
+                onClick={() => { void reviewsQuery.fetchNextPage(); }}
+                className="border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {reviewsQuery.isFetchingNextPage ? "Loading..." : "Load more"}
+              </button>
+            </div>
+          ) : null}
         </>
       ) : null}
 
@@ -458,6 +484,19 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
               ))}
             </div>
           )}
+
+          {listsQuery.hasNextPage ? (
+            <div className="mt-5 flex justify-center">
+              <button
+                type="button"
+                disabled={listsQuery.isFetchingNextPage}
+                onClick={() => { void listsQuery.fetchNextPage(); }}
+                className="border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {listsQuery.isFetchingNextPage ? "Loading..." : "Load more"}
+              </button>
+            </div>
+          ) : null}
         </>
       ) : null}
     </div>

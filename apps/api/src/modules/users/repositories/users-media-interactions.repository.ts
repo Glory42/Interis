@@ -5,7 +5,12 @@ import { movies } from "../../movies/movies.entity";
 import { serialInteractions, tvSeries } from "../../serials/serials.entity";
 
 export class UsersMediaInteractionsRepository {
-  static async getLikedFilms(userId: string, limit?: number) {
+  static async getLikedFilms(userId: string, limit?: number, offset?: number) {
+    // Fetch enough of each source to cover through offset+limit, then merge,
+    // sort, and slice the exact page - avoids ever pulling the whole
+    // collection just to paginate it.
+    const fetchCap = limit ? limit + (offset ?? 0) : undefined;
+
     const movieQ = db
       .select({
         tmdbId: movies.tmdbId,
@@ -37,16 +42,23 @@ export class UsersMediaInteractionsRepository {
       .where(and(eq(serialInteractions.userId, userId), eq(serialInteractions.liked, true)));
 
     const [movieRows, serialRows] = await Promise.all([
-      limit ? movieQ.limit(limit) : movieQ,
-      limit ? serialQ.limit(limit) : serialQ,
+      fetchCap ? movieQ.limit(fetchCap) : movieQ,
+      fetchCap ? serialQ.limit(fetchCap) : serialQ,
     ]);
 
-    return [...movieRows, ...serialRows].sort(
+    const merged = [...movieRows, ...serialRows].sort(
       (left, right) => right.lastInteractionAt.getTime() - left.lastInteractionAt.getTime(),
     );
+
+    return limit ? merged.slice(offset ?? 0, (offset ?? 0) + limit) : merged;
   }
 
-  static async getWatchlistedFilms(userId: string, limit?: number) {
+  static async getWatchlistedFilms(userId: string, limit?: number, offset?: number) {
+    // Fetch enough of each source to cover through offset+limit, then merge,
+    // sort, and slice the exact page - avoids ever pulling the whole
+    // collection just to paginate it.
+    const fetchCap = limit ? limit + (offset ?? 0) : undefined;
+
     const movieQ = db
       .select({
         tmdbId: movies.tmdbId,
@@ -78,12 +90,14 @@ export class UsersMediaInteractionsRepository {
       .where(and(eq(serialInteractions.userId, userId), eq(serialInteractions.watchlisted, true)));
 
     const [movieRows, serialRows] = await Promise.all([
-      limit ? movieQ.limit(limit) : movieQ,
-      limit ? serialQ.limit(limit) : serialQ,
+      fetchCap ? movieQ.limit(fetchCap) : movieQ,
+      fetchCap ? serialQ.limit(fetchCap) : serialQ,
     ]);
 
-    return [...movieRows, ...serialRows].sort(
+    const merged = [...movieRows, ...serialRows].sort(
       (left, right) => right.lastInteractionAt.getTime() - left.lastInteractionAt.getTime(),
     );
+
+    return limit ? merged.slice(offset ?? 0, (offset ?? 0) + limit) : merged;
   }
 }

@@ -110,7 +110,7 @@ const ReviewStars = ({
 
 export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
   const reviewsQuery = useUserReviews(username);
-  const reviews = reviewsQuery.data ?? [];
+  const reviews = reviewsQuery.data?.pages.flat() ?? [];
   const [revealedSpoilersById, setRevealedSpoilersById] = useState<
     Record<string, boolean>
   >({});
@@ -270,6 +270,19 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
           </article>
         ))}
       </div>
+
+      {reviewsQuery.hasNextPage ? (
+        <div className="mt-5 flex justify-center">
+          <button
+            type="button"
+            disabled={reviewsQuery.isFetchingNextPage}
+            onClick={() => { void reviewsQuery.fetchNextPage(); }}
+            className="border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {reviewsQuery.isFetchingNextPage ? "Loading..." : "Load more"}
+          </button>
+        </div>
+      ) : null}
     </>
   );
 };

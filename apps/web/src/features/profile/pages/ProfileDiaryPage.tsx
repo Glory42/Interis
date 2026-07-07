@@ -15,8 +15,11 @@ export const ProfileDiaryPage = ({ username }: ProfileDiaryPageProps) => {
   const likedQuery = useUserLikedFilms(username);
 
   const likedTmdbIdSet = useMemo(() => {
+    // Only the first page of liked films is loaded here - fine for marking
+    // recently-liked diary rows, and avoids fetching a profile's entire
+    // liked collection just to compute this lookup set.
     return new Set(
-      (likedQuery.data ?? [])
+      (likedQuery.data?.pages.flat() ?? [])
         .filter((item) => item.mediaType === "movie")
         .map((movie) => movie.tmdbId),
     );

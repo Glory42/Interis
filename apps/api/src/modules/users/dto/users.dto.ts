@@ -128,7 +128,16 @@ export const SearchUsersQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(20).optional(),
 });
 
+// Bounds unpaginated profile-list endpoints (likes, watchlist, reviews,
+// liked-reviews, liked-lists) so a large collection can't be fetched in
+// one unbounded request.
+export const ProfileListQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+});
+
 export type UpdateProfileDto = z.infer<typeof UpdateProfileSchema>;
 export type UpdateThemeDto = z.infer<typeof UpdateThemeSchema>;
 export type SearchUsersQueryDto = z.infer<typeof SearchUsersQuerySchema>;
 export type UpdateTopPicksInput = z.infer<typeof TopPicksSchema>;
+export type ProfileListQueryDto = z.infer<typeof ProfileListQuerySchema>;
