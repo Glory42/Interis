@@ -5,6 +5,7 @@ import {
   type MovieInteraction,
   type UpdateMovieInteractionInput,
 } from "@/features/interactions/api";
+import { movieKeys } from "@/features/films/hooks/useMovies";
 
 export const interactionKeys = {
   detail: (tmdbId: number) => ["interactions", "movie", tmdbId] as const,
@@ -66,7 +67,14 @@ export const useUpdateMovieInteraction = (tmdbId: number) => {
           queryKey: interactionKeys.detail(tmdbId),
         }),
         queryClient.invalidateQueries({
-          queryKey: ["movies"],
+          queryKey: movieKeys.detail(tmdbId),
+        }),
+        // Prefix-matches every reviewsSort variant for this movie only.
+        queryClient.invalidateQueries({
+          queryKey: ["movies", "detail-view", tmdbId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: movieKeys.logs(tmdbId),
         }),
       ]);
     },

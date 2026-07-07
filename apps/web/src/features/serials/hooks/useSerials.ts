@@ -142,7 +142,14 @@ export const useUpdateSeriesInteraction = (tmdbId: number) => {
           queryKey: serialKeys.interaction(tmdbId),
         }),
         queryClient.invalidateQueries({
-          queryKey: ["serials"],
+          queryKey: serialKeys.detail(tmdbId),
+        }),
+        // Prefix-matches every reviewsSort variant for this series only.
+        queryClient.invalidateQueries({
+          queryKey: ["serials", "detail-view", tmdbId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: serialKeys.logs(tmdbId),
         }),
       ]);
     },

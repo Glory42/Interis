@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { fetchTMDB } from "./base-client";
+import { createCachedTmdbFetcher } from "./tmdb-cache.helper";
 import {
   TMDBDiscoverMovieSchema,
   TMDBDiscoverMoviesSchema,
@@ -27,47 +28,14 @@ export type {
   TMDBSearchMovie,
 } from "./dto/cinemas-response.dto";
 
-const DIRECTOR_CACHE_TTL_MS = 30 * 60 * 1000;
-const DIRECTOR_CACHE_MAX_ENTRIES = 1_000;
 const MOVIE_GENRE_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
-
-type DirectorCacheEntry = {
-  value: string | null;
-  expiresAt: number;
-};
 
 type GenreCacheEntry = {
   value: TMDBMovieGenre[];
   expiresAt: number;
 };
 
-const directorCache = new Map<number, DirectorCacheEntry>();
-const directorInFlight = new Map<number, Promise<string | null>>();
 let movieGenreCache: GenreCacheEntry | null = null;
-
-const pruneDirectorCache = (now: number): void => {
-  for (const [cachedTmdbId, cacheEntry] of directorCache) {
-    if (cacheEntry.expiresAt <= now) {
-      directorCache.delete(cachedTmdbId);
-    }
-  }
-
-  if (directorCache.size <= DIRECTOR_CACHE_MAX_ENTRIES) {
-    return;
-  }
-
-  const overflow = directorCache.size - DIRECTOR_CACHE_MAX_ENTRIES;
-  const cacheKeys = directorCache.keys();
-
-  for (let index = 0; index < overflow; index += 1) {
-    const nextKey = cacheKeys.next();
-    if (nextKey.done) {
-      break;
-    }
-
-    directorCache.delete(nextKey.value);
-  }
-};
 
 export const searchMovies = async (
   query: string,
@@ -224,65 +192,22 @@ export const discoverMovies = async (input: {
   };
 };
 
-export const getMovieDetails = async (
-  tmdbId: number,
-): Promise<TMDBMovieDetail> => {
+export const getMovieDetails = createCachedTmdbFetcher(async (tmdbId) => {
   const data = await fetchTMDB(`/movie/${tmdbId}?language=en-US`);
   return TMDBMovieDetailSchema.parse(data);
-};
+});
 
-export const getMovieCredits = async (
-  tmdbId: number,
-): Promise<TMDBMovieCredits> => {
+export const getMovieCredits = createCachedTmdbFetcher(async (tmdbId) => {
   const data = await fetchTMDB(`/movie/${tmdbId}/credits?language=en-US`);
   return TMDBMovieCreditsSchema.parse(data);
-};
+});
 
-export const getMovieDirector = async (
-  tmdbId: number,
-): Promise<string | null> => {
-  const now = Date.now();
-  const cached = directorCache.get(tmdbId);
+export const getMovieDirector = createCachedTmdbFetcher(async (tmdbId) => {
+  const credits = await getMovieCredits(tmdbId);
+  return credits.crew.find((member) => member.job === "Director")?.name ?? null;
+});
 
-  if (cached && cached.expiresAt > now) {
-    return cached.value;
-  }
-
-  if (cached) {
-    directorCache.delete(tmdbId);
-  }
-
-  const inFlightRequest = directorInFlight.get(tmdbId);
-  if (inFlightRequest) {
-    return inFlightRequest;
-  }
-
-  const requestPromise = (async () => {
-    const credits = await getMovieCredits(tmdbId);
-    const director =
-      credits.crew.find((member) => member.job === "Director")?.name ?? null;
-
-    directorCache.set(tmdbId, {
-      value: director,
-      expiresAt: Date.now() + DIRECTOR_CACHE_TTL_MS,
-    });
-    pruneDirectorCache(Date.now());
-
-    return director;
-  })();
-
-  directorInFlight.set(tmdbId, requestPromise);
-
-  try {
-    return await requestPromise;
-  } finally {
-    directorInFlight.delete(tmdbId);
-  }
-};
-
-export const getSimilarMovies = async (
-  tmdbId: number,
-): Promise<TMDBDiscoverMovie[]> => {
+export const getSimilarMovies = createCachedTmdbFetcher(async (tmdbId) => {
   try {
     const data = await fetchTMDB(`/movie/${tmdbId}/recommendations?language=en-US&page=1`);
     const parsed = TMDBDiscoverMoviesSchema.parse(data);
@@ -300,4 +225,4 @@ export const getSimilarMovies = async (
   } catch (error) {
     return [];
   }
-};
+});

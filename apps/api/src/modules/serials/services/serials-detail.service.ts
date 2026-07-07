@@ -131,65 +131,65 @@ export class SerialsDetailService {
     const viewerDiary = viewerDiaryRow[0] ?? null;
     const viewerReview = viewerReviewRow[0] ?? null;
 
-    const creators = await PeopleCacheService.ensurePersonLinks(
-      (tmdbDetail?.created_by ?? []).map((creator) => ({
-        tmdbPersonId: creator.id,
-        name: creator.name,
-        profilePath: creator.profile_path,
-        knownForDepartment: creator.known_for_department,
-        routeRole: "director" as const,
-        job: "Creator",
-        department: "Production",
-      })),
-    );
+    const [creators, cast, crew] = await Promise.all([
+      PeopleCacheService.ensurePersonLinks(
+        (tmdbDetail?.created_by ?? []).map((creator) => ({
+          tmdbPersonId: creator.id,
+          name: creator.name,
+          profilePath: creator.profile_path,
+          knownForDepartment: creator.known_for_department,
+          routeRole: "director" as const,
+          job: "Creator",
+          department: "Production",
+        })),
+      ),
+      PeopleCacheService.ensurePersonLinks(
+        [...(tmdbAggregateCredits?.cast ?? [])]
+          .sort((leftMember, rightMember) => leftMember.order - rightMember.order)
+          .slice(0, 24)
+          .map((castMember) => {
+            const castCharacters = toDistinctValues(
+              castMember.roles.map((role) => role.character),
+            );
 
-    const cast = await PeopleCacheService.ensurePersonLinks(
-      [...(tmdbAggregateCredits?.cast ?? [])]
-        .sort((leftMember, rightMember) => leftMember.order - rightMember.order)
-        .slice(0, 24)
-        .map((castMember) => {
-          const castCharacters = toDistinctValues(
-            castMember.roles.map((role) => role.character),
-          );
+            return {
+              tmdbPersonId: castMember.id,
+              name: castMember.name,
+              profilePath: castMember.profile_path,
+              knownForDepartment: castMember.known_for_department,
+              popularity: castMember.popularity,
+              routeRole: "actor" as const,
+              character:
+                castCharacters.length > 0 ? castCharacters.slice(0, 2).join(" / ") : null,
+              department: "Acting",
+            };
+          }),
+      ),
+      PeopleCacheService.ensurePersonLinks(
+        [...(tmdbAggregateCredits?.crew ?? [])]
+          .filter((crewMember) => RELEVANT_CREW_DEPARTMENTS.has(crewMember.department))
+          .sort(
+            (leftMember, rightMember) =>
+              rightMember.total_episode_count - leftMember.total_episode_count,
+          )
+          .slice(0, 20)
+          .map((crewMember) => {
+            const crewJobs = toDistinctValues(crewMember.jobs.map((job) => job.job));
 
-          return {
-            tmdbPersonId: castMember.id,
-            name: castMember.name,
-            profilePath: castMember.profile_path,
-            knownForDepartment: castMember.known_for_department,
-            popularity: castMember.popularity,
-            routeRole: "actor" as const,
-            character:
-              castCharacters.length > 0 ? castCharacters.slice(0, 2).join(" / ") : null,
-            department: "Acting",
-          };
-        }),
-    );
-
-    const crew = await PeopleCacheService.ensurePersonLinks(
-      [...(tmdbAggregateCredits?.crew ?? [])]
-        .filter((crewMember) => RELEVANT_CREW_DEPARTMENTS.has(crewMember.department))
-        .sort(
-          (leftMember, rightMember) =>
-            rightMember.total_episode_count - leftMember.total_episode_count,
-        )
-        .slice(0, 20)
-        .map((crewMember) => {
-          const crewJobs = toDistinctValues(crewMember.jobs.map((job) => job.job));
-
-          return {
-            tmdbPersonId: crewMember.id,
-            name: crewMember.name,
-            profilePath: crewMember.profile_path,
-            knownForDepartment:
-              crewMember.known_for_department ?? toNullableTrimmedText(crewMember.department),
-            popularity: crewMember.popularity,
-            routeRole: "director" as const,
-            job: crewJobs.length > 0 ? crewJobs.slice(0, 2).join(", ") : null,
-            department: toNullableTrimmedText(crewMember.department),
-          };
-        }),
-    );
+            return {
+              tmdbPersonId: crewMember.id,
+              name: crewMember.name,
+              profilePath: crewMember.profile_path,
+              knownForDepartment:
+                crewMember.known_for_department ?? toNullableTrimmedText(crewMember.department),
+              popularity: crewMember.popularity,
+              routeRole: "director" as const,
+              job: crewJobs.length > 0 ? crewJobs.slice(0, 2).join(", ") : null,
+              department: toNullableTrimmedText(crewMember.department),
+            };
+          }),
+      ),
+    ]);
 
     const resolvedCreatorName =
       creators[0]?.name ?? cachedSeries.creator ?? normalizedTmdbDetail?.creator ?? null;

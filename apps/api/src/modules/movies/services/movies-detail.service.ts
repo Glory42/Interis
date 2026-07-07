@@ -70,34 +70,35 @@ export class MoviesDetailService {
       );
     }
 
-    const directors = await PeopleCacheService.ensurePersonLinks(
-      [...uniqueDirectorCredits.values()].map((directorCredit) => ({
-        tmdbPersonId: directorCredit.id,
-        name: directorCredit.name,
-        profilePath: directorCredit.profile_path,
-        knownForDepartment: directorCredit.known_for_department,
-        popularity: directorCredit.popularity,
-        routeRole: "director" as const,
-        job: directorCredit.job,
-        department: directorCredit.department,
-      })),
-    );
-
-    const cast = await PeopleCacheService.ensurePersonLinks(
-      [...(tmdbCredits?.cast ?? [])]
-        .sort((leftMember, rightMember) => leftMember.order - rightMember.order)
-        .slice(0, 20)
-        .map((castMember) => ({
-          tmdbPersonId: castMember.id,
-          name: castMember.name,
-          profilePath: castMember.profile_path,
-          knownForDepartment: castMember.known_for_department,
-          popularity: castMember.popularity,
-          routeRole: "actor" as const,
-          character: castMember.character,
-          department: castMember.known_for_department,
+    const [directors, cast] = await Promise.all([
+      PeopleCacheService.ensurePersonLinks(
+        [...uniqueDirectorCredits.values()].map((directorCredit) => ({
+          tmdbPersonId: directorCredit.id,
+          name: directorCredit.name,
+          profilePath: directorCredit.profile_path,
+          knownForDepartment: directorCredit.known_for_department,
+          popularity: directorCredit.popularity,
+          routeRole: "director" as const,
+          job: directorCredit.job,
+          department: directorCredit.department,
         })),
-    );
+      ),
+      PeopleCacheService.ensurePersonLinks(
+        [...(tmdbCredits?.cast ?? [])]
+          .sort((leftMember, rightMember) => leftMember.order - rightMember.order)
+          .slice(0, 20)
+          .map((castMember) => ({
+            tmdbPersonId: castMember.id,
+            name: castMember.name,
+            profilePath: castMember.profile_path,
+            knownForDepartment: castMember.known_for_department,
+            popularity: castMember.popularity,
+            routeRole: "actor" as const,
+            character: castMember.character,
+            department: castMember.known_for_department,
+          })),
+      ),
+    ]);
 
     const reviewIds = reviewRows.map((reviewRow) => reviewRow.id);
 
