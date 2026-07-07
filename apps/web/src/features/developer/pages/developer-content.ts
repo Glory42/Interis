@@ -73,6 +73,14 @@ export const publicSurface: readonly PublicEndpoint[] = [
     path: "/api/public/:username/serials/currently-watching",
     description: "Serials started but not finished, most recently watched first.",
   },
+  {
+    path: "/api/public/:username/movies/watched",
+    description: "Watched movies (film-only).",
+  },
+  {
+    path: "/api/public/:username/serials/watched",
+    description: "Fully watched serials (series-only).",
+  },
 ] as const;
 
 export const codeExamples: readonly CodeExample[] = [

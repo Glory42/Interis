@@ -8,6 +8,7 @@ import { SerialsArchiveService } from "./services/serials-archive.service";
 import { SerialsActivityService } from "./services/serials-activity.service";
 import { SerialsCacheService } from "./services/serials-cache.service";
 import { SerialsDetailService } from "./services/serials-detail.service";
+import { SerialsInteractionsRepository } from "./repositories/serials-interactions.repository";
 import type {
   NormalizedSerialArchiveQuery,
   CreateSerialLogDto,
@@ -106,5 +107,9 @@ export class SerialsService {
 
   static async getRecent(): Promise<TMDBSearchSeries[]> {
     return tmdbOnAir();
+  }
+
+  static async getWatchedSeries(userId: string, limit?: number, offset?: number) {
+    return SerialsInteractionsRepository.getWatchedSeriesForUser(userId, limit, offset);
   }
 }

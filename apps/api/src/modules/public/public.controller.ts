@@ -106,6 +106,38 @@ export class PublicController {
     PublicController.sendPublicResponse(res, data);
   }
 
+  // GET /api/public/:username/movies/watched?limit=50
+  static async getWatchedFilms(
+    req: Request<{ username: string }, unknown, unknown, PublicCollectionQueryDto>,
+    res: Response,
+  ): Promise<void> {
+    const limit = normalizePublicCollectionLimit(req.query.limit);
+    const data = await PublicService.getWatchedFilms(req.params.username, limit);
+
+    if (!data) {
+      PublicController.sendUserNotFound(res);
+      return;
+    }
+
+    PublicController.sendPublicResponse(res, data);
+  }
+
+  // GET /api/public/:username/serials/watched?limit=50
+  static async getSerialsWatched(
+    req: Request<{ username: string }, unknown, unknown, PublicCollectionQueryDto>,
+    res: Response,
+  ): Promise<void> {
+    const limit = normalizePublicCollectionLimit(req.query.limit);
+    const data = await PublicService.getSerialsWatched(req.params.username, limit);
+
+    if (!data) {
+      PublicController.sendUserNotFound(res);
+      return;
+    }
+
+    PublicController.sendPublicResponse(res, data);
+  }
+
   // GET /api/public/:username/likes?limit=50
   static async getLikes(
     req: Request<{ username: string }, unknown, unknown, PublicCollectionQueryDto>,

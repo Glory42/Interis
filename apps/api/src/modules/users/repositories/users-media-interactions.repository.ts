@@ -1,10 +1,31 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { movieInteractions } from "../../interactions/interactions.entity";
 import { movies } from "../../movies/movies.entity";
 import { serialInteractions, tvSeries } from "../../serials/serials.entity";
 
 export class UsersMediaInteractionsRepository {
+  static async getWatchedFilms(userId: string, limit?: number, offset?: number) {
+    const baseQuery = db
+      .select({
+        tmdbId: movies.tmdbId,
+        title: movies.title,
+        posterPath: movies.posterPath,
+        releaseYear: movies.releaseYear,
+        runtime: movies.runtime,
+        genres: movies.genres,
+        mediaType: sql<"movie">`'movie'`,
+        lastInteractionAt: movieInteractions.updatedAt,
+      })
+      .from(movieInteractions)
+      .innerJoin(movies, eq(movieInteractions.movieId, movies.id))
+      .where(and(eq(movieInteractions.userId, userId), eq(movieInteractions.isWatched, true)))
+      .orderBy(desc(movieInteractions.updatedAt))
+      .$dynamic();
+
+    return limit ? baseQuery.limit(limit).offset(offset ?? 0) : baseQuery;
+  }
+
   static async getLikedFilms(userId: string, limit?: number, offset?: number) {
     // Fetch enough of each source to cover through offset+limit, then merge,
     // sort, and slice the exact page - avoids ever pulling the whole

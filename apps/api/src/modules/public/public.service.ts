@@ -22,6 +22,7 @@ import type {
 } from "./dto/public.dto";
 import { SerialsDetailService } from "../serials/services/serials-detail.service";
 import { SerialsCurrentlyWatchingService } from "../serials/services/serials-currently-watching.service";
+import { SerialsService } from "../serials/serials.service";
 
 const toTimestamp = (value: string | Date): number => {
   if (value instanceof Date) {
@@ -89,6 +90,26 @@ export class PublicService {
 
     const allReviews = await UsersService.getReviewsWithMovies(userId, limit);
     return allReviews.slice(0, limit);
+  }
+
+  static async getWatchedFilms(username: string, limit = 50) {
+    const userId = await PublicService.findUserIdByUsername(username);
+    if (!userId) {
+      return null;
+    }
+
+    const watched = await UsersService.getWatchedFilms(userId, limit);
+    return watched.slice(0, limit);
+  }
+
+  static async getSerialsWatched(username: string, limit = 50) {
+    const userId = await PublicService.findUserIdByUsername(username);
+    if (!userId) {
+      return null;
+    }
+
+    const watched = await SerialsService.getWatchedSeries(userId, limit);
+    return watched.slice(0, limit);
   }
 
   static async getLikes(username: string, limit = 50) {

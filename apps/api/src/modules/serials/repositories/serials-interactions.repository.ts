@@ -129,6 +129,32 @@ export class SerialsInteractionsRepository {
     return upserted ?? null;
   }
 
+  // Fully watched series, most recently marked watched first. isWatched is
+  // a series-level flag that can be set independently of any per-episode
+  // rows (see setWatched below), so this queries serialInteractions
+  // directly rather than deriving completion from episode counts.
+  static async getWatchedSeriesForUser(userId: string, limit?: number, offset?: number) {
+    const baseQuery = db
+      .select({
+        tmdbId: tvSeries.tmdbId,
+        title: tvSeries.title,
+        posterPath: tvSeries.posterPath,
+        backdropPath: tvSeries.backdropPath,
+        firstAirYear: tvSeries.firstAirYear,
+        numberOfSeasons: tvSeries.numberOfSeasons,
+        numberOfEpisodes: tvSeries.numberOfEpisodes,
+        mediaType: sql<"tv">`'tv'`,
+        lastInteractionAt: serialInteractions.updatedAt,
+      })
+      .from(serialInteractions)
+      .innerJoin(tvSeries, eq(serialInteractions.seriesId, tvSeries.id))
+      .where(and(eq(serialInteractions.userId, userId), eq(serialInteractions.isWatched, true)))
+      .orderBy(desc(serialInteractions.updatedAt))
+      .$dynamic();
+
+    return limit ? baseQuery.limit(limit).offset(offset ?? 0) : baseQuery;
+  }
+
   static async setWatched(userId: string, seriesId: number): Promise<void> {
     await db
       .insert(serialInteractions)

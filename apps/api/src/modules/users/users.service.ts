@@ -45,6 +45,10 @@ export class UsersService {
     return UsersReadService.getReviewDetailByUsername(username, reviewId, viewerUserId);
   }
 
+  static async getWatchedFilms(userId: string, limit?: number, offset?: number) {
+    return UsersReadService.getWatchedFilms(userId, limit, offset);
+  }
+
   static async getLikedFilms(userId: string, limit?: number, offset?: number) {
     return UsersReadService.getLikedFilms(userId, limit, offset);
   }

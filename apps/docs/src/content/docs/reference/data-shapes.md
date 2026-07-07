@@ -94,6 +94,8 @@ Key fields:
 - `runtime`, `genres`, `mediaType`
 - `lastInteractionAt`
 
+Note: `/likes` and `/watchlist` mix both `movie` and `tv` rows. `/movies/watched` uses this exact same row shape but is film-only. `/serials/watched` has a different, series-specific shape — see the Watched Serials payload section below.
+
 ## List row (`/lists`)
 
 Key fields:
@@ -130,3 +132,16 @@ An array of in-progress series, most recently watched first. Key fields per item
 - progress: `watchedEpisodesCount`, `progressPercent` (0–100, rounded)
 - `lastWatchedAt`: timestamp of the most recently watched episode.
 - `currentEpisode` (Up Next): `{ seasonNumber, episodeNumber, name }`, or `null` if the cached episode total is behind TMDB's true count.
+
+## Watched Movies payload (`/movies/watched`)
+
+Same row shape as [Interaction rows](#interaction-rows-likes-watchlist) above, but film-only (`mediaType` is always `"movie"`) and filtered to the movie interaction's `isWatched` flag rather than `liked`/`watchlisted`.
+
+## Watched Serials payload (`/serials/watched`)
+
+An array of fully watched series (`mediaType` always `"tv"`). Key fields per item:
+
+- series info: `tmdbId`, `title`, `posterPath`, `backdropPath`, `firstAirYear`, `numberOfSeasons`, `numberOfEpisodes`
+- `lastInteractionAt`: when the series was marked watched (or last touched since).
+
+No episode-level progress fields — this reflects the series-level `isWatched` flag only, not derived from per-episode completion. For per-episode detail on one series, use [Serials Progress](/api/endpoints/serials-progress/).
