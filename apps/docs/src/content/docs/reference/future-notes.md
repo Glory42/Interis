@@ -10,7 +10,7 @@ This page documents likely next areas without treating them as shipped features.
 - Public routes are read-only and username-based.
 - No auth token system for public endpoints.
 - No cursor pagination yet.
-- Public responses are `no-store`.
+- Public responses are cached (`Cache-Control: public, max-age=60, stale-while-revalidate=120`), not `no-store`.
 
 ## Potential near-term improvements
 
