@@ -6,6 +6,7 @@ import {
   boolean,
   uuid,
   unique,
+  index,
 } from "drizzle-orm/pg-core";
 import { user } from "../../infrastructure/database/auth.entity";
 import { movies } from "../movies/movies.entity";
@@ -41,26 +42,31 @@ export const reviews = pgTable(
       table.mediaSource,
       table.mediaSourceId,
     ),
+    index("review_movie_id_idx").on(table.movieId),
   ],
 );
 
-export const comments = pgTable("comment", {
-  id: uuid("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  reviewId: uuid("review_id")
-    .notNull()
-    .references(() => reviews.id, { onDelete: "cascade" }),
-  content: text("content").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at")
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
-});
+export const comments = pgTable(
+  "comment",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    reviewId: uuid("review_id")
+      .notNull()
+      .references(() => reviews.id, { onDelete: "cascade" }),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("comment_review_id_idx").on(table.reviewId)],
+);
 
 export const reviewLikes = pgTable(
   "review_like",

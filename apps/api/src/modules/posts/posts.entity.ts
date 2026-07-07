@@ -5,6 +5,7 @@ import {
   timestamp,
   uuid,
   unique,
+  index,
   pgEnum,
 } from "drizzle-orm/pg-core";
 import { user } from "../../infrastructure/database/auth.entity";
@@ -46,20 +47,24 @@ export const postLikes = pgTable(
   (table) => [unique("post_likes_unique").on(table.userId, table.postId)],
 );
 
-export const postComments = pgTable("post_comment", {
-  id: uuid("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  postId: uuid("post_id")
-    .notNull()
-    .references(() => posts.id, { onDelete: "cascade" }),
-  content: text("content").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at")
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
-});
+export const postComments = pgTable(
+  "post_comment",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    postId: uuid("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("post_comment_post_id_idx").on(table.postId)],
+);

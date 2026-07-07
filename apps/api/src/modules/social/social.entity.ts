@@ -4,6 +4,7 @@ import {
   timestamp,
   uuid,
   unique,
+  index,
   pgEnum,
 } from "drizzle-orm/pg-core";
 import { user } from "../../infrastructure/database/auth.entity";
@@ -35,18 +36,25 @@ export const follows = pgTable(
   (table) => [unique("follows_unique").on(table.followerId, table.followingId)],
 );
 
-export const activities = pgTable("activity", {
-  id: uuid("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  type: activityTypeEnum("type").notNull(),
-  entityId: text("entity_id").notNull(),
-  metadata: text("metadata"), // JSON string
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const activities = pgTable(
+  "activity",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    type: activityTypeEnum("type").notNull(),
+    entityId: text("entity_id").notNull(),
+    metadata: text("metadata"), // JSON string
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    // Backs the feed query: WHERE user_id IN (...) ORDER BY created_at DESC
+    index("activity_user_id_created_at_idx").on(table.userId, table.createdAt),
+  ],
+);
 
 export const activityLikes = pgTable(
   "activity_like",
