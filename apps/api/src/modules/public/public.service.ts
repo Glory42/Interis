@@ -15,11 +15,13 @@ import { PublicTopPicksService } from "./services/public-top-picks.service";
 
 import type {
   PublicProfileResponse,
+  PublicCurrentlyWatchingSeries,
   PublicDiaryItem,
   PublicList,
   PublicListEntry,
 } from "./dto/public.dto";
 import { SerialsDetailService } from "../serials/services/serials-detail.service";
+import { SerialsCurrentlyWatchingService } from "../serials/services/serials-currently-watching.service";
 
 const toTimestamp = (value: string | Date): number => {
   if (value instanceof Date) {
@@ -293,6 +295,16 @@ export class PublicService {
     }
 
     return PublicTopPicksService.getTop4ByUserId(userId);
+  }
+
+  static async getSerialsCurrentlyWatching(
+    username: string,
+    limit: number,
+  ): Promise<PublicCurrentlyWatchingSeries[] | null> {
+    const userId = await PublicService.findUserIdByUsername(username);
+    if (!userId) return null;
+
+    return SerialsCurrentlyWatchingService.getCurrentlyWatching(userId, limit);
   }
 
   static async getSerialProgress(username: string, tmdbId: number) {

@@ -27,6 +27,7 @@ All routes are `GET` and use `:username` path params.
 | `/api/public/:username/watchlist` | 50 | 200 | Watchlisted movie + TV media |
 | `/api/public/:username/diary` | 50 | 200 | Movie + TV diary entries |
 | `/api/public/:username/serials/:tmdbId` | - | - | Serial progress + stats |
+| `/api/public/:username/serials/currently-watching` | 10 | 30 | In-progress serials, most recent first |
 
 ## Response conventions
 
@@ -54,6 +55,7 @@ The broader `/api` limiter is configured to skip `/public/*`, so public traffic 
 - Likes/watchlist include both movie and TV rows.
 - Diary includes both movie and TV entries merged and sorted by watched date.
 - Activity/recent return the same feed item shape, but with different default/max limits.
+- Currently-watching excludes series explicitly marked fully watched, and requires at least one watched episode.
 
 ## Endpoint docs
 
@@ -69,3 +71,4 @@ Use the detailed pages for params, field notes, and examples:
 - [Diary](/api/endpoints/diary/)
 - [Activity](/api/endpoints/activity/)
 - [Serials Progress](/api/endpoints/serials-progress/)
+- [Serials Currently Watching](/api/endpoints/serials-currently-watching/)

@@ -54,6 +54,24 @@ export type PublicDiaryItem = {
   } | null;
 };
 
+export type PublicCurrentlyWatchingQueryDto = {
+  limit?: string;
+};
+
+export type PublicCurrentlyWatchingSeries = {
+  tmdbId: number;
+  title: string;
+  posterPath: string | null;
+  backdropPath: string | null;
+  firstAirYear: number | null;
+  numberOfSeasons: number | null;
+  numberOfEpisodes: number | null;
+  watchedEpisodesCount: number;
+  progressPercent: number;
+  lastWatchedAt: Date;
+  currentEpisode: { seasonNumber: number; episodeNumber: number; name: string } | null;
+};
+
 export type PublicListEntry = {
   position: number;
   note: string | null;

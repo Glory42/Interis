@@ -4,6 +4,8 @@ const DEFAULT_PUBLIC_ACTIVITY_LIMIT = 30;
 const MAX_PUBLIC_ACTIVITY_LIMIT = 100;
 const DEFAULT_PUBLIC_COLLECTION_LIMIT = 50;
 const MAX_PUBLIC_COLLECTION_LIMIT = 200;
+const DEFAULT_PUBLIC_CURRENTLY_WATCHING_LIMIT = 10;
+const MAX_PUBLIC_CURRENTLY_WATCHING_LIMIT = 30;
 
 const normalizePositiveLimit = (
   rawLimit: unknown,
@@ -39,5 +41,13 @@ export const normalizePublicCollectionLimit = (rawLimit: unknown): number => {
     rawLimit,
     DEFAULT_PUBLIC_COLLECTION_LIMIT,
     MAX_PUBLIC_COLLECTION_LIMIT,
+  );
+};
+
+export const normalizePublicCurrentlyWatchingLimit = (rawLimit: unknown): number => {
+  return normalizePositiveLimit(
+    rawLimit,
+    DEFAULT_PUBLIC_CURRENTLY_WATCHING_LIMIT,
+    MAX_PUBLIC_CURRENTLY_WATCHING_LIMIT,
   );
 };

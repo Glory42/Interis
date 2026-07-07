@@ -1,6 +1,6 @@
-import { eq, and, like } from "drizzle-orm";
+import { eq, and, like, or, isNull, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
-import { serialEpisodeInteractions } from "../serials.entity";
+import { serialEpisodeInteractions, serialInteractions, tvSeries } from "../serials.entity";
 import { reviews } from "../../reviews/reviews.entity";
 
 export class SerialsEpisodeInteractionsRepository {
@@ -148,6 +148,47 @@ export class SerialsEpisodeInteractionsRepository {
         },
       })
       .returning();
+  }
+
+  // Finds series a user has started but not finished watching, in one
+  // grouped query rather than scanning their whole watch history in the
+  // application layer. Excludes series explicitly marked fully watched.
+  static async getInProgressSeriesForUser(userId: string, limit: number) {
+    return db
+      .select({
+        seriesId: tvSeries.id,
+        tmdbId: tvSeries.tmdbId,
+        title: tvSeries.title,
+        posterPath: tvSeries.posterPath,
+        backdropPath: tvSeries.backdropPath,
+        firstAirYear: tvSeries.firstAirYear,
+        numberOfSeasons: tvSeries.numberOfSeasons,
+        numberOfEpisodes: tvSeries.numberOfEpisodes,
+        watchedEpisodesCount: sql<number>`count(*) filter (where ${serialEpisodeInteractions.watched})::int`,
+        lastWatchedAt: sql<Date>`max(${serialEpisodeInteractions.updatedAt}) filter (where ${serialEpisodeInteractions.watched})`,
+      })
+      .from(serialEpisodeInteractions)
+      .innerJoin(tvSeries, eq(serialEpisodeInteractions.seriesId, tvSeries.id))
+      .leftJoin(
+        serialInteractions,
+        and(
+          eq(serialInteractions.userId, serialEpisodeInteractions.userId),
+          eq(serialInteractions.seriesId, serialEpisodeInteractions.seriesId),
+        ),
+      )
+      .where(
+        and(
+          eq(serialEpisodeInteractions.userId, userId),
+          or(isNull(serialInteractions.isWatched), eq(serialInteractions.isWatched, false)),
+        ),
+      )
+      .groupBy(tvSeries.id)
+      .having(
+        sql`count(*) filter (where ${serialEpisodeInteractions.watched}) > 0
+          and count(*) filter (where ${serialEpisodeInteractions.watched}) < ${tvSeries.numberOfEpisodes}`,
+      )
+      .orderBy(sql`max(${serialEpisodeInteractions.updatedAt}) filter (where ${serialEpisodeInteractions.watched}) desc`)
+      .limit(limit);
   }
 
   static async getAllViewerEpisodeInteractions(

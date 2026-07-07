@@ -3,11 +3,13 @@ import { PublicService } from "./public.service";
 import {
   normalizePublicActivityLimit,
   normalizePublicCollectionLimit,
+  normalizePublicCurrentlyWatchingLimit,
   normalizePublicRecentLimit,
 } from "./helpers/public-query-normalizer.helper";
 import type {
   PublicActivityQueryDto,
   PublicCollectionQueryDto,
+  PublicCurrentlyWatchingQueryDto,
   PublicRecentQueryDto,
 } from "./dto/public.dto";
 
@@ -158,6 +160,22 @@ export class PublicController {
     res: Response,
   ): Promise<void> {
     const data = await PublicService.getTop4(req.params.username);
+
+    if (!data) {
+      PublicController.sendUserNotFound(res);
+      return;
+    }
+
+    PublicController.sendPublicResponse(res, data);
+  }
+
+  // GET /api/public/:username/serials/currently-watching?limit=10
+  static async getSerialsCurrentlyWatching(
+    req: Request<{ username: string }, unknown, unknown, PublicCurrentlyWatchingQueryDto>,
+    res: Response,
+  ): Promise<void> {
+    const limit = normalizePublicCurrentlyWatchingLimit(req.query.limit);
+    const data = await PublicService.getSerialsCurrentlyWatching(req.params.username, limit);
 
     if (!data) {
       PublicController.sendUserNotFound(res);

@@ -121,3 +121,12 @@ Key fields:
   - `currentEpisode` (Up Next): `{ seasonNumber, episodeNumber, name }` or `null` if series completed.
   - interaction aggregations: `ratingsCount`, `likesCount`, `reviewsCount`.
 - `seasons[]` array list: `seasonNumber`, `name`, `episodeCount`, and season-level `viewerInteraction` object (`watched`, `liked`, `rating`, `hasReview`).
+
+## Currently Watching payload (`/serials/currently-watching`)
+
+An array of in-progress series, most recently watched first. Key fields per item:
+
+- series info: `tmdbId`, `title`, `posterPath`, `backdropPath`, `firstAirYear`, `numberOfSeasons`, `numberOfEpisodes`
+- progress: `watchedEpisodesCount`, `progressPercent` (0–100, rounded)
+- `lastWatchedAt`: timestamp of the most recently watched episode.
+- `currentEpisode` (Up Next): `{ seasonNumber, episodeNumber, name }`, or `null` if the cached episode total is behind TMDB's true count.

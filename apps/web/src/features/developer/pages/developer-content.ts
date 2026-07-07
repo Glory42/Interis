@@ -65,6 +65,14 @@ export const publicSurface: readonly PublicEndpoint[] = [
     description: "Public diary/log history for movie and serial entries.",
   },
   { path: "/api/public/:username/activity", description: "Broader public activity timeline." },
+  {
+    path: "/api/public/:username/serials/:tmdbId",
+    description: "Watch progress and stats for a specific serial.",
+  },
+  {
+    path: "/api/public/:username/serials/currently-watching",
+    description: "Serials started but not finished, most recently watched first.",
+  },
 ] as const;
 
 export const codeExamples: readonly CodeExample[] = [
