@@ -165,7 +165,7 @@ constants/               -> Magic values, defaults, enums
 - **Zod validation + normalization**: DTO/query schemas validate and normalize request input (defaulting/clamping in DTO layer)
 - **Async handler wrapper**: All route handlers wrapped with `asyncHandler()` for error propagation
 - **Viewer-aware responses**: Optional `resolveViewerUserIdFromHeaders` for personalizing public responses
-- **In-memory caching**: TMDB client uses Map-based caches with TTL and in-flight request deduplication
+- **In-memory caching**: TMDB client uses Map-based caches with TTL and in-flight request deduplication via the shared `createCachedTmdbFetcher` helper (`infrastructure/tmdb/tmdb-cache.helper.ts`) — wrap any new per-id TMDB read with it rather than writing a bespoke cache
 - **Factory pattern**: `createApp()` for testable server creation
 - **FK order in schema**: `entities.ts` exports in dependency order to satisfy FK references
 - **Architecture guardrails**: `lint:arch` blocks cross-layer imports (controller->repository, dto->service/repository, etc.) and oversized module files

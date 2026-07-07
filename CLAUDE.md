@@ -141,6 +141,19 @@ src/
 - **Theme system:** themes are full-stack — backend validates `themeId`, frontend loads from `public/theme-registry.js` before React hydrates. See `ADDING-THEMES.md` for the complete guide.
 - **Public API** (`/api/public/*`) uses open CORS and is intended for external widgets — keep these routes read-only and unauthenticated.
 
+## Performance guidelines
+
+Apply these to every new feature, not just when something is already slow — they reflect real regressions found and fixed in this codebase.
+
+- **Query invalidation:** never invalidate a whole top-level key (`["movies"]`, `["feed"]`) after a mutation — it silently refetches every unrelated query in that namespace (search, archive, other detail pages). Invalidate only the specific keys that actually change. See the narrow-invalidation pattern in `useInteractions.ts`/`useSerials.ts`.
+- **External API calls:** reads from TMDB (or any third-party API) that don't change per-request must go through a cache, not hit the network on every request. Use `createCachedTmdbFetcher` (`infrastructure/tmdb/tmdb-cache.helper.ts`) for new TMDB reads keyed by an id.
+- **Independent async work:** run independent `await`s via `Promise.all`, never sequentially. Only chain awaits when one genuinely depends on the previous result.
+- **N+1 queries:** never loop over rows firing one query per row. Collect the needed ids first, batch-fetch with a single `inArray(...)` query, build a `Map` for O(1) lookup, then do a synchronous pass to assemble results. See `buildFeedFallbackMediaContext` in `social-feed-context.helper.ts` for the pattern.
+- **Pagination:** any list endpoint tied to user-generated content (feed, likes, watchlist, reviews, lists) must be bounded and paginated from day one — never return a whole collection. Apply a default limit server-side even when the client omits one. Prefer cursor/keyset pagination (`WHERE (createdAt, id) < cursor`) for feeds that grow continuously; offset/limit is fine for simpler bounded lists.
+- **Indexes:** any new table with a column used in `WHERE`/`JOIN` (`userId`, `movieId`, other FK columns) needs an explicit `index()` in the entity definition — the PK alone doesn't cover it. See `diary.entity.ts` or `social.entity.ts` for the pattern.
+- **Frontend state sync:** don't use `useEffect` + `setState` to copy a prop or query result into local state — it costs an extra render/commit and is easy to get subtly wrong. Either derive the value during render (track a `prevValue` and adjust state inline, no effect) or force a remount with `key={id}` so state initializes fresh. Reserve `useEffect` for real side effects (DOM/window listeners, timers, non-React APIs).
+- **List rendering:** wrap grid/list item components in `React.memo` when they render inside a `.map()` on a page that also holds unrelated local state (open menus, filters, tabs) — otherwise every item re-renders on every unrelated state change.
+
 ## Adding a new backend module
 
 1. Create `src/modules/<module>/` with entity, routes, controller, service, repository, dto files.

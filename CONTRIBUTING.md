@@ -11,6 +11,7 @@ Thank you for your interest in contributing to Interis. This document covers the
 - [Coding conventions](#coding-conventions)
 - [Backend conventions](#backend-conventions)
 - [Frontend conventions](#frontend-conventions)
+- [Performance conventions](#performance-conventions)
 - [Adding a new feature](#adding-a-new-feature)
 - [Testing](#testing)
 - [Quality checks](#quality-checks)
@@ -214,8 +215,9 @@ Entities are exported in dependency order to satisfy foreign key references:
 1. Create `<module>.entity.ts` in the appropriate module directory.
 2. Define the table using `pgTable` from Drizzle.
 3. Add relations using `relations()` if the table has FK relationships.
-4. Export the table and relations from `src/infrastructure/database/entities.ts`.
-5. Generate and apply the migration:
+4. Add an explicit `index()` for every column that will be filtered or joined on (FK columns like `userId`/`movieId`, anything used in a `WHERE`/`JOIN` elsewhere) — the primary key alone won't cover those lookups. See `diary.entity.ts` or `social.entity.ts` for the pattern.
+5. Export the table and relations from `src/infrastructure/database/entities.ts`.
+6. Generate and apply the migration:
 
 ```bash
 bunx drizzle-kit generate
@@ -340,6 +342,7 @@ export const CreateExampleSchema = z.object({
 - Always use the TMDB client from `infrastructure/tmdb`.
 - The client handles caching, deduplication, and error handling.
 - Movie data is cached on demand, not bulk imported.
+- Wrap any new per-id TMDB read (detail, credits, similar/recommendations, etc.) with `createCachedTmdbFetcher` from `infrastructure/tmdb/tmdb-cache.helper.ts` — it gives you TTL caching and in-flight request de-duplication for free. Don't write a bespoke `Map`-based cache per endpoint.
 
 ## Frontend conventions
 
@@ -395,7 +398,8 @@ export async function fetchExamples() {
 - Live in `src/features/<feature>/hooks/`.
 - Export query key factories as `<feature>Keys`.
 - Use `useQuery` for reads, `useMutation` for writes.
-- Invalidate relevant queries after mutations.
+- Invalidate only the specific query key(s) that actually changed after a mutation — never invalidate a whole top-level key (`queryKey: feedKeys.all` / `["movies"]`) unless every query in that namespace genuinely needs to refetch. TanStack Query matches by prefix, so a broad invalidation silently refetches every unrelated cached query in that namespace.
+- Any list tied to user-generated content (feed, likes, watchlist, reviews) should use `useInfiniteQuery` with a bounded page size, not a plain `useQuery` that fetches the whole collection.
 
 ```typescript
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -454,6 +458,21 @@ Use the provided guards from `@/lib/router/auth-guards`:
 - Use `ApiError` from `@/lib/api-client` for API errors.
 - Use `isApiError()` type guard for conditional handling.
 - Display user-friendly error messages in the UI.
+
+## Performance conventions
+
+Apply these to every new feature, not just when something is already slow:
+
+- **Query invalidation**: invalidate only the specific keys a mutation actually changes — never a bare top-level key (see [React Query hooks](#react-query-hooks) above).
+- **External API calls**: cache per-id reads from TMDB (or any third-party API) with `createCachedTmdbFetcher` (see [TMDB integration](#tmdb-integration) above) instead of hitting the network on every request.
+- **Independent async work**: run independent `await`s via `Promise.all`, not sequentially.
+- **N+1 queries**: never loop over rows firing one query per row. Batch-fetch with `inArray(...)`, build a `Map` for lookup, then assemble results in a synchronous pass.
+- **Pagination**: any list endpoint tied to user-generated content (feed, likes, watchlist, reviews, lists) must be bounded and paginated from day one, with a default limit applied server-side even when the client omits one.
+- **Indexes**: see [Adding a new table](#adding-a-new-table) above — every FK/filter column needs an explicit `index()`.
+- **Frontend state sync**: don't use `useEffect` + `setState` to copy a prop or query result into local state. Either derive the value during render or force a remount with `key={id}`.
+- **List rendering**: wrap repeated grid/list item components in `React.memo` when they render inside a page that also holds unrelated local state (menus, filters, tabs).
+
+Run the `/performance-check` skill (`.claude/skills/performance-check/`) against your diff before opening a PR — it audits for all of the above.
 
 ## Adding a new feature
 
@@ -598,6 +617,7 @@ Before requesting review, verify:
 - [ ] Database migrations are included for schema changes
 - [ ] API contracts are validated with Zod on both sides
 - [ ] New routes have appropriate auth guards
+- [ ] New list endpoints are paginated/bounded, and mutations invalidate only the specific queries that changed (see [Performance conventions](#performance-conventions))
 
 ## Adding a custom theme
 
