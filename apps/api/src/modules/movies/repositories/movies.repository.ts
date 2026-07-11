@@ -205,12 +205,28 @@ export class MoviesRepository {
         director: movies.director,
         genres: movies.genres,
         logCount: sql<number>`count(${diaryEntries.id})::int`.as("logCount"),
-        avgRatingOutOfTen:
-          sql<number | null>`avg(${diaryEntries.rating})::double precision`.as(
-            "avgRatingOutOfTen",
-          ),
-        ratedLogCount:
-          sql<number>`count(${diaryEntries.rating})::int`.as("ratedLogCount"),
+        avgRatingOutOfTen: sql<number | null>`(
+          select avg(r.rating)::double precision from (
+            select rating from diary_entry where movie_id = ${movies.id} and rating is not null
+            union all
+            select mi.rating from movie_interaction mi
+            where mi.movie_id = ${movies.id} and mi.rating is not null
+              and not exists (
+                select 1 from diary_entry de2 where de2.movie_id = ${movies.id} and de2.user_id = mi.user_id
+              )
+          ) r
+        )`.as("avgRatingOutOfTen"),
+        ratedLogCount: sql<number>`(
+          select count(*)::int from (
+            select rating from diary_entry where movie_id = ${movies.id} and rating is not null
+            union all
+            select mi.rating from movie_interaction mi
+            where mi.movie_id = ${movies.id} and mi.rating is not null
+              and not exists (
+                select 1 from diary_entry de2 where de2.movie_id = ${movies.id} and de2.user_id = mi.user_id
+              )
+          ) r
+        )`.as("ratedLogCount"),
       })
       .from(movies)
       .leftJoin(diaryEntries, eq(diaryEntries.movieId, movies.id))
@@ -230,12 +246,28 @@ export class MoviesRepository {
         director: movies.director,
         genres: movies.genres,
         logCount: sql<number>`count(${diaryEntries.id})::int`.as("logCount"),
-        avgRatingOutOfTen:
-          sql<number | null>`avg(${diaryEntries.rating})::double precision`.as(
-            "avgRatingOutOfTen",
-          ),
-        ratedLogCount:
-          sql<number>`count(${diaryEntries.rating})::int`.as("ratedLogCount"),
+        avgRatingOutOfTen: sql<number | null>`(
+          select avg(r.rating)::double precision from (
+            select rating from diary_entry where movie_id = ${movies.id} and rating is not null
+            union all
+            select mi.rating from movie_interaction mi
+            where mi.movie_id = ${movies.id} and mi.rating is not null
+              and not exists (
+                select 1 from diary_entry de2 where de2.movie_id = ${movies.id} and de2.user_id = mi.user_id
+              )
+          ) r
+        )`.as("avgRatingOutOfTen"),
+        ratedLogCount: sql<number>`(
+          select count(*)::int from (
+            select rating from diary_entry where movie_id = ${movies.id} and rating is not null
+            union all
+            select mi.rating from movie_interaction mi
+            where mi.movie_id = ${movies.id} and mi.rating is not null
+              and not exists (
+                select 1 from diary_entry de2 where de2.movie_id = ${movies.id} and de2.user_id = mi.user_id
+              )
+          ) r
+        )`.as("ratedLogCount"),
       })
       .from(movies)
       .leftJoin(diaryEntries, eq(diaryEntries.movieId, movies.id))

@@ -20,12 +20,28 @@ export class SerialsArchiveRepository {
         genres: tvSeries.genres,
         numberOfEpisodes: tvSeries.numberOfEpisodes,
         logCount: sql<number>`count(${serialDiaryEntries.id})::int`.as("logCount"),
-        avgRatingOutOfTen:
-          sql<number | null>`avg(${serialDiaryEntries.rating})::double precision`.as(
-            "avgRatingOutOfTen",
-          ),
-        ratedLogCount:
-          sql<number>`count(${serialDiaryEntries.rating})::int`.as("ratedLogCount"),
+        avgRatingOutOfTen: sql<number | null>`(
+          select avg(r.rating)::double precision from (
+            select rating from serial_diary_entry where series_id = ${tvSeries.id} and rating is not null
+            union all
+            select si.rating from serial_interaction si
+            where si.series_id = ${tvSeries.id} and si.rating is not null
+              and not exists (
+                select 1 from serial_diary_entry sde2 where sde2.series_id = ${tvSeries.id} and sde2.user_id = si.user_id
+              )
+          ) r
+        )`.as("avgRatingOutOfTen"),
+        ratedLogCount: sql<number>`(
+          select count(*)::int from (
+            select rating from serial_diary_entry where series_id = ${tvSeries.id} and rating is not null
+            union all
+            select si.rating from serial_interaction si
+            where si.series_id = ${tvSeries.id} and si.rating is not null
+              and not exists (
+                select 1 from serial_diary_entry sde2 where sde2.series_id = ${tvSeries.id} and sde2.user_id = si.user_id
+              )
+          ) r
+        )`.as("ratedLogCount"),
       })
       .from(tvSeries)
       .leftJoin(serialDiaryEntries, eq(serialDiaryEntries.seriesId, tvSeries.id))
@@ -48,12 +64,28 @@ export class SerialsArchiveRepository {
         genres: tvSeries.genres,
         numberOfEpisodes: tvSeries.numberOfEpisodes,
         logCount: sql<number>`count(${serialDiaryEntries.id})::int`.as("logCount"),
-        avgRatingOutOfTen:
-          sql<number | null>`avg(${serialDiaryEntries.rating})::double precision`.as(
-            "avgRatingOutOfTen",
-          ),
-        ratedLogCount:
-          sql<number>`count(${serialDiaryEntries.rating})::int`.as("ratedLogCount"),
+        avgRatingOutOfTen: sql<number | null>`(
+          select avg(r.rating)::double precision from (
+            select rating from serial_diary_entry where series_id = ${tvSeries.id} and rating is not null
+            union all
+            select si.rating from serial_interaction si
+            where si.series_id = ${tvSeries.id} and si.rating is not null
+              and not exists (
+                select 1 from serial_diary_entry sde2 where sde2.series_id = ${tvSeries.id} and sde2.user_id = si.user_id
+              )
+          ) r
+        )`.as("avgRatingOutOfTen"),
+        ratedLogCount: sql<number>`(
+          select count(*)::int from (
+            select rating from serial_diary_entry where series_id = ${tvSeries.id} and rating is not null
+            union all
+            select si.rating from serial_interaction si
+            where si.series_id = ${tvSeries.id} and si.rating is not null
+              and not exists (
+                select 1 from serial_diary_entry sde2 where sde2.series_id = ${tvSeries.id} and sde2.user_id = si.user_id
+              )
+          ) r
+        )`.as("ratedLogCount"),
       })
       .from(tvSeries)
       .leftJoin(serialDiaryEntries, eq(serialDiaryEntries.seriesId, tvSeries.id))
