@@ -30,8 +30,11 @@ const serialArchiveItemSchema = z.object({
   avgRatingOutOfTen: z.number().nullable(),
   tmdbRatingOutOfTen: z.number().nullable(),
   ratedLogCount: z.number().int().nonnegative(),
+  numberOfEpisodes: z.number().int().nullable(),
   viewerHasLogged: z.boolean(),
   viewerWatchlisted: z.boolean(),
+  viewerFullyWatched: z.boolean(),
+  viewerHasProgress: z.boolean(),
 });
 
 const serialArchiveFeaturedSchema = z.object({
@@ -288,7 +291,7 @@ export const createSeriesLogResponseSchema = z.object({
       userId: z.string(),
       seriesId: z.number().int(),
       watchedDate: z.string(),
-      rating: z.number().int().nullable(),
+      rating: z.number().nullable(),
       rewatch: z.boolean(),
       createdAt: z.string(),
       updatedAt: z.string(),
@@ -350,7 +353,7 @@ export const tmdbSearchSeriesListSchema = z.array(tmdbSearchSeriesSchema);
 export const serialDiaryEntrySchema = z.object({
   id: z.string(),
   watchedDate: z.string(),
-  rating: z.number().int().nullable(),
+  rating: z.number().nullable(),
   rewatch: z.boolean(),
   seriesId: z.number().int(),
   createdAt: z.string(),

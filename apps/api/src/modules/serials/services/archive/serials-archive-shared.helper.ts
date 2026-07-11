@@ -4,12 +4,74 @@ import {
   toFirstAirTimestamp,
 } from "../../helpers/serials-format.helper";
 import { buildAvailableGenresFromItems } from "../../../media/helpers/media-archive-genres.helper";
+import { sortByWeightedTmdbRatingDesc } from "../../../media/helpers/media-weighted-rating.helper";
+import { SerialsInteractionsRepository } from "../../repositories/serials-interactions.repository";
+import { SerialsEpisodeInteractionsRepository } from "../../repositories/serials-episode-interactions.repository";
 import type { SerialArchivePeriod, SerialArchiveSort } from "../../dto/serials.dto";
 import type {
   SerialArchiveGenreOption,
   SerialArchiveItem,
 } from "../../types/serials.types";
 import type { SerialsArchivePeriodWindow } from "./serials-archive.types";
+
+// "Watched" vs "Watching" (as opposed to just "has logged it") needs actual
+// episode progress, not just diary/rating existence - a series can have a
+// diary entry from years ago while the viewer is still partway through a
+// newer season. Shared by both the local-cache and TMDB-backed archive
+// services so the two grid sources can't drift out of sync on this.
+export const addViewerArchiveState = async (
+  viewerUserId: string | null,
+  pageItems: SerialArchiveItem[],
+): Promise<SerialArchiveItem[]> => {
+  if (!viewerUserId || pageItems.length === 0) {
+    return pageItems;
+  }
+
+  const tmdbIds = pageItems.map((item) => item.tmdbId);
+  const [viewerDiaryLoggedTmdbIds, viewerInteractionRows, viewerEpisodeCounts] =
+    await Promise.all([
+      SerialsInteractionsRepository.getViewerDiaryLoggedTmdbIds(viewerUserId, tmdbIds),
+      SerialsInteractionsRepository.getViewerSeriesInteractionStateByTmdbIds(
+        viewerUserId,
+        tmdbIds,
+      ),
+      SerialsEpisodeInteractionsRepository.getViewerWatchedEpisodeCountsByTmdbIds(
+        viewerUserId,
+        tmdbIds,
+      ),
+    ]);
+
+  const viewerLoggedTmdbIdSet = new Set<number>(viewerDiaryLoggedTmdbIds);
+  const viewerWatchlistedTmdbIdSet = new Set<number>();
+  const viewerFullyWatchedTmdbIdSet = new Set<number>();
+
+  for (const row of viewerInteractionRows) {
+    if (row.watchlisted) viewerWatchlistedTmdbIdSet.add(row.tmdbId);
+    if (row.isWatched) viewerFullyWatchedTmdbIdSet.add(row.tmdbId);
+    if (row.rating !== null) viewerLoggedTmdbIdSet.add(row.tmdbId);
+  }
+
+  const viewerWatchedEpisodesCountByTmdbId = new Map<number, number>(
+    viewerEpisodeCounts.map((row) => [row.tmdbId, row.watchedEpisodesCount]),
+  );
+
+  return pageItems.map((item) => {
+    const watchedEpisodesCount = viewerWatchedEpisodesCountByTmdbId.get(item.tmdbId) ?? 0;
+    const viewerFullyWatched =
+      viewerFullyWatchedTmdbIdSet.has(item.tmdbId) ||
+      (item.numberOfEpisodes !== null &&
+        item.numberOfEpisodes > 0 &&
+        watchedEpisodesCount === item.numberOfEpisodes);
+
+    return {
+      ...item,
+      viewerHasLogged: viewerLoggedTmdbIdSet.has(item.tmdbId),
+      viewerWatchlisted: viewerWatchlistedTmdbIdSet.has(item.tmdbId),
+      viewerFullyWatched,
+      viewerHasProgress: watchedEpisodesCount > 0,
+    };
+  });
+};
 
 export const toAvailableGenresFromItems = (
   items: SerialArchiveItem[],
@@ -117,6 +179,15 @@ export const isSeriesInArchivePeriod = (
   return series.firstAirYear >= startYear && series.firstAirYear <= endYear;
 };
 
+// Higher than the discover-floor constant below: the floor only keeps
+// statistical noise (a handful of votes) out of the candidate pool, while
+// this constant does the actual re-ranking. TV vote counts on TMDB span a
+// much wider range than the floor implies (a handful of hundreds up to
+// tens of thousands for genuinely popular shows), so a low confidence
+// constant still let shows with a few hundred votes outrank shows with
+// 10,000+ votes and a slightly lower average.
+const RATING_SORT_MIN_VOTES_FOR_CONFIDENCE = 1500;
+
 export const sortArchiveItems = (
   items: SerialArchiveItem[],
   sortBy: SerialArchiveSort,
@@ -191,26 +262,17 @@ export const sortArchiveItems = (
   }
 
   if (sortBy === "rating_tmdb_desc") {
-    sortedItems.sort((leftSeries, rightSeries) => {
-      const leftRating = leftSeries.tmdbRatingOutOfTen;
-      const rightRating = rightSeries.tmdbRatingOutOfTen;
+    return sortByWeightedTmdbRatingDesc(
+      sortedItems,
+      RATING_SORT_MIN_VOTES_FOR_CONFIDENCE,
+      (leftSeries, rightSeries) => {
+        if (rightSeries.logCount !== leftSeries.logCount) {
+          return rightSeries.logCount - leftSeries.logCount;
+        }
 
-      if (leftRating === null && rightRating !== null) {
-        return 1;
-      }
-
-      if (leftRating !== null && rightRating === null) {
-        return -1;
-      }
-
-      if (leftRating !== null && rightRating !== null && rightRating !== leftRating) {
-        return rightRating - leftRating;
-      }
-
-      return compareByFirstAirDesc(leftSeries, rightSeries);
-    });
-
-    return sortedItems;
+        return compareByFirstAirDesc(leftSeries, rightSeries);
+      },
+    );
   }
 
   sortedItems.sort((leftSeries, rightSeries) => {
@@ -225,7 +287,27 @@ export const sortArchiveItems = (
   return sortedItems;
 };
 
-export const getTmdbMinVoteCountForPeriod = (period: SerialArchivePeriod): number => {
+// TV shows accumulate far fewer TMDB votes than movies, so the confidence
+// floor is lower than the movies equivalent, but the same rationale
+// applies: raw vote_average.desc lets a series with a handful of votes
+// (all rated 10) outrank a widely-watched series with a lower but far
+// more reliable average.
+const RATING_SORT_MIN_VOTE_COUNT_BY_PERIOD: Record<SerialArchivePeriod, number> = {
+  today: 5,
+  this_week: 10,
+  this_year: 25,
+  last_10_years: 100,
+  all_time: 100,
+};
+
+export const getTmdbMinVoteCountForPeriod = (
+  period: SerialArchivePeriod,
+  sortBy: SerialArchiveSort,
+): number => {
+  if (sortBy === "rating_tmdb_desc") {
+    return RATING_SORT_MIN_VOTE_COUNT_BY_PERIOD[period];
+  }
+
   if (period === "this_week" || period === "today") {
     return 0;
   }

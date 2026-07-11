@@ -23,6 +23,7 @@ import {
   type SerialDetailReviewSort,
   type SerialDiaryEntry,
   type SerialInteraction,
+  type SerialSeasonDetailResponse,
   type UpdateSerialInteractionInput,
   type UpdateSerialLogInput,
   updateSerialLog,
@@ -36,6 +37,11 @@ import {
   upsertEpisodeReview,
   deleteEpisodeReview,
 } from "@/features/serials/api";
+import {
+  patchSeasonsInDetailViewCache,
+  patchEpisodesInSeasonDetailCache,
+  restoreQueries,
+} from "@/features/serials/hooks/serials-cache.helper";
 
 export const serialKeys = {
   all: ["serials"] as const,
@@ -127,14 +133,46 @@ export const useUpdateSeriesInteraction = (tmdbId: number) => {
         });
       }
 
-      return { previousState };
-    },
-    onError: (_error, _input, context) => {
-      if (!context?.previousState) {
-        return;
+      // The server cascades a "watched" toggle to every season/episode -
+      // mirror that in the cache immediately instead of leaving every
+      // season row showing stale state until the (TMDB-backed, potentially
+      // multi-second) cascade response comes back. Mirrors
+      // SerialsActivityService.updateInteraction's shouldCascadeSeasons: an
+      // explicit toggle always cascades, and liking/rating cascades too the
+      // first time it implicitly flips watched to true.
+      const isImplicitlyWatched =
+        input.liked === true || (input.rating !== undefined && input.rating !== null);
+      const previousWatched = previousState?.watched ?? false;
+      const resolvedWatched = input.watched ?? (isImplicitlyWatched ? true : undefined);
+      const shouldCascade =
+        input.watched !== undefined || (resolvedWatched === true && !previousWatched);
+
+      let previousSeasonQueries: ReturnType<typeof patchSeasonsInDetailViewCache> = [];
+      let previousEpisodeQueries: ReturnType<typeof patchEpisodesInSeasonDetailCache> = [];
+      if (shouldCascade) {
+        await Promise.all([
+          queryClient.cancelQueries({ queryKey: ["serials", "detail-view", tmdbId] }),
+          queryClient.cancelQueries({ queryKey: ["serials", "season-detail", tmdbId] }),
+        ]);
+
+        const cascadeWatched = resolvedWatched ?? false;
+        previousSeasonQueries = patchSeasonsInDetailViewCache(queryClient, tmdbId, "all", {
+          watched: cascadeWatched,
+        });
+        previousEpisodeQueries = patchEpisodesInSeasonDetailCache(queryClient, tmdbId, "all", {
+          watched: cascadeWatched,
+        });
       }
 
-      queryClient.setQueryData(serialKeys.interaction(tmdbId), context.previousState);
+      return { previousState, previousSeasonQueries, previousEpisodeQueries };
+    },
+    onError: (_error, _input, context) => {
+      if (context?.previousState) {
+        queryClient.setQueryData(serialKeys.interaction(tmdbId), context.previousState);
+      }
+
+      restoreQueries(queryClient, context?.previousSeasonQueries ?? []);
+      restoreQueries(queryClient, context?.previousEpisodeQueries ?? []);
     },
     onSettled: async () => {
       await Promise.all([
@@ -262,6 +300,34 @@ export const useUpdateSeasonInteraction = (tmdbId: number) => {
       seasonNumber: number;
       input: { watched?: boolean; liked?: boolean; rating?: number | null };
     }) => updateSeasonInteraction(tmdbId, seasonNumber, input),
+    onMutate: async ({ seasonNumber, input }) => {
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: ["serials", "detail-view", tmdbId] }),
+        queryClient.cancelQueries({ queryKey: ["serials", "season-detail", tmdbId, seasonNumber] }),
+      ]);
+
+      const previousSeasonQueries = patchSeasonsInDetailViewCache(
+        queryClient,
+        tmdbId,
+        seasonNumber,
+        input,
+      );
+
+      // A season-level "watched" toggle cascades to every episode in that
+      // season server-side - mirror it in the episode list cache too.
+      const previousEpisodeQueries =
+        input.watched !== undefined
+          ? patchEpisodesInSeasonDetailCache(queryClient, tmdbId, seasonNumber, {
+              watched: input.watched,
+            })
+          : [];
+
+      return { previousSeasonQueries, previousEpisodeQueries };
+    },
+    onError: (_error, _variables, context) => {
+      restoreQueries(queryClient, context?.previousSeasonQueries ?? []);
+      restoreQueries(queryClient, context?.previousEpisodeQueries ?? []);
+    },
     onSuccess: async (_data, variables) => {
       await Promise.all([
         queryClient.invalidateQueries({
@@ -269,6 +335,9 @@ export const useUpdateSeasonInteraction = (tmdbId: number) => {
         }),
         queryClient.invalidateQueries({
           queryKey: ["serials", "season-detail", tmdbId, variables.seasonNumber],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: serialKeys.interaction(tmdbId),
         }),
       ]);
     },
@@ -286,10 +355,55 @@ export const useUpdateEpisodeInteraction = (tmdbId: number, seasonNumber: number
       episodeNumber: number;
       input: { watched?: boolean; liked?: boolean; rating?: number | null };
     }) => updateEpisodeInteraction(tmdbId, seasonNumber, episodeNumber, input),
+    onMutate: async ({ episodeNumber, input }) => {
+      const seasonDetailKey = ["serials", "season-detail", tmdbId, seasonNumber];
+      await queryClient.cancelQueries({ queryKey: seasonDetailKey });
+
+      const previousEpisodeQueries = patchEpisodesInSeasonDetailCache(
+        queryClient,
+        tmdbId,
+        seasonNumber,
+        input,
+        episodeNumber,
+      );
+
+      // Toggling an episode can complete (or break) the whole season - the
+      // full episode list is already loaded for this open accordion, so
+      // predict the season's new watched state from it instead of waiting
+      // on a refetch. Mirrors syncSeasonWatchedFromEpisodes on the backend.
+      let previousSeasonQueries: ReturnType<typeof patchSeasonsInDetailViewCache> = [];
+      if (input.watched !== undefined) {
+        const seasonEpisodes =
+          queryClient.getQueryData<SerialSeasonDetailResponse>(seasonDetailKey)?.episodes;
+
+        if (seasonEpisodes && seasonEpisodes.length > 0) {
+          const allEpisodesWatched = seasonEpisodes.every(
+            (episode) => episode.viewerInteraction?.watched ?? false,
+          );
+
+          await queryClient.cancelQueries({ queryKey: ["serials", "detail-view", tmdbId] });
+          previousSeasonQueries = patchSeasonsInDetailViewCache(queryClient, tmdbId, seasonNumber, {
+            watched: allEpisodesWatched,
+          });
+        }
+      }
+
+      return { previousEpisodeQueries, previousSeasonQueries };
+    },
+    onError: (_error, _variables, context) => {
+      restoreQueries(queryClient, context?.previousEpisodeQueries ?? []);
+      restoreQueries(queryClient, context?.previousSeasonQueries ?? []);
+    },
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: ["serials", "season-detail", tmdbId, seasonNumber],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["serials", "detail-view", tmdbId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: serialKeys.interaction(tmdbId),
         }),
       ]);
     },

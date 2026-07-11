@@ -25,9 +25,13 @@ export type SerialArchiveItem = {
   logCount: number;
   avgRatingOutOfTen: number | null;
   tmdbRatingOutOfTen: number | null;
+  tmdbVoteCount: number | null;
   ratedLogCount: number;
+  numberOfEpisodes: number | null;
   viewerHasLogged: boolean;
   viewerWatchlisted: boolean;
+  viewerFullyWatched: boolean;
+  viewerHasProgress: boolean;
 };
 
 export type SerialArchiveFeaturedItem = {

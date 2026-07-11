@@ -15,6 +15,31 @@ import { SerialsEpisodeInteractionsRepository } from "../repositories/serials-ep
 import { SerialsTrackingService } from "./serials-tracking.service";
 
 export class SerialsActivityService {
+  // Shared by updateInteraction (the sidebar "Watch" toggle) and createLog
+  // (the "Log" modal) - both are ways for the user to say "I watched this
+  // series," so both must cascade the same watched state down to every
+  // season/episode instead of only flipping the series-level flag.
+  private static async cascadeSeasonsWatched(
+    userId: string,
+    tmdbId: number,
+    numberOfSeasons: number | null,
+    watched: boolean,
+  ): Promise<void> {
+    if (!numberOfSeasons || numberOfSeasons <= 0) {
+      return;
+    }
+
+    const promises: Promise<unknown>[] = [];
+    for (let seasonNum = 1; seasonNum <= numberOfSeasons; seasonNum++) {
+      promises.push(
+        SerialsTrackingService.updateSeasonInteraction(userId, tmdbId, seasonNum, {
+          watched,
+        }),
+      );
+    }
+    await Promise.all(promises);
+  }
+
   static async getInteraction(userId: string, tmdbId: number) {
     const series = await SerialsCacheService.findOrCreate(tmdbId);
     if (!series) {
@@ -50,29 +75,34 @@ export class SerialsActivityService {
       return null;
     }
 
-    if (input.watched !== undefined) {
-      const numberOfSeasons = series.numberOfSeasons;
-      if (numberOfSeasons && numberOfSeasons > 0) {
-        const promises: Promise<unknown>[] = [];
-        for (let seasonNum = 1; seasonNum <= numberOfSeasons; seasonNum++) {
-          promises.push(
-            SerialsTrackingService.updateSeasonInteraction(userId, tmdbId, seasonNum, {
-              watched: input.watched,
-            })
-          );
-        }
-        await Promise.all(promises);
-      }
-    }
-
     const previousRow = await SerialsInteractionsRepository.getInteractionRow(userId, series.id);
     const previousLiked = previousRow?.liked ?? false;
     const previousWatchlisted = previousRow?.watchlisted ?? false;
+    const previousIsWatched = previousRow?.isWatched ?? false;
 
     const isImplicitlyWatched =
-      input.watched === true ||
       input.liked === true ||
       (input.rating !== undefined && input.rating !== null);
+
+    const resolvedIsWatched = input.watched ?? (isImplicitlyWatched ? true : undefined);
+
+    // Cascade whenever the user explicitly toggles "watched" (even to the
+    // same value - matches the existing sidebar toggle behavior), or when
+    // liking/rating implicitly flips it to watched for the first time. Once
+    // previousIsWatched is already true, re-rating doesn't re-cascade -
+    // otherwise every rating tweak on an already-watched series would
+    // needlessly re-run the season/episode cascade.
+    const shouldCascadeSeasons =
+      input.watched !== undefined || (resolvedIsWatched === true && !previousIsWatched);
+
+    if (shouldCascadeSeasons) {
+      await SerialsActivityService.cascadeSeasonsWatched(
+        userId,
+        tmdbId,
+        series.numberOfSeasons,
+        resolvedIsWatched ?? false,
+      );
+    }
 
     const row = await SerialsInteractionsRepository.upsertInteraction({
       userId,
@@ -80,7 +110,7 @@ export class SerialsActivityService {
       liked: input.liked,
       watchlisted: input.watchlisted,
       rating: input.rating,
-      isWatched: isImplicitlyWatched || undefined,
+      isWatched: resolvedIsWatched,
     });
 
     const resolvedLiked = row?.liked ?? input.liked ?? previousLiked;
@@ -207,6 +237,12 @@ export class SerialsActivityService {
         ),
       }),
       SerialsInteractionsRepository.setWatched(userId, series.id),
+      SerialsActivityService.cascadeSeasonsWatched(
+        userId,
+        tmdbId,
+        series.numberOfSeasons,
+        true,
+      ),
     ]);
 
     return { entry, series, review };

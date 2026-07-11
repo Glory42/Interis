@@ -5,10 +5,10 @@ import {
   type TMDBSeriesGenre,
 } from "../../../../infrastructure/tmdb/serials";
 import { toFeaturedSeries } from "../../helpers/serials-format.helper";
-import { SerialsInteractionsRepository } from "../../repositories/serials-interactions.repository";
 import type { SerialArchiveResponse } from "../../types/serials.types";
 import { hydrateCreatorSignalsForItems } from "./serials-archive-creator-signal.service";
 import {
+  addViewerArchiveState,
   getArchivePeriodWindow,
   getTmdbMinVoteCountForPeriod,
   isSeriesInArchivePeriod,
@@ -41,30 +41,6 @@ const filterArchiveItemsByGenreAndLanguage = (
 
     return matchesGenre && matchesLanguage;
   });
-};
-
-const addViewerArchiveState = async (
-  viewerUserId: string | null,
-  pageItems: SerialArchiveResponse["items"],
-): Promise<SerialArchiveResponse["items"]> => {
-  if (!viewerUserId || pageItems.length === 0) {
-    return pageItems;
-  }
-
-  const tmdbIds = pageItems.map((item) => item.tmdbId);
-  const [viewerLoggedTmdbIds, viewerWatchlistedTmdbIds] = await Promise.all([
-    SerialsInteractionsRepository.getViewerLoggedTmdbIds(viewerUserId, tmdbIds),
-    SerialsInteractionsRepository.getViewerWatchlistedTmdbIds(viewerUserId, tmdbIds),
-  ]);
-
-  const viewerLoggedTmdbIdSet = new Set<number>(viewerLoggedTmdbIds);
-  const viewerWatchlistedTmdbIdSet = new Set<number>(viewerWatchlistedTmdbIds);
-
-  return pageItems.map((item) => ({
-    ...item,
-    viewerHasLogged: viewerLoggedTmdbIdSet.has(item.tmdbId),
-    viewerWatchlisted: viewerWatchlistedTmdbIdSet.has(item.tmdbId),
-  }));
 };
 
 export const getArchiveFromTmdb = async (
@@ -203,7 +179,7 @@ export const getArchiveFromTmdb = async (
   }
 
   const periodWindow = getArchivePeriodWindow(input.selectedPeriod);
-  const tmdbMinVoteCount = getTmdbMinVoteCountForPeriod(input.selectedPeriod);
+  const tmdbMinVoteCount = getTmdbMinVoteCountForPeriod(input.selectedPeriod, input.sortBy);
 
   const discovered = await tmdbDiscover({
     page: input.page,

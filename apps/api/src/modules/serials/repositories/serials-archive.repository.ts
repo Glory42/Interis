@@ -18,6 +18,7 @@ export class SerialsArchiveRepository {
         network: tvSeries.network,
         languageCode: tvSeries.languageCode,
         genres: tvSeries.genres,
+        numberOfEpisodes: tvSeries.numberOfEpisodes,
         logCount: sql<number>`count(${serialDiaryEntries.id})::int`.as("logCount"),
         avgRatingOutOfTen:
           sql<number | null>`avg(${serialDiaryEntries.rating})::double precision`.as(
@@ -45,6 +46,7 @@ export class SerialsArchiveRepository {
         network: tvSeries.network,
         languageCode: tvSeries.languageCode,
         genres: tvSeries.genres,
+        numberOfEpisodes: tvSeries.numberOfEpisodes,
         logCount: sql<number>`count(${serialDiaryEntries.id})::int`.as("logCount"),
         avgRatingOutOfTen:
           sql<number | null>`avg(${serialDiaryEntries.rating})::double precision`.as(

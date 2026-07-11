@@ -1,4 +1,4 @@
-import { eq, and, like, or, isNull, sql } from "drizzle-orm";
+import { eq, and, like, or, isNull, inArray, gt, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { serialEpisodeInteractions, serialInteractions, tvSeries } from "../serials.entity";
 import { reviews } from "../../reviews/reviews.entity";
@@ -165,7 +165,12 @@ export class SerialsEpisodeInteractionsRepository {
         numberOfSeasons: tvSeries.numberOfSeasons,
         numberOfEpisodes: tvSeries.numberOfEpisodes,
         watchedEpisodesCount: sql<number>`count(*) filter (where ${serialEpisodeInteractions.watched})::int`,
-        lastWatchedAt: sql<Date>`max(${serialEpisodeInteractions.updatedAt}) filter (where ${serialEpisodeInteractions.watched})`,
+        // updatedAt is a naive (no-timezone) column that always holds UTC
+        // wall-clock digits; casting the aggregate result to timestamptz via
+        // `AT TIME ZONE 'UTC'` makes Postgres return it with an explicit
+        // offset, so the driver parses it as an unambiguous instant instead
+        // of raw untyped text with no timezone marker at all.
+        lastWatchedAt: sql<Date>`(max(${serialEpisodeInteractions.updatedAt}) filter (where ${serialEpisodeInteractions.watched})) at time zone 'UTC'`,
       })
       .from(serialEpisodeInteractions)
       .innerJoin(tvSeries, eq(serialEpisodeInteractions.seriesId, tvSeries.id))
@@ -189,6 +194,35 @@ export class SerialsEpisodeInteractionsRepository {
       )
       .orderBy(sql`max(${serialEpisodeInteractions.updatedAt}) filter (where ${serialEpisodeInteractions.watched}) desc`)
       .limit(limit);
+  }
+
+  // Per-series watched-episode counts for a viewer, batched across a page
+  // of archive items (one grouped query instead of one per card) - used to
+  // tell "still watching" (some but not all episodes watched) apart from
+  // "fully watched" on the archive grid. Excludes season 0 (specials), to
+  // match the seasonNumber > 0 filter SerialsActivityService.getInteraction
+  // already uses when computing the same "fully watched" concept elsewhere.
+  static async getViewerWatchedEpisodeCountsByTmdbIds(userId: string, tmdbIds: number[]) {
+    const uniqueTmdbIds = [...new Set(tmdbIds)];
+    if (uniqueTmdbIds.length === 0) {
+      return [];
+    }
+
+    return db
+      .select({
+        tmdbId: tvSeries.tmdbId,
+        watchedEpisodesCount: sql<number>`count(*) filter (where ${serialEpisodeInteractions.watched})::int`,
+      })
+      .from(serialEpisodeInteractions)
+      .innerJoin(tvSeries, eq(serialEpisodeInteractions.seriesId, tvSeries.id))
+      .where(
+        and(
+          eq(serialEpisodeInteractions.userId, userId),
+          gt(serialEpisodeInteractions.seasonNumber, 0),
+          inArray(tvSeries.tmdbId, uniqueTmdbIds),
+        ),
+      )
+      .groupBy(tvSeries.tmdbId);
   }
 
   static async getAllViewerEpisodeInteractions(

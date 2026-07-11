@@ -135,11 +135,59 @@ export class SerialsTrackingService {
       }).catch(() => {});
     }
 
+    if (input.watched !== undefined) {
+      await SerialsTrackingService.syncSeasonWatchedFromEpisodes(
+        userId,
+        tmdbId,
+        series.id,
+        seasonNumber,
+      );
+    }
+
     return {
       watched: row.watched,
       liked: row.liked,
       rating: row.rating,
     };
+  }
+
+  // Toggling episodes one by one never touches the season's own watched
+  // flag, which otherwise only gets set by the season-level "Watch" toggle
+  // (updateSeasonInteraction) - so a season fully watched episode-by-episode
+  // stays stuck showing "Unwatched". Recomputes and persists the season flag
+  // from actual episode state after every episode toggle, so it's always a
+  // derived, correct reflection of episode completion rather than two
+  // independently-writable flags that can drift apart.
+  private static async syncSeasonWatchedFromEpisodes(
+    userId: string,
+    tmdbId: number,
+    seriesId: number,
+    seasonNumber: number,
+  ): Promise<void> {
+    const tmdbSeasonDetail = await tmdbGetSeasonDetails(tmdbId, seasonNumber).catch(() => null);
+    if (!tmdbSeasonDetail || !tmdbSeasonDetail.episodes || tmdbSeasonDetail.episodes.length === 0) {
+      return;
+    }
+
+    const episodeInteractions = await SerialsEpisodeInteractionsRepository.getViewerEpisodeInteractions(
+      userId,
+      seriesId,
+      tmdbId,
+      seasonNumber,
+    );
+    const watchedEpisodeNumbers = new Set(
+      episodeInteractions.filter((interaction) => interaction.watched).map((interaction) => interaction.episodeNumber),
+    );
+    const allEpisodesWatched = tmdbSeasonDetail.episodes.every((episode) =>
+      watchedEpisodeNumbers.has(episode.episode_number),
+    );
+
+    await SerialsSeasonInteractionsRepository.upsertSeasonInteraction({
+      userId,
+      seriesId,
+      seasonNumber,
+      watched: allEpisodesWatched,
+    });
   }
 
   static async getSeasonReview(userId: string, seriesTmdbId: number, seasonNumber: number) {

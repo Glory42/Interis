@@ -46,9 +46,13 @@ export const getRoundedStars = (rating: number | null): number => {
 
 export const getSeriesStateLabel = (
   series: SerialArchiveItem,
-): "Watched" | "Queued" | null => {
-  if (series.viewerHasLogged) {
+): "Watched" | "Watching" | "Queued" | null => {
+  if (series.viewerFullyWatched) {
     return "Watched";
+  }
+
+  if (series.viewerHasProgress) {
+    return "Watching";
   }
 
   if (series.viewerWatchlisted) {

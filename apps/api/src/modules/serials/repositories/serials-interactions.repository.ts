@@ -1,8 +1,9 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { profiles } from "../../users/users.entity";
 import { reviews } from "../../reviews/reviews.entity";
+import { mergeCommunityRatings } from "../../media/helpers/media-community-rating.helper";
 import { serialDiaryEntries, serialInteractions, tvSeries } from "../serials.entity";
 
 export class SerialsInteractionsRepository {
@@ -25,42 +26,31 @@ export class SerialsInteractionsRepository {
       .limit(1);
   }
 
-  static async getViewerLoggedTmdbIds(viewerUserId: string, tmdbIds: number[]) {
-    const uniqueTmdbIds = [...new Set(tmdbIds)];
-    if (uniqueTmdbIds.length === 0) {
-      return [];
-    }
-
-    const [loggedRows, ratedRows] = await Promise.all([
+  // See mergeCommunityRatings for the diary-vs-interaction precedence rule.
+  static async getCommunityRatingsBySeriesId(seriesId: number): Promise<{ rating: number }[]> {
+    const [diaryRatingRows, interactionRatingRows] = await Promise.all([
       db
-        .select({ tmdbId: tvSeries.tmdbId })
+        .select({ userId: serialDiaryEntries.userId, rating: serialDiaryEntries.rating })
         .from(serialDiaryEntries)
-        .innerJoin(tvSeries, eq(serialDiaryEntries.seriesId, tvSeries.id))
         .where(
-          and(
-            eq(serialDiaryEntries.userId, viewerUserId),
-            inArray(tvSeries.tmdbId, uniqueTmdbIds),
-          ),
-        )
-        .groupBy(tvSeries.tmdbId),
+          and(eq(serialDiaryEntries.seriesId, seriesId), isNotNull(serialDiaryEntries.rating)),
+        ),
       db
-        .select({ tmdbId: tvSeries.tmdbId })
+        .select({ userId: serialInteractions.userId, rating: serialInteractions.rating })
         .from(serialInteractions)
-        .innerJoin(tvSeries, eq(serialInteractions.seriesId, tvSeries.id))
         .where(
-          and(
-            eq(serialInteractions.userId, viewerUserId),
-            inArray(tvSeries.tmdbId, uniqueTmdbIds),
-            sql`${serialInteractions.rating} is not null`,
-          ),
-        )
-        .groupBy(tvSeries.tmdbId),
+          and(eq(serialInteractions.seriesId, seriesId), isNotNull(serialInteractions.rating)),
+        ),
     ]);
 
-    return [...new Set([...loggedRows, ...ratedRows].map((row) => row.tmdbId))];
+    return mergeCommunityRatings(diaryRatingRows, interactionRatingRows);
   }
 
-  static async getViewerWatchlistedTmdbIds(viewerUserId: string, tmdbIds: number[]) {
+  // Diary-entry half of "logged" - the other half (rated without a diary
+  // entry) comes from getViewerSeriesInteractionStateByTmdbIds, which shares
+  // one query with the watchlisted/fully-watched archive-grid lookups
+  // instead of each re-querying serialInteractions separately.
+  static async getViewerDiaryLoggedTmdbIds(viewerUserId: string, tmdbIds: number[]) {
     const uniqueTmdbIds = [...new Set(tmdbIds)];
     if (uniqueTmdbIds.length === 0) {
       return [];
@@ -68,18 +58,46 @@ export class SerialsInteractionsRepository {
 
     const rows = await db
       .select({ tmdbId: tvSeries.tmdbId })
-      .from(serialInteractions)
-      .innerJoin(tvSeries, eq(serialInteractions.seriesId, tvSeries.id))
+      .from(serialDiaryEntries)
+      .innerJoin(tvSeries, eq(serialDiaryEntries.seriesId, tvSeries.id))
       .where(
         and(
-          eq(serialInteractions.userId, viewerUserId),
-          eq(serialInteractions.watchlisted, true),
+          eq(serialDiaryEntries.userId, viewerUserId),
           inArray(tvSeries.tmdbId, uniqueTmdbIds),
         ),
       )
       .groupBy(tvSeries.tmdbId);
 
     return rows.map((row) => row.tmdbId);
+  }
+
+  // Single batched read of everything the archive grid needs from
+  // serialInteractions (watchlisted, explicitly-fully-watched, rated) for a
+  // page of tmdbIds, instead of one query per flag.
+  static async getViewerSeriesInteractionStateByTmdbIds(
+    viewerUserId: string,
+    tmdbIds: number[],
+  ) {
+    const uniqueTmdbIds = [...new Set(tmdbIds)];
+    if (uniqueTmdbIds.length === 0) {
+      return [];
+    }
+
+    return db
+      .select({
+        tmdbId: tvSeries.tmdbId,
+        watchlisted: serialInteractions.watchlisted,
+        isWatched: serialInteractions.isWatched,
+        rating: serialInteractions.rating,
+      })
+      .from(serialInteractions)
+      .innerJoin(tvSeries, eq(serialInteractions.seriesId, tvSeries.id))
+      .where(
+        and(
+          eq(serialInteractions.userId, viewerUserId),
+          inArray(tvSeries.tmdbId, uniqueTmdbIds),
+        ),
+      );
   }
 
   static async getInteractionRow(userId: string, seriesId: number) {
@@ -120,7 +138,7 @@ export class SerialsInteractionsRepository {
         set: {
           ...(input.liked !== undefined && { liked: input.liked }),
           ...(input.watchlisted !== undefined && { watchlisted: input.watchlisted }),
-          ...(input.isWatched === true && { isWatched: true }),
+          ...(input.isWatched !== undefined && { isWatched: input.isWatched }),
           ...(input.rating !== undefined && { rating: input.rating }),
         },
       })
