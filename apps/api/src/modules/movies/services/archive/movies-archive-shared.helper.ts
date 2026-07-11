@@ -5,6 +5,7 @@ import {
   toReleaseTimestamp,
 } from "../../helpers/movies-format.helper";
 import { buildAvailableGenresFromItems } from "../../../media/helpers/media-archive-genres.helper";
+import { sortByWeightedTmdbRatingDesc } from "../../../media/helpers/media-weighted-rating.helper";
 import type {
   ArchiveGenreOption,
   CinemaArchiveItem,
@@ -79,13 +80,40 @@ export const getArchivePeriodWindow = (
   };
 };
 
-export const getTmdbMinVoteCountForPeriod = (period: CinemaArchivePeriod): number => {
+// The floor for "Highest rated (TMDB)" is much higher than for other sorts:
+// TMDB's discover API only offers a raw vote_average.desc sort with a
+// vote_count.gte floor (no weighted/Bayesian sort of its own), so a low
+// floor lets a title with e.g. 10 votes that are all a perfect 10 outrank
+// widely-watched titles with a slightly lower but far more reliable
+// average. Recent-period windows use a lower floor since new releases
+// haven't accumulated many votes yet.
+const RATING_SORT_MIN_VOTE_COUNT_BY_PERIOD: Record<CinemaArchivePeriod, number> = {
+  today: 10,
+  this_week: 20,
+  this_year: 50,
+  last_10_years: 300,
+  all_time: 300,
+};
+
+export const getTmdbMinVoteCountForPeriod = (
+  period: CinemaArchivePeriod,
+  sortBy: CinemaArchiveSort,
+): number => {
+  if (sortBy === "rating_tmdb_desc") {
+    return RATING_SORT_MIN_VOTE_COUNT_BY_PERIOD[period];
+  }
+
   if (period === "this_week" || period === "today") {
     return 0;
   }
 
   return 15;
 };
+
+// Same confidence threshold as the TMDB-catalog floor above, applied as a
+// Bayesian weighted rating instead of a hard cutoff for locally-sorted
+// items (where we already have every candidate's vote count in memory).
+const RATING_SORT_MIN_VOTES_FOR_CONFIDENCE = 300;
 
 export const isActivityWindowPeriod = (period: CinemaArchivePeriod): boolean => {
   return period === "this_week" || period === "today";
@@ -200,30 +228,13 @@ export const sortLocalArchiveItems = (
   }
 
   if (sortBy === "rating_tmdb_desc") {
-    sortedItems.sort((left, right) => {
-      const leftRating = left.tmdbRatingOutOfTen;
-      const rightRating = right.tmdbRatingOutOfTen;
-
-      if (leftRating === null && rightRating !== null) {
-        return 1;
-      }
-
-      if (leftRating !== null && rightRating === null) {
-        return -1;
-      }
-
-      if (leftRating !== null && rightRating !== null && rightRating !== leftRating) {
-        return rightRating - leftRating;
-      }
-
+    return sortByWeightedTmdbRatingDesc(sortedItems, RATING_SORT_MIN_VOTES_FOR_CONFIDENCE, (left, right) => {
       if (right.logCount !== left.logCount) {
         return right.logCount - left.logCount;
       }
 
       return compareByReleaseDesc(left, right);
     });
-
-    return sortedItems;
   }
 
   sortedItems.sort((left, right) => {

@@ -6,6 +6,7 @@ import {
 import { normalizeMovieGenres } from "../helpers/movies-format.helper";
 import { buildMediaRatingBreakdown } from "../../media/helpers/media-rating-breakdown.helper";
 import { MoviesRepository } from "../repositories/movies.repository";
+import { MoviesReviewsRepository } from "../repositories/movies-reviews.repository";
 import { MoviesCacheService } from "./movies-cache.service";
 import { PeopleCacheService } from "../../people/services/people-cache.service";
 import type { MovieDetailReviewSort } from "../dto/movies.dto";
@@ -38,13 +39,13 @@ export class MoviesDetailService {
     const reviewsSort = input.reviewsSort;
     const viewerUserId = input.viewerUserId ?? null;
 
-    const [tmdbDetail, tmdbCredits, logsCount, reviewRows, tmdbSimilar, interactionRatings] = await Promise.all([
+    const [tmdbDetail, tmdbCredits, logsCount, reviewRows, tmdbSimilar, communityRatings] = await Promise.all([
       tmdbGetDetails(input.tmdbId).catch(() => null),
       getMovieCredits(input.tmdbId).catch(() => null),
       MoviesRepository.getLogsCountByMovieId(movie.id),
-      MoviesRepository.getReviewRowsByMovieId(movie.id),
+      MoviesReviewsRepository.getReviewRowsByMovieId(movie.id),
       getSimilarMovies(input.tmdbId).catch(() => []),
-      MoviesRepository.getAllDiaryRatingsByMovieId(movie.id),
+      MoviesRepository.getCommunityRatingsByMovieId(movie.id),
     ]);
 
     const directorCredits = (tmdbCredits?.crew ?? []).filter(
@@ -103,9 +104,9 @@ export class MoviesDetailService {
     const reviewIds = reviewRows.map((reviewRow) => reviewRow.id);
 
     const [likeRows, viewerLikedRows] = await Promise.all([
-      MoviesRepository.getReviewLikeCounts(reviewIds),
+      MoviesReviewsRepository.getReviewLikeCounts(reviewIds),
       viewerUserId
-        ? MoviesRepository.getViewerLikedReviewRows(viewerUserId, reviewIds)
+        ? MoviesReviewsRepository.getViewerLikedReviewRows(viewerUserId, reviewIds)
         : Promise.resolve([]),
     ]);
 
@@ -155,7 +156,7 @@ export class MoviesDetailService {
       );
     }
 
-    const ratingBreakdown = buildMediaRatingBreakdown(interactionRatings);
+    const ratingBreakdown = buildMediaRatingBreakdown(communityRatings);
 
     const similar = (tmdbSimilar ?? []).slice(0, 12).map((sim) => {
       const releaseYear = sim.release_date

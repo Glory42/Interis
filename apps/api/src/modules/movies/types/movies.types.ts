@@ -24,6 +24,7 @@ export type CinemaArchiveItem = {
   logCount: number;
   avgRatingOutOfTen: number | null;
   tmdbRatingOutOfTen: number | null;
+  tmdbVoteCount: number | null;
   ratedLogCount: number;
   viewerHasLogged: boolean;
   viewerWatchlisted: boolean;
@@ -71,6 +72,7 @@ export type LocalArchiveAggregate = {
   logCount: number;
   avgRatingOutOfTen: number | null;
   tmdbRatingOutOfTen: number | null;
+  tmdbVoteCount: number | null;
   ratedLogCount: number;
 };
 

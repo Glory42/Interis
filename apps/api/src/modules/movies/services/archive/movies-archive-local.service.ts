@@ -98,6 +98,7 @@ export const getArchiveFromLocalCatalog = async (
       logCount: row.logCount,
       avgRatingOutOfTen: row.avgRatingOutOfTen,
       tmdbRatingOutOfTen: null,
+      tmdbVoteCount: null,
       ratedLogCount: row.ratedLogCount,
       viewerHasLogged: false,
       viewerWatchlisted: false,
@@ -114,6 +115,7 @@ export const getArchiveFromLocalCatalog = async (
         {
           languageCode: string | null;
           tmdbRatingOutOfTen: number | null;
+          tmdbVoteCount: number | null;
         }
       >();
 
@@ -125,6 +127,7 @@ export const getArchiveFromLocalCatalog = async (
           ...item,
           languageCode: tmdbSignal?.languageCode ?? null,
           tmdbRatingOutOfTen: tmdbSignal?.tmdbRatingOutOfTen ?? null,
+          tmdbVoteCount: tmdbSignal?.tmdbVoteCount ?? null,
         };
       })
     : allItems;

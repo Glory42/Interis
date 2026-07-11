@@ -32,6 +32,7 @@ export const getLocalArchiveAggregatesByTmdbIds = async (
         logCount: row.logCount,
         avgRatingOutOfTen: row.avgRatingOutOfTen,
         tmdbRatingOutOfTen: null,
+        tmdbVoteCount: null,
         ratedLogCount: row.ratedLogCount,
       },
     ]),
@@ -85,6 +86,7 @@ export const mapTmdbArchiveMovie = (
       (tmdbMovie.vote_count > 0 && Number.isFinite(tmdbMovie.vote_average)
         ? Number(tmdbMovie.vote_average.toFixed(1))
         : null),
+    tmdbVoteCount: localAggregate?.tmdbVoteCount ?? tmdbMovie.vote_count,
     ratedLogCount: localAggregate?.ratedLogCount ?? 0,
     viewerHasLogged: false,
     viewerWatchlisted: false,

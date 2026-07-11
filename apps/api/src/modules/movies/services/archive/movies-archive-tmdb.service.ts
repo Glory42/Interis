@@ -11,6 +11,7 @@ import type { CinemaArchiveResponse } from "../../types/movies.types";
 import {
   getArchivePeriodWindow,
   getTmdbMinVoteCountForPeriod,
+  sortLocalArchiveItems,
 } from "./movies-archive-shared.helper";
 import type { MoviesArchiveQueryInput } from "./movies-archive.types";
 import {
@@ -236,7 +237,7 @@ export const getArchiveFromTmdbCatalog = async (
   }
 
   const periodWindow = getArchivePeriodWindow(input.selectedPeriod);
-  const tmdbMinVoteCount = getTmdbMinVoteCountForPeriod(input.selectedPeriod);
+  const tmdbMinVoteCount = getTmdbMinVoteCountForPeriod(input.selectedPeriod, input.sortBy);
 
   const discovered = await tmdbDiscover({
     page: input.page,
@@ -263,6 +264,17 @@ export const getArchiveFromTmdbCatalog = async (
     pageItemsWithDirector,
   );
 
+  // TMDB's discover API only sorts by raw vote_average, so a title barely
+  // above the vote_count floor can still outrank a much more widely-voted
+  // classic within the same page (e.g. 300 votes at 9.1 vs 30k votes at
+  // 8.7). Re-sorting the fetched page by the weighted rating corrects
+  // ordering within the page; the floor above bounds how much noise can
+  // enter the candidate set in the first place.
+  const finalPageItems =
+    input.sortBy === "rating_tmdb_desc"
+      ? sortLocalArchiveItems(pageItemsWithViewerState, input.sortBy)
+      : pageItemsWithViewerState;
+
   const hasMore = discovered.page < discovered.totalPages;
 
   return {
@@ -272,7 +284,7 @@ export const getArchiveFromTmdbCatalog = async (
     selectedLanguage: input.selectedLanguage,
     selectedSort: input.sortBy,
     selectedPeriod: input.selectedPeriod,
-    featuredMovie: toFeaturedMovie(pageItemsWithViewerState),
+    featuredMovie: toFeaturedMovie(finalPageItems),
     availableGenres: availableTmdbGenres.map((genre) => ({
       id: genre.id,
       name: genre.name,
@@ -282,6 +294,6 @@ export const getArchiveFromTmdbCatalog = async (
     limit: input.limit,
     hasMore,
     nextPage: hasMore ? discovered.page + 1 : null,
-    items: pageItemsWithViewerState,
+    items: finalPageItems,
   };
 };

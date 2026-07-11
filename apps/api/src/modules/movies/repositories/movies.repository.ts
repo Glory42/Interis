@@ -4,7 +4,8 @@ import { user } from "../../../infrastructure/database/auth.entity";
 import { diaryEntries } from "../../diary/diary.entity";
 import { movieInteractions } from "../../interactions/interactions.entity";
 import { profiles } from "../../users/users.entity";
-import { reviewLikes, reviews } from "../../reviews/reviews.entity";
+import { reviews } from "../../reviews/reviews.entity";
+import { mergeCommunityRatings } from "../../media/helpers/media-community-rating.helper";
 import { movies } from "../movies.entity";
 
 export class MoviesRepository {
@@ -80,66 +81,20 @@ export class MoviesRepository {
     return row?.count ?? 0;
   }
 
-  static async getReviewRowsByMovieId(movieId: number) {
-    return db
-      .select({
-        id: reviews.id,
-        userId: reviews.userId,
-        content: reviews.content,
-        containsSpoilers: reviews.containsSpoilers,
-        createdAt: reviews.createdAt,
-        updatedAt: reviews.updatedAt,
-        watchedDate: diaryEntries.watchedDate,
-        rating: diaryEntries.rating,
-        authorUsername: user.username,
-        authorDisplayUsername: user.displayUsername,
-        authorImage: user.image,
-        authorAvatarUrl: profiles.avatarUrl,
-      })
-      .from(reviews)
-      .innerJoin(user, eq(user.id, reviews.userId))
-      .leftJoin(profiles, eq(profiles.userId, reviews.userId))
-      .leftJoin(diaryEntries, eq(diaryEntries.id, reviews.diaryEntryId))
-      .where(and(eq(reviews.movieId, movieId), eq(reviews.mediaType, "movie")))
-      .orderBy(desc(reviews.createdAt));
-  }
+  // See mergeCommunityRatings for the diary-vs-interaction precedence rule.
+  static async getCommunityRatingsByMovieId(movieId: number): Promise<{ rating: number }[]> {
+    const [diaryRatingRows, interactionRatingRows] = await Promise.all([
+      db
+        .select({ userId: diaryEntries.userId, rating: diaryEntries.rating })
+        .from(diaryEntries)
+        .where(and(eq(diaryEntries.movieId, movieId), isNotNull(diaryEntries.rating))),
+      db
+        .select({ userId: movieInteractions.userId, rating: movieInteractions.rating })
+        .from(movieInteractions)
+        .where(and(eq(movieInteractions.movieId, movieId), isNotNull(movieInteractions.rating))),
+    ]);
 
-  static async getAllDiaryRatingsByMovieId(movieId: number) {
-    return db
-      .select({ rating: diaryEntries.rating })
-      .from(diaryEntries)
-      .where(and(eq(diaryEntries.movieId, movieId), isNotNull(diaryEntries.rating)));
-  }
-
-  static async getReviewLikeCounts(reviewIds: string[]) {
-    if (reviewIds.length === 0) {
-      return [];
-    }
-
-    return db
-      .select({
-        reviewId: reviewLikes.reviewId,
-        likeCount: sql<number>`count(*)::int`.as("likeCount"),
-      })
-      .from(reviewLikes)
-      .where(inArray(reviewLikes.reviewId, reviewIds))
-      .groupBy(reviewLikes.reviewId);
-  }
-
-  static async getViewerLikedReviewRows(viewerUserId: string, reviewIds: string[]) {
-    if (reviewIds.length === 0) {
-      return [];
-    }
-
-    return db
-      .select({ reviewId: reviewLikes.reviewId })
-      .from(reviewLikes)
-      .where(
-        and(
-          eq(reviewLikes.userId, viewerUserId),
-          inArray(reviewLikes.reviewId, reviewIds),
-        ),
-      );
+    return mergeCommunityRatings(diaryRatingRows, interactionRatingRows);
   }
 
   static async getViewerDiaryRows(viewerUserId: string, movieId: number) {
