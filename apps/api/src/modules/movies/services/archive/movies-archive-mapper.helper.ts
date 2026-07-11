@@ -2,6 +2,7 @@ import type {
   TMDBDiscoverMovie,
   TMDBMovieGenre,
 } from "../../../../infrastructure/tmdb/cinemas";
+import { normalizeVoteAverage } from "../../../media/helpers/media-vote-average.helper";
 import {
   normalizeMovieGenres,
   toTmdbReleaseDate,
@@ -83,9 +84,7 @@ export const mapTmdbArchiveMovie = (
     avgRatingOutOfTen: localAggregate?.avgRatingOutOfTen ?? null,
     tmdbRatingOutOfTen:
       localAggregate?.tmdbRatingOutOfTen ??
-      (tmdbMovie.vote_count > 0 && Number.isFinite(tmdbMovie.vote_average)
-        ? Number(tmdbMovie.vote_average.toFixed(1))
-        : null),
+      normalizeVoteAverage(tmdbMovie.vote_average),
     tmdbVoteCount: localAggregate?.tmdbVoteCount ?? tmdbMovie.vote_count,
     ratedLogCount: localAggregate?.ratedLogCount ?? 0,
     viewerHasLogged: false,

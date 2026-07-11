@@ -4,6 +4,7 @@ import {
   getSimilarMovies,
 } from "../../../infrastructure/tmdb/cinemas";
 import { normalizeMovieGenres } from "../helpers/movies-format.helper";
+import { normalizeVoteAverage } from "../../media/helpers/media-vote-average.helper";
 import { buildMediaRatingBreakdown } from "../../media/helpers/media-rating-breakdown.helper";
 import { MoviesRepository } from "../repositories/movies.repository";
 import { MoviesReviewsRepository } from "../repositories/movies-reviews.repository";
@@ -181,10 +182,7 @@ export class MoviesDetailService {
     const viewerDiary = viewerDiaryRow[0] ?? null;
     const viewerReview = viewerReviewRow[0] ?? null;
 
-    const globalRating =
-      tmdbDetail && Number.isFinite(tmdbDetail.vote_average)
-        ? Number(tmdbDetail.vote_average.toFixed(1))
-        : null;
+    const globalRating = normalizeVoteAverage(tmdbDetail?.vote_average);
 
     return {
       movie: {

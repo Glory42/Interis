@@ -2,6 +2,7 @@ import type {
   TMDBSeriesDetail,
   TMDBSeriesSeasonDetail,
 } from "../../../infrastructure/tmdb/serials";
+import { normalizeVoteAverage } from "../../media/helpers/media-vote-average.helper";
 import type {
   SerialDetailEpisode,
   SerialDetailSeason,
@@ -160,11 +161,8 @@ export const toTmdbRatingOutOfTen = (input: {
   voteAverage: number;
   voteCount: number;
 }): number | null => {
-  if (input.voteCount <= 0 || !Number.isFinite(input.voteAverage)) {
-    return null;
-  }
-
-  return Number(input.voteAverage.toFixed(1));
+  if (input.voteCount <= 0) return null;
+  return normalizeVoteAverage(input.voteAverage);
 };
 
 

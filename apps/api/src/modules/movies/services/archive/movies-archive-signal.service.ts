@@ -1,5 +1,6 @@
 import { getMovieDetails as tmdbGetDetails } from "../../../../infrastructure/tmdb/cinemas";
 import { createCachedTmdbFetcher } from "../../../../infrastructure/tmdb/tmdb-cache.helper";
+import { normalizeVoteAverage } from "../../../media/helpers/media-vote-average.helper";
 
 type TmdbSignal = {
   languageCode: string | null;
@@ -14,10 +15,7 @@ const getTmdbSignalByTmdbId = createCachedTmdbFetcher(async (tmdbId: number): Pr
     detail && detail.original_language.trim().length > 0
       ? detail.original_language.toLowerCase()
       : null;
-  const tmdbRatingOutOfTen =
-    detail && detail.vote_count > 0 && Number.isFinite(detail.vote_average)
-      ? Number(detail.vote_average.toFixed(1))
-      : null;
+  const tmdbRatingOutOfTen = normalizeVoteAverage(detail?.vote_average);
   const tmdbVoteCount = detail ? detail.vote_count : null;
 
   return {

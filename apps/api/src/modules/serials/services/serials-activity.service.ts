@@ -13,6 +13,7 @@ import { SerialsReviewsRepository } from "../repositories/serials-reviews.reposi
 import { SerialsCacheService } from "./serials-cache.service";
 import { SerialsEpisodeInteractionsRepository } from "../repositories/serials-episode-interactions.repository";
 import { SerialsTrackingService } from "./serials-tracking.service";
+import { filterWatchedNonSpecialEpisodes } from "../helpers/serials-episode-filter.helper";
 
 export class SerialsActivityService {
   // Shared by updateInteraction (the sidebar "Watch" toggle) and createLog
@@ -53,7 +54,7 @@ export class SerialsActivityService {
         series.id,
         series.tmdbId,
       );
-    const watchedEpisodesCount = userEpisodeInteractions.filter((i) => i.watched && i.seasonNumber > 0).length;
+    const watchedEpisodesCount = filterWatchedNonSpecialEpisodes(userEpisodeInteractions).length;
     const allEpisodesWatched =
       watchedEpisodesCount === series.numberOfEpisodes && series.numberOfEpisodes > 0;
 
@@ -163,7 +164,7 @@ export class SerialsActivityService {
         series.id,
         series.tmdbId,
       );
-    const watchedEpisodesCount = userEpisodeInteractions.filter((i) => i.watched && i.seasonNumber > 0).length;
+    const watchedEpisodesCount = filterWatchedNonSpecialEpisodes(userEpisodeInteractions).length;
     const allEpisodesWatched =
       watchedEpisodesCount === series.numberOfEpisodes && series.numberOfEpisodes > 0;
 

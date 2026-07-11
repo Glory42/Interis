@@ -4,6 +4,7 @@ import type {
   TMDBPersonTvCredits,
 } from "../../../infrastructure/tmdb/people";
 import type { PersonCreditItem } from "../types/people.types";
+import { normalizeVoteAverage } from "../../media/helpers/media-vote-average.helper";
 import {
   toIsoDateOrNull,
   toNonNegativeIntOrNull,
@@ -142,10 +143,7 @@ const toCreditItem = (input: {
     job: toNullableTrimmed(input.job),
     department: toNullableTrimmed(input.department),
     episodeCount: toNonNegativeIntOrNull(input.episodeCount),
-    voteAverage:
-      input.voteAverage !== null && input.voteAverage !== undefined
-        ? Number(input.voteAverage.toFixed(1))
-        : null,
+    voteAverage: normalizeVoteAverage(input.voteAverage),
     voteCount: toNonNegativeIntOrNull(input.voteCount),
   };
 };

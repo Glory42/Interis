@@ -1,5 +1,6 @@
 import { SerialsEpisodeInteractionsRepository } from "../repositories/serials-episode-interactions.repository";
 import { toNormalizedSeasonItems } from "./serials-normalization.helper";
+import { filterWatchedNonSpecialEpisodes, toWatchedEpisodeKeySet } from "./serials-episode-filter.helper";
 import type { TMDBSeriesDetail } from "../../../infrastructure/tmdb/serials";
 import type { SerialDetailViewerTracking } from "../types/serials.types";
 
@@ -17,15 +18,12 @@ export async function calculateViewerTracking(
       seriesTmdbId,
     );
 
-  const watchedEpisodes = userEpisodeInteractions
-    .filter((i) => i.watched && i.seasonNumber > 0)
-    .map((i) => ({ seasonNumber: i.seasonNumber, episodeNumber: i.episodeNumber }));
-
-  const watchedKeys = new Set(
-    userEpisodeInteractions
-      .filter((i) => i.watched && i.seasonNumber > 0)
-      .map((i) => `${i.seasonNumber}:${i.episodeNumber}`),
-  );
+  const watchedNonSpecial = filterWatchedNonSpecialEpisodes(userEpisodeInteractions);
+  const watchedEpisodes = watchedNonSpecial.map((i) => ({
+    seasonNumber: i.seasonNumber,
+    episodeNumber: i.episodeNumber,
+  }));
+  const watchedKeys = toWatchedEpisodeKeySet(userEpisodeInteractions);
 
   let currentEpisode: { seasonNumber: number; episodeNumber: number; name: string } | null = null;
 
