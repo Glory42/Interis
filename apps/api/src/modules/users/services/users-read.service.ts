@@ -1,7 +1,7 @@
 import { dedupeRecentPosters } from "../helpers/users-summary.helper";
 import { UsersMediaInteractionsRepository } from "../repositories/users-media-interactions.repository";
 import { UsersProfileRepository } from "../repositories/users-profile.repository";
-import { UsersReviewsRepository } from "../repositories/users-reviews.repository";
+import { UsersReviewsListRepository, UsersReviewsRepository } from "../repositories/users-reviews.repository";
 import { UsersStatsRepository } from "../repositories/users-stats.repository";
 import { UsersProfileService } from "./users-profile.service";
 
@@ -19,7 +19,7 @@ export class UsersReadService {
   }
 
   static async getReviewsWithMovies(userId: string, limit?: number, offset?: number) {
-    return UsersReviewsRepository.getReviewsWithMovies(userId, limit, offset);
+    return UsersReviewsListRepository.getReviewsWithMovies(userId, limit, offset);
   }
 
   static async getReviewDetailByUsername(
