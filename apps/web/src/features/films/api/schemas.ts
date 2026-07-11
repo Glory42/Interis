@@ -1,16 +1,13 @@
 import { z } from "zod";
 import { personLinkSchema } from "@/features/people/shared";
-import { movieLogSchema, movieSchema, tmdbSearchMovieSchema } from "@/types/api";
+import { movieLogSchema, movieGenreSchema, movieSchema, tmdbSearchMovieSchema } from "@/types/api";
 
 export { movieLogSchema, movieSchema, tmdbSearchMovieSchema };
 
 export const movieSearchResponseSchema = z.array(tmdbSearchMovieSchema);
 export const movieLogsResponseSchema = z.array(movieLogSchema);
 
-const archiveGenreSchema = z.object({
-  id: z.number().int(),
-  name: z.string(),
-});
+const archiveGenreSchema = movieGenreSchema;
 
 const archiveMovieSchema = z.object({
   tmdbId: z.number().int(),

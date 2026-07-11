@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { personLinkSchema } from "@/features/people/shared";
+import { movieGenreSchema } from "@/types/api";
 
 export const tmdbSearchSeriesSchema = z.object({
   id: z.number().int().positive(),
@@ -9,10 +10,7 @@ export const tmdbSearchSeriesSchema = z.object({
   overview: z.string(),
 });
 
-const serialGenreSchema = z.object({
-  id: z.number().int(),
-  name: z.string(),
-});
+const serialGenreSchema = movieGenreSchema;
 
 const serialArchiveItemSchema = z.object({
   tmdbId: z.number().int().positive(),

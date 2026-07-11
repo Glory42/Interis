@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { getPosterUrl } from "@/features/films/components/utils";
 import { formatDateOnlyLabel } from "@/lib/time";
+import { formatRatingLabel } from "@/lib/rating";
 import type { DiaryEntry } from "@/types/api";
 
 type DiaryEntryProps = {
@@ -23,9 +24,6 @@ const formatDate = (value: string): string => {
 // UTC. Empty options match formatDate's bare toLocaleDateString() output.
 const formatWatchedDate = (value: string): string => formatDateOnlyLabel(value, {});
 
-const toOutOfTenLabel = (ratingOutOfTen: number): string => {
-  return `${ratingOutOfTen.toFixed(1).replace(/\.0$/, "")}/10`;
-};
 
 export const DiaryEntryItem = ({ entry }: DiaryEntryProps) => {
   return (
@@ -57,7 +55,7 @@ export const DiaryEntryItem = ({ entry }: DiaryEntryProps) => {
           <div className="flex flex-wrap items-center gap-2">
             {entry.rating !== null ? (
               <Badge variant="accent">
-                Score: {toOutOfTenLabel(entry.rating)}
+                Score: {formatRatingLabel(entry.rating) ?? ""}
               </Badge>
             ) : null}
             {entry.rewatch ? <Badge variant="primary">Rewatch</Badge> : null}

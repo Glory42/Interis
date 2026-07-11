@@ -1,3 +1,4 @@
+import { formatRatingLabel } from "@/lib/rating";
 import { toRatingTokens } from "./diary-model";
 
 type DiaryRatingStarsProps = {
@@ -10,12 +11,7 @@ export const DiaryRatingStars = ({
   color,
 }: DiaryRatingStarsProps) => {
   const tokens = toRatingTokens(rating);
-  const ratingLabel =
-    rating === null
-      ? "Unrated"
-      : Number.isInteger(rating)
-        ? `${rating}/10`
-        : `${rating.toFixed(1)}/10`;
+  const ratingLabel = formatRatingLabel(rating) ?? "Unrated";
 
   return (
     <span className="flex items-center gap-0.5" aria-label={ratingLabel}>

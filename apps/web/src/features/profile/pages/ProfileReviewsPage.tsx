@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Star, TriangleAlert } from "lucide-react";
+import { formatRatingLabel } from "@/lib/rating";
 import { getPosterUrl } from "@/features/films/components/utils";
 import type { UserReview } from "@/features/profile/api";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
@@ -63,12 +64,7 @@ const ReviewStars = ({
   rating: number | null | undefined;
 }) => {
   const tokens = toRatingTokens(rating);
-  const label =
-    rating === null || rating === undefined
-      ? "Unrated"
-      : Number.isInteger(rating)
-        ? `${rating}/10`
-        : `${rating.toFixed(1)}/10`;
+  const label = formatRatingLabel(rating ?? null) ?? "Unrated";
 
   return (
     <span className="flex items-center gap-0.5" aria-label={label}>

@@ -1,4 +1,5 @@
 import type { UserRecentActivity } from "@/features/profile/api";
+import { formatRatingLabel } from "@/lib/rating";
 
 export type ProfileRecentActivityItem = {
   id: string;
@@ -10,14 +11,6 @@ export type ProfileRecentActivityItem = {
   createdAt: string;
 };
 
-const formatRatingLabel = (rating: number): string => {
-  const rounded = Math.round(rating * 10) / 10;
-  if (Number.isInteger(rounded)) {
-    return `${rounded.toFixed(0)}/10`;
-  }
-
-  return `${rounded.toFixed(1)}/10`;
-};
 
 const getTimestamp = (value: string): number => {
   const parsed = new Date(value).getTime();
