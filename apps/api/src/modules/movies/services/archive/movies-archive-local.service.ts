@@ -52,15 +52,13 @@ export const getArchiveFromLocalCatalog = async (
     isActivityWindowPeriod(effectivePeriod) &&
     (input.sortBy === "logs_desc" || input.sortBy === "rating_user_desc");
 
-  const rows =
+  const rows = await MoviesRepository.getLocalArchiveRows(
     shouldFilterByActivityWindow &&
     periodWindow.releaseDateGte !== null &&
     periodWindow.releaseDateLte !== null
-      ? await MoviesRepository.getLocalArchiveRowsByWatchedDateRange({
-          watchedDateGte: periodWindow.releaseDateGte,
-          watchedDateLte: periodWindow.releaseDateLte,
-        })
-      : await MoviesRepository.getLocalArchiveRows();
+      ? { watchedDateGte: periodWindow.releaseDateGte, watchedDateLte: periodWindow.releaseDateLte }
+      : undefined,
+  );
 
   const directorByTmdbId = new Map<number, string | null>(
     rows.map((row) => [row.tmdbId, row.director]),

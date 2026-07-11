@@ -218,7 +218,7 @@ export class MoviesRepository {
       .groupBy(movies.id);
   }
 
-  static async getLocalArchiveRows() {
+  static async getLocalArchiveRows(dateRange?: { watchedDateGte: string; watchedDateLte: string }) {
     return db
       .select({
         tmdbId: movies.tmdbId,
@@ -239,39 +239,13 @@ export class MoviesRepository {
       })
       .from(movies)
       .leftJoin(diaryEntries, eq(diaryEntries.movieId, movies.id))
-      .groupBy(movies.id)
-      .orderBy(asc(movies.title));
-  }
-
-  static async getLocalArchiveRowsByWatchedDateRange(input: {
-    watchedDateGte: string;
-    watchedDateLte: string;
-  }) {
-    return db
-      .select({
-        tmdbId: movies.tmdbId,
-        title: movies.title,
-        posterPath: movies.posterPath,
-        backdropPath: movies.backdropPath,
-        releaseDate: movies.releaseDate,
-        releaseYear: movies.releaseYear,
-        director: movies.director,
-        genres: movies.genres,
-        logCount: sql<number>`count(${diaryEntries.id})::int`.as("logCount"),
-        avgRatingOutOfTen:
-          sql<number | null>`avg(${diaryEntries.rating})::double precision`.as(
-            "avgRatingOutOfTen",
-          ),
-        ratedLogCount:
-          sql<number>`count(${diaryEntries.rating})::int`.as("ratedLogCount"),
-      })
-      .from(movies)
-      .innerJoin(diaryEntries, eq(diaryEntries.movieId, movies.id))
       .where(
-        and(
-          gte(diaryEntries.watchedDate, input.watchedDateGte),
-          lte(diaryEntries.watchedDate, input.watchedDateLte),
-        ),
+        dateRange
+          ? and(
+              gte(diaryEntries.watchedDate, dateRange.watchedDateGte),
+              lte(diaryEntries.watchedDate, dateRange.watchedDateLte),
+            )
+          : undefined,
       )
       .groupBy(movies.id)
       .orderBy(asc(movies.title));
