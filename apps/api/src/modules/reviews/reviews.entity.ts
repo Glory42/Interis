@@ -43,6 +43,7 @@ export const reviews = pgTable(
       table.mediaSourceId,
     ),
     index("review_movie_id_idx").on(table.movieId),
+    index("review_diary_entry_id_idx").on(table.diaryEntryId),
   ],
 );
 

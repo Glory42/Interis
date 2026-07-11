@@ -1,4 +1,5 @@
 import {
+  index,
   integer,
   jsonb,
   pgTable,
@@ -35,4 +36,6 @@ export const personSlugAliases = pgTable("person_slug_alias", {
     .references(() => people.id, { onDelete: "cascade" }),
   slug: text("slug").notNull().unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => [
+  index("person_slug_alias_person_id_idx").on(table.personId),
+]);

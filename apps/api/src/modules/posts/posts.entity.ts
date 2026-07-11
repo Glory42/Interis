@@ -31,7 +31,10 @@ export const posts = pgTable("post", {
     .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
-});
+}, (table) => [
+  index("post_user_id_idx").on(table.userId),
+  index("post_media_id_idx").on(table.mediaId),
+]);
 
 export const postLikes = pgTable(
   "post_like",

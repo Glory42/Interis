@@ -7,6 +7,7 @@ import {
   uuid,
   uniqueIndex,
   unique,
+  index,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { user } from "../../infrastructure/database/auth.entity";
@@ -30,7 +31,9 @@ export const lists = pgTable("list", {
     .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
-});
+}, (table) => [
+  index("list_user_id_idx").on(table.userId),
+]);
 
 export const listEntries = pgTable(
   "list_entry",

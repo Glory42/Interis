@@ -260,6 +260,13 @@
       "when": 1783412403122,
       "tag": "0036_lean_centennial",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1783811234688,
+      "tag": "0037_bitter_photon",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,7 @@
 import {
   boolean,
   date,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -54,7 +55,10 @@ export const serialDiaryEntries = pgTable("serial_diary_entry", {
     .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
-});
+}, (table) => [
+  index("serial_diary_entry_user_id_idx").on(table.userId),
+  index("serial_diary_entry_series_id_idx").on(table.seriesId),
+]);
 
 export const serialInteractions = pgTable(
   "serial_interaction",

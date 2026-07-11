@@ -33,7 +33,10 @@ export const follows = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (table) => [unique("follows_unique").on(table.followerId, table.followingId)],
+  (table) => [
+    unique("follows_unique").on(table.followerId, table.followingId),
+    index("follows_following_id_idx").on(table.followingId),
+  ],
 );
 
 export const activities = pgTable(
