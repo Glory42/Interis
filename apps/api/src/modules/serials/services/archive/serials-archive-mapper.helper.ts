@@ -15,7 +15,7 @@ import type {
 } from "../../types/serials.types";
 
 type LocalArchiveRow = Awaited<
-  ReturnType<typeof SerialsArchiveRepository.getCachedArchiveRows>
+  ReturnType<typeof SerialsArchiveRepository.getLocalArchiveRows>
 >[number];
 
 type LocalArchiveAggregateRow = Awaited<

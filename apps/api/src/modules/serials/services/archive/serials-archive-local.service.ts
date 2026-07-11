@@ -14,7 +14,7 @@ import { toArchiveItemFromLocalRow } from "./serials-archive-mapper.helper";
 export const getArchiveFromLocalCache = async (
   input: SerialsArchiveQueryInput,
 ): Promise<SerialArchiveResponse> => {
-  const rows = await SerialsArchiveRepository.getCachedArchiveRows();
+  const rows = await SerialsArchiveRepository.getLocalArchiveRows();
   const allItems = rows.map((row) => toArchiveItemFromLocalRow(row));
 
   const effectivePeriod =

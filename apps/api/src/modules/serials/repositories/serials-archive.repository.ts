@@ -61,7 +61,4 @@ export class SerialsArchiveRepository {
       .orderBy(asc(tvSeries.title));
   }
 
-  static async getCachedArchiveRows() {
-    return SerialsArchiveRepository.getLocalArchiveRows();
-  }
 }

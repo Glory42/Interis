@@ -17,6 +17,9 @@ export const EXPORT_HEADERS = [
   "Spoilers",
 ] as const;
 
+const toExportRatingString = (r: number | null): string =>
+  r !== null ? String(r / 2) : "";
+
 export class DataExportService {
   static async exportDiary(userId: string): Promise<string> {
     const [movieEntries, serialEntries] = await Promise.all([
@@ -51,7 +54,7 @@ export class DataExportService {
       Title: entry.movieTitle,
       Year: String(entry.movieReleaseYear ?? ""),
       TmdbId: String(entry.movieTmdbId),
-      Rating: entry.rating !== null ? String(entry.rating / 2) : "",
+      Rating: toExportRatingString(entry.rating),
       Rewatch: entry.rewatch ? "true" : "false",
       Review: entry.reviewContent ?? "",
       Spoilers: entry.reviewContent
@@ -67,7 +70,7 @@ export class DataExportService {
       Title: entry.title,
       Year: String(entry.firstAirYear ?? ""),
       TmdbId: String(entry.tmdbId),
-      Rating: entry.rating !== null ? String(entry.rating / 2) : "",
+      Rating: toExportRatingString(entry.rating),
       Rewatch: entry.rewatch ? "true" : "false",
       Review: entry.reviewContent ?? "",
       Spoilers: entry.reviewContent

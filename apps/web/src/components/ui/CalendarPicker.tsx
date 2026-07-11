@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+import { parseDateOnly } from "@/lib/time";
 
 type CalendarPickerProps = {
   value: string; // YYYY-MM-DD
@@ -36,7 +37,7 @@ export const CalendarPicker = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Parse current date value
-  const initialDate = value ? new Date(value + "T00:00:00") : new Date();
+  const initialDate = value ? parseDateOnly(value) : new Date();
   const [currentYear, setCurrentYear] = useState(initialDate.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(initialDate.getMonth()); // 0-11
 
@@ -47,7 +48,7 @@ export const CalendarPicker = ({
   if (value !== prevValue) {
     setPrevValue(value);
     if (value) {
-      const d = new Date(value + "T00:00:00");
+      const d = parseDateOnly(value);
       if (!isNaN(d.getTime())) {
         setCurrentYear(d.getFullYear());
         setCurrentMonth(d.getMonth());

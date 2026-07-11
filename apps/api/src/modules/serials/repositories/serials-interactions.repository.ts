@@ -228,20 +228,6 @@ export class SerialsInteractionsRepository {
     return Boolean(row);
   }
 
-  static async insertSerialDiaryEntry(input: {
-    userId: string;
-    seriesId: number;
-    watchedDate: string;
-    rating: number | null;
-    rewatch: boolean;
-  }): Promise<{ id: string } | null> {
-    const [entry] = await db
-      .insert(serialDiaryEntries)
-      .values(input)
-      .returning({ id: serialDiaryEntries.id });
-    return entry ?? null;
-  }
-
   static async setWatchlisted(userId: string, seriesId: number): Promise<void> {
     await db
       .insert(serialInteractions)

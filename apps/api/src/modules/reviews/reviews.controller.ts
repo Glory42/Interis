@@ -1,5 +1,4 @@
 import type { Request, Response } from "express";
-import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
 import { sendValidationError } from "../../commons/http/validation-response.helper";
 import { ReviewsService } from "./reviews.service";
 import {
@@ -70,8 +69,7 @@ export class ReviewsController {
     req: Request<{ id: string }>,
     res: Response,
   ): Promise<void> {
-    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
-    const comments = await ReviewsService.getComments(req.params.id, viewerUserId);
+    const comments = await ReviewsService.getComments(req.params.id);
     res.status(200).json(comments);
   }
 

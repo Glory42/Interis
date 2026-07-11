@@ -369,7 +369,7 @@ export class DataImportService {
         }
 
         const seriesRating = toRatingOutOfTen(normalized.rating);
-        const entry = await SerialsInteractionsRepository.insertSerialDiaryEntry({
+        const entry = await SerialsInteractionsRepository.insertDiaryEntry({
           userId,
           seriesId: series.id,
           watchedDate: normalized.watchedDate,

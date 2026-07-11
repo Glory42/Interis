@@ -5,7 +5,7 @@ import { buildCommentCreatedActivityMetadata } from "../helpers/reviews-activity
 import { ReviewsRepository } from "../repositories/reviews.repository";
 
 export class ReviewsCommentsService {
-  static async getComments(reviewId: string, _viewerUserId?: string | null) {
+  static async getComments(reviewId: string) {
     return ReviewsRepository.getCommentsByReviewId(reviewId);
   }
 
