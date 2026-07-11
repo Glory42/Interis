@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
+import { memo } from "react";
 import type { SerialDetailResponse } from "@/features/serials/api";
 import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
 import { formatRatingLabel } from "@/features/films/components/spaceRating.utils";
@@ -10,9 +11,26 @@ type SerialReviewCardProps = {
   review: SerialDetailResponse["reviews"][number];
 };
 
-export const SerialReviewCard = ({ review }: SerialReviewCardProps) => {
+const formatReviewContextLabel = (
+  context: SerialDetailResponse["reviews"][number]["context"],
+): string | null => {
+  if (!context) return null;
+  if (context.episodeNumber !== null) {
+    const episodeLabel = `S${context.seasonNumber}E${context.episodeNumber}`;
+    return context.episodeName ? `${episodeLabel} · ${context.episodeName}` : episodeLabel;
+  }
+  return `Season ${context.seasonNumber}`;
+};
+
+// Rendered in a .map() inside SerialReviewsSection, which sits under
+// SerialDetailPage's season-accordion toggle state - without memo, every
+// accordion open/close re-renders every review card despite unchanged data.
+export const SerialReviewCard = memo(function SerialReviewCard({
+  review,
+}: SerialReviewCardProps) {
   const authorName = review.author.displayUsername ?? review.author.username;
   const avatarUrl = review.author.avatarUrl ?? review.author.image;
+  const contextLabel = formatReviewContextLabel(review.context);
 
   return (
     <article
@@ -54,6 +72,21 @@ export const SerialReviewCard = ({ review }: SerialReviewCardProps) => {
             >
               {authorName}
             </Link>
+
+            {contextLabel ? (
+              <div className="mt-0.5">
+                <span
+                  className="inline-flex items-center border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em]"
+                  style={{
+                    borderColor: SERIAL_MODULE_STYLES.borderSoft,
+                    color: SERIAL_MODULE_STYLES.faint,
+                    background: SERIAL_MODULE_STYLES.panelElevated,
+                  }}
+                >
+                  {contextLabel}
+                </span>
+              </div>
+            ) : null}
 
             <div className="mt-0.5 flex items-center gap-2">
               <SpaceRatingDisplay rating={review.rating} size="sm" />
@@ -125,4 +158,4 @@ export const SerialReviewCard = ({ review }: SerialReviewCardProps) => {
       </div>
     </article>
   );
-};
+});

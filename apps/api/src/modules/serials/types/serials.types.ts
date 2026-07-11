@@ -137,6 +137,12 @@ export type SerialDetailReviewItem = {
     image: string | null;
     avatarUrl: string | null;
   };
+  // Present for season/episode-scoped reviews, null for a whole-series review.
+  context: {
+    seasonNumber: number;
+    episodeNumber: number | null;
+    episodeName: string | null;
+  } | null;
 };
 
 export type SerialDetailUserRating = {

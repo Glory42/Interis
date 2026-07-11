@@ -177,13 +177,13 @@ export const getSeriesDetails = createCachedTmdbFetcher(async (tmdbId) => {
   return TMDBSeriesDetailSchema.parse(data);
 });
 
-export const getSeriesSeasonDetails = async (
-  tmdbId: number,
-  seasonNumber: number,
-): Promise<TMDBSeriesSeasonDetail> => {
-  const data = await fetchTMDB(`/tv/${tmdbId}/season/${seasonNumber}?language=en-US`);
-  return TMDBSeriesSeasonDetailSchema.parse(data);
-};
+export const getSeriesSeasonDetails = createCachedTmdbFetcher(
+  async (tmdbId: number, seasonNumber: number): Promise<TMDBSeriesSeasonDetail> => {
+    const data = await fetchTMDB(`/tv/${tmdbId}/season/${seasonNumber}?language=en-US`);
+    return TMDBSeriesSeasonDetailSchema.parse(data);
+  },
+  { keyFn: (tmdbId, seasonNumber) => `${tmdbId}:${seasonNumber}` },
+);
 
 export const getSeriesAggregateCredits = createCachedTmdbFetcher(async (tmdbId) => {
   const data = await fetchTMDB(`/tv/${tmdbId}/aggregate_credits?language=en-US`);

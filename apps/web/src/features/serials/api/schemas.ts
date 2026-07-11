@@ -167,6 +167,13 @@ const serialDetailReviewSchema = z.object({
     image: z.string().nullable(),
     avatarUrl: z.string().nullable(),
   }),
+  context: z
+    .object({
+      seasonNumber: z.number().int(),
+      episodeNumber: z.number().int().nullable(),
+      episodeName: z.string().nullable(),
+    })
+    .nullable(),
 });
 
 const serialDetailRatingBreakdownBucketSchema = z.object({

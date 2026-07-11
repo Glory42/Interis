@@ -18,6 +18,11 @@ import {
 import { buildMediaRatingBreakdown } from "../../media/helpers/media-rating-breakdown.helper";
 import { SerialsInteractionsRepository } from "../repositories/serials-interactions.repository";
 import { SerialsReviewsRepository } from "../repositories/serials-reviews.repository";
+import { SerialsSeasonEpisodeReviewsRepository } from "../repositories/serials-season-episode-reviews.repository";
+import {
+  resolveSeasonEpisodeReviewItems,
+  resolveSeriesReviewItems,
+} from "../helpers/serials-review-context.helper";
 import { calculateViewerTracking } from "../helpers/serials-tracking.helper";
 import { SerialsCacheService } from "./serials-cache.service";
 import { PeopleCacheService } from "../../people/services/people-cache.service";
@@ -45,12 +50,22 @@ export class SerialsDetailService {
     const reviewsSort = input.reviewsSort;
     const viewerUserId = input.viewerUserId ?? null;
 
-    const [tmdbDetail, tmdbAggregateCredits, logsCount, reviewRows, tmdbSimilar] = await Promise.all([
+    const [
+      tmdbDetail,
+      tmdbAggregateCredits,
+      logsCount,
+      reviewRows,
+      tmdbSimilar,
+      communityRatings,
+      seasonEpisodeReviewRows,
+    ] = await Promise.all([
       tmdbGetDetails(input.tmdbId).catch(() => null),
       tmdbGetAggregateCredits(input.tmdbId).catch(() => null),
       SerialsReviewsRepository.getLogsCountBySeriesId(cachedSeries.id),
       SerialsReviewsRepository.getReviewRowsBySeriesId(cachedSeries.id),
       getSimilarSeries(input.tmdbId).catch(() => []),
+      SerialsInteractionsRepository.getCommunityRatingsBySeriesId(cachedSeries.id),
+      SerialsSeasonEpisodeReviewsRepository.getReviewRowsBySeriesId(input.tmdbId, cachedSeries.id),
     ]);
 
     const normalizedTmdbDetail = tmdbDetail ? normalizeTmdbSeriesDetail(tmdbDetail) : null;
@@ -62,7 +77,10 @@ export class SerialsDetailService {
         })
       : null;
 
-    const reviewIds = reviewRows.map((reviewRow) => reviewRow.id);
+    const reviewIds = [
+      ...reviewRows.map((reviewRow) => reviewRow.id),
+      ...seasonEpisodeReviewRows.map((row) => row.id),
+    ];
 
     const [likeRows, viewerLikedRows] = await Promise.all([
       SerialsReviewsRepository.getReviewLikeCounts(reviewIds),
@@ -78,28 +96,23 @@ export class SerialsDetailService {
       viewerLikedRows.map((likedRow) => likedRow.reviewId),
     );
 
-    const reviewsWithEngagement: SerialDetailReviewItem[] = reviewRows.map((reviewRow) => {
-      const ratingOutOfTen = reviewRow.rating;
+    const seriesReviews = resolveSeriesReviewItems(
+      reviewRows,
+      likeCountByReviewId,
+      viewerLikedReviewIds,
+    );
 
-      return {
-        id: reviewRow.id,
-        content: reviewRow.content,
-        containsSpoilers: reviewRow.containsSpoilers,
-        createdAt: reviewRow.createdAt,
-        updatedAt: reviewRow.updatedAt,
-        watchedDate: reviewRow.watchedDate,
-        rating: ratingOutOfTen,
-        likeCount: likeCountByReviewId.get(reviewRow.id) ?? 0,
-        viewerHasLiked: viewerLikedReviewIds.has(reviewRow.id),
-        author: {
-          id: reviewRow.userId,
-          username: reviewRow.authorUsername,
-          displayUsername: reviewRow.authorDisplayUsername,
-          image: reviewRow.authorImage,
-          avatarUrl: reviewRow.authorAvatarUrl,
-        },
-      };
-    });
+    const seasonEpisodeReviews = await resolveSeasonEpisodeReviewItems(
+      input.tmdbId,
+      seasonEpisodeReviewRows,
+      likeCountByReviewId,
+      viewerLikedReviewIds,
+    );
+
+    const reviewsWithEngagement: SerialDetailReviewItem[] = [
+      ...seriesReviews,
+      ...seasonEpisodeReviews,
+    ];
 
     const sortedReviews = [...reviewsWithEngagement];
     if (reviewsSort === "popular") {
@@ -117,9 +130,7 @@ export class SerialsDetailService {
       );
     }
 
-    const ratingBreakdown = buildMediaRatingBreakdown(
-      reviewsWithEngagement.map((r) => ({ rating: r.rating })),
-    );
+    const ratingBreakdown = buildMediaRatingBreakdown(communityRatings);
 
     const [viewerDiaryRow, viewerReviewRow] = viewerUserId
       ? await Promise.all([

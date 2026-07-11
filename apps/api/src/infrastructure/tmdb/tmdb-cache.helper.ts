@@ -2,23 +2,32 @@ const TMDB_ENTITY_CACHE_TTL_MS = 30 * 60 * 1000;
 const TMDB_ENTITY_CACHE_MAX_ENTRIES = 1_000;
 
 /**
- * TTL cache + in-flight de-dupe keyed by tmdbId, for read-mostly TMDB
+ * TTL cache + in-flight de-dupe keyed by tmdbId (or a composite key derived
+ * via `keyFn`, for lookups that take more than one argument such as a
+ * season endpoint keyed by tmdbId + season number), for read-mostly TMDB
  * lookups (detail/credits/similar) that would otherwise be re-fetched live
  * on every request touching that entity (e.g. a movie/series detail page
  * refetch triggered by an unrelated interaction update).
  */
-export const createCachedTmdbFetcher = <T>(
-  fetcher: (tmdbId: number) => Promise<T>,
-  ttlMs: number = TMDB_ENTITY_CACHE_TTL_MS,
-  maxEntries: number = TMDB_ENTITY_CACHE_MAX_ENTRIES,
-): ((tmdbId: number) => Promise<T>) => {
-  const cache = new Map<number, { value: T; expiresAt: number }>();
-  const inFlight = new Map<number, Promise<T>>();
+export const createCachedTmdbFetcher = <Args extends unknown[], T>(
+  fetcher: (...args: Args) => Promise<T>,
+  options: {
+    keyFn?: (...args: Args) => string | number;
+    ttlMs?: number;
+    maxEntries?: number;
+  } = {},
+): ((...args: Args) => Promise<T>) => {
+  const keyFn = options.keyFn ?? ((...args: Args) => args.join(":"));
+  const ttlMs = options.ttlMs ?? TMDB_ENTITY_CACHE_TTL_MS;
+  const maxEntries = options.maxEntries ?? TMDB_ENTITY_CACHE_MAX_ENTRIES;
+
+  const cache = new Map<string | number, { value: T; expiresAt: number }>();
+  const inFlight = new Map<string | number, Promise<T>>();
 
   const prune = (now: number): void => {
-    for (const [cachedTmdbId, cacheEntry] of cache) {
+    for (const [cachedKey, cacheEntry] of cache) {
       if (cacheEntry.expiresAt <= now) {
-        cache.delete(cachedTmdbId);
+        cache.delete(cachedKey);
       }
     }
 
@@ -39,36 +48,37 @@ export const createCachedTmdbFetcher = <T>(
     }
   };
 
-  return async (tmdbId: number): Promise<T> => {
+  return async (...args: Args): Promise<T> => {
+    const key = keyFn(...args);
     const now = Date.now();
-    const cached = cache.get(tmdbId);
+    const cached = cache.get(key);
 
     if (cached && cached.expiresAt > now) {
       return cached.value;
     }
 
     if (cached) {
-      cache.delete(tmdbId);
+      cache.delete(key);
     }
 
-    const inFlightRequest = inFlight.get(tmdbId);
+    const inFlightRequest = inFlight.get(key);
     if (inFlightRequest) {
       return inFlightRequest;
     }
 
     const requestPromise = (async () => {
-      const value = await fetcher(tmdbId);
-      cache.set(tmdbId, { value, expiresAt: Date.now() + ttlMs });
+      const value = await fetcher(...args);
+      cache.set(key, { value, expiresAt: Date.now() + ttlMs });
       prune(Date.now());
       return value;
     })();
 
-    inFlight.set(tmdbId, requestPromise);
+    inFlight.set(key, requestPromise);
 
     try {
       return await requestPromise;
     } finally {
-      inFlight.delete(tmdbId);
+      inFlight.delete(key);
     }
   };
 };
