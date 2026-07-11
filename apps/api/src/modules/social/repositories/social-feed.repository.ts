@@ -6,6 +6,7 @@ import { movies } from "../../movies/movies.entity";
 import { postComments, postLikes, posts } from "../../posts/posts.entity";
 import { comments, reviewLikes, reviews } from "../../reviews/reviews.entity";
 import { serialDiaryEntries, tvSeries } from "../../serials/serials.entity";
+import { SocialFeedSerialReviewRepository } from "./social-feed-serial-review.repository";
 
 export class SocialFeedRepository {
   static async getReviewRowsByReviewOrDiaryIds(
@@ -23,7 +24,7 @@ export class SocialFeedRepository {
           ? inArray(reviews.id, reviewIds)
           : inArray(reviews.diaryEntryId, diaryEntryIds);
 
-    const [movieRows, tvReviewRows] = await Promise.all([
+    const [movieRows, tvReviewRows, seasonEpisodeTvRows] = await Promise.all([
       db
         .select({
           id: reviews.id,
@@ -56,6 +57,9 @@ export class SocialFeedRepository {
         .innerJoin(user, eq(reviews.userId, user.id))
         .leftJoin(serialDiaryEntries, eq(reviews.diaryEntryId, serialDiaryEntries.id))
         .where(and(eq(reviews.mediaType, "tv"), whereClause)),
+      // Season/episode reviews are only ever looked up by review id (they're
+      // never linked to a diary entry, so diaryEntryIds can't match them).
+      SocialFeedSerialReviewRepository.getSeasonEpisodeReviewRows(reviewIds),
     ]);
 
     const tvTmdbIds = tvReviewRows
@@ -101,7 +105,13 @@ export class SocialFeedRepository {
 
     return [
       ...movieRows.map((row) => ({ ...row, mediaType: "movie" as const })),
+      // Season/episode reviews are represented in FeedItem the same way a
+      // series review is - movie.mediaType "tv" for the series, with
+      // seasonNumber/episodeNumber carried separately via activity metadata
+      // (see buildSeasonReviewActivityMetadata) - so they use the same "tv"
+      // tag here rather than "tv_season"/"tv_episode".
       ...tvRows.map((row) => ({ ...row, mediaType: "tv" as const })),
+      ...seasonEpisodeTvRows.map((row) => ({ ...row, mediaType: "tv" as const })),
     ];
   }
 

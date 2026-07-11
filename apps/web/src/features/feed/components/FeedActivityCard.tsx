@@ -9,6 +9,7 @@ import {
   feedChannelMeta,
   getRelativeTime,
   inferFeedChannel,
+  toSeasonEpisodeLabel,
 } from "@/features/feed/components/feed-row.utils";
 import { useLikeActivity, useUnlikeActivity } from "@/features/feed/hooks/useFeed";
 import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
@@ -17,17 +18,6 @@ import { cn } from "@/lib/utils";
 
 type FeedActivityCardProps = {
   item: FeedItem;
-};
-
-const toSeasonEpisodeLabel = (item: FeedItem): string | null => {
-  const { seasonNumber, episodeNumber } = item.metadata;
-  if (episodeNumber != null && seasonNumber != null) {
-    return `S${seasonNumber}E${episodeNumber}`;
-  }
-  if (seasonNumber != null) {
-    return `Season ${seasonNumber}`;
-  }
-  return null;
 };
 
 const getActivityCopy = (item: FeedItem): string => {

@@ -55,3 +55,16 @@ export const feedChannelMeta: Record<
 export const getRelativeTime = (value: string): string => {
   return formatRelativeTime(value);
 };
+
+// "S1E4" for an episode-scoped activity, "Season 1" for a season-scoped
+// one, or null for a plain series/movie-level activity.
+export const toSeasonEpisodeLabel = (item: FeedItem): string | null => {
+  const { seasonNumber, episodeNumber } = item.metadata;
+  if (episodeNumber != null && seasonNumber != null) {
+    return `S${seasonNumber}E${episodeNumber}`;
+  }
+  if (seasonNumber != null) {
+    return `Season ${seasonNumber}`;
+  }
+  return null;
+};

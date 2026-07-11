@@ -14,6 +14,7 @@ import { FeedReviewEditDialog } from "@/features/feed/components/FeedReviewEditD
 import {
   feedChannelMeta,
   getRelativeTime,
+  toSeasonEpisodeLabel,
 } from "@/features/feed/components/feed-row.utils";
 import type { FeedItem } from "@/features/feed/types";
 import { cn } from "@/lib/utils";
@@ -24,9 +25,11 @@ type ReviewActivityCardProps = {
 };
 
 const getReviewActionLabel = (item: FeedItem): string => {
+  const seLabel = toSeasonEpisodeLabel(item);
+
   switch (item.kind) {
     case "review":
-      return "published a review";
+      return seLabel ? `reviewed ${seLabel}` : "published a review";
     case "diary_entry":
       return "logged with a review";
     case "liked_review":
