@@ -10,9 +10,6 @@ import { serialDiaryEntries, tvSeries } from "../serials/serials.entity";
 import { SocialFeedService } from "../social/services/social-feed.service";
 import { PublicTopPicksService } from "./services/public-top-picks.service";
 
-// Thin, read-only service for the public portfolio API
-// All responses are cached-friendly — no auth required
-
 import type {
   PublicProfileResponse,
   PublicCurrentlyWatchingSeries,

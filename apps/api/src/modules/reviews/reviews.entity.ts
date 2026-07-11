@@ -11,7 +11,6 @@ import {
 import { user } from "../../infrastructure/database/auth.entity";
 import { movies } from "../movies/movies.entity";
 
-// Unified review model across media types.
 // mediaSource/mediaSourceId identify the external media record (e.g. TMDB id).
 export const reviews = pgTable(
   "review",
