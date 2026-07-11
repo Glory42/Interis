@@ -9,7 +9,6 @@ import {
   getUserLikedFilms,
   getUserLikedReviews,
   getUserLikedLists,
-  getMyProfile,
   getUserProfile,
   getUserReviews,
   getUserWatchlist,
@@ -39,7 +38,6 @@ export const profileKeys = {
   topPicks: (username: string) => ["profile", "top-picks", username] as const,
   recentActivity: (username: string, limit: number) =>
     ["profile", "recent-activity", username, limit] as const,
-  me: ["profile", "me"] as const,
 };
 
 const invalidateCurrentUserProfile = async (
@@ -47,7 +45,6 @@ const invalidateCurrentUserProfile = async (
 ) => {
   const me = queryClient.getQueryData<MeProfile | null>(authKeys.me);
   const tasks = [
-    queryClient.invalidateQueries({ queryKey: profileKeys.me }),
     queryClient.invalidateQueries({ queryKey: authKeys.me }),
   ];
 
@@ -165,12 +162,6 @@ export const useUserLikedLists = (username: string) =>
     initialPageParam: 0,
     getNextPageParam: getNextProfileListPageParam,
     enabled: username.trim().length > 0,
-  });
-
-export const useMyProfile = () =>
-  useQuery({
-    queryKey: profileKeys.me,
-    queryFn: ({ signal }) => getMyProfile({ signal }),
   });
 
 export const useUpdateMyProfile = () => {

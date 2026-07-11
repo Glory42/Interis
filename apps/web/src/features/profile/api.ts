@@ -2,12 +2,10 @@ import { z } from "zod";
 import { apiRequest } from "@/lib/api-client";
 import { feedListSchema, type FeedItem } from "@/features/feed/types";
 import {
-  meProfileSchema,
   movieGenreSchema,
   publicTop4ResponseSchema,
   profileUpdateResponseSchema,
   publicProfileSchema,
-  type MeProfile,
   type PublicTop4Response,
   type ProfileUpdateResponse,
   type PublicProfile,
@@ -314,17 +312,6 @@ export const searchUsers = async (
   });
 
   return userSearchResultListSchema.parse(response);
-};
-
-export const getMyProfile = async (
-  options: QueryRequestOptions = {},
-): Promise<MeProfile> => {
-  const response = await apiRequest<unknown>("/api/users/me", {
-    method: "GET",
-    signal: options.signal,
-  });
-
-  return meProfileSchema.parse(response);
 };
 
 export const updateMyProfile = async (
