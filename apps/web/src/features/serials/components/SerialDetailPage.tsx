@@ -94,8 +94,10 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
   const interactionRating = interactionQuery.data?.rating ?? null;
   const currentRating =
     interactionRating ?? detail.userRating?.rating ?? null;
-  const isInteractionBusy =
-    interactionQuery.isPending || updateInteractionMutation.isPending;
+  // Only gate on the initial load - once loaded, toggles apply optimistically
+  // and shouldn't visually lock while the (TMDB-backed, sometimes
+  // multi-second) cascade request is still in flight in the background.
+  const isInteractionBusy = interactionQuery.isPending;
 
   const handleToggleWatchlist = () => {
     void updateInteractionMutation.mutateAsync({ watchlisted: !watchlisted });

@@ -185,6 +185,9 @@ const ListFormPageContent = ({
       await addItemMutation.mutateAsync({
         tmdbId: result.tmdbId,
         itemType: result.itemType,
+        title: result.title,
+        posterPath: result.posterPath,
+        releaseYear: result.releaseYear,
       });
     }
   };

@@ -1,6 +1,8 @@
 import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { FeedItem } from "@/features/feed/types";
 import { feedKeys } from "@/features/feed/hooks/useFeed";
+import { patchFeedItems } from "@/features/feed/hooks/feed-cache.helper";
+import { restoreQueries, type QuerySnapshot } from "@/lib/query-optimistic";
 import {
   addReviewComment,
   getProfileReviewDetail,
@@ -24,23 +26,30 @@ const matchesReview = (item: FeedItem, reviewId: string): boolean => {
   return item.review?.id === reviewId || item.metadata.reviewId === reviewId;
 };
 
-const updateReviewInFeedCaches = (
+// Patches every cached "review detail" query for this reviewId (there can be
+// more than one cached, e.g. after navigating between profile review pages)
+// and returns a snapshot for rollback.
+const patchReviewDetailQueries = (
   queryClient: QueryClient,
   reviewId: string,
-  updater: (item: FeedItem) => FeedItem,
-) => {
-  queryClient.setQueriesData<FeedItem[]>(
-    { queryKey: feedKeys.following, exact: false },
-    (currentItems) => {
-      if (!currentItems) {
-        return currentItems;
-      }
-
-      return currentItems.map((item) =>
-        matchesReview(item, reviewId) ? updater(item) : item,
-      );
+  updater: (detail: ReviewDetail) => ReviewDetail,
+): QuerySnapshot => {
+  const queryFilter = {
+    queryKey: ["reviews", "detail"],
+    exact: false,
+    predicate: (query: { queryKey: readonly unknown[] }) => {
+      const [scope, kind, , candidateReviewId] = query.queryKey;
+      return scope === "reviews" && kind === "detail" && candidateReviewId === reviewId;
     },
+  } as const;
+
+  const previousQueries = queryClient.getQueriesData<ReviewDetail>(queryFilter);
+
+  queryClient.setQueriesData<ReviewDetail>(queryFilter, (currentDetail) =>
+    currentDetail ? updater(currentDetail) : currentDetail,
   );
+
+  return previousQueries;
 };
 
 export const useReviewDetail = (username: string, reviewId: string, enabled = true) => {
@@ -61,34 +70,6 @@ export const useReviewComments = (
     queryFn: () => getReviewComments(reviewId),
     enabled,
   });
-};
-
-const updateReviewDetailCache = (
-  queryClient: QueryClient,
-  reviewId: string,
-  updater: (detail: ReviewDetail) => ReviewDetail,
-) => {
-  queryClient.setQueriesData<ReviewDetail>(
-    {
-      queryKey: ["reviews", "detail"],
-      exact: false,
-      predicate: (query) => {
-        const [scope, kind, candidateReviewId] = [
-          query.queryKey[0],
-          query.queryKey[1],
-          query.queryKey[3],
-        ];
-        return scope === "reviews" && kind === "detail" && candidateReviewId === reviewId;
-      },
-    },
-    (currentDetail) => {
-      if (!currentDetail) {
-        return currentDetail;
-      }
-
-      return updater(currentDetail);
-    },
-  );
 };
 
 export const useAddReviewComment = (reviewId: string, mediaType: ReviewMediaType) => {
@@ -116,15 +97,19 @@ export const useAddReviewComment = (reviewId: string, mediaType: ReviewMediaType
         },
       );
 
-      updateReviewInFeedCaches(queryClient, reviewId, (item) => ({
-        ...item,
-        engagement: {
-          ...item.engagement,
-          commentCount: item.engagement.commentCount + 1,
-        },
-      }));
+      patchFeedItems(
+        queryClient,
+        (item) => matchesReview(item, reviewId),
+        (item) => ({
+          ...item,
+          engagement: {
+            ...item.engagement,
+            commentCount: item.engagement.commentCount + 1,
+          },
+        }),
+      );
 
-      updateReviewDetailCache(queryClient, reviewId, (detail) => ({
+      patchReviewDetailQueries(queryClient, reviewId, (detail) => ({
         ...detail,
         engagement: {
           ...detail.engagement,
@@ -145,39 +130,40 @@ export const useLikeReview = (reviewId: string) => {
 
   return useMutation({
     mutationFn: () => likeReview(reviewId),
-    onSuccess: async (result) => {
-      updateReviewInFeedCaches(queryClient, reviewId, (item) => {
-        const alreadyLikedInCard = item.engagement.viewerHasLiked === true;
-
-        return {
+    onMutate: async () => {
+      const previousFeedQueries = patchFeedItems(
+        queryClient,
+        (item) => matchesReview(item, reviewId),
+        (item) => ({
           ...item,
           engagement: {
             ...item.engagement,
             viewerHasLiked: true,
-            likeCount:
-              alreadyLikedInCard || result.alreadyLiked
-                ? item.engagement.likeCount
-                : item.engagement.likeCount + 1,
+            likeCount: item.engagement.viewerHasLiked
+              ? item.engagement.likeCount
+              : item.engagement.likeCount + 1,
           },
-        };
-      });
+        }),
+      );
 
-      updateReviewDetailCache(queryClient, reviewId, (detail) => {
-        const alreadyLikedInDetail = detail.engagement.viewerHasLiked === true;
+      const previousDetailQueries = patchReviewDetailQueries(queryClient, reviewId, (detail) => ({
+        ...detail,
+        engagement: {
+          ...detail.engagement,
+          viewerHasLiked: true,
+          likeCount: detail.engagement.viewerHasLiked
+            ? detail.engagement.likeCount
+            : detail.engagement.likeCount + 1,
+        },
+      }));
 
-        return {
-          ...detail,
-          engagement: {
-            ...detail.engagement,
-            viewerHasLiked: true,
-            likeCount:
-              alreadyLikedInDetail || result.alreadyLiked
-                ? detail.engagement.likeCount
-                : detail.engagement.likeCount + 1,
-          },
-        };
-      });
-
+      return { previousFeedQueries, previousDetailQueries };
+    },
+    onError: (_error, _variables, context) => {
+      restoreQueries(queryClient, context?.previousFeedQueries ?? []);
+      restoreQueries(queryClient, context?.previousDetailQueries ?? []);
+    },
+    onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: feedKeys.following });
     },
   });
@@ -188,37 +174,40 @@ export const useUnlikeReview = (reviewId: string) => {
 
   return useMutation({
     mutationFn: () => unlikeReview(reviewId),
-    onSuccess: async () => {
-      updateReviewInFeedCaches(queryClient, reviewId, (item) => {
-        const wasLikedInCard = item.engagement.viewerHasLiked === true;
-
-        return {
+    onMutate: async () => {
+      const previousFeedQueries = patchFeedItems(
+        queryClient,
+        (item) => matchesReview(item, reviewId),
+        (item) => ({
           ...item,
           engagement: {
             ...item.engagement,
             viewerHasLiked: false,
-            likeCount: wasLikedInCard
+            likeCount: item.engagement.viewerHasLiked
               ? Math.max(item.engagement.likeCount - 1, 0)
               : item.engagement.likeCount,
           },
-        };
-      });
+        }),
+      );
 
-      updateReviewDetailCache(queryClient, reviewId, (detail) => {
-        const wasLikedInDetail = detail.engagement.viewerHasLiked === true;
+      const previousDetailQueries = patchReviewDetailQueries(queryClient, reviewId, (detail) => ({
+        ...detail,
+        engagement: {
+          ...detail.engagement,
+          viewerHasLiked: false,
+          likeCount: detail.engagement.viewerHasLiked
+            ? Math.max(detail.engagement.likeCount - 1, 0)
+            : detail.engagement.likeCount,
+        },
+      }));
 
-        return {
-          ...detail,
-          engagement: {
-            ...detail.engagement,
-            viewerHasLiked: false,
-            likeCount: wasLikedInDetail
-              ? Math.max(detail.engagement.likeCount - 1, 0)
-              : detail.engagement.likeCount,
-          },
-        };
-      });
-
+      return { previousFeedQueries, previousDetailQueries };
+    },
+    onError: (_error, _variables, context) => {
+      restoreQueries(queryClient, context?.previousFeedQueries ?? []);
+      restoreQueries(queryClient, context?.previousDetailQueries ?? []);
+    },
+    onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: feedKeys.following });
     },
   });
@@ -231,23 +220,27 @@ export const useUpdateReview = (reviewId: string) => {
     mutationFn: (input: { content: string; containsSpoilers?: boolean }) =>
       updateReview(reviewId, input),
     onSuccess: async (updatedReview) => {
-      updateReviewInFeedCaches(queryClient, reviewId, (item) => ({
-        ...item,
-        review: item.review
-          ? {
-              ...item.review,
-              content: updatedReview.content,
-              containsSpoilers: updatedReview.containsSpoilers,
-            }
-          : item.review,
-        metadata: {
-          ...item.metadata,
-          excerpt: updatedReview.content,
-          containsSpoilers: updatedReview.containsSpoilers,
-        },
-      }));
+      patchFeedItems(
+        queryClient,
+        (item) => matchesReview(item, reviewId),
+        (item) => ({
+          ...item,
+          review: item.review
+            ? {
+                ...item.review,
+                content: updatedReview.content,
+                containsSpoilers: updatedReview.containsSpoilers,
+              }
+            : item.review,
+          metadata: {
+            ...item.metadata,
+            excerpt: updatedReview.content,
+            containsSpoilers: updatedReview.containsSpoilers,
+          },
+        }),
+      );
 
-      updateReviewDetailCache(queryClient, reviewId, (detail) => ({
+      patchReviewDetailQueries(queryClient, reviewId, (detail) => ({
         ...detail,
         content: updatedReview.content,
         containsSpoilers: updatedReview.containsSpoilers,

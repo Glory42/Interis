@@ -7,6 +7,8 @@ import {
   likeActivity,
   unlikeActivity,
 } from "@/features/feed/api";
+import { patchFeedItems } from "@/features/feed/hooks/feed-cache.helper";
+import { restoreQueries } from "@/lib/query-optimistic";
 
 export const FEED_PAGE_SIZE = 15;
 
@@ -60,7 +62,28 @@ export const useLikeActivity = (activityId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => likeActivity(activityId),
-    onSuccess: () => {
+    onMutate: async () => {
+      const previousQueries = patchFeedItems(
+        queryClient,
+        (item) => item.id === activityId,
+        (item) => ({
+          ...item,
+          engagement: {
+            ...item.engagement,
+            viewerHasLiked: true,
+            likeCount: item.engagement.viewerHasLiked
+              ? item.engagement.likeCount
+              : item.engagement.likeCount + 1,
+          },
+        }),
+      );
+
+      return { previousQueries };
+    },
+    onError: (_error, _variables, context) => {
+      restoreQueries(queryClient, context?.previousQueries ?? []);
+    },
+    onSettled: () => {
       // Prefix-matches every limit variant of the following feed only -
       // trending/meSummary/networkStats never contain like data.
       void queryClient.invalidateQueries({ queryKey: feedKeys.following });
@@ -72,7 +95,28 @@ export const useUnlikeActivity = (activityId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => unlikeActivity(activityId),
-    onSuccess: () => {
+    onMutate: async () => {
+      const previousQueries = patchFeedItems(
+        queryClient,
+        (item) => item.id === activityId,
+        (item) => ({
+          ...item,
+          engagement: {
+            ...item.engagement,
+            viewerHasLiked: false,
+            likeCount: item.engagement.viewerHasLiked
+              ? Math.max(item.engagement.likeCount - 1, 0)
+              : item.engagement.likeCount,
+          },
+        }),
+      );
+
+      return { previousQueries };
+    },
+    onError: (_error, _variables, context) => {
+      restoreQueries(queryClient, context?.previousQueries ?? []);
+    },
+    onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: feedKeys.following });
     },
   });

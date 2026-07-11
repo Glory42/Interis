@@ -97,6 +97,13 @@ type SpaceRatingInputProps = {
   value: number | null;
   onChange: (nextValue: number | null) => void;
   disabled?: boolean;
+  // When true, every interaction commits immediately (no inner Save step) -
+  // for contexts like the Log modal where onChange is just local form state
+  // and the surrounding form batches the real save on submit. Left false
+  // (default) for contexts like the detail-page sidebar, where onChange
+  // fires an API call per change and the explicit Save avoids writing on
+  // every drag frame.
+  autoSave?: boolean;
 };
 
 const TRACK_HEIGHT = 160;
@@ -105,6 +112,7 @@ export const SpaceRatingInput = ({
   value,
   onChange,
   disabled = false,
+  autoSave = false,
 }: SpaceRatingInputProps) => {
   const trackRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
@@ -129,6 +137,13 @@ export const SpaceRatingInput = ({
     return Math.max(0.5, Math.min(10, Math.round(ratio * 20) / 2));
   };
 
+  const setDraftAndMaybeCommit = (next: number | null) => {
+    setDraft(next);
+    if (autoSave) {
+      onChange(next);
+    }
+  };
+
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (disabled) return;
     e.preventDefault();
@@ -146,6 +161,9 @@ export const SpaceRatingInput = ({
   const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     e.currentTarget.releasePointerCapture(e.pointerId);
     dragging.current = false;
+    if (autoSave && draft !== null) {
+      onChange(draft);
+    }
   };
 
   const fillPct = draft !== null ? (draft / 10) * 100 : 0;
@@ -181,7 +199,7 @@ export const SpaceRatingInput = ({
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
         onDoubleClick={() => {
-          if (!disabled) setDraft(null);
+          if (!disabled) setDraftAndMaybeCommit(null);
         }}
         role="slider"
         aria-label="Rating out of 10"
@@ -193,10 +211,10 @@ export const SpaceRatingInput = ({
           if (disabled) return;
           if (e.key === "ArrowUp") {
             e.preventDefault();
-            setDraft(Math.min(10, (draft ?? 0) + 0.5));
+            setDraftAndMaybeCommit(Math.min(10, (draft ?? 0) + 0.5));
           } else if (e.key === "ArrowDown") {
             e.preventDefault();
-            setDraft(draft !== null && draft > 0.5 ? draft - 0.5 : null);
+            setDraftAndMaybeCommit(draft !== null && draft > 0.5 ? draft - 0.5 : null);
           }
         }}
       >
@@ -261,22 +279,24 @@ export const SpaceRatingInput = ({
           >
             {draft !== null ? `${draft}/10` : "—"}
           </span>
-          {isDirty && (
+          {!autoSave && isDirty && (
             <span className="mt-0.5 block font-mono text-[9px] leading-none text-muted-foreground/45">
               unsaved
             </span>
           )}
         </div>
-        <button
-          type="button"
-          disabled={saveDisabled}
-          onClick={() => {
-            if (draft !== null) onChange(draft);
-          }}
-          className="border border-primary/50 bg-primary/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-primary transition-all hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-25"
-        >
-          Save
-        </button>
+        {!autoSave && (
+          <button
+            type="button"
+            disabled={saveDisabled}
+            onClick={() => {
+              if (draft !== null) onChange(draft);
+            }}
+            className="border border-primary/50 bg-primary/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-primary transition-all hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-25"
+          >
+            Save
+          </button>
+        )}
         <button
           type="button"
           disabled={clearDisabled}

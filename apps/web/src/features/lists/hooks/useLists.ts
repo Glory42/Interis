@@ -12,6 +12,8 @@ import {
   reorderListItems,
   unlikeList,
   updateList,
+  type ListDetail,
+  type ListSummary,
 } from "@/features/lists/api";
 
 export const listKeys = {
@@ -102,12 +104,50 @@ export const useDeleteList = (listId: string, ownerUsername: string) => {
 
 export const useAddListItem = (listId: string, ownerUsername: string) => {
   const queryClient = useQueryClient();
+  const queryKey = listKeys.detail(listId);
+
   return useMutation({
-    mutationFn: (data: { tmdbId: number; itemType: "cinema" | "serial" }) =>
-      addListItem(listId, data),
+    mutationFn: (data: {
+      tmdbId: number;
+      itemType: "cinema" | "serial";
+      title: string;
+      posterPath: string | null;
+      releaseYear: number | null;
+    }) => addListItem(listId, { tmdbId: data.tmdbId, itemType: data.itemType }),
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<ListDetail>(queryKey);
+
+      if (previous) {
+        queryClient.setQueryData<ListDetail>(queryKey, {
+          ...previous,
+          itemCount: previous.itemCount + 1,
+          items: [
+            ...previous.items,
+            {
+              id: `optimistic-${data.itemType}-${data.tmdbId}`,
+              position: previous.items.length,
+              itemType: data.itemType,
+              note: null,
+              tmdbId: data.tmdbId,
+              title: data.title,
+              posterPath: data.posterPath,
+              releaseYear: data.releaseYear,
+            },
+          ],
+        });
+      }
+
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+    },
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: listKeys.detail(listId) }),
+        queryClient.invalidateQueries({ queryKey }),
         queryClient.invalidateQueries({
           queryKey: listKeys.userLists(ownerUsername),
         }),
@@ -154,10 +194,30 @@ export const useReorderListItems = (listId: string) => {
 
 export const useLikeList = (listId: string, viewerUsername?: string) => {
   const queryClient = useQueryClient();
+  const queryKey = listKeys.detail(listId);
+
   return useMutation({
     mutationFn: () => likeList(listId),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<ListDetail>(queryKey);
+      if (previous) {
+        queryClient.setQueryData<ListDetail>(queryKey, {
+          ...previous,
+          likedByViewer: true,
+          likeCount: previous.likedByViewer ? previous.likeCount : previous.likeCount + 1,
+        });
+      }
+
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+    },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: listKeys.detail(listId) });
+      await queryClient.invalidateQueries({ queryKey });
       if (viewerUsername) {
         await queryClient.invalidateQueries({
           queryKey: ["profile", "liked-lists", viewerUsername],
@@ -169,10 +229,32 @@ export const useLikeList = (listId: string, viewerUsername?: string) => {
 
 export const useUnlikeList = (listId: string, viewerUsername?: string) => {
   const queryClient = useQueryClient();
+  const queryKey = listKeys.detail(listId);
+
   return useMutation({
     mutationFn: () => unlikeList(listId),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<ListDetail>(queryKey);
+      if (previous) {
+        queryClient.setQueryData<ListDetail>(queryKey, {
+          ...previous,
+          likedByViewer: false,
+          likeCount: previous.likedByViewer
+            ? Math.max(previous.likeCount - 1, 0)
+            : previous.likeCount,
+        });
+      }
+
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+    },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: listKeys.detail(listId) });
+      await queryClient.invalidateQueries({ queryKey });
       if (viewerUsername) {
         await queryClient.invalidateQueries({
           queryKey: ["profile", "liked-lists", viewerUsername],
@@ -188,6 +270,8 @@ export const useToggleListItem = (
   itemType: "cinema" | "serial",
 ) => {
   const queryClient = useQueryClient();
+  const queryKey = listKeys.userListsForItem(ownerUsername, tmdbId, itemType);
+
   return useMutation({
     mutationFn: async ({
       listId,
@@ -202,15 +286,35 @@ export const useToggleListItem = (
         await addListItem(listId, { tmdbId, itemType });
       }
     },
+    onMutate: async ({ listId, entryId }) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<ListSummary[]>(queryKey);
+      const isRemoving = Boolean(entryId);
+
+      queryClient.setQueryData<ListSummary[]>(
+        queryKey,
+        (old) =>
+          old?.map((list) =>
+            list.id === listId
+              ? { ...list, containsItem: !isRemoving, entryId: isRemoving ? null : list.entryId }
+              : list,
+          ) ?? old,
+      );
+
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+    },
     onSuccess: async (_data, { listId }) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: listKeys.detail(listId) }),
         queryClient.invalidateQueries({
           queryKey: listKeys.userLists(ownerUsername),
         }),
-        queryClient.invalidateQueries({
-          queryKey: listKeys.userListsForItem(ownerUsername, tmdbId, itemType),
-        }),
+        queryClient.invalidateQueries({ queryKey }),
       ]);
     },
   });
