@@ -1,6 +1,6 @@
 import { Star } from "lucide-react";
 import type { SerialDetailResponse } from "@/features/serials/api";
-import { formatRatingLabel } from "@/features/films/components/spaceRating.utils";
+import { formatRatingLabel } from "@/lib/rating";
 import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
 
 type SerialRatingBreakdownProps = {

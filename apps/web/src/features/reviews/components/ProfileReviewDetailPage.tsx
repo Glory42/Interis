@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { formatRatingLabel } from "@/features/films/components/spaceRating.utils";
+import { formatRatingLabel } from "@/lib/rating";
 import { ProfileReviewCommentsSection } from "@/features/reviews/components/profile-review-detail/ProfileReviewCommentsSection";
 import { ProfileReviewDetailHero } from "@/features/reviews/components/profile-review-detail/ProfileReviewDetailHero";
 import {

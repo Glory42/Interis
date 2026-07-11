@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
 import type { MovieDetailResponse, MovieDetailReviewSort } from "@/features/films/api";
 import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
-import { formatRatingLabel } from "@/features/films/components/spaceRating.utils";
+import { formatRatingLabel } from "@/lib/rating";
 import { CINEMA_MODULE_STYLES } from "@/features/films/components/cinema-detail/styles";
 import { formatRelativeTime } from "@/features/films/components/cinema-detail/utils";
 

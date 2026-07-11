@@ -2,9 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
-import {
-  formatRatingLabel,
-} from "@/features/films/components/spaceRating.utils";
+import { formatRatingLabel } from "@/lib/rating";
 import { useMovieLogs } from "@/features/films/hooks/useMovies";
 import { formatDateOnlyLabel } from "@/lib/time";
 

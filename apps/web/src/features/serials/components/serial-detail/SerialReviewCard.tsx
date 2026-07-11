@@ -3,7 +3,7 @@ import { Heart } from "lucide-react";
 import { memo } from "react";
 import type { SerialDetailResponse } from "@/features/serials/api";
 import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
-import { formatRatingLabel } from "@/features/films/components/spaceRating.utils";
+import { formatRatingLabel } from "@/lib/rating";
 import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
 import { formatRelativeTime } from "@/features/serials/components/serial-detail/utils";
 
