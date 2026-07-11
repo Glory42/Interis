@@ -13,6 +13,8 @@ import {
   getUserProfile,
   getUserReviews,
   getUserWatchlist,
+  getUserCurrentlyWatching,
+  getUserDiary,
   searchUsers,
   getUserRecentActivity,
   getUserTopPicks,
@@ -30,6 +32,9 @@ export const profileKeys = {
   likedReviews: (username: string) => ["profile", "liked-reviews", username] as const,
   likedLists: (username: string) => ["profile", "liked-lists", username] as const,
   watchlist: (username: string) => ["profile", "watchlist", username] as const,
+  currentlyWatching: (username: string) =>
+    ["profile", "currently-watching", username] as const,
+  diary: (username: string) => ["profile", "diary", username] as const,
   reviews: (username: string) => ["profile", "reviews", username] as const,
   topPicks: (username: string) => ["profile", "top-picks", username] as const,
   recentActivity: (username: string, limit: number) =>
@@ -96,6 +101,23 @@ export const useUserWatchlist = (username: string) =>
     queryKey: profileKeys.watchlist(username),
     queryFn: ({ signal, pageParam }) =>
       getUserWatchlist(username, PROFILE_LIST_PAGE_SIZE, pageParam, { signal }),
+    initialPageParam: 0,
+    getNextPageParam: getNextProfileListPageParam,
+    enabled: username.trim().length > 0,
+  });
+
+export const useUserCurrentlyWatching = (username: string, limit = 20) =>
+  useQuery({
+    queryKey: profileKeys.currentlyWatching(username),
+    queryFn: ({ signal }) => getUserCurrentlyWatching(username, limit, { signal }),
+    enabled: username.trim().length > 0,
+  });
+
+export const useUserDiary = (username: string) =>
+  useInfiniteQuery({
+    queryKey: profileKeys.diary(username),
+    queryFn: ({ signal, pageParam }) =>
+      getUserDiary(username, PROFILE_LIST_PAGE_SIZE, pageParam, { signal }),
     initialPageParam: 0,
     getNextPageParam: getNextProfileListPageParam,
     enabled: username.trim().length > 0,

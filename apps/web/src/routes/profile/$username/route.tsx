@@ -26,6 +26,10 @@ function ProfileRouteLayout() {
       return "diary";
     }
 
+    if (matchRoute({ to: "/profile/$username/watching", params: routeParams, fuzzy: true })) {
+      return "watching";
+    }
+
     if (matchRoute({ to: "/profile/$username/watchlist", params: routeParams, fuzzy: true })) {
       return "watchlist";
     }

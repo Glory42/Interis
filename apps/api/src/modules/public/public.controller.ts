@@ -4,12 +4,14 @@ import {
   normalizePublicActivityLimit,
   normalizePublicCollectionLimit,
   normalizePublicCurrentlyWatchingLimit,
+  normalizePublicDiaryOffset,
   normalizePublicRecentLimit,
 } from "./helpers/public-query-normalizer.helper";
 import type {
   PublicActivityQueryDto,
   PublicCollectionQueryDto,
   PublicCurrentlyWatchingQueryDto,
+  PublicDiaryQueryDto,
   PublicRecentQueryDto,
 } from "./dto/public.dto";
 
@@ -170,13 +172,14 @@ export class PublicController {
     PublicController.sendPublicResponse(res, data);
   }
 
-  // GET /api/public/:username/diary?limit=50
+  // GET /api/public/:username/diary?limit=50&offset=0
   static async getDiary(
-    req: Request<{ username: string }, unknown, unknown, PublicCollectionQueryDto>,
+    req: Request<{ username: string }, unknown, unknown, PublicDiaryQueryDto>,
     res: Response,
   ): Promise<void> {
     const limit = normalizePublicCollectionLimit(req.query.limit);
-    const data = await PublicService.getDiary(req.params.username, limit);
+    const offset = normalizePublicDiaryOffset(req.query.offset);
+    const data = await PublicService.getDiary(req.params.username, limit, offset);
 
     if (!data) {
       PublicController.sendUserNotFound(res);

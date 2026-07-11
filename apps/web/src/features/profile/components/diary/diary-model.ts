@@ -1,6 +1,6 @@
 import type { FeedChannel } from "@/features/feed/components/feed-row.utils";
-import { inferFeedChannel } from "@/features/feed/components/feed-row.utils";
-import type { UserRecentActivity } from "@/features/profile/api";
+import type { DiaryItem } from "@/features/profile/api";
+import { parseDateOnly } from "@/lib/time";
 
 export type RatingToken = "full" | "half" | "empty";
 
@@ -37,7 +37,7 @@ export const toDateParts = (value: string): {
   year: string;
   monthKey: string;
 } => {
-  const date = new Date(value);
+  const date = parseDateOnly(value);
 
   if (Number.isNaN(date.getTime())) {
     return {
@@ -58,22 +58,9 @@ export const toDateParts = (value: string): {
   return { month, day, year, monthKey };
 };
 
-const toTimestamp = (value: string): number => {
-  const parsed = new Date(value).getTime();
-  return Number.isNaN(parsed) ? 0 : parsed;
-};
-
-
-const toReviewId = (item: UserRecentActivity): string | null => {
-  if (item.review?.id) {
-    return item.review.id;
-  }
-
-  if (item.metadata.reviewId) {
-    return item.metadata.reviewId;
-  }
-
-  return null;
+const channelByMediaType: Record<DiaryItem["mediaType"], FeedChannel> = {
+  movie: "cinema",
+  tv: "serial",
 };
 
 export const toRatingTokens = (rating: number | null): RatingToken[] => {
@@ -101,52 +88,33 @@ export const toPosterFallbackLabel = (title: string): string => {
 };
 
 export const toDiaryRows = (
-  activityItems: UserRecentActivity[],
+  diaryItems: DiaryItem[],
   likedMovieTmdbIdSet: Set<number>,
 ): DiaryRow[] => {
-  const normalizedRows = activityItems
-    .filter((item) => {
-      const channel = inferFeedChannel(item);
-      if (!channel) {
-        return false;
-      }
+  // diaryItems arrives pre-sorted by watchedDate desc, createdAt desc from
+  // PublicService.getDiary (the source of getUserDiary), and pages are
+  // fetched/flattened in that same offset order, so no re-sort is needed
+  // here - grouping just relies on the order the API already guarantees.
+  const normalizedRows = diaryItems.map((item) => {
+    const channel = channelByMediaType[item.mediaType];
+    const tmdbId = item.media.tmdbId;
 
-      return item.kind === "diary_entry" || item.kind === "review";
-    })
-    .map((item) => {
-      const channel = inferFeedChannel(item);
-      if (!channel) {
-        return null;
-      }
-
-      const title = item.movie?.title ?? item.post?.content ?? "Untitled entry";
-      const tmdbId = item.movie?.tmdbId ?? null;
-      const rating =
-        item.kind === "diary_entry"
-          ? item.metadata.rating ?? null
-          : (item.review?.rating ?? item.metadata.rating) ?? null;
-      const reviewId = toReviewId(item);
-      const hasReview =
-        item.kind === "review" || item.metadata.hasReview === true || !!reviewId;
-
-      return {
-        id: item.id,
-        channel,
-        title,
-        posterPath: item.movie?.posterPath ?? null,
-        tmdbId,
-        releaseYear: item.movie?.releaseYear ?? null,
-        createdAt: item.createdAt,
-        rating,
-        rewatch: item.metadata.rewatch === true,
-        reviewId,
-        hasReview,
-        isLiked:
-          channel === "cinema" && tmdbId !== null && likedMovieTmdbIdSet.has(tmdbId),
-      };
-    })
-    .filter((row): row is Omit<DiaryRow, "dateParts" | "showMonthCell"> => row !== null)
-    .sort((left, right) => toTimestamp(right.createdAt) - toTimestamp(left.createdAt));
+    return {
+      id: item.id,
+      channel,
+      title: item.media.title,
+      posterPath: item.media.posterPath,
+      tmdbId,
+      releaseYear: item.media.releaseYear,
+      createdAt: item.watchedDate,
+      rating: item.rating,
+      rewatch: item.rewatch,
+      reviewId: item.review?.id ?? null,
+      hasReview: item.review !== null,
+      isLiked:
+        channel === "cinema" && tmdbId !== null && likedMovieTmdbIdSet.has(tmdbId),
+    };
+  });
 
   return normalizedRows.map((row, index) => {
     const dateParts = toDateParts(row.createdAt);

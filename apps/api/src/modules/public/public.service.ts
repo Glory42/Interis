@@ -132,14 +132,25 @@ export class PublicService {
     return watchlist.slice(0, limit);
   }
 
-  static async getDiary(username: string, limit = 50): Promise<PublicDiaryItem[] | null> {
+  static async getDiary(
+    username: string,
+    limit = 50,
+    offset = 0,
+  ): Promise<PublicDiaryItem[] | null> {
     const userId = await PublicService.findUserIdByUsername(username);
     if (!userId) {
       return null;
     }
 
+    // Fetch enough of each source to cover through offset+limit, then merge,
+    // sort, and slice the exact page - matches the pattern used for
+    // reviews/likes/watchlist (see UsersReviewsRepository.getReviewsWithMovies)
+    // since a global offset can't be pushed down independently to two
+    // separately-paginated tables ahead of the merge.
+    const fetchCap = limit + offset;
+
     const [movieEntries, serialEntries] = await Promise.all([
-      DiaryRepository.findAllByUser(userId, limit),
+      DiaryRepository.findAllByUser(userId, fetchCap),
       db
         .select({
           id: serialDiaryEntries.id,
@@ -169,7 +180,7 @@ export class PublicService {
         )
         .where(eq(serialDiaryEntries.userId, userId))
         .orderBy(desc(serialDiaryEntries.watchedDate), desc(serialDiaryEntries.createdAt))
-        .limit(limit),
+        .limit(fetchCap),
     ]);
 
     const normalizedMovieEntries: PublicDiaryItem[] = movieEntries.map((entry) => ({
@@ -231,7 +242,7 @@ export class PublicService {
 
         return toTimestamp(right.createdAt) - toTimestamp(left.createdAt);
       })
-      .slice(0, limit);
+      .slice(offset, offset + limit);
 
     return combined;
   }

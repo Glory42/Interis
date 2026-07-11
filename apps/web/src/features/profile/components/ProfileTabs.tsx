@@ -4,6 +4,7 @@ import {
   CalendarDays,
   Heart,
   List,
+  PlayCircle,
   Star,
   User,
 } from "lucide-react";
@@ -11,6 +12,7 @@ import {
 export type ProfileTab =
   | "overview"
   | "diary"
+  | "watching"
   | "watchlist"
   | "liked"
   | "reviews"
@@ -42,6 +44,7 @@ const tabItems: Array<{
   to:
     | "/profile/$username"
     | "/profile/$username/diary"
+    | "/profile/$username/watching"
     | "/profile/$username/reviews"
     | "/profile/$username/lists"
     | "/profile/$username/liked"
@@ -54,6 +57,12 @@ const tabItems: Array<{
     label: "Diary",
     to: "/profile/$username/diary",
     icon: CalendarDays,
+  },
+  {
+    id: "watching",
+    label: "Watching",
+    to: "/profile/$username/watching",
+    icon: PlayCircle,
   },
   {
     id: "reviews",

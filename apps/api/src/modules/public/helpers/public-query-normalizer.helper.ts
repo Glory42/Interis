@@ -6,6 +6,7 @@ const DEFAULT_PUBLIC_COLLECTION_LIMIT = 50;
 const MAX_PUBLIC_COLLECTION_LIMIT = 200;
 const DEFAULT_PUBLIC_CURRENTLY_WATCHING_LIMIT = 10;
 const MAX_PUBLIC_CURRENTLY_WATCHING_LIMIT = 30;
+const MAX_PUBLIC_DIARY_OFFSET = 5_000;
 
 const normalizePositiveLimit = (
   rawLimit: unknown,
@@ -50,4 +51,8 @@ export const normalizePublicCurrentlyWatchingLimit = (rawLimit: unknown): number
     DEFAULT_PUBLIC_CURRENTLY_WATCHING_LIMIT,
     MAX_PUBLIC_CURRENTLY_WATCHING_LIMIT,
   );
+};
+
+export const normalizePublicDiaryOffset = (rawOffset: unknown): number => {
+  return normalizePositiveLimit(rawOffset, 0, MAX_PUBLIC_DIARY_OFFSET);
 };

@@ -13,6 +13,14 @@ import {
   type PublicProfile,
   type UpdateProfileInput,
 } from "@/types/api";
+import {
+  diaryItemListSchema,
+  currentlyWatchingListSchema,
+  type DiaryItem,
+  type CurrentlyWatchingSeries,
+} from "@/features/profile/api/schemas";
+
+export type { DiaryItem, CurrentlyWatchingSeries };
 
 const userReviewSchema = z
   .object({
@@ -61,12 +69,12 @@ type QueryRequestOptions = {
   signal?: AbortSignal;
 };
 
-const normalizeRecentLimit = (limit: number, fallback: number): number => {
+const normalizeRecentLimit = (limit: number, fallback: number, max = 300): number => {
   if (!Number.isFinite(limit)) {
     return fallback;
   }
 
-  return Math.max(1, Math.min(Math.floor(limit), 300));
+  return Math.max(1, Math.min(Math.floor(limit), max));
 };
 
 const encodePathSegment = (value: string): string => {
@@ -209,6 +217,41 @@ export const getUserWatchlist = async (
   );
 
   return userInteractionMovieListSchema.parse(response);
+};
+
+export const getUserDiary = async (
+  username: string,
+  limit: number,
+  offset: number,
+  options: QueryRequestOptions = {},
+): Promise<DiaryItem[]> => {
+  const response = await apiRequest<unknown>(
+    `/api/public/${encodePathSegment(username)}/diary?${toPaginationParams(limit, offset)}`,
+    {
+      method: "GET",
+      cache: "no-store",
+      signal: options.signal,
+    },
+  );
+
+  return diaryItemListSchema.parse(response);
+};
+
+export const getUserCurrentlyWatching = async (
+  username: string,
+  limit = 10,
+  options: QueryRequestOptions = {},
+): Promise<CurrentlyWatchingSeries[]> => {
+  const response = await apiRequest<unknown>(
+    `/api/public/${encodePathSegment(username)}/serials/currently-watching?limit=${normalizeRecentLimit(limit, 10, 30)}`,
+    {
+      method: "GET",
+      cache: "no-store",
+      signal: options.signal,
+    },
+  );
+
+  return currentlyWatchingListSchema.parse(response);
 };
 
 export const getUserTopPicks = async (

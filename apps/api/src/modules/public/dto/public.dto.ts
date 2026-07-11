@@ -10,6 +10,11 @@ export type PublicCollectionQueryDto = {
   limit?: string;
 };
 
+export type PublicDiaryQueryDto = {
+  limit?: string;
+  offset?: string;
+};
+
 export type PublicProfileResponse = {
   username: string;
   displayUsername: string | null;

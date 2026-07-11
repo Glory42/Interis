@@ -4,14 +4,14 @@ import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEm
 import { DiaryRow } from "@/features/profile/components/diary/DiaryRow";
 import { DiaryTableHeader } from "@/features/profile/components/diary/DiaryTableHeader";
 import { toDiaryRows } from "@/features/profile/components/diary/diary-model";
-import { useUserLikedFilms, useUserRecentActivity } from "@/features/profile/hooks/useProfile";
+import { useUserDiary, useUserLikedFilms } from "@/features/profile/hooks/useProfile";
 
 type ProfileDiaryPageProps = {
   username: string;
 };
 
 export const ProfileDiaryPage = ({ username }: ProfileDiaryPageProps) => {
-  const activityQuery = useUserRecentActivity(username, 120);
+  const diaryQuery = useUserDiary(username);
   const likedQuery = useUserLikedFilms(username);
 
   const likedTmdbIdSet = useMemo(() => {
@@ -26,24 +26,24 @@ export const ProfileDiaryPage = ({ username }: ProfileDiaryPageProps) => {
   }, [likedQuery.data]);
 
   const rows = useMemo(() => {
-    return toDiaryRows(activityQuery.data ?? [], likedTmdbIdSet);
-  }, [activityQuery.data, likedTmdbIdSet]);
+    return toDiaryRows(diaryQuery.data?.pages.flat() ?? [], likedTmdbIdSet);
+  }, [diaryQuery.data, likedTmdbIdSet]);
 
   return (
     <>
-      {activityQuery.isPending ? (
+      {diaryQuery.isPending ? (
         <div className=" border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
           Loading diary...
         </div>
       ) : null}
 
-      {activityQuery.isError ? (
+      {diaryQuery.isError ? (
         <div className=" border border-border/60 bg-card/30 p-4 text-sm text-destructive">
           Could not load diary entries.
         </div>
       ) : null}
 
-      {!activityQuery.isPending && !activityQuery.isError && rows.length === 0 ? (
+      {!diaryQuery.isPending && !diaryQuery.isError && rows.length === 0 ? (
         <ProfileTabEmptyState
           icon={BookOpen}
           title="No diary activity yet"
@@ -51,12 +51,27 @@ export const ProfileDiaryPage = ({ username }: ProfileDiaryPageProps) => {
         />
       ) : null}
 
-      <div className="space-y-0">
-        <DiaryTableHeader />
-        {rows.map((row) => (
-          <DiaryRow key={row.id} row={row} username={username} />
-        ))}
-      </div>
+      {rows.length > 0 ? (
+        <div className="space-y-0">
+          <DiaryTableHeader />
+          {rows.map((row) => (
+            <DiaryRow key={row.id} row={row} username={username} />
+          ))}
+        </div>
+      ) : null}
+
+      {diaryQuery.hasNextPage ? (
+        <div className="mt-5 flex justify-center">
+          <button
+            type="button"
+            disabled={diaryQuery.isFetchingNextPage}
+            onClick={() => { void diaryQuery.fetchNextPage(); }}
+            className="border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {diaryQuery.isFetchingNextPage ? "Loading..." : "Load more"}
+          </button>
+        </div>
+      ) : null}
     </>
   );
 };

@@ -65,3 +65,13 @@ export const formatDateLabel = (
 
   return date.toLocaleDateString(undefined, options);
 };
+
+// Postgres/TMDB "date"-only values ("YYYY-MM-DD") carry no time or
+// timezone component. `new Date(dateOnlyValue)` parses them as UTC
+// midnight per the ES spec, which then renders as the PREVIOUS day for
+// any viewer west of UTC (e.g. the Americas) once formatted in their
+// local timezone. Appending a bare time component forces local-time
+// parsing instead, so the calendar date shown always matches what was
+// actually stored, regardless of the viewer's own timezone.
+export const parseDateOnly = (dateOnlyValue: string): Date =>
+  new Date(`${dateOnlyValue}T00:00:00`);
