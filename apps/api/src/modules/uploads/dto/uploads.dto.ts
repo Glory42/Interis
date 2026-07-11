@@ -15,5 +15,3 @@ export const ConfirmUploadSchema = z.object({
   publicUrl: z.url(),
 });
 
-export type RequestUploadDto = z.infer<typeof RequestUploadSchema>;
-export type ConfirmUploadDto = z.infer<typeof ConfirmUploadSchema>;

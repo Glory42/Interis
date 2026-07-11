@@ -8,7 +8,7 @@ import {
   MAX_ARCHIVE_LIMIT,
 } from "../constants/movies.constants";
 
-export const cinemaArchiveSortValues = [
+const cinemaArchiveSortValues = [
   "trending",
   "release_desc",
   "release_asc",
@@ -20,7 +20,7 @@ export const cinemaArchiveSortValues = [
 
 export type CinemaArchiveSort = (typeof cinemaArchiveSortValues)[number];
 
-export const cinemaArchivePeriodValues = [
+const cinemaArchivePeriodValues = [
   "all_time",
   "this_year",
   "last_10_years",
@@ -30,7 +30,7 @@ export const cinemaArchivePeriodValues = [
 
 export type CinemaArchivePeriod = (typeof cinemaArchivePeriodValues)[number];
 
-export const movieDetailReviewSortValues = ["popular", "recent"] as const;
+const movieDetailReviewSortValues = ["popular", "recent"] as const;
 
 export type MovieDetailReviewSort = (typeof movieDetailReviewSortValues)[number];
 

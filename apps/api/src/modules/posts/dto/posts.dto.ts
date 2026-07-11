@@ -20,4 +20,3 @@ export const PostCommentSchema = z.object({
 
 export type CreatePostDto = z.infer<typeof CreatePostSchema>;
 export type UpdatePostDto = z.infer<typeof UpdatePostSchema>;
-export type PostCommentDto = z.infer<typeof PostCommentSchema>;

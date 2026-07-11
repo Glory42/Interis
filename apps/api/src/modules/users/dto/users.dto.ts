@@ -137,7 +137,7 @@ export const ProfileListQuerySchema = z.object({
 });
 
 export type UpdateProfileDto = z.infer<typeof UpdateProfileSchema>;
-export type UpdateThemeDto = z.infer<typeof UpdateThemeSchema>;
+
 export type SearchUsersQueryDto = z.infer<typeof SearchUsersQuerySchema>;
 export type UpdateTopPicksInput = z.infer<typeof TopPicksSchema>;
 export type ProfileListQueryDto = z.infer<typeof ProfileListQuerySchema>;

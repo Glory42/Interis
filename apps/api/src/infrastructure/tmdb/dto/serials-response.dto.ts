@@ -111,7 +111,7 @@ export const TMDBSeriesSeasonDetailSchema = z.object({
     .default([]),
 });
 
-export const TMDBSeriesAggregateCreditCastSchema = z.object({
+const TMDBSeriesAggregateCreditCastSchema = z.object({
   id: z.number(),
   name: z.string().default(""),
   profile_path: z.string().nullable().optional().default(null),
@@ -130,7 +130,7 @@ export const TMDBSeriesAggregateCreditCastSchema = z.object({
     .default([]),
 });
 
-export const TMDBSeriesAggregateCreditCrewSchema = z.object({
+const TMDBSeriesAggregateCreditCrewSchema = z.object({
   id: z.number(),
   name: z.string().default(""),
   profile_path: z.string().nullable().optional().default(null),
@@ -160,12 +160,7 @@ export type TMDBDiscoverSeries = z.infer<typeof TMDBDiscoverSeriesSchema>;
 export type TMDBDiscoverSeriesList = z.infer<typeof TMDBDiscoverSeriesListSchema>;
 export type TMDBSeriesDetail = z.infer<typeof TMDBSeriesDetailSchema>;
 export type TMDBSeriesSeasonDetail = z.infer<typeof TMDBSeriesSeasonDetailSchema>;
-export type TMDBSeriesAggregateCreditCast = z.infer<
-  typeof TMDBSeriesAggregateCreditCastSchema
->;
-export type TMDBSeriesAggregateCreditCrew = z.infer<
-  typeof TMDBSeriesAggregateCreditCrewSchema
->;
+
 export type TMDBSeriesAggregateCredits = z.infer<typeof TMDBSeriesAggregateCreditsSchema>;
 export type TMDBDiscoverSeriesSortBy =
   | "popularity.desc"

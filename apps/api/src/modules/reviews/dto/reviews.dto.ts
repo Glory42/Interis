@@ -19,4 +19,3 @@ export const ReviewCommentSchema = z.object({
 
 export type CreateReviewDto = z.infer<typeof CreateReviewSchema>;
 export type UpdateReviewDto = z.infer<typeof UpdateReviewSchema>;
-export type ReviewCommentDto = z.infer<typeof ReviewCommentSchema>;

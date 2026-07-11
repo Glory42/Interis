@@ -54,13 +54,13 @@ export const TMDBPersonImagesSchema = z.object({
     .default([]),
 });
 
-export const TMDBPersonCombinedCreditCastSchema = tmdbCreditBaseSchema.extend({
+const TMDBPersonCombinedCreditCastSchema = tmdbCreditBaseSchema.extend({
   media_type: z.enum(["movie", "tv"]),
   character: z.string().optional().default(""),
   order: z.number().int().optional().default(0),
 });
 
-export const TMDBPersonCombinedCreditCrewSchema = tmdbCreditBaseSchema.extend({
+const TMDBPersonCombinedCreditCrewSchema = tmdbCreditBaseSchema.extend({
   media_type: z.enum(["movie", "tv"]),
   job: z.string().optional().default(""),
   department: z.string().optional().default(""),
@@ -71,12 +71,12 @@ export const TMDBPersonCombinedCreditsSchema = z.object({
   crew: z.array(TMDBPersonCombinedCreditCrewSchema).default([]),
 });
 
-export const TMDBPersonMovieCreditCastSchema = tmdbCreditBaseSchema.extend({
+const TMDBPersonMovieCreditCastSchema = tmdbCreditBaseSchema.extend({
   character: z.string().optional().default(""),
   order: z.number().int().optional().default(0),
 });
 
-export const TMDBPersonMovieCreditCrewSchema = tmdbCreditBaseSchema.extend({
+const TMDBPersonMovieCreditCrewSchema = tmdbCreditBaseSchema.extend({
   job: z.string().optional().default(""),
   department: z.string().optional().default(""),
 });
@@ -86,11 +86,11 @@ export const TMDBPersonMovieCreditsSchema = z.object({
   crew: z.array(TMDBPersonMovieCreditCrewSchema).default([]),
 });
 
-export const TMDBPersonTvCreditCastSchema = tmdbCreditBaseSchema.extend({
+const TMDBPersonTvCreditCastSchema = tmdbCreditBaseSchema.extend({
   character: z.string().optional().default(""),
 });
 
-export const TMDBPersonTvCreditCrewSchema = tmdbCreditBaseSchema.extend({
+const TMDBPersonTvCreditCrewSchema = tmdbCreditBaseSchema.extend({
   job: z.string().optional().default(""),
   department: z.string().optional().default(""),
 });

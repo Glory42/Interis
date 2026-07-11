@@ -28,7 +28,7 @@ export const SerialSeasonParamsSchema = z.object({
 
 export type SerialSeasonParams = z.input<typeof SerialSeasonParamsSchema>;
 
-export const serialArchiveSortValues = [
+const serialArchiveSortValues = [
   "trending",
   "first_air_desc",
   "first_air_asc",
@@ -40,7 +40,7 @@ export const serialArchiveSortValues = [
 
 export type SerialArchiveSort = (typeof serialArchiveSortValues)[number];
 
-export const serialArchivePeriodValues = [
+const serialArchivePeriodValues = [
   "all_time",
   "this_year",
   "last_10_years",
@@ -50,7 +50,7 @@ export const serialArchivePeriodValues = [
 
 export type SerialArchivePeriod = (typeof serialArchivePeriodValues)[number];
 
-export const serialDetailReviewSortValues = ["popular", "recent"] as const;
+const serialDetailReviewSortValues = ["popular", "recent"] as const;
 
 export type SerialDetailReviewSort = (typeof serialDetailReviewSortValues)[number];
 
