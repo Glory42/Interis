@@ -14,6 +14,7 @@ import type { LogMediaInitialState } from "@/features/diary/components/log-media
 import { getPosterUrl } from "@/features/serials/components/utils";
 import { useCreateSeriesLog, useSeriesInteraction, useUpdateSeriesInteraction } from "@/features/serials/hooks/useSerials";
 import { isApiError } from "@/lib/api-client";
+import { todayAsLocalDateInput } from "@/lib/time";
 
 type LogSeriesModalProps = {
   tmdbId: number;
@@ -28,7 +29,6 @@ type LogSeriesModalProps = {
   triggerSize?: ComponentProps<typeof Button>["size"];
 };
 
-const todayAsDateInput = (): string => new Date().toISOString().slice(0, 10);
 const REVIEW_MAX_LENGTH = 5000;
 
 export const LogSeriesModal = ({
@@ -48,7 +48,7 @@ export const LogSeriesModal = ({
   const [isOpen, setIsOpen] = useState(false);
   const interactionQuery = useSeriesInteraction(tmdbId, isOpen);
   const updateInteractionMutation = useUpdateSeriesInteraction(tmdbId);
-  const [watchedDate, setWatchedDate] = useState(todayAsDateInput);
+  const [watchedDate, setWatchedDate] = useState(todayAsLocalDateInput);
   const [rating, setRating] = useState<number | null>(null);
   const [rewatch, setRewatch] = useState(false);
   const [review, setReview] = useState("");
@@ -78,7 +78,7 @@ export const LogSeriesModal = ({
   };
 
   const openModal = () => {
-    setWatchedDate(initialState?.watchedDate ?? todayAsDateInput());
+    setWatchedDate(initialState?.watchedDate ?? todayAsLocalDateInput());
     setRating(initialState?.rating ?? null);
     setRewatch(initialState?.rewatch ?? false);
     setReview(initialState?.reviewContent ?? "");

@@ -75,3 +75,32 @@ export const formatDateLabel = (
 // actually stored, regardless of the viewer's own timezone.
 export const parseDateOnly = (dateOnlyValue: string): Date =>
   new Date(`${dateOnlyValue}T00:00:00`);
+
+// The viewer's local calendar date as "YYYY-MM-DD", for use as a
+// date-input default/max. `new Date().toISOString().slice(0, 10)` returns
+// UTC's current date instead, which is wrong for any viewer not on UTC -
+// e.g. for a UTC+3 viewer (Turkey) it stays on "yesterday" until 3am
+// local time, silently capping the log-date picker's max a day early.
+export const todayAsLocalDateInput = (): string => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+export const formatDateOnlyLabel = (
+  dateOnlyValue: string,
+  options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  },
+): string => {
+  const date = parseDateOnly(dateOnlyValue);
+  if (Number.isNaN(date.getTime())) {
+    return dateOnlyValue;
+  }
+
+  return date.toLocaleDateString(undefined, options);
+};

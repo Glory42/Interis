@@ -10,8 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
 import { CalendarPicker } from "@/components/ui/CalendarPicker";
-
-const todayAsDateInput = (): string => new Date().toISOString().slice(0, 10);
+import { todayAsLocalDateInput } from "@/lib/time";
 
 type LogMediaDialogProps = {
   title: string;
@@ -141,7 +140,7 @@ export const LogMediaDialog = ({
                     <div className="sm:flex-1">
                       <CalendarPicker
                         value={watchedDate}
-                        max={todayAsDateInput()}
+                        max={todayAsLocalDateInput()}
                         onChange={onWatchedDateChange}
                       />
                     </div>
@@ -178,7 +177,7 @@ export const LogMediaDialog = ({
                         <span>Rating</span>
                       </span>
                     </label>
-                    <SpaceRatingInput value={rating} onChange={onRatingChange} />
+                    <SpaceRatingInput value={rating} onChange={onRatingChange} autoSave />
                   </section>
 
                   <section className="flex min-w-0 flex-1 flex-col gap-2">

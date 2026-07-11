@@ -6,6 +6,7 @@ import {
   formatRatingLabel,
 } from "@/features/films/components/spaceRating.utils";
 import { useMovieLogs } from "@/features/films/hooks/useMovies";
+import { formatDateOnlyLabel } from "@/lib/time";
 
 type MovieLogsProps = {
   tmdbId: number;
@@ -23,6 +24,13 @@ const formatDate = (value: string | null): string => {
 
   return parsed.toLocaleDateString();
 };
+
+// watchedDate is a date-only value ("YYYY-MM-DD") with no timezone, unlike
+// createdAt above which is a full instant - formatDateOnlyLabel parses it as
+// local midnight so it doesn't shift a day for viewers west of UTC. Empty
+// options match formatDate's bare toLocaleDateString() output.
+const formatWatchedDate = (value: string | null): string =>
+  value ? formatDateOnlyLabel(value, {}) : "Unknown";
 
 export const MovieLogs = ({ tmdbId }: MovieLogsProps) => {
   const logsQuery = useMovieLogs(tmdbId, tmdbId > 0);
@@ -69,7 +77,7 @@ export const MovieLogs = ({ tmdbId }: MovieLogsProps) => {
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-foreground">@{log.username}</p>
                     <p className="text-xs text-muted-foreground">
-                      Watched {formatDate(log.watchedDate)}
+                      Watched {formatWatchedDate(log.watchedDate)}
                     </p>
                   </div>
                 </div>

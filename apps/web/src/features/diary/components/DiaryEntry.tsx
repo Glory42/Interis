@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { getPosterUrl } from "@/features/films/components/utils";
+import { formatDateOnlyLabel } from "@/lib/time";
 import type { DiaryEntry } from "@/types/api";
 
 type DiaryEntryProps = {
@@ -15,6 +16,12 @@ const formatDate = (value: string): string => {
 
   return parsed.toLocaleDateString();
 };
+
+// watchedDate is a date-only value ("YYYY-MM-DD") with no timezone, unlike
+// createdAt/reviewCreatedAt above which are full instants - formatDateOnlyLabel
+// parses it as local midnight so it doesn't shift a day for viewers west of
+// UTC. Empty options match formatDate's bare toLocaleDateString() output.
+const formatWatchedDate = (value: string): string => formatDateOnlyLabel(value, {});
 
 const toOutOfTenLabel = (ratingOutOfTen: number): string => {
   return `${ratingOutOfTen.toFixed(1).replace(/\.0$/, "")}/10`;
@@ -42,7 +49,7 @@ export const DiaryEntryItem = ({ entry }: DiaryEntryProps) => {
               ) : null}
             </h3>
             <p className="text-xs text-muted-foreground">
-              Watched {formatDate(entry.watchedDate)} • Logged{" "}
+              Watched {formatWatchedDate(entry.watchedDate)} • Logged{" "}
               {formatDate(entry.createdAt)}
             </p>
           </div>

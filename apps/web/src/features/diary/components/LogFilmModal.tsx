@@ -14,6 +14,7 @@ import type { LogMediaInitialState } from "@/features/diary/components/log-media
 import { useCreateDiaryEntry } from "@/features/diary/hooks/useDiary";
 import { getPosterUrl } from "@/features/films/components/utils";
 import { isApiError } from "@/lib/api-client";
+import { todayAsLocalDateInput } from "@/lib/time";
 import { useMovieInteraction, useUpdateMovieInteraction } from "@/features/interactions/hooks/useInteractions";
 
 type LogFilmModalProps = {
@@ -29,7 +30,6 @@ type LogFilmModalProps = {
   triggerSize?: ComponentProps<typeof Button>["size"];
 };
 
-const todayAsDateInput = (): string => new Date().toISOString().slice(0, 10);
 const REVIEW_MAX_LENGTH = 5000;
 
 export const LogFilmModal = ({
@@ -49,7 +49,7 @@ export const LogFilmModal = ({
   const [isOpen, setIsOpen] = useState(false);
   const interactionQuery = useMovieInteraction(tmdbId, isOpen);
   const updateInteractionMutation = useUpdateMovieInteraction(tmdbId);
-  const [watchedDate, setWatchedDate] = useState(todayAsDateInput);
+  const [watchedDate, setWatchedDate] = useState(todayAsLocalDateInput);
   const [rating, setRating] = useState<number | null>(null);
   const [rewatch, setRewatch] = useState(false);
   const [review, setReview] = useState("");
@@ -79,7 +79,7 @@ export const LogFilmModal = ({
   };
 
   const openModal = () => {
-    setWatchedDate(initialState?.watchedDate ?? todayAsDateInput());
+    setWatchedDate(initialState?.watchedDate ?? todayAsLocalDateInput());
     setRating(initialState?.rating ?? null);
     setRewatch(initialState?.rewatch ?? false);
     setReview(initialState?.reviewContent ?? "");
