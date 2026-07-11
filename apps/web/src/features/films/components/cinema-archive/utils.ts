@@ -1,4 +1,5 @@
 import type { ArchiveMovie } from "@/features/films/api";
+import type { ArchiveRatingSource } from "@/features/films/components/cinema-archive/types";
 
 export const getReleaseYearLabel = (movie: ArchiveMovie): string => {
   if (movie.releaseYear !== null) {
@@ -25,6 +26,12 @@ export const getMovieStateLabel = (
 
   return null;
 };
+
+export const getRating = (
+  movie: ArchiveMovie,
+  ratingSource: ArchiveRatingSource,
+): number | null =>
+  ratingSource === "tmdb" ? movie.tmdbRatingOutOfTen : movie.avgRatingOutOfTen;
 
 export const formatArchiveCount = (count: number): string => {
   if (count === 1) {

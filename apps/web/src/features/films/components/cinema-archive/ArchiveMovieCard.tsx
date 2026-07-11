@@ -4,20 +4,24 @@ import { Award } from "lucide-react";
 import type { ArchiveMovie } from "@/features/films/api";
 import { getPosterUrl } from "@/features/films/components/utils";
 import { CINEMA_MODULE_STYLES } from "@/features/films/components/cinema-archive/constants";
+import type { ArchiveRatingSource } from "@/features/films/components/cinema-archive/types";
 import {
   getMovieStateLabel,
+  getRating,
   getReleaseYearLabel,
 } from "@/features/films/components/cinema-archive/utils";
 
 type ArchiveMovieCardProps = {
   movie: ArchiveMovie;
+  ratingSource: ArchiveRatingSource;
 };
 
 // Memoized because the archive grid re-renders on unrelated local state
 // (e.g. a filter dropdown opening) - this skips re-rendering every card
 // in a potentially large grid when only `openMenu` etc. changed.
-export const ArchiveMovieCard = memo(function ArchiveMovieCard({ movie }: ArchiveMovieCardProps) {
+export const ArchiveMovieCard = memo(function ArchiveMovieCard({ movie, ratingSource }: ArchiveMovieCardProps) {
   const stateLabel = getMovieStateLabel(movie);
+  const rating = getRating(movie, ratingSource);
 
   return (
     <Link
@@ -71,6 +75,23 @@ export const ArchiveMovieCard = memo(function ArchiveMovieCard({ movie }: Archiv
               }}
             >
               {stateLabel}
+            </span>
+          </div>
+        ) : null}
+
+        {rating !== null ? (
+          <div className="absolute bottom-2 right-2">
+            <span
+              className="border px-2 py-0.5 font-mono text-[9px]"
+              style={{
+                borderColor: CINEMA_MODULE_STYLES.accent,
+                color: CINEMA_MODULE_STYLES.accent,
+                background: CINEMA_MODULE_STYLES.badge,
+              }}
+            >
+              {ratingSource === "tmdb"
+                ? `TMDB ${rating.toFixed(1)}`
+                : rating.toFixed(1)}
             </span>
           </div>
         ) : null}

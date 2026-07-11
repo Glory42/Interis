@@ -9,7 +9,7 @@ import {
   periodOptions,
   sortOptions,
 } from "@/features/films/components/cinema-archive/constants";
-import type { OpenMenu } from "@/features/films/components/cinema-archive/types";
+import type { ArchiveRatingSource, OpenMenu } from "@/features/films/components/cinema-archive/types";
 import { formatArchiveCount } from "@/features/films/components/cinema-archive/utils";
 import type { MovieArchivePeriod, MovieArchiveSort } from "@/features/films/api";
 import { useMovieArchive } from "@/features/films/hooks/useMovies";
@@ -44,6 +44,9 @@ export const CinemaArchivePage = () => {
       ? "Weekly trending"
       : (periodOptions.find((option) => option.value === selectedPeriod)?.label ??
         "This year");
+
+  const archiveRatingSource: ArchiveRatingSource =
+    selectedSort === "rating_tmdb_desc" ? "tmdb" : "user";
 
   const archiveQuery = useMovieArchive(
     selectedGenre === "all" ? "" : selectedGenre,
@@ -195,7 +198,7 @@ export const CinemaArchivePage = () => {
           <>
             <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
               {archiveItems.map((movie) => (
-                <ArchiveMovieCard key={`cinema-archive-item-${movie.tmdbId}`} movie={movie} />
+                <ArchiveMovieCard key={`cinema-archive-item-${movie.tmdbId}`} movie={movie} ratingSource={archiveRatingSource} />
               ))}
             </div>
 
