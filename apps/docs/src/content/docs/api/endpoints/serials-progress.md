@@ -71,6 +71,7 @@ None.
 - `viewerTracking` is `null` if the user has no progress recorded for this series.
 - `currentEpisode` returns the first unwatched episode in chronological order (Up Next). If all episodes are watched, `currentEpisode` returns `null`.
 - `ratingsCount`, `likesCount`, and `reviewsCount` aggregate interactions from both seasons and individual episodes.
+- `series.numberOfEpisodes` excludes season 0 (Specials) — only regular aired seasons count. `watchedEpisodesCount` is counted the same way, so the progress fraction is always consistent.
 
 ## Empty state behavior
 

@@ -52,6 +52,7 @@ Returns the TV series the user has watched at least one episode of, but hasn't f
 - Ordered by `lastWatchedAt` descending — most recently watched series first.
 - `progressPercent` is `watchedEpisodesCount / numberOfEpisodes`, rounded to the nearest whole percent.
 - `currentEpisode` is the first unwatched episode in chronological order (Up Next). It can be `null` if the locally cached `numberOfEpisodes` is behind the show's true episode count on TMDB.
+- `numberOfEpisodes` excludes season 0 (Specials). `watchedEpisodesCount` and `progressPercent` are computed the same way, so the fraction is always consistent.
 - `numberOfEpisodes`/`numberOfSeasons` reflect the last time this series was cached locally and can lag TMDB briefly for currently-airing shows.
 
 ## Empty state behavior
