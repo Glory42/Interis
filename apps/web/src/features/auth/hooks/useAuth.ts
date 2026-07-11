@@ -12,6 +12,7 @@ import {
   updateCurrentUserIdentity,
 } from "@/features/auth/api";
 import type { LoginInput, RegisterInput } from "@/types/api";
+import { profileKeys } from "@/features/profile/hooks/useProfile";
 
 export const authKeys = {
   me: ["auth", "me"] as const,
@@ -57,7 +58,7 @@ export const useAuth = () => {
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: authKeys.me }),
-        queryClient.invalidateQueries({ queryKey: ["profile"] }),
+        queryClient.invalidateQueries({ queryKey: profileKeys.all }),
       ]);
     },
   });

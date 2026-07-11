@@ -19,6 +19,7 @@ import {
 export const listKeys = {
   all: ["lists"] as const,
   userLists: (username: string) => ["lists", "user", username] as const,
+  userListsForItems: (username: string) => ["lists", "user", username, "item"] as const,
   userListsForItem: (username: string, tmdbId: number, itemType: string) =>
     ["lists", "user", username, "item", tmdbId, itemType] as const,
   detail: (listId: string) => ["lists", "detail", listId] as const,
@@ -152,7 +153,7 @@ export const useAddListItem = (listId: string, ownerUsername: string) => {
           queryKey: listKeys.userLists(ownerUsername),
         }),
         queryClient.invalidateQueries({
-          queryKey: ["lists", "user", ownerUsername, "item"],
+          queryKey: listKeys.userListsForItems(ownerUsername),
           exact: false,
         }),
       ]);
@@ -171,7 +172,7 @@ export const useRemoveListItem = (listId: string, ownerUsername: string) => {
           queryKey: listKeys.userLists(ownerUsername),
         }),
         queryClient.invalidateQueries({
-          queryKey: ["lists", "user", ownerUsername, "item"],
+          queryKey: listKeys.userListsForItems(ownerUsername),
           exact: false,
         }),
       ]);
@@ -220,7 +221,7 @@ export const useLikeList = (listId: string, viewerUsername?: string) => {
       await queryClient.invalidateQueries({ queryKey });
       if (viewerUsername) {
         await queryClient.invalidateQueries({
-          queryKey: ["profile", "liked-lists", viewerUsername],
+          queryKey: profileKeys.likedLists(viewerUsername),
         });
       }
     },
@@ -257,7 +258,7 @@ export const useUnlikeList = (listId: string, viewerUsername?: string) => {
       await queryClient.invalidateQueries({ queryKey });
       if (viewerUsername) {
         await queryClient.invalidateQueries({
-          queryKey: ["profile", "liked-lists", viewerUsername],
+          queryKey: profileKeys.likedLists(viewerUsername),
         });
       }
     },
