@@ -7,7 +7,7 @@ import {
   DEFAULT_ARCHIVE_SORT,
   DEFAULT_DETAIL_REVIEWS_SORT,
   MAX_ARCHIVE_LIMIT,
-} from "../constants/serials.constants";
+} from "../../../commons/constants/archive.constants";
 
 export const SearchSerialsQuerySchema = z.object({
   query: z.string().trim().min(1),

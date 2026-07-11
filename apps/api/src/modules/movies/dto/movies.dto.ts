@@ -6,7 +6,7 @@ import {
   DEFAULT_ARCHIVE_SORT,
   DEFAULT_DETAIL_REVIEWS_SORT,
   MAX_ARCHIVE_LIMIT,
-} from "../constants/movies.constants";
+} from "../../../commons/constants/archive.constants";
 
 const cinemaArchiveSortValues = [
   "trending",
