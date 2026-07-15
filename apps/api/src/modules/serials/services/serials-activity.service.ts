@@ -249,8 +249,8 @@ export class SerialsActivityService {
     return { entry, series, review };
   }
 
-  static async getMyLogs(userId: string) {
-    return SerialsInteractionsRepository.findAllDiaryByUser(userId);
+  static async getMyLogs(userId: string, limit?: number, offset?: number) {
+    return SerialsInteractionsRepository.findAllDiaryByUser(userId, limit, offset);
   }
 
   static async updateLog(entryId: string, userId: string, input: UpdateSerialLogDto) {
@@ -265,7 +265,7 @@ export class SerialsActivityService {
     return SerialsInteractionsRepository.deleteDiaryEntry(entryId, userId);
   }
 
-  static async getLogs(seriesId: number) {
-    return SerialsInteractionsRepository.getLogsBySeriesId(seriesId);
+  static async getLogs(seriesId: number, limit?: number, offset?: number) {
+    return SerialsInteractionsRepository.getLogsBySeriesId(seriesId, limit, offset);
   }
 }

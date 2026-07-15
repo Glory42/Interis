@@ -17,6 +17,7 @@ import {
   CreateSerialLogSchema,
   normalizeSerialArchiveQuery,
   normalizeSerialDetailQuery,
+  normalizeSerialLogsQuery,
   SearchSerialsQuerySchema,
   SerialSeasonParamsSchema,
   UpdateSerialInteractionSchema,
@@ -229,7 +230,8 @@ export class SerialsController {
       return;
     }
 
-    const logs = await SerialsService.getLogs(tmdbId);
+    const { limit, offset } = normalizeSerialLogsQuery(req.query);
+    const logs = await SerialsService.getLogs(tmdbId, limit, offset);
     if (logs === null) {
       res.status(404).json({ error: "Series not found" });
       return;
@@ -239,7 +241,8 @@ export class SerialsController {
   }
 
   static async getMyLogs(req: Request, res: Response): Promise<void> {
-    const logs = await SerialsService.getMyLogs(req.user.id);
+    const { limit, offset } = normalizeSerialLogsQuery(req.query);
+    const logs = await SerialsService.getMyLogs(req.user.id, limit, offset);
     res.status(200).json(logs);
   }
 

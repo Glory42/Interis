@@ -87,8 +87,8 @@ export class SerialsService {
     return SerialsActivityService.createLog(userId, tmdbId, input);
   }
 
-  static async getMyLogs(userId: string) {
-    return SerialsActivityService.getMyLogs(userId);
+  static async getMyLogs(userId: string, limit?: number, offset?: number) {
+    return SerialsActivityService.getMyLogs(userId, limit, offset);
   }
 
   static async updateLog(entryId: string, userId: string, input: UpdateSerialLogDto) {
@@ -99,10 +99,10 @@ export class SerialsService {
     return SerialsActivityService.deleteLog(entryId, userId);
   }
 
-  static async getLogs(tmdbId: number) {
+  static async getLogs(tmdbId: number, limit?: number, offset?: number) {
     const series = await SerialsCacheService.findOrCreate(tmdbId);
     if (!series) return null;
-    return SerialsActivityService.getLogs(series.id);
+    return SerialsActivityService.getLogs(series.id, limit, offset);
   }
 
   static async getRecent(): Promise<TMDBSearchSeries[]> {

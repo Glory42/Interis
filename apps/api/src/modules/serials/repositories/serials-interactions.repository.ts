@@ -257,8 +257,8 @@ export class SerialsInteractionsRepository {
     return row?.rating !== null && row?.rating !== undefined;
   }
 
-  static async findAllDiaryByUser(userId: string) {
-    return db
+  static async findAllDiaryByUser(userId: string, limit?: number, offset?: number) {
+    const query = db
       .select({
         id: serialDiaryEntries.id,
         watchedDate: serialDiaryEntries.watchedDate,
@@ -287,7 +287,10 @@ export class SerialsInteractionsRepository {
         ),
       )
       .where(eq(serialDiaryEntries.userId, userId))
-      .orderBy(desc(serialDiaryEntries.watchedDate), desc(serialDiaryEntries.createdAt));
+      .orderBy(desc(serialDiaryEntries.watchedDate), desc(serialDiaryEntries.createdAt))
+      .$dynamic();
+
+    return limit ? query.limit(limit).offset(offset ?? 0) : query;
   }
 
   static async updateDiaryEntry(
@@ -317,8 +320,8 @@ export class SerialsInteractionsRepository {
     return deleted ?? null;
   }
 
-  static async getLogsBySeriesId(seriesId: number) {
-    return db
+  static async getLogsBySeriesId(seriesId: number, limit?: number, offset?: number) {
+    const query = db
       .select({
         diaryEntryId: serialDiaryEntries.id,
         watchedDate: serialDiaryEntries.watchedDate,
@@ -344,6 +347,9 @@ export class SerialsInteractionsRepository {
         ),
       )
       .where(eq(serialDiaryEntries.seriesId, seriesId))
-      .orderBy(desc(serialDiaryEntries.createdAt));
+      .orderBy(desc(serialDiaryEntries.createdAt))
+      .$dynamic();
+
+    return limit ? query.limit(limit).offset(offset ?? 0) : query;
   }
 }
