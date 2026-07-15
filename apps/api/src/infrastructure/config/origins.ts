@@ -1,3 +1,5 @@
+import { env } from "./env";
+
 const normalizeOrigin = (value: string): string => {
   return value.trim().replace(/\/+$/, "");
 };
@@ -17,7 +19,7 @@ const parseOriginFromValue = (value: string): string | null => {
 };
 
 export const getTrustedOriginsFromEnv = (): string[] => {
-  const rawOrigins = process.env.CORS_ORIGIN ?? "";
+  const rawOrigins = env.CORS_ORIGIN ?? "";
 
   const trustedOrigins = rawOrigins
     .split(",")
