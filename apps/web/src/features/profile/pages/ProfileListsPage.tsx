@@ -32,7 +32,7 @@ export const ProfileListsPage = ({ username }: ProfileListsPageProps) => {
     Boolean(user) && user?.username.toLowerCase() === username.toLowerCase();
 
   const listsQuery = useUserLists(username);
-  const lists = listsQuery.data ?? [];
+  const lists = useMemo(() => listsQuery.data ?? [], [listsQuery.data]);
 
   const [activeFilter, setActiveFilter] = useState<ListFilter>("all");
 
