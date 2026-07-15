@@ -158,7 +158,14 @@ export const startServer = () => {
     logger.info(`🚀 Express server running on http://localhost:${port}`);
   });
 
+  let isShuttingDown = false;
+
   const shutdown = (signal: string) => {
+    if (isShuttingDown) {
+      return;
+    }
+    isShuttingDown = true;
+
     logger.info(`${signal} received, shutting down gracefully`);
     server.close((err) => {
       if (err) {
