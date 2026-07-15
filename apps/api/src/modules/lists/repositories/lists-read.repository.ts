@@ -15,7 +15,12 @@ export class ListsReadRepository {
     return row ?? null;
   }
 
-  static async findByUserId(userId: string, publicOnly: boolean) {
+  static async findByUserId(
+    userId: string,
+    publicOnly: boolean,
+    limit?: number,
+    offset?: number,
+  ) {
     const query = db
       .select({
         id: lists.id,
@@ -37,9 +42,10 @@ export class ListsReadRepository {
           : eq(lists.userId, userId),
       )
       .groupBy(lists.id)
-      .orderBy(desc(lists.updatedAt));
+      .orderBy(desc(lists.updatedAt))
+      .$dynamic();
 
-    return query;
+    return limit ? query.limit(limit).offset(offset ?? 0) : query;
   }
 
   static async getCoverImages(listIds: string[]) {

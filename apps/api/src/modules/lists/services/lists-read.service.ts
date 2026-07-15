@@ -9,8 +9,19 @@ export class ListsReadService {
     publicOnly: boolean,
     checkTmdbId?: number,
     checkItemType?: string,
+    limit?: number,
+    offset?: number,
   ) {
-    const listRows = await ListsReadRepository.findByUserId(userId, publicOnly);
+    // Item-check mode (AddToListDialog) needs the complete set of the
+    // user's lists to render correct membership checkmarks — pagination
+    // only applies to the plain "browse my lists" mode.
+    const isItemCheckMode = checkTmdbId !== undefined && checkItemType !== undefined;
+    const listRows = await ListsReadRepository.findByUserId(
+      userId,
+      publicOnly,
+      isItemCheckMode ? undefined : limit,
+      isItemCheckMode ? undefined : offset,
+    );
 
     if (listRows.length === 0) {
       return [];

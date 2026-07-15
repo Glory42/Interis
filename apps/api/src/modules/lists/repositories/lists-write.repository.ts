@@ -84,7 +84,7 @@ export class ListsWriteRepository {
     if (items.length === 0) return;
 
     const whenClauses = items.map(
-      (item) => sql`WHEN ${item.id}::uuid THEN ${item.position}`,
+      (item) => sql`WHEN ${item.id}::uuid THEN ${item.position}::integer`,
     );
 
     await db

@@ -1,12 +1,13 @@
 import { MoviesCacheService } from "../../movies/services/movies-cache.service";
 import { SerialsCacheService } from "../../serials/services/serials-cache.service";
 import { SocialRepository } from "../../social/repositories/social.repository";
+import { MAX_LIST_ITEMS } from "../constants/lists.constants";
 import type { CreateListDto, UpdateListDto } from "../dto/lists.dto";
 import { deriveListType } from "../helpers/derive-list-type.helper";
 import { ListsReadRepository } from "../repositories/lists-read.repository";
 import { ListsWriteRepository } from "../repositories/lists-write.repository";
 
-type ServiceError = { error: string; status: 403 | 404 };
+type ServiceError = { error: string; status: 400 | 403 | 404 };
 
 export class ListsWriteService {
   static async createList(userId: string, data: CreateListDto) {
@@ -92,6 +93,14 @@ export class ListsWriteService {
       return { error: "Forbidden", status: 403 };
     }
 
+    const currentTypes = await ListsReadRepository.getCurrentItemTypes(listId);
+    if (currentTypes.length >= MAX_LIST_ITEMS) {
+      return {
+        error: `Lists are limited to ${MAX_LIST_ITEMS} items`,
+        status: 400,
+      };
+    }
+
     let movieId: number | undefined;
     let tvSeriesId: number | undefined;
 
@@ -118,8 +127,7 @@ export class ListsWriteService {
       throw new Error("Failed to insert list entry");
     }
 
-    const currentTypes = await ListsReadRepository.getCurrentItemTypes(listId);
-    const newDerivedType = deriveListType(currentTypes);
+    const newDerivedType = deriveListType([...currentTypes, itemType]);
 
     await ListsWriteRepository.update(listId, { derivedType: newDerivedType });
 
