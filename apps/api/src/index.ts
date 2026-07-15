@@ -5,13 +5,19 @@ import express, {
 } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
-import rateLimit from "express-rate-limit";
 import { randomUUID } from "node:crypto";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./infrastructure/auth/auth";
 import { logger } from "./commons/utils/logger";
+import { env } from "./infrastructure/config/env";
 import { securityHeaders } from "./commons/middlewares/securityHeaders";
+import { helmetMiddleware } from "./commons/middlewares/helmet";
 import { requireTrustedOriginForMutations } from "./commons/middlewares/requireTrustedOriginForMutations";
+import {
+  createAuthLimiter,
+  createApiLimiter,
+  createMutationLimiter,
+} from "./commons/middlewares/rateLimiters";
 import {
   getTrustedOriginsFromEnv,
   isTrustedOrigin,
@@ -33,23 +39,12 @@ import dataTransferRouter from "./modules/data-transfer/data-transfer.routes";
 export const createApp = () => {
   const app = express();
   const trustedOrigins = getTrustedOriginsFromEnv();
-
-  const authLimiter = rateLimit({
-    windowMs: 60 * 1000,
-    max: 30,
-    standardHeaders: true,
-    legacyHeaders: false,
-  });
-
-  const apiLimiter = rateLimit({
-    windowMs: 60 * 1000,
-    max: 300,
-    standardHeaders: true,
-    legacyHeaders: false,
-    skip: (req) => req.path.startsWith("/public/"),
-  });
+  const authLimiter = createAuthLimiter();
+  const apiLimiter = createApiLimiter();
+  const mutationLimiter = createMutationLimiter();
 
   app.disable("x-powered-by");
+  app.use(helmetMiddleware);
   app.use(securityHeaders);
 
   app.use(
@@ -98,8 +93,13 @@ export const createApp = () => {
   );
 
   app.use("/api", apiLimiter);
+  app.use("/api", mutationLimiter);
   app.use(requireTrustedOriginForMutations(trustedOrigins));
   app.use("/api/auth", authLimiter);
+  // Bounded JSON parsing ahead of the auth handler — Better Auth's node
+  // adapter reads req.body directly when Express has already parsed it, so
+  // this both enforces a size limit and works transparently.
+  app.use("/api/auth", express.json({ limit: "20kb" }));
   app.all("/api/auth/*splat", toNodeHandler(auth));
 
   app.use(express.json({ limit: "1mb" }));
@@ -133,6 +133,16 @@ export const createApp = () => {
       return;
     }
 
+    const bodyParserError = err as Error & { type?: string; status?: number };
+    if (bodyParserError.type === "entity.too.large") {
+      res.status(413).json({ error: "Request body too large" });
+      return;
+    }
+    if (bodyParserError.type?.startsWith("entity.parse")) {
+      res.status(400).json({ error: "Malformed request body" });
+      return;
+    }
+
     logger.error(err);
     res.status(500).json({ error: "Internal server error" });
   });
@@ -142,11 +152,29 @@ export const createApp = () => {
 
 export const startServer = () => {
   const app = createApp();
-  const port = Number(process.env.PORT ?? 3000);
+  const port = env.PORT;
 
-  return app.listen(port, () => {
+  const server = app.listen(port, () => {
     logger.info(`🚀 Express server running on http://localhost:${port}`);
   });
+
+  const shutdown = (signal: string) => {
+    logger.info(`${signal} received, shutting down gracefully`);
+    server.close((err) => {
+      if (err) {
+        logger.error(err, "Error while closing server");
+        process.exit(1);
+      }
+
+      logger.info("Server closed, exiting");
+      process.exit(0);
+    });
+  };
+
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
+
+  return server;
 };
 
 if (import.meta.main) {

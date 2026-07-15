@@ -7,17 +7,11 @@ const permissionsPolicy = [
   "payment=()",
 ].join(", ");
 
+/**
+ * Sets Permissions-Policy — the one baseline security header Helmet does not
+ * set. All other headers (CSP, X-Frame-Options, HSTS, etc.) come from Helmet.
+ */
 export const securityHeaders: RequestHandler = (_req, res, next) => {
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-  res.setHeader("X-DNS-Prefetch-Control", "off");
-  res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
   res.setHeader("Permissions-Policy", permissionsPolicy);
-
-  if (process.env.NODE_ENV === "production") {
-    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-  }
-
   next();
 };
