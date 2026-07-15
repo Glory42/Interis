@@ -236,6 +236,32 @@ export type UpdateSerialInteractionDto = z.infer<typeof UpdateSerialInteractionS
 export type CreateSerialLogDto = z.infer<typeof CreateSerialLogSchema>;
 export type UpdateSerialLogDto = z.infer<typeof UpdateSerialLogSchema>;
 
+const DEFAULT_LOGS_LIMIT = 50;
+
+export const SerialLogsQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+});
+
+export type SerialLogsQuery = z.input<typeof SerialLogsQuerySchema>;
+
+// Always returns a bounded limit/offset (even with no query params) so the
+// serials logs endpoints (a viewer's own diary, and everyone's logs for a
+// given series) never fetch an entire unbounded collection in one request.
+export const normalizeSerialLogsQuery = (
+  input: unknown,
+): { limit: number; offset: number } => {
+  const parsed = SerialLogsQuerySchema.safeParse(input);
+  if (!parsed.success) {
+    return { limit: DEFAULT_LOGS_LIMIT, offset: 0 };
+  }
+
+  return {
+    limit: parsed.data.limit ?? DEFAULT_LOGS_LIMIT,
+    offset: parsed.data.offset ?? 0,
+  };
+};
+
 export const SerialEpisodeParamsSchema = z.object({
   tmdbId: z.string(),
   seasonNumber: z.coerce.number().int().min(0),
