@@ -8,8 +8,17 @@ export class ListsService {
     publicOnly: boolean,
     checkTmdbId?: number,
     checkItemType?: string,
+    limit?: number,
+    offset?: number,
   ) {
-    return ListsReadService.getUserLists(userId, publicOnly, checkTmdbId, checkItemType);
+    return ListsReadService.getUserLists(
+      userId,
+      publicOnly,
+      checkTmdbId,
+      checkItemType,
+      limit,
+      offset,
+    );
   }
 
   static async getListDetail(listId: string, viewerUserId: string | null) {

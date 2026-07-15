@@ -210,12 +210,15 @@ export class UsersController {
 
     const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
     const publicOnly = viewerUserId !== profile.id;
+    const { limit, offset } = parseProfileListPagination(req.query);
 
     const lists = await ListsService.getUserLists(
       profile.id,
       publicOnly,
       parsed.data.tmdbId,
       parsed.data.itemType,
+      limit,
+      offset,
     );
 
     res.status(200).json(lists);
