@@ -12,6 +12,7 @@ import {
   uuid,
   real,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { user } from "../../infrastructure/database/auth.entity";
 
 export const tvSeries = pgTable("tv_series", {
@@ -58,6 +59,16 @@ export const serialDiaryEntries = pgTable("serial_diary_entry", {
 }, (table) => [
   index("serial_diary_entry_user_id_idx").on(table.userId),
   index("serial_diary_entry_series_id_idx").on(table.seriesId),
+  // Backs the diary page query: WHERE user_id = X ORDER BY watched_date DESC, created_at DESC
+  index("serial_diary_entry_user_watched_created_idx").on(
+    table.userId,
+    table.watchedDate,
+    table.createdAt,
+  ),
+  // Backs the community-rating avg() subquery: WHERE series_id = X AND rating IS NOT NULL
+  index("serial_diary_entry_series_rating_idx")
+    .on(table.seriesId, table.rating)
+    .where(sql`rating is not null`),
 ]);
 
 export const serialInteractions = pgTable(
@@ -78,7 +89,13 @@ export const serialInteractions = pgTable(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (table) => [unique("serial_interactions_unique").on(table.userId, table.seriesId)],
+  (table) => [
+    unique("serial_interactions_unique").on(table.userId, table.seriesId),
+    // Backs the community-rating avg() subquery: WHERE series_id = X AND rating IS NOT NULL
+    index("serial_interaction_series_rating_idx")
+      .on(table.seriesId, table.rating)
+      .where(sql`rating is not null`),
+  ],
 );
 
 export const serialSeasonInteractions = pgTable(

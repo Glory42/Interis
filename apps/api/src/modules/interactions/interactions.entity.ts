@@ -6,7 +6,9 @@ import {
   timestamp,
   unique,
   real,
+  index,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { user } from "../../infrastructure/database/auth.entity";
 import { movies } from "../movies/movies.entity";
 
@@ -30,5 +32,10 @@ export const movieInteractions = pgTable(
   },
   (table) => [
     unique("movie_interactions_unique").on(table.userId, table.movieId),
+    // Backs the community-rating avg() subquery: WHERE movie_id = X AND rating IS NOT NULL
+    // (movieId isn't the leftmost column in the unique index above, so it needs its own)
+    index("movie_interaction_movie_rating_idx")
+      .on(table.movieId, table.rating)
+      .where(sql`rating is not null`),
   ],
 );

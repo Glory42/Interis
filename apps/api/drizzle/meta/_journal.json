@@ -267,6 +267,13 @@
       "when": 1783811234688,
       "tag": "0037_bitter_photon",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1784228270155,
+      "tag": "0038_good_molten_man",
+      "breakpoints": true
     }
   ]
 }
