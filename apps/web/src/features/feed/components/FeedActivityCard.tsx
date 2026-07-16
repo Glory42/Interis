@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { memo, type CSSProperties } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { CornerDownRight, Heart, MessageSquare } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -141,7 +141,7 @@ const ActivityEngagement = ({ item }: { item: FeedItem }) => {
   );
 };
 
-export const FeedActivityCard = ({ item }: FeedActivityCardProps) => {
+export const FeedActivityCard = memo(function FeedActivityCard({ item }: FeedActivityCardProps) {
   if (item.kind === "post" || item.kind === "liked_post" || item.kind === "commented_post") {
     return <PostActivityCard item={item} />;
   }
@@ -215,4 +215,4 @@ export const FeedActivityCard = ({ item }: FeedActivityCardProps) => {
       <ActivityEngagement item={item} />
     </article>
   );
-};
+});

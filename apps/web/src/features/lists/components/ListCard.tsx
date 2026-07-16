@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Link } from "@tanstack/react-router";
 import { formatRelativeTime } from "@/lib/time";
 import type { ListSummary } from "@/features/lists/api";
@@ -14,7 +15,7 @@ type ListCardProps = {
   username: string;
 };
 
-export const ListCard = ({ list, username }: ListCardProps) => {
+export const ListCard = memo(function ListCard({ list, username }: ListCardProps) {
   const covers = list.coverImages.slice(0, 4);
   const coverCount = covers.filter((c) => c.posterPath).length;
 
@@ -134,4 +135,4 @@ export const ListCard = ({ list, username }: ListCardProps) => {
       </div>
     </Link>
   );
-};
+});
