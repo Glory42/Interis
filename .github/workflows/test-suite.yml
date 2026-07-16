@@ -62,8 +62,14 @@ jobs:
         run: bun run lint:arch
         working-directory: apps/api
 
-      - name: TEMP revert backfill and inspect full column state
-        run: bun run scripts/debug-db-state.ts --revert-backfill
+      - name: TEMP push schema to close pre-existing gap
+        run: bunx drizzle-kit push --verbose
+        working-directory: apps/api
+        env:
+          DATABASE_URL: ${{ secrets.DEVDATABASE_URL }}
+
+      - name: TEMP re-backfill migration tracking
+        run: bun run scripts/backfill-migration-tracking.ts
         working-directory: apps/api
         env:
           DATABASE_URL: ${{ secrets.DEVDATABASE_URL }}
@@ -71,7 +77,6 @@ jobs:
       - name: Run backend migrations
         run: bunx drizzle-kit migrate
         working-directory: apps/api
-        continue-on-error: true
         env:
           DATABASE_URL: ${{ secrets.DEVDATABASE_URL }}
 
