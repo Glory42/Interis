@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties, type MouseEvent } from "react";
+import { memo, useMemo, useState, type CSSProperties, type MouseEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { CornerDownRight, Heart, Loader2, MessageSquare, PenSquare } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -31,7 +31,7 @@ const getMediaLabel = (item: FeedItem): { title: string; year: string | null } =
   };
 };
 
-export const PostActivityCard = ({ item }: PostActivityCardProps) => {
+export const PostActivityCard = memo(function PostActivityCard({ item }: PostActivityCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -229,4 +229,4 @@ export const PostActivityCard = ({ item }: PostActivityCardProps) => {
       ) : null}
     </>
   );
-};
+});

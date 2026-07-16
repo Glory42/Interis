@@ -23,11 +23,17 @@ export const useSerialSearch = (query: string) =>
     enabled: query.trim().length >= 2,
   });
 
+// Series metadata (title/poster/overview/genres/season-episode counts) is
+// TMDB-backed and rarely changes within a session, so this can outlive the
+// 30s global default.
+const SERIES_DETAIL_STALE_TIME_MS = 300_000;
+
 export const useSeriesDetail = (tmdbId: number, enabled = true) =>
   useQuery({
     queryKey: serialKeys.detail(tmdbId),
     queryFn: ({ signal }) => getSeriesByTmdbId(tmdbId, { signal }),
     enabled,
+    staleTime: SERIES_DETAIL_STALE_TIME_MS,
   });
 
 export const useSeriesDetailView = (
@@ -37,6 +43,9 @@ export const useSeriesDetailView = (
 ) =>
   useQuery({
     queryKey: serialKeys.detailView(tmdbId, reviewsSort),
+    // Bundles reviews/ratingBreakdown alongside static series fields, so it
+    // stays on the global 30s staleTime — those change too often to treat
+    // as long-lived.
     queryFn: ({ signal }) => getSeriesDetail(tmdbId, { reviewsSort }, { signal }),
     enabled,
   });

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Link } from "@tanstack/react-router";
 import type { LikedList } from "@/features/profile/api";
 import { formatRelativeTime } from "@/lib/time";
@@ -11,7 +12,7 @@ const POSTER_W = 48;
 const POSTER_H = 70;
 const CONTAINER_W = POSTER_W + OFFSET * 3;
 
-export const LikedListCard = ({ list }: { list: LikedList }) => {
+export const LikedListCard = memo(function LikedListCard({ list }: { list: LikedList }) {
   const covers = list.coverImages.slice(0, 4);
   const derivedTypeLabel =
     list.derivedType === "cinema"
@@ -96,4 +97,4 @@ export const LikedListCard = ({ list }: { list: LikedList }) => {
       </div>
     </Link>
   );
-};
+});

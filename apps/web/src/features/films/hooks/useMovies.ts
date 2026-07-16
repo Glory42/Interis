@@ -35,11 +35,16 @@ export const useMovieSearch = (query: string) =>
     enabled: query.trim().length >= 2,
   });
 
+// Movie metadata (title/poster/overview/genres) is TMDB-backed and rarely
+// changes within a session, so this can outlive the 30s global default.
+const MOVIE_DETAIL_STALE_TIME_MS = 300_000;
+
 export const useMovieDetail = (tmdbId: number, enabled = true) =>
   useQuery({
     queryKey: movieKeys.detail(tmdbId),
     queryFn: ({ signal }) => getMovieByTmdbId(tmdbId, { signal }),
     enabled,
+    staleTime: MOVIE_DETAIL_STALE_TIME_MS,
   });
 
 export const useMovieDetailView = (
@@ -49,6 +54,9 @@ export const useMovieDetailView = (
 ) =>
   useQuery({
     queryKey: movieKeys.detailView(tmdbId, reviewsSort),
+    // Bundles reviews/ratingBreakdown alongside static movie fields, so it
+    // stays on the global 30s staleTime rather than the longer one below —
+    // those change too often to treat as long-lived.
     queryFn: ({ signal }) => getMovieDetail(tmdbId, { reviewsSort }, { signal }),
     enabled,
   });

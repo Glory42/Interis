@@ -47,12 +47,14 @@ export class UsersReadService {
   }
 
   static async getMeSummary(userId: string) {
-    const profile = await UsersProfileService.findById(userId);
+    const [profile, summaryData] = await Promise.all([
+      UsersProfileService.findById(userId),
+      UsersStatsRepository.getMeSummaryData(userId),
+    ]);
     if (!profile) {
       return null;
     }
 
-    const summaryData = await UsersStatsRepository.getMeSummaryData(userId);
     const recentPosters = dedupeRecentPosters(summaryData.recentRows, 5);
 
     return {

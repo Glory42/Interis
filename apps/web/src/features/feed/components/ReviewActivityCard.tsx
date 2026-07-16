@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type MouseEvent } from "react";
+import { memo, useState, type CSSProperties, type MouseEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   CornerDownRight,
@@ -57,7 +57,9 @@ const getReviewBodyFallback = (item: FeedItem): string => {
   return "Shared a review.";
 };
 
-export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
+export const ReviewActivityCard = memo(function ReviewActivityCard({
+  item,
+}: ReviewActivityCardProps) {
   const {
     user,
     actorName,
@@ -250,4 +252,4 @@ export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
       ) : null}
     </>
   );
-};
+});

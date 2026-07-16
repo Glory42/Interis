@@ -9,6 +9,7 @@ import {
   real,
   index,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { user } from "../../infrastructure/database/auth.entity";
 import { movies } from "../movies/movies.entity";
 
@@ -37,5 +38,15 @@ export const diaryEntries = pgTable(
   (table) => [
     index("diary_entry_user_id_idx").on(table.userId),
     index("diary_entry_movie_id_idx").on(table.movieId),
+    // Backs the diary page query: WHERE user_id = X ORDER BY watched_date DESC, created_at DESC
+    index("diary_entry_user_watched_created_idx").on(
+      table.userId,
+      table.watchedDate,
+      table.createdAt,
+    ),
+    // Backs the community-rating avg() subquery: WHERE movie_id = X AND rating IS NOT NULL
+    index("diary_entry_movie_rating_idx")
+      .on(table.movieId, table.rating)
+      .where(sql`rating is not null`),
   ],
 );

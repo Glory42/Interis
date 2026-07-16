@@ -34,6 +34,8 @@ export const posts = pgTable("post", {
 }, (table) => [
   index("post_user_id_idx").on(table.userId),
   index("post_media_id_idx").on(table.mediaId),
+  // Backs the profile posts page query: WHERE user_id = X ORDER BY created_at DESC
+  index("post_user_created_idx").on(table.userId, table.createdAt),
 ]);
 
 export const postLikes = pgTable(
