@@ -20,6 +20,7 @@ export default defineConfig([
       // Express's Request<Params, ResBody, ReqBody, Query> generic idiomatically
       // uses `{}` for unused positions throughout this codebase's controllers.
       "@typescript-eslint/no-empty-object-type": ["error", { allowObjectTypes: "always" }],
+      "max-lines": ["error", { max: 380, skipBlankLines: true, skipComments: true }],
     },
   },
 ]);
