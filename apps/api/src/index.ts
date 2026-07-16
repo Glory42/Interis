@@ -10,6 +10,7 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from "./infrastructure/auth/auth";
 import { logger } from "./commons/utils/logger";
 import { env } from "./infrastructure/config/env";
+import { AppError } from "./commons/errors/app-error";
 import { securityHeaders } from "./commons/middlewares/securityHeaders";
 import { helmetMiddleware } from "./commons/middlewares/helmet";
 import { requireTrustedOriginForMutations } from "./commons/middlewares/requireTrustedOriginForMutations";
@@ -138,23 +139,38 @@ export const createApp = (options: CreateAppOptions = {}) => {
   app.use("/api/data", dataTransferRouter);
 
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+    if (err instanceof AppError) {
+      res
+        .status(err.statusCode)
+        .json({ error: { message: err.message, code: err.code, details: err.details } });
+      return;
+    }
+
     if (err.message === "Not allowed by CORS") {
-      res.status(403).json({ error: "Origin is not allowed" });
+      res
+        .status(403)
+        .json({ error: { message: "Origin is not allowed", code: "CORS_NOT_ALLOWED" } });
       return;
     }
 
     const bodyParserError = err as Error & { type?: string; status?: number };
     if (bodyParserError.type === "entity.too.large") {
-      res.status(413).json({ error: "Request body too large" });
+      res
+        .status(413)
+        .json({ error: { message: "Request body too large", code: "PAYLOAD_TOO_LARGE" } });
       return;
     }
     if (bodyParserError.type?.startsWith("entity.parse")) {
-      res.status(400).json({ error: "Malformed request body" });
+      res
+        .status(400)
+        .json({ error: { message: "Malformed request body", code: "MALFORMED_BODY" } });
       return;
     }
 
     logger.error(err);
-    res.status(500).json({ error: "Internal server error" });
+    res
+      .status(500)
+      .json({ error: { message: "Internal server error", code: "INTERNAL_SERVER_ERROR" } });
   });
 
   return app;

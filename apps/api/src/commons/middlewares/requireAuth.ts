@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { resolveSessionFromHeaders } from "../auth/session-resolver.helper";
+import { sendUnauthorized } from "../http/validation-response.helper";
 
 export const requireAuth = async (
   req: Request,
@@ -9,7 +10,7 @@ export const requireAuth = async (
   const session = await resolveSessionFromHeaders(req.headers);
 
   if (!session) {
-    res.status(401).json({ error: "Unauthorized" });
+    sendUnauthorized(res);
     return;
   }
 

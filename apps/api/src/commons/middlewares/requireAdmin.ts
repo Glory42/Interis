@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import { eq } from "drizzle-orm";
 import { db } from "../../infrastructure/database/db";
 import { profiles } from "../../modules/users/users.entity";
+import { sendForbidden } from "../http/validation-response.helper";
 
 export const requireAdmin = async (
   req: Request,
@@ -15,7 +16,7 @@ export const requireAdmin = async (
     .limit(1);
 
   if (!profile || !profile.isAdmin) {
-    res.status(403).json({ error: "Forbidden" });
+    sendForbidden(res);
     return;
   }
 
