@@ -29,30 +29,31 @@ export class ReviewsCommentsService {
         ? review.mediaType
         : null;
 
-    await db.insert(activities).values({
-      userId,
-      type: "commented",
-      entityId: comment.id,
-      metadata: JSON.stringify(
-        buildCommentCreatedActivityMetadata({
-          reviewId,
-          commentId: comment.id,
-          content,
-          targetUsername: review.reviewAuthorUsername,
-          mediaMetadata: activityMediaType
-            ? {
-                mediaType: activityMediaType,
-                tmdbId: review.tmdbId,
-                title: review.title,
-                posterPath: review.posterPath,
-                releaseYear: review.releaseYear,
-              }
-            : null,
-        }),
-      ),
-    });
-
-    const commentWithAuthor = await ReviewsRepository.getCommentWithAuthorById(comment.id);
+    const [, commentWithAuthor] = await Promise.all([
+      db.insert(activities).values({
+        userId,
+        type: "commented",
+        entityId: comment.id,
+        metadata: JSON.stringify(
+          buildCommentCreatedActivityMetadata({
+            reviewId,
+            commentId: comment.id,
+            content,
+            targetUsername: review.reviewAuthorUsername,
+            mediaMetadata: activityMediaType
+              ? {
+                  mediaType: activityMediaType,
+                  tmdbId: review.tmdbId,
+                  title: review.title,
+                  posterPath: review.posterPath,
+                  releaseYear: review.releaseYear,
+                }
+              : null,
+          }),
+        ),
+      }),
+      ReviewsRepository.getCommentWithAuthorById(comment.id),
+    ]);
 
     if (!commentWithAuthor) {
       throw new Error("Could not load comment author details");

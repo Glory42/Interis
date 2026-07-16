@@ -104,15 +104,19 @@ export class ListsWriteService {
     let movieId: number | undefined;
     let tvSeriesId: number | undefined;
 
+    const [media, maxPosition] = await Promise.all([
+      itemType === "cinema"
+        ? MoviesCacheService.findOrCreate(tmdbId)
+        : SerialsCacheService.findOrCreate(tmdbId),
+      ListsReadRepository.getMaxPosition(listId),
+    ]);
+
     if (itemType === "cinema") {
-      const movie = await MoviesCacheService.findOrCreate(tmdbId);
-      movieId = movie.id;
+      movieId = media.id;
     } else {
-      const serial = await SerialsCacheService.findOrCreate(tmdbId);
-      tvSeriesId = serial.id;
+      tvSeriesId = media.id;
     }
 
-    const maxPosition = await ListsReadRepository.getMaxPosition(listId);
     const position = maxPosition + 1;
 
     const entry = await ListsWriteRepository.insertEntry({
@@ -139,13 +143,14 @@ export class ListsWriteService {
     userId: string,
     entryId: string,
   ): Promise<{ success: true; derivedType: string | null } | ServiceError> {
-    const entry = await ListsReadRepository.findEntryById(entryId);
+    const [entry, list] = await Promise.all([
+      ListsReadRepository.findEntryById(entryId),
+      ListsReadRepository.findById(listId),
+    ]);
 
     if (!entry) {
       return { error: "Entry not found", status: 404 };
     }
-
-    const list = await ListsReadRepository.findById(listId);
 
     if (!list) {
       return { error: "List not found", status: 404 };

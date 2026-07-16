@@ -46,28 +46,29 @@ export class DiaryWriteService {
       });
     }
 
-    await InteractionsService.setWatched(userId, movie.id);
-
-    await DiaryRepository.insertActivity({
-      userId,
-      type: "diary_entry",
-      entityId: entry.id,
-      metadata: JSON.stringify(
-        buildDiaryEntryActivityMetadata({
-          movie: {
-            id: movie.id,
-            tmdbId: movie.tmdbId,
-            title: movie.title,
-            posterPath: movie.posterPath,
-            releaseYear: movie.releaseYear,
-          },
-          rating,
-          rewatch,
-          hasReview: Boolean(review),
-          reviewId: review?.id ?? null,
-        }),
-      ),
-    });
+    await Promise.all([
+      InteractionsService.setWatched(userId, movie.id),
+      DiaryRepository.insertActivity({
+        userId,
+        type: "diary_entry",
+        entityId: entry.id,
+        metadata: JSON.stringify(
+          buildDiaryEntryActivityMetadata({
+            movie: {
+              id: movie.id,
+              tmdbId: movie.tmdbId,
+              title: movie.title,
+              posterPath: movie.posterPath,
+              releaseYear: movie.releaseYear,
+            },
+            rating,
+            rewatch,
+            hasReview: Boolean(review),
+            reviewId: review?.id ?? null,
+          }),
+        ),
+      }),
+    ]);
 
     return { entry, movie, review };
   }
