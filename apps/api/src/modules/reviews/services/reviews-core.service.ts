@@ -7,12 +7,13 @@ import { activities } from "../../social/social.entity";
 import { reviewLikes, reviews } from "../reviews.entity";
 import { buildReviewCreatedActivityMetadata } from "../helpers/reviews-activity.helper";
 import type { CreateReviewDto, UpdateReviewDto } from "../dto/reviews.dto";
+import { NotFoundError } from "../../../commons/errors/app-error";
 
 export class ReviewsCoreService {
   static async create(userId: string, input: CreateReviewDto) {
     if (input.mediaType === "tv") {
       const series = await SerialsService.findOrCreate(input.tmdbId);
-      if (!series) throw new Error("Series not found");
+      if (!series) throw new NotFoundError("Series not found");
 
       const review = await SerialsReviewsRepository.upsertReview({
         userId,

@@ -53,8 +53,9 @@ describe("CORS + CSRF origin enforcement", () => {
     );
 
     expect(response.status).toBe(403);
-    const body = (await response.json()) as { error: string };
-    expect(body.error).toBe("Origin is not allowed");
+    const body = (await response.json()) as { error: { message: string; code: string } };
+    expect(body.error.message).toBe("Origin is not allowed");
+    expect(body.error.code).toBe("CORS_NOT_ALLOWED");
   });
 
   it("rejects a mutation with no Origin but an untrusted Referer", async () => {
@@ -75,8 +76,9 @@ describe("CORS + CSRF origin enforcement", () => {
     );
 
     expect(response.status).toBe(403);
-    const body = (await response.json()) as { error: string };
-    expect(body.error).toBe("Invalid origin");
+    const body = (await response.json()) as { error: { message: string; code: string } };
+    expect(body.error.message).toBe("Invalid origin");
+    expect(body.error.code).toBe("FORBIDDEN");
   });
 
   it("allows a mutation from a trusted Origin to reach routing", async () => {

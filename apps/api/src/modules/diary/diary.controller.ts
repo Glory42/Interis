@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { sendValidationError } from "../../commons/http/validation-response.helper";
+import { sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
 import { DiaryService } from "./diary.service";
 import { CreateDiarySchema, UpdateDiarySchema } from "./dto/diary.dto";
 
@@ -36,7 +36,7 @@ export class DiaryController {
       parsed.data,
     );
     if (!updated) {
-      res.status(404).json({ error: "Diary entry not found" });
+      sendNotFound(res, "Diary entry not found");
       return;
     }
 
@@ -49,7 +49,7 @@ export class DiaryController {
   ): Promise<void> {
     const deleted = await DiaryService.delete(req.params.id, req.user.id);
     if (!deleted) {
-      res.status(404).json({ error: "Diary entry not found" });
+      sendNotFound(res, "Diary entry not found");
       return;
     }
 

@@ -68,7 +68,7 @@ describe("list item cap", () => {
       jar,
     );
     expect(addResponse.status).toBe(400);
-    const body = (await addResponse.json()) as { error: string };
-    expect(body.error).toContain(String(MAX_LIST_ITEMS));
+    const body = (await addResponse.json()) as { error: { message: string } };
+    expect(body.error.message).toContain(String(MAX_LIST_ITEMS));
   });
 });

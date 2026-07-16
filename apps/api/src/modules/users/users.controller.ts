@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
-import { sendValidationError } from "../../commons/http/validation-response.helper";
+import { sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
 import { ListsService } from "../lists/lists.service";
 import { GetUserListsQuerySchema } from "../lists/dto/lists.dto";
 import { UsersService } from "./users.service";
@@ -39,7 +39,7 @@ export class UsersController {
   ): Promise<void> {
     const profile = await UsersService.findByUsername(req.params.username);
     if (!profile) {
-      res.status(404).json({ error: "User not found" });
+      sendNotFound(res, "User not found");
       return;
     }
     const stats = await UsersService.getStats(profile.id);
@@ -53,7 +53,7 @@ export class UsersController {
   ): Promise<void> {
     const profile = await UsersService.findByUsername(req.params.username);
     if (!profile) {
-      res.status(404).json({ error: "User not found" });
+      sendNotFound(res, "User not found");
       return;
     }
     const { limit, offset } = parseProfileListPagination(req.query);
@@ -67,7 +67,7 @@ export class UsersController {
   ): Promise<void> {
     const profile = await UsersService.findByUsername(req.params.username);
     if (!profile) {
-      res.status(404).json({ error: "User not found" });
+      sendNotFound(res, "User not found");
       return;
     }
 
@@ -79,7 +79,7 @@ export class UsersController {
     );
 
     if (!review) {
-      res.status(404).json({ error: "Review not found" });
+      sendNotFound(res, "Review not found");
       return;
     }
 
@@ -92,7 +92,7 @@ export class UsersController {
   ): Promise<void> {
     const profile = await UsersService.findByUsername(req.params.username);
     if (!profile) {
-      res.status(404).json({ error: "User not found" });
+      sendNotFound(res, "User not found");
       return;
     }
     const { limit, offset } = parseProfileListPagination(req.query);
@@ -106,7 +106,7 @@ export class UsersController {
   ): Promise<void> {
     const profile = await UsersService.findByUsername(req.params.username);
     if (!profile) {
-      res.status(404).json({ error: "User not found" });
+      sendNotFound(res, "User not found");
       return;
     }
     const { limit, offset } = parseProfileListPagination(req.query);
@@ -120,7 +120,7 @@ export class UsersController {
   ): Promise<void> {
     const profile = await UsersService.findByUsername(req.params.username);
     if (!profile) {
-      res.status(404).json({ error: "User not found" });
+      sendNotFound(res, "User not found");
       return;
     }
     const { limit, offset } = parseProfileListPagination(req.query);
@@ -134,7 +134,7 @@ export class UsersController {
   ): Promise<void> {
     const profile = await UsersService.findByUsername(req.params.username);
     if (!profile) {
-      res.status(404).json({ error: "User not found" });
+      sendNotFound(res, "User not found");
       return;
     }
 
@@ -146,7 +146,7 @@ export class UsersController {
   static async getMe(req: Request, res: Response): Promise<void> {
     const profile = await UsersService.findById(req.user.id);
     if (!profile) {
-      res.status(404).json({ error: "Profile not found" });
+      sendNotFound(res, "Profile not found");
       return;
     }
     res.status(200).json(profile);
@@ -155,7 +155,7 @@ export class UsersController {
   static async getMeSummary(req: Request, res: Response): Promise<void> {
     const summary = await UsersService.getMeSummary(req.user.id);
     if (!summary) {
-      res.status(404).json({ error: "Profile not found" });
+      sendNotFound(res, "Profile not found");
       return;
     }
 
@@ -185,7 +185,7 @@ export class UsersController {
     );
 
     if (!updated) {
-      res.status(404).json({ error: "User not found" });
+      sendNotFound(res, "User not found");
       return;
     }
 
@@ -204,7 +204,7 @@ export class UsersController {
 
     const profile = await UsersService.findByUsername(req.params.username);
     if (!profile) {
-      res.status(404).json({ error: "User not found" });
+      sendNotFound(res, "User not found");
       return;
     }
 

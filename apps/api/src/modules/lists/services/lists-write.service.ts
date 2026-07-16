@@ -198,7 +198,10 @@ export class ListsWriteService {
     return { success: true };
   }
 
-  static async likeList(listId: string, userId: string) {
+  static async likeList(
+    listId: string,
+    userId: string,
+  ): Promise<ServiceError | { success: true; likeCount: number }> {
     const list = await ListsReadRepository.findById(listId);
     if (!list) return { error: "List not found", status: 404 as const };
     if (!list.isPublic && list.userId !== userId)

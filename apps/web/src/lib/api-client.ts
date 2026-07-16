@@ -19,6 +19,14 @@ const extractErrorMessage = (
       return candidate.error;
     }
 
+    // Unified backend error shape: { error: { message, code, details } }.
+    if (candidate.error && typeof candidate.error === "object") {
+      const nestedMessage = (candidate.error as { message?: unknown }).message;
+      if (typeof nestedMessage === "string" && nestedMessage.trim().length > 0) {
+        return nestedMessage;
+      }
+    }
+
     if (
       typeof candidate.message === "string" &&
       candidate.message.trim().length > 0

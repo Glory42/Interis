@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { sendBadRequest } from "../../commons/http/validation-response.helper";
+import { sendBadRequest, sendNotFound } from "../../commons/http/validation-response.helper";
 import { normalizePersonRouteSlug } from "./helpers/people-slug.helper";
 import { personRouteRoleSchema, type PersonRouteParams } from "./dto/people.dto";
 import { PeopleDetailService } from "./services/people-detail.service";
@@ -27,7 +27,7 @@ export class PeopleController {
     });
 
     if (!detail) {
-      res.status(404).json({ error: "Person not found" });
+      sendNotFound(res, "Person not found");
       return;
     }
 

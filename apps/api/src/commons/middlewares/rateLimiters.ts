@@ -30,12 +30,17 @@ const resolveMax = (production: number, test: number, override?: number): number
   return env.NODE_ENV === "test" ? test : production;
 };
 
+const RATE_LIMIT_MESSAGE = {
+  error: { message: "Too many requests, please try again later.", code: "TOO_MANY_REQUESTS" },
+};
+
 export const createAuthLimiter = (max?: number): RateLimitRequestHandler =>
   rateLimit({
     windowMs: 60 * 1000,
     max: resolveMax(AUTH_LIMIT_PRODUCTION, AUTH_LIMIT_TEST, max),
     standardHeaders: true,
     legacyHeaders: false,
+    message: RATE_LIMIT_MESSAGE,
   });
 
 export const createApiLimiter = (max?: number): RateLimitRequestHandler =>
@@ -44,6 +49,7 @@ export const createApiLimiter = (max?: number): RateLimitRequestHandler =>
     max: resolveMax(API_LIMIT_PRODUCTION, API_LIMIT_TEST, max),
     standardHeaders: true,
     legacyHeaders: false,
+    message: RATE_LIMIT_MESSAGE,
     // public.routes.ts already applies its own dedicated limiter.
     skip: (req) => req.path.startsWith("/public/"),
   });
@@ -59,5 +65,6 @@ export const createMutationLimiter = (max?: number): RateLimitRequestHandler =>
     max: resolveMax(MUTATION_LIMIT_PRODUCTION, MUTATION_LIMIT_TEST, max),
     standardHeaders: true,
     legacyHeaders: false,
+    message: RATE_LIMIT_MESSAGE,
     skip: (req) => SAFE_METHODS.has(req.method),
   });

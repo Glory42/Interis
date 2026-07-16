@@ -50,7 +50,10 @@ export class SocialService {
     return SocialFeedService.getFollowingFeed(userId, limit, cursor);
   }
 
-  static async likeActivity(userId: string, activityId: string) {
+  static async likeActivity(
+    userId: string,
+    activityId: string,
+  ): Promise<{ error: string } | { success: true }> {
     const activity = await SocialRepository.findActivityById(activityId);
     if (!activity) {
       return { error: "Activity not found" } as const;
