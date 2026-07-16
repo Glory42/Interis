@@ -36,12 +36,22 @@ import publicRouter from "./modules/public/public.routes";
 import postsRouter from "./modules/posts/posts.routes";
 import dataTransferRouter from "./modules/data-transfer/data-transfer.routes";
 
-export const createApp = () => {
+export type RateLimiterOverrides = {
+  auth?: number;
+  api?: number;
+  mutation?: number;
+};
+
+export type CreateAppOptions = {
+  rateLimiterOverrides?: RateLimiterOverrides;
+};
+
+export const createApp = (options: CreateAppOptions = {}) => {
   const app = express();
   const trustedOrigins = getTrustedOriginsFromEnv();
-  const authLimiter = createAuthLimiter();
-  const apiLimiter = createApiLimiter();
-  const mutationLimiter = createMutationLimiter();
+  const authLimiter = createAuthLimiter(options.rateLimiterOverrides?.auth);
+  const apiLimiter = createApiLimiter(options.rateLimiterOverrides?.api);
+  const mutationLimiter = createMutationLimiter(options.rateLimiterOverrides?.mutation);
 
   app.disable("x-powered-by");
   app.use(helmetMiddleware);
