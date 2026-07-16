@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
 import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
-import { sendValidationError } from "../../commons/http/validation-response.helper";
+import {
+  sendErrorForStatus,
+  sendNotFound,
+  sendValidationError,
+} from "../../commons/http/validation-response.helper";
 import {
   AddListItemSchema,
   CreateListSchema,
@@ -19,7 +23,7 @@ export class ListsController {
     const list = await ListsService.getListDetail(req.params.id, viewerUserId);
 
     if (!list) {
-      res.status(404).json({ error: "List not found" });
+      sendNotFound(res, "List not found");
       return;
     }
 
@@ -52,7 +56,7 @@ export class ListsController {
     const result = await ListsService.updateList(req.params.id, req.user.id, parsed.data);
 
     if ("error" in result) {
-      res.status(result.status).json({ error: result.error });
+      sendErrorForStatus(res, result.status, result.error);
       return;
     }
 
@@ -67,7 +71,7 @@ export class ListsController {
     const result = await ListsService.deleteList(req.params.id, req.user.id);
 
     if (result && "error" in result) {
-      res.status(result.status).json({ error: result.error });
+      sendErrorForStatus(res, result.status, result.error);
       return;
     }
 
@@ -93,7 +97,7 @@ export class ListsController {
     );
 
     if ("error" in result) {
-      res.status(result.status).json({ error: result.error });
+      sendErrorForStatus(res, result.status, result.error);
       return;
     }
 
@@ -112,7 +116,7 @@ export class ListsController {
     );
 
     if ("error" in result) {
-      res.status(result.status).json({ error: result.error });
+      sendErrorForStatus(res, result.status, result.error);
       return;
     }
 
@@ -123,7 +127,7 @@ export class ListsController {
   static async like(req: Request<{ id: string }>, res: Response): Promise<void> {
     const result = await ListsService.likeList(req.params.id, req.user.id);
     if ("error" in result) {
-      res.status(result.status as number).json({ error: result.error });
+      sendErrorForStatus(res, result.status, result.error);
       return;
     }
     res.status(200).json(result);
@@ -153,7 +157,7 @@ export class ListsController {
     );
 
     if ("error" in result) {
-      res.status(result.status).json({ error: result.error });
+      sendErrorForStatus(res, result.status, result.error);
       return;
     }
 

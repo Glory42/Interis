@@ -1,8 +1,5 @@
 import type { Request, Response } from "express";
-import {
-  sendBadRequest,
-  sendValidationError,
-} from "../../commons/http/validation-response.helper";
+import { sendBadRequest, sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
 import { parseTmdbIdParam } from "../../commons/validation/params.helper";
 import { SerialsTrackingService } from "./services/serials-tracking.service";
 import {
@@ -44,7 +41,7 @@ export class SerialsTrackingController {
     );
 
     if (!result) {
-      res.status(404).json({ error: "Season or series not found" });
+      sendNotFound(res, "Season or series not found");
       return;
     }
 
@@ -79,7 +76,7 @@ export class SerialsTrackingController {
     );
 
     if (!result) {
-      res.status(404).json({ error: "Episode or series not found" });
+      sendNotFound(res, "Episode or series not found");
       return;
     }
 
@@ -157,7 +154,7 @@ export class SerialsTrackingController {
     );
 
     if (!deleted) {
-      res.status(404).json({ error: "Review not found" });
+      sendNotFound(res, "Review not found");
       return;
     }
 
@@ -238,7 +235,7 @@ export class SerialsTrackingController {
     );
 
     if (!deleted) {
-      res.status(404).json({ error: "Review not found" });
+      sendNotFound(res, "Review not found");
       return;
     }
 

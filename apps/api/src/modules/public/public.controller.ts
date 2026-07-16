@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { PublicService } from "./public.service";
+import { sendBadRequest, sendNotFound } from "../../commons/http/validation-response.helper";
 import {
   normalizePublicActivityLimit,
   normalizePublicCollectionLimit,
@@ -17,7 +18,7 @@ import type {
 
 export class PublicController {
   private static sendUserNotFound(res: Response): void {
-    res.status(404).json({ error: "User not found" });
+    sendNotFound(res, "User not found");
   }
 
   private static sendPublicResponse(res: Response, payload: unknown): void {
@@ -227,7 +228,7 @@ export class PublicController {
   ): Promise<void> {
     const tmdbId = Number.parseInt(req.params.tmdbId, 10);
     if (Number.isNaN(tmdbId)) {
-      res.status(400).json({ error: "Invalid tmdbId" });
+      sendBadRequest(res, "Invalid tmdbId");
       return;
     }
 

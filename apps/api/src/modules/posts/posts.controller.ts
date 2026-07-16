@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { sendValidationError } from "../../commons/http/validation-response.helper";
+import { sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
 import { PostsService } from "./posts.service";
 import { CreatePostSchema, PostCommentSchema, UpdatePostSchema } from "./dto/posts.dto";
 
@@ -11,7 +11,7 @@ export class PostsController {
   ): Promise<void> {
     const post = await PostsService.findById(req.params.id);
     if (!post) {
-      res.status(404).json({ error: "Post not found" });
+      sendNotFound(res, "Post not found");
       return;
     }
     res.status(200).json(post);
@@ -36,7 +36,7 @@ export class PostsController {
   ): Promise<void> {
     const deleted = await PostsService.delete(req.params.id, req.user.id);
     if (!deleted) {
-      res.status(404).json({ error: "Post not found" });
+      sendNotFound(res, "Post not found");
       return;
     }
     res.status(200).json({ success: true });
@@ -55,7 +55,7 @@ export class PostsController {
 
     const updated = await PostsService.update(req.params.id, req.user.id, parsed.data);
     if (!updated) {
-      res.status(404).json({ error: "Post not found" });
+      sendNotFound(res, "Post not found");
       return;
     }
 
@@ -78,7 +78,7 @@ export class PostsController {
   ): Promise<void> {
     const result = await PostsService.unlike(req.user.id, req.params.id);
     if (!result) {
-      res.status(404).json({ error: "Like not found" });
+      sendNotFound(res, "Like not found");
       return;
     }
     res.status(200).json({ liked: false });
@@ -110,7 +110,7 @@ export class PostsController {
       parsed.data.content,
     );
     if (!comment) {
-      res.status(404).json({ error: "Post not found" });
+      sendNotFound(res, "Post not found");
       return;
     }
     res.status(201).json(comment);
@@ -126,7 +126,7 @@ export class PostsController {
       req.user.id,
     );
     if (!deleted) {
-      res.status(404).json({ error: "Comment not found" });
+      sendNotFound(res, "Comment not found");
       return;
     }
     res.status(200).json({ success: true });

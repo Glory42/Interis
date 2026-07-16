@@ -3,6 +3,7 @@ import { SocialService } from "./social.service";
 import { UsersService } from "../users/users.service";
 import { normalizeSocialFeedLimit } from "./helpers/social-query-normalizer.helper";
 import type { FeedQueryDto, UsernameParamsDto } from "./dto/social.dto";
+import { sendBadRequest, sendNotFound } from "../../commons/http/validation-response.helper";
 
 export class SocialController {
   static async getFeed(
@@ -29,7 +30,7 @@ export class SocialController {
   ): Promise<void> {
     const target = await UsersService.findByUsername(req.params.username);
     if (!target) {
-      res.status(404).json({ error: "User not found" });
+      sendNotFound(res, "User not found");
       return;
     }
 
@@ -39,7 +40,7 @@ export class SocialController {
       target.username,
     );
     if ("error" in result) {
-      res.status(400).json({ error: result.error });
+      sendBadRequest(res, result.error);
       return;
     }
     res.status(200).json(result);
@@ -51,7 +52,7 @@ export class SocialController {
   ): Promise<void> {
     const target = await UsersService.findByUsername(req.params.username);
     if (!target) {
-      res.status(404).json({ error: "User not found" });
+      sendNotFound(res, "User not found");
       return;
     }
 
@@ -65,7 +66,7 @@ export class SocialController {
   ): Promise<void> {
     const target = await UsersService.findByUsername(req.params.username);
     if (!target) {
-      res.status(404).json({ error: "User not found" });
+      sendNotFound(res, "User not found");
       return;
     }
 
@@ -79,7 +80,7 @@ export class SocialController {
   ): Promise<void> {
     const target = await UsersService.findByUsername(req.params.username);
     if (!target) {
-      res.status(404).json({ error: "User not found" });
+      sendNotFound(res, "User not found");
       return;
     }
 
@@ -93,7 +94,7 @@ export class SocialController {
   ): Promise<void> {
     const target = await UsersService.findByUsername(req.params.username);
     if (!target) {
-      res.status(404).json({ error: "User not found" });
+      sendNotFound(res, "User not found");
       return;
     }
 
@@ -107,7 +108,7 @@ export class SocialController {
   ): Promise<void> {
     const follower = await UsersService.findByUsername(req.params.username);
     if (!follower) {
-      res.status(404).json({ error: "User not found" });
+      sendNotFound(res, "User not found");
       return;
     }
 
@@ -121,7 +122,7 @@ export class SocialController {
   ): Promise<void> {
     const result = await SocialService.likeActivity(req.user.id, req.params.activityId);
     if ("error" in result) {
-      res.status(404).json({ error: result.error });
+      sendNotFound(res, result.error);
       return;
     }
     res.status(200).json(result);

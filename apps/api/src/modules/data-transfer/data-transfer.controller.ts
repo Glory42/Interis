@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { DataExportService } from "./services/export.service";
 import { DataImportService } from "./services/import.service";
+import { sendBadRequest } from "../../commons/http/validation-response.helper";
 
 export class DataTransferController {
   static async export(req: Request, res: Response): Promise<void> {
@@ -19,7 +20,7 @@ export class DataTransferController {
     const body = req.body;
 
     if (typeof body !== "string" || body.trim().length === 0) {
-      res.status(400).json({ error: "Request body must be a non-empty CSV text." });
+      sendBadRequest(res, "Request body must be a non-empty CSV text.");
       return;
     }
 

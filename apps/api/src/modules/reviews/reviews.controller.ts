@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { sendValidationError } from "../../commons/http/validation-response.helper";
+import { sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
 import { ReviewsService } from "./reviews.service";
 import {
   CreateReviewSchema,
@@ -14,7 +14,7 @@ export class ReviewsController {
   ): Promise<void> {
     const review = await ReviewsService.findById(req.params.id);
     if (!review) {
-      res.status(404).json({ error: "Review not found" });
+      sendNotFound(res, "Review not found");
       return;
     }
     res.status(200).json(review);
@@ -47,7 +47,7 @@ export class ReviewsController {
       parsed.data,
     );
     if (!updated) {
-      res.status(404).json({ error: "Review not found" });
+      sendNotFound(res, "Review not found");
       return;
     }
     res.status(200).json(updated);
@@ -59,7 +59,7 @@ export class ReviewsController {
   ): Promise<void> {
     const deleted = await ReviewsService.delete(req.params.id, req.user.id);
     if (!deleted) {
-      res.status(404).json({ error: "Review not found" });
+      sendNotFound(res, "Review not found");
       return;
     }
     res.status(200).json({ success: true });
@@ -89,7 +89,7 @@ export class ReviewsController {
       parsed.data.content,
     );
     if (!comment) {
-      res.status(404).json({ error: "Review not found" });
+      sendNotFound(res, "Review not found");
       return;
     }
     res.status(201).json(comment);
@@ -104,7 +104,7 @@ export class ReviewsController {
       req.user.id,
     );
     if (!deleted) {
-      res.status(404).json({ error: "Comment not found" });
+      sendNotFound(res, "Comment not found");
       return;
     }
     res.status(200).json({ success: true });
@@ -127,7 +127,7 @@ export class ReviewsController {
       req.params.id,
     );
     if (!result) {
-      res.status(404).json({ error: "Like not found" });
+      sendNotFound(res, "Like not found");
       return;
     }
     res.status(200).json({ liked: false });

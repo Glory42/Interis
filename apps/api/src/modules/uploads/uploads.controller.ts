@@ -5,7 +5,11 @@ import {
   isOwnedUploadPublicUrl,
   type UploadType,
 } from "../../infrastructure/r2/client";
-import { sendValidationError } from "../../commons/http/validation-response.helper";
+import {
+  sendBadRequest,
+  sendServiceUnavailable,
+  sendValidationError,
+} from "../../commons/http/validation-response.helper";
 import { logger } from "../../commons/utils/logger";
 import { UsersService } from "../users/users.service";
 import { ConfirmUploadSchema, RequestUploadSchema } from "./dto/uploads.dto";
@@ -32,21 +36,21 @@ export class UploadsController {
     } catch (error) {
       if (isR2ConfigurationError(error)) {
         logger.error(error, "R2 uploads are not configured correctly");
-        res.status(503).json({
-          error:
-            "Image uploads are temporarily unavailable. Please configure R2 storage.",
-        });
+        sendServiceUnavailable(
+          res,
+          "Image uploads are temporarily unavailable. Please configure R2 storage.",
+        );
         return;
       }
 
       if (error instanceof Error) {
         if (error.message.startsWith("Unsupported file type")) {
-          res.status(400).json({ error: error.message });
+          sendBadRequest(res, error.message);
           return;
         }
 
         if (error.message.startsWith("File too large")) {
-          res.status(400).json({ error: error.message });
+          sendBadRequest(res, error.message);
           return;
         }
       }
@@ -72,9 +76,7 @@ export class UploadsController {
         parsed.data.publicUrl,
       )
     ) {
-      res.status(400).json({
-        error: "Invalid upload URL. Please request a new signed upload URL.",
-      });
+      sendBadRequest(res, "Invalid upload URL. Please request a new signed upload URL.");
       return;
     }
 
