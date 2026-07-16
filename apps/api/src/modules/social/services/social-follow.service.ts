@@ -5,7 +5,7 @@ export class SocialFollowService {
     followerId: string,
     followingId: string,
     targetUsername?: string,
-  ) {
+  ): Promise<{ error: string } | { success: true }> {
     if (followerId === followingId) {
       return { error: "Cannot follow yourself" } as const;
     }

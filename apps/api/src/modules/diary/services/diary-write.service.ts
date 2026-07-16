@@ -3,12 +3,13 @@ import { MoviesService } from "../../movies/movies.service";
 import { buildDiaryEntryActivityMetadata } from "../helpers/diary-activity.helper";
 import { DiaryRepository } from "../repositories/diary.repository";
 import type { CreateDiaryDto, UpdateDiaryDto } from "../dto/diary.dto";
+import { NotFoundError } from "../../../commons/errors/app-error";
 
 export class DiaryWriteService {
   static async create(userId: string, input: CreateDiaryDto) {
     const movie = await MoviesService.findOrCreate(input.tmdbId);
     if (!movie || !movie.id) {
-      throw new Error("Movie not found");
+      throw new NotFoundError("Movie not found");
     }
 
     const rating = input.rating ?? null;

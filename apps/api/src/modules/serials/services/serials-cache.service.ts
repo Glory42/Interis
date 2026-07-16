@@ -1,6 +1,7 @@
 import { getSeriesDetails, type TMDBSeriesDetail } from "../../../infrastructure/tmdb/serials";
 import { normalizeTmdbSeriesDetail } from "../helpers/serials-normalization.helper";
 import { SerialsCacheRepository } from "../repositories/serials-cache.repository";
+import { NotFoundError } from "../../../commons/errors/app-error";
 
 // Cached series rows (season/episode counts, status, etc.) go stale for
 // still-airing shows once TMDB publishes a new season - without a refresh,
@@ -33,7 +34,7 @@ export class SerialsCacheService {
       return existing;
     }
 
-    throw new Error(`Failed to cache series for tmdbId=${tmdbId}`);
+    throw new NotFoundError("Series not found");
   }
 
   static async cacheSeries(tmdbData: TMDBSeriesDetail) {

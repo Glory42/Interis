@@ -4,6 +4,7 @@ import {
   type TMDBMovieDetail,
 } from "../../../infrastructure/tmdb/cinemas";
 import { MoviesRepository } from "../repositories/movies.repository";
+import { NotFoundError } from "../../../commons/errors/app-error";
 
 // Released movies rarely change on TMDB (unlike still-airing series), so a
 // long TTL is fine here — this mainly guards against permanently stale
@@ -32,7 +33,7 @@ export class MoviesCacheService {
       return existing;
     }
 
-    throw new Error(`Failed to cache movie for tmdbId=${tmdbId}`);
+    throw new NotFoundError("Movie not found");
   }
 
   static async cacheMovie(tmdbData: TMDBMovieDetail) {
