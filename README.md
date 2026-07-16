@@ -39,6 +39,24 @@ A social movie journal app inspired by Letterboxd + timeline-style social apps.
 
 ## Quick start
 
+### Option A: Docker Compose (fastest, zero manual setup)
+
+Prerequisites: Docker + Docker Compose.
+
+```bash
+docker compose up
+```
+
+This starts a local Postgres database, migrates it automatically, and boots
+both the API (`http://localhost:5000`) and the frontend
+(`http://localhost:5173`). No `.env` files are required — copy
+[`.env.example`](.env.example) to `.env` at the repo root first if you want
+real TMDB data (otherwise TMDB-backed endpoints return errors, everything
+else works). See [`docker-compose.yml`](docker-compose.yml) for the exact
+service topology.
+
+### Option B: Manual (per-app)
+
 Prerequisites:
 - Bun 1.3+
 - PostgreSQL (Neon recommended)
@@ -84,6 +102,12 @@ bun run dev
 ```
 
 Frontend runs on `http://localhost:5173` and proxies `/api` to backend on port `5000`.
+
+Alternatively, run both from the repo root after installing each app's own
+dependencies once (`bun run install:all`): `bun run dev` starts both
+concurrently, or `bun run dev:api` / `bun run dev:web` individually. See the
+root [`package.json`](package.json) for the full list of orchestration
+scripts (`build`, `test`, `lint`, `typecheck`, `lint:arch`).
 
 ## Documentation site
 
@@ -155,7 +179,14 @@ bun install
 bun run test:smoke
 ```
 
-CI note: backend integration tests in GitHub Actions run only when `DATABASE_URL_TEST` repository secret is configured.
+CI note: GitHub Actions runs backend typecheck/lint/architecture checks and
+the full integration suite on every PR, using the `DEVDATABASE_URL` secret
+from the repo's `a` [environment](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment) (a dedicated Neon database, kept separate from
+the main `DATABASE_URL`/dev database since the suite performs real writes).
+
+A pre-commit hook (Husky + lint-staged) runs ESLint on staged `apps/web` and
+`apps/api` files automatically — installed via `bun install` at the repo
+root (`prepare` script).
 
 ## Architecture notes
 
