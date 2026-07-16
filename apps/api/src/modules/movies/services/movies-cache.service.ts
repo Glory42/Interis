@@ -5,21 +5,34 @@ import {
 } from "../../../infrastructure/tmdb/cinemas";
 import { MoviesRepository } from "../repositories/movies.repository";
 
+// Released movies rarely change on TMDB (unlike still-airing series), so a
+// long TTL is fine here — this mainly guards against permanently stale
+// poster/overview edits rather than fast-moving data like episode counts.
+const MOVIE_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+const isStale = (cachedAt: Date): boolean => {
+  return Date.now() - cachedAt.getTime() > MOVIE_CACHE_TTL_MS;
+};
+
 export class MoviesCacheService {
   static async findOrCreate(tmdbId: number) {
     const existing = await MoviesRepository.findByTmdbId(tmdbId);
+    if (existing && !isStale(existing.cachedAt)) {
+      return existing;
+    }
+
+    const tmdbData = await tmdbGetDetails(tmdbId).catch(() => null);
+    const cachedMovie = tmdbData ? await MoviesCacheService.cacheMovie(tmdbData) : null;
+
+    if (cachedMovie) {
+      return cachedMovie;
+    }
+
     if (existing) {
       return existing;
     }
 
-    const tmdbData = await tmdbGetDetails(tmdbId);
-    const cachedMovie = await MoviesCacheService.cacheMovie(tmdbData);
-
-    if (!cachedMovie) {
-      throw new Error(`Failed to cache movie for tmdbId=${tmdbId}`);
-    }
-
-    return cachedMovie;
+    throw new Error(`Failed to cache movie for tmdbId=${tmdbId}`);
   }
 
   static async cacheMovie(tmdbData: TMDBMovieDetail) {
