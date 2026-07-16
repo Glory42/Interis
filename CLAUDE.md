@@ -91,7 +91,9 @@ constants/              # Magic values / enums
 - Repositories must not import services or controllers
 - Services must not import controllers
 - DTOs must not import services, repositories, or controllers
-- No single module file over 380 lines
+
+**Enforced by `bun run lint` (ESLint):**
+- No single backend file over 380 lines (applies repo-wide under `src/`, matching the frontend's `max-lines` rule)
 
 **Auth:** `requireAuth` middleware attaches `req.user` (full user object). For optional auth use `resolveViewerUserIdFromHeaders()` from `commons/auth`. Admin-only routes use `requireAdmin`.
 

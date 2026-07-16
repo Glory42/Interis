@@ -17,7 +17,11 @@ describe("rate limiting", () => {
   };
 
   beforeAll(async () => {
-    testServer = await startTestServer();
+    // These tests exercise the real production ceilings, not the relaxed
+    // NODE_ENV=test defaults every other integration test file relies on.
+    testServer = await startTestServer({
+      rateLimiterOverrides: { auth: 30, mutation: 60 },
+    });
   });
 
   afterAll(async () => {

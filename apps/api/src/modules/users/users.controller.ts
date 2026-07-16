@@ -43,7 +43,7 @@ export class UsersController {
       return;
     }
     const stats = await UsersService.getStats(profile.id);
-    const { email, ...publicProfile } = profile;
+    const { email: _email, ...publicProfile } = profile;
     res.status(200).json({ ...publicProfile, stats });
   }
 

@@ -138,7 +138,29 @@ feature/
 - PostgreSQL (Neon recommended for cloud dev)
 - TMDB API access token (Bearer token)
 
-### Initial setup
+### Docker Compose (fastest path)
+
+```bash
+docker compose up
+```
+
+Spins up a local Postgres database, applies migrations automatically, and
+starts both the API and frontend with hot reload (bind-mounted source) —
+`docker compose up` alone is enough for a clean clone to run without any
+manual `.env` setup. Copy [`.env.example`](.env.example) to a root `.env` if
+you want real TMDB data (`TMDB_ACCESS_TOKEN`) or a non-default
+`BETTER_AUTH_SECRET`.
+
+`apps/api`'s database client (`@neondatabase/serverless`) only speaks Neon's
+HTTP protocol, so `docker-compose.yml` fronts the local Postgres container
+with `ghcr.io/timowilhelm/local-neon-http-proxy` — see
+`apps/api/src/infrastructure/database/local-proxy.ts` for how the app
+switches to it (`USE_LOCAL_DB_PROXY=true`, set only by Docker Compose).
+Migrations run through a separate direct-`pg` path
+(`apps/api/scripts/docker-migrate.ts`) since migrations need multi-statement
+execution, which Neon's HTTP driver can't do.
+
+### Manual per-app setup
 
 1. Clone the repository and enter the project directory.
 
@@ -558,12 +580,14 @@ bun run test
 
 ## Quality checks
 
-Run these before submitting a PR:
+Run these before submitting a PR (or from the repo root: `bun run typecheck && bun run lint && bun run lint:arch && bun run test`):
 
 ```bash
 # Backend
 cd apps/api
-bunx tsc --noEmit
+bun run typecheck
+bun run lint
+bun run lint:arch
 bun test
 
 # Frontend
@@ -573,6 +597,10 @@ bun run typecheck
 bun run lint
 bun run build
 ```
+
+A Husky pre-commit hook runs ESLint (`--fix`) on staged `apps/web`/`apps/api`
+files automatically — it installs itself the first time you run `bun install`
+at the repo root (`prepare` script), so no separate setup step is needed.
 
 ## Submitting changes
 

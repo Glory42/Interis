@@ -1,0 +1,27 @@
+{
+  "name": "interis",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"bun run dev:api\" \"bun run dev:web\"",
+    "dev:api": "cd apps/api && bun run dev",
+    "dev:web": "cd apps/web && bun run dev",
+    "build": "cd apps/web && bun run build",
+    "typecheck": "cd apps/api && bun run typecheck && cd ../web && bun run typecheck",
+    "lint": "cd apps/api && bun run lint && cd ../web && bun run lint",
+    "lint:arch": "cd apps/api && bun run lint:arch",
+    "test": "cd apps/api && bun run test && cd ../web && bun run test",
+    "test:e2e": "cd apps/e2e && bun run test:smoke",
+    "install:all": "cd apps/api && bun install && cd ../web && bun install && cd ../e2e && bun install && cd ../docs && bun install",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6"
+  },
+  "lint-staged": {
+    "apps/web/**/*.{ts,tsx}": "apps/web/node_modules/.bin/eslint --config apps/web/eslint.config.js --fix",
+    "apps/api/**/*.ts": "apps/api/node_modules/.bin/eslint --config apps/api/eslint.config.js --fix"
+  }
+}

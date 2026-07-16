@@ -1,0 +1,31 @@
+# dependencies
+node_modules
+
+# build output
+dist
+dist-ssr
+*.tgz
+
+# env
+.env
+.env.*.local
+.env.local
+!.env.example
+
+# logs
+logs
+*.log
+
+# caches
+.eslintcache
+.cache
+*.tsbuildinfo
+
+# docker
+docker/data
+
+# editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store

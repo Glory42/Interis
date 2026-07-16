@@ -12,6 +12,7 @@ const envSchema = z.object({
     .min(16, "BETTER_AUTH_SECRET must be at least 16 characters"),
   TMDB_ACCESS_TOKEN: z.string().min(1, "TMDB_ACCESS_TOKEN is required"),
   CORS_ORIGIN: z.string().optional(),
+  USE_LOCAL_DB_PROXY: z.coerce.boolean().default(false),
 });
 
 export type Env = z.infer<typeof envSchema>;

@@ -15,8 +15,6 @@ const forbiddenTransitionalFiles = new Set([
   "src/modules/people/people.service.ts",
 ]);
 
-const moduleMonolithLineLimit = 380;
-
 const toPosix = (value: string): string => value.split(path.sep).join("/");
 
 const collectTypeScriptFiles = async (directory: string): Promise<string[]> => {
@@ -65,14 +63,6 @@ const checkFile = async (absolutePath: string): Promise<Violation[]> => {
     violations.push({
       file: relativePath,
       message: "transitional wrapper file must not be reintroduced",
-    });
-  }
-
-  const lineCount = source.split("\n").length;
-  if (relativePath.startsWith("src/modules/") && lineCount > moduleMonolithLineLimit) {
-    violations.push({
-      file: relativePath,
-      message: `module file exceeds ${moduleMonolithLineLimit} lines (${lineCount})`,
     });
   }
 

@@ -1,5 +1,5 @@
 import type { Server } from "node:http";
-import { createApp } from "../../../src/index";
+import { createApp, type CreateAppOptions } from "../../../src/index";
 
 export type RunningTestServer = {
   baseUrl: string;
@@ -15,8 +15,10 @@ const resolveBaseUrl = (server: Server): string => {
   return `http://127.0.0.1:${address.port}`;
 };
 
-export const startTestServer = async (): Promise<RunningTestServer> => {
-  const app = createApp();
+export const startTestServer = async (
+  options?: CreateAppOptions,
+): Promise<RunningTestServer> => {
+  const app = createApp(options);
 
   const server = await new Promise<Server>((resolve, reject) => {
     const createdServer = app.listen(0, () => {

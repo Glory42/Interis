@@ -12,8 +12,6 @@ import {
 import type {
   TMDBDiscoverMovie,
   TMDBDiscoverSortBy,
-  TMDBMovieCredits,
-  TMDBMovieDetail,
   TMDBMovieGenre,
   TMDBSearchMovie,
 } from "./dto/cinemas-response.dto";
@@ -214,7 +212,7 @@ export const getSimilarMovies = createCachedTmdbFetcher(async (tmdbId) => {
     if (parsed.results.length > 0) {
       return parsed.results;
     }
-  } catch (error) {
+  } catch {
     // Fail silently to try similar fallback
   }
 
@@ -222,7 +220,7 @@ export const getSimilarMovies = createCachedTmdbFetcher(async (tmdbId) => {
     const data = await fetchTMDB(`/movie/${tmdbId}/similar?language=en-US&page=1`);
     const parsed = TMDBDiscoverMoviesSchema.parse(data);
     return parsed.results;
-  } catch (error) {
+  } catch {
     return [];
   }
 });
