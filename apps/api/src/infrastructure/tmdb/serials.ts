@@ -10,10 +10,8 @@ import {
   TMDBSearchSeriesSchema,
 } from "./dto/serials-response.dto";
 import type {
-  TMDBSeriesAggregateCredits,
   TMDBDiscoverSeries,
   TMDBDiscoverSeriesSortBy,
-  TMDBSeriesDetail,
   TMDBSeriesGenre,
   TMDBSeriesSeasonDetail,
   TMDBSearchSeries,
@@ -203,7 +201,7 @@ export const getSimilarSeries = createCachedTmdbFetcher(async (tmdbId) => {
     if (parsed.results.length > 0) {
       return parsed.results;
     }
-  } catch (error) {
+  } catch {
     // Fail silently to try similar fallback
   }
 
@@ -211,7 +209,7 @@ export const getSimilarSeries = createCachedTmdbFetcher(async (tmdbId) => {
     const data = await fetchTMDB(`/tv/${tmdbId}/similar?language=en-US&page=1`);
     const parsed = TMDBDiscoverSeriesListSchema.parse(data);
     return parsed.results;
-  } catch (error) {
+  } catch {
     return [];
   }
 });

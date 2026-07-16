@@ -2,10 +2,8 @@ import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
-import { tvSeries } from "../../serials/serials.entity";
 import { reviews, reviewLikes } from "../../reviews/reviews.entity";
 import { lists, listLikes, listEntries } from "../../lists/lists.entity";
-import { profiles } from "../users.entity";
 
 export class UsersLikesRepository {
   static async getLikedReviews(userId: string, limit?: number, offset?: number) {
