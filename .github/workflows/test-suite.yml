@@ -62,6 +62,12 @@ jobs:
         run: bun run lint:arch
         working-directory: apps/api
 
+      - name: TEMP debug DB state
+        run: bun run scripts/debug-db-state.ts
+        working-directory: apps/api
+        env:
+          DATABASE_URL: ${{ secrets.DEVDATABASE_URL }}
+
       - name: Run backend migrations
         run: bunx drizzle-kit migrate
         working-directory: apps/api
