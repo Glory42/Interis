@@ -23,19 +23,7 @@ import {
   getTrustedOriginsFromEnv,
   isTrustedOrigin,
 } from "./infrastructure/config/origins";
-import listsRouter from "./modules/lists/lists.routes";
-import moviesRouter from "./modules/movies/movies.routes";
-import serialsRouter from "./modules/serials/serials.routes";
-import peopleRouter from "./modules/people/people.routes";
-import diaryRouter from "./modules/diary/diary.routes";
-import usersRouter from "./modules/users/users.routes";
-import reviewsRouter from "./modules/reviews/reviews.routes";
-import socialRouter from "./modules/social/social.routes";
-import interactionsRouter from "./modules/interactions/interactions.routes";
-import uploadsRouter from "./modules/uploads/uploads.routes";
-import publicRouter from "./modules/public/public.routes";
-import postsRouter from "./modules/posts/posts.routes";
-import dataTransferRouter from "./modules/data-transfer/data-transfer.routes";
+import { registerRoutes } from "./infrastructure/routing/register-routes";
 
 export type RateLimiterOverrides = {
   auth?: number;
@@ -97,6 +85,7 @@ export const createApp = (options: CreateAppOptions = {}) => {
         }
 
         const requestId = randomUUID();
+        req.headers["x-request-id"] = requestId;
         res.setHeader("x-request-id", requestId);
         return requestId;
       },
@@ -124,19 +113,7 @@ export const createApp = (options: CreateAppOptions = {}) => {
     res.json({ status: "ok", message: "Interis API is alive" });
   });
 
-  app.use("/api/movies", moviesRouter);
-  app.use("/api/serials", serialsRouter);
-  app.use("/api/people", peopleRouter);
-  app.use("/api/diary", diaryRouter);
-  app.use("/api/users", usersRouter);
-  app.use("/api/reviews", reviewsRouter);
-  app.use("/api/social", socialRouter);
-  app.use("/api/interactions", interactionsRouter);
-  app.use("/api/uploads", uploadsRouter);
-  app.use("/api/public", publicRouter);
-  app.use("/api/posts", postsRouter);
-  app.use("/api/lists", listsRouter);
-  app.use("/api/data", dataTransferRouter);
+  registerRoutes(app);
 
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof AppError) {
