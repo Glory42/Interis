@@ -1,3 +1,4 @@
+import { createTtlCache } from "../../../infrastructure/cache/ttl-cache.helper";
 import { normalizeLimit } from "../helpers/social-feed-metadata.helper";
 import {
   buildActivityEngagementContext,
@@ -16,29 +17,86 @@ export type FeedPage = {
   nextCursor: string | null;
 };
 
+// Feed rows/engagement counts change quickly, so the TTL stays short — this
+// only exists to absorb request bursts (e.g. React Query refetch-on-focus,
+// or two viewers with overlapping follow sets hitting the same page),
+// not to serve meaningfully stale data.
+const FEED_CACHE_TTL_MS = 20 * 1000;
+
+const buildFeedItems = async (
+  rows: ActivityRow[],
+  viewerId?: string,
+): Promise<FeedItem[]> => {
+  const [reviewContext, postEngagementByPostId, activityEngagementById] = await Promise.all([
+    buildReviewContext(rows, viewerId),
+    buildPostEngagementContext(rows, viewerId),
+    buildActivityEngagementContext(rows, viewerId),
+  ]);
+
+  // Depends on reviewContext (a row only needs a movie fallback lookup
+  // when it has no review-attached movie already), so it can't join the
+  // Promise.all above.
+  const fallbackMedia = await buildFeedFallbackMediaContext(rows, reviewContext);
+
+  const feedItems = rows.map((row) =>
+    toFeedItem(row, reviewContext, postEngagementByPostId, activityEngagementById, fallbackMedia),
+  );
+
+  return dedupeReviewFeedItems(feedItems);
+};
+
+const getFollowingFeedUncached = async (
+  userId: string,
+  limit?: number,
+  cursor?: string,
+): Promise<FeedPage> => {
+  const normalizedLimit = normalizeLimit(limit);
+  const fetchLimit = normalizedLimit * 2;
+  const decodedCursor = decodeFeedCursor(cursor);
+
+  const followingRows = await SocialRepository.getFollowingIdsByFollowerId(userId);
+  const feedUserIds = [...new Set([userId, ...followingRows.map((row) => row.followingId)])];
+
+  const rows = await SocialRepository.getFeedActivityRows(feedUserIds, fetchLimit, decodedCursor);
+  const items = await buildFeedItems(rows, userId);
+
+  // Raw rows (pre-dedupe) filling the fetch cap means there may be more
+  // beyond this page; otherwise we've reached the end of the feed.
+  const hasMore = rows.length === fetchLimit;
+  const lastRow = rows.at(-1);
+  const nextCursor =
+    hasMore && lastRow
+      ? encodeFeedCursor({ createdAt: lastRow.activity.createdAt, id: lastRow.activity.id })
+      : null;
+
+  return { items, nextCursor };
+};
+
+const cachedGetFollowingFeed = createTtlCache(getFollowingFeedUncached, {
+  ttlMs: FEED_CACHE_TTL_MS,
+  keyFn: (userId: string, limit?: number, cursor?: string) =>
+    `${userId}:${limit ?? ""}:${cursor ?? ""}`,
+});
+
+const getUserActivityFeedUncached = async (
+  userId: string,
+  limit?: number,
+): Promise<FeedItem[]> => {
+  const normalizedLimit = normalizeLimit(limit);
+  const fetchLimit = normalizedLimit * 2;
+
+  const rows = await SocialRepository.getFeedActivityRows([userId], fetchLimit);
+  const feedItems = await buildFeedItems(rows);
+
+  return feedItems.slice(0, normalizedLimit);
+};
+
+const cachedGetUserActivityFeed = createTtlCache(getUserActivityFeedUncached, {
+  ttlMs: FEED_CACHE_TTL_MS,
+  keyFn: (userId: string, limit?: number) => `${userId}:${limit ?? ""}`,
+});
+
 export class SocialFeedService {
-  private static async buildFeedItems(
-    rows: ActivityRow[],
-    viewerId?: string,
-  ): Promise<FeedItem[]> {
-    const [reviewContext, postEngagementByPostId, activityEngagementById] = await Promise.all([
-      buildReviewContext(rows, viewerId),
-      buildPostEngagementContext(rows, viewerId),
-      buildActivityEngagementContext(rows, viewerId),
-    ]);
-
-    // Depends on reviewContext (a row only needs a movie fallback lookup
-    // when it has no review-attached movie already), so it can't join the
-    // Promise.all above.
-    const fallbackMedia = await buildFeedFallbackMediaContext(rows, reviewContext);
-
-    const feedItems = rows.map((row) =>
-      toFeedItem(row, reviewContext, postEngagementByPostId, activityEngagementById, fallbackMedia),
-    );
-
-    return dedupeReviewFeedItems(feedItems);
-  }
-
   static async getFeed(userId: string, cursor?: string, limit?: number): Promise<FeedPage> {
     return SocialFeedService.getFollowingFeed(userId, limit, cursor);
   }
@@ -48,39 +106,10 @@ export class SocialFeedService {
     limit?: number,
     cursor?: string,
   ): Promise<FeedPage> {
-    const normalizedLimit = normalizeLimit(limit);
-    const fetchLimit = normalizedLimit * 2;
-    const decodedCursor = decodeFeedCursor(cursor);
-
-    const followingRows = await SocialRepository.getFollowingIdsByFollowerId(userId);
-    const feedUserIds = [...new Set([userId, ...followingRows.map((row) => row.followingId)])];
-
-    const rows = await SocialRepository.getFeedActivityRows(
-      feedUserIds,
-      fetchLimit,
-      decodedCursor,
-    );
-    const items = await SocialFeedService.buildFeedItems(rows, userId);
-
-    // Raw rows (pre-dedupe) filling the fetch cap means there may be more
-    // beyond this page; otherwise we've reached the end of the feed.
-    const hasMore = rows.length === fetchLimit;
-    const lastRow = rows.at(-1);
-    const nextCursor =
-      hasMore && lastRow
-        ? encodeFeedCursor({ createdAt: lastRow.activity.createdAt, id: lastRow.activity.id })
-        : null;
-
-    return { items, nextCursor };
+    return cachedGetFollowingFeed(userId, limit, cursor);
   }
 
   static async getUserActivityFeed(userId: string, limit?: number): Promise<FeedItem[]> {
-    const normalizedLimit = normalizeLimit(limit);
-    const fetchLimit = normalizedLimit * 2;
-
-    const rows = await SocialRepository.getFeedActivityRows([userId], fetchLimit);
-    const feedItems = await SocialFeedService.buildFeedItems(rows);
-
-    return feedItems.slice(0, normalizedLimit);
+    return cachedGetUserActivityFeed(userId, limit);
   }
 }
