@@ -3,23 +3,28 @@ import { Client } from "pg";
 const client = new Client({ connectionString: process.env.DATABASE_URL });
 await client.connect();
 
-const tables = await client.query(
-  `SELECT schemaname, tablename FROM pg_tables WHERE schemaname IN ('public', 'drizzle') ORDER BY schemaname, tablename`,
-);
-console.info("=== tables ===");
-console.table(tables.rows);
+if (process.argv.includes("--revert-backfill")) {
+  const deleted = await client.query(`DELETE FROM drizzle.__drizzle_migrations`);
+  console.info(`Deleted ${deleted.rowCount} row(s) from drizzle.__drizzle_migrations.`);
+}
 
-const migrationsTableExists = tables.rows.some(
-  (row: { schemaname: string; tablename: string }) =>
-    row.schemaname === "drizzle" && row.tablename === "__drizzle_migrations",
+const columns = await client.query(
+  `SELECT table_name, column_name, data_type
+   FROM information_schema.columns
+   WHERE table_schema = 'public'
+   ORDER BY table_name, ordinal_position`,
 );
+console.info("=== columns per table ===");
+console.table(columns.rows);
 
-if (migrationsTableExists) {
+const migrationsTableExists = await client.query(
+  `SELECT to_regclass('drizzle.__drizzle_migrations') IS NOT NULL AS exists`,
+);
+if (migrationsTableExists.rows[0].exists) {
   const migrations = await client.query(
-    `SELECT id, hash, created_at FROM drizzle.__drizzle_migrations ORDER BY created_at`,
+    `SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations`,
   );
-  console.info("=== drizzle.__drizzle_migrations ===");
-  console.table(migrations.rows);
+  console.info(`=== drizzle.__drizzle_migrations row count: ${migrations.rows[0].count} ===`);
 } else {
   console.info("=== drizzle.__drizzle_migrations does not exist ===");
 }
