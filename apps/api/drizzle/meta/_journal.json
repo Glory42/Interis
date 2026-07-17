@@ -274,6 +274,13 @@
       "when": 1784228270155,
       "tag": "0038_good_molten_man",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1784300690241,
+      "tag": "0039_mighty_tinkerer",
+      "breakpoints": true
     }
   ]
 }

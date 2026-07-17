@@ -13,9 +13,11 @@ import publicRouter from "../../modules/public/public.routes";
 import postsRouter from "../../modules/posts/posts.routes";
 import dataTransferRouter from "../../modules/data-transfer/data-transfer.routes";
 import searchRouter from "../../modules/search/search.routes";
+import moderationRouter from "../../modules/moderation/moderation.routes";
 
 export const registerRoutes = (app: Express): void => {
   app.use("/api/search", searchRouter);
+  app.use("/api/moderation", moderationRouter);
   app.use("/api/movies", moviesRouter);
   app.use("/api/serials", serialsRouter);
   app.use("/api/people", peopleRouter);
