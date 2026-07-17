@@ -7,12 +7,13 @@ import {
 } from "react";
 import { useMovieSearch } from "@/features/films/hooks/useMovies";
 import { useUserSearch } from "@/features/profile/hooks/useProfile";
+import { useTitleSearch } from "@/features/search/hooks/useSearch";
 import { useSerialSearch } from "@/features/serials/hooks/useSerials";
 import {
   MAX_RESULTS_PER_SECTION,
   MIN_QUERY_LENGTH,
 } from "./constants";
-import { toCinemaEntry, toSerialEntry, toUserEntry } from "./mappers";
+import { toCinemaEntry, toSerialEntry, toTitleEntry, toUserEntry } from "./mappers";
 import type {
   ScopedTarget,
   SearchMode,
@@ -60,18 +61,23 @@ export const useGlobalSearchState = (): GlobalSearchState => {
     shouldRunSearch && (!isScopedMode || scopedTarget === "users")
       ? deferredQuery
       : "";
+  // Cinema/serials queries only run in scoped (single-type drill-down) mode —
+  // the unscoped home view uses the merged titlesQuery below instead.
   const cinemaQueryValue =
-    shouldRunSearch && (!isScopedMode || scopedTarget === "cinema")
+    shouldRunSearch && isScopedMode && scopedTarget === "cinema"
       ? deferredQuery
       : "";
   const serialsQueryValue =
-    shouldRunSearch && (!isScopedMode || scopedTarget === "serials")
+    shouldRunSearch && isScopedMode && scopedTarget === "serials"
       ? deferredQuery
       : "";
+  const titlesQueryValue =
+    shouldRunSearch && !isScopedMode ? deferredQuery : "";
 
   const usersQuery = useUserSearch(usersQueryValue, MAX_RESULTS_PER_SECTION);
   const cinemaQuery = useMovieSearch(cinemaQueryValue);
   const serialsQuery = useSerialSearch(serialsQueryValue);
+  const titlesQuery = useTitleSearch(titlesQueryValue);
 
   const userEntries = useMemo(() => {
     return (usersQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toUserEntry);
@@ -84,6 +90,10 @@ export const useGlobalSearchState = (): GlobalSearchState => {
   const serialEntries = useMemo(() => {
     return (serialsQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toSerialEntry);
   }, [serialsQuery.data]);
+
+  const titleEntries = useMemo(() => {
+    return (titlesQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toTitleEntry);
+  }, [titlesQuery.data]);
 
   const sections = useMemo<SearchSection[]>(() => {
     if (!shouldRunSearch) {
@@ -135,18 +145,11 @@ export const useGlobalSearchState = (): GlobalSearchState => {
         isError: usersQuery.isError,
       },
       {
-        target: "cinema",
-        label: "Cinema",
-        items: cinemaEntries,
-        isLoading: cinemaQuery.isFetching,
-        isError: cinemaQuery.isError,
-      },
-      {
-        target: "serials",
-        label: "Serials",
-        items: serialEntries,
-        isLoading: serialsQuery.isFetching,
-        isError: serialsQuery.isError,
+        target: "titles",
+        label: "Titles",
+        items: titleEntries,
+        isLoading: titlesQuery.isFetching,
+        isError: titlesQuery.isError,
       },
     ];
   }, [
@@ -156,12 +159,15 @@ export const useGlobalSearchState = (): GlobalSearchState => {
     userEntries,
     cinemaEntries,
     serialEntries,
+    titleEntries,
     usersQuery.isFetching,
     usersQuery.isError,
     cinemaQuery.isFetching,
     cinemaQuery.isError,
     serialsQuery.isFetching,
     serialsQuery.isError,
+    titlesQuery.isFetching,
+    titlesQuery.isError,
   ]);
 
   const sectionOffsets = useMemo(() => {
