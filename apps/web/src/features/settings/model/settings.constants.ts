@@ -49,6 +49,12 @@ export const settingsSections: SettingsSectionDefinition[] = [
     description: "Top picks showcased on your profile.",
   },
   {
+    id: "blocked",
+    to: "/settings/blocked",
+    label: "Blocked",
+    description: "Manage blocked and muted users.",
+  },
+  {
     id: "data",
     to: "/settings/data",
     label: "Data",

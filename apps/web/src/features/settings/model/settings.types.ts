@@ -4,6 +4,7 @@ export type SettingsSectionId =
   | "auth"
   | "genres"
   | "favorites"
+  | "blocked"
   | "data";
 
 export type SettingsSectionTo =
@@ -12,6 +13,7 @@ export type SettingsSectionTo =
   | "/settings/auth"
   | "/settings/genres"
   | "/settings/favorites"
+  | "/settings/blocked"
   | "/settings/data";
 
 export type SettingsSectionDefinition = {
