@@ -15,6 +15,13 @@ import {
   useFollowUser,
   useUnfollowUser,
 } from "@/features/social/hooks/useSocial";
+import {
+  useBlockUser,
+  useMuteUser,
+  useRelationshipState,
+  useUnblockUser,
+  useUnmuteUser,
+} from "@/features/moderation/hooks/useModeration";
 import { isApiError } from "@/lib/api-client";
 import type { PublicProfile } from "@/types/api";
 
@@ -49,6 +56,15 @@ export const ProfileLayout = ({
   );
   const followMutation = useFollowUser(username);
   const unfollowMutation = useUnfollowUser(username);
+
+  const relationshipStateQuery = useRelationshipState(
+    username,
+    isViewerLoggedIn && !isOwnProfileByRoute,
+  );
+  const blockMutation = useBlockUser(username);
+  const unblockMutation = useUnblockUser(username);
+  const muteMutation = useMuteUser(username);
+  const unmuteMutation = useUnmuteUser(username);
 
   if (profileQuery.isPending) {
     return (
@@ -99,6 +115,27 @@ export const ProfileLayout = ({
     }
   };
 
+  const isBlocked = relationshipStateQuery.data?.isBlocked ?? false;
+  const isMuted = relationshipStateQuery.data?.isMuted ?? false;
+  const isBlockActionPending = blockMutation.isPending || unblockMutation.isPending;
+  const isMuteActionPending = muteMutation.isPending || unmuteMutation.isPending;
+
+  const handleToggleBlock = () => {
+    if (isBlocked) {
+      unblockMutation.mutate();
+      return;
+    }
+    blockMutation.mutate();
+  };
+
+  const handleToggleMute = () => {
+    if (isMuted) {
+      unmuteMutation.mutate();
+      return;
+    }
+    muteMutation.mutate();
+  };
+
   const actionClassName =
     "flex items-center gap-1.5 border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.16em] transition-colors profile-shell-border profile-shell-muted hover:text-foreground";
 
@@ -111,23 +148,43 @@ export const ProfileLayout = ({
       <Settings className="h-3 w-3" aria-hidden="true" />
     </Link>
   ) : isViewerLoggedIn ? (
-    <button
-      type="button"
-      className={actionClassName}
-      disabled={followStateQuery.isPending || isFollowActionPending}
-      onClick={() => {
-        void handleToggleFollow();
-      }}
-      aria-label="Follow user"
-    >
-      {followStateQuery.isPending
-        ? "Loading"
-        : isFollowActionPending
-          ? "Saving"
-          : isFollowing
-            ? "Following"
-            : "Follow"}
-    </button>
+    <div className="flex items-center gap-1.5">
+      <button
+        type="button"
+        className={actionClassName}
+        disabled={followStateQuery.isPending || isFollowActionPending || isBlocked}
+        onClick={() => {
+          void handleToggleFollow();
+        }}
+        aria-label="Follow user"
+      >
+        {followStateQuery.isPending
+          ? "Loading"
+          : isFollowActionPending
+            ? "Saving"
+            : isFollowing
+              ? "Following"
+              : "Follow"}
+      </button>
+      <button
+        type="button"
+        className={actionClassName}
+        disabled={relationshipStateQuery.isPending || isMuteActionPending}
+        onClick={handleToggleMute}
+        aria-label={isMuted ? "Unmute user" : "Mute user"}
+      >
+        {isMuteActionPending ? "Saving" : isMuted ? "Muted" : "Mute"}
+      </button>
+      <button
+        type="button"
+        className={actionClassName}
+        disabled={relationshipStateQuery.isPending || isBlockActionPending}
+        onClick={handleToggleBlock}
+        aria-label={isBlocked ? "Unblock user" : "Block user"}
+      >
+        {isBlockActionPending ? "Saving" : isBlocked ? "Blocked" : "Block"}
+      </button>
+    </div>
   ) : (
     <Link
       to="/login"
