@@ -6,6 +6,7 @@ export const TMDBSearchSeriesSchema = z.object({
   poster_path: z.string().nullable(),
   first_air_date: z.string().nullable().default(null),
   overview: z.string().default(""),
+  popularity: z.number().default(0),
 });
 
 export const TMDBSeriesGenreSchema = z.object({
@@ -28,6 +29,7 @@ export const TMDBDiscoverSeriesSchema = z.object({
   vote_count: z.number().int().default(0),
   overview: z.string().default(""),
   genre_ids: z.array(z.number()).default([]),
+  popularity: z.number().default(0),
 });
 
 export const TMDBDiscoverSeriesListSchema = z.object({

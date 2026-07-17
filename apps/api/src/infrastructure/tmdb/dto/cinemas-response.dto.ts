@@ -6,6 +6,7 @@ export const TMDBSearchMovieSchema = z.object({
   poster_path: z.string().nullable(),
   release_date: z.string().default(""),
   overview: z.string().default(""),
+  popularity: z.number().default(0),
 });
 
 export const TMDBMovieDetailSchema = z.object({
@@ -54,6 +55,7 @@ export const TMDBDiscoverMovieSchema = z.object({
   vote_count: z.number().int().default(0),
   overview: z.string().default(""),
   genre_ids: z.array(z.number()).default([]),
+  popularity: z.number().default(0),
 });
 
 export const TMDBDiscoverMoviesSchema = z.object({
