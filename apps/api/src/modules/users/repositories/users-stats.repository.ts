@@ -111,6 +111,66 @@ export class UsersStatsRepository {
     };
   }
 
+  static async getDetailedStats(userId: string) {
+    const [entriesPerMonthRows, ratingDistributionRows, topGenreRows, topDirectorRows] =
+      await Promise.all([
+        db.execute<{ month: string; count: number }>(sql`
+          SELECT to_char(watched_date, 'YYYY-MM') AS month, count(*)::int AS count
+          FROM (
+            SELECT watched_date FROM diary_entry WHERE user_id = ${userId}
+            UNION ALL
+            SELECT watched_date FROM serial_diary_entry WHERE user_id = ${userId}
+          ) combined
+          WHERE watched_date >= (current_date - interval '12 months')
+          GROUP BY to_char(watched_date, 'YYYY-MM')
+          ORDER BY to_char(watched_date, 'YYYY-MM')
+        `),
+        db.execute<{ rating: number; count: number }>(sql`
+          SELECT rating, count(*)::int AS count
+          FROM (
+            SELECT rating FROM diary_entry WHERE user_id = ${userId} AND rating IS NOT NULL
+            UNION ALL
+            SELECT rating FROM serial_diary_entry WHERE user_id = ${userId} AND rating IS NOT NULL
+          ) combined
+          GROUP BY rating
+          ORDER BY rating
+        `),
+        db.execute<{ genre: string; count: number }>(sql`
+          SELECT genre_element ->> 'name' AS genre, count(*)::int AS count
+          FROM (
+            SELECT m.genres AS genres
+            FROM diary_entry d
+            JOIN movie m ON m.id = d.movie_id
+            WHERE d.user_id = ${userId} AND m.genres IS NOT NULL
+            UNION ALL
+            SELECT s.genres AS genres
+            FROM serial_diary_entry sd
+            JOIN tv_series s ON s.id = sd.series_id
+            WHERE sd.user_id = ${userId} AND s.genres IS NOT NULL
+          ) combined, jsonb_array_elements(combined.genres) AS genre_element
+          GROUP BY genre_element ->> 'name'
+          ORDER BY count DESC
+          LIMIT 8
+        `),
+        db.execute<{ director: string; count: number }>(sql`
+          SELECT m.director AS director, count(*)::int AS count
+          FROM diary_entry d
+          JOIN movie m ON m.id = d.movie_id
+          WHERE d.user_id = ${userId} AND m.director IS NOT NULL AND m.director != ''
+          GROUP BY m.director
+          ORDER BY count DESC
+          LIMIT 8
+        `),
+      ]);
+
+    return {
+      entriesPerMonth: entriesPerMonthRows.rows,
+      ratingDistribution: ratingDistributionRows.rows,
+      topGenres: topGenreRows.rows,
+      topDirectors: topDirectorRows.rows,
+    };
+  }
+
   static async getMeSummaryData(userId: string) {
     const [logCountRows, followerCountRows, followingCountRows, recentRows] =
       await Promise.all([
