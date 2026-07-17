@@ -14,3 +14,4 @@ export * from "../../modules/posts/posts.entity";
 export * from "../../modules/social/social.entity";
 export * from "../../modules/lists/lists.entity";
 export * from "../../modules/moderation/moderation.entity";
+export * from "../../modules/notifications/notifications.entity";

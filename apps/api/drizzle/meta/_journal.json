@@ -281,6 +281,13 @@
       "when": 1784300690241,
       "tag": "0039_mighty_tinkerer",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1784303762514,
+      "tag": "0040_unique_toad_men",
+      "breakpoints": true
     }
   ]
 }
