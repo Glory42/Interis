@@ -1,0 +1,9 @@
+import { z } from "zod";
+
+export const ListUsersQuerySchema = z.object({
+  query: z.string().trim().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
+  offset: z.coerce.number().int().nonnegative().optional(),
+});
+
+export type ListUsersQuery = z.input<typeof ListUsersQuerySchema>;
