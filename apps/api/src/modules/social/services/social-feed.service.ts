@@ -10,6 +10,7 @@ import { dedupeReviewFeedItems } from "../helpers/social-feed-dedupe.helper";
 import { toFeedItem } from "../helpers/social-feed-item.helper";
 import { decodeFeedCursor, encodeFeedCursor } from "../helpers/social-feed-cursor.helper";
 import { SocialRepository } from "../repositories/social.repository";
+import { ModerationRepository } from "../../moderation/repositories/moderation.repository";
 import type { ActivityRow, FeedItem } from "../types/social-feed.types";
 
 export type FeedPage = {
@@ -54,8 +55,24 @@ const getFollowingFeedUncached = async (
   const fetchLimit = normalizedLimit * 2;
   const decodedCursor = decodeFeedCursor(cursor);
 
-  const followingRows = await SocialRepository.getFollowingIdsByFollowerId(userId);
-  const feedUserIds = [...new Set([userId, ...followingRows.map((row) => row.followingId)])];
+  const [followingRows, blockedIds, blockedByIds, mutedIds] = await Promise.all([
+    SocialRepository.getFollowingIdsByFollowerId(userId),
+    ModerationRepository.getBlockedIds(userId),
+    ModerationRepository.getBlockedByIds(userId),
+    ModerationRepository.getMutedIds(userId),
+  ]);
+  // Blocks are mutual (either direction hides the other's activity); mutes
+  // are one-directional — being muted by someone else must not hide your
+  // own activity from your own feed.
+  const excludedIds = new Set([...blockedIds, ...blockedByIds, ...mutedIds]);
+  const feedUserIds = [
+    userId,
+    ...new Set(
+      followingRows
+        .map((row) => row.followingId)
+        .filter((followingId) => !excludedIds.has(followingId)),
+    ),
+  ];
 
   const rows = await SocialRepository.getFeedActivityRows(feedUserIds, fetchLimit, decodedCursor);
   const items = await buildFeedItems(rows, userId);

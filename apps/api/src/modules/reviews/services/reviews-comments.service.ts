@@ -3,6 +3,7 @@ import { activities } from "../../social/social.entity";
 import { comments } from "../reviews.entity";
 import { buildCommentCreatedActivityMetadata } from "../helpers/reviews-activity.helper";
 import { ReviewsRepository } from "../repositories/reviews.repository";
+import { NotificationsService } from "../../notifications/notifications.service";
 
 export class ReviewsCommentsService {
   static async getComments(reviewId: string) {
@@ -53,6 +54,12 @@ export class ReviewsCommentsService {
         ),
       }),
       ReviewsRepository.getCommentWithAuthorById(comment.id),
+      NotificationsService.notify({
+        recipientId: review.userId,
+        actorId: userId,
+        type: "comment_review",
+        entityId: reviewId,
+      }),
     ]);
 
     if (!commentWithAuthor) {

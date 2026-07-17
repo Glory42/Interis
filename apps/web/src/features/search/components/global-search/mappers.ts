@@ -1,4 +1,5 @@
 import type { UserSearchResult } from "@/features/profile/api";
+import type { UnifiedSearchResult } from "@/features/search/api";
 import type { TmdbSearchSeries } from "@/features/serials/api";
 import type { TmdbSearchMovie } from "@/types/api";
 import type { CinemaResultEntry, SerialResultEntry, UserResultEntry } from "./types";
@@ -32,6 +33,30 @@ export const toSerialEntry = (series: TmdbSearchSeries): SerialResultEntry => ({
   posterPath: series.poster_path,
   firstAirDate: series.first_air_date,
 });
+
+export const toTitleEntry = (
+  result: UnifiedSearchResult,
+): CinemaResultEntry | SerialResultEntry => {
+  if (result.mediaType === "movie") {
+    return {
+      kind: "cinema",
+      id: `cinema-${result.tmdbId}`,
+      tmdbId: result.tmdbId,
+      title: result.title,
+      posterPath: result.posterPath,
+      releaseDate: result.releaseDate ?? "",
+    };
+  }
+
+  return {
+    kind: "serials",
+    id: `serials-${result.tmdbId}`,
+    tmdbId: result.tmdbId,
+    title: result.title,
+    posterPath: result.posterPath,
+    firstAirDate: result.releaseDate ?? "",
+  };
+};
 
 export const toYear = (value: string | null | undefined): string | null => {
   if (!value || value.length < 4) {

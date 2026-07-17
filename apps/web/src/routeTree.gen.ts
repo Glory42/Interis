@@ -24,6 +24,7 @@ import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
 import { Route as SettingsGenresRouteImport } from './routes/settings/genres'
 import { Route as SettingsFavoritesRouteImport } from './routes/settings/favorites'
 import { Route as SettingsDataRouteImport } from './routes/settings/data'
+import { Route as SettingsBlockedRouteImport } from './routes/settings/blocked'
 import { Route as SettingsAuthRouteImport } from './routes/settings/auth'
 import { Route as SerialsTmdbIdRouteImport } from './routes/serials/$tmdbId'
 import { Route as FilmsTmdbIdRouteImport } from './routes/films/$tmdbId'
@@ -118,6 +119,11 @@ const SettingsFavoritesRoute = SettingsFavoritesRouteImport.update({
 const SettingsDataRoute = SettingsDataRouteImport.update({
   id: '/data',
   path: '/data',
+  getParentRoute: () => SettingsRouteRoute,
+} as any)
+const SettingsBlockedRoute = SettingsBlockedRouteImport.update({
+  id: '/blocked',
+  path: '/blocked',
   getParentRoute: () => SettingsRouteRoute,
 } as any)
 const SettingsAuthRoute = SettingsAuthRouteImport.update({
@@ -238,6 +244,7 @@ export interface FileRoutesByFullPath {
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
+  '/settings/blocked': typeof SettingsBlockedRoute
   '/settings/data': typeof SettingsDataRoute
   '/settings/favorites': typeof SettingsFavoritesRoute
   '/settings/genres': typeof SettingsGenresRoute
@@ -273,6 +280,7 @@ export interface FileRoutesByTo {
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
+  '/settings/blocked': typeof SettingsBlockedRoute
   '/settings/data': typeof SettingsDataRoute
   '/settings/favorites': typeof SettingsFavoritesRoute
   '/settings/genres': typeof SettingsGenresRoute
@@ -311,6 +319,7 @@ export interface FileRoutesById {
   '/films/$tmdbId': typeof FilmsTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
+  '/settings/blocked': typeof SettingsBlockedRoute
   '/settings/data': typeof SettingsDataRoute
   '/settings/favorites': typeof SettingsFavoritesRoute
   '/settings/genres': typeof SettingsGenresRoute
@@ -350,6 +359,7 @@ export interface FileRouteTypes {
     | '/films/$tmdbId'
     | '/serials/$tmdbId'
     | '/settings/auth'
+    | '/settings/blocked'
     | '/settings/data'
     | '/settings/favorites'
     | '/settings/genres'
@@ -385,6 +395,7 @@ export interface FileRouteTypes {
     | '/films/$tmdbId'
     | '/serials/$tmdbId'
     | '/settings/auth'
+    | '/settings/blocked'
     | '/settings/data'
     | '/settings/favorites'
     | '/settings/genres'
@@ -422,6 +433,7 @@ export interface FileRouteTypes {
     | '/films/$tmdbId'
     | '/serials/$tmdbId'
     | '/settings/auth'
+    | '/settings/blocked'
     | '/settings/data'
     | '/settings/favorites'
     | '/settings/genres'
@@ -573,6 +585,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsDataRouteImport
       parentRoute: typeof SettingsRouteRoute
     }
+    '/settings/blocked': {
+      id: '/settings/blocked'
+      path: '/blocked'
+      fullPath: '/settings/blocked'
+      preLoaderRoute: typeof SettingsBlockedRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
     '/settings/auth': {
       id: '/settings/auth'
       path: '/auth'
@@ -718,6 +737,7 @@ declare module '@tanstack/react-router' {
 
 interface SettingsRouteRouteChildren {
   SettingsAuthRoute: typeof SettingsAuthRoute
+  SettingsBlockedRoute: typeof SettingsBlockedRoute
   SettingsDataRoute: typeof SettingsDataRoute
   SettingsFavoritesRoute: typeof SettingsFavoritesRoute
   SettingsGenresRoute: typeof SettingsGenresRoute
@@ -728,6 +748,7 @@ interface SettingsRouteRouteChildren {
 
 const SettingsRouteRouteChildren: SettingsRouteRouteChildren = {
   SettingsAuthRoute: SettingsAuthRoute,
+  SettingsBlockedRoute: SettingsBlockedRoute,
   SettingsDataRoute: SettingsDataRoute,
   SettingsFavoritesRoute: SettingsFavoritesRoute,
   SettingsGenresRoute: SettingsGenresRoute,

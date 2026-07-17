@@ -61,6 +61,10 @@ export class PostsCoreService {
     return PostsRepository.deleteByIdAndUser(postId, userId);
   }
 
+  static async deleteById(postId: string) {
+    return PostsRepository.deleteById(postId);
+  }
+
   static async update(postId: string, userId: string, input: UpdatePostDto) {
     return PostsRepository.updateByIdAndUser(postId, userId, input.content);
   }

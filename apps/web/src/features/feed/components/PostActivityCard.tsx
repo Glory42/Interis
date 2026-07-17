@@ -1,6 +1,6 @@
 import { memo, useMemo, useState, type CSSProperties, type MouseEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { CornerDownRight, Heart, Loader2, MessageSquare, PenSquare } from "lucide-react";
+import { CornerDownRight, Flag, Heart, Loader2, MessageSquare, PenSquare } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
 import { PostActivityDialog } from "@/features/feed/components/PostActivityDialog";
@@ -11,6 +11,7 @@ import {
 } from "@/features/feed/components/feed-row.utils";
 import type { FeedItem } from "@/features/feed/types";
 import { useLikePost, useUnlikePost } from "@/features/posts/hooks/usePosts";
+import { ReportContentDialog } from "@/features/reports/components/ReportContentDialog";
 import { cn } from "@/lib/utils";
 
 type PostActivityCardProps = {
@@ -50,6 +51,7 @@ export const PostActivityCard = memo(function PostActivityCard({ item }: PostAct
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<"view" | "edit">("view");
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
 
   const channelVisual = useMemo(() => {
     if (channel) {
@@ -108,6 +110,16 @@ export const PostActivityCard = memo(function PostActivityCard({ item }: PostAct
     }
 
     openDialog("view");
+  };
+
+  const handleReport = async () => {
+    if (!user) {
+      const redirectPath = `${window.location.pathname}${window.location.search}`;
+      await navigate({ to: "/login", search: { redirect: redirectPath } });
+      return;
+    }
+
+    setIsReportDialogOpen(true);
   };
 
   return (
@@ -213,6 +225,19 @@ export const PostActivityCard = memo(function PostActivityCard({ item }: PostAct
               EDIT
             </button>
           ) : null}
+
+          {!isOwnPost && postId ? (
+            <button
+              type="button"
+              onClick={() => {
+                void handleReport();
+              }}
+              className="ml-auto inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground transition-colors hover:text-destructive"
+            >
+              <Flag className="h-3.5 w-3.5" />
+              REPORT
+            </button>
+          ) : null}
         </div>
       </article>
 
@@ -225,6 +250,15 @@ export const PostActivityCard = memo(function PostActivityCard({ item }: PostAct
             setIsDialogOpen(false);
             setDialogMode("view");
           }}
+        />
+      ) : null}
+
+      {postId ? (
+        <ReportContentDialog
+          isOpen={isReportDialogOpen}
+          onClose={() => setIsReportDialogOpen(false)}
+          targetType="post"
+          targetId={postId}
         />
       ) : null}
     </>

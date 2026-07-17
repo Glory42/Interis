@@ -1,4 +1,4 @@
-import { Heart, Loader2, MessageSquare, TriangleAlert } from "lucide-react";
+import { Flag, Heart, Loader2, MessageSquare, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ReviewDetail } from "@/features/reviews/api";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,8 @@ type ProfileReviewSectionProps = {
   onRevealSpoiler: () => void;
   likeBusy: boolean;
   onToggleLike: () => void;
+  showReportAction: boolean;
+  onReport: () => void;
 };
 
 export const ProfileReviewSection = ({
@@ -17,6 +19,8 @@ export const ProfileReviewSection = ({
   onRevealSpoiler,
   likeBusy,
   onToggleLike,
+  showReportAction,
+  onReport,
 }: ProfileReviewSectionProps) => {
   return (
     <section className="border border-border/60 bg-card/35 p-5 sm:p-6">
@@ -72,6 +76,19 @@ export const ProfileReviewSection = ({
           <MessageSquare className="h-3.5 w-3.5" />
           {detail.engagement.commentCount}
         </span>
+
+        {showReportAction ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="ml-auto text-muted-foreground hover:text-destructive"
+            onClick={onReport}
+          >
+            <Flag className="h-3.5 w-3.5" />
+            Report
+          </Button>
+        ) : null}
       </div>
     </section>
   );

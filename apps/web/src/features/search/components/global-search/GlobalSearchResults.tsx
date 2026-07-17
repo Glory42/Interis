@@ -186,7 +186,7 @@ export const GlobalSearchResults = ({
         <p className="mx-1 border border-border/70 px-3 py-3 font-mono text-xs text-muted-foreground">
           {isScopedMode
             ? "No matches found for this scope."
-            : "No matches found across users, cinema, and serials."}
+            : "No matches found across users, movies, and TV shows."}
         </p>
       ) : null}
     </div>

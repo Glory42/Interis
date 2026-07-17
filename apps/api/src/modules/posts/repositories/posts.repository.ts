@@ -28,6 +28,7 @@ export class PostsRepository {
     const [post] = await db
       .select({
         id: posts.id,
+        userId: posts.userId,
         content: posts.content,
         mediaId: posts.mediaId,
         mediaType: posts.mediaType,
@@ -77,6 +78,13 @@ export class PostsRepository {
       .delete(posts)
       .where(and(eq(posts.id, postId), eq(posts.userId, userId)))
       .returning({ id: posts.id });
+
+    return deleted ?? null;
+  }
+
+  // No ownership check — admin moderation only.
+  static async deleteById(postId: string) {
+    const [deleted] = await db.delete(posts).where(eq(posts.id, postId)).returning({ id: posts.id });
 
     return deleted ?? null;
   }
@@ -142,6 +150,7 @@ export class PostsRepository {
     const [post] = await db
       .select({
         id: posts.id,
+        userId: posts.userId,
         content: posts.content,
         mediaId: posts.mediaId,
         mediaType: posts.mediaType,

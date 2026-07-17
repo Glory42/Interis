@@ -160,4 +160,14 @@ export class ReviewsCoreService {
 
     return deleted ?? null;
   }
+
+  // No ownership check — admin moderation only.
+  static async deleteById(reviewId: string) {
+    const [deleted] = await db
+      .delete(reviews)
+      .where(eq(reviews.id, reviewId))
+      .returning({ id: reviews.id });
+
+    return deleted ?? null;
+  }
 }

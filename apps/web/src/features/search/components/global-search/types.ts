@@ -5,6 +5,9 @@ import type { TmdbSearchMovie } from "@/types/api";
 
 export type SearchMode = "home" | "scoped";
 export type ScopedTarget = "users" | "cinema" | "serials";
+// Home (unscoped) sections also include a merged movies+TV section, which
+// isn't an individually enterable scope the way ScopedTarget values are.
+export type SectionTarget = ScopedTarget | "titles";
 
 export type UserResultEntry = {
   kind: "users";
@@ -38,7 +41,7 @@ export type SearchResultEntry =
   | SerialResultEntry;
 
 export type SearchSection = {
-  target: ScopedTarget;
+  target: SectionTarget;
   label: string;
   items: SearchResultEntry[];
   isLoading: boolean;

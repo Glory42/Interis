@@ -274,6 +274,27 @@
       "when": 1784228270155,
       "tag": "0038_good_molten_man",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1784300690241,
+      "tag": "0039_mighty_tinkerer",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1784303762514,
+      "tag": "0040_unique_toad_men",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1784307297771,
+      "tag": "0041_calm_husk",
+      "breakpoints": true
     }
   ]
 }

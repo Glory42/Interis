@@ -1,6 +1,7 @@
 import { SocialFeedService } from "./services/social-feed.service";
 import { SocialFollowService } from "./services/social-follow.service";
 import { SocialRepository } from "./repositories/social.repository";
+import { NotificationsService } from "../notifications/notifications.service";
 
 export type {
   FeedActivityKind,
@@ -58,7 +59,15 @@ export class SocialService {
     if (!activity) {
       return { error: "Activity not found" } as const;
     }
-    await SocialRepository.likeActivity(userId, activityId);
+    await Promise.all([
+      SocialRepository.likeActivity(userId, activityId),
+      NotificationsService.notify({
+        recipientId: activity.userId,
+        actorId: userId,
+        type: "like_activity",
+        entityId: activityId,
+      }),
+    ]);
     return { success: true } as const;
   }
 
