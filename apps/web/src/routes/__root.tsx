@@ -1,5 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 import {
+  HeadContent,
   Link,
   Outlet,
   createRootRouteWithContext,
@@ -33,6 +34,7 @@ const NotFoundPage = () => (
 const RootLayout = () => {
   return (
     <>
+      <HeadContent />
       <GlobalSearchDialogProvider>
         <div className="relative z-10 flex min-h-screen flex-col">
           <AppNavbar />
@@ -50,6 +52,26 @@ const RootLayout = () => {
 };
 
 export const Route = createRootRouteWithContext<RouterContext>()({
+  head: () => ({
+    meta: [
+      { title: "Interis — Social Movie Journal" },
+      {
+        name: "description",
+        content:
+          "Log watches, write reviews, follow friends, and browse a cinema and TV archive.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Interis" },
+      { property: "og:title", content: "Interis — Social Movie Journal" },
+      {
+        property: "og:description",
+        content:
+          "Log watches, write reviews, follow friends, and browse a cinema and TV archive.",
+      },
+      { property: "og:image", content: "/og-image.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: RootLayout,
   notFoundComponent: NotFoundPage,
   errorComponent: (props) => (
