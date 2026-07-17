@@ -2,6 +2,7 @@ import { db } from "../../../infrastructure/database/db";
 import { activities } from "../../social/social.entity";
 import { buildPostCommentedActivityMetadata } from "../helpers/posts-activity.helper";
 import { PostsRepository } from "../repositories/posts.repository";
+import { NotificationsService } from "../../notifications/notifications.service";
 
 export class PostsCommentsService {
   static async getComments(postId: string) {
@@ -17,18 +18,26 @@ export class PostsCommentsService {
     const comment = await PostsRepository.insertComment(userId, postId, content);
 
     if (comment) {
-      await db.insert(activities).values({
-        userId,
-        type: "commented",
-        entityId: comment.id,
-        metadata: JSON.stringify(
-          buildPostCommentedActivityMetadata({
-            post,
-            commentId: comment.id,
-            commentContent: content,
-          }),
-        ),
-      });
+      await Promise.all([
+        db.insert(activities).values({
+          userId,
+          type: "commented",
+          entityId: comment.id,
+          metadata: JSON.stringify(
+            buildPostCommentedActivityMetadata({
+              post,
+              commentId: comment.id,
+              commentContent: content,
+            }),
+          ),
+        }),
+        NotificationsService.notify({
+          recipientId: post.userId,
+          actorId: userId,
+          type: "comment_post",
+          entityId: postId,
+        }),
+      ]);
     }
 
     return comment;

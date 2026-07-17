@@ -4,6 +4,7 @@ import { activities } from "../../social/social.entity";
 import { buildReviewLikedActivityMetadata } from "../helpers/reviews-activity.helper";
 import { ReviewsRepository } from "../repositories/reviews.repository";
 import { reviewLikes } from "../reviews.entity";
+import { NotificationsService } from "../../notifications/notifications.service";
 
 export class ReviewsLikesService {
   static async likeReview(userId: string, reviewId: string) {
@@ -27,26 +28,36 @@ export class ReviewsLikesService {
         ? review.mediaType
         : null;
 
-    await db.insert(activities).values({
-      userId,
-      type: "liked_review",
-      entityId: reviewId,
-      metadata: JSON.stringify(
-        buildReviewLikedActivityMetadata({
-          reviewId,
-          mediaMetadata: review && activityMediaType
-            ? {
-                mediaType: activityMediaType,
-                tmdbId: review.tmdbId,
-                title: review.title,
-                posterPath: review.posterPath,
-                releaseYear: review.releaseYear,
-              }
-            : null,
-          targetUsername: review?.reviewAuthorUsername ?? null,
-        }),
-      ),
-    });
+    await Promise.all([
+      db.insert(activities).values({
+        userId,
+        type: "liked_review",
+        entityId: reviewId,
+        metadata: JSON.stringify(
+          buildReviewLikedActivityMetadata({
+            reviewId,
+            mediaMetadata: review && activityMediaType
+              ? {
+                  mediaType: activityMediaType,
+                  tmdbId: review.tmdbId,
+                  title: review.title,
+                  posterPath: review.posterPath,
+                  releaseYear: review.releaseYear,
+                }
+              : null,
+            targetUsername: review?.reviewAuthorUsername ?? null,
+          }),
+        ),
+      }),
+      review
+        ? NotificationsService.notify({
+            recipientId: review.userId,
+            actorId: userId,
+            type: "like_review",
+            entityId: reviewId,
+          })
+        : Promise.resolve(),
+    ]);
 
     return { liked: true, alreadyLiked: false };
   }

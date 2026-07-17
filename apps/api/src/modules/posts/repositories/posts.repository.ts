@@ -28,6 +28,7 @@ export class PostsRepository {
     const [post] = await db
       .select({
         id: posts.id,
+        userId: posts.userId,
         content: posts.content,
         mediaId: posts.mediaId,
         mediaType: posts.mediaType,
@@ -142,6 +143,7 @@ export class PostsRepository {
     const [post] = await db
       .select({
         id: posts.id,
+        userId: posts.userId,
         content: posts.content,
         mediaId: posts.mediaId,
         mediaType: posts.mediaType,

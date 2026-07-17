@@ -2,6 +2,7 @@ import { db } from "../../../infrastructure/database/db";
 import { activities } from "../../social/social.entity";
 import { buildPostLikedActivityMetadata } from "../helpers/posts-activity.helper";
 import { PostsRepository } from "../repositories/posts.repository";
+import { NotificationsService } from "../../notifications/notifications.service";
 
 export class PostsLikesService {
   static async like(userId: string, postId: string) {
@@ -11,16 +12,24 @@ export class PostsLikesService {
       const postMetadata = await PostsRepository.getPostFeedMetadata(postId);
 
       if (postMetadata) {
-        await db.insert(activities).values({
-          userId,
-          type: "commented",
-          entityId: postId,
-          metadata: JSON.stringify(
-            buildPostLikedActivityMetadata({
-              post: postMetadata,
-            }),
-          ),
-        });
+        await Promise.all([
+          db.insert(activities).values({
+            userId,
+            type: "commented",
+            entityId: postId,
+            metadata: JSON.stringify(
+              buildPostLikedActivityMetadata({
+                post: postMetadata,
+              }),
+            ),
+          }),
+          NotificationsService.notify({
+            recipientId: postMetadata.userId,
+            actorId: userId,
+            type: "like_post",
+            entityId: postId,
+          }),
+        ]);
       }
     }
 
