@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import path from "path";
 import tailwindcss from "@tailwindcss/vite";
+import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -16,6 +17,35 @@ export default defineConfig(({ mode }) => {
       }),
       react(),
       tailwindcss(),
+      VitePWA({
+        registerType: "autoUpdate",
+        includeAssets: ["icon.svg", "icon-192.png", "icon-512.png"],
+        manifest: {
+          name: "Interis",
+          short_name: "Interis",
+          description:
+            "Interis is a social movie journal — log watches, write reviews, follow friends, and browse a cinema and TV archive.",
+          theme_color: "#171420",
+          background_color: "#171420",
+          display: "standalone",
+          start_url: "/",
+          icons: [
+            { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
+            { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
+            {
+              src: "/icon-512.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "maskable",
+            },
+          ],
+        },
+        workbox: {
+          // App-shell only — /api/* must never be served from the service
+          // worker cache (auth state, feed, movie data are all dynamic).
+          navigateFallbackDenylist: [/^\/api\//],
+        },
+      }),
     ],
     resolve: {
       alias: {

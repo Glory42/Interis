@@ -61,6 +61,10 @@ export class UsersService {
     return UsersReadService.getStats(userId);
   }
 
+  static async getDetailedStats(userId: string) {
+    return UsersReadService.getDetailedStats(userId);
+  }
+
   static async getMeSummary(userId: string) {
     return UsersReadService.getMeSummary(userId);
   }

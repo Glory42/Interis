@@ -36,6 +36,7 @@ import { Route as ProfileUsernameIndexRouteImport } from './routes/profile/$user
 import { Route as ReviewsUsernameReviewIdRouteImport } from './routes/reviews/$username/$reviewId'
 import { Route as ProfileUsernameWatchlistRouteImport } from './routes/profile/$username/watchlist'
 import { Route as ProfileUsernameWatchingRouteImport } from './routes/profile/$username/watching'
+import { Route as ProfileUsernameStatsRouteImport } from './routes/profile/$username/stats'
 import { Route as ProfileUsernameReviewsRouteImport } from './routes/profile/$username/reviews'
 import { Route as ProfileUsernameLikedRouteImport } from './routes/profile/$username/liked'
 import { Route as ProfileUsernameFilmsRouteImport } from './routes/profile/$username/films'
@@ -182,6 +183,11 @@ const ProfileUsernameWatchingRoute = ProfileUsernameWatchingRouteImport.update({
   path: '/watching',
   getParentRoute: () => ProfileUsernameRouteRoute,
 } as any)
+const ProfileUsernameStatsRoute = ProfileUsernameStatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
+  getParentRoute: () => ProfileUsernameRouteRoute,
+} as any)
 const ProfileUsernameReviewsRoute = ProfileUsernameReviewsRouteImport.update({
   id: '/reviews',
   path: '/reviews',
@@ -260,6 +266,7 @@ export interface FileRoutesByFullPath {
   '/profile/$username/films': typeof ProfileUsernameFilmsRoute
   '/profile/$username/liked': typeof ProfileUsernameLikedRoute
   '/profile/$username/reviews': typeof ProfileUsernameReviewsRoute
+  '/profile/$username/stats': typeof ProfileUsernameStatsRoute
   '/profile/$username/watching': typeof ProfileUsernameWatchingRoute
   '/profile/$username/watchlist': typeof ProfileUsernameWatchlistRoute
   '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
@@ -296,6 +303,7 @@ export interface FileRoutesByTo {
   '/profile/$username/films': typeof ProfileUsernameFilmsRoute
   '/profile/$username/liked': typeof ProfileUsernameLikedRoute
   '/profile/$username/reviews': typeof ProfileUsernameReviewsRoute
+  '/profile/$username/stats': typeof ProfileUsernameStatsRoute
   '/profile/$username/watching': typeof ProfileUsernameWatchingRoute
   '/profile/$username/watchlist': typeof ProfileUsernameWatchlistRoute
   '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
@@ -335,6 +343,7 @@ export interface FileRoutesById {
   '/profile/$username/films': typeof ProfileUsernameFilmsRoute
   '/profile/$username/liked': typeof ProfileUsernameLikedRoute
   '/profile/$username/reviews': typeof ProfileUsernameReviewsRoute
+  '/profile/$username/stats': typeof ProfileUsernameStatsRoute
   '/profile/$username/watching': typeof ProfileUsernameWatchingRoute
   '/profile/$username/watchlist': typeof ProfileUsernameWatchlistRoute
   '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
@@ -375,6 +384,7 @@ export interface FileRouteTypes {
     | '/profile/$username/films'
     | '/profile/$username/liked'
     | '/profile/$username/reviews'
+    | '/profile/$username/stats'
     | '/profile/$username/watching'
     | '/profile/$username/watchlist'
     | '/reviews/$username/$reviewId'
@@ -411,6 +421,7 @@ export interface FileRouteTypes {
     | '/profile/$username/films'
     | '/profile/$username/liked'
     | '/profile/$username/reviews'
+    | '/profile/$username/stats'
     | '/profile/$username/watching'
     | '/profile/$username/watchlist'
     | '/reviews/$username/$reviewId'
@@ -449,6 +460,7 @@ export interface FileRouteTypes {
     | '/profile/$username/films'
     | '/profile/$username/liked'
     | '/profile/$username/reviews'
+    | '/profile/$username/stats'
     | '/profile/$username/watching'
     | '/profile/$username/watchlist'
     | '/reviews/$username/$reviewId'
@@ -669,6 +681,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileUsernameWatchingRouteImport
       parentRoute: typeof ProfileUsernameRouteRoute
     }
+    '/profile/$username/stats': {
+      id: '/profile/$username/stats'
+      path: '/stats'
+      fullPath: '/profile/$username/stats'
+      preLoaderRoute: typeof ProfileUsernameStatsRouteImport
+      parentRoute: typeof ProfileUsernameRouteRoute
+    }
     '/profile/$username/reviews': {
       id: '/profile/$username/reviews'
       path: '/reviews'
@@ -767,6 +786,7 @@ interface ProfileUsernameRouteRouteChildren {
   ProfileUsernameFilmsRoute: typeof ProfileUsernameFilmsRoute
   ProfileUsernameLikedRoute: typeof ProfileUsernameLikedRoute
   ProfileUsernameReviewsRoute: typeof ProfileUsernameReviewsRoute
+  ProfileUsernameStatsRoute: typeof ProfileUsernameStatsRoute
   ProfileUsernameWatchingRoute: typeof ProfileUsernameWatchingRoute
   ProfileUsernameWatchlistRoute: typeof ProfileUsernameWatchlistRoute
   ProfileUsernameIndexRoute: typeof ProfileUsernameIndexRoute
@@ -782,6 +802,7 @@ const ProfileUsernameRouteRouteChildren: ProfileUsernameRouteRouteChildren = {
   ProfileUsernameFilmsRoute: ProfileUsernameFilmsRoute,
   ProfileUsernameLikedRoute: ProfileUsernameLikedRoute,
   ProfileUsernameReviewsRoute: ProfileUsernameReviewsRoute,
+  ProfileUsernameStatsRoute: ProfileUsernameStatsRoute,
   ProfileUsernameWatchingRoute: ProfileUsernameWatchingRoute,
   ProfileUsernameWatchlistRoute: ProfileUsernameWatchlistRoute,
   ProfileUsernameIndexRoute: ProfileUsernameIndexRoute,

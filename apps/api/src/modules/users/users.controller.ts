@@ -47,6 +47,19 @@ export class UsersController {
     res.status(200).json({ ...publicProfile, stats });
   }
 
+  static async getDetailedStats(
+    req: Request<{ username: string }>,
+    res: Response,
+  ): Promise<void> {
+    const profile = await UsersService.findByUsername(req.params.username);
+    if (!profile) {
+      sendNotFound(res, "User not found");
+      return;
+    }
+    const stats = await UsersService.getDetailedStats(profile.id);
+    res.status(200).json(stats);
+  }
+
   static async getUserReviews(
     req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
     res: Response,

@@ -46,6 +46,10 @@ export class UsersReadService {
     return UsersStatsRepository.getStatsCounts(userId);
   }
 
+  static async getDetailedStats(userId: string) {
+    return UsersStatsRepository.getDetailedStats(userId);
+  }
+
   static async getMeSummary(userId: string) {
     const [profile, summaryData] = await Promise.all([
       UsersProfileService.findById(userId),
