@@ -1,28 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
-import { eq } from "drizzle-orm";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
+import { promoteToAdmin } from "../../support/factories/admin.factory";
 import {
   startTestServer,
   type RunningTestServer,
 } from "../../support/app/test-server";
-import { db } from "../../../src/infrastructure/database/db";
-import { user as userTable } from "../../../src/infrastructure/database/auth.entity";
-import { profiles } from "../../../src/modules/users/users.entity";
-
-const promoteToAdmin = async (username: string): Promise<void> => {
-  const [row] = await db
-    .select({ id: userTable.id })
-    .from(userTable)
-    .where(eq(userTable.username, username))
-    .limit(1);
-
-  if (!row) {
-    throw new Error(`Test user ${username} not found`);
-  }
-
-  await db.update(profiles).set({ isAdmin: true }).where(eq(profiles.userId, row.id));
-};
 
 describe("reports", () => {
   let testServer: RunningTestServer | null = null;
