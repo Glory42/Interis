@@ -1,4 +1,5 @@
 import { SocialRepository } from "../repositories/social.repository";
+import { ModerationRepository } from "../../moderation/repositories/moderation.repository";
 
 export class SocialFollowService {
   static async follow(
@@ -8,6 +9,10 @@ export class SocialFollowService {
   ): Promise<{ error: string } | { success: true }> {
     if (followerId === followingId) {
       return { error: "Cannot follow yourself" } as const;
+    }
+
+    if (await ModerationRepository.isBlocked(followerId, followingId)) {
+      return { error: "Cannot follow this user" } as const;
     }
 
     const row = await SocialRepository.insertFollow(followerId, followingId);
