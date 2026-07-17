@@ -4,6 +4,7 @@ import {
   MobileMenu,
   MobileMenuToggle,
   NavbarBrand,
+  NotificationsBell,
   PrimaryNavLinks,
   ProfileMenu,
 } from "@/components/layout/navbar/AppNavbarParts";
@@ -61,6 +62,8 @@ export const AppNavbar = () => {
                 LOADING
               </span>
             ) : null}
+
+            {user ? <NotificationsBell /> : null}
 
             {user ? (
               <ProfileMenu
