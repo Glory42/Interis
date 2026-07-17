@@ -17,6 +17,7 @@ import {
   useReviewDetail,
   useUnlikeReview,
 } from "@/features/reviews/hooks/useReviews";
+import { ReportContentDialog } from "@/features/reports/components/ReportContentDialog";
 
 type ProfileReviewDetailPageProps = {
   username: string;
@@ -32,6 +33,7 @@ export function ProfileReviewDetailPage({
 
   const [commentDraft, setCommentDraft] = useState("");
   const [isSpoilerRevealed, setIsSpoilerRevealed] = useState(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
 
   const detailQuery = useReviewDetail(
     username,
@@ -62,6 +64,9 @@ export function ProfileReviewDetailPage({
   const displayAuthorName =
     detail.author.displayUsername ?? detail.author.username;
   const authorAvatar = detail.author.avatarUrl ?? detail.author.image;
+  const isOwnReview =
+    user !== null &&
+    user.username.toLowerCase() === detail.author.username.toLowerCase();
   const likeBusy =
     likeReviewMutation.isPending || unlikeReviewMutation.isPending;
   const comments = commentsQuery.data ?? [];
@@ -113,8 +118,24 @@ export function ProfileReviewDetailPage({
     setCommentDraft("");
   };
 
+  const handleReport = async () => {
+    if (!user) {
+      await goToLogin();
+      return;
+    }
+
+    setIsReportDialogOpen(true);
+  };
+
   return (
     <div className="min-h-screen">
+      <ReportContentDialog
+        isOpen={isReportDialogOpen}
+        onClose={() => setIsReportDialogOpen(false)}
+        targetType="review"
+        targetId={reviewId}
+      />
+
       <ProfileReviewDetailHero
         username={username}
         detail={detail}
@@ -132,6 +153,10 @@ export function ProfileReviewDetailPage({
             onRevealSpoiler={() => setIsSpoilerRevealed(true)}
             likeBusy={likeBusy}
             onToggleLike={toggleLike}
+            showReportAction={!isOwnReview}
+            onReport={() => {
+              void handleReport();
+            }}
           />
 
           <ProfileReviewCommentsSection
