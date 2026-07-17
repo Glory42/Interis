@@ -24,6 +24,10 @@ export class PostsService {
     return PostsCoreService.delete(postId, userId);
   }
 
+  static async deleteById(postId: string) {
+    return PostsCoreService.deleteById(postId);
+  }
+
   static async like(userId: string, postId: string) {
     return PostsLikesService.like(userId, postId);
   }

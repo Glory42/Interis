@@ -82,6 +82,13 @@ export class PostsRepository {
     return deleted ?? null;
   }
 
+  // No ownership check — admin moderation only.
+  static async deleteById(postId: string) {
+    const [deleted] = await db.delete(posts).where(eq(posts.id, postId)).returning({ id: posts.id });
+
+    return deleted ?? null;
+  }
+
   static async updateByIdAndUser(postId: string, userId: string, content: string) {
     const [updated] = await db
       .update(posts)

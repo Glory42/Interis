@@ -28,6 +28,10 @@ export class ReviewsService {
     return ReviewsCoreService.delete(reviewId, userId);
   }
 
+  static async deleteById(reviewId: string) {
+    return ReviewsCoreService.deleteById(reviewId);
+  }
+
   static async getComments(reviewId: string) {
     return ReviewsCommentsService.getComments(reviewId);
   }

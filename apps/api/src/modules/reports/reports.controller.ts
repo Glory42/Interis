@@ -83,4 +83,19 @@ export class ReportsController {
     }
     res.status(200).json(result);
   }
+
+  static async removeContent(req: Request<ReportParams>, res: Response): Promise<void> {
+    const parsed = ReportParamsSchema.safeParse(req.params);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    const result = await ReportsService.removeContent(parsed.data.id, req.user.id);
+    if ("error" in result) {
+      sendErrorForStatus(res, result.status, result.error);
+      return;
+    }
+    res.status(200).json(result);
+  }
 }

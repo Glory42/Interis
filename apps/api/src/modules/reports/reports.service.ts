@@ -55,4 +55,23 @@ export class ReportsService {
     await ReportsRepository.updateStatus(reportId, status, adminUserId);
     return { success: true };
   }
+
+  static async removeContent(
+    reportId: string,
+    adminUserId: string,
+  ): Promise<{ error: string; status: 404 } | { success: true }> {
+    const report = await ReportsRepository.findById(reportId);
+    if (!report) {
+      return { error: "Report not found", status: 404 };
+    }
+
+    if (report.targetType === "review") {
+      await ReviewsService.deleteById(report.targetId);
+    } else {
+      await PostsService.deleteById(report.targetId);
+    }
+
+    await ReportsRepository.updateStatus(reportId, "resolved", adminUserId);
+    return { success: true };
+  }
 }
