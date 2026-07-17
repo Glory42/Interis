@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import {
+  BarChart3,
   Bookmark,
   CalendarDays,
   Heart,
@@ -16,7 +17,8 @@ export type ProfileTab =
   | "watchlist"
   | "liked"
   | "reviews"
-  | "lists";
+  | "lists"
+  | "stats";
 
 type ProfileTabsProps = {
   username: string;
@@ -48,7 +50,8 @@ const tabItems: Array<{
     | "/profile/$username/reviews"
     | "/profile/$username/lists"
     | "/profile/$username/liked"
-    | "/profile/$username/watchlist";
+    | "/profile/$username/watchlist"
+    | "/profile/$username/stats";
   icon: typeof User;
 }> = [
   { id: "overview", label: "Overview", to: "/profile/$username", icon: User },
@@ -88,6 +91,12 @@ const tabItems: Array<{
     label: "Lists",
     to: "/profile/$username/lists",
     icon: List,
+  },
+  {
+    id: "stats",
+    label: "Stats",
+    to: "/profile/$username/stats",
+    icon: BarChart3,
   },
 ];
 

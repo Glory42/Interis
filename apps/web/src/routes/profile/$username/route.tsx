@@ -7,10 +7,32 @@ import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
 
 export const Route = createFileRoute("/profile/$username")({
   loader: async ({ context, params }) => {
-    await context.queryClient.prefetchQuery({
+    return context.queryClient.fetchQuery({
       queryKey: profileKeys.detail(params.username),
       queryFn: ({ signal }) => getUserProfile(params.username, { signal }),
     });
+  },
+  head: ({ loaderData }) => {
+    if (!loaderData) {
+      return {};
+    }
+
+    const displayName = loaderData.displayUsername ?? loaderData.username;
+    const title = `${displayName} (@${loaderData.username})`;
+    const description =
+      loaderData.bio || `${displayName}'s movie and TV journal on Interis.`;
+    const image = loaderData.avatarUrl ?? loaderData.image ?? "/og-image.png";
+
+    return {
+      meta: [
+        { title: `${title} — Interis` },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:image", content: image },
+        { property: "og:type", content: "profile" },
+      ],
+    };
   },
   component: ProfileRouteLayout,
   errorComponent: (props) => <RouteErrorBoundary {...props} title="Profile unavailable" />,
@@ -44,6 +66,10 @@ function ProfileRouteLayout() {
 
     if (matchRoute({ to: "/profile/$username/lists", params: routeParams, fuzzy: true })) {
       return "lists";
+    }
+
+    if (matchRoute({ to: "/profile/$username/stats", params: routeParams, fuzzy: true })) {
+      return "stats";
     }
 
     return "overview";
