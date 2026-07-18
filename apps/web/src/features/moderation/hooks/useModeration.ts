@@ -77,6 +77,20 @@ export const useUnblockUser = (username: string) => {
 
   return useMutation({
     mutationFn: () => unblockUser(username),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: stateKey });
+      const previous = queryClient.getQueryData<RelationshipState>(stateKey);
+      queryClient.setQueryData<RelationshipState>(stateKey, (old) => ({
+        isBlocked: false,
+        isMuted: old?.isMuted ?? false,
+      }));
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(stateKey, context.previous);
+      }
+    },
     onSettled: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: stateKey }),
@@ -123,6 +137,20 @@ export const useUnmuteUser = (username: string) => {
 
   return useMutation({
     mutationFn: () => unmuteUser(username),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: stateKey });
+      const previous = queryClient.getQueryData<RelationshipState>(stateKey);
+      queryClient.setQueryData<RelationshipState>(stateKey, (old) => ({
+        isBlocked: old?.isBlocked ?? false,
+        isMuted: false,
+      }));
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(stateKey, context.previous);
+      }
+    },
     onSettled: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: stateKey }),
