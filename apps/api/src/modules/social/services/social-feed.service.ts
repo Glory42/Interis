@@ -129,4 +129,13 @@ export class SocialFeedService {
   static async getUserActivityFeed(userId: string, limit?: number): Promise<FeedItem[]> {
     return cachedGetUserActivityFeed(userId, limit);
   }
+
+  // Follow/unfollow changes who belongs in a user's following feed, which
+  // the TTL cache above has no way to know about on its own - without this,
+  // a fresh follow can take up to FEED_CACHE_TTL_MS to show the followed
+  // user's activity, which contradicts this cache's whole "absorb bursts,
+  // not serve meaningfully stale data" premise.
+  static invalidateFollowingFeed(userId: string): void {
+    cachedGetFollowingFeed.invalidatePrefix(`${userId}:`);
+  }
 }

@@ -7,6 +7,14 @@ const DEFAULT_MAX_ENTRIES = 1_000;
  * argument), for read-mostly data that would otherwise be recomputed on
  * every request touching it.
  */
+export type TtlCachedFn<Args extends unknown[], T> = ((...args: Args) => Promise<T>) & {
+  // Drops every cached entry whose key starts with `prefix` - for cases
+  // where an action outside the cached fetcher's own arguments (e.g.
+  // following a user) should invalidate that user's cached entries
+  // immediately instead of waiting out the TTL.
+  invalidatePrefix: (prefix: string) => void;
+};
+
 export const createTtlCache = <Args extends unknown[], T>(
   fetcher: (...args: Args) => Promise<T>,
   options: {
@@ -14,7 +22,7 @@ export const createTtlCache = <Args extends unknown[], T>(
     ttlMs?: number;
     maxEntries?: number;
   } = {},
-): ((...args: Args) => Promise<T>) => {
+): TtlCachedFn<Args, T> => {
   const keyFn = options.keyFn ?? ((...args: Args) => args.join(":"));
   const ttlMs = options.ttlMs ?? DEFAULT_TTL_MS;
   const maxEntries = options.maxEntries ?? DEFAULT_MAX_ENTRIES;
@@ -46,7 +54,7 @@ export const createTtlCache = <Args extends unknown[], T>(
     }
   };
 
-  return async (...args: Args): Promise<T> => {
+  const call = async (...args: Args): Promise<T> => {
     const key = keyFn(...args);
     const now = Date.now();
     const cached = cache.get(key);
@@ -79,4 +87,14 @@ export const createTtlCache = <Args extends unknown[], T>(
       inFlight.delete(key);
     }
   };
+
+  call.invalidatePrefix = (prefix: string): void => {
+    for (const cachedKey of cache.keys()) {
+      if (String(cachedKey).startsWith(prefix)) {
+        cache.delete(cachedKey);
+      }
+    }
+  };
+
+  return call;
 };

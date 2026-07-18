@@ -1,6 +1,7 @@
 import { SocialRepository } from "../repositories/social.repository";
 import { ModerationRepository } from "../../moderation/repositories/moderation.repository";
 import { NotificationsService } from "../../notifications/notifications.service";
+import { SocialFeedService } from "./social-feed.service";
 
 export class SocialFollowService {
   static async follow(
@@ -36,6 +37,7 @@ export class SocialFollowService {
           entityId: followerId,
         }),
       ]);
+      SocialFeedService.invalidateFollowingFeed(followerId);
     }
 
     return { success: true } as const;
@@ -43,6 +45,7 @@ export class SocialFollowService {
 
   static async unfollow(followerId: string, followingId: string) {
     await SocialRepository.deleteFollow(followerId, followingId);
+    SocialFeedService.invalidateFollowingFeed(followerId);
     return { success: true } as const;
   }
 
