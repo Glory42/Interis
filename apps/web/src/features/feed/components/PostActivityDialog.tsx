@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import FocusLock from "react-focus-lock";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { PostActivityDialogActions } from "@/features/feed/components/post-activity-dialog/PostActivityDialogActions";
@@ -156,6 +157,7 @@ export const PostActivityDialog = ({
         onClick={onClose}
       />
 
+      <FocusLock returnFocus className="contents">
       <section className="theme-modal-panel relative z-10 flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
         <PostActivityDialogHeader dialogTitle={dialogTitle} onClose={onClose} />
 
@@ -222,6 +224,7 @@ export const PostActivityDialog = ({
           />
         </div>
       </section>
+      </FocusLock>
     </div>,
     document.body,
   );

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import FocusLock from "react-focus-lock";
 import { Loader2, X } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useSubmitReport } from "@/features/reports/hooks/useReports";
@@ -76,6 +77,7 @@ const ReportContentDialogContent = ({
       />
 
       <div className="relative mx-auto flex h-full w-full max-w-md items-center justify-center p-4">
+        <FocusLock returnFocus className="contents">
         <section className="theme-modal-panel relative w-full overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
           <div className="flex items-start justify-between border-b border-border/70 px-4 py-3">
             <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
@@ -84,6 +86,7 @@ const ReportContentDialogContent = ({
             <button
               type="button"
               onClick={onClose}
+              aria-label="Close report dialog"
               className="inline-flex h-7 w-7 items-center justify-center border border-border/70 text-muted-foreground transition-colors hover:text-foreground"
             >
               <X className="h-4 w-4" />
@@ -167,7 +170,7 @@ const ReportContentDialogContent = ({
               </div>
 
               {submitReportMutation.isError ? (
-                <p className="font-mono text-[11px] text-destructive">
+                <p role="alert" className="font-mono text-[11px] text-destructive">
                   {isApiError(submitReportMutation.error)
                     ? submitReportMutation.error.message
                     : "Could not submit report."}
@@ -176,6 +179,7 @@ const ReportContentDialogContent = ({
             </div>
           )}
         </section>
+        </FocusLock>
       </div>
     </div>,
     document.body

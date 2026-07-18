@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import FocusLock from "react-focus-lock";
 import { Loader2, X } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useUpdateReview } from "@/features/reviews/hooks/useReviews";
@@ -71,6 +72,7 @@ const FeedReviewEditDialogContent = ({
       />
 
       <div className="relative mx-auto flex h-full w-full max-w-2xl items-center justify-center p-4">
+        <FocusLock returnFocus className="contents">
         <section className="theme-modal-panel relative w-full overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
           <div className="flex items-start justify-between border-b border-border/70 px-4 py-3">
             <div>
@@ -81,6 +83,7 @@ const FeedReviewEditDialogContent = ({
             <button
               type="button"
               onClick={onClose}
+              aria-label="Close edit review dialog"
               className="inline-flex h-7 w-7 items-center justify-center border border-border/70 text-muted-foreground transition-colors hover:text-foreground"
             >
               <X className="h-4 w-4" />
@@ -138,6 +141,7 @@ const FeedReviewEditDialogContent = ({
             ) : null}
           </div>
         </section>
+        </FocusLock>
       </div>
     </div>,
     document.body

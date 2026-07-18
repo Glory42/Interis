@@ -1,4 +1,5 @@
 import type { FormEvent } from "react";
+import FocusLock from "react-focus-lock";
 import {
   AlertTriangle,
   MessageSquare,
@@ -91,6 +92,7 @@ export const LogMediaDialog = ({
         }
       }}
     >
+      <FocusLock returnFocus className="contents">
       <div
         role="dialog"
         aria-modal="true"
@@ -226,7 +228,10 @@ export const LogMediaDialog = ({
                 </div>
 
                 {formError ? (
-                  <p className="border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  <p
+                    role="alert"
+                    className="border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                  >
                     {formError}
                   </p>
                 ) : null}
@@ -261,6 +266,7 @@ export const LogMediaDialog = ({
           </div>
         </form>
       </div>
+      </FocusLock>
     </div>
   );
 };

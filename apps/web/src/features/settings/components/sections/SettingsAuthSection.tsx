@@ -158,13 +158,19 @@ export const SettingsAuthSection = () => {
           </div>
 
           {authEmailError ? (
-            <p className="border border-destructive/40 bg-destructive/10 px-3 py-2 font-mono text-xs text-destructive">
+            <p
+              role="alert"
+              className="border border-destructive/40 bg-destructive/10 px-3 py-2 font-mono text-xs text-destructive"
+            >
               {authEmailError}
             </p>
           ) : null}
 
           {authEmailSuccess ? (
-            <p className="border px-3 py-2 font-mono text-xs settings-shell-border settings-shell-accent settings-shell-active-pill">
+            <p
+              role="status"
+              className="border px-3 py-2 font-mono text-xs settings-shell-border settings-shell-accent settings-shell-active-pill"
+            >
               {authEmailSuccess}
             </p>
           ) : null}
@@ -294,13 +300,19 @@ export const SettingsAuthSection = () => {
           </div>
 
           {authPasswordError ? (
-            <p className="border border-destructive/40 bg-destructive/10 px-3 py-2 font-mono text-xs text-destructive">
+            <p
+              role="alert"
+              className="border border-destructive/40 bg-destructive/10 px-3 py-2 font-mono text-xs text-destructive"
+            >
               {authPasswordError}
             </p>
           ) : null}
 
           {authPasswordSuccess ? (
-            <p className="border px-3 py-2 font-mono text-xs settings-shell-border settings-shell-accent settings-shell-active-pill">
+            <p
+              role="status"
+              className="border px-3 py-2 font-mono text-xs settings-shell-border settings-shell-accent settings-shell-active-pill"
+            >
               {authPasswordSuccess}
             </p>
           ) : null}

@@ -1,5 +1,6 @@
 import { useDeferredValue } from "react";
 import { createPortal } from "react-dom";
+import FocusLock from "react-focus-lock";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
@@ -42,6 +43,7 @@ export const Top4MovieSearchDialog = ({
       />
 
       <div className="relative mx-auto flex h-full w-full max-w-2xl items-start px-4 pt-16 sm:pt-20">
+        <FocusLock returnFocus className="contents">
         <section
           role="dialog"
           aria-modal="true"
@@ -126,6 +128,7 @@ export const Top4MovieSearchDialog = ({
             ) : null}
           </div>
         </section>
+        </FocusLock>
       </div>
     </div>,
     document.body,
