@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, type KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
+import FocusLock from "react-focus-lock";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -170,6 +171,7 @@ export const GlobalSearchDialog = ({
       />
 
       <div className="relative mx-auto flex h-full w-full max-w-2xl items-start px-4 pt-16 sm:pt-20">
+        <FocusLock returnFocus className="contents">
         <section
           role="dialog"
           aria-modal="true"
@@ -270,6 +272,7 @@ export const GlobalSearchDialog = ({
             <span className="font-mono text-[9px] text-muted-foreground/45">esc to close</span>
           </div>
         </section>
+        </FocusLock>
       </div>
     </div>,
     document.body,

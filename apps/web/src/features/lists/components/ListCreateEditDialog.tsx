@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import FocusLock from "react-focus-lock";
 import { X } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { useCreateList, useUpdateList } from "@/features/lists/hooks/useLists";
@@ -91,6 +92,7 @@ const ListCreateEditDialogContent = (props: ListCreateEditDialogProps) => {
         onClick={onClose}
       />
       <div className="relative mx-auto flex h-full w-full max-w-md items-center justify-center p-4">
+        <FocusLock returnFocus className="contents">
         <section className="theme-modal-panel relative w-full overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
           <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
             <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
@@ -233,6 +235,7 @@ const ListCreateEditDialogContent = (props: ListCreateEditDialogProps) => {
             </div>
           </div>
         </section>
+        </FocusLock>
       </div>
     </div>,
     document.body,

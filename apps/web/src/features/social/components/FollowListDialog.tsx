@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
+import FocusLock from "react-focus-lock";
 import { Link } from "@tanstack/react-router";
 import { X } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
@@ -60,6 +61,7 @@ export const FollowListDialog = ({
       />
 
       <div className="relative mx-auto flex h-full w-full max-w-sm items-center justify-center p-4">
+        <FocusLock returnFocus className="contents">
         <section className="theme-modal-panel relative w-full overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
           <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
             <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
@@ -162,6 +164,7 @@ export const FollowListDialog = ({
             )}
           </div>
         </section>
+        </FocusLock>
       </div>
     </div>,
     document.body,
