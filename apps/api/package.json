@@ -9,6 +9,7 @@
     "test": "bun test",
     "test:integration": "bun test tests/integration --timeout 15000",
     "test:contract": "bun test tests/contract",
+    "test:unit": "bun test tests/unit",
     "test:db:migrate": "bunx drizzle-kit migrate",
     "test:db:reset": "bun run scripts/test-db-reset.ts",
     "test:ci": "bun run test:integration",
