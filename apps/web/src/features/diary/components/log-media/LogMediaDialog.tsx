@@ -228,7 +228,10 @@ export const LogMediaDialog = ({
                 </div>
 
                 {formError ? (
-                  <p className="border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  <p
+                    role="alert"
+                    className="border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                  >
                     {formError}
                   </p>
                 ) : null}

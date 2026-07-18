@@ -170,7 +170,7 @@ const ReportContentDialogContent = ({
               </div>
 
               {submitReportMutation.isError ? (
-                <p className="font-mono text-[11px] text-destructive">
+                <p role="alert" className="font-mono text-[11px] text-destructive">
                   {isApiError(submitReportMutation.error)
                     ? submitReportMutation.error.message
                     : "Could not submit report."}

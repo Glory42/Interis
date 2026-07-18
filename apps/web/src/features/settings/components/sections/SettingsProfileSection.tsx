@@ -228,13 +228,19 @@ export const SettingsProfileSection = () => {
         </div>
 
         {saveError ? (
-          <p className="border border-destructive/40 bg-destructive/10 px-3 py-2 font-mono text-xs text-destructive">
+          <p
+            role="alert"
+            className="border border-destructive/40 bg-destructive/10 px-3 py-2 font-mono text-xs text-destructive"
+          >
             {saveError}
           </p>
         ) : null}
 
         {saveSuccess ? (
-          <p className="border px-3 py-2 font-mono text-xs settings-shell-border settings-shell-accent settings-shell-active-pill">
+          <p
+            role="status"
+            className="border px-3 py-2 font-mono text-xs settings-shell-border settings-shell-accent settings-shell-active-pill"
+          >
             {saveSuccess}
           </p>
         ) : null}
