@@ -111,6 +111,10 @@ jobs:
   e2e:
     name: E2E Tests
     runs-on: ubuntu-latest
+    # Needed to access secrets.TMDB_ACCESS_TOKEN, which is scoped to this
+    # GitHub environment (the old backend job declared this for the same
+    # reason before it dropped its secret dependencies entirely).
+    environment: a
 
     services:
       postgres:
