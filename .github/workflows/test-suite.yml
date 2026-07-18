@@ -37,7 +37,37 @@ jobs:
   backend:
     name: Backend Tests
     runs-on: ubuntu-latest
-    environment: a
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: interis
+          POSTGRES_PASSWORD: interis
+          POSTGRES_DB: interis
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U interis -d interis"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # apps/api/src/infrastructure/database/db.ts connects tests directly to
+    # Postgres over the wire protocol (via DIRECT_DATABASE_URL) instead of
+    # through the Neon HTTP proxy local dev's docker-compose uses - measured
+    # ~7x faster for the hundreds of sequential queries an integration suite
+    # fires. DATABASE_URL is required by env validation but never actually
+    # queried in NODE_ENV=test, so it's just a valid, reachable placeholder.
+    env:
+      DATABASE_URL: postgres://interis:interis@localhost:5432/interis
+      DIRECT_DATABASE_URL: postgres://interis:interis@localhost:5432/interis
+      BETTER_AUTH_URL: http://localhost:5000
+      BETTER_AUTH_SECRET: ci-test-secret-not-for-production
+      TMDB_ACCESS_TOKEN: "Bearer ci-test-placeholder"
+      CORS_ORIGIN: http://localhost:5173
+      PORT: "5000"
+      NODE_ENV: test
 
     steps:
       - name: Checkout
@@ -63,20 +93,10 @@ jobs:
         working-directory: apps/api
 
       - name: Run backend migrations
-        run: bunx drizzle-kit migrate
+        run: bun run scripts/docker-migrate.ts
         working-directory: apps/api
-        env:
-          DATABASE_URL: ${{ secrets.DEVDATABASE_URL }}
 
       - name: Run backend integration tests
         run: bun run test:ci
         working-directory: apps/api
-        env:
-          DATABASE_URL: ${{ secrets.DEVDATABASE_URL }}
-          BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
-          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
-          TMDB_ACCESS_TOKEN: ${{ secrets.TMDB_ACCESS_TOKEN }}
-          CORS_ORIGIN: http://localhost:5173
-          PORT: "5000"
-          NODE_ENV: test
 
