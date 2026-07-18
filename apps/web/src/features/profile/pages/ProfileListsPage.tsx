@@ -127,6 +127,11 @@ export const ProfileListsPage = ({ username }: ProfileListsPageProps) => {
               ? "Create your first list to organize films and series."
               : "This profile has not created any public lists yet."
           }
+          cta={
+            isOwnProfile
+              ? { label: "Create a List", to: "/profile/$username/lists/new", params: { username } }
+              : undefined
+          }
         />
       ) : filteredLists.length === 0 ? (
         <div className="border border-border/60 bg-card/30 px-4 py-3 font-mono text-[11px] text-muted-foreground">

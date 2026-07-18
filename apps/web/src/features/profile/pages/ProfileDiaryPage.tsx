@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { BookOpen } from "lucide-react";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import { DiaryRow } from "@/features/profile/components/diary/DiaryRow";
+import { DiaryRowSkeleton } from "@/features/profile/components/diary/DiaryRowSkeleton";
 import { DiaryTableHeader } from "@/features/profile/components/diary/DiaryTableHeader";
 import { toDiaryRows } from "@/features/profile/components/diary/diary-model";
 import { useUserDiary, useUserLikedFilms } from "@/features/profile/hooks/useProfile";
@@ -32,8 +33,11 @@ export const ProfileDiaryPage = ({ username }: ProfileDiaryPageProps) => {
   return (
     <>
       {diaryQuery.isPending ? (
-        <div className=" border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
-          Loading diary...
+        <div className="space-y-0">
+          <DiaryTableHeader />
+          {Array.from({ length: 6 }).map((_, index) => (
+            <DiaryRowSkeleton key={`diary-row-skeleton-${index}`} />
+          ))}
         </div>
       ) : null}
 
@@ -48,6 +52,7 @@ export const ProfileDiaryPage = ({ username }: ProfileDiaryPageProps) => {
           icon={BookOpen}
           title="No diary activity yet"
           description="This profile has not logged or reviewed anything yet."
+          cta={{ label: "Browse Cinema", to: "/cinema" }}
         />
       ) : null}
 

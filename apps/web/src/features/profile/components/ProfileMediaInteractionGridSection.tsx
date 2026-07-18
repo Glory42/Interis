@@ -2,7 +2,14 @@ import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { getPosterUrl } from "@/features/films/components/utils";
-import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
+import {
+  PROFILE_MEDIA_GRID_CLASSES,
+  ProfileMediaGridSkeleton,
+} from "@/features/profile/components/ProfileMediaGridSkeleton";
+import {
+  ProfileTabEmptyState,
+  type ProfileTabEmptyStateCta,
+} from "@/features/profile/components/ProfileTabEmptyState";
 import type { UserInteractionMovie } from "@/features/profile/api";
 import { getRelativeTime } from "@/features/profile/utils/profile.utils";
 
@@ -36,13 +43,13 @@ const filterMatches = (item: UserInteractionMovie, filter: FavoritesFilter): boo
 };
 
 type ProfileMediaInteractionGridSectionProps = {
-  loadingLabel: string;
   errorLabel: string;
   sectionTitle: string;
   emptyState: {
     icon: LucideIcon;
     title: string;
     description: string;
+    cta?: ProfileTabEmptyStateCta;
   };
   interactionVerb: string;
   isPending: boolean;
@@ -54,7 +61,6 @@ type ProfileMediaInteractionGridSectionProps = {
 };
 
 export const ProfileMediaInteractionGridSection = ({
-  loadingLabel,
   errorLabel,
   sectionTitle,
   emptyState,
@@ -74,11 +80,7 @@ export const ProfileMediaInteractionGridSection = ({
 
   return (
     <>
-      {isPending ? (
-        <div className=" border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
-          {loadingLabel}
-        </div>
-      ) : null}
+      {isPending ? <ProfileMediaGridSkeleton /> : null}
 
       {isError ? (
         <div className=" border border-border/60 bg-card/30 p-4 text-sm text-destructive">
@@ -91,6 +93,7 @@ export const ProfileMediaInteractionGridSection = ({
           icon={emptyState.icon}
           title={emptyState.title}
           description={emptyState.description}
+          cta={emptyState.cta}
         />
       ) : null}
 
@@ -139,7 +142,7 @@ export const ProfileMediaInteractionGridSection = ({
               No {activeFilter === "all" ? "items" : activeFilter} {interactionVerb} yet.
             </div>
           ) : (
-            <div className="grid grid-cols-5 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+            <div className={PROFILE_MEDIA_GRID_CLASSES}>
               {filteredItems.map((item) => {
                 const mediaRoute = routeByMediaType[item.mediaType];
 

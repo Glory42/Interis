@@ -5,6 +5,7 @@ import { formatRatingLabel } from "@/lib/rating";
 import { getPosterUrl } from "@/features/films/components/utils";
 import type { UserReview } from "@/features/profile/api";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
+import { ReviewCardSkeleton } from "@/features/profile/components/ReviewCardSkeleton";
 import { useUserReviews } from "@/features/profile/hooks/useProfile";
 
 type ProfileReviewsPageProps = {
@@ -114,8 +115,10 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
   return (
     <>
       {reviewsQuery.isPending ? (
-        <div className=" border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
-          Loading reviews...
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <ReviewCardSkeleton key={`review-skeleton-${index}`} />
+          ))}
         </div>
       ) : null}
 
@@ -130,6 +133,7 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
           icon={Star}
           title="No written reviews yet"
           description="This profile has not published any reviews yet."
+          cta={{ label: "Browse Cinema", to: "/cinema" }}
         />
       ) : null}
 

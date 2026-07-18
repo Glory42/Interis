@@ -4,6 +4,7 @@ import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEm
 import { LikedMediaGrid, type MediaFilter } from "@/features/profile/components/LikedMediaGrid";
 import { LikedListCard } from "@/features/profile/components/LikedListCard";
 import { LikedReviewCard } from "@/features/profile/components/LikedReviewCard";
+import { ProfileMediaGridSkeleton } from "@/features/profile/components/ProfileMediaGridSkeleton";
 import {
   useUserLikedFilms,
   useUserLikedLists,
@@ -139,9 +140,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
       {activeTab === "medias" ? (
         <>
           {mediasQuery.isPending ? (
-            <div className="border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
-              Loading liked media...
-            </div>
+            <ProfileMediaGridSkeleton />
           ) : mediasQuery.isError ? (
             <div className="border border-border/60 bg-card/30 p-4 text-sm text-destructive">
               Could not load liked media.
@@ -151,6 +150,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
               icon={Heart}
               title="No liked media yet"
               description="This profile has not liked any films or series yet."
+              cta={{ label: "Browse Cinema", to: "/cinema" }}
             />
           ) : (
             <LikedMediaGrid items={mediaItems} filter={mediaFilter} />
