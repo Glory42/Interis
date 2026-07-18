@@ -155,6 +155,8 @@ export const ProfileListDetailPage = ({
                 type="button"
                 onClick={handleLikeToggle}
                 disabled={likeLoading}
+                aria-label={isLiked ? "Unlike this list" : "Like this list"}
+                aria-pressed={isLiked}
                 className={cn(
                   "inline-flex items-center gap-1.5 border px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors disabled:cursor-not-allowed disabled:opacity-50",
                   isLiked

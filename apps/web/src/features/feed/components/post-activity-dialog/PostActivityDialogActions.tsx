@@ -28,6 +28,8 @@ export const PostActivityDialogActions = ({
         onClick={onToggleLike}
         className="inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground"
         disabled={isLikePending}
+        aria-label={viewerHasLiked ? "Unlike this post" : "Like this post"}
+        aria-pressed={viewerHasLiked}
       >
         {isLikePending ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />

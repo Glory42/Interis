@@ -73,6 +73,7 @@ export const ImportDialog = ({
               <button
                 type="button"
                 onClick={onClose}
+                aria-label="Close import dialog"
                 className="text-muted-foreground/60 hover:text-muted-foreground"
               >
                 <X className="h-4 w-4" />
