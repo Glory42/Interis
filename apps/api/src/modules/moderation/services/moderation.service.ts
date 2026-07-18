@@ -1,5 +1,6 @@
 import { UsersService } from "../../users/users.service";
 import { SocialRepository } from "../../social/repositories/social.repository";
+import { SocialFeedService } from "../../social/services/social-feed.service";
 import { ModerationRepository } from "../repositories/moderation.repository";
 
 type ServiceError = { error: string; status: 400 | 404 };
@@ -22,6 +23,8 @@ export class ModerationService {
       SocialRepository.deleteFollow(blockerId, target.id),
       SocialRepository.deleteFollow(target.id, blockerId),
     ]);
+    SocialFeedService.invalidateFollowingFeed(blockerId);
+    SocialFeedService.invalidateFollowingFeed(target.id);
 
     return { success: true };
   }
@@ -33,6 +36,7 @@ export class ModerationService {
     }
 
     await ModerationRepository.unblockUser(blockerId, target.id);
+    SocialFeedService.invalidateFollowingFeed(blockerId);
   }
 
   static async muteUser(
@@ -48,6 +52,7 @@ export class ModerationService {
     }
 
     await ModerationRepository.muteUser(muterId, target.id);
+    SocialFeedService.invalidateFollowingFeed(muterId);
     return { success: true };
   }
 
@@ -58,6 +63,7 @@ export class ModerationService {
     }
 
     await ModerationRepository.unmuteUser(muterId, target.id);
+    SocialFeedService.invalidateFollowingFeed(muterId);
   }
 
   static async getRelationshipState(

@@ -81,6 +81,12 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
+      // Without this, Node's "localhost" resolution can bind Vite to IPv6
+      // ::1 only, depending on the host's DNS/getaddrinfo order - anything
+      // checking readiness against 127.0.0.1 specifically (e.g. Playwright's
+      // webServer health check) then times out even though Vite is up.
+      // Binding all interfaces sidesteps that regardless of environment.
+      host: true,
       proxy: {
         "/api": {
           target: proxyTarget,
