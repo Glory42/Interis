@@ -34,6 +34,7 @@ export const ProfileWatchingPage = ({ username }: ProfileWatchingPageProps) => {
           icon={PlayCircle}
           title="Nothing in progress"
           description="This profile has not started a serial they haven't finished yet."
+          cta={{ label: "Browse Serials", to: "/serials" }}
         />
       ) : null}
 

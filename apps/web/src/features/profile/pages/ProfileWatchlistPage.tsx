@@ -14,7 +14,6 @@ export const ProfileWatchlistPage = ({
 
   return (
     <ProfileMediaInteractionGridSection
-      loadingLabel="Loading watchlist..."
       errorLabel="Could not load watchlist."
       sectionTitle="Watchlist"
       interactionVerb="added"
@@ -22,6 +21,7 @@ export const ProfileWatchlistPage = ({
         icon: Bookmark,
         title: "No watchlist items yet",
         description: "This profile has not added anything to watchlist yet.",
+        cta: { label: "Browse Cinema", to: "/cinema" },
       }}
       isPending={watchlistQuery.isPending}
       isError={watchlistQuery.isError}

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { getPosterUrl } from "@/features/films/components/utils";
 import type { UserInteractionMovie } from "@/features/profile/api";
+import { PROFILE_MEDIA_GRID_CLASSES } from "@/features/profile/components/ProfileMediaGridSkeleton";
 import { getRelativeTime } from "@/features/profile/utils/profile.utils";
 
 export type MediaFilter = "all" | "cinema" | "serial";
@@ -33,7 +34,7 @@ export const LikedMediaGrid = ({
   }
 
   return (
-    <div className="grid grid-cols-5 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+    <div className={PROFILE_MEDIA_GRID_CLASSES}>
       {filtered.map((item) => {
         const mediaRoute = routeByMediaType[item.mediaType];
         const card = (
