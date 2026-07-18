@@ -4,10 +4,13 @@
   "type": "module",
   "scripts": {
     "test": "playwright test",
-    "test:smoke": "playwright test tests/smoke"
+    "test:smoke": "playwright test tests/smoke",
+    "test:journeys": "playwright test tests/journeys",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
+    "@types/node": "^26.1.1",
     "typescript": "^5.9.3"
   }
 }

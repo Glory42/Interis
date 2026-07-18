@@ -107,3 +107,74 @@ jobs:
       - name: Run backend unit tests
         run: bun run test:unit
         working-directory: apps/api
+
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: interis
+          POSTGRES_PASSWORD: interis
+          POSTGRES_DB: interis
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U interis -d interis"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Playwright's webServer config spawns `bun run dev` for both apps
+    # itself (see apps/e2e/playwright.config.ts), inheriting this job's env -
+    # unlike the backend job, TMDB_ACCESS_TOKEN here is the real secret:
+    # E2E exercises the full stack including the real TMDB integration,
+    # which is the point of E2E versus the offline integration/unit suites.
+    env:
+      DATABASE_URL: postgres://interis:interis@localhost:5432/interis
+      DIRECT_DATABASE_URL: postgres://interis:interis@localhost:5432/interis
+      BETTER_AUTH_URL: http://localhost:5000
+      BETTER_AUTH_SECRET: ci-test-secret-not-for-production
+      TMDB_ACCESS_TOKEN: ${{ secrets.TMDB_ACCESS_TOKEN }}
+      # Must match Playwright's baseURL exactly (127.0.0.1, not localhost) -
+      # the browser's real Origin header has to pass requireTrustedOriginForMutations.
+      CORS_ORIGIN: http://127.0.0.1:5173
+      PORT: "5000"
+      NODE_ENV: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install backend dependencies
+        run: bun install
+        working-directory: apps/api
+
+      - name: Run backend migrations
+        run: bun run scripts/docker-migrate.ts
+        working-directory: apps/api
+
+      - name: Install frontend dependencies
+        run: bun install
+        working-directory: apps/web
+
+      - name: Install e2e dependencies
+        run: bun install
+        working-directory: apps/e2e
+
+      - name: Run e2e typecheck
+        run: bun run typecheck
+        working-directory: apps/e2e
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps chromium
+        working-directory: apps/e2e
+
+      - name: Run e2e tests
+        run: bun run test
+        working-directory: apps/e2e
