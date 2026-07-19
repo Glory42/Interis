@@ -7,6 +7,4 @@ export const toAuthUser = (row: AuthUserRow): AuthUser => ({
   username: row.username,
   displayUsername: row.displayUsername,
   name: row.name,
-  emailVerified: row.emailVerified,
-  image: row.image,
 });

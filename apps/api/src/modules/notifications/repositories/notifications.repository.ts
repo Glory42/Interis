@@ -32,7 +32,6 @@ export class NotificationsRepository {
         actorId: notifications.actorId,
         actorUsername: user.username,
         actorDisplayUsername: user.displayUsername,
-        actorImage: user.image,
         actorAvatarUrl: profiles.avatarUrl,
         type: notifications.type,
         entityId: notifications.entityId,

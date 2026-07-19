@@ -78,7 +78,6 @@ export class AuthService {
       id: userId,
       name: normalizedUsername,
       email: input.email,
-      emailVerified: false,
       username: normalizedUsername,
       displayUsername: normalizedUsername,
     });

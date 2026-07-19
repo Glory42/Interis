@@ -96,7 +96,6 @@ export type MovieDetailReviewItem = {
     id: string;
     username: string;
     displayUsername: string | null;
-    image: string | null;
     avatarUrl: string | null;
   };
 };

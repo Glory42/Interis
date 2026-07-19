@@ -10,7 +10,6 @@ const profileSelect = {
   id: user.id,
   name: user.name,
   email: user.email,
-  image: user.image,
   username: user.username,
   displayUsername: user.displayUsername,
   bio: profiles.bio,
@@ -64,7 +63,6 @@ export class UsersProfileRepository {
         id: user.id,
         username: user.username,
         displayUsername: user.displayUsername,
-        image: user.image,
         avatarUrl: profiles.avatarUrl,
       })
       .from(user)

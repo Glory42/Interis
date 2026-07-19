@@ -135,7 +135,6 @@ export class MoviesDetailService {
           id: reviewRow.userId,
           username: reviewRow.authorUsername,
           displayUsername: reviewRow.authorDisplayUsername,
-          image: reviewRow.authorImage,
           avatarUrl: reviewRow.authorAvatarUrl,
         },
       };

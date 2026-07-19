@@ -54,7 +54,6 @@ export class ModerationRepository {
         id: user.id,
         username: user.username,
         displayUsername: user.displayUsername,
-        image: user.image,
         avatarUrl: profiles.avatarUrl,
         createdAt: userBlocks.createdAt,
       })
@@ -99,7 +98,6 @@ export class ModerationRepository {
         id: user.id,
         username: user.username,
         displayUsername: user.displayUsername,
-        image: user.image,
         avatarUrl: profiles.avatarUrl,
         createdAt: userMutes.createdAt,
       })

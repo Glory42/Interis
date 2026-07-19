@@ -57,7 +57,6 @@ export class SocialRepository {
         id: user.id,
         username: user.username,
         displayUsername: user.displayUsername,
-        image: user.image,
         avatarUrl: profiles.avatarUrl,
       })
       .from(follows)
@@ -72,7 +71,6 @@ export class SocialRepository {
         id: user.id,
         username: user.username,
         displayUsername: user.displayUsername,
-        image: user.image,
         avatarUrl: profiles.avatarUrl,
       })
       .from(follows)
@@ -119,7 +117,6 @@ export class SocialRepository {
         actorId: user.id,
         actorUsername: user.username,
         actorDisplayUsername: user.displayUsername,
-        actorImage: user.image,
         actorAvatarUrl: profiles.avatarUrl,
       })
       .from(activities)

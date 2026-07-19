@@ -4,8 +4,6 @@ export type AuthUser = {
   username: string;
   displayUsername: string | null;
   name: string;
-  emailVerified: boolean;
-  image: string | null;
 };
 
 export type RequestSession = {

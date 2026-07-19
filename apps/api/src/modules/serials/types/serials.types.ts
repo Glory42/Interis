@@ -134,7 +134,6 @@ export type SerialDetailReviewItem = {
     id: string;
     username: string;
     displayUsername: string | null;
-    image: string | null;
     avatarUrl: string | null;
   };
   // Present for season/episode-scoped reviews, null for a whole-series review.

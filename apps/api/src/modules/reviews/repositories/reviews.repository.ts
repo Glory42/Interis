@@ -93,7 +93,6 @@ export class ReviewsRepository {
         authorUsername: user.username,
         authorDisplayUsername: user.displayUsername,
         authorAvatarUrl: profiles.avatarUrl,
-        authorImage: user.image,
       })
       .from(comments)
       .innerJoin(user, eq(comments.userId, user.id))
@@ -114,7 +113,6 @@ export class ReviewsRepository {
         authorUsername: user.username,
         authorDisplayUsername: user.displayUsername,
         authorAvatarUrl: profiles.avatarUrl,
-        authorImage: user.image,
       })
       .from(comments)
       .innerJoin(user, eq(comments.userId, user.id))
