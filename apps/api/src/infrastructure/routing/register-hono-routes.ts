@@ -1,5 +1,3 @@
-import type { Express } from "express";
-import { getRequestListener } from "@hono/node-server";
 import type { Hono } from "hono";
 import type { AppEnv } from "../http/hono-context.types";
 import healthApp from "../http/health.hono";
@@ -23,32 +21,28 @@ import publicApp from "../../modules/public/public.routes";
 import adminApp from "../../modules/admin/admin.routes";
 import authApp from "../../modules/auth/auth.routes";
 
-const mount = (app: Express, prefix: string, honoApp: Hono<AppEnv>): void => {
-  app.use(prefix, getRequestListener(honoApp.fetch));
-};
-
-// Every module (issue #30) is mounted here as its own Hono sub-app, ahead
-// of the global Express middleware stack's tail — each is a terminal
-// handler that reads its own request body straight from the raw stream.
-export const registerHonoRoutes = (app: Express): void => {
-  mount(app, "/api/health", healthApp);
-  mount(app, "/api/movies", moviesApp);
-  mount(app, "/api/serials", serialsApp);
-  mount(app, "/api/people", peopleApp);
-  mount(app, "/api/search", searchApp);
-  mount(app, "/api/users", usersApp);
-  mount(app, "/api/diary", diaryApp);
-  mount(app, "/api/reviews", reviewsApp);
-  mount(app, "/api/interactions", interactionsApp);
-  mount(app, "/api/posts", postsApp);
-  mount(app, "/api/social", socialApp);
-  mount(app, "/api/lists", listsApp);
-  mount(app, "/api/moderation", moderationApp);
-  mount(app, "/api/notifications", notificationsApp);
-  mount(app, "/api/reports", reportsApp);
-  mount(app, "/api/uploads", uploadsApp);
-  mount(app, "/api/data", dataTransferApp);
-  mount(app, "/api/public", publicApp);
-  mount(app, "/api/admin", adminApp);
-  mount(app, "/api/auth", authApp);
+// Every module (issue #30) is its own Hono sub-app, composed into the
+// top-level app's router via .route() — each keeps its own body-limit,
+// body-draining, and error-handling middleware chain intact.
+export const registerHonoRoutes = (app: Hono<AppEnv>): void => {
+  app.route("/api/health", healthApp);
+  app.route("/api/movies", moviesApp);
+  app.route("/api/serials", serialsApp);
+  app.route("/api/people", peopleApp);
+  app.route("/api/search", searchApp);
+  app.route("/api/users", usersApp);
+  app.route("/api/diary", diaryApp);
+  app.route("/api/reviews", reviewsApp);
+  app.route("/api/interactions", interactionsApp);
+  app.route("/api/posts", postsApp);
+  app.route("/api/social", socialApp);
+  app.route("/api/lists", listsApp);
+  app.route("/api/moderation", moderationApp);
+  app.route("/api/notifications", notificationsApp);
+  app.route("/api/reports", reportsApp);
+  app.route("/api/uploads", uploadsApp);
+  app.route("/api/data", dataTransferApp);
+  app.route("/api/public", publicApp);
+  app.route("/api/admin", adminApp);
+  app.route("/api/auth", authApp);
 };

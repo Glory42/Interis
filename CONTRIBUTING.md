@@ -24,7 +24,7 @@ Interis is a social movie journal app inspired by Letterboxd. It is a monorepo w
 
 | Package | Purpose |
 | --- | --- |
-| `apps/api/` | Express 5 API with Drizzle ORM, Better Auth, TMDB integration |
+| `apps/api/` | Hono API (Bun.serve) with Drizzle ORM, Better Auth, TMDB integration |
 | `apps/web/` | React 19 SPA with TanStack Router + Query, Tailwind CSS |
 
 Both packages run on Bun. The frontend proxies `/api` requests to the backend during development.
@@ -46,7 +46,7 @@ Both packages run on Bun. The frontend proxies `/api` requests to the backend du
 ### High-level data flow
 
 ```
-Browser -> Vite dev server (proxy /api) -> Express backend
+Browser -> Vite dev server (proxy /api) -> Hono backend (Bun.serve)
                                            |
                                     Better Auth (cookies)
                                            |
@@ -66,9 +66,9 @@ src/
 │   ├── auth/             # Session resolution from request headers
 │   ├── http/             # Validation response helpers
 │   ├── middlewares/      # requireAuth, requireAdmin, authCookieHeader
-│   ├── utils/            # asyncHandler wrapper, Pino logger
+│   ├── utils/            # Pino logger
 │   ├── validation/       # Shared Zod schemas (tmdbId, isoDate)
-│   └── types/            # Express Request augmentation (user, session)
+│   └── types/            # Hono context typing (user, session variables)
 ├── infrastructure/       # External system integrations
 │   ├── auth/             # Better Auth configuration + database hooks
 │   ├── database/         # Drizzle client + entity definitions
@@ -103,7 +103,7 @@ src/
 Every domain module follows the same layered structure:
 
 ```
-<module>.routes.ts       # Express Router, mounts controller methods with asyncHandler
+<module>.routes.ts       # Hono app (createHonoApp()), mounts controller methods
 <module>.controller.ts   # Static class: HTTP req/res, input validation, calls service
 <module>.service.ts      # Static facade: delegates to specialized sub-services
 <module>.entity.ts       # Drizzle pgTable schema definition
@@ -521,7 +521,7 @@ Run the `/performance-check` skill (`.claude/skills/performance-check/`) against
 
 ### Backend
 
-Tests use `bun:test` and run against a real Express server instance.
+Tests use `bun:test` and run against a real server instance (Hono on Bun.serve).
 
 Core directories:
 
