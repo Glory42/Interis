@@ -124,4 +124,47 @@ describe("admin", () => {
     const pendingAfter = (await listAfterRemoval.json()) as { id: string }[];
     expect(pendingAfter.find((item) => item.id === report!.id)).toBeUndefined();
   });
+
+  it("rejects a non-admin resetting another user's password", async () => {
+    const nonAdmin = await signUpTestUser(getServer().baseUrl, "admg");
+    const target = await signUpTestUser(getServer().baseUrl, "admh");
+
+    const response = await apiRequest(
+      getServer().baseUrl,
+      `/api/admin/users/${target.username}/reset-password`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ newPassword: "not-allowed-1234" }),
+      },
+      nonAdmin.jar,
+    );
+    expect(response.status).toBe(403);
+  });
+
+  it("lets an admin force-reset a user's password with no security question needed", async () => {
+    const admin = await signUpTestUser(getServer().baseUrl, "admi");
+    await promoteToAdmin(admin.username);
+    const target = await signUpTestUser(getServer().baseUrl, "admj");
+
+    const newPassword = "admin-forced-password-1234";
+    const resetResponse = await apiRequest(
+      getServer().baseUrl,
+      `/api/admin/users/${target.username}/reset-password`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ newPassword }),
+      },
+      admin.jar,
+    );
+    expect(resetResponse.status).toBe(200);
+
+    const loginResponse = await apiRequest(getServer().baseUrl, "/api/auth/sign-in/email", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: target.email, password: newPassword }),
+    });
+    expect(loginResponse.ok).toBe(true);
+  });
 });

@@ -63,3 +63,14 @@ export const listAdminUsers = async (query?: string): Promise<AdminUser[]> => {
   const response = await apiRequest<unknown>(`/api/admin/users${params}`, { method: "GET" });
   return z.array(adminUserSchema).parse(response);
 };
+
+export const resetUserPassword = async (
+  username: string,
+  newPassword: string,
+): Promise<void> => {
+  const response = await apiRequest<unknown, { newPassword: string }>(
+    `/api/admin/users/${encodeURIComponent(username)}/reset-password`,
+    { method: "POST", body: { newPassword } },
+  );
+  actionResponseSchema.parse(response);
+};

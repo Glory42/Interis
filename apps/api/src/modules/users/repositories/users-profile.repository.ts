@@ -1,6 +1,6 @@
 import { asc, eq, ilike, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
-import { user } from "../../../infrastructure/database/auth.entity";
+import { securityAnswers, user } from "../../../infrastructure/database/auth.entity";
 import { profiles } from "../users.entity";
 import type { UpdateProfileDto } from "../dto/users.dto";
 import type { ThemeId } from "../constants/theme.constants";
@@ -10,7 +10,6 @@ const profileSelect = {
   id: user.id,
   name: user.name,
   email: user.email,
-  image: user.image,
   username: user.username,
   displayUsername: user.displayUsername,
   bio: profiles.bio,
@@ -34,9 +33,14 @@ export class UsersProfileRepository {
     return result ?? null;
   }
 
+  // Self-view only — `hasSecurityQuestion` has no reason to be visible on
+  // other users' public profiles, so it stays out of `profileSelect`.
   static async findProfileById(userId: string) {
     const [result] = await db
-      .select(profileSelect)
+      .select({
+        ...profileSelect,
+        hasSecurityQuestion: sql<boolean>`exists (select 1 from ${securityAnswers} where ${securityAnswers.userId} = ${profiles.userId})`,
+      })
       .from(profiles)
       .innerJoin(user, eq(profiles.userId, user.id))
       .where(eq(profiles.userId, userId))
@@ -59,7 +63,6 @@ export class UsersProfileRepository {
         id: user.id,
         username: user.username,
         displayUsername: user.displayUsername,
-        image: user.image,
         avatarUrl: profiles.avatarUrl,
       })
       .from(user)

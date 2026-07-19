@@ -9,7 +9,6 @@ export type ActivityRow = {
   actorId: string;
   actorUsername: string;
   actorDisplayUsername: string | null;
-  actorImage: string | null;
   actorAvatarUrl: string | null;
 };
 
@@ -83,7 +82,6 @@ export type FeedItem = {
     id: string;
     username: string;
     displayUsername: string | null;
-    image: string | null;
     avatarUrl: string | null;
   };
   movie: FeedMovie | null;

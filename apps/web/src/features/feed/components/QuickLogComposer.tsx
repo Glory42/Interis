@@ -32,7 +32,7 @@ export const QuickLogComposer = ({ user }: QuickLogComposerProps) => {
   }
 
   const profileInitial = user.username.slice(0, 1).toUpperCase();
-  const avatarUrl = user.avatarUrl ?? user.image ?? null;
+  const avatarUrl = user.avatarUrl ?? null;
   const trimmedContent = content.trim();
   const canSubmit =
     trimmedContent.length > 0 &&

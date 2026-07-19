@@ -13,7 +13,6 @@ type SeriesReviewRow = {
   userId: string;
   authorUsername: string;
   authorDisplayUsername: string | null;
-  authorImage: string | null;
   authorAvatarUrl: string | null;
 };
 
@@ -36,7 +35,6 @@ export const resolveSeriesReviewItems = (
       id: reviewRow.userId,
       username: reviewRow.authorUsername,
       displayUsername: reviewRow.authorDisplayUsername,
-      image: reviewRow.authorImage,
       avatarUrl: reviewRow.authorAvatarUrl,
     },
     context: null,
@@ -87,7 +85,6 @@ export const resolveSeasonEpisodeReviewItems = async (
       id: row.userId,
       username: row.authorUsername,
       displayUsername: row.authorDisplayUsername,
-      image: row.authorImage,
       avatarUrl: row.authorAvatarUrl,
     },
     context: {

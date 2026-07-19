@@ -21,7 +21,7 @@ export const Route = createFileRoute("/profile/$username")({
     const title = `${displayName} (@${loaderData.username})`;
     const description =
       loaderData.bio || `${displayName}'s movie and TV journal on Interis.`;
-    const image = loaderData.avatarUrl ?? loaderData.image ?? "/og-image.png";
+    const image = loaderData.avatarUrl ?? "/og-image.png";
 
     return {
       meta: [

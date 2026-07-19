@@ -41,7 +41,7 @@ export const useCreateDiaryEntry = () => {
         createdAt: now,
         username: me.username,
         userDisplayName: me.name ?? me.username,
-        avatarUrl: me.avatarUrl ?? me.image ?? null,
+        avatarUrl: me.avatarUrl ?? null,
         reviewContent: variables.review ?? null,
         reviewContainsSpoilers: variables.review ? (variables.containsSpoilers ?? false) : null,
         reviewUpdatedAt: variables.review ? now : null,

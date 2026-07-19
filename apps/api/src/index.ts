@@ -6,8 +6,6 @@ import express, {
 import cors from "cors";
 import pinoHttp from "pino-http";
 import { randomUUID } from "node:crypto";
-import { toNodeHandler } from "better-auth/node";
-import { auth } from "./infrastructure/auth/auth";
 import { logger } from "./commons/utils/logger";
 import { env } from "./infrastructure/config/env";
 import { AppError } from "./commons/errors/app-error";
@@ -96,11 +94,8 @@ export const createApp = (options: CreateAppOptions = {}) => {
   app.use("/api", mutationLimiter);
   app.use(requireTrustedOriginForMutations(trustedOrigins));
   app.use("/api/auth", authLimiter);
-  // Bounded JSON parsing ahead of the auth handler — Better Auth's node
-  // adapter reads req.body directly when Express has already parsed it, so
-  // this both enforces a size limit and works transparently.
+  // Tighter body-size limit for auth payloads than the rest of the API.
   app.use("/api/auth", express.json({ limit: "20kb" }));
-  app.all("/api/auth/*splat", toNodeHandler(auth));
 
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ extended: true, limit: "1mb" }));

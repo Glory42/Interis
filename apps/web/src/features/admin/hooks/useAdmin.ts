@@ -4,6 +4,7 @@ import {
   listAdminUsers,
   listReports,
   removeReportedContent,
+  resetUserPassword,
   resolveReport,
   type ReportStatus,
 } from "@/features/admin/api";
@@ -39,3 +40,10 @@ const useReportAction = (mutationFn: (id: string) => Promise<void>) => {
 export const useResolveReport = () => useReportAction(resolveReport);
 export const useDismissReport = () => useReportAction(dismissReport);
 export const useRemoveReportedContent = () => useReportAction(removeReportedContent);
+
+export const useResetUserPassword = () => {
+  return useMutation({
+    mutationFn: ({ username, newPassword }: { username: string; newPassword: string }) =>
+      resetUserPassword(username, newPassword),
+  });
+};

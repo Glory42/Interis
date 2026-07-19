@@ -200,7 +200,6 @@ export const publicProfileSchema = z
     id: z.string(),
     name: z.string().nullish(),
     displayUsername: z.string().nullish(),
-    image: z.string().nullish(),
     username: z.string(),
     bio: z.string().nullish(),
     location: z.string().nullish(),
@@ -218,7 +217,6 @@ export const meProfileSchema = z
     id: z.string(),
     name: z.string().nullish(),
     email: z.string().email(),
-    image: z.string().nullish(),
     username: z.string(),
     bio: z.string().nullish(),
     location: z.string().nullish(),
@@ -227,6 +225,7 @@ export const meProfileSchema = z
     themeId: z.string().optional(),
     isAdmin: z.boolean(),
     createdAt: z.string().optional(),
+    hasSecurityQuestion: z.boolean(),
   })
   .passthrough();
 

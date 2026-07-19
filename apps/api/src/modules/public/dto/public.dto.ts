@@ -19,7 +19,6 @@ export type PublicProfileResponse = {
   username: string;
   displayUsername: string | null;
   name: string;
-  image: string | null;
   avatarUrl: string | null;
   bio: string | null;
   location: string | null;

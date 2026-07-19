@@ -137,7 +137,7 @@ export const useAppNavbarController = () => {
     }
   };
 
-  const profileImageUrl = user?.avatarUrl ?? user?.image ?? null;
+  const profileImageUrl = user?.avatarUrl ?? null;
   const profileInitial = user?.username.slice(0, 1).toUpperCase() ?? "U";
 
   return {

@@ -52,7 +52,6 @@ export class PublicService {
       username: profile.username,
       displayUsername: profile.displayUsername,
       name: profile.name,
-      image: profile.image,
       avatarUrl: profile.avatarUrl,
       bio: profile.bio,
       location: profile.location,

@@ -28,7 +28,6 @@ export class UsersReviewsRepository {
         authorId: user.id,
         authorUsername: user.username,
         authorDisplayUsername: user.displayUsername,
-        authorImage: user.image,
         authorAvatarUrl: profiles.avatarUrl,
       })
       .from(reviews)
@@ -111,7 +110,6 @@ export class UsersReviewsRepository {
           id: reviewRow.authorId,
           username: reviewRow.authorUsername,
           displayUsername: reviewRow.authorDisplayUsername,
-          image: reviewRow.authorImage,
           avatarUrl: reviewRow.authorAvatarUrl,
         },
         media: {
@@ -174,7 +172,6 @@ export class UsersReviewsRepository {
           id: reviewRow.authorId,
           username: reviewRow.authorUsername,
           displayUsername: reviewRow.authorDisplayUsername,
-          image: reviewRow.authorImage,
           avatarUrl: reviewRow.authorAvatarUrl,
         },
         media: {
@@ -263,7 +260,6 @@ export class UsersReviewsRepository {
           id: reviewRow.authorId,
           username: reviewRow.authorUsername,
           displayUsername: reviewRow.authorDisplayUsername,
-          image: reviewRow.authorImage,
           avatarUrl: reviewRow.authorAvatarUrl,
         },
         media: {

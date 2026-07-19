@@ -70,7 +70,7 @@ export const PostActivityDialog = ({
     };
   }, [isOpen, onClose]);
 
-  const actorAvatar = item.actor.avatarUrl ?? item.actor.image ?? null;
+  const actorAvatar = item.actor.avatarUrl ?? null;
   const actorInitial = item.actor.username.slice(0, 1).toUpperCase();
   const actorName = item.actor.displayUsername ?? item.actor.username;
   const likeCount = postDetailQuery.data?.likeCount ?? item.engagement.likeCount;

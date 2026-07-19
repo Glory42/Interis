@@ -15,7 +15,6 @@ export type SerialSeasonEpisodeReviewRow = {
   updatedAt: Date;
   authorUsername: string;
   authorDisplayUsername: string | null;
-  authorImage: string | null;
   authorAvatarUrl: string | null;
   seasonNumber: number;
   episodeNumber: number | null;
@@ -43,7 +42,6 @@ export class SerialsSeasonEpisodeReviewsRepository {
         mediaSourceId: reviews.mediaSourceId,
         authorUsername: user.username,
         authorDisplayUsername: user.displayUsername,
-        authorImage: user.image,
         authorAvatarUrl: profiles.avatarUrl,
       })
       .from(reviews)
@@ -123,7 +121,6 @@ export class SerialsSeasonEpisodeReviewsRepository {
         updatedAt: row.updatedAt,
         authorUsername: row.authorUsername,
         authorDisplayUsername: row.authorDisplayUsername,
-        authorImage: row.authorImage,
         authorAvatarUrl: row.authorAvatarUrl,
         seasonNumber: row.parsed.seasonNumber,
         episodeNumber: null,
@@ -138,7 +135,6 @@ export class SerialsSeasonEpisodeReviewsRepository {
         updatedAt: row.updatedAt,
         authorUsername: row.authorUsername,
         authorDisplayUsername: row.authorDisplayUsername,
-        authorImage: row.authorImage,
         authorAvatarUrl: row.authorAvatarUrl,
         seasonNumber: row.parsed.seasonNumber,
         episodeNumber: row.parsed.episodeNumber,

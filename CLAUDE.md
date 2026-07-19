@@ -40,12 +40,12 @@ bun run test:smoke   # Playwright smoke tests
 `apps/api/.env`:
 ```
 DATABASE_URL=
-BETTER_AUTH_URL=http://localhost:5000
-BETTER_AUTH_SECRET=
+JWT_ACCESS_SECRET=
 TMDB_ACCESS_TOKEN=Bearer <token>
 CORS_ORIGIN=http://localhost:5173
 PORT=5000
 # Optional: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_PUBLIC_URL
+# Optional, have defaults: JWT_ACCESS_TTL_SECONDS, REFRESH_TOKEN_TTL_SECONDS, AUTH_ACCESS_COOKIE_NAME, AUTH_REFRESH_COOKIE_NAME
 ```
 
 `apps/web/.env`:
@@ -60,7 +60,7 @@ VITE_API_BASE_URL=
 ```
 Browser → Vite dev server (proxies /api) → Express (port 5000)
                                                  ↓
-                                          Better Auth (cookie sessions)
+                                    In-house auth (JWT access + refresh cookies)
                                                  ↓
                                    controller → service → repository
                                                  ↓

@@ -1,0 +1,2 @@
+ALTER TABLE "sessions" ADD COLUMN "previous_refresh_token_hash" text;--> statement-breakpoint
+CREATE INDEX "sessions_previousRefreshTokenHash_idx" ON "sessions" USING btree ("previous_refresh_token_hash");

@@ -31,7 +31,7 @@ export const ProfileHeaderCompact = ({
     return profile.username.slice(0, 1).toUpperCase() || "U";
   }, [profile.username]);
 
-  const rawAvatarUrl = profile.avatarUrl ?? profile.image ?? null;
+  const rawAvatarUrl = profile.avatarUrl ?? null;
   const avatarUrl =
     rawAvatarUrl && rawAvatarUrl !== failedAvatarUrl ? rawAvatarUrl : null;
 

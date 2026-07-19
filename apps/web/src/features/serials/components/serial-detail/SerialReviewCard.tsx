@@ -29,7 +29,7 @@ export const SerialReviewCard = memo(function SerialReviewCard({
   review,
 }: SerialReviewCardProps) {
   const authorName = review.author.displayUsername ?? review.author.username;
-  const avatarUrl = review.author.avatarUrl ?? review.author.image;
+  const avatarUrl = review.author.avatarUrl;
   const contextLabel = formatReviewContextLabel(review.context);
 
   return (

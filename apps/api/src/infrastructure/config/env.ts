@@ -6,10 +6,17 @@ const envSchema = z.object({
     .default("development"),
   PORT: z.coerce.number().int().positive().default(5000),
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
-  BETTER_AUTH_URL: z.url("BETTER_AUTH_URL must be a valid URL"),
-  BETTER_AUTH_SECRET: z
+  JWT_ACCESS_SECRET: z
     .string()
-    .min(16, "BETTER_AUTH_SECRET must be at least 16 characters"),
+    .min(32, "JWT_ACCESS_SECRET must be at least 32 characters"),
+  JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().positive().default(15 * 60),
+  REFRESH_TOKEN_TTL_SECONDS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(30 * 24 * 60 * 60),
+  AUTH_ACCESS_COOKIE_NAME: z.string().min(1).default("interis_access_token"),
+  AUTH_REFRESH_COOKIE_NAME: z.string().min(1).default("interis_refresh_token"),
   TMDB_ACCESS_TOKEN: z.string().min(1, "TMDB_ACCESS_TOKEN is required"),
   CORS_ORIGIN: z.string().optional(),
   USE_LOCAL_DB_PROXY: z.coerce.boolean().default(false),

@@ -63,7 +63,7 @@ export function ProfileReviewDetailPage({
   const canReadSpoiler = !detail.containsSpoilers || isSpoilerRevealed;
   const displayAuthorName =
     detail.author.displayUsername ?? detail.author.username;
-  const authorAvatar = detail.author.avatarUrl ?? detail.author.image;
+  const authorAvatar = detail.author.avatarUrl;
   const isOwnReview =
     user !== null &&
     user.username.toLowerCase() === detail.author.username.toLowerCase();

@@ -19,7 +19,6 @@ export class MoviesReviewsRepository {
         rating: diaryEntries.rating,
         authorUsername: user.username,
         authorDisplayUsername: user.displayUsername,
-        authorImage: user.image,
         authorAvatarUrl: profiles.avatarUrl,
       })
       .from(reviews)

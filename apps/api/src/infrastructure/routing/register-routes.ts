@@ -17,8 +17,10 @@ import moderationRouter from "../../modules/moderation/moderation.routes";
 import notificationsRouter from "../../modules/notifications/notifications.routes";
 import reportsRouter from "../../modules/reports/reports.routes";
 import adminRouter from "../../modules/admin/admin.routes";
+import authRouter from "../../modules/auth/auth.routes";
 
 export const registerRoutes = (app: Express): void => {
+  app.use("/api/auth", authRouter);
   app.use("/api/search", searchRouter);
   app.use("/api/moderation", moderationRouter);
   app.use("/api/notifications", notificationsRouter);

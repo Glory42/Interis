@@ -93,7 +93,6 @@ export const toFeedItem = (
       id: row.actorId,
       username: row.actorUsername,
       displayUsername: row.actorDisplayUsername,
-      image: row.actorImage,
       avatarUrl: row.actorAvatarUrl,
     },
     movie,

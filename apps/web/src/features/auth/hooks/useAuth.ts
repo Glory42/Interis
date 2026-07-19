@@ -9,6 +9,9 @@ import {
   loginWithEmail,
   logoutCurrentUser,
   registerWithEmail,
+  requestPasswordReset,
+  resetPasswordWithSecurityAnswer,
+  setCurrentUserSecurityQuestion,
   updateCurrentUserIdentity,
 } from "@/features/auth/api";
 import type { LoginInput, RegisterInput } from "@/types/api";
@@ -77,4 +80,29 @@ export const useAuth = () => {
     isUpdateIdentityPending: updateIdentityMutation.isPending,
     isLogoutPending: logoutMutation.isPending,
   };
+};
+
+export const useRequestPasswordReset = () => {
+  return useMutation({
+    mutationFn: (input: { email: string }) => requestPasswordReset(input),
+  });
+};
+
+export const useResetPassword = () => {
+  return useMutation({
+    mutationFn: (input: { email: string; answer: string; newPassword: string }) =>
+      resetPasswordWithSecurityAnswer(input),
+  });
+};
+
+export const useSetSecurityQuestion = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: { question: string; answer: string }) =>
+      setCurrentUserSecurityQuestion(input),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: authKeys.me });
+    },
+  });
 };

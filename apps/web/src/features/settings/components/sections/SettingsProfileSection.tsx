@@ -94,7 +94,7 @@ export const SettingsProfileSection = () => {
     }
   };
 
-  const avatarImage = user.avatarUrl ?? user.image ?? null;
+  const avatarImage = user.avatarUrl ?? null;
   const avatarInitial = user.username.slice(0, 1).toUpperCase() || "U";
 
   return (

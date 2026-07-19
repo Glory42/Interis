@@ -65,7 +65,6 @@ export class UsersReadService {
       id: profile.id,
       username: profile.username,
       displayUsername: profile.displayUsername,
-      image: profile.image,
       avatarUrl: profile.avatarUrl,
       counts: {
         logs: summaryData.logs,

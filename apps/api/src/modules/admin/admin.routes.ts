@@ -9,5 +9,9 @@ const router = Router();
 router.use(requireAuth, requireAdmin);
 
 router.get("/users", asyncHandler(AdminController.listUsers));
+router.post(
+  "/users/:username/reset-password",
+  asyncHandler(AdminController.resetUserPassword),
+);
 
 export default router;

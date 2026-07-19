@@ -31,6 +31,7 @@ const baseUser = {
   themeId: "rose-pine",
   isAdmin: false,
   createdAt: "2026-01-01T00:00:00.000Z",
+  hasSecurityQuestion: true,
 };
 
 describe("auth guards", () => {
@@ -87,5 +88,33 @@ describe("auth guards", () => {
         to: "/",
       },
     });
+  });
+
+  it("redirects authenticated users with no security question to the setup page", async () => {
+    const queryClient = createTestQueryClient();
+    queryClient.setQueryData(authKeys.me, { ...baseUser, hasSecurityQuestion: false });
+
+    await expect(
+      requireAuthenticatedUser({
+        queryClient,
+        redirectPath: "/settings/profile",
+      }),
+    ).rejects.toMatchObject({
+      options: {
+        to: "/setup-security-question",
+      },
+    });
+  });
+
+  it("skips the security-question check when explicitly told to", async () => {
+    const queryClient = createTestQueryClient();
+    queryClient.setQueryData(authKeys.me, { ...baseUser, hasSecurityQuestion: false });
+
+    const user = await requireAuthenticatedUser({
+      queryClient,
+      skipSecurityQuestionCheck: true,
+    });
+
+    expect(user.username).toBe("cinefan");
   });
 });

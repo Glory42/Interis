@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { isApiError } from "@/lib/api-client";
 import { normalizeInternalRedirectPath } from "@/lib/router/redirect";
-import { useAuth } from "@/features/auth/hooks/useAuth";
+import { authQueryOptions, useAuth } from "@/features/auth/hooks/useAuth";
 
 type LoginFormProps = {
   redirectTo?: string;
@@ -19,6 +20,7 @@ type LoginFormProps = {
 
 export const LoginForm = ({ redirectTo }: LoginFormProps) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { login, isLoginPending } = useAuth();
 
   const [email, setEmail] = useState("");
@@ -31,6 +33,12 @@ export const LoginForm = ({ redirectTo }: LoginFormProps) => {
 
     try {
       await login({ email, password });
+
+      const freshUser = await queryClient.fetchQuery({ ...authQueryOptions, retry: false });
+      if (freshUser && !freshUser.hasSecurityQuestion) {
+        await navigate({ to: "/setup-security-question" });
+        return;
+      }
 
       const safeRedirectPath = normalizeInternalRedirectPath(redirectTo);
       if (safeRedirectPath) {
@@ -78,12 +86,20 @@ export const LoginForm = ({ redirectTo }: LoginFormProps) => {
           </div>
 
           <div className="space-y-1.5">
-            <label
-              className="text-sm font-medium text-foreground"
-              htmlFor="login-password"
-            >
-              Password
-            </label>
+            <div className="flex items-center justify-between">
+              <label
+                className="text-sm font-medium text-foreground"
+                htmlFor="login-password"
+              >
+                Password
+              </label>
+              <Link
+                to="/forgot-password"
+                className="text-sm text-muted-foreground hover:text-primary"
+              >
+                Forgot password?
+              </Link>
+            </div>
             <Input
               id="login-password"
               name="password"

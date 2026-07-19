@@ -39,7 +39,6 @@ export class SerialsReviewsRepository {
         rating: serialDiaryEntries.rating,
         authorUsername: user.username,
         authorDisplayUsername: user.displayUsername,
-        authorImage: user.image,
         authorAvatarUrl: profiles.avatarUrl,
       })
       .from(reviews)
@@ -184,7 +183,6 @@ export class SerialsReviewsRepository {
         authorUsername: user.username,
         authorDisplayUsername: user.displayUsername,
         authorAvatarUrl: profiles.avatarUrl,
-        authorImage: user.image,
       })
       .from(comments)
       .innerJoin(user, eq(comments.userId, user.id))
@@ -222,7 +220,6 @@ export class SerialsReviewsRepository {
         authorUsername: user.username,
         authorDisplayUsername: user.displayUsername,
         authorAvatarUrl: profiles.avatarUrl,
-        authorImage: user.image,
       })
       .from(comments)
       .innerJoin(user, eq(comments.userId, user.id))

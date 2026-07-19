@@ -9,8 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SetupSecurityQuestionRouteImport } from './routes/setup-security-question'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as SettingsRouteRouteImport } from './routes/settings/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -47,6 +49,11 @@ import { Route as ProfileUsernameListsNewRouteImport } from './routes/profile/$u
 import { Route as ProfileUsernameListsListIdIndexRouteImport } from './routes/profile/$username/lists/$listId/index'
 import { Route as ProfileUsernameListsListIdEditRouteImport } from './routes/profile/$username/lists/$listId/edit'
 
+const SetupSecurityQuestionRoute = SetupSecurityQuestionRouteImport.update({
+  id: '/setup-security-question',
+  path: '/setup-security-question',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -55,6 +62,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeveloperRoute = DeveloperRouteImport.update({
@@ -241,8 +253,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRouteRouteWithChildren
   '/developer': typeof DeveloperRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/setup-security-question': typeof SetupSecurityQuestionRoute
   '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
   '/actor/$slug': typeof ActorSlugRoute
   '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
@@ -279,8 +293,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/developer': typeof DeveloperRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/setup-security-question': typeof SetupSecurityQuestionRoute
   '/actor/$slug': typeof ActorSlugRoute
   '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
   '/director/$slug': typeof DirectorSlugRoute
@@ -318,8 +334,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRouteRouteWithChildren
   '/developer': typeof DeveloperRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/setup-security-question': typeof SetupSecurityQuestionRoute
   '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
   '/actor/$slug': typeof ActorSlugRoute
   '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
@@ -359,8 +377,10 @@ export interface FileRouteTypes {
     | '/'
     | '/settings'
     | '/developer'
+    | '/forgot-password'
     | '/login'
     | '/register'
+    | '/setup-security-question'
     | '/profile/$username'
     | '/actor/$slug'
     | '/cinema/$tmdbId'
@@ -397,8 +417,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/developer'
+    | '/forgot-password'
     | '/login'
     | '/register'
+    | '/setup-security-question'
     | '/actor/$slug'
     | '/cinema/$tmdbId'
     | '/director/$slug'
@@ -435,8 +457,10 @@ export interface FileRouteTypes {
     | '/'
     | '/settings'
     | '/developer'
+    | '/forgot-password'
     | '/login'
     | '/register'
+    | '/setup-security-question'
     | '/profile/$username'
     | '/actor/$slug'
     | '/cinema/$tmdbId'
@@ -475,8 +499,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SettingsRouteRoute: typeof SettingsRouteRouteWithChildren
   DeveloperRoute: typeof DeveloperRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
+  SetupSecurityQuestionRoute: typeof SetupSecurityQuestionRoute
   ProfileUsernameRouteRoute: typeof ProfileUsernameRouteRouteWithChildren
   ActorSlugRoute: typeof ActorSlugRoute
   CinemaTmdbIdRoute: typeof CinemaTmdbIdRoute
@@ -492,6 +518,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/setup-security-question': {
+      id: '/setup-security-question'
+      path: '/setup-security-question'
+      fullPath: '/setup-security-question'
+      preLoaderRoute: typeof SetupSecurityQuestionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -504,6 +537,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/developer': {
@@ -819,8 +859,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SettingsRouteRoute: SettingsRouteRouteWithChildren,
   DeveloperRoute: DeveloperRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
+  SetupSecurityQuestionRoute: SetupSecurityQuestionRoute,
   ProfileUsernameRouteRoute: ProfileUsernameRouteRouteWithChildren,
   ActorSlugRoute: ActorSlugRoute,
   CinemaTmdbIdRoute: CinemaTmdbIdRoute,
