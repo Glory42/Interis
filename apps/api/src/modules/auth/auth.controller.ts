@@ -1,12 +1,12 @@
-import type { Request, Response } from "express";
+import type { Context } from "hono";
+import type { AppEnv } from "../../infrastructure/http/hono-context.types";
 import {
   sendBadRequest,
   sendConflict,
   sendUnauthorized,
   sendValidationError,
-} from "../../commons/http/validation-response.helper";
+} from "../../commons/http/validation-response.hono";
 import { AppError } from "../../commons/errors/app-error";
-import { env } from "../../infrastructure/config/env";
 import { AuthService } from "./auth.service";
 import {
   ChangeEmailSchema,
@@ -20,176 +20,161 @@ import {
 } from "./dto/auth.dto";
 import {
   clearAuthCookies,
-  getDeviceInfoFromRequest,
-  parseCookie,
+  getDeviceInfoFromHonoContext,
   setAuthCookies,
-} from "./helpers/auth-cookies.helper";
+} from "./helpers/auth-cookies.hono";
+import { getRefreshTokenFromHonoContext } from "../../commons/auth/session-resolver.hono";
 
-const handleAuthError = (res: Response, error: unknown): void => {
+const handleAuthError = (c: Context, error: unknown): Response => {
   if (error instanceof AppError) {
     if (error.code === "UNAUTHORIZED") {
-      sendUnauthorized(res, error.message);
-      return;
+      return sendUnauthorized(c, error.message);
     }
     if (error.code === "CONFLICT") {
-      sendConflict(res, error.message);
-      return;
+      return sendConflict(c, error.message);
     }
-    sendBadRequest(res, error.message);
-    return;
+    return sendBadRequest(c, error.message);
   }
 
   throw error;
 };
 
-const getRefreshTokenFromRequest = (req: Request): string | undefined => {
-  return parseCookie(req.headers.cookie, env.AUTH_REFRESH_COOKIE_NAME) ?? undefined;
-};
-
 export class AuthController {
   // POST /api/auth/sign-up/email
-  static async signUp(req: Request, res: Response): Promise<void> {
-    const parsed = SignUpSchema.safeParse(req.body);
+  static async signUp(c: Context<AppEnv>): Promise<Response> {
+    const parsed = SignUpSchema.safeParse(await c.req.json());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
     try {
       const { user, session } = await AuthService.signup(
         parsed.data,
-        getDeviceInfoFromRequest(req),
+        getDeviceInfoFromHonoContext(c),
       );
-      setAuthCookies(res, session);
-      res.status(201).json({ user });
+      setAuthCookies(c, session);
+      return c.json({ user }, 201);
     } catch (error) {
-      handleAuthError(res, error);
+      return handleAuthError(c, error);
     }
   }
 
   // POST /api/auth/sign-in/email
-  static async signIn(req: Request, res: Response): Promise<void> {
-    const parsed = SignInSchema.safeParse(req.body);
+  static async signIn(c: Context<AppEnv>): Promise<Response> {
+    const parsed = SignInSchema.safeParse(await c.req.json());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
     try {
       const { user, session } = await AuthService.login(
         parsed.data,
-        getDeviceInfoFromRequest(req),
+        getDeviceInfoFromHonoContext(c),
       );
-      setAuthCookies(res, session);
-      res.status(200).json({ user });
+      setAuthCookies(c, session);
+      return c.json({ user }, 200);
     } catch (error) {
-      handleAuthError(res, error);
+      return handleAuthError(c, error);
     }
   }
 
   // POST /api/auth/sign-out
-  static async signOut(req: Request, res: Response): Promise<void> {
-    await AuthService.logout(getRefreshTokenFromRequest(req));
-    clearAuthCookies(res);
-    res.status(200).json({ success: true });
+  static async signOut(c: Context<AppEnv>): Promise<Response> {
+    await AuthService.logout(getRefreshTokenFromHonoContext(c) ?? undefined);
+    clearAuthCookies(c);
+    return c.json({ success: true }, 200);
   }
 
   // POST /api/auth/update-user
-  static async updateUser(req: Request, res: Response): Promise<void> {
-    const parsed = UpdateUserSchema.safeParse(req.body);
+  static async updateUser(c: Context<AppEnv>): Promise<Response> {
+    const parsed = UpdateUserSchema.safeParse(await c.req.json());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
     try {
-      const user = await AuthService.updateIdentity(req.user.id, parsed.data.username);
-      res.status(200).json({ user });
+      const user = await AuthService.updateIdentity(c.get("user").id, parsed.data.username);
+      return c.json({ user }, 200);
     } catch (error) {
-      handleAuthError(res, error);
+      return handleAuthError(c, error);
     }
   }
 
   // POST /api/auth/change-password
-  static async changePassword(req: Request, res: Response): Promise<void> {
-    const parsed = ChangePasswordSchema.safeParse(req.body);
+  static async changePassword(c: Context<AppEnv>): Promise<Response> {
+    const parsed = ChangePasswordSchema.safeParse(await c.req.json());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
     try {
-      await AuthService.changePassword(req.user.id, req.session.id, parsed.data);
-      res.status(200).json({ success: true });
+      await AuthService.changePassword(c.get("user").id, c.get("session").id, parsed.data);
+      return c.json({ success: true }, 200);
     } catch (error) {
-      handleAuthError(res, error);
+      return handleAuthError(c, error);
     }
   }
 
   // POST /api/auth/change-email
-  static async changeEmail(req: Request, res: Response): Promise<void> {
-    const parsed = ChangeEmailSchema.safeParse(req.body);
+  static async changeEmail(c: Context<AppEnv>): Promise<Response> {
+    const parsed = ChangeEmailSchema.safeParse(await c.req.json());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
     try {
       const user = await AuthService.changeEmail(
-        req.user.id,
+        c.get("user").id,
         parsed.data.newEmail,
         parsed.data.answer,
       );
-      res.status(200).json({ user });
+      return c.json({ user }, 200);
     } catch (error) {
-      handleAuthError(res, error);
+      return handleAuthError(c, error);
     }
   }
 
   // DELETE /api/auth/account — permanently deletes the caller's own
   // account and everything FK-cascaded from it (diary, reviews, follows,
   // lists, etc.), then clears their session.
-  static async deleteAccount(req: Request, res: Response): Promise<void> {
-    await AuthService.deleteAccount(req.user.id);
-    clearAuthCookies(res);
-    res.status(200).json({ success: true });
+  static async deleteAccount(c: Context<AppEnv>): Promise<Response> {
+    await AuthService.deleteAccount(c.get("user").id);
+    clearAuthCookies(c);
+    return c.json({ success: true }, 200);
   }
 
   // POST /api/auth/security-question
-  static async setSecurityQuestion(req: Request, res: Response): Promise<void> {
-    const parsed = SecurityQuestionSchema.safeParse(req.body);
+  static async setSecurityQuestion(c: Context<AppEnv>): Promise<Response> {
+    const parsed = SecurityQuestionSchema.safeParse(await c.req.json());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
-    await AuthService.setSecurityQuestion(req.user.id, parsed.data.question, parsed.data.answer);
-    res.status(200).json({ success: true });
+    await AuthService.setSecurityQuestion(c.get("user").id, parsed.data.question, parsed.data.answer);
+    return c.json({ success: true }, 200);
   }
 
   // POST /api/auth/forgot-password — looks up the account's security
   // question by email (necessarily reveals whether the account exists).
-  static async forgotPassword(req: Request, res: Response): Promise<void> {
-    const parsed = ForgotPasswordSchema.safeParse(req.body);
+  static async forgotPassword(c: Context<AppEnv>): Promise<Response> {
+    const parsed = ForgotPasswordSchema.safeParse(await c.req.json());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
     try {
       const { question } = await AuthService.getSecurityQuestionByEmail(parsed.data.email);
-      res.status(200).json({ question });
+      return c.json({ question }, 200);
     } catch (error) {
-      handleAuthError(res, error);
+      return handleAuthError(c, error);
     }
   }
 
   // POST /api/auth/reset-password
-  static async resetPassword(req: Request, res: Response): Promise<void> {
-    const parsed = ResetPasswordSchema.safeParse(req.body);
+  static async resetPassword(c: Context<AppEnv>): Promise<Response> {
+    const parsed = ResetPasswordSchema.safeParse(await c.req.json());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
     try {
@@ -198,9 +183,9 @@ export class AuthController {
         parsed.data.answer,
         parsed.data.newPassword,
       );
-      res.status(200).json({ success: true });
+      return c.json({ success: true }, 200);
     } catch (error) {
-      handleAuthError(res, error);
+      return handleAuthError(c, error);
     }
   }
 }

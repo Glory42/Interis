@@ -21,17 +21,15 @@ import uploadsApp from "../../modules/uploads/uploads.routes";
 import dataTransferApp from "../../modules/data-transfer/data-transfer.routes";
 import publicApp from "../../modules/public/public.routes";
 import adminApp from "../../modules/admin/admin.routes";
+import authApp from "../../modules/auth/auth.routes";
 
 const mount = (app: Express, prefix: string, honoApp: Hono<AppEnv>): void => {
   app.use(prefix, getRequestListener(honoApp.fetch));
 };
 
-// Modules ported to Hono (issue #30) are mounted here, ahead of Express's
-// body parsers in index.ts — each is a terminal handler that reads its own
-// request body straight from the raw stream, so it must never sit behind
-// express.json()/urlencoded() having already consumed it. As each module
-// moves off Express, its old app.use(prefix, router) line in
-// register-routes.ts is deleted and the Hono equivalent added here.
+// Every module (issue #30) is mounted here as its own Hono sub-app, ahead
+// of the global Express middleware stack's tail — each is a terminal
+// handler that reads its own request body straight from the raw stream.
 export const registerHonoRoutes = (app: Express): void => {
   mount(app, "/api/health", healthApp);
   mount(app, "/api/movies", moviesApp);
@@ -52,4 +50,5 @@ export const registerHonoRoutes = (app: Express): void => {
   mount(app, "/api/data", dataTransferApp);
   mount(app, "/api/public", publicApp);
   mount(app, "/api/admin", adminApp);
+  mount(app, "/api/auth", authApp);
 };
