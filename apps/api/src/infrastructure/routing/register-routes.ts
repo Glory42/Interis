@@ -1,6 +1,5 @@
 import type { Express } from "express";
 import listsRouter from "../../modules/lists/lists.routes";
-import serialsRouter from "../../modules/serials/serials.routes";
 import peopleRouter from "../../modules/people/people.routes";
 import diaryRouter from "../../modules/diary/diary.routes";
 import usersRouter from "../../modules/users/users.routes";
@@ -25,7 +24,6 @@ export const registerRoutes = (app: Express): void => {
   app.use("/api/notifications", notificationsRouter);
   app.use("/api/reports", reportsRouter);
   app.use("/api/admin", adminRouter);
-  app.use("/api/serials", serialsRouter);
   app.use("/api/people", peopleRouter);
   app.use("/api/diary", diaryRouter);
   app.use("/api/users", usersRouter);
