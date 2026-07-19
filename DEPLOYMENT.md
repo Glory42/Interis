@@ -5,9 +5,11 @@
 | Layer | Platform | How it deploys |
 |-------|----------|-----------------|
 | `apps/api/` | Cloudflare Workers | Push to `master` → Cloudflare's GitHub integration auto-builds and deploys |
+| `apps/web/` | Cloudflare Pages | Already set up (project `interis`) — push to `master` auto-builds and deploys |
+| `apps/docs/` | Cloudflare Pages | Already set up (project `interis-docs`) — push to `master` auto-builds and deploys |
 | DB migrations | Neon | Manual — run locally via `drizzle-kit` |
 
-`apps/web/` and `apps/docs/` are not part of this setup yet.
+`apps/web/` and `apps/docs/` already deploy via Cloudflare Pages, configured outside this repo (Cloudflare dashboard). This doc covers `apps/api/`'s Workers setup, which is new.
 
 **Never run `bun run cf:deploy` (`wrangler deploy`) from the CLI for this project.** Push to GitHub and let Cloudflare's Git integration pick it up. This keeps "what's live" always traceable to a commit on `master`, with no deploys that only exist on someone's machine.
 
