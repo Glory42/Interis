@@ -13,7 +13,6 @@ const notificationItemSchema = z
     actorId: z.string(),
     actorUsername: z.string(),
     actorDisplayUsername: z.string().nullable(),
-    actorImage: z.string().nullable(),
     actorAvatarUrl: z.string().nullable(),
     type: z.enum([
       "follow",
