@@ -4,12 +4,11 @@ import type { Context, MiddlewareHandler } from "hono";
 const tooLarge = (c: Context): Response =>
   c.json({ error: { message: "Request body too large", code: "PAYLOAD_TOO_LARGE" } }, 413);
 
-export const authBodyLimitMiddleware: MiddlewareHandler = bodyLimit({
-  maxSize: 20 * 1024,
-  onError: tooLarge,
-});
+export const createBodyLimitMiddleware = (maxSize: number): MiddlewareHandler =>
+  bodyLimit({ maxSize, onError: tooLarge });
 
-export const defaultBodyLimitMiddleware: MiddlewareHandler = bodyLimit({
-  maxSize: 1024 * 1024,
-  onError: tooLarge,
-});
+export const authBodyLimitMiddleware: MiddlewareHandler = createBodyLimitMiddleware(20 * 1024);
+
+export const defaultBodyLimitMiddleware: MiddlewareHandler = createBodyLimitMiddleware(
+  1024 * 1024,
+);

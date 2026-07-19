@@ -1,7 +1,10 @@
 import { Hono, type MiddlewareHandler } from "hono";
 import type { AuthUser, RequestSession } from "../../modules/auth/types/auth.types";
 import { onError } from "../../commons/errors/onError.hono";
-import { defaultBodyLimitMiddleware } from "../../commons/middlewares/bodyLimit.hono";
+import {
+  createBodyLimitMiddleware,
+  defaultBodyLimitMiddleware,
+} from "../../commons/middlewares/bodyLimit.hono";
 
 export type AppVariables = {
   user: AuthUser;
@@ -34,10 +37,14 @@ const drainRequestBody: MiddlewareHandler = async (c, next) => {
 // error handling (AppError, malformed JSON, generic 500), a 1mb body-size
 // cap (each ported module is mounted ahead of Express's body parsers, so
 // its old express.json({limit}) no longer applies), and body draining.
-export const createHonoApp = (): Hono<AppEnv> => {
+export const createHonoApp = (options?: { bodyLimitBytes?: number }): Hono<AppEnv> => {
   const app = new Hono<AppEnv>();
   app.onError(onError);
-  app.use(defaultBodyLimitMiddleware);
+  app.use(
+    options?.bodyLimitBytes
+      ? createBodyLimitMiddleware(options.bodyLimitBytes)
+      : defaultBodyLimitMiddleware,
+  );
   app.use(drainRequestBody);
   return app;
 };
