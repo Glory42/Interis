@@ -216,7 +216,7 @@ export const meProfileSchema = z
   .object({
     id: z.string(),
     name: z.string().nullish(),
-    email: z.string().email(),
+    email: z.email(),
     username: z.string(),
     bio: z.string().nullish(),
     location: z.string().nullish(),
@@ -232,7 +232,7 @@ export const meProfileSchema = z
 export const updateProfileInputSchema = z.object({
   bio: z.string().max(300).optional(),
   location: z.string().max(100).optional(),
-  avatarUrl: z.string().url().optional().or(z.literal("")),
+  avatarUrl: z.url().optional().or(z.literal("")),
   topPicks: z.array(updateTopPickCategoryInputSchema).max(2).optional(),
   favoriteGenres: z.array(favoriteGenreSchema).max(8).optional(),
 });
@@ -251,13 +251,13 @@ export const profileUpdateResponseSchema = z
   .passthrough();
 
 export const loginInputSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8),
 });
 
 export const registerInputSchema = z.object({
   username: z.string().min(3).max(20).regex(/^[a-z0-9_]+$/),
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8).max(128),
 });
 
