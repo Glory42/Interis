@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -78,12 +78,20 @@ export const LoginForm = ({ redirectTo }: LoginFormProps) => {
           </div>
 
           <div className="space-y-1.5">
-            <label
-              className="text-sm font-medium text-foreground"
-              htmlFor="login-password"
-            >
-              Password
-            </label>
+            <div className="flex items-center justify-between">
+              <label
+                className="text-sm font-medium text-foreground"
+                htmlFor="login-password"
+              >
+                Password
+              </label>
+              <Link
+                to="/forgot-password"
+                className="text-sm text-muted-foreground hover:text-primary"
+              >
+                Forgot password?
+              </Link>
+            </div>
             <Input
               id="login-password"
               name="password"

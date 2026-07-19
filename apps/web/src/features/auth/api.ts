@@ -77,8 +77,6 @@ export const registerWithEmail = async (
 
   const authPayload = {
     username: normalizedUsername,
-    displayUsername: normalizedUsername,
-    name: normalizedUsername,
     email: payload.email,
     password: payload.password,
   };
@@ -111,8 +109,6 @@ export const updateCurrentUserIdentity = async (
       method: "POST",
       body: {
         username: normalizedUsername,
-        displayUsername: normalizedUsername,
-        name: normalizedUsername,
       },
     },
   );
@@ -159,6 +155,46 @@ export const changeCurrentUserEmail = async (input: {
 
   const response = await apiRequest<unknown, typeof payload>(
     "/api/auth/change-email",
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
+
+  unknownAuthResponseSchema.parse(response);
+};
+
+const forgotPasswordInputSchema = z.object({
+  email: z.string().email(),
+});
+
+const resetPasswordInputSchema = z.object({
+  token: z.string().min(1),
+  newPassword: z.string().min(8).max(128),
+});
+
+export const requestPasswordReset = async (input: { email: string }): Promise<void> => {
+  const payload = forgotPasswordInputSchema.parse(input);
+
+  const response = await apiRequest<unknown, typeof payload>(
+    "/api/auth/forgot-password",
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
+
+  unknownAuthResponseSchema.parse(response);
+};
+
+export const resetPasswordWithToken = async (input: {
+  token: string;
+  newPassword: string;
+}): Promise<void> => {
+  const payload = resetPasswordInputSchema.parse(input);
+
+  const response = await apiRequest<unknown, typeof payload>(
+    "/api/auth/reset-password",
     {
       method: "POST",
       body: payload,

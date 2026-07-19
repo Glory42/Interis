@@ -9,6 +9,8 @@ import {
   loginWithEmail,
   logoutCurrentUser,
   registerWithEmail,
+  requestPasswordReset,
+  resetPasswordWithToken,
   updateCurrentUserIdentity,
 } from "@/features/auth/api";
 import type { LoginInput, RegisterInput } from "@/types/api";
@@ -77,4 +79,17 @@ export const useAuth = () => {
     isUpdateIdentityPending: updateIdentityMutation.isPending,
     isLogoutPending: logoutMutation.isPending,
   };
+};
+
+export const useRequestPasswordReset = () => {
+  return useMutation({
+    mutationFn: (input: { email: string }) => requestPasswordReset(input),
+  });
+};
+
+export const useResetPassword = () => {
+  return useMutation({
+    mutationFn: (input: { token: string; newPassword: string }) =>
+      resetPasswordWithToken(input),
+  });
 };
