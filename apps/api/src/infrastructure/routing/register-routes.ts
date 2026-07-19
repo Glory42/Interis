@@ -1,5 +1,4 @@
 import type { Express } from "express";
-import listsRouter from "../../modules/lists/lists.routes";
 import uploadsRouter from "../../modules/uploads/uploads.routes";
 import publicRouter from "../../modules/public/public.routes";
 import dataTransferRouter from "../../modules/data-transfer/data-transfer.routes";
@@ -17,6 +16,5 @@ export const registerRoutes = (app: Express): void => {
   app.use("/api/admin", adminRouter);
   app.use("/api/uploads", uploadsRouter);
   app.use("/api/public", publicRouter);
-  app.use("/api/lists", listsRouter);
   app.use("/api/data", dataTransferRouter);
 };
