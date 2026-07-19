@@ -52,4 +52,10 @@ export class AuthUsersRepository {
     const [updated] = await db.update(user).set({ email }).where(eq(user.id, id)).returning();
     return updated ?? null;
   }
+
+  // Every FK to user.id cascades (see entities), so this alone removes all
+  // of the account's diary entries, reviews, follows, lists, etc.
+  static async deleteById(id: string): Promise<void> {
+    await db.delete(user).where(eq(user.id, id));
+  }
 }

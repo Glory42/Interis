@@ -252,6 +252,11 @@ export class AuthService {
     return toAuthUser(updated);
   }
 
+  static async deleteAccount(userId: string): Promise<void> {
+    await SessionService.revokeAllSessionsForUser(userId);
+    await AuthUsersRepository.deleteById(userId);
+  }
+
   static async changeEmail(
     userId: string,
     newEmail: string,

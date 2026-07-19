@@ -146,6 +146,15 @@ export class AuthController {
     }
   }
 
+  // DELETE /api/auth/account — permanently deletes the caller's own
+  // account and everything FK-cascaded from it (diary, reviews, follows,
+  // lists, etc.), then clears their session.
+  static async deleteAccount(req: Request, res: Response): Promise<void> {
+    await AuthService.deleteAccount(req.user.id);
+    clearAuthCookies(res);
+    res.status(200).json({ success: true });
+  }
+
   // POST /api/auth/security-question
   static async setSecurityQuestion(req: Request, res: Response): Promise<void> {
     const parsed = SecurityQuestionSchema.safeParse(req.body);

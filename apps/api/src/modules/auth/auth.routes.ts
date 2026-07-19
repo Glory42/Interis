@@ -12,6 +12,7 @@ router.post("/forgot-password", asyncHandler(AuthController.forgotPassword));
 router.post("/reset-password", asyncHandler(AuthController.resetPassword));
 
 router.post("/update-user", requireAuth, asyncHandler(AuthController.updateUser));
+router.delete("/account", requireAuth, asyncHandler(AuthController.deleteAccount));
 router.post("/change-password", requireAuth, asyncHandler(AuthController.changePassword));
 router.post("/change-email", requireAuth, asyncHandler(AuthController.changeEmail));
 router.post(
