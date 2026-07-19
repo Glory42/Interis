@@ -1,7 +1,11 @@
 import type { Request, Response } from "express";
 import { sendValidationError } from "../../commons/http/validation-response.helper";
 import { AdminService } from "./admin.service";
-import { ListUsersQuerySchema, type ListUsersQuery } from "./dto/admin.dto";
+import {
+  AdminResetPasswordSchema,
+  ListUsersQuerySchema,
+  type ListUsersQuery,
+} from "./dto/admin.dto";
 
 export class AdminController {
   static async listUsers(
@@ -20,5 +24,20 @@ export class AdminController {
       parsed.data.offset ?? 0,
     );
     res.status(200).json(users);
+  }
+
+  // POST /api/admin/users/:username/reset-password
+  static async resetUserPassword(
+    req: Request<{ username: string }>,
+    res: Response,
+  ): Promise<void> {
+    const parsed = AdminResetPasswordSchema.safeParse(req.body);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    await AdminService.resetUserPassword(req.params.username, parsed.data.newPassword);
+    res.status(200).json({ success: true });
   }
 }
