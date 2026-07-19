@@ -80,7 +80,6 @@ export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
   authSessions: many(authSessions),
-  passwordResetTokens: many(passwordResetTokens),
   credentials: many(credentials),
 }));
 
@@ -125,23 +124,18 @@ export const authSessions = pgTable(
   ],
 );
 
-export const passwordResetTokens = pgTable(
-  "password_reset_tokens",
-  {
-    id: text("id").primaryKey(),
-    userId: text("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    tokenHash: text("token_hash").notNull().unique(),
-    expiresAt: timestamp("expires_at").notNull(),
-    usedAt: timestamp("used_at"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-  },
-  (table) => [
-    index("password_reset_tokens_userId_idx").on(table.userId),
-    uniqueIndex("password_reset_tokens_tokenHash_idx").on(table.tokenHash),
-  ],
-);
+export const securityAnswers = pgTable("security_answers", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  question: text("question").notNull(),
+  answerHash: text("answer_hash").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
 
 export const credentialTypeEnum = pgEnum("credential_type", ["password", "oauth"]);
 
@@ -167,8 +161,8 @@ export const authSessionsRelations = relations(authSessions, ({ one }) => ({
   user: one(user, { fields: [authSessions.userId], references: [user.id] }),
 }));
 
-export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
-  user: one(user, { fields: [passwordResetTokens.userId], references: [user.id] }),
+export const securityAnswersRelations = relations(securityAnswers, ({ one }) => ({
+  user: one(user, { fields: [securityAnswers.userId], references: [user.id] }),
 }));
 
 export const credentialsRelations = relations(credentials, ({ one }) => ({
