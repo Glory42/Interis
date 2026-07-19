@@ -1,17 +1,13 @@
-import { Router } from "express";
+import { createHonoApp } from "../../infrastructure/http/hono-context.types";
 import { AdminController } from "./admin.controller";
-import { asyncHandler } from "../../commons/utils/asyncHandler";
-import { requireAuth } from "../../commons/middlewares/requireAuth";
-import { requireAdmin } from "../../commons/middlewares/requireAdmin";
+import { requireAuth } from "../../commons/middlewares/requireAuth.hono";
+import { requireAdmin } from "../../commons/middlewares/requireAdmin.hono";
 
-const router = Router();
+const app = createHonoApp();
 
-router.use(requireAuth, requireAdmin);
+app.use(requireAuth, requireAdmin);
 
-router.get("/users", asyncHandler(AdminController.listUsers));
-router.post(
-  "/users/:username/reset-password",
-  asyncHandler(AdminController.resetUserPassword),
-);
+app.get("/users", AdminController.listUsers);
+app.post("/users/:username/reset-password", AdminController.resetUserPassword);
 
-export default router;
+export default app;
