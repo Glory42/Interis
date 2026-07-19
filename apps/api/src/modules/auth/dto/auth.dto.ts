@@ -23,6 +23,12 @@ export const ChangePasswordSchema = z.object({
 
 export const ChangeEmailSchema = z.object({
   newEmail: z.string().email(),
+  answer: z.string().min(1).max(200),
+});
+
+export const SecurityQuestionSchema = z.object({
+  question: z.string().min(4).max(200),
+  answer: z.string().min(1).max(200),
 });
 
 export const ForgotPasswordSchema = z.object({
@@ -30,6 +36,7 @@ export const ForgotPasswordSchema = z.object({
 });
 
 export const ResetPasswordSchema = z.object({
-  token: z.string().min(1),
+  email: z.string().email(),
+  answer: z.string().min(1).max(200),
   newPassword: z.string().min(1).max(256),
 });

@@ -77,10 +77,6 @@ R2_ACCESS_KEY_ID=
 R2_SECRET_ACCESS_KEY=
 R2_BUCKET_NAME=
 R2_PUBLIC_URL=
-
-# Optional (password-reset emails log to console without these)
-RESEND_API_KEY=
-RESEND_FROM_EMAIL=
 ```
 
 2) Configure frontend env (`apps/web/.env`)

@@ -13,6 +13,7 @@ import {
   ChangePasswordSchema,
   ForgotPasswordSchema,
   ResetPasswordSchema,
+  SecurityQuestionSchema,
   SignInSchema,
   SignUpSchema,
   UpdateUserSchema,
@@ -134,14 +135,31 @@ export class AuthController {
     }
 
     try {
-      const user = await AuthService.changeEmail(req.user.id, parsed.data.newEmail);
+      const user = await AuthService.changeEmail(
+        req.user.id,
+        parsed.data.newEmail,
+        parsed.data.answer,
+      );
       res.status(200).json({ user });
     } catch (error) {
       handleAuthError(res, error);
     }
   }
 
-  // POST /api/auth/forgot-password
+  // POST /api/auth/security-question
+  static async setSecurityQuestion(req: Request, res: Response): Promise<void> {
+    const parsed = SecurityQuestionSchema.safeParse(req.body);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    await AuthService.setSecurityQuestion(req.user.id, parsed.data.question, parsed.data.answer);
+    res.status(200).json({ success: true });
+  }
+
+  // POST /api/auth/forgot-password — looks up the account's security
+  // question by email (necessarily reveals whether the account exists).
   static async forgotPassword(req: Request, res: Response): Promise<void> {
     const parsed = ForgotPasswordSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -149,9 +167,12 @@ export class AuthController {
       return;
     }
 
-    await AuthService.requestPasswordReset(parsed.data.email);
-    // Always the same response — don't reveal whether the email exists.
-    res.status(200).json({ success: true });
+    try {
+      const { question } = await AuthService.getSecurityQuestionByEmail(parsed.data.email);
+      res.status(200).json({ question });
+    } catch (error) {
+      handleAuthError(res, error);
+    }
   }
 
   // POST /api/auth/reset-password
@@ -163,7 +184,11 @@ export class AuthController {
     }
 
     try {
-      await AuthService.resetPassword(parsed.data.token, parsed.data.newPassword);
+      await AuthService.resetPasswordWithSecurityAnswer(
+        parsed.data.email,
+        parsed.data.answer,
+        parsed.data.newPassword,
+      );
       res.status(200).json({ success: true });
     } catch (error) {
       handleAuthError(res, error);

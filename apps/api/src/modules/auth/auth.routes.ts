@@ -14,5 +14,10 @@ router.post("/reset-password", asyncHandler(AuthController.resetPassword));
 router.post("/update-user", requireAuth, asyncHandler(AuthController.updateUser));
 router.post("/change-password", requireAuth, asyncHandler(AuthController.changePassword));
 router.post("/change-email", requireAuth, asyncHandler(AuthController.changeEmail));
+router.post(
+  "/security-question",
+  requireAuth,
+  asyncHandler(AuthController.setSecurityQuestion),
+);
 
 export default router;
