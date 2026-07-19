@@ -17,7 +17,7 @@ A social movie journal app inspired by Letterboxd + timeline-style social apps.
 | Backend | Express 5 + TypeScript |
 | Database | Neon (PostgreSQL) |
 | ORM | Drizzle ORM |
-| Auth | Better Auth |
+| Auth | In-house (JWT access + rotating refresh tokens, argon2id via `Bun.password`) |
 | Frontend | React 19 + Vite |
 | Routing | TanStack Router (file-based) |
 | Data | TanStack Query |
@@ -66,8 +66,7 @@ Prerequisites:
 
 ```env
 DATABASE_URL=
-BETTER_AUTH_URL=http://localhost:5000
-BETTER_AUTH_SECRET=
+JWT_ACCESS_SECRET=
 TMDB_ACCESS_TOKEN=
 CORS_ORIGIN=http://localhost:5173
 PORT=5000
@@ -78,6 +77,10 @@ R2_ACCESS_KEY_ID=
 R2_SECRET_ACCESS_KEY=
 R2_BUCKET_NAME=
 R2_PUBLIC_URL=
+
+# Optional (password-reset emails log to console without these)
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=
 ```
 
 2) Configure frontend env (`apps/web/.env`)
@@ -138,7 +141,7 @@ bun run build
 
 | Prefix | Purpose |
 | --- | --- |
-| `POST /api/auth/*` | Better Auth endpoints (session, sign-in, sign-up, update-user) |
+| `POST /api/auth/*` | In-house auth (sign-up, sign-in, sign-out, update-user, password reset) |
 | `GET /api/movies/*` | Search, detail, logs, archive, trending |
 | `GET /api/serials/*` | TV series search, detail, archive |
 | `GET /api/people/*` | Director/actor pages |
