@@ -46,8 +46,7 @@ services:
       # Migrations bypass the HTTP proxy entirely (see scripts/docker-migrate.ts).
       DIRECT_DATABASE_URL: postgres://interis:interis@postgres:5432/interis
       USE_LOCAL_DB_PROXY: "true"
-      BETTER_AUTH_URL: http://localhost:5000
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-docker-local-dev-secret-change-me}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-docker-local-dev-secret-change-me-32chars}
       TMDB_ACCESS_TOKEN: ${TMDB_ACCESS_TOKEN:-Bearer docker-local-dev-placeholder}
       CORS_ORIGIN: http://localhost:5173
       PORT: "5000"
