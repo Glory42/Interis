@@ -227,6 +227,7 @@ export const meProfileSchema = z
     themeId: z.string().optional(),
     isAdmin: z.boolean(),
     createdAt: z.string().optional(),
+    hasSecurityQuestion: z.boolean(),
   })
   .passthrough();
 
