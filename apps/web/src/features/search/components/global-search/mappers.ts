@@ -12,7 +12,7 @@ export const toUserEntry = (profile: UserSearchResult): UserResultEntry => {
     id: `users-${profile.id}`,
     username: profile.username,
     displayName: profileName,
-    avatarUrl: profile.avatarUrl ?? profile.image ?? null,
+    avatarUrl: profile.avatarUrl ?? null,
   };
 };
 

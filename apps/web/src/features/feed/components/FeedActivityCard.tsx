@@ -161,7 +161,7 @@ export const FeedActivityCard = memo(function FeedActivityCard({ item }: FeedAct
   const channelTint = channel ? feedChannelMeta[channel].tint : "rgba(156, 163, 175, 0.08)";
   const actorName = item.actor.displayUsername ?? item.actor.username;
   const actorInitial = item.actor.username.slice(0, 1).toUpperCase();
-  const actorAvatar = item.actor.avatarUrl ?? item.actor.image ?? null;
+  const actorAvatar = item.actor.avatarUrl ?? null;
 
   const channelStyle = {
     borderColor: `color-mix(in srgb, ${channelColor} 36%, transparent)`,

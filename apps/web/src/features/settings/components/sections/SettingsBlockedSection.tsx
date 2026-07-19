@@ -49,7 +49,7 @@ const UserRow = ({
   moderatedUser: ModeratedUser;
   action: "unblock" | "unmute";
 }) => {
-  const avatarUrl = moderatedUser.avatarUrl ?? moderatedUser.image ?? null;
+  const avatarUrl = moderatedUser.avatarUrl ?? null;
   const initial = moderatedUser.username.slice(0, 1).toUpperCase();
 
   return (

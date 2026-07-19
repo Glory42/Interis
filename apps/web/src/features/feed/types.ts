@@ -31,7 +31,6 @@ export const feedActorSchema = z.object({
   id: z.string(),
   username: z.string(),
   displayUsername: z.string().nullable(),
-  image: z.string().nullable(),
   avatarUrl: z.string().nullable(),
 });
 
@@ -125,7 +124,6 @@ export const meFeedSummarySchema = z.object({
   id: z.string(),
   username: z.string(),
   displayUsername: z.string().nullable(),
-  image: z.string().nullable(),
   avatarUrl: z.string().nullable(),
   counts: z.object({
     logs: z.number().int().nonnegative(),

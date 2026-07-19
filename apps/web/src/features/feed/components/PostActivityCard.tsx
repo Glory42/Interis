@@ -37,7 +37,7 @@ export const PostActivityCard = memo(function PostActivityCard({ item }: PostAct
   const { user } = useAuth();
 
   const actorName = item.actor.displayUsername ?? item.actor.username;
-  const actorAvatar = item.actor.avatarUrl ?? item.actor.image ?? null;
+  const actorAvatar = item.actor.avatarUrl ?? null;
   const actorInitial = item.actor.username.slice(0, 1).toUpperCase();
   const postContent = item.post?.content ?? item.metadata.excerpt ?? "Shared a post.";
   const channel = inferFeedChannel(item);

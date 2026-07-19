@@ -14,7 +14,6 @@ const moderatedUserSchema = z.object({
   id: z.string(),
   username: z.string(),
   displayUsername: z.string().nullish(),
-  image: z.string().nullish(),
   avatarUrl: z.string().nullish(),
   createdAt: z.coerce.date(),
 });

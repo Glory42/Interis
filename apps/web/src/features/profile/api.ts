@@ -57,7 +57,6 @@ const userSearchResultSchema = z.object({
   id: z.string(),
   username: z.string(),
   displayUsername: z.string().nullable(),
-  image: z.string().nullable(),
   avatarUrl: z.string().nullable(),
 });
 

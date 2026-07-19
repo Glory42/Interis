@@ -43,7 +43,7 @@ export const useReviewActivityCard = (item: FeedItem): ReviewActivityCardViewMod
   const unlikeReviewMutation = useUnlikeReview(reviewId);
 
   const actorName = item.actor.displayUsername ?? item.actor.username;
-  const actorAvatar = item.actor.avatarUrl ?? item.actor.image ?? null;
+  const actorAvatar = item.actor.avatarUrl ?? null;
   const actorInitial = item.actor.username.slice(0, 1).toUpperCase();
 
   const isLikeReviewActivity = item.kind === "liked_review";

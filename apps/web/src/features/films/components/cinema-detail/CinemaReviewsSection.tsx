@@ -89,7 +89,7 @@ export const CinemaReviewsSection = ({
         <div className="space-y-4">
           {reviews.map((review) => {
             const authorName = review.author.displayUsername ?? review.author.username;
-            const avatarUrl = review.author.avatarUrl ?? review.author.image;
+            const avatarUrl = review.author.avatarUrl;
 
             return (
               <article

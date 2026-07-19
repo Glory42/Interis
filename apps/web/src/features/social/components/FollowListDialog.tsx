@@ -93,7 +93,7 @@ export const FollowListDialog = ({
             ) : (
               <ul>
                 {users.map((u) => {
-                  const avatarUrl = u.avatarUrl ?? u.image ?? null;
+                  const avatarUrl = u.avatarUrl ?? null;
                   const initial = u.username.slice(0, 1).toUpperCase();
                   const isPendingThisUser =
                     isMutating &&
