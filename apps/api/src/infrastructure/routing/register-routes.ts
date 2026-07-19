@@ -3,7 +3,6 @@ import listsRouter from "../../modules/lists/lists.routes";
 import socialRouter from "../../modules/social/social.routes";
 import uploadsRouter from "../../modules/uploads/uploads.routes";
 import publicRouter from "../../modules/public/public.routes";
-import postsRouter from "../../modules/posts/posts.routes";
 import dataTransferRouter from "../../modules/data-transfer/data-transfer.routes";
 import moderationRouter from "../../modules/moderation/moderation.routes";
 import notificationsRouter from "../../modules/notifications/notifications.routes";
@@ -20,7 +19,6 @@ export const registerRoutes = (app: Express): void => {
   app.use("/api/social", socialRouter);
   app.use("/api/uploads", uploadsRouter);
   app.use("/api/public", publicRouter);
-  app.use("/api/posts", postsRouter);
   app.use("/api/lists", listsRouter);
   app.use("/api/data", dataTransferRouter);
 };
