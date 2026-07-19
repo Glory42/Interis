@@ -17,7 +17,7 @@ A social movie journal app inspired by Letterboxd + timeline-style social apps.
 | Backend | Hono (Bun.serve) + TypeScript |
 | Database | Neon (PostgreSQL) |
 | ORM | Drizzle ORM |
-| Auth | In-house (JWT access + rotating refresh tokens, argon2id via `Bun.password`) |
+| Auth | In-house (JWT access + rotating refresh tokens, PBKDF2-SHA256 via WebCrypto) |
 | Frontend | React 19 + Vite |
 | Routing | TanStack Router (file-based) |
 | Data | TanStack Query |
@@ -34,6 +34,7 @@ A social movie journal app inspired by Letterboxd + timeline-style social apps.
 ├── apps/web/         # React app (TanStack Router + Query)
 ├── apps/e2e/              # Playwright smoke and end-to-end tests
 ├── CONTRIBUTING.md   # Guidelines for contributors
+├── DEPLOYMENT.md      # Cloudflare Workers deploy setup for apps/api
 └── README.md
 ```
 
@@ -186,6 +187,13 @@ the main `DATABASE_URL`/dev database since the suite performs real writes).
 A pre-commit hook (Husky + lint-staged) runs ESLint on staged `apps/web` and
 `apps/api` files automatically — installed via `bun install` at the repo
 root (`prepare` script).
+
+## Deployment
+
+`apps/api` deploys to Cloudflare Workers on push to `master` via Cloudflare's
+GitHub integration (no CI/CD workflow file involved). See
+[DEPLOYMENT.md](DEPLOYMENT.md) for environment variable setup and first-time
+configuration.
 
 ## Architecture notes
 
