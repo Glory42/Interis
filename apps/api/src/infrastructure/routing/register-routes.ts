@@ -1,7 +1,6 @@
 import type { Express } from "express";
 import listsRouter from "../../modules/lists/lists.routes";
 import socialRouter from "../../modules/social/social.routes";
-import interactionsRouter from "../../modules/interactions/interactions.routes";
 import uploadsRouter from "../../modules/uploads/uploads.routes";
 import publicRouter from "../../modules/public/public.routes";
 import postsRouter from "../../modules/posts/posts.routes";
@@ -19,7 +18,6 @@ export const registerRoutes = (app: Express): void => {
   app.use("/api/reports", reportsRouter);
   app.use("/api/admin", adminRouter);
   app.use("/api/social", socialRouter);
-  app.use("/api/interactions", interactionsRouter);
   app.use("/api/uploads", uploadsRouter);
   app.use("/api/public", publicRouter);
   app.use("/api/posts", postsRouter);
