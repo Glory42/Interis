@@ -5,6 +5,7 @@ import type { AppEnv } from "../http/hono-context.types";
 import healthApp from "../http/health.hono";
 import moviesApp from "../../modules/movies/movies.routes";
 import serialsApp from "../../modules/serials/serials.routes";
+import peopleApp from "../../modules/people/people.routes";
 
 const mount = (app: Express, prefix: string, honoApp: Hono<AppEnv>): void => {
   app.use(prefix, getRequestListener(honoApp.fetch));
@@ -20,4 +21,5 @@ export const registerHonoRoutes = (app: Express): void => {
   mount(app, "/api/health", healthApp);
   mount(app, "/api/movies", moviesApp);
   mount(app, "/api/serials", serialsApp);
+  mount(app, "/api/people", peopleApp);
 };

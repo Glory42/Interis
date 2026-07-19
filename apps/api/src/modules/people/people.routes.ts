@@ -1,9 +1,8 @@
-import { Router } from "express";
-import { asyncHandler } from "../../commons/utils/asyncHandler";
+import { createHonoApp } from "../../infrastructure/http/hono-context.types";
 import { PeopleController } from "./people.controller";
 
-const router = Router();
+const app = createHonoApp();
 
-router.get("/:role/:slug", asyncHandler(PeopleController.getByRoleAndSlug));
+app.get("/:role/:slug", PeopleController.getByRoleAndSlug);
 
-export default router;
+export default app;
