@@ -46,7 +46,7 @@ Check that every entity exported from `apps/api/src/infrastructure/database/enti
 Scan `apps/api/src/modules/*/*.entity.ts` and cross-check against `apps/api/src/infrastructure/database/entities.ts`. Flag any entity that is defined but never exported from the central file (Drizzle won't track it for migrations).
 
 ### 6. Dead / orphaned routes
-In `apps/api/src/index.ts` find every `app.use(...)` registration. For each, confirm the imported router file exists and exports a valid Express router. Also grep for any `*.routes.ts` file that is never imported by `index.ts`.
+In `apps/api/src/infrastructure/routing/register-hono-routes.ts` find every `app.route(...)` registration. For each, confirm the imported module file exists and exports a valid Hono app (created via `createHonoApp()`). Also grep for any `*.routes.ts` file that is never imported there.
 
 ### 7. Unresolved TODOs and FIXMEs
 ```bash

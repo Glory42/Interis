@@ -1,6 +1,7 @@
-import type { Request, Response } from "express";
-import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
-import { sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
+import type { Context } from "hono";
+import type { AppEnv } from "../../infrastructure/http/hono-context.types";
+import { resolveViewerUserIdFromHonoContext } from "../../commons/auth/session-resolver.hono";
+import { sendNotFound, sendValidationError } from "../../commons/http/validation-response.hono";
 import { ListsService } from "../lists/lists.service";
 import { GetUserListsQuerySchema } from "../lists/dto/lists.dto";
 import { UsersService } from "./users.service";
@@ -8,222 +9,171 @@ import {
   SearchUsersQuerySchema,
   UpdateProfileSchema,
   UpdateThemeSchema,
-  type ProfileListQueryDto,
-  type SearchUsersQueryDto,
 } from "./dto/users.dto";
 import { parseProfileListPagination } from "./helpers/users-pagination.helper";
 
 export class UsersController {
-  static async getNetworkStats(_req: Request, res: Response): Promise<void> {
+  static async getNetworkStats(c: Context): Promise<Response> {
     const stats = await UsersService.getNetworkStats();
-    res.status(200).json(stats);
+    return c.json(stats, 200);
   }
 
-  static async search(
-    req: Request<{}, {}, {}, SearchUsersQueryDto>,
-    res: Response,
-  ): Promise<void> {
-    const parsed = SearchUsersQuerySchema.safeParse(req.query);
+  static async search(c: Context): Promise<Response> {
+    const parsed = SearchUsersQuerySchema.safeParse(c.req.query());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
     const users = await UsersService.searchUsers(parsed.data.query, parsed.data.limit);
-    res.status(200).json(users);
+    return c.json(users, 200);
   }
 
-  static async getProfile(
-    req: Request<{ username: string }>,
-    res: Response,
-  ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+  static async getProfile(c: Context): Promise<Response> {
+    const profile = await UsersService.findByUsername(c.req.param("username") as string);
     if (!profile) {
-      sendNotFound(res, "User not found");
-      return;
+      return sendNotFound(c, "User not found");
     }
     const stats = await UsersService.getStats(profile.id);
     const { email: _email, ...publicProfile } = profile;
-    res.status(200).json({ ...publicProfile, stats });
+    return c.json({ ...publicProfile, stats }, 200);
   }
 
-  static async getDetailedStats(
-    req: Request<{ username: string }>,
-    res: Response,
-  ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+  static async getDetailedStats(c: Context): Promise<Response> {
+    const profile = await UsersService.findByUsername(c.req.param("username") as string);
     if (!profile) {
-      sendNotFound(res, "User not found");
-      return;
+      return sendNotFound(c, "User not found");
     }
     const stats = await UsersService.getDetailedStats(profile.id);
-    res.status(200).json(stats);
+    return c.json(stats, 200);
   }
 
-  static async getUserReviews(
-    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
-    res: Response,
-  ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+  static async getUserReviews(c: Context): Promise<Response> {
+    const profile = await UsersService.findByUsername(c.req.param("username") as string);
     if (!profile) {
-      sendNotFound(res, "User not found");
-      return;
+      return sendNotFound(c, "User not found");
     }
-    const { limit, offset } = parseProfileListPagination(req.query);
+    const { limit, offset } = parseProfileListPagination(c.req.query());
     const userReviews = await UsersService.getReviewsWithMovies(profile.id, limit, offset);
-    res.status(200).json(userReviews);
+    return c.json(userReviews, 200);
   }
 
-  static async getUserReviewDetail(
-    req: Request<{ username: string; reviewId: string }>,
-    res: Response,
-  ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+  static async getUserReviewDetail(c: Context): Promise<Response> {
+    const username = c.req.param("username") as string;
+    const profile = await UsersService.findByUsername(username);
     if (!profile) {
-      sendNotFound(res, "User not found");
-      return;
+      return sendNotFound(c, "User not found");
     }
 
-    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
+    const viewerUserId = await resolveViewerUserIdFromHonoContext(c);
     const review = await UsersService.getReviewDetailByUsername(
-      req.params.username,
-      req.params.reviewId,
+      username,
+      c.req.param("reviewId") as string,
       viewerUserId,
     );
 
     if (!review) {
-      sendNotFound(res, "Review not found");
-      return;
+      return sendNotFound(c, "Review not found");
     }
 
-    res.status(200).json(review);
+    return c.json(review, 200);
   }
 
-  static async getUserLikes(
-    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
-    res: Response,
-  ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+  static async getUserLikes(c: Context): Promise<Response> {
+    const profile = await UsersService.findByUsername(c.req.param("username") as string);
     if (!profile) {
-      sendNotFound(res, "User not found");
-      return;
+      return sendNotFound(c, "User not found");
     }
-    const { limit, offset } = parseProfileListPagination(req.query);
+    const { limit, offset } = parseProfileListPagination(c.req.query());
     const liked = await UsersService.getLikedFilms(profile.id, limit, offset);
-    res.status(200).json(liked);
+    return c.json(liked, 200);
   }
 
-  static async getUserLikedReviews(
-    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
-    res: Response,
-  ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+  static async getUserLikedReviews(c: Context): Promise<Response> {
+    const profile = await UsersService.findByUsername(c.req.param("username") as string);
     if (!profile) {
-      sendNotFound(res, "User not found");
-      return;
+      return sendNotFound(c, "User not found");
     }
-    const { limit, offset } = parseProfileListPagination(req.query);
+    const { limit, offset } = parseProfileListPagination(c.req.query());
     const liked = await UsersService.getLikedReviews(profile.id, limit, offset);
-    res.status(200).json(liked);
+    return c.json(liked, 200);
   }
 
-  static async getUserLikedLists(
-    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
-    res: Response,
-  ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+  static async getUserLikedLists(c: Context): Promise<Response> {
+    const profile = await UsersService.findByUsername(c.req.param("username") as string);
     if (!profile) {
-      sendNotFound(res, "User not found");
-      return;
+      return sendNotFound(c, "User not found");
     }
-    const { limit, offset } = parseProfileListPagination(req.query);
+    const { limit, offset } = parseProfileListPagination(c.req.query());
     const liked = await UsersService.getLikedLists(profile.id, limit, offset);
-    res.status(200).json(liked);
+    return c.json(liked, 200);
   }
 
-  static async getUserWatchlist(
-    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
-    res: Response,
-  ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+  static async getUserWatchlist(c: Context): Promise<Response> {
+    const profile = await UsersService.findByUsername(c.req.param("username") as string);
     if (!profile) {
-      sendNotFound(res, "User not found");
-      return;
+      return sendNotFound(c, "User not found");
     }
 
-    const { limit, offset } = parseProfileListPagination(req.query);
+    const { limit, offset } = parseProfileListPagination(c.req.query());
     const watchlist = await UsersService.getWatchlistedFilms(profile.id, limit, offset);
-    res.status(200).json(watchlist);
+    return c.json(watchlist, 200);
   }
 
-  static async getMe(req: Request, res: Response): Promise<void> {
-    const profile = await UsersService.findById(req.user.id);
+  static async getMe(c: Context<AppEnv>): Promise<Response> {
+    const profile = await UsersService.findById(c.get("user").id);
     if (!profile) {
-      sendNotFound(res, "Profile not found");
-      return;
+      return sendNotFound(c, "Profile not found");
     }
-    res.status(200).json(profile);
+    return c.json(profile, 200);
   }
 
-  static async getMeSummary(req: Request, res: Response): Promise<void> {
-    const summary = await UsersService.getMeSummary(req.user.id);
+  static async getMeSummary(c: Context<AppEnv>): Promise<Response> {
+    const summary = await UsersService.getMeSummary(c.get("user").id);
     if (!summary) {
-      sendNotFound(res, "Profile not found");
-      return;
+      return sendNotFound(c, "Profile not found");
     }
 
-    res.status(200).json(summary);
+    return c.json(summary, 200);
   }
 
-  static async updateMe(req: Request, res: Response): Promise<void> {
-    const parsed = UpdateProfileSchema.safeParse(req.body);
+  static async updateMe(c: Context<AppEnv>): Promise<Response> {
+    const parsed = UpdateProfileSchema.safeParse(await c.req.json());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
-    const updated = await UsersService.updateProfile(req.user.id, parsed.data);
-    res.status(200).json(updated);
+    const updated = await UsersService.updateProfile(c.get("user").id, parsed.data);
+    return c.json(updated, 200);
   }
 
-  static async updateTheme(req: Request, res: Response): Promise<void> {
-    const parsed = UpdateThemeSchema.safeParse(req.body);
+  static async updateTheme(c: Context<AppEnv>): Promise<Response> {
+    const parsed = UpdateThemeSchema.safeParse(await c.req.json());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
-    const updated = await UsersService.updateTheme(
-      req.user.id,
-      parsed.data.themeId,
-    );
+    const updated = await UsersService.updateTheme(c.get("user").id, parsed.data.themeId);
 
     if (!updated) {
-      sendNotFound(res, "User not found");
-      return;
+      return sendNotFound(c, "User not found");
     }
 
-    res.status(200).json(updated);
+    return c.json(updated, 200);
   }
 
-  static async getUserLists(
-    req: Request<{ username: string }>,
-    res: Response,
-  ): Promise<void> {
-    const parsed = GetUserListsQuerySchema.safeParse(req.query);
+  static async getUserLists(c: Context): Promise<Response> {
+    const parsed = GetUserListsQuerySchema.safeParse(c.req.query());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
-    const profile = await UsersService.findByUsername(req.params.username);
+    const profile = await UsersService.findByUsername(c.req.param("username") as string);
     if (!profile) {
-      sendNotFound(res, "User not found");
-      return;
+      return sendNotFound(c, "User not found");
     }
 
-    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
+    const viewerUserId = await resolveViewerUserIdFromHonoContext(c);
     const publicOnly = viewerUserId !== profile.id;
-    const { limit, offset } = parseProfileListPagination(req.query);
+    const { limit, offset } = parseProfileListPagination(c.req.query());
 
     const lists = await ListsService.getUserLists(
       profile.id,
@@ -234,6 +184,6 @@ export class UsersController {
       offset,
     );
 
-    res.status(200).json(lists);
+    return c.json(lists, 200);
   }
 }

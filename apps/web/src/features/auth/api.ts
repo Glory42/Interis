@@ -20,7 +20,7 @@ const changePasswordInputSchema = z.object({
 });
 
 const changeEmailInputSchema = z.object({
-  newEmail: z.string().email(),
+  newEmail: z.email(),
   answer: z.string().min(1).max(200),
 });
 
@@ -189,7 +189,7 @@ export const setCurrentUserSecurityQuestion = async (input: {
 };
 
 const forgotPasswordInputSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
 });
 
 const forgotPasswordResponseSchema = z.object({
@@ -197,7 +197,7 @@ const forgotPasswordResponseSchema = z.object({
 });
 
 const resetPasswordInputSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   answer: z.string().min(1).max(200),
   newPassword: z.string().min(8).max(128),
 });

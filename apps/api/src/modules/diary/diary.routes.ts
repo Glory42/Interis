@@ -1,15 +1,14 @@
-import { Router } from "express";
+import { createHonoApp } from "../../infrastructure/http/hono-context.types";
 import { DiaryController } from "./diary.controller";
-import { requireAuth } from "../../commons/middlewares/requireAuth";
-import { asyncHandler } from "../../commons/utils/asyncHandler";
+import { requireAuth } from "../../commons/middlewares/requireAuth.hono";
 
-const router = Router();
+const app = createHonoApp();
 
-router.use(requireAuth);
+app.use(requireAuth);
 
-router.get("/", asyncHandler(DiaryController.getMyDiary));
-router.post("/", asyncHandler(DiaryController.create));
-router.put("/:id", asyncHandler(DiaryController.update));
-router.delete("/:id", asyncHandler(DiaryController.remove));
+app.get("/", DiaryController.getMyDiary);
+app.post("/", DiaryController.create);
+app.put("/:id", DiaryController.update);
+app.delete("/:id", DiaryController.remove);
 
-export default router;
+export default app;

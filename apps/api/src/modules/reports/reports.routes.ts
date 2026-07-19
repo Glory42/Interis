@@ -1,21 +1,16 @@
-import { Router } from "express";
+import { createHonoApp } from "../../infrastructure/http/hono-context.types";
 import { ReportsController } from "./reports.controller";
-import { asyncHandler } from "../../commons/utils/asyncHandler";
-import { requireAuth } from "../../commons/middlewares/requireAuth";
-import { requireAdmin } from "../../commons/middlewares/requireAdmin";
+import { requireAuth } from "../../commons/middlewares/requireAuth.hono";
+import { requireAdmin } from "../../commons/middlewares/requireAdmin.hono";
 
-const router = Router();
+const app = createHonoApp();
 
-router.use(requireAuth);
+app.use(requireAuth);
 
-router.post("/", asyncHandler(ReportsController.submit));
-router.get("/", requireAdmin, asyncHandler(ReportsController.list));
-router.post("/:id/resolve", requireAdmin, asyncHandler(ReportsController.resolve));
-router.post("/:id/dismiss", requireAdmin, asyncHandler(ReportsController.dismiss));
-router.post(
-  "/:id/remove-content",
-  requireAdmin,
-  asyncHandler(ReportsController.removeContent),
-);
+app.post("/", ReportsController.submit);
+app.get("/", requireAdmin, ReportsController.list);
+app.post("/:id/resolve", requireAdmin, ReportsController.resolve);
+app.post("/:id/dismiss", requireAdmin, ReportsController.dismiss);
+app.post("/:id/remove-content", requireAdmin, ReportsController.removeContent);
 
-export default router;
+export default app;

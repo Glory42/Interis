@@ -1,10 +1,7 @@
-import type { IncomingHttpHeaders } from "node:http";
-import { env } from "../../infrastructure/config/env";
 import { TokenService } from "../../modules/auth/services/token.service";
 import { SessionService } from "../../modules/auth/services/session.service";
 import { AuthUsersRepository } from "../../modules/auth/repositories/auth-users.repository";
 import { toAuthUser } from "../../modules/auth/helpers/auth-user-mapper.helper";
-import { parseCookie } from "../../modules/auth/helpers/auth-cookies.helper";
 import type { AuthUser } from "../../modules/auth/types/auth.types";
 
 export type ResolvedAuthSession = {
@@ -38,20 +35,4 @@ export const resolveSessionFromAccessToken = async (
   }
 
   return { user: toAuthUser(userRow), sessionId: claims.sessionId };
-};
-
-export const getAccessTokenFromHeaders = (headers: IncomingHttpHeaders): string | null => {
-  return parseCookie(headers.cookie, env.AUTH_ACCESS_COOKIE_NAME);
-};
-
-export const getRefreshTokenFromHeaders = (headers: IncomingHttpHeaders): string | null => {
-  return parseCookie(headers.cookie, env.AUTH_REFRESH_COOKIE_NAME);
-};
-
-export const resolveViewerUserIdFromHeaders = async (
-  headers: IncomingHttpHeaders,
-): Promise<string | null> => {
-  const accessToken = getAccessTokenFromHeaders(headers);
-  const resolved = await resolveSessionFromAccessToken(accessToken);
-  return resolved?.user.id ?? null;
 };

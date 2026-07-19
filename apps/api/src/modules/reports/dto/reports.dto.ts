@@ -18,7 +18,7 @@ export const ListReportsQuerySchema = z.object({
 export type ListReportsQuery = z.input<typeof ListReportsQuerySchema>;
 
 export const ReportParamsSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
 });
 
 export type ReportParams = z.input<typeof ReportParamsSchema>;

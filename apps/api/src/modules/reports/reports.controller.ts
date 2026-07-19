@@ -1,27 +1,18 @@
-import type { Request, Response } from "express";
-import {
-  sendErrorForStatus,
-  sendValidationError,
-} from "../../commons/http/validation-response.helper";
+import type { Context } from "hono";
+import type { AppEnv } from "../../infrastructure/http/hono-context.types";
+import { sendErrorForStatus, sendValidationError } from "../../commons/http/validation-response.hono";
 import { ReportsService } from "./reports.service";
-import {
-  ListReportsQuerySchema,
-  ReportParamsSchema,
-  SubmitReportSchema,
-  type ListReportsQuery,
-  type ReportParams,
-} from "./dto/reports.dto";
+import { ListReportsQuerySchema, ReportParamsSchema, SubmitReportSchema } from "./dto/reports.dto";
 
 export class ReportsController {
-  static async submit(req: Request, res: Response): Promise<void> {
-    const parsed = SubmitReportSchema.safeParse(req.body);
+  static async submit(c: Context<AppEnv>): Promise<Response> {
+    const parsed = SubmitReportSchema.safeParse(await c.req.json());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
     const result = await ReportsService.submitReport(
-      req.user.id,
+      c.get("user").id,
       parsed.data.targetType,
       parsed.data.targetId,
       parsed.data.reason,
@@ -29,21 +20,16 @@ export class ReportsController {
     );
 
     if ("error" in result) {
-      sendErrorForStatus(res, result.status, result.error);
-      return;
+      return sendErrorForStatus(c, result.status, result.error);
     }
 
-    res.status(201).json(result);
+    return c.json(result, 201);
   }
 
-  static async list(
-    req: Request<{}, {}, {}, ListReportsQuery>,
-    res: Response,
-  ): Promise<void> {
-    const parsed = ListReportsQuerySchema.safeParse(req.query);
+  static async list(c: Context<AppEnv>): Promise<Response> {
+    const parsed = ListReportsQuerySchema.safeParse(c.req.query());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
     const reports = await ReportsService.listReports(
@@ -51,51 +37,45 @@ export class ReportsController {
       parsed.data.limit ?? 20,
       parsed.data.offset ?? 0,
     );
-    res.status(200).json(reports);
+    return c.json(reports, 200);
   }
 
-  static async resolve(req: Request<ReportParams>, res: Response): Promise<void> {
-    const parsed = ReportParamsSchema.safeParse(req.params);
+  static async resolve(c: Context<AppEnv>): Promise<Response> {
+    const parsed = ReportParamsSchema.safeParse(c.req.param());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
-    const result = await ReportsService.resolveReport(parsed.data.id, req.user.id, "resolved");
+    const result = await ReportsService.resolveReport(parsed.data.id, c.get("user").id, "resolved");
     if ("error" in result) {
-      sendErrorForStatus(res, result.status, result.error);
-      return;
+      return sendErrorForStatus(c, result.status, result.error);
     }
-    res.status(200).json(result);
+    return c.json(result, 200);
   }
 
-  static async dismiss(req: Request<ReportParams>, res: Response): Promise<void> {
-    const parsed = ReportParamsSchema.safeParse(req.params);
+  static async dismiss(c: Context<AppEnv>): Promise<Response> {
+    const parsed = ReportParamsSchema.safeParse(c.req.param());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
-    const result = await ReportsService.resolveReport(parsed.data.id, req.user.id, "dismissed");
+    const result = await ReportsService.resolveReport(parsed.data.id, c.get("user").id, "dismissed");
     if ("error" in result) {
-      sendErrorForStatus(res, result.status, result.error);
-      return;
+      return sendErrorForStatus(c, result.status, result.error);
     }
-    res.status(200).json(result);
+    return c.json(result, 200);
   }
 
-  static async removeContent(req: Request<ReportParams>, res: Response): Promise<void> {
-    const parsed = ReportParamsSchema.safeParse(req.params);
+  static async removeContent(c: Context<AppEnv>): Promise<Response> {
+    const parsed = ReportParamsSchema.safeParse(c.req.param());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
-    const result = await ReportsService.removeContent(parsed.data.id, req.user.id);
+    const result = await ReportsService.removeContent(parsed.data.id, c.get("user").id);
     if ("error" in result) {
-      sendErrorForStatus(res, result.status, result.error);
-      return;
+      return sendErrorForStatus(c, result.status, result.error);
     }
-    res.status(200).json(result);
+    return c.json(result, 200);
   }
 }

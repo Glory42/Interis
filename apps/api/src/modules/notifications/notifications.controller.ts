@@ -1,50 +1,41 @@
-import type { Request, Response } from "express";
-import { sendValidationError } from "../../commons/http/validation-response.helper";
+import type { Context } from "hono";
+import type { AppEnv } from "../../infrastructure/http/hono-context.types";
+import { sendValidationError } from "../../commons/http/validation-response.hono";
 import { NotificationsService } from "./notifications.service";
-import {
-  ListNotificationsQuerySchema,
-  NotificationParamsSchema,
-  type ListNotificationsQuery,
-  type NotificationParams,
-} from "./dto/notifications.dto";
+import { ListNotificationsQuerySchema, NotificationParamsSchema } from "./dto/notifications.dto";
 
 export class NotificationsController {
-  static async list(
-    req: Request<{}, {}, {}, ListNotificationsQuery>,
-    res: Response,
-  ): Promise<void> {
-    const parsed = ListNotificationsQuerySchema.safeParse(req.query);
+  static async list(c: Context<AppEnv>): Promise<Response> {
+    const parsed = ListNotificationsQuerySchema.safeParse(c.req.query());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
     const page = await NotificationsService.listForUser(
-      req.user.id,
+      c.get("user").id,
       parsed.data.limit,
       parsed.data.cursor,
     );
-    res.status(200).json(page);
+    return c.json(page, 200);
   }
 
-  static async getUnreadCount(req: Request, res: Response): Promise<void> {
-    const count = await NotificationsService.getUnreadCount(req.user.id);
-    res.status(200).json({ count });
+  static async getUnreadCount(c: Context<AppEnv>): Promise<Response> {
+    const count = await NotificationsService.getUnreadCount(c.get("user").id);
+    return c.json({ count }, 200);
   }
 
-  static async markRead(req: Request<NotificationParams>, res: Response): Promise<void> {
-    const parsed = NotificationParamsSchema.safeParse(req.params);
+  static async markRead(c: Context<AppEnv>): Promise<Response> {
+    const parsed = NotificationParamsSchema.safeParse(c.req.param());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
-    await NotificationsService.markAsRead(req.user.id, parsed.data.id);
-    res.status(200).json({ success: true });
+    await NotificationsService.markAsRead(c.get("user").id, parsed.data.id);
+    return c.json({ success: true }, 200);
   }
 
-  static async markAllRead(req: Request, res: Response): Promise<void> {
-    await NotificationsService.markAllAsRead(req.user.id);
-    res.status(200).json({ success: true });
+  static async markAllRead(c: Context<AppEnv>): Promise<Response> {
+    await NotificationsService.markAllAsRead(c.get("user").id);
+    return c.json({ success: true }, 200);
   }
 }

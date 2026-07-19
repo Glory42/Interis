@@ -1,20 +1,16 @@
-import type { Request, Response } from "express";
-import { sendValidationError } from "../../commons/http/validation-response.helper";
+import type { Context } from "hono";
+import { sendValidationError } from "../../commons/http/validation-response.hono";
 import { SearchService } from "./search.service";
-import { SearchQuerySchema, type SearchQuery } from "./dto/search.dto";
+import { SearchQuerySchema } from "./dto/search.dto";
 
 export class SearchController {
-  static async searchTitles(
-    req: Request<{}, {}, {}, SearchQuery>,
-    res: Response,
-  ): Promise<void> {
-    const parsed = SearchQuerySchema.safeParse(req.query);
+  static async searchTitles(c: Context): Promise<Response> {
+    const parsed = SearchQuerySchema.safeParse(c.req.query());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
     const results = await SearchService.searchTitles(parsed.data.query);
-    res.status(200).json(results);
+    return c.json(results, 200);
   }
 }

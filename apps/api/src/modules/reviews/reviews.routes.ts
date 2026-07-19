@@ -1,41 +1,24 @@
-import { Router } from "express";
+import { createHonoApp } from "../../infrastructure/http/hono-context.types";
 import { ReviewsController } from "./reviews.controller";
-import { requireAuth } from "../../commons/middlewares/requireAuth";
-import { asyncHandler } from "../../commons/utils/asyncHandler";
+import { requireAuth } from "../../commons/middlewares/requireAuth.hono";
 
-const router = Router();
+const app = createHonoApp();
 
 // Public
-router.get("/:id", asyncHandler(ReviewsController.getById));
-router.get("/:id/comments", asyncHandler(ReviewsController.getComments));
+app.get("/:id", ReviewsController.getById);
+app.get("/:id/comments", ReviewsController.getComments);
 
 // Protected — review CRUD
-router.post("/", requireAuth, asyncHandler(ReviewsController.create));
-router.put("/:id", requireAuth, asyncHandler(ReviewsController.update));
-router.delete("/:id", requireAuth, asyncHandler(ReviewsController.remove));
+app.post("/", requireAuth, ReviewsController.create);
+app.put("/:id", requireAuth, ReviewsController.update);
+app.delete("/:id", requireAuth, ReviewsController.remove);
 
 // Protected — comment CRUD
-router.post(
-  "/:id/comments",
-  requireAuth,
-  asyncHandler(ReviewsController.addComment),
-);
-router.delete(
-  "/comments/:commentId",
-  requireAuth,
-  asyncHandler(ReviewsController.deleteComment),
-);
+app.post("/:id/comments", requireAuth, ReviewsController.addComment);
+app.delete("/comments/:commentId", requireAuth, ReviewsController.deleteComment);
 
 // Protected — likes
-router.post(
-  "/:id/like",
-  requireAuth,
-  asyncHandler(ReviewsController.likeReview),
-);
-router.delete(
-  "/:id/like",
-  requireAuth,
-  asyncHandler(ReviewsController.unlikeReview),
-);
+app.post("/:id/like", requireAuth, ReviewsController.likeReview);
+app.delete("/:id/like", requireAuth, ReviewsController.unlikeReview);
 
-export default router;
+export default app;

@@ -1,6 +1,6 @@
 # Backend (API)
 
-Express 5 + TypeScript API for Interis.
+Hono (on Bun.serve) + TypeScript API for Interis.
 
 ## What this service does
 
@@ -16,7 +16,7 @@ Express 5 + TypeScript API for Interis.
 | Layer | Tech |
 | --- | --- |
 | Runtime | Bun |
-| Framework | Express 5 |
+| Framework | Hono (Bun.serve) |
 | Database | PostgreSQL (Neon) |
 | ORM | Drizzle ORM |
 | Auth | Better Auth |
@@ -45,7 +45,7 @@ Create `backend/.env`:
 | `BETTER_AUTH_SECRET` | yes | Better Auth signing/encryption secret |
 | `TMDB_ACCESS_TOKEN` | yes | TMDB Bearer token |
 | `CORS_ORIGIN` | yes | Frontend origin (ex: `http://localhost:5173`) |
-| `PORT` | no | Express port (default `5000`) |
+| `PORT` | no | Server port (default `5000`) |
 | `NODE_ENV` | no | `development` / `production` |
 | `R2_ACCOUNT_ID` | uploads only | Cloudflare R2 account id |
 | `R2_ACCESS_KEY_ID` | uploads only | R2 access key id |
@@ -90,14 +90,14 @@ backend/
 │   └── test-db-reset.ts            # guarded DB truncate helper
 ├── tests/                          # bun:test integration/contract suites
 └── src/
-    ├── index.ts                    # app bootstrap + router mounting
+    ├── index.ts                    # app bootstrap (Hono on Bun.serve) + router mounting
     ├── commons/                    # shared middleware/helpers
     │   ├── auth/                   # session resolution from headers
     │   ├── http/                   # validation response helpers
     │   ├── middlewares/            # authCookieHeader, requireAuth, requireAdmin
-    │   ├── utils/                  # asyncHandler, logger
+    │   ├── utils/                  # logger
     │   ├── validation/             # shared Zod schemas (tmdbId, isoDate)
-    │   └── types/                  # Express Request augmentation
+    │   └── types/                  # Hono context typing (user, session variables)
     ├── infrastructure/
     │   ├── auth/                   # Better Auth config + database hooks
     │   ├── database/               # db client + entity definitions
@@ -144,7 +144,7 @@ Public API base (production): `https://api.interis.gorkemkaryol.dev/api/public`
 Each domain module follows a consistent layered pattern:
 
 ```
-<module>.routes.ts       -> Express Router, mounts controller methods
+<module>.routes.ts       -> Hono app (createHonoApp()), mounts controller methods
 <module>.controller.ts   -> HTTP layer: req/res handling, input validation
 <module>.service.ts      -> Module orchestration layer
 <module>.entity.ts       -> Drizzle pgTable schema
@@ -163,8 +163,8 @@ constants/               -> Magic values, defaults, enums
 - **Read/write separation**: Services often split into `*-read.service.ts` and `*-write.service.ts`
 - **Find-or-create**: TMDB data cached on-demand (check local DB first, fetch from TMDB if missing)
 - **Zod validation + normalization**: DTO/query schemas validate and normalize request input (defaulting/clamping in DTO layer)
-- **Async handler wrapper**: All route handlers wrapped with `asyncHandler()` for error propagation
-- **Viewer-aware responses**: Optional `resolveViewerUserIdFromHeaders` for personalizing public responses
+- **Native error propagation**: thrown errors reach each module's `app.onError()` (wired in by `createHonoApp()`) without a wrapper
+- **Viewer-aware responses**: Optional `resolveViewerUserIdFromHonoContext` for personalizing public responses
 - **In-memory caching**: TMDB client uses Map-based caches with TTL and in-flight request deduplication via the shared `createCachedTmdbFetcher` helper (`infrastructure/tmdb/tmdb-cache.helper.ts`) — wrap any new per-id TMDB read with it rather than writing a bespoke cache
 - **Factory pattern**: `createApp()` for testable server creation
 - **FK order in schema**: `entities.ts` exports in dependency order to satisfy FK references
@@ -176,7 +176,7 @@ constants/               -> Magic values, defaults, enums
 bun test
 ```
 
-Tests use `bun:test` and spin up a real Express server on a random port for integration testing. Current baseline suite lives at `tests/integration/auth/session-lifecycle.test.ts`.
+Tests use `bun:test` and spin up a real server (Hono on Bun.serve) on a random port for integration testing. Current baseline suite lives at `tests/integration/auth/session-lifecycle.test.ts`.
 
 ## Notes
 

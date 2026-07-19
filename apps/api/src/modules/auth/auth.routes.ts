@@ -1,24 +1,19 @@
-import { Router } from "express";
-import { asyncHandler } from "../../commons/utils/asyncHandler";
-import { requireAuth } from "../../commons/middlewares/requireAuth";
+import { createHonoApp } from "../../infrastructure/http/hono-context.types";
 import { AuthController } from "./auth.controller";
+import { requireAuth } from "../../commons/middlewares/requireAuth.hono";
 
-const router = Router();
+const app = createHonoApp({ bodyLimitBytes: 20 * 1024 });
 
-router.post("/sign-up/email", asyncHandler(AuthController.signUp));
-router.post("/sign-in/email", asyncHandler(AuthController.signIn));
-router.post("/sign-out", asyncHandler(AuthController.signOut));
-router.post("/forgot-password", asyncHandler(AuthController.forgotPassword));
-router.post("/reset-password", asyncHandler(AuthController.resetPassword));
+app.post("/sign-up/email", AuthController.signUp);
+app.post("/sign-in/email", AuthController.signIn);
+app.post("/sign-out", AuthController.signOut);
+app.post("/forgot-password", AuthController.forgotPassword);
+app.post("/reset-password", AuthController.resetPassword);
 
-router.post("/update-user", requireAuth, asyncHandler(AuthController.updateUser));
-router.delete("/account", requireAuth, asyncHandler(AuthController.deleteAccount));
-router.post("/change-password", requireAuth, asyncHandler(AuthController.changePassword));
-router.post("/change-email", requireAuth, asyncHandler(AuthController.changeEmail));
-router.post(
-  "/security-question",
-  requireAuth,
-  asyncHandler(AuthController.setSecurityQuestion),
-);
+app.post("/update-user", requireAuth, AuthController.updateUser);
+app.delete("/account", requireAuth, AuthController.deleteAccount);
+app.post("/change-password", requireAuth, AuthController.changePassword);
+app.post("/change-email", requireAuth, AuthController.changeEmail);
+app.post("/security-question", requireAuth, AuthController.setSecurityQuestion);
 
-export default router;
+export default app;

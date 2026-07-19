@@ -1,75 +1,63 @@
-import { Router } from "express";
-import { asyncHandler } from "../../commons/utils/asyncHandler";
-import { requireAuth } from "../../commons/middlewares/requireAuth";
+import { createHonoApp } from "../../infrastructure/http/hono-context.types";
+import { requireAuth } from "../../commons/middlewares/requireAuth.hono";
 import { SerialsController } from "./serials.controller";
 import { SerialsTrackingController } from "./serials-tracking.controller";
 
-const router = Router();
+const app = createHonoApp();
 
-router.get("/search", asyncHandler(SerialsController.search));
-router.get("/recent", asyncHandler(SerialsController.getRecent));
-router.get("/archive", asyncHandler(SerialsController.getArchive));
-router.get("/trending", asyncHandler(SerialsController.getTrending));
-router.get("/logs", requireAuth, asyncHandler(SerialsController.getMyLogs));
-router.put("/logs/:id", requireAuth, asyncHandler(SerialsController.updateLog));
-router.delete("/logs/:id", requireAuth, asyncHandler(SerialsController.deleteLog));
-router.get("/:tmdbId/detail", asyncHandler(SerialsController.getDetailByTmdbId));
-router.get("/:tmdbId/logs", asyncHandler(SerialsController.getLogsByTmdbId));
-router.get(
-  "/:tmdbId/seasons/:seasonNumber",
-  asyncHandler(SerialsController.getSeasonByTmdbId),
-);
-router.put(
+app.get("/search", SerialsController.search);
+app.get("/recent", SerialsController.getRecent);
+app.get("/archive", SerialsController.getArchive);
+app.get("/trending", SerialsController.getTrending);
+app.get("/logs", requireAuth, SerialsController.getMyLogs);
+app.put("/logs/:id", requireAuth, SerialsController.updateLog);
+app.delete("/logs/:id", requireAuth, SerialsController.deleteLog);
+app.get("/:tmdbId/detail", SerialsController.getDetailByTmdbId);
+app.get("/:tmdbId/logs", SerialsController.getLogsByTmdbId);
+app.get("/:tmdbId/seasons/:seasonNumber", SerialsController.getSeasonByTmdbId);
+app.put(
   "/:tmdbId/seasons/:seasonNumber/interaction",
   requireAuth,
-  asyncHandler(SerialsTrackingController.updateSeasonInteraction),
+  SerialsTrackingController.updateSeasonInteraction,
 );
-router.put(
+app.put(
   "/:tmdbId/seasons/:seasonNumber/episodes/:episodeNumber/interaction",
   requireAuth,
-  asyncHandler(SerialsTrackingController.updateEpisodeInteraction),
+  SerialsTrackingController.updateEpisodeInteraction,
 );
-router.get(
+app.get(
   "/:tmdbId/seasons/:seasonNumber/review",
   requireAuth,
-  asyncHandler(SerialsTrackingController.getSeasonReview),
+  SerialsTrackingController.getSeasonReview,
 );
-router.post(
+app.post(
   "/:tmdbId/seasons/:seasonNumber/review",
   requireAuth,
-  asyncHandler(SerialsTrackingController.upsertSeasonReview),
+  SerialsTrackingController.upsertSeasonReview,
 );
-router.delete(
+app.delete(
   "/:tmdbId/seasons/:seasonNumber/review",
   requireAuth,
-  asyncHandler(SerialsTrackingController.deleteSeasonReview),
+  SerialsTrackingController.deleteSeasonReview,
 );
-router.get(
+app.get(
   "/:tmdbId/seasons/:seasonNumber/episodes/:episodeNumber/review",
   requireAuth,
-  asyncHandler(SerialsTrackingController.getEpisodeReview),
+  SerialsTrackingController.getEpisodeReview,
 );
-router.post(
+app.post(
   "/:tmdbId/seasons/:seasonNumber/episodes/:episodeNumber/review",
   requireAuth,
-  asyncHandler(SerialsTrackingController.upsertEpisodeReview),
+  SerialsTrackingController.upsertEpisodeReview,
 );
-router.delete(
+app.delete(
   "/:tmdbId/seasons/:seasonNumber/episodes/:episodeNumber/review",
   requireAuth,
-  asyncHandler(SerialsTrackingController.deleteEpisodeReview),
+  SerialsTrackingController.deleteEpisodeReview,
 );
-router.get(
-  "/:tmdbId/interaction",
-  requireAuth,
-  asyncHandler(SerialsController.getInteractionByTmdbId),
-);
-router.put(
-  "/:tmdbId/interaction",
-  requireAuth,
-  asyncHandler(SerialsController.updateInteractionByTmdbId),
-);
-router.post("/:tmdbId/log", requireAuth, asyncHandler(SerialsController.createLogByTmdbId));
-router.get("/:tmdbId", asyncHandler(SerialsController.getByTmdbId));
+app.get("/:tmdbId/interaction", requireAuth, SerialsController.getInteractionByTmdbId);
+app.put("/:tmdbId/interaction", requireAuth, SerialsController.updateInteractionByTmdbId);
+app.post("/:tmdbId/log", requireAuth, SerialsController.createLogByTmdbId);
+app.get("/:tmdbId", SerialsController.getByTmdbId);
 
-export default router;
+export default app;

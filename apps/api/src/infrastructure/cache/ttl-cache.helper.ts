@@ -1,17 +1,9 @@
 const DEFAULT_TTL_MS = 30 * 60 * 1000;
 const DEFAULT_MAX_ENTRIES = 1_000;
 
-/**
- * TTL cache + in-flight de-dupe keyed by the fetcher's arguments (or a
- * composite key derived via `keyFn`, for lookups that take more than one
- * argument), for read-mostly data that would otherwise be recomputed on
- * every request touching it.
- */
 export type TtlCachedFn<Args extends unknown[], T> = ((...args: Args) => Promise<T>) & {
-  // Drops every cached entry whose key starts with `prefix` - for cases
-  // where an action outside the cached fetcher's own arguments (e.g.
-  // following a user) should invalidate that user's cached entries
-  // immediately instead of waiting out the TTL.
+  // For invalidating from outside the fetcher's own arguments (e.g. an
+  // unrelated action like following a user) instead of waiting out the TTL.
   invalidatePrefix: (prefix: string) => void;
 };
 
