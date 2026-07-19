@@ -9,7 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SetupSecurityQuestionRouteImport } from './routes/setup-security-question'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
@@ -49,9 +49,9 @@ import { Route as ProfileUsernameListsNewRouteImport } from './routes/profile/$u
 import { Route as ProfileUsernameListsListIdIndexRouteImport } from './routes/profile/$username/lists/$listId/index'
 import { Route as ProfileUsernameListsListIdEditRouteImport } from './routes/profile/$username/lists/$listId/edit'
 
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
+const SetupSecurityQuestionRoute = SetupSecurityQuestionRouteImport.update({
+  id: '/setup-security-question',
+  path: '/setup-security-question',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -256,7 +256,7 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/reset-password': typeof ResetPasswordRoute
+  '/setup-security-question': typeof SetupSecurityQuestionRoute
   '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
   '/actor/$slug': typeof ActorSlugRoute
   '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
@@ -296,7 +296,7 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/reset-password': typeof ResetPasswordRoute
+  '/setup-security-question': typeof SetupSecurityQuestionRoute
   '/actor/$slug': typeof ActorSlugRoute
   '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
   '/director/$slug': typeof DirectorSlugRoute
@@ -337,7 +337,7 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/reset-password': typeof ResetPasswordRoute
+  '/setup-security-question': typeof SetupSecurityQuestionRoute
   '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
   '/actor/$slug': typeof ActorSlugRoute
   '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
@@ -380,7 +380,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/register'
-    | '/reset-password'
+    | '/setup-security-question'
     | '/profile/$username'
     | '/actor/$slug'
     | '/cinema/$tmdbId'
@@ -420,7 +420,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/register'
-    | '/reset-password'
+    | '/setup-security-question'
     | '/actor/$slug'
     | '/cinema/$tmdbId'
     | '/director/$slug'
@@ -460,7 +460,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/register'
-    | '/reset-password'
+    | '/setup-security-question'
     | '/profile/$username'
     | '/actor/$slug'
     | '/cinema/$tmdbId'
@@ -502,7 +502,7 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
-  ResetPasswordRoute: typeof ResetPasswordRoute
+  SetupSecurityQuestionRoute: typeof SetupSecurityQuestionRoute
   ProfileUsernameRouteRoute: typeof ProfileUsernameRouteRouteWithChildren
   ActorSlugRoute: typeof ActorSlugRoute
   CinemaTmdbIdRoute: typeof CinemaTmdbIdRoute
@@ -518,11 +518,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
+    '/setup-security-question': {
+      id: '/setup-security-question'
+      path: '/setup-security-question'
+      fullPath: '/setup-security-question'
+      preLoaderRoute: typeof SetupSecurityQuestionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -862,7 +862,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
-  ResetPasswordRoute: ResetPasswordRoute,
+  SetupSecurityQuestionRoute: SetupSecurityQuestionRoute,
   ProfileUsernameRouteRoute: ProfileUsernameRouteRouteWithChildren,
   ActorSlugRoute: ActorSlugRoute,
   CinemaTmdbIdRoute: CinemaTmdbIdRoute,

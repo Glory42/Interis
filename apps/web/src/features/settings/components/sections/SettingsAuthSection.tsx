@@ -25,6 +25,7 @@ export const SettingsAuthSection = () => {
   });
 
   const [newEmail, setNewEmail] = useState(() => user?.email ?? "");
+  const [securityAnswer, setSecurityAnswer] = useState("");
   const [authEmailError, setAuthEmailError] = useState<string | null>(null);
   const [authEmailSuccess, setAuthEmailSuccess] = useState<string | null>(null);
 
@@ -62,9 +63,11 @@ export const SettingsAuthSection = () => {
     try {
       await changeEmailMutation.mutateAsync({
         newEmail: normalizedEmail,
+        answer: securityAnswer,
       });
       setNewEmail(normalizedEmail);
-      setAuthEmailSuccess("Email change request sent.");
+      setSecurityAnswer("");
+      setAuthEmailSuccess("Email updated.");
     } catch (error) {
       setAuthEmailError(
         isApiError(error) ? error.message : "Could not update email right now.",
@@ -153,6 +156,21 @@ export const SettingsAuthSection = () => {
               type="email"
               value={newEmail}
               onChange={(event) => setNewEmail(event.target.value)}
+              required
+            />
+
+            <label
+              className="mb-2 mt-4 block font-mono text-[9px] uppercase tracking-[0.16em] settings-shell-muted"
+              htmlFor="settings-email-security-answer"
+            >
+              Security Question Answer
+            </label>
+            <input
+              id="settings-email-security-answer"
+              className="w-full border bg-transparent px-3 py-2 font-mono text-xs text-foreground focus:outline-none settings-shell-border settings-shell-input"
+              type="text"
+              value={securityAnswer}
+              onChange={(event) => setSecurityAnswer(event.target.value)}
               required
             />
           </div>

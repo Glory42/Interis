@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { isApiError } from "@/lib/api-client";
 import { normalizeInternalRedirectPath } from "@/lib/router/redirect";
-import { useAuth } from "@/features/auth/hooks/useAuth";
+import { authQueryOptions, useAuth } from "@/features/auth/hooks/useAuth";
 
 type LoginFormProps = {
   redirectTo?: string;
@@ -19,6 +20,7 @@ type LoginFormProps = {
 
 export const LoginForm = ({ redirectTo }: LoginFormProps) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { login, isLoginPending } = useAuth();
 
   const [email, setEmail] = useState("");
@@ -31,6 +33,12 @@ export const LoginForm = ({ redirectTo }: LoginFormProps) => {
 
     try {
       await login({ email, password });
+
+      const freshUser = await queryClient.fetchQuery({ ...authQueryOptions, retry: false });
+      if (freshUser && !freshUser.hasSecurityQuestion) {
+        await navigate({ to: "/setup-security-question" });
+        return;
+      }
 
       const safeRedirectPath = normalizeInternalRedirectPath(redirectTo);
       if (safeRedirectPath) {

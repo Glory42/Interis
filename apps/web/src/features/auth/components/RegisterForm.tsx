@@ -50,7 +50,9 @@ export const RegisterForm = () => {
         email,
         password,
       });
-      await navigate({ to: "/" });
+      // Every new account still needs to set up its security question —
+      // route there directly instead of the homepage.
+      await navigate({ to: "/setup-security-question" });
     } catch (error) {
       if (isApiError(error)) {
         setFormError(error.message);

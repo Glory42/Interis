@@ -8,10 +8,13 @@ type AuthGuardInput = {
   redirectPath?: string;
 };
 
+// `skipSecurityQuestionCheck` is for the setup-security-question route's own
+// guard — it needs "is logged in" without redirecting into itself.
 export const requireAuthenticatedUser = async ({
   queryClient,
   redirectPath,
-}: AuthGuardInput) => {
+  skipSecurityQuestionCheck = false,
+}: AuthGuardInput & { skipSecurityQuestionCheck?: boolean }) => {
   const user = await queryClient.ensureQueryData(authQueryOptions);
   if (!user) {
     throw redirect({
@@ -20,6 +23,10 @@ export const requireAuthenticatedUser = async ({
         redirect: getSafeRedirectPath(redirectPath, "/"),
       },
     });
+  }
+
+  if (!skipSecurityQuestionCheck && !user.hasSecurityQuestion) {
+    throw redirect({ to: "/setup-security-question" });
   }
 
   return user;

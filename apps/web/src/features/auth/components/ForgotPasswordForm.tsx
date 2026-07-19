@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,32 +9,133 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useRequestPasswordReset } from "@/features/auth/hooks/useAuth";
+import { isApiError } from "@/lib/api-client";
+import { useRequestPasswordReset, useResetPassword } from "@/features/auth/hooks/useAuth";
 
 export const ForgotPasswordForm = () => {
-  const { mutateAsync: requestReset, isPending } = useRequestPasswordReset();
+  const navigate = useNavigate();
+  const { mutateAsync: requestReset, isPending: isLookupPending } = useRequestPasswordReset();
+  const { mutateAsync: resetPassword, isPending: isResetPending } = useResetPassword();
 
   const [email, setEmail] = useState("");
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [question, setQuestion] = useState<string | null>(null);
+  const [answer, setAnswer] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isDone, setIsDone] = useState(false);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleLookup = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setFormError(null);
 
-    // Always show the same confirmation, whether or not the email exists —
-    // the backend intentionally doesn't reveal that either.
-    await requestReset({ email }).catch(() => {});
-    setIsSubmitted(true);
+    try {
+      const foundQuestion = await requestReset({ email });
+      setQuestion(foundQuestion);
+    } catch (error) {
+      if (isApiError(error)) {
+        setFormError(error.message);
+        return;
+      }
+
+      setFormError("Unexpected error. Please try again.");
+    }
   };
 
-  if (isSubmitted) {
+  const handleReset = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFormError(null);
+
+    try {
+      await resetPassword({ email, answer, newPassword });
+      setIsDone(true);
+    } catch (error) {
+      if (isApiError(error)) {
+        setFormError(error.message);
+        return;
+      }
+
+      setFormError("Unexpected error. Please try again.");
+    }
+  };
+
+  if (isDone) {
     return (
       <Card className="mx-auto w-full max-w-md">
         <CardHeader>
-          <CardTitle>Check your email</CardTitle>
+          <CardTitle>Password updated</CardTitle>
           <CardDescription>
-            If an account exists for {email}, we&apos;ve sent a link to reset your password.
+            You&apos;ve been signed out of all devices — sign in with your new password.
           </CardDescription>
         </CardHeader>
+        <CardContent>
+          <Button className="w-full" onClick={() => void navigate({ to: "/login" })}>
+            Go to sign in
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (question) {
+    return (
+      <Card className="mx-auto w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Answer your security question</CardTitle>
+          <CardDescription>{question}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form className="space-y-4" onSubmit={handleReset}>
+            <div className="space-y-1.5">
+              <label
+                className="text-sm font-medium text-foreground"
+                htmlFor="forgot-password-answer"
+              >
+                Answer
+              </label>
+              <Input
+                id="forgot-password-answer"
+                name="answer"
+                type="text"
+                value={answer}
+                onChange={(event) => setAnswer(event.target.value)}
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label
+                className="text-sm font-medium text-foreground"
+                htmlFor="forgot-password-new-password"
+              >
+                New password
+              </label>
+              <Input
+                id="forgot-password-new-password"
+                name="newPassword"
+                type="password"
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                minLength={8}
+                maxLength={128}
+                required
+              />
+            </div>
+
+            {formError ? (
+              <p
+                role="alert"
+                className=" border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+              >
+                {formError}
+              </p>
+            ) : null}
+
+            <Button className="w-full" type="submit" disabled={isResetPending}>
+              {isResetPending ? "Updating..." : "Update password"}
+            </Button>
+          </form>
+        </CardContent>
       </Card>
     );
   }
@@ -43,11 +145,12 @@ export const ForgotPasswordForm = () => {
       <CardHeader>
         <CardTitle>Reset your password</CardTitle>
         <CardDescription>
-          Enter your email and we&apos;ll send you a link to reset your password.
+          Enter your email — if it has a security question set up, we&apos;ll show it to you
+          here.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleLookup}>
           <div className="space-y-1.5">
             <label
               className="text-sm font-medium text-foreground"
@@ -66,8 +169,17 @@ export const ForgotPasswordForm = () => {
             />
           </div>
 
-          <Button className="w-full" type="submit" disabled={isPending}>
-            {isPending ? "Sending..." : "Send reset link"}
+          {formError ? (
+            <p
+              role="alert"
+              className=" border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            >
+              {formError}
+            </p>
+          ) : null}
+
+          <Button className="w-full" type="submit" disabled={isLookupPending}>
+            {isLookupPending ? "Looking up..." : "Continue"}
           </Button>
         </form>
       </CardContent>

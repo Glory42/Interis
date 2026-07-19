@@ -21,6 +21,12 @@ const changePasswordInputSchema = z.object({
 
 const changeEmailInputSchema = z.object({
   newEmail: z.string().email(),
+  answer: z.string().min(1).max(200),
+});
+
+const securityQuestionInputSchema = z.object({
+  question: z.string().min(4).max(200),
+  answer: z.string().min(1).max(200),
 });
 
 type UpdateIdentityInput = {
@@ -150,6 +156,7 @@ export const changeCurrentUserPassword = async (input: {
 
 export const changeCurrentUserEmail = async (input: {
   newEmail: string;
+  answer: string;
 }): Promise<void> => {
   const payload = changeEmailInputSchema.parse(input);
 
@@ -164,16 +171,38 @@ export const changeCurrentUserEmail = async (input: {
   unknownAuthResponseSchema.parse(response);
 };
 
+export const setCurrentUserSecurityQuestion = async (input: {
+  question: string;
+  answer: string;
+}): Promise<void> => {
+  const payload = securityQuestionInputSchema.parse(input);
+
+  const response = await apiRequest<unknown, typeof payload>(
+    "/api/auth/security-question",
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
+
+  unknownAuthResponseSchema.parse(response);
+};
+
 const forgotPasswordInputSchema = z.object({
   email: z.string().email(),
 });
 
+const forgotPasswordResponseSchema = z.object({
+  question: z.string(),
+});
+
 const resetPasswordInputSchema = z.object({
-  token: z.string().min(1),
+  email: z.string().email(),
+  answer: z.string().min(1).max(200),
   newPassword: z.string().min(8).max(128),
 });
 
-export const requestPasswordReset = async (input: { email: string }): Promise<void> => {
+export const requestPasswordReset = async (input: { email: string }): Promise<string> => {
   const payload = forgotPasswordInputSchema.parse(input);
 
   const response = await apiRequest<unknown, typeof payload>(
@@ -184,11 +213,12 @@ export const requestPasswordReset = async (input: { email: string }): Promise<vo
     },
   );
 
-  unknownAuthResponseSchema.parse(response);
+  return forgotPasswordResponseSchema.parse(response).question;
 };
 
-export const resetPasswordWithToken = async (input: {
-  token: string;
+export const resetPasswordWithSecurityAnswer = async (input: {
+  email: string;
+  answer: string;
   newPassword: string;
 }): Promise<void> => {
   const payload = resetPasswordInputSchema.parse(input);
