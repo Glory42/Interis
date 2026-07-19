@@ -8,10 +8,9 @@ export const publicCorsMiddleware: MiddlewareHandler = cors({
   credentials: false,
 });
 
-// hono/cors just omits Access-Control-Allow-Origin for a rejected origin
-// (browser-side block only); this app needs an explicit 403 with a
-// CORS_NOT_ALLOWED body (see tests/integration/security/cors-csrf.test.ts),
-// so untrusted origins are rejected up front before hono/cors runs.
+// hono/cors just omits the ACAO header for a rejected origin (browser-side
+// block only); this app needs an explicit 403 CORS_NOT_ALLOWED body instead,
+// so untrusted origins are rejected up front.
 export const createTrustedOriginCorsMiddleware = (
   trustedOrigins: string[],
 ): MiddlewareHandler[] => {

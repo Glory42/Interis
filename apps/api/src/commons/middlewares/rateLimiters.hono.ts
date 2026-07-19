@@ -28,10 +28,8 @@ const RATE_LIMIT_BODY = {
   error: { message: "Too many requests, please try again later.", code: "TOO_MANY_REQUESTS" },
 };
 
-// No trust-proxy config exists in this app (matches the pre-port Express
-// setup) — X-Forwarded-For if present, otherwise every client collapses
-// into one shared bucket, same effective behavior local/test traffic saw
-// under Express's unconfigured req.ip.
+// No trust-proxy config exists in this app — X-Forwarded-For if present,
+// otherwise every client collapses into one shared bucket.
 const getClientKey = (c: Context): string =>
   c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
 
@@ -86,18 +84,14 @@ export const createApiLimiter = (max?: number): MiddlewareHandler =>
     (c) => c.req.path.startsWith("/api/public/"),
   );
 
-/**
- * Extra ceiling on state-changing requests specifically, layered on top of
- * apiLimiter, to blunt spam/brute-force writes (e.g. mass review/list
- * creation) without throttling read-heavy browsing.
- */
+// Extra ceiling on state-changing requests, layered on top of apiLimiter, to
+// blunt spam/brute-force writes without throttling read-heavy browsing.
 export const createMutationLimiter = (max?: number): MiddlewareHandler =>
   createLimiterMiddleware(
     resolveMax(MUTATION_LIMIT_PRODUCTION, MUTATION_LIMIT_TEST, max),
     (c) => SAFE_METHODS.has(c.req.method),
   );
 
-// The portfolio widget can hammer this — no test-env relaxation, matches
-// the original express-rate-limit config for public.routes.ts exactly.
+// The portfolio widget can hammer this — no test-env relaxation.
 export const createPublicLimiter = (): MiddlewareHandler =>
   createLimiterMiddleware(PUBLIC_LIMIT);

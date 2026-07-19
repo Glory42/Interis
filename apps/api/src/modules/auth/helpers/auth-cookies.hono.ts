@@ -32,9 +32,8 @@ export const clearAuthCookies = (c: Context): void => {
   deleteCookie(c, env.AUTH_REFRESH_COOKIE_NAME, baseCookieOptions);
 };
 
-// X-Forwarded-For instead of a direct socket address (what Express's req.ip
-// returned) — works identically under the transitional node-server adapter
-// and native Bun.serve, and matches a real deployment behind a proxy/CDN.
+// X-Forwarded-For instead of a direct socket address — matches a real
+// deployment behind a proxy/CDN.
 export const getDeviceInfoFromHonoContext = (
   c: Context,
 ): { userAgent: string | null; ipAddress: string | null } => {

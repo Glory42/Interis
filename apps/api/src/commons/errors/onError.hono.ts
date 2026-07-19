@@ -3,10 +3,9 @@ import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { AppError } from "./app-error";
 import { logger } from "../utils/logger";
 
-// CORS-rejection and body-too-large responses return directly from their
-// own middlewares (cors.hono.ts / bodyLimit.hono.ts) via Hono's
-// per-middleware onError hooks, so this only handles AppError, malformed
-// JSON bodies, and the generic 500 fallback.
+// CORS-rejection and body-too-large responses return directly from their own
+// middlewares (cors.hono.ts / bodyLimit.hono.ts), so this only needs AppError,
+// malformed JSON, and a generic 500 fallback.
 export const onError = (err: Error, c: Context): Response => {
   if (err instanceof AppError) {
     return c.json(

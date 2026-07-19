@@ -7,8 +7,6 @@ const tooLarge = (c: Context): Response =>
 export const createBodyLimitMiddleware = (maxSize: number): MiddlewareHandler =>
   bodyLimit({ maxSize, onError: tooLarge });
 
-export const authBodyLimitMiddleware: MiddlewareHandler = createBodyLimitMiddleware(20 * 1024);
-
 export const defaultBodyLimitMiddleware: MiddlewareHandler = createBodyLimitMiddleware(
   1024 * 1024,
 );
