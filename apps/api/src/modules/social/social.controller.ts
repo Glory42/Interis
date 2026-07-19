@@ -1,138 +1,103 @@
-import type { Request, Response } from "express";
+import type { Context } from "hono";
+import type { AppEnv } from "../../infrastructure/http/hono-context.types";
 import { SocialService } from "./social.service";
 import { UsersService } from "../users/users.service";
 import { normalizeSocialFeedLimit } from "./helpers/social-query-normalizer.helper";
-import type { FeedQueryDto, UsernameParamsDto } from "./dto/social.dto";
-import { sendBadRequest, sendNotFound } from "../../commons/http/validation-response.helper";
+import { sendBadRequest, sendNotFound } from "../../commons/http/validation-response.hono";
 
 export class SocialController {
-  static async getFeed(
-    req: Request<{}, {}, {}, FeedQueryDto>,
-    res: Response,
-  ): Promise<void> {
-    const limit = normalizeSocialFeedLimit(req.query.limit, 20);
-    const feed = await SocialService.getFeed(req.user.id, req.query.cursor, limit);
-    res.status(200).json(feed);
+  static async getFeed(c: Context<AppEnv>): Promise<Response> {
+    const limit = normalizeSocialFeedLimit(c.req.query("limit"), 20);
+    const feed = await SocialService.getFeed(c.get("user").id, c.req.query("cursor"), limit);
+    return c.json(feed, 200);
   }
 
-  static async getFollowingFeed(
-    req: Request<{}, {}, {}, FeedQueryDto>,
-    res: Response,
-  ): Promise<void> {
-    const limit = normalizeSocialFeedLimit(req.query.limit, 20);
-    const feed = await SocialService.getFollowingFeed(req.user.id, limit, req.query.cursor);
-    res.status(200).json(feed);
-  }
-
-  static async follow(
-    req: Request<UsernameParamsDto>,
-    res: Response,
-  ): Promise<void> {
-    const target = await UsersService.findByUsername(req.params.username);
-    if (!target) {
-      sendNotFound(res, "User not found");
-      return;
-    }
-
-    const result = await SocialService.follow(
-      req.user.id,
-      target.id,
-      target.username,
+  static async getFollowingFeed(c: Context<AppEnv>): Promise<Response> {
+    const limit = normalizeSocialFeedLimit(c.req.query("limit"), 20);
+    const feed = await SocialService.getFollowingFeed(
+      c.get("user").id,
+      limit,
+      c.req.query("cursor"),
     );
+    return c.json(feed, 200);
+  }
+
+  static async follow(c: Context<AppEnv>): Promise<Response> {
+    const target = await UsersService.findByUsername(c.req.param("username") as string);
+    if (!target) {
+      return sendNotFound(c, "User not found");
+    }
+
+    const result = await SocialService.follow(c.get("user").id, target.id, target.username);
     if ("error" in result) {
-      sendBadRequest(res, result.error);
-      return;
+      return sendBadRequest(c, result.error);
     }
-    res.status(200).json(result);
+    return c.json(result, 200);
   }
 
-  static async unfollow(
-    req: Request<UsernameParamsDto>,
-    res: Response,
-  ): Promise<void> {
-    const target = await UsersService.findByUsername(req.params.username);
+  static async unfollow(c: Context<AppEnv>): Promise<Response> {
+    const target = await UsersService.findByUsername(c.req.param("username") as string);
     if (!target) {
-      sendNotFound(res, "User not found");
-      return;
+      return sendNotFound(c, "User not found");
     }
 
-    await SocialService.unfollow(req.user.id, target.id);
-    res.status(200).json({ success: true });
+    await SocialService.unfollow(c.get("user").id, target.id);
+    return c.json({ success: true }, 200);
   }
 
-  static async checkIsFollowing(
-    req: Request<UsernameParamsDto>,
-    res: Response,
-  ): Promise<void> {
-    const target = await UsersService.findByUsername(req.params.username);
+  static async checkIsFollowing(c: Context<AppEnv>): Promise<Response> {
+    const target = await UsersService.findByUsername(c.req.param("username") as string);
     if (!target) {
-      sendNotFound(res, "User not found");
-      return;
+      return sendNotFound(c, "User not found");
     }
 
-    const isFollowing = await SocialService.isFollowing(req.user.id, target.id);
-    res.status(200).json({ isFollowing });
+    const isFollowing = await SocialService.isFollowing(c.get("user").id, target.id);
+    return c.json({ isFollowing }, 200);
   }
 
-  static async getFollowers(
-    req: Request<UsernameParamsDto>,
-    res: Response,
-  ): Promise<void> {
-    const target = await UsersService.findByUsername(req.params.username);
+  static async getFollowers(c: Context): Promise<Response> {
+    const target = await UsersService.findByUsername(c.req.param("username") as string);
     if (!target) {
-      sendNotFound(res, "User not found");
-      return;
+      return sendNotFound(c, "User not found");
     }
 
     const followers = await SocialService.getFollowers(target.id);
-    res.status(200).json(followers);
+    return c.json(followers, 200);
   }
 
-  static async getFollowing(
-    req: Request<UsernameParamsDto>,
-    res: Response,
-  ): Promise<void> {
-    const target = await UsersService.findByUsername(req.params.username);
+  static async getFollowing(c: Context): Promise<Response> {
+    const target = await UsersService.findByUsername(c.req.param("username") as string);
     if (!target) {
-      sendNotFound(res, "User not found");
-      return;
+      return sendNotFound(c, "User not found");
     }
 
     const following = await SocialService.getFollowing(target.id);
-    res.status(200).json(following);
+    return c.json(following, 200);
   }
 
-  static async removeFollower(
-    req: Request<UsernameParamsDto>,
-    res: Response,
-  ): Promise<void> {
-    const follower = await UsersService.findByUsername(req.params.username);
+  static async removeFollower(c: Context<AppEnv>): Promise<Response> {
+    const follower = await UsersService.findByUsername(c.req.param("username") as string);
     if (!follower) {
-      sendNotFound(res, "User not found");
-      return;
+      return sendNotFound(c, "User not found");
     }
 
-    await SocialService.removeFollower(req.user.id, follower.id);
-    res.status(200).json({ success: true });
+    await SocialService.removeFollower(c.get("user").id, follower.id);
+    return c.json({ success: true }, 200);
   }
 
-  static async likeActivity(
-    req: Request<{ activityId: string }>,
-    res: Response,
-  ): Promise<void> {
-    const result = await SocialService.likeActivity(req.user.id, req.params.activityId);
+  static async likeActivity(c: Context<AppEnv>): Promise<Response> {
+    const result = await SocialService.likeActivity(
+      c.get("user").id,
+      c.req.param("activityId") as string,
+    );
     if ("error" in result) {
-      sendNotFound(res, result.error);
-      return;
+      return sendNotFound(c, result.error);
     }
-    res.status(200).json(result);
+    return c.json(result, 200);
   }
 
-  static async unlikeActivity(
-    req: Request<{ activityId: string }>,
-    res: Response,
-  ): Promise<void> {
-    await SocialService.unlikeActivity(req.user.id, req.params.activityId);
-    res.status(200).json({ success: true });
+  static async unlikeActivity(c: Context<AppEnv>): Promise<Response> {
+    await SocialService.unlikeActivity(c.get("user").id, c.req.param("activityId") as string);
+    return c.json({ success: true }, 200);
   }
 }
