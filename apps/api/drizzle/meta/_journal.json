@@ -295,6 +295,20 @@
       "when": 1784307297771,
       "tag": "0041_calm_husk",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1784452791094,
+      "tag": "0042_silky_ogun",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1784453161428,
+      "tag": "0043_redundant_absorbing_man",
+      "breakpoints": true
     }
   ]
 }

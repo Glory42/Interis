@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, index, pgEnum, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -79,6 +79,9 @@ export const verification = pgTable(
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
+  authSessions: many(authSessions),
+  passwordResetTokens: many(passwordResetTokens),
+  credentials: many(credentials),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -87,4 +90,87 @@ export const sessionRelations = relations(session, ({ one }) => ({
 
 export const accountRelations = relations(account, ({ one }) => ({
   user: one(user, { fields: [account.userId], references: [user.id] }),
+}));
+
+// --- In-house auth module tables (issue #29) ---
+// `session` / `account` / `verification` above remain Better Auth's tables,
+// live until the dedicated follow-up migration drops them post-cutover.
+
+export const authSessions = pgTable(
+  "sessions",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    refreshTokenHash: text("refresh_token_hash").notNull().unique(),
+    // Retained one rotation back so a replayed (already-rotated) refresh
+    // token can be recognized as theft and trigger revocation, instead of
+    // just failing as "unknown token".
+    previousRefreshTokenHash: text("previous_refresh_token_hash"),
+    userAgent: text("user_agent"),
+    ipAddress: text("ip_address"),
+    expiresAt: timestamp("expires_at").notNull(),
+    revokedAt: timestamp("revoked_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("sessions_userId_idx").on(table.userId),
+    uniqueIndex("sessions_refreshTokenHash_idx").on(table.refreshTokenHash),
+    index("sessions_previousRefreshTokenHash_idx").on(table.previousRefreshTokenHash),
+  ],
+);
+
+export const passwordResetTokens = pgTable(
+  "password_reset_tokens",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at").notNull(),
+    usedAt: timestamp("used_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("password_reset_tokens_userId_idx").on(table.userId),
+    uniqueIndex("password_reset_tokens_tokenHash_idx").on(table.tokenHash),
+  ],
+);
+
+export const credentialTypeEnum = pgEnum("credential_type", ["password", "oauth"]);
+
+export const credentials = pgTable(
+  "credentials",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    type: credentialTypeEnum("type").notNull(),
+    passwordHash: text("password_hash"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("credentials_userId_idx").on(table.userId)],
+);
+
+export const authSessionsRelations = relations(authSessions, ({ one }) => ({
+  user: one(user, { fields: [authSessions.userId], references: [user.id] }),
+}));
+
+export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
+  user: one(user, { fields: [passwordResetTokens.userId], references: [user.id] }),
+}));
+
+export const credentialsRelations = relations(credentials, ({ one }) => ({
+  user: one(user, { fields: [credentials.userId], references: [user.id] }),
 }));
