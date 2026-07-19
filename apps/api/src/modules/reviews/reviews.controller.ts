@@ -1,5 +1,6 @@
-import type { Request, Response } from "express";
-import { sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
+import type { Context } from "hono";
+import type { AppEnv } from "../../infrastructure/http/hono-context.types";
+import { sendNotFound, sendValidationError } from "../../commons/http/validation-response.hono";
 import { ReviewsService } from "./reviews.service";
 import {
   CreateReviewSchema,
@@ -8,128 +9,95 @@ import {
 } from "./dto/reviews.dto";
 
 export class ReviewsController {
-  static async getById(
-    req: Request<{ id: string }>,
-    res: Response,
-  ): Promise<void> {
-    const review = await ReviewsService.findById(req.params.id);
+  static async getById(c: Context): Promise<Response> {
+    const review = await ReviewsService.findById(c.req.param("id") as string);
     if (!review) {
-      sendNotFound(res, "Review not found");
-      return;
+      return sendNotFound(c, "Review not found");
     }
-    res.status(200).json(review);
+    return c.json(review, 200);
   }
 
-  static async create(req: Request, res: Response): Promise<void> {
-    const parsed = CreateReviewSchema.safeParse(req.body);
+  static async create(c: Context<AppEnv>): Promise<Response> {
+    const parsed = CreateReviewSchema.safeParse(await c.req.json());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
-    const result = await ReviewsService.create(req.user.id, parsed.data);
-    res.status(201).json(result);
+    const result = await ReviewsService.create(c.get("user").id, parsed.data);
+    return c.json(result, 201);
   }
 
-  static async update(
-    req: Request<{ id: string }>,
-    res: Response,
-  ): Promise<void> {
-    const parsed = UpdateReviewSchema.safeParse(req.body);
+  static async update(c: Context<AppEnv>): Promise<Response> {
+    const parsed = UpdateReviewSchema.safeParse(await c.req.json());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
     const updated = await ReviewsService.update(
-      req.params.id,
-      req.user.id,
+      c.req.param("id") as string,
+      c.get("user").id,
       parsed.data,
     );
     if (!updated) {
-      sendNotFound(res, "Review not found");
-      return;
+      return sendNotFound(c, "Review not found");
     }
-    res.status(200).json(updated);
+    return c.json(updated, 200);
   }
 
-  static async remove(
-    req: Request<{ id: string }>,
-    res: Response,
-  ): Promise<void> {
-    const deleted = await ReviewsService.delete(req.params.id, req.user.id);
+  static async remove(c: Context<AppEnv>): Promise<Response> {
+    const deleted = await ReviewsService.delete(c.req.param("id") as string, c.get("user").id);
     if (!deleted) {
-      sendNotFound(res, "Review not found");
-      return;
+      return sendNotFound(c, "Review not found");
     }
-    res.status(200).json({ success: true });
+    return c.json({ success: true }, 200);
   }
 
-  static async getComments(
-    req: Request<{ id: string }>,
-    res: Response,
-  ): Promise<void> {
-    const comments = await ReviewsService.getComments(req.params.id);
-    res.status(200).json(comments);
+  static async getComments(c: Context): Promise<Response> {
+    const comments = await ReviewsService.getComments(c.req.param("id") as string);
+    return c.json(comments, 200);
   }
 
-  static async addComment(
-    req: Request<{ id: string }>,
-    res: Response,
-  ): Promise<void> {
-    const parsed = ReviewCommentSchema.safeParse(req.body);
+  static async addComment(c: Context<AppEnv>): Promise<Response> {
+    const parsed = ReviewCommentSchema.safeParse(await c.req.json());
     if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
+      return sendValidationError(c, parsed.error);
     }
 
     const comment = await ReviewsService.addComment(
-      req.user.id,
-      req.params.id,
+      c.get("user").id,
+      c.req.param("id") as string,
       parsed.data.content,
     );
     if (!comment) {
-      sendNotFound(res, "Review not found");
-      return;
+      return sendNotFound(c, "Review not found");
     }
-    res.status(201).json(comment);
+    return c.json(comment, 201);
   }
 
-  static async deleteComment(
-    req: Request<{ commentId: string }>,
-    res: Response,
-  ): Promise<void> {
+  static async deleteComment(c: Context<AppEnv>): Promise<Response> {
     const deleted = await ReviewsService.deleteComment(
-      req.params.commentId,
-      req.user.id,
+      c.req.param("commentId") as string,
+      c.get("user").id,
     );
     if (!deleted) {
-      sendNotFound(res, "Comment not found");
-      return;
+      return sendNotFound(c, "Comment not found");
     }
-    res.status(200).json({ success: true });
+    return c.json({ success: true }, 200);
   }
 
-  static async likeReview(
-    req: Request<{ id: string }>,
-    res: Response,
-  ): Promise<void> {
-    const result = await ReviewsService.likeReview(req.user.id, req.params.id);
-    res.status(200).json(result);
+  static async likeReview(c: Context<AppEnv>): Promise<Response> {
+    const result = await ReviewsService.likeReview(c.get("user").id, c.req.param("id") as string);
+    return c.json(result, 200);
   }
 
-  static async unlikeReview(
-    req: Request<{ id: string }>,
-    res: Response,
-  ): Promise<void> {
+  static async unlikeReview(c: Context<AppEnv>): Promise<Response> {
     const result = await ReviewsService.unlikeReview(
-      req.user.id,
-      req.params.id,
+      c.get("user").id,
+      c.req.param("id") as string,
     );
     if (!result) {
-      sendNotFound(res, "Like not found");
-      return;
+      return sendNotFound(c, "Like not found");
     }
-    res.status(200).json({ liked: false });
+    return c.json({ liked: false }, 200);
   }
 }

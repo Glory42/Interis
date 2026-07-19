@@ -9,6 +9,7 @@ import peopleApp from "../../modules/people/people.routes";
 import searchApp from "../../modules/search/search.routes";
 import usersApp from "../../modules/users/users.routes";
 import diaryApp from "../../modules/diary/diary.routes";
+import reviewsApp from "../../modules/reviews/reviews.routes";
 
 const mount = (app: Express, prefix: string, honoApp: Hono<AppEnv>): void => {
   app.use(prefix, getRequestListener(honoApp.fetch));
@@ -28,4 +29,5 @@ export const registerHonoRoutes = (app: Express): void => {
   mount(app, "/api/search", searchApp);
   mount(app, "/api/users", usersApp);
   mount(app, "/api/diary", diaryApp);
+  mount(app, "/api/reviews", reviewsApp);
 };
