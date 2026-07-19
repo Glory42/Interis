@@ -22,6 +22,7 @@ import {
   isTrustedOrigin,
 } from "./infrastructure/config/origins";
 import { registerRoutes } from "./infrastructure/routing/register-routes";
+import { registerHonoRoutes } from "./infrastructure/routing/register-hono-routes";
 
 export type RateLimiterOverrides = {
   auth?: number;
@@ -94,6 +95,12 @@ export const createApp = (options: CreateAppOptions = {}) => {
   app.use("/api", mutationLimiter);
   app.use(requireTrustedOriginForMutations(trustedOrigins));
   app.use("/api/auth", authLimiter);
+
+  // Modules ported to Hono (issue #30) mount here, ahead of the body
+  // parsers below — each is a terminal handler reading its own request
+  // body from the raw stream.
+  registerHonoRoutes(app);
+
   // Tighter body-size limit for auth payloads than the rest of the API.
   app.use("/api/auth", express.json({ limit: "20kb" }));
 
@@ -102,10 +109,6 @@ export const createApp = (options: CreateAppOptions = {}) => {
 
   app.get("/", (req: Request, res: Response) => {
     res.json({ status: "ok", message: "Hello Zeytin" });
-  });
-
-  app.get("/api/health", (req: Request, res: Response) => {
-    res.json({ status: "ok", message: "Interis API is alive" });
   });
 
   registerRoutes(app);
