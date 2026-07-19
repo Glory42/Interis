@@ -29,11 +29,11 @@ describe("runtime env validation", () => {
     expect(stderr).toContain("DATABASE_URL");
   });
 
-  it("exits 1 when BETTER_AUTH_URL is not a valid URL", async () => {
+  it("exits 1 when JWT_ACCESS_SECRET is too short", async () => {
     const proc = Bun.spawn({
       cmd: ["bun", "run", envFilePath],
       cwd: cwdWithoutDotenv,
-      env: { ...process.env, BETTER_AUTH_URL: "not-a-url" },
+      env: { ...process.env, JWT_ACCESS_SECRET: "too-short" },
       stderr: "pipe",
       stdout: "pipe",
     });
@@ -44,6 +44,6 @@ describe("runtime env validation", () => {
     ]);
 
     expect(exitCode).toBe(1);
-    expect(stderr).toContain("BETTER_AUTH_URL");
+    expect(stderr).toContain("JWT_ACCESS_SECRET");
   });
 });
