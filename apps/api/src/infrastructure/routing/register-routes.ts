@@ -9,7 +9,6 @@ import uploadsRouter from "../../modules/uploads/uploads.routes";
 import publicRouter from "../../modules/public/public.routes";
 import postsRouter from "../../modules/posts/posts.routes";
 import dataTransferRouter from "../../modules/data-transfer/data-transfer.routes";
-import searchRouter from "../../modules/search/search.routes";
 import moderationRouter from "../../modules/moderation/moderation.routes";
 import notificationsRouter from "../../modules/notifications/notifications.routes";
 import reportsRouter from "../../modules/reports/reports.routes";
@@ -18,7 +17,6 @@ import authRouter from "../../modules/auth/auth.routes";
 
 export const registerRoutes = (app: Express): void => {
   app.use("/api/auth", authRouter);
-  app.use("/api/search", searchRouter);
   app.use("/api/moderation", moderationRouter);
   app.use("/api/notifications", notificationsRouter);
   app.use("/api/reports", reportsRouter);
