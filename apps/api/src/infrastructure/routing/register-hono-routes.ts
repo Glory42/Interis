@@ -14,6 +14,7 @@ import interactionsApp from "../../modules/interactions/interactions.routes";
 import postsApp from "../../modules/posts/posts.routes";
 import socialApp from "../../modules/social/social.routes";
 import listsApp from "../../modules/lists/lists.routes";
+import moderationApp from "../../modules/moderation/moderation.routes";
 
 const mount = (app: Express, prefix: string, honoApp: Hono<AppEnv>): void => {
   app.use(prefix, getRequestListener(honoApp.fetch));
@@ -38,4 +39,5 @@ export const registerHonoRoutes = (app: Express): void => {
   mount(app, "/api/posts", postsApp);
   mount(app, "/api/social", socialApp);
   mount(app, "/api/lists", listsApp);
+  mount(app, "/api/moderation", moderationApp);
 };
