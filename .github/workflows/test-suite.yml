@@ -62,8 +62,7 @@ jobs:
     env:
       DATABASE_URL: postgres://interis:interis@localhost:5432/interis
       DIRECT_DATABASE_URL: postgres://interis:interis@localhost:5432/interis
-      BETTER_AUTH_URL: http://localhost:5000
-      BETTER_AUTH_SECRET: ci-test-secret-not-for-production
+      JWT_ACCESS_SECRET: ci-test-secret-not-for-production-needs-32-chars
       TMDB_ACCESS_TOKEN: "Bearer ci-test-placeholder"
       CORS_ORIGIN: http://localhost:5173
       PORT: "5000"
@@ -139,8 +138,7 @@ jobs:
     env:
       DATABASE_URL: postgres://interis:interis@localhost:5432/interis
       DIRECT_DATABASE_URL: postgres://interis:interis@localhost:5432/interis
-      BETTER_AUTH_URL: http://localhost:5000
-      BETTER_AUTH_SECRET: ci-test-secret-not-for-production
+      JWT_ACCESS_SECRET: ci-test-secret-not-for-production-needs-32-chars
       TMDB_ACCESS_TOKEN: ${{ secrets.TMDB_ACCESS_TOKEN }}
       # Must match Playwright's baseURL exactly (127.0.0.1, not localhost) -
       # the browser's real Origin header has to pass requireTrustedOriginForMutations.
