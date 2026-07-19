@@ -19,6 +19,7 @@ import notificationsApp from "../../modules/notifications/notifications.routes";
 import reportsApp from "../../modules/reports/reports.routes";
 import uploadsApp from "../../modules/uploads/uploads.routes";
 import dataTransferApp from "../../modules/data-transfer/data-transfer.routes";
+import publicApp from "../../modules/public/public.routes";
 
 const mount = (app: Express, prefix: string, honoApp: Hono<AppEnv>): void => {
   app.use(prefix, getRequestListener(honoApp.fetch));
@@ -48,4 +49,5 @@ export const registerHonoRoutes = (app: Express): void => {
   mount(app, "/api/reports", reportsApp);
   mount(app, "/api/uploads", uploadsApp);
   mount(app, "/api/data", dataTransferApp);
+  mount(app, "/api/public", publicApp);
 };

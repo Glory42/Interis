@@ -12,6 +12,7 @@ const API_LIMIT_PRODUCTION = 300;
 const API_LIMIT_TEST = 5000;
 const MUTATION_LIMIT_PRODUCTION = 60;
 const MUTATION_LIMIT_TEST = 1000;
+const PUBLIC_LIMIT = 60;
 
 const WINDOW_MS = 60 * 1000;
 
@@ -95,3 +96,8 @@ export const createMutationLimiter = (max?: number): MiddlewareHandler =>
     resolveMax(MUTATION_LIMIT_PRODUCTION, MUTATION_LIMIT_TEST, max),
     (c) => SAFE_METHODS.has(c.req.method),
   );
+
+// The portfolio widget can hammer this — no test-env relaxation, matches
+// the original express-rate-limit config for public.routes.ts exactly.
+export const createPublicLimiter = (): MiddlewareHandler =>
+  createLimiterMiddleware(PUBLIC_LIMIT);
