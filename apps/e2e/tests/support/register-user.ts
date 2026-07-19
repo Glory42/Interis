@@ -36,3 +36,12 @@ export const registerUser = async (page: Page, user: TestUser): Promise<void> =>
   await page.getByRole("button", { name: "Save and continue" }).click();
   await page.waitForURL("/");
 };
+
+// Deletes the account currently signed in on `page` via the real
+// delete-account endpoint, using page.request so it rides the same session
+// cookies as the browser context. Keeps e2e runs from permanently inflating
+// TOTAL_USERS on every run — call this at the end of every journey that
+// registers a test account.
+export const deleteTestUser = async (page: Page): Promise<void> => {
+  await page.request.delete("/api/auth/account");
+};
