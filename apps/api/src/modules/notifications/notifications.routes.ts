@@ -1,15 +1,14 @@
-import { Router } from "express";
+import { createHonoApp } from "../../infrastructure/http/hono-context.types";
 import { NotificationsController } from "./notifications.controller";
-import { asyncHandler } from "../../commons/utils/asyncHandler";
-import { requireAuth } from "../../commons/middlewares/requireAuth";
+import { requireAuth } from "../../commons/middlewares/requireAuth.hono";
 
-const router = Router();
+const app = createHonoApp();
 
-router.use(requireAuth);
+app.use(requireAuth);
 
-router.get("/", asyncHandler(NotificationsController.list));
-router.get("/unread-count", asyncHandler(NotificationsController.getUnreadCount));
-router.post("/read-all", asyncHandler(NotificationsController.markAllRead));
-router.post("/:id/read", asyncHandler(NotificationsController.markRead));
+app.get("/", NotificationsController.list);
+app.get("/unread-count", NotificationsController.getUnreadCount);
+app.post("/read-all", NotificationsController.markAllRead);
+app.post("/:id/read", NotificationsController.markRead);
 
-export default router;
+export default app;
