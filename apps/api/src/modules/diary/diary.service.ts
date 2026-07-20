@@ -22,4 +22,16 @@ export class DiaryService {
   static async delete(entryId: string, userId: string) {
     return DiaryWriteService.delete(entryId, userId);
   }
+
+  static async deleteById(entryId: string) {
+    return DiaryWriteService.deleteById(entryId);
+  }
+
+  static async listAllForAdmin(
+    filters: { userId?: string; movieId?: number },
+    limit: number,
+    offset: number,
+  ) {
+    return DiaryReadService.listAllForAdmin(filters, limit, offset);
+  }
 }

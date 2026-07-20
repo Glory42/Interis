@@ -28,6 +28,10 @@ export class PostsService {
     return PostsCoreService.deleteById(postId);
   }
 
+  static async listAllForAdmin(filters: { userId?: string }, limit: number, offset: number) {
+    return PostsCoreService.listAllForAdmin(filters, limit, offset);
+  }
+
   static async like(userId: string, postId: string) {
     return PostsLikesService.like(userId, postId);
   }

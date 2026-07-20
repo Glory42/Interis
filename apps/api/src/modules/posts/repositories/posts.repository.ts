@@ -73,6 +73,25 @@ export class PostsRepository {
       .orderBy(desc(posts.createdAt));
   }
 
+  static async listAllForAdmin(filters: { userId?: string }, limit: number, offset: number) {
+    return db
+      .select({
+        id: posts.id,
+        userId: posts.userId,
+        authorUsername: user.username,
+        content: posts.content,
+        mediaId: posts.mediaId,
+        mediaType: posts.mediaType,
+        createdAt: posts.createdAt,
+      })
+      .from(posts)
+      .innerJoin(user, eq(user.id, posts.userId))
+      .where(filters.userId ? eq(posts.userId, filters.userId) : undefined)
+      .orderBy(desc(posts.createdAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
   static async deleteByIdAndUser(postId: string, userId: string) {
     const [deleted] = await db
       .delete(posts)

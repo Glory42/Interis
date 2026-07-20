@@ -87,4 +87,9 @@ export class DiaryWriteService {
   static async delete(entryId: string, userId: string) {
     return DiaryRepository.deleteByIdAndUser(entryId, userId);
   }
+
+  // No ownership check — admin moderation only.
+  static async deleteById(entryId: string) {
+    return DiaryRepository.deleteById(entryId);
+  }
 }

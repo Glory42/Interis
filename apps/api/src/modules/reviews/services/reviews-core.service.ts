@@ -1,5 +1,7 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
+import { user } from "../../../infrastructure/database/auth.entity";
+import { movies } from "../../movies/movies.entity";
 import { MoviesService } from "../../movies/movies.service";
 import { SerialsService } from "../../serials/serials.service";
 import { SerialsReviewsRepository } from "../../serials/repositories/serials-reviews.repository";
@@ -169,5 +171,36 @@ export class ReviewsCoreService {
       .returning({ id: reviews.id });
 
     return deleted ?? null;
+  }
+
+  // Movie reviews only — TV reviews live in the serials module's own table.
+  static async listAllForAdmin(
+    filters: { userId?: string; movieId?: number },
+    limit: number,
+    offset: number,
+  ) {
+    const conditions = [];
+    if (filters.userId) conditions.push(eq(reviews.userId, filters.userId));
+    if (filters.movieId) conditions.push(eq(reviews.movieId, filters.movieId));
+
+    return db
+      .select({
+        id: reviews.id,
+        userId: reviews.userId,
+        authorUsername: user.username,
+        mediaType: reviews.mediaType,
+        movieId: reviews.movieId,
+        movieTitle: movies.title,
+        content: reviews.content,
+        containsSpoilers: reviews.containsSpoilers,
+        createdAt: reviews.createdAt,
+      })
+      .from(reviews)
+      .innerJoin(user, eq(user.id, reviews.userId))
+      .leftJoin(movies, eq(movies.id, reviews.movieId))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(reviews.createdAt))
+      .limit(limit)
+      .offset(offset);
   }
 }

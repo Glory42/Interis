@@ -32,6 +32,14 @@ export class ReviewsService {
     return ReviewsCoreService.deleteById(reviewId);
   }
 
+  static async listAllForAdmin(
+    filters: { userId?: string; movieId?: number },
+    limit: number,
+    offset: number,
+  ) {
+    return ReviewsCoreService.listAllForAdmin(filters, limit, offset);
+  }
+
   static async getComments(reviewId: string) {
     return ReviewsCommentsService.getComments(reviewId);
   }

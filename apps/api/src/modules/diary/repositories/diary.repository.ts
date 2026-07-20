@@ -1,5 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
+import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
 import { reviews } from "../../reviews/reviews.entity";
 import { activities } from "../../social/social.entity";
@@ -210,5 +211,45 @@ export class DiaryRepository {
       .returning({ id: diaryEntries.id });
 
     return deleted ?? null;
+  }
+
+  // No ownership check — admin moderation only.
+  static async deleteById(entryId: string) {
+    const [deleted] = await db
+      .delete(diaryEntries)
+      .where(eq(diaryEntries.id, entryId))
+      .returning({ id: diaryEntries.id });
+
+    return deleted ?? null;
+  }
+
+  static async listAllForAdmin(
+    filters: { userId?: string; movieId?: number },
+    limit: number,
+    offset: number,
+  ) {
+    const conditions = [];
+    if (filters.userId) conditions.push(eq(diaryEntries.userId, filters.userId));
+    if (filters.movieId) conditions.push(eq(diaryEntries.movieId, filters.movieId));
+
+    return db
+      .select({
+        id: diaryEntries.id,
+        userId: diaryEntries.userId,
+        authorUsername: user.username,
+        watchedDate: diaryEntries.watchedDate,
+        rating: diaryEntries.rating,
+        rewatch: diaryEntries.rewatch,
+        movieId: diaryEntries.movieId,
+        movieTitle: movies.title,
+        createdAt: diaryEntries.createdAt,
+      })
+      .from(diaryEntries)
+      .innerJoin(movies, eq(movies.id, diaryEntries.movieId))
+      .innerJoin(user, eq(user.id, diaryEntries.userId))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(diaryEntries.createdAt))
+      .limit(limit)
+      .offset(offset);
   }
 }

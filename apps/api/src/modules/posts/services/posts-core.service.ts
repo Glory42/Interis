@@ -65,6 +65,10 @@ export class PostsCoreService {
     return PostsRepository.deleteById(postId);
   }
 
+  static async listAllForAdmin(filters: { userId?: string }, limit: number, offset: number) {
+    return PostsRepository.listAllForAdmin(filters, limit, offset);
+  }
+
   static async update(postId: string, userId: string, input: UpdatePostDto) {
     return PostsRepository.updateByIdAndUser(postId, userId, input.content);
   }
