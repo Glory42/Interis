@@ -9,6 +9,7 @@ export type AuthUser = {
 export type RequestSession = {
   id: string;
   userId: string;
+  isAdmin: boolean;
 };
 
 export type AccessTokenClaims = {

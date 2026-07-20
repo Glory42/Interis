@@ -13,19 +13,19 @@ import { sendUnauthorized, sendForbidden } from "../http/validation-response.hel
 import { db } from "../../infrastructure/database/db";
 import { profiles } from "../../modules/users/users.entity";
 
-const rejectIfSuspended = async (userId: string, res: Response): Promise<boolean> => {
+// One lookup covers both the suspension gate and requireAdmin's later check
+// (cached on req.session.isAdmin) so admin routes don't pay for a second
+// profiles round-trip.
+const resolveProfileFlags = async (
+  userId: string,
+): Promise<{ isAdmin: boolean; isSuspended: boolean } | null> => {
   const [profile] = await db
-    .select({ isSuspended: profiles.isSuspended })
+    .select({ isAdmin: profiles.isAdmin, isSuspended: profiles.isSuspended })
     .from(profiles)
     .where(eq(profiles.userId, userId))
     .limit(1);
 
-  if (profile?.isSuspended) {
-    sendForbidden(res, "Account suspended");
-    return true;
-  }
-
-  return false;
+  return profile ?? null;
 };
 
 export const requireAuth = async (
@@ -37,9 +37,18 @@ export const requireAuth = async (
   const resolved = await resolveSessionFromAccessToken(accessToken);
 
   if (resolved) {
-    if (await rejectIfSuspended(resolved.user.id, res)) return;
+    const profile = await resolveProfileFlags(resolved.user.id);
+    if (profile?.isSuspended) {
+      sendForbidden(res, "Account suspended");
+      return;
+    }
+
     req.user = resolved.user;
-    req.session = { id: resolved.sessionId, userId: resolved.user.id };
+    req.session = {
+      id: resolved.sessionId,
+      userId: resolved.user.id,
+      isAdmin: profile?.isAdmin ?? false,
+    };
     next();
     return;
   }
@@ -65,10 +74,14 @@ export const requireAuth = async (
     return;
   }
 
-  if (await rejectIfSuspended(rotated.userId, res)) return;
+  const profile = await resolveProfileFlags(rotated.userId);
+  if (profile?.isSuspended) {
+    sendForbidden(res, "Account suspended");
+    return;
+  }
 
   setAuthCookies(res, rotated);
   req.user = toAuthUser(userRow);
-  req.session = { id: rotated.sessionId, userId: rotated.userId };
+  req.session = { id: rotated.sessionId, userId: rotated.userId, isAdmin: profile?.isAdmin ?? false };
   next();
 };
