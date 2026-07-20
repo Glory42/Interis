@@ -1,4 +1,9 @@
-import { argon2idAsync } from "@noble/hashes/argon2.js";
+import setupWasm from "argon2id/lib/setup.js";
+// @ts-expect-error - wasm import, statically compiled by wrangler's bundler
+import argon2idSimdWasm from "argon2id/dist/simd.wasm";
+// @ts-expect-error - wasm import
+import argon2idNonSimdWasm from "argon2id/dist/no-simd.wasm";
+import type { computeHash as Argon2idComputeHash } from "argon2id/lib/setup";
 
 const PBKDF2_ITERATIONS = 210_000;
 const PBKDF2_HASH_LENGTH_BYTES = 32;
@@ -75,12 +80,47 @@ const verifyPbkdf2 = async (plaintext: string, stored: string): Promise<boolean>
 
 const LEGACY_ARGON2ID_FORMAT = /^\$argon2id\$v=19\$m=(\d+),t=(\d+),p=(\d+)\$([^$]+)\$([^$]+)$/;
 
+// A `.wasm` import's shape differs by runtime: wrangler's bundler statically
+// compiles it to a WebAssembly.Module (instantiating a Module returns a bare
+// Instance), Bun's gives back the file path as a string instead of the
+// bytes, and instantiating raw bytes returns {instance, module} already.
+// argon2id's setupWasm() always wants that last shape, so normalize based on
+// what actually came through.
+const instantiateWasmModule = async (
+  wasmModuleOrBytesOrPath: WebAssembly.Module | ArrayBuffer | Uint8Array | string,
+  importObject: NonNullable<Parameters<typeof WebAssembly.instantiate>[1]>,
+) => {
+  if (wasmModuleOrBytesOrPath instanceof WebAssembly.Module) {
+    const instance = await WebAssembly.instantiate(wasmModuleOrBytesOrPath, importObject);
+    return { instance, module: wasmModuleOrBytesOrPath };
+  }
+
+  if (typeof wasmModuleOrBytesOrPath === "string") {
+    const bytes = await Bun.file(wasmModuleOrBytesOrPath).arrayBuffer();
+    return WebAssembly.instantiate(bytes, importObject);
+  }
+
+  return WebAssembly.instantiate(wasmModuleOrBytesOrPath, importObject);
+};
+
+let argon2idComputeHash: Promise<Argon2idComputeHash> | null = null;
+const getArgon2idComputeHash = (): Promise<Argon2idComputeHash> => {
+  if (!argon2idComputeHash) {
+    argon2idComputeHash = setupWasm(
+      (io) => instantiateWasmModule(argon2idSimdWasm, io),
+      (io) => instantiateWasmModule(argon2idNonSimdWasm, io),
+    );
+  }
+  return argon2idComputeHash;
+};
+
 // Hashes created by Bun.password (pre-Workers-migration). Bun's native
-// argon2id isn't available under the Workers runtime, and WASM argon2
-// libraries hit Workers' dynamic-codegen restriction, so this is a pure-JS
-// fallback (~1s) used only to verify pre-existing hashes. The caller
-// re-hashes with PasswordService.hash() right after a successful match, so
-// this path is taken at most once per account.
+// argon2id isn't available under the Workers runtime, and most WASM argon2
+// libraries hit Workers' dynamic-codegen restriction (WebAssembly.compile()
+// from an in-memory buffer is disallowed) — the `argon2id` package sidesteps
+// this by shipping real .wasm files that get statically imported and
+// precompiled by wrangler's own bundler, confirmed byte-for-byte compatible
+// with Bun's output and ~10x faster than a pure-JS fallback.
 const verifyLegacyArgon2id = async (plaintext: string, stored: string): Promise<boolean> => {
   const match = LEGACY_ARGON2ID_FORMAT.exec(stored);
   if (!match) {
@@ -96,11 +136,14 @@ const verifyLegacyArgon2id = async (plaintext: string, stored: string): Promise<
     string,
   ];
   const expected = base64ToBytes(hashB64);
-  const derived = await argon2idAsync(new TextEncoder().encode(plaintext), base64ToBytes(saltB64), {
-    m: Number(m),
-    t: Number(t),
-    p: Number(p),
-    dkLen: expected.length,
+  const computeHash = await getArgon2idComputeHash();
+  const derived = computeHash({
+    password: new TextEncoder().encode(plaintext),
+    salt: base64ToBytes(saltB64),
+    parallelism: Number(p),
+    passes: Number(t),
+    memorySize: Number(m),
+    tagLength: expected.length,
   });
   return timingSafeEqual(derived, expected);
 };
@@ -108,8 +151,8 @@ const verifyLegacyArgon2id = async (plaintext: string, stored: string): Promise<
 export type PasswordVerifyResult = {
   matches: boolean;
   // Set when `stored` was in the legacy argon2id format and `matches` is
-  // true — callers should persist this over the old hash so the slow
-  // legacy path only ever runs once per account.
+  // true — callers should persist this over the old hash so every account
+  // converges onto pbkdf2-sha256 after its next successful login.
   upgradedHash: string | null;
 };
 
