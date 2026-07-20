@@ -5,7 +5,13 @@ import argon2idSimdWasm from "argon2id/dist/simd.wasm";
 import argon2idNonSimdWasm from "argon2id/dist/no-simd.wasm";
 import type { computeHash as Argon2idComputeHash } from "argon2id/lib/setup";
 
-const PBKDF2_ITERATIONS = 210_000;
+// Cloudflare Workers' production crypto.subtle PBKDF2 implementation hard-caps
+// iterations at 100,000 ("NotSupportedError: iteration counts above 100000
+// are not supported") — confirmed live in production; wrangler dev's local
+// simulator does NOT enforce this cap, so this only surfaces once deployed.
+// OWASP's 2023 minimum for PBKDF2-HMAC-SHA256 is 600,000, but that's not
+// achievable here — 100,000 is the highest this runtime allows.
+const PBKDF2_ITERATIONS = 100_000;
 const PBKDF2_HASH_LENGTH_BYTES = 32;
 const SALT_LENGTH_BYTES = 16;
 
