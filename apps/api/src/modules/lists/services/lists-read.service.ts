@@ -153,4 +153,8 @@ export class ListsReadService {
       likedByViewer,
     };
   }
+
+  static async listAllForAdmin(filters: { userId?: string }, limit: number, offset: number) {
+    return ListsReadRepository.listAllForAdmin(filters, limit, offset);
+  }
 }

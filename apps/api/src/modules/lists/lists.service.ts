@@ -65,4 +65,12 @@ export class ListsService {
   static async unlikeList(listId: string, userId: string) {
     return ListsWriteService.unlikeList(listId, userId);
   }
+
+  static async listAllForAdmin(filters: { userId?: string }, limit: number, offset: number) {
+    return ListsReadService.listAllForAdmin(filters, limit, offset);
+  }
+
+  static async deleteForAdmin(listId: string) {
+    return ListsWriteService.deleteForAdmin(listId);
+  }
 }

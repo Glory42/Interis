@@ -1,5 +1,6 @@
 import { asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
+import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
 import { tvSeries } from "../../serials/serials.entity";
 import { listEntries, lists } from "../lists.entity";
@@ -143,5 +144,28 @@ export class ListsReadRepository {
       );
 
     return rows;
+  }
+
+  static async listAllForAdmin(filters: { userId?: string }, limit: number, offset: number) {
+    return db
+      .select({
+        id: lists.id,
+        userId: lists.userId,
+        authorUsername: user.username,
+        title: lists.title,
+        isPublic: lists.isPublic,
+        isRanked: lists.isRanked,
+        derivedType: lists.derivedType,
+        itemCount: sql<number>`count(${listEntries.id})`.mapWith(Number),
+        createdAt: lists.createdAt,
+      })
+      .from(lists)
+      .innerJoin(user, eq(user.id, lists.userId))
+      .leftJoin(listEntries, eq(listEntries.listId, lists.id))
+      .where(filters.userId ? eq(lists.userId, filters.userId) : undefined)
+      .groupBy(lists.id, user.username)
+      .orderBy(desc(lists.createdAt))
+      .limit(limit)
+      .offset(offset);
   }
 }

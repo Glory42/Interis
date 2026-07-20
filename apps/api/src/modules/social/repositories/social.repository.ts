@@ -2,7 +2,9 @@ import { and, desc, eq, inArray, lt, or, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { profiles } from "../../users/users.entity";
-import { activities, activityLikes, follows } from "../social.entity";
+import { activities, activityLikes, activityTypeEnum, follows } from "../social.entity";
+
+export type ActivityType = (typeof activityTypeEnum.enumValues)[number];
 import type { FeedCursor } from "../helpers/social-feed-cursor.helper";
 
 export class SocialRepository {
@@ -169,5 +171,40 @@ export class SocialRepository {
       .where(eq(activities.id, activityId))
       .limit(1);
     return row ?? null;
+  }
+
+  static async listAllForAdmin(
+    filters: { userId?: string; type?: ActivityType },
+    limit: number,
+    offset: number,
+  ) {
+    const conditions = [];
+    if (filters.userId) conditions.push(eq(activities.userId, filters.userId));
+    if (filters.type) conditions.push(eq(activities.type, filters.type));
+
+    return db
+      .select({
+        id: activities.id,
+        userId: activities.userId,
+        authorUsername: user.username,
+        type: activities.type,
+        entityId: activities.entityId,
+        createdAt: activities.createdAt,
+      })
+      .from(activities)
+      .innerJoin(user, eq(user.id, activities.userId))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(activities.createdAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  // No ownership check — admin moderation only.
+  static async deleteById(activityId: string) {
+    const [deleted] = await db
+      .delete(activities)
+      .where(eq(activities.id, activityId))
+      .returning({ id: activities.id });
+    return deleted ?? null;
   }
 }

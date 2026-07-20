@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AdminCommunityPanel } from "@/features/admin/components/AdminCommunityPanel";
 import { AdminContentPanel } from "@/features/admin/components/AdminContentPanel";
 import { AdminMediaPanel } from "@/features/admin/components/AdminMediaPanel";
 import { AdminReportsPanel } from "@/features/admin/components/AdminReportsPanel";
@@ -9,6 +10,7 @@ const TABS = [
   { value: "users", label: "Users" },
   { value: "content", label: "Content" },
   { value: "media", label: "Media" },
+  { value: "community", label: "Community" },
 ] as const;
 
 type AdminTab = (typeof TABS)[number]["value"];
@@ -40,6 +42,7 @@ export const AdminDashboardPage = () => {
       {tab === "users" ? <AdminUsersPanel /> : null}
       {tab === "content" ? <AdminContentPanel /> : null}
       {tab === "media" ? <AdminMediaPanel /> : null}
+      {tab === "community" ? <AdminCommunityPanel /> : null}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import { SocialFeedService } from "./services/social-feed.service";
 import { SocialFollowService } from "./services/social-follow.service";
-import { SocialRepository } from "./repositories/social.repository";
+import { SocialRepository, type ActivityType } from "./repositories/social.repository";
 import { NotificationsService } from "../notifications/notifications.service";
 
 export type {
@@ -74,5 +74,17 @@ export class SocialService {
   static async unlikeActivity(userId: string, activityId: string) {
     await SocialRepository.unlikeActivity(userId, activityId);
     return { success: true } as const;
+  }
+
+  static async listAllActivitiesForAdmin(
+    filters: { userId?: string; type?: ActivityType },
+    limit: number,
+    offset: number,
+  ) {
+    return SocialRepository.listAllForAdmin(filters, limit, offset);
+  }
+
+  static async deleteActivityForAdmin(activityId: string) {
+    return SocialRepository.deleteById(activityId);
   }
 }

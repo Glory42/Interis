@@ -216,4 +216,15 @@ export class ListsWriteService {
     const likeCount = await ListsWriteRepository.getListLikeCount(listId);
     return { success: true, likeCount };
   }
+
+  // No ownership check — admin moderation only.
+  static async deleteForAdmin(listId: string): Promise<{ deleted: boolean }> {
+    const list = await ListsReadRepository.findById(listId);
+    if (!list) {
+      return { deleted: false };
+    }
+
+    await ListsWriteRepository.deleteById(listId);
+    return { deleted: true };
+  }
 }
