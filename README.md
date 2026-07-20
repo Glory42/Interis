@@ -34,7 +34,7 @@ A social movie journal app inspired by Letterboxd + timeline-style social apps.
 ├── apps/web/         # React app (TanStack Router + Query)
 ├── apps/e2e/              # Playwright smoke and end-to-end tests
 ├── CONTRIBUTING.md   # Guidelines for contributors
-├── DEPLOYMENT.md      # Cloudflare Workers deploy setup for apps/api
+├── DEPLOYMENT.md      # Render deploy setup for apps/api
 └── README.md
 ```
 
@@ -190,10 +190,10 @@ root (`prepare` script).
 
 ## Deployment
 
-`apps/api` deploys to Cloudflare Workers on push to `master` via Cloudflare's
-GitHub integration (no CI/CD workflow file involved). See
-[DEPLOYMENT.md](DEPLOYMENT.md) for environment variable setup and first-time
-configuration.
+`apps/api` deploys to Render on push to `master` via Render's GitHub
+integration (no CI/CD workflow file involved). `apps/web` and `apps/docs`
+deploy to Cloudflare Pages the same way. See [DEPLOYMENT.md](DEPLOYMENT.md)
+for environment variable setup and first-time configuration.
 
 ## Architecture notes
 

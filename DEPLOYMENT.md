@@ -4,52 +4,38 @@
 
 | Layer | Platform | How it deploys |
 |-------|----------|-----------------|
-| `apps/api/` | Cloudflare Workers | Push to `master` → Cloudflare's GitHub integration auto-builds and deploys |
+| `apps/api/` | Render (Web Service, native Bun runtime) | Push to `master` → Render's GitHub integration auto-builds and deploys |
 | `apps/web/` | Cloudflare Pages | Already set up (project `interis`) — push to `master` auto-builds and deploys |
 | `apps/docs/` | Cloudflare Pages | Already set up (project `interis-docs`) — push to `master` auto-builds and deploys |
-| DB migrations | Neon | Manual — run locally via `drizzle-kit` |
+| DB migrations | Neon | Runs as Render's Pre-Deploy Command, before each deploy |
 
-`apps/web/` and `apps/docs/` already deploy via Cloudflare Pages, configured outside this repo (Cloudflare dashboard). This doc covers `apps/api/`'s Workers setup, which is new.
+`apps/api/` previously ran on Cloudflare Workers. Moved to Render because several of Workers' isolate-model constraints (no native crypto, a hard PBKDF2 iteration cap, a 128MB memory ceiling that can't be raised on any plan, and a DB driver forced from pooled TCP to per-request HTTP) kept causing production-only failures that never reproduced locally. Hono itself was never the problem — it's runtime-agnostic and needed zero route/logic changes to move; this was purely a hosting change. See git history around July 2026 for the full story if you need it.
 
-**Never run `bun run cf:deploy` (`wrangler deploy`) from the CLI for this project.** Push to GitHub and let Cloudflare's Git integration pick it up. This keeps "what's live" always traceable to a commit on `master`, with no deploys that only exist on someone's machine.
+**Never run `bun run start` against production from your own machine.** Push to GitHub and let Render's Git integration pick it up. This keeps "what's live" always traceable to a commit on `master`.
 
 ---
 
-## Why Cloudflare Workers works here
+## Render setup
 
-The API was already Hono-based with an edge-friendly dependency set before this migration:
+Render Web Service, native runtime (not Docker — the existing `apps/api/Dockerfile` still works if you ever want to switch to Docker-based deploys, but native runtime is simpler and Render supports Bun directly):
 
-- **DB**: `@neondatabase/serverless` talks to Neon over HTTP, not the Postgres wire protocol — no TCP socket needed, which Workers can't open.
-- **Auth**: JWTs are signed/verified with `jose` (WebCrypto-based, not a native binding).
-- **IDs/hashing**: `node:crypto`'s `randomUUID`/`randomBytes`/`createHash` are covered by the `nodejs_compat` compatibility flag.
-- **Storage**: R2 access goes through the S3-compatible API via `@aws-sdk/client-s3`, which also works fine under `nodejs_compat`.
+| Field | Value |
+|---|---|
+| Root Directory | `apps/api` |
+| Build Command | `bun install` |
+| Start Command | `bun run start` |
+| Health Check Path | `/api/health` |
+| Pre-Deploy Command | `bunx drizzle-kit migrate` |
 
-The one piece that didn't carry over: password hashing. See below.
+Don't use `bun run scripts/docker-migrate.ts` here — that script is hardcoded to `DIRECT_DATABASE_URL` specifically to work around docker-compose's local Postgres proxy, and doesn't apply to a direct Neon connection. Plain `drizzle-kit migrate` (which uses `DATABASE_URL` and the neon-serverless driver) is correct for Render.
 
-## Password hashing: Bun.password → PBKDF2 + WASM argon2id
-
-`Bun.password.hash/verify` (argon2id) only exists in the Bun runtime — there's no equivalent under Workers' `workerd` runtime.
-
-`src/modules/auth/services/password.service.ts` now:
-
-- **Hashes new passwords with PBKDF2-SHA256** (210,000 iterations) via native `crypto.subtle` — confirmed ~46ms under `wrangler dev`, well within Workers' CPU budget, and an OWASP-endorsed KDF.
-- **Still verifies existing `$argon2id$...` hashes** (anything hashed before this migration) using the [`argon2id`](https://www.npmjs.com/package/argon2id) npm package — confirmed byte-for-byte compatible with `Bun.password`'s output, ~200–300ms. On a successful legacy verify, the caller (`AuthService`) immediately re-hashes with PBKDF2 and overwrites the stored hash, so every account converges onto pbkdf2-sha256 after its next login — no bulk migration needed.
-
-### Why this specific package, and what didn't work first
-
-Most WASM argon2 libraries fail outright on Workers: Cloudflare disallows dynamic `WebAssembly.compile()`/`instantiate()` from an in-memory buffer (confirmed directly — `hash-wasm` throws `CompileError: Wasm code generation disallowed by embedder`). A pure-JS argon2 implementation (`@noble/hashes`) does run, but costs ~900ms–3s of actual CPU/memory even with light parameters — that's not just slow, it's memory-hungry enough that it hit Cloudflare's hard 128MB-per-isolate memory cap in production (`error code: 1102`, "Worker exceeded resource limits") on accounts with heavier stored hash parameters. Unlike the CPU time limit, **the memory cap can't be raised on any plan.**
-
-`argon2id` sidesteps both problems: it ships real `.wasm` asset files (`dist/simd.wasm`, `dist/no-simd.wasm`) meant to be imported as ES modules — `import wasm from 'argon2id/dist/simd.wasm'` — so wrangler's own bundler precompiles them at build time into a `WebAssembly.Module`, never triggering the dynamic-codegen restriction. Genuine WASM execution is also far lighter on memory than the equivalent pure-JS computation, which is what actually fixed the 1102s.
-
-One wrinkle worth knowing if you touch this code: a `.wasm` import's shape differs by runtime — wrangler's bundler gives a precompiled `WebAssembly.Module`, Bun's gives back the file path as a string (not bytes), and each needs different handling before `WebAssembly.instantiate()` will accept it. See `instantiateWasmModule`'s comment in `password.service.ts` — this is exercised by both `bun test` and `wrangler dev`, so a regression here fails in either.
+Render injects `PORT` automatically; `env.ts` already reads it from the environment with no code changes needed.
 
 ---
 
 ## Environment Variables
 
-### API — Cloudflare Workers Dashboard
-
-Set these under Workers → Settings → Variables and Secrets, as **Secrets** (encrypted at rest), not plaintext variables:
+Set these in Render's Environment tab (Secrets, not the repo):
 
 | Variable | Notes |
 |----------|-------|
@@ -58,61 +44,58 @@ Set these under Workers → Settings → Variables and Secrets, as **Secrets** (
 | `TMDB_ACCESS_TOKEN` | Include the `Bearer ` prefix, same as `.env` |
 | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL` | Only needed if avatar uploads are enabled |
 | `CORS_ORIGIN` | The deployed web app's origin(s), comma-separated |
+| `NODE_ENV` | `production` |
 
-`apps/api/wrangler.toml` sets `keep_vars = true`, so deploys never erase whatever's set in the dashboard. Everything else (`NODE_ENV`, cookie names, token TTLs) is checked into `wrangler.toml`'s `[vars]` block since none of it is sensitive.
+Everything else (`AUTH_ACCESS_COOKIE_NAME`, `AUTH_REFRESH_COOKIE_NAME`, `JWT_ACCESS_TTL_SECONDS`, `REFRESH_TOKEN_TTL_SECONDS`, `USE_LOCAL_DB_PROXY`) has a safe default in `env.ts` and doesn't need to be set explicitly in production.
 
-### Local development (`wrangler dev`)
+### Local development
 
-`apps/api/.dev.vars` mirrors `apps/api/.env`'s keys (gitignored, same as `.env`). Run `bun run cf:dev` from `apps/api/` to test against the real Workers runtime locally — this is a local `workerd` simulator, it never touches Cloudflare's servers.
-
----
-
-## First-Time Setup (when you're ready to go live)
-
-This is "Workers Builds" (Cloudflare's Git-integration CI/CD for Workers) — a
-different product from the Cloudflare Pages setup `apps/web`/`apps/docs`
-already use, but configured the same way: connect the repo, point it at a
-subdirectory, push to deploy.
-
-1. In the Cloudflare dashboard, create a Worker → connect it to this GitHub repo.
-2. **Root directory: `apps/api`** — this is what tells Workers Builds where `wrangler.toml` lives in the monorepo.
-3. **Worker name must exactly match `wrangler.toml`'s `name` field: `interis`.** Cloudflare requires these to match or the build fails — set it when creating the Worker, don't let it default to the repo name. (If it doesn't match, either rename the Worker or edit `wrangler.toml`'s `name` to fit — whichever's already live wins.)
-4. Production branch: `master`. Leave the build command empty (no compile step — Workers Builds bundles `src/worker.ts` directly via Wrangler). **Explicitly set the deploy command to `npx wrangler deploy`** — don't assume the default: in practice this dashboard showed `npx wrangler versions upload` even with `master` set as the production branch, which uploads a version but never routes traffic to it. Check the actual value under Settings → Build → Build configuration, not just what the docs say it should default to.
-5. Add the Secrets listed above **under the Worker's Settings → Variables and Secrets** (the top-level one, not the one under the Build section — see the warning below), **before** the first deploy (a deploy will crash-loop on missing `DATABASE_URL`/`JWT_ACCESS_SECRET`/`TMDB_ACCESS_TOKEN` — `env.ts` fails closed).
-6. Push to `master` (or trigger a rebuild from the dashboard) to fire the first deploy.
-7. DB migrations are **not** run by the Worker — run `bunx drizzle-kit migrate` locally (or from CI) against the same `DATABASE_URL` before/alongside a deploy that needs a new migration.
+`apps/api/.env` mirrors this list (gitignored). `bun run dev` for local work — nothing Render-specific to install or run locally.
 
 ---
 
-## Troubleshooting
+## DNS cutover (one-time, from the Workers era)
 
-Real pitfalls hit setting this up — check these before assuming something's fundamentally broken.
+`api.interis.gorkemkaryol.dev` was bound to the Cloudflare Worker as a Custom Domain route. To point it at Render instead:
 
-### Two dashboard panels are both called "Variables and secrets" — they are not the same thing
+1. Remove the Custom Domain route from the Worker's Settings → Domains & Routes in the Cloudflare dashboard.
+2. Add the custom domain in Render's dashboard for this service, and follow its DNS instructions (typically a CNAME record in the `gorkemkaryol.dev` zone).
 
-The Worker's settings page has a top-level **"Variables and secrets" panel** (labeled *"used at runtime"*) and a separate one nested under **Settings → Build → Build configuration**. Only the top-level one is what the deployed Worker actually sees at request time — the Build one is only visible to the build step itself (relevant for frameworks that need env vars at build time, e.g. Next.js static generation; irrelevant here, since Wrangler bundles this app with no build step). Adding a var only to the Build panel — the easy mistake, since it's right next to the deploy command you're also configuring — silently produces a Worker that builds and deploys "successfully" but 500s/hangs on every request touching that var. Always add secrets to the top-level runtime panel.
+`apps/web` has no hardcoded Workers URLs anywhere — it just talks to `api.interis.gorkemkaryol.dev`, so no frontend changes are needed once DNS points there.
 
-While you're in there, add `DATABASE_URL`, `JWT_ACCESS_SECRET`, `TMDB_ACCESS_TOKEN`, `R2_ACCESS_KEY_ID`, and `R2_SECRET_ACCESS_KEY` as **Secret** type, not **Plaintext**/Variable — Plaintext values get printed in cleartext in build logs (e.g. in the `wrangler deploy` config-diff warning on every deploy), Secrets don't.
+---
+
+## Password hashing: Bun.password → PBKDF2 + WASM argon2id
+
+This predates the Render move and is **no longer strictly necessary** now that the Workers constraints that caused it are gone (Render's Bun runtime has native `Bun.password`, no PBKDF2 cap, no WASM restrictions) — kept as-is because it already works correctly under plain Bun too, not because it's still required. Simplifying back to native `Bun.password` is a reasonable follow-up cleanup if anyone wants to remove the `argon2id` dependency, but isn't blocking anything.
+
+`Bun.password.hash/verify` (argon2id) only exists in the Bun runtime — there was no equivalent under Cloudflare Workers' `workerd` runtime, which is why this exists at all.
+
+`src/modules/auth/services/password.service.ts`:
+
+- **Hashes new passwords with PBKDF2-SHA256** (100,000 iterations — capped there for the old Workers deployment; Bun/Render has no such cap, so this could be raised) via native `crypto.subtle`.
+- **Still verifies existing `$argon2id$...` hashes** (anything hashed before the Hono/Workers migration) using the [`argon2id`](https://www.npmjs.com/package/argon2id) npm package — confirmed byte-for-byte compatible with `Bun.password`'s output. On a successful legacy verify, the caller (`AuthService`) immediately re-hashes with PBKDF2 and overwrites the stored hash, so every account converges onto pbkdf2-sha256 after its next login — no bulk migration needed.
+
+A `.wasm` import's shape differs by runtime — Bun's gives back the file path as a string (not bytes or a precompiled Module), which needed explicit handling. See `instantiateWasmModule`'s comment in `password.service.ts` if you touch this code; it's exercised by `bun test`.
+
+---
+
+## Lessons worth keeping in mind (found the hard way, still apply)
 
 ### `z.coerce.boolean()` and any other stringly-typed env var
 
-`z.coerce.boolean()` (in `env.ts`, zod v4) uses JavaScript's `Boolean(value)` semantics, not string parsing — `Boolean("false")` is `true`, because any non-empty string is truthy. Since every env var arrives as a literal string regardless of source (`.env`, `.dev.vars`, `wrangler.toml`'s `[vars]`, or a dashboard Variable), declaring `SOME_FLAG = "false"` anywhere would silently evaluate to `true`. This broke `USE_LOCAL_DB_PROXY` in production for a while — a deploy with `wrangler.toml`'s checked-in `USE_LOCAL_DB_PROXY = "false"` was coercing to `true`, which pointed every DB query at a local proxy host that only exists inside `docker-compose`, hanging every DB-touching request until timeout. Fixed by switching to `z.stringbool()`, which parses `"true"`/`"false"` as actual booleans. If you add another boolean env var to `env.ts`, use `z.stringbool()`, not `z.coerce.boolean()`.
+`z.coerce.boolean()` (in `env.ts`, zod v4) uses JavaScript's `Boolean(value)` semantics, not string parsing — `Boolean("false")` is `true`, because any non-empty string is truthy. Every env var arrives as a literal string regardless of source, so declaring `SOME_FLAG=false` anywhere would silently evaluate to `true`. This broke `USE_LOCAL_DB_PROXY` in production for a while. Fixed by switching to `z.stringbool()`, which parses `"true"`/`"false"` as actual booleans. If you add another boolean env var to `env.ts`, use `z.stringbool()`, not `z.coerce.boolean()`.
 
-### Cloudflare error 1101 ("Worker threw exception") vs 1102 ("exceeded resource limits")
+### Don't trust local dev to reproduce every production failure mode
 
-**1101** means something threw during the Worker's startup/module-eval path, outside the app's own routing — `worker.ts`'s `fetch` handler catches this and returns a clean `503 {"code":"STARTUP_ERROR"}` instead, logging the real cause (check `wrangler tail` or the dashboard's Logs tab — enable Logs under Observability if it's off, it's disabled by default). If you see a raw 1101 page instead of that 503, the crash is happening somewhere `worker.ts`'s try/catch doesn't cover — worth investigating as a gap, not just retrying.
-
-**1102** means the Worker hit its CPU time or memory limit — this is what legacy `$argon2id$` verification hit before switching to the WASM `argon2id` package (see above). CPU time defaults to 30s on the paid usage model and is raisable; the 128MB memory cap is not raisable on any plan, so if you see 1102 the fix is almost always "use less memory," not "raise a limit."
+Several bugs this migration surfaced (the PBKDF2 iteration cap, the WASM codegen restriction, the 128MB memory cap) only ever showed up against real Cloudflare infrastructure — `wrangler dev`'s local simulator silently didn't enforce any of them. Render's a more traditional long-running process, so this specific class of surprise should mostly go away, but it's a good reminder generally: a clean local run isn't proof a deploy target's real constraints are satisfied.
 
 ---
 
-## Local Development (unchanged)
-
-Bun is still the primary local dev runtime — `wrangler dev` is for verifying Workers compatibility, not day-to-day development:
+## Local Development
 
 ```bash
 cd apps/api
 bun install
-bun run dev         # Bun.serve, http://localhost:5000 — main local workflow
-bun run cf:dev       # wrangler dev, local workerd simulator — Workers verification only
+bun run dev         # Bun.serve, http://localhost:5000
 ```
