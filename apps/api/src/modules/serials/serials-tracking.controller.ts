@@ -1,6 +1,5 @@
-import type { Context } from "hono";
-import type { AppEnv } from "../../infrastructure/http/hono-context.types";
-import { sendBadRequest, sendNotFound, sendValidationError } from "../../commons/http/validation-response.hono";
+import type { Request, Response } from "express";
+import { sendBadRequest, sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
 import { parseTmdbIdParam } from "../../commons/validation/params.helper";
 import { SerialsTrackingService } from "./services/serials-tracking.service";
 import {
@@ -9,56 +8,67 @@ import {
   UpdateSeasonInteractionSchema,
   SeasonReviewInputSchema,
 } from "./dto/serials.dto";
+import type {
+  SerialEpisodeParams,
+  SerialSeasonParams,
+} from "./dto/serials.dto";
 
 export class SerialsTrackingController {
-  static async updateSeasonInteraction(c: Context<AppEnv>): Promise<Response> {
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+  static async updateSeasonInteraction(req: Request<SerialSeasonParams>, res: Response): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid series ID");
+      sendBadRequest(res, "Invalid series ID");
+      return;
     }
 
-    const seasonParams = SerialSeasonParamsSchema.safeParse(c.req.param());
+    const seasonParams = SerialSeasonParamsSchema.safeParse(req.params);
     if (!seasonParams.success) {
-      return sendValidationError(c, seasonParams.error);
+      sendValidationError(res, seasonParams.error);
+      return;
     }
 
-    const parsed = UpdateSeasonInteractionSchema.safeParse(await c.req.json());
+    const parsed = UpdateSeasonInteractionSchema.safeParse(req.body);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
     const result = await SerialsTrackingService.updateSeasonInteraction(
-      c.get("user").id,
+      req.user.id,
       tmdbId,
       seasonParams.data.seasonNumber,
       parsed.data,
     );
 
     if (!result) {
-      return sendNotFound(c, "Season or series not found");
+      sendNotFound(res, "Season or series not found");
+      return;
     }
 
-    return c.json(result, 200);
+    res.status(200).json(result);
   }
 
-  static async updateEpisodeInteraction(c: Context<AppEnv>): Promise<Response> {
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+  static async updateEpisodeInteraction(req: Request<SerialEpisodeParams>, res: Response): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid series ID");
+      sendBadRequest(res, "Invalid series ID");
+      return;
     }
 
-    const episodeParams = SerialEpisodeParamsSchema.safeParse(c.req.param());
+    const episodeParams = SerialEpisodeParamsSchema.safeParse(req.params);
     if (!episodeParams.success) {
-      return sendValidationError(c, episodeParams.error);
+      sendValidationError(res, episodeParams.error);
+      return;
     }
 
-    const parsed = UpdateSeasonInteractionSchema.safeParse(await c.req.json());
+    const parsed = UpdateSeasonInteractionSchema.safeParse(req.body);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
     const result = await SerialsTrackingService.updateEpisodeInteraction(
-      c.get("user").id,
+      req.user.id,
       tmdbId,
       episodeParams.data.seasonNumber,
       episodeParams.data.episodeNumber,
@@ -66,152 +76,169 @@ export class SerialsTrackingController {
     );
 
     if (!result) {
-      return sendNotFound(c, "Episode or series not found");
+      sendNotFound(res, "Episode or series not found");
+      return;
     }
 
-    return c.json(result, 200);
+    res.status(200).json(result);
   }
 
-  static async getSeasonReview(c: Context<AppEnv>): Promise<Response> {
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+  static async getSeasonReview(req: Request<SerialSeasonParams>, res: Response): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid series ID");
+      sendBadRequest(res, "Invalid series ID");
+      return;
     }
 
-    const seasonParams = SerialSeasonParamsSchema.safeParse(c.req.param());
+    const seasonParams = SerialSeasonParamsSchema.safeParse(req.params);
     if (!seasonParams.success) {
-      return sendValidationError(c, seasonParams.error);
+      sendValidationError(res, seasonParams.error);
+      return;
     }
 
     const review = await SerialsTrackingService.getSeasonReview(
-      c.get("user").id,
+      req.user.id,
       tmdbId,
       seasonParams.data.seasonNumber,
     );
 
-    return c.json(review, 200);
+    res.status(200).json(review);
   }
 
-  static async upsertSeasonReview(c: Context<AppEnv>): Promise<Response> {
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+  static async upsertSeasonReview(req: Request<SerialSeasonParams>, res: Response): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid series ID");
+      sendBadRequest(res, "Invalid series ID");
+      return;
     }
 
-    const seasonParams = SerialSeasonParamsSchema.safeParse(c.req.param());
+    const seasonParams = SerialSeasonParamsSchema.safeParse(req.params);
     if (!seasonParams.success) {
-      return sendValidationError(c, seasonParams.error);
+      sendValidationError(res, seasonParams.error);
+      return;
     }
 
-    const parsed = SeasonReviewInputSchema.safeParse(await c.req.json());
+    const parsed = SeasonReviewInputSchema.safeParse(req.body);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
     const review = await SerialsTrackingService.upsertSeasonReview(
-      c.get("user").id,
+      req.user.id,
       tmdbId,
       seasonParams.data.seasonNumber,
       parsed.data,
     );
 
-    return c.json(review, 200);
+    res.status(200).json(review);
   }
 
-  static async deleteSeasonReview(c: Context<AppEnv>): Promise<Response> {
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+  static async deleteSeasonReview(req: Request<SerialSeasonParams>, res: Response): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid series ID");
+      sendBadRequest(res, "Invalid series ID");
+      return;
     }
 
-    const seasonParams = SerialSeasonParamsSchema.safeParse(c.req.param());
+    const seasonParams = SerialSeasonParamsSchema.safeParse(req.params);
     if (!seasonParams.success) {
-      return sendValidationError(c, seasonParams.error);
+      sendValidationError(res, seasonParams.error);
+      return;
     }
 
     const deleted = await SerialsTrackingService.deleteSeasonReview(
-      c.get("user").id,
+      req.user.id,
       tmdbId,
       seasonParams.data.seasonNumber,
     );
 
     if (!deleted) {
-      return sendNotFound(c, "Review not found");
+      sendNotFound(res, "Review not found");
+      return;
     }
 
-    return c.json({ success: true }, 200);
+    res.status(200).json({ success: true });
   }
 
-  static async getEpisodeReview(c: Context<AppEnv>): Promise<Response> {
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+  static async getEpisodeReview(req: Request<SerialEpisodeParams>, res: Response): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid series ID");
+      sendBadRequest(res, "Invalid series ID");
+      return;
     }
 
-    const episodeParams = SerialEpisodeParamsSchema.safeParse(c.req.param());
+    const episodeParams = SerialEpisodeParamsSchema.safeParse(req.params);
     if (!episodeParams.success) {
-      return sendValidationError(c, episodeParams.error);
+      sendValidationError(res, episodeParams.error);
+      return;
     }
 
     const review = await SerialsTrackingService.getEpisodeReview(
-      c.get("user").id,
+      req.user.id,
       tmdbId,
       episodeParams.data.seasonNumber,
       episodeParams.data.episodeNumber,
     );
 
-    return c.json(review, 200);
+    res.status(200).json(review);
   }
 
-  static async upsertEpisodeReview(c: Context<AppEnv>): Promise<Response> {
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+  static async upsertEpisodeReview(req: Request<SerialEpisodeParams>, res: Response): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid series ID");
+      sendBadRequest(res, "Invalid series ID");
+      return;
     }
 
-    const episodeParams = SerialEpisodeParamsSchema.safeParse(c.req.param());
+    const episodeParams = SerialEpisodeParamsSchema.safeParse(req.params);
     if (!episodeParams.success) {
-      return sendValidationError(c, episodeParams.error);
+      sendValidationError(res, episodeParams.error);
+      return;
     }
 
-    const parsed = SeasonReviewInputSchema.safeParse(await c.req.json());
+    const parsed = SeasonReviewInputSchema.safeParse(req.body);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
     const review = await SerialsTrackingService.upsertEpisodeReview(
-      c.get("user").id,
+      req.user.id,
       tmdbId,
       episodeParams.data.seasonNumber,
       episodeParams.data.episodeNumber,
       parsed.data,
     );
 
-    return c.json(review, 200);
+    res.status(200).json(review);
   }
 
-  static async deleteEpisodeReview(c: Context<AppEnv>): Promise<Response> {
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+  static async deleteEpisodeReview(req: Request<SerialEpisodeParams>, res: Response): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid series ID");
+      sendBadRequest(res, "Invalid series ID");
+      return;
     }
 
-    const episodeParams = SerialEpisodeParamsSchema.safeParse(c.req.param());
+    const episodeParams = SerialEpisodeParamsSchema.safeParse(req.params);
     if (!episodeParams.success) {
-      return sendValidationError(c, episodeParams.error);
+      sendValidationError(res, episodeParams.error);
+      return;
     }
 
     const deleted = await SerialsTrackingService.deleteEpisodeReview(
-      c.get("user").id,
+      req.user.id,
       tmdbId,
       episodeParams.data.seasonNumber,
       episodeParams.data.episodeNumber,
     );
 
     if (!deleted) {
-      return sendNotFound(c, "Review not found");
+      sendNotFound(res, "Review not found");
+      return;
     }
 
-    return c.json({ success: true }, 200);
+    res.status(200).json({ success: true });
   }
 }

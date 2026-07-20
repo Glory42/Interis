@@ -14,9 +14,11 @@ import type {
 } from "../../types/serials.types";
 import type { SerialsArchivePeriodWindow } from "./serials-archive.types";
 
-// "Watched" vs "Watching" needs actual episode progress, not just
-// diary/rating existence - a series can have a diary entry from years ago
-// while the viewer is still partway through a newer season.
+// "Watched" vs "Watching" (as opposed to just "has logged it") needs actual
+// episode progress, not just diary/rating existence - a series can have a
+// diary entry from years ago while the viewer is still partway through a
+// newer season. Shared by both the local-cache and TMDB-backed archive
+// services so the two grid sources can't drift out of sync on this.
 export const addViewerArchiveState = async (
   viewerUserId: string | null,
   pageItems: SerialArchiveItem[],
@@ -177,11 +179,13 @@ export const isSeriesInArchivePeriod = (
   return series.firstAirYear >= startYear && series.firstAirYear <= endYear;
 };
 
-// This does the actual re-ranking (the discover-floor constant elsewhere
-// only filters out statistical noise). TV vote counts on TMDB range from a
-// few hundred to tens of thousands for popular shows, so a lower value here
-// let shows with a few hundred votes outrank shows with 10,000+ votes and a
-// slightly lower average.
+// Higher than the discover-floor constant below: the floor only keeps
+// statistical noise (a handful of votes) out of the candidate pool, while
+// this constant does the actual re-ranking. TV vote counts on TMDB span a
+// much wider range than the floor implies (a handful of hundreds up to
+// tens of thousands for genuinely popular shows), so a low confidence
+// constant still let shows with a few hundred votes outrank shows with
+// 10,000+ votes and a slightly lower average.
 const RATING_SORT_MIN_VOTES_FOR_CONFIDENCE = 1500;
 
 export const sortArchiveItems = (
@@ -283,9 +287,11 @@ export const sortArchiveItems = (
   return sortedItems;
 };
 
-// TV shows accumulate far fewer TMDB votes than movies, hence the lower
-// floor than the movies equivalent - raw vote_average.desc still lets a
-// series with a handful of 10s outrank a more reliable, lower average.
+// TV shows accumulate far fewer TMDB votes than movies, so the confidence
+// floor is lower than the movies equivalent, but the same rationale
+// applies: raw vote_average.desc lets a series with a handful of votes
+// (all rated 10) outrank a widely-watched series with a lower but far
+// more reliable average.
 const RATING_SORT_MIN_VOTE_COUNT_BY_PERIOD: Record<SerialArchivePeriod, number> = {
   today: 5,
   this_week: 10,

@@ -1,12 +1,13 @@
-import { createHonoApp } from "../../infrastructure/http/hono-context.types";
+import { Router } from "express";
 import { UploadsController } from "./uploads.controller";
-import { requireAuth } from "../../commons/middlewares/requireAuth.hono";
+import { requireAuth } from "../../commons/middlewares/requireAuth";
+import { asyncHandler } from "../../commons/utils/asyncHandler";
 
-const app = createHonoApp();
+const router = Router();
 
-app.use(requireAuth);
+router.use(requireAuth);
 
-app.post("/request", UploadsController.requestUpload);
-app.post("/confirm", UploadsController.confirmUpload);
+router.post("/request", asyncHandler(UploadsController.requestUpload));
+router.post("/confirm", asyncHandler(UploadsController.confirmUpload));
 
-export default app;
+export default router;

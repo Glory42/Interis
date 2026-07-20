@@ -6,10 +6,13 @@ import {
   type RunningTestServer,
 } from "../support/app/test-server";
 
-// Only the response *shape* is a contract worth locking here - asserting
-// real TMDB results would require network access and a real
-// TMDB_ACCESS_TOKEN, which this suite deliberately never needs (CI runs
-// with a placeholder token so `bun test` works offline).
+// Only the response *shape* is a contract worth locking here. Asserting
+// real TMDB results would make this test depend on network access and a
+// real TMDB_ACCESS_TOKEN, which the rest of this suite deliberately never
+// needs - CI runs with a placeholder token precisely so `bun test` works
+// offline. The shape of a single result is still fully specified below so
+// a future field rename/removal on the merge/sort logic gets caught even
+// without live data.
 const unifiedSearchResultSchema = z
   .object({
     mediaType: z.enum(["movie", "tv"]),

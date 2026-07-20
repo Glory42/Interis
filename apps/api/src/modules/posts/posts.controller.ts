@@ -1,106 +1,134 @@
-import type { Context } from "hono";
-import type { AppEnv } from "../../infrastructure/http/hono-context.types";
-import { sendNotFound, sendValidationError } from "../../commons/http/validation-response.hono";
+import type { Request, Response } from "express";
+import { sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
 import { PostsService } from "./posts.service";
 import { CreatePostSchema, PostCommentSchema, UpdatePostSchema } from "./dto/posts.dto";
 
 export class PostsController {
   // GET /api/posts/:id
-  static async getById(c: Context): Promise<Response> {
-    const post = await PostsService.findById(c.req.param("id") as string);
+  static async getById(
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> {
+    const post = await PostsService.findById(req.params.id);
     if (!post) {
-      return sendNotFound(c, "Post not found");
+      sendNotFound(res, "Post not found");
+      return;
     }
-    return c.json(post, 200);
+    res.status(200).json(post);
   }
 
   // POST /api/posts
-  static async create(c: Context<AppEnv>): Promise<Response> {
-    const parsed = CreatePostSchema.safeParse(await c.req.json());
+  static async create(req: Request, res: Response): Promise<void> {
+    const parsed = CreatePostSchema.safeParse(req.body);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
-    const post = await PostsService.create(c.get("user").id, parsed.data);
-    return c.json(post, 201);
+    const post = await PostsService.create(req.user.id, parsed.data);
+    res.status(201).json(post);
   }
 
   // DELETE /api/posts/:id
-  static async remove(c: Context<AppEnv>): Promise<Response> {
-    const deleted = await PostsService.delete(c.req.param("id") as string, c.get("user").id);
+  static async remove(
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> {
+    const deleted = await PostsService.delete(req.params.id, req.user.id);
     if (!deleted) {
-      return sendNotFound(c, "Post not found");
+      sendNotFound(res, "Post not found");
+      return;
     }
-    return c.json({ success: true }, 200);
+    res.status(200).json({ success: true });
   }
 
   // PUT /api/posts/:id
-  static async update(c: Context<AppEnv>): Promise<Response> {
-    const parsed = UpdatePostSchema.safeParse(await c.req.json());
+  static async update(
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> {
+    const parsed = UpdatePostSchema.safeParse(req.body);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
-    const updated = await PostsService.update(
-      c.req.param("id") as string,
-      c.get("user").id,
-      parsed.data,
-    );
+    const updated = await PostsService.update(req.params.id, req.user.id, parsed.data);
     if (!updated) {
-      return sendNotFound(c, "Post not found");
+      sendNotFound(res, "Post not found");
+      return;
     }
 
-    return c.json(updated, 200);
+    res.status(200).json(updated);
   }
 
   // POST /api/posts/:id/like
-  static async like(c: Context<AppEnv>): Promise<Response> {
-    const result = await PostsService.like(c.get("user").id, c.req.param("id") as string);
-    return c.json(result, 200);
+  static async like(
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> {
+    const result = await PostsService.like(req.user.id, req.params.id);
+    res.status(200).json(result);
   }
 
   // DELETE /api/posts/:id/like
-  static async unlike(c: Context<AppEnv>): Promise<Response> {
-    const result = await PostsService.unlike(c.get("user").id, c.req.param("id") as string);
+  static async unlike(
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> {
+    const result = await PostsService.unlike(req.user.id, req.params.id);
     if (!result) {
-      return sendNotFound(c, "Like not found");
+      sendNotFound(res, "Like not found");
+      return;
     }
-    return c.json({ liked: false }, 200);
+    res.status(200).json({ liked: false });
   }
 
   // GET /api/posts/:id/comments
-  static async getComments(c: Context): Promise<Response> {
-    const comments = await PostsService.getComments(c.req.param("id") as string);
-    return c.json(comments, 200);
+  static async getComments(
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> {
+    const comments = await PostsService.getComments(req.params.id);
+    res.status(200).json(comments);
   }
 
   // POST /api/posts/:id/comments
-  static async addComment(c: Context<AppEnv>): Promise<Response> {
-    const parsed = PostCommentSchema.safeParse(await c.req.json());
+  static async addComment(
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> {
+    const parsed = PostCommentSchema.safeParse(req.body);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
     const comment = await PostsService.addComment(
-      c.get("user").id,
-      c.req.param("id") as string,
+      req.user.id,
+      req.params.id,
       parsed.data.content,
     );
     if (!comment) {
-      return sendNotFound(c, "Post not found");
+      sendNotFound(res, "Post not found");
+      return;
     }
-    return c.json(comment, 201);
+    res.status(201).json(comment);
   }
 
   // DELETE /api/posts/comments/:commentId
-  static async deleteComment(c: Context<AppEnv>): Promise<Response> {
+  static async deleteComment(
+    req: Request<{ commentId: string }>,
+    res: Response,
+  ): Promise<void> {
     const deleted = await PostsService.deleteComment(
-      c.req.param("commentId") as string,
-      c.get("user").id,
+      req.params.commentId,
+      req.user.id,
     );
     if (!deleted) {
-      return sendNotFound(c, "Comment not found");
+      sendNotFound(res, "Comment not found");
+      return;
     }
-    return c.json({ success: true }, 200);
+    res.status(200).json({ success: true });
   }
 }

@@ -1,17 +1,18 @@
-import { createHonoApp } from "../../infrastructure/http/hono-context.types";
+import { Router } from "express";
 import { ModerationController } from "./moderation.controller";
-import { requireAuth } from "../../commons/middlewares/requireAuth.hono";
+import { asyncHandler } from "../../commons/utils/asyncHandler";
+import { requireAuth } from "../../commons/middlewares/requireAuth";
 
-const app = createHonoApp();
+const router = Router();
 
-app.use(requireAuth);
+router.use(requireAuth);
 
-app.get("/blocked", ModerationController.getBlocked);
-app.get("/muted", ModerationController.getMuted);
-app.get("/state/:username", ModerationController.getRelationshipState);
-app.post("/block/:username", ModerationController.block);
-app.delete("/block/:username", ModerationController.unblock);
-app.post("/mute/:username", ModerationController.mute);
-app.delete("/mute/:username", ModerationController.unmute);
+router.get("/blocked", asyncHandler(ModerationController.getBlocked));
+router.get("/muted", asyncHandler(ModerationController.getMuted));
+router.get("/state/:username", asyncHandler(ModerationController.getRelationshipState));
+router.post("/block/:username", asyncHandler(ModerationController.block));
+router.delete("/block/:username", asyncHandler(ModerationController.unblock));
+router.post("/mute/:username", asyncHandler(ModerationController.mute));
+router.delete("/mute/:username", asyncHandler(ModerationController.unmute));
 
-export default app;
+export default router;

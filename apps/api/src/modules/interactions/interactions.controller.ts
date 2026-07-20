@@ -1,38 +1,50 @@
-import type { Context } from "hono";
-import type { AppEnv } from "../../infrastructure/http/hono-context.types";
+import type { Request, Response } from "express";
 import {
   sendBadRequest,
   sendValidationError,
-} from "../../commons/http/validation-response.hono";
+} from "../../commons/http/validation-response.helper";
 import { parseTmdbIdParam } from "../../commons/validation/params.helper";
 import { InteractionsService } from "./interactions.service";
 import { UpdateInteractionSchema } from "./dto/interactions.dto";
 
 export class InteractionsController {
   // GET /api/interactions/:tmdbId
-  static async get(c: Context<AppEnv>): Promise<Response> {
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+  static async get(
+    req: Request<{ tmdbId: string }>,
+    res: Response,
+  ): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid tmdbId");
+      sendBadRequest(res, "Invalid tmdbId");
+      return;
     }
 
-    const state = await InteractionsService.get(c.get("user").id, tmdbId);
-    return c.json(state, 200);
+    const state = await InteractionsService.get(req.user.id, tmdbId);
+    res.status(200).json(state);
   }
 
   // PUT /api/interactions/:tmdbId
-  static async update(c: Context<AppEnv>): Promise<Response> {
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+  static async update(
+    req: Request<{ tmdbId: string }>,
+    res: Response,
+  ): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid tmdbId");
+      sendBadRequest(res, "Invalid tmdbId");
+      return;
     }
 
-    const parsed = UpdateInteractionSchema.safeParse(await c.req.json());
+    const parsed = UpdateInteractionSchema.safeParse(req.body);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
-    const result = await InteractionsService.update(c.get("user").id, tmdbId, parsed.data);
-    return c.json(result, 200);
+    const result = await InteractionsService.update(
+      req.user.id,
+      tmdbId,
+      parsed.data,
+    );
+    res.status(200).json(result);
   }
 }

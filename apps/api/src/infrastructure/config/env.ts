@@ -21,7 +21,10 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().optional(),
   // z.coerce.boolean() uses Boolean(value) semantics, not string parsing -
   // Boolean("false") is `true`. z.stringbool() parses "true"/"false" as
-  // actual booleans instead.
+  // actual booleans instead. Broke USE_LOCAL_DB_PROXY in production once
+  // already (a wrangler.toml var literally set to "false" evaluated truthy)
+  // - fixed here proactively even though nothing currently sets this
+  // explicitly to "false" outside docker-compose.
   USE_LOCAL_DB_PROXY: z.stringbool().default(false),
 });
 
@@ -37,12 +40,10 @@ const loadEnv = (): Env => {
   const result = envSchema.safeParse(process.env);
 
   if (!result.success) {
-    // process.exit() crash-kills the request with an opaque error under
-    // Workers instead of surfacing this message - a normal throw reads
-    // consistently in both Bun and Workers logs.
-    throw new Error(
+    console.error(
       `Invalid environment configuration:\n${formatIssues(result.error)}`,
     );
+    process.exit(1);
   }
 
   return result.data;

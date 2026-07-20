@@ -2,12 +2,12 @@ import { z } from "zod";
 
 export const SignUpSchema = z.object({
   username: z.string().min(1).max(64),
-  email: z.email(),
+  email: z.string().email(),
   password: z.string().min(1).max(256),
 });
 
 export const SignInSchema = z.object({
-  email: z.email(),
+  email: z.string().email(),
   password: z.string().min(1).max(256),
 });
 
@@ -22,7 +22,7 @@ export const ChangePasswordSchema = z.object({
 });
 
 export const ChangeEmailSchema = z.object({
-  newEmail: z.email(),
+  newEmail: z.string().email(),
   answer: z.string().min(1).max(200),
 });
 
@@ -32,11 +32,11 @@ export const SecurityQuestionSchema = z.object({
 });
 
 export const ForgotPasswordSchema = z.object({
-  email: z.email(),
+  email: z.string().email(),
 });
 
 export const ResetPasswordSchema = z.object({
-  email: z.email(),
+  email: z.string().email(),
   answer: z.string().min(1).max(200),
   newPassword: z.string().min(1).max(256),
 });

@@ -1,8 +1,9 @@
-import { createHonoApp } from "../../infrastructure/http/hono-context.types";
+import { Router } from "express";
 import { SearchController } from "./search.controller";
+import { asyncHandler } from "../../commons/utils/asyncHandler";
 
-const app = createHonoApp();
+const router = Router();
 
-app.get("/", SearchController.searchTitles);
+router.get("/", asyncHandler(SearchController.searchTitles));
 
-export default app;
+export default router;

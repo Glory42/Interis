@@ -1,19 +1,24 @@
-import type { Context } from "hono";
-import { sendBadRequest, sendNotFound } from "../../commons/http/validation-response.hono";
+import type { Request, Response } from "express";
+import { sendBadRequest, sendNotFound } from "../../commons/http/validation-response.helper";
 import { normalizePersonRouteSlug } from "./helpers/people-slug.helper";
-import { personRouteRoleSchema } from "./dto/people.dto";
+import { personRouteRoleSchema, type PersonRouteParams } from "./dto/people.dto";
 import { PeopleDetailService } from "./services/people-detail.service";
 
 export class PeopleController {
-  static async getByRoleAndSlug(c: Context): Promise<Response> {
-    const parsedRole = personRouteRoleSchema.safeParse(c.req.param("role"));
+  static async getByRoleAndSlug(
+    req: Request<PersonRouteParams>,
+    res: Response,
+  ): Promise<void> {
+    const parsedRole = personRouteRoleSchema.safeParse(req.params.role);
     if (!parsedRole.success) {
-      return sendBadRequest(c, "Invalid person role");
+      sendBadRequest(res, "Invalid person role");
+      return;
     }
 
-    const normalizedSlug = normalizePersonRouteSlug(c.req.param("slug") as string);
+    const normalizedSlug = normalizePersonRouteSlug(req.params.slug);
     if (!normalizedSlug) {
-      return sendBadRequest(c, "Invalid person slug");
+      sendBadRequest(res, "Invalid person slug");
+      return;
     }
 
     const detail = await PeopleDetailService.getPersonDetailByRoleAndSlug({
@@ -22,10 +27,11 @@ export class PeopleController {
     });
 
     if (!detail) {
-      return sendNotFound(c, "Person not found");
+      sendNotFound(res, "Person not found");
+      return;
     }
 
-    c.header("Cache-Control", "no-store");
-    return c.json(detail, 200);
+    res.setHeader("Cache-Control", "no-store");
+    res.status(200).json(detail);
   }
 }

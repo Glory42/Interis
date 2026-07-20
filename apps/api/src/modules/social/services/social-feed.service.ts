@@ -18,8 +18,10 @@ export type FeedPage = {
   nextCursor: string | null;
 };
 
-// Short TTL - this only exists to absorb request bursts (e.g. React Query
-// refetch-on-focus), not to serve meaningfully stale data.
+// Feed rows/engagement counts change quickly, so the TTL stays short — this
+// only exists to absorb request bursts (e.g. React Query refetch-on-focus,
+// or two viewers with overlapping follow sets hitting the same page),
+// not to serve meaningfully stale data.
 const FEED_CACHE_TTL_MS = 20 * 1000;
 
 const buildFeedItems = async (
@@ -128,9 +130,11 @@ export class SocialFeedService {
     return cachedGetUserActivityFeed(userId, limit);
   }
 
-  // Without this, a fresh follow can take up to FEED_CACHE_TTL_MS to show
-  // the followed user's activity - the TTL cache has no way to know
-  // follow/unfollow changed who belongs in the feed.
+  // Follow/unfollow changes who belongs in a user's following feed, which
+  // the TTL cache above has no way to know about on its own - without this,
+  // a fresh follow can take up to FEED_CACHE_TTL_MS to show the followed
+  // user's activity, which contradicts this cache's whole "absorb bursts,
+  // not serve meaningfully stale data" premise.
   static invalidateFollowingFeed(userId: string): void {
     cachedGetFollowingFeed.invalidatePrefix(`${userId}:`);
   }

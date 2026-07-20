@@ -14,10 +14,10 @@ A social movie journal app inspired by Letterboxd + timeline-style social apps.
 | Layer | Tech |
 | --- | --- |
 | Runtime | Bun |
-| Backend | Hono (Bun.serve) + TypeScript |
+| Backend | Express 5 (Bun.serve) + TypeScript |
 | Database | Neon (PostgreSQL) |
 | ORM | Drizzle ORM |
-| Auth | In-house (JWT access + rotating refresh tokens, PBKDF2-SHA256 via WebCrypto) |
+| Auth | In-house (JWT access + rotating refresh tokens, argon2id via `Bun.password`) |
 | Frontend | React 19 + Vite |
 | Routing | TanStack Router (file-based) |
 | Data | TanStack Query |
@@ -29,7 +29,7 @@ A social movie journal app inspired by Letterboxd + timeline-style social apps.
 
 ```text
 .
-├── apps/api/          # Hono API (Bun.serve), domain modules, Drizzle schema/migrations
+├── apps/api/          # Express API (Bun.serve), domain modules, Drizzle schema/migrations
 ├── apps/docs/             # Astro + Starlight docs site for public API
 ├── apps/web/         # React app (TanStack Router + Query)
 ├── apps/e2e/              # Playwright smoke and end-to-end tests

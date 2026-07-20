@@ -1,9 +1,15 @@
-import type { Context } from "hono";
-import type { AppEnv } from "../../infrastructure/http/hono-context.types";
-import { resolveViewerUserIdFromHonoContext } from "../../commons/auth/session-resolver.hono";
-import { sendBadRequest, sendNotFound, sendValidationError } from "../../commons/http/validation-response.hono";
+import type { Request, Response } from "express";
+import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
+import { sendBadRequest, sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
 import { parseTmdbIdParam } from "../../commons/validation/params.helper";
 import { SerialsService } from "./serials.service";
+import type {
+  SerialDetailQuery,
+  SearchSerialsQuery,
+  SerialArchiveQuery,
+  SerialParams,
+  SerialSeasonParams,
+} from "./dto/serials.dto";
 import {
   CreateSerialLogSchema,
   normalizeSerialArchiveQuery,
@@ -16,122 +22,158 @@ import {
 } from "./dto/serials.dto";
 
 export class SerialsController {
-  static async search(c: Context<AppEnv>): Promise<Response> {
-    const parsed = SearchSerialsQuerySchema.safeParse(c.req.query());
+  static async search(
+    req: Request<{}, {}, {}, SearchSerialsQuery>,
+    res: Response,
+  ): Promise<void> {
+    const parsed = SearchSerialsQuerySchema.safeParse(req.query);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
     const series = await SerialsService.search(parsed.data.query);
-    return c.json(series, 200);
+    res.status(200).json(series);
   }
 
-  static async getByTmdbId(c: Context<AppEnv>): Promise<Response> {
+  static async getByTmdbId(
+    req: Request<SerialParams>,
+    res: Response,
+  ): Promise<void> {
     // Contract: return normalized cached tv_series entity only.
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid series ID");
+      sendBadRequest(res, "Invalid series ID");
+      return;
     }
 
     const series = await SerialsService.findOrCreate(tmdbId);
     if (!series) {
-      return sendNotFound(c, "Series not found");
+      sendNotFound(res, "Series not found");
+      return;
     }
 
-    return c.json(series, 200);
+    res.status(200).json(series);
   }
 
-  static async getDetailByTmdbId(c: Context<AppEnv>): Promise<Response> {
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+  static async getDetailByTmdbId(
+    req: Request<SerialParams, {}, {}, SerialDetailQuery>,
+    res: Response,
+  ): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid series ID");
+      sendBadRequest(res, "Invalid series ID");
+      return;
     }
 
-    const viewerUserId = await resolveViewerUserIdFromHonoContext(c);
+    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
 
     const detail = await SerialsService.getDetail({
       tmdbId,
       viewerUserId,
-      reviewsSort: normalizeSerialDetailQuery(c.req.query()).reviewsSort,
+      reviewsSort: normalizeSerialDetailQuery(req.query).reviewsSort,
     });
 
     if (!detail) {
-      return sendNotFound(c, "Series not found");
+      sendNotFound(res, "Series not found");
+      return;
     }
 
-    c.header("Cache-Control", "no-store");
-    return c.json(detail, 200);
+    res.setHeader("Cache-Control", "no-store");
+    res.status(200).json(detail);
   }
 
-  static async getInteractionByTmdbId(c: Context<AppEnv>): Promise<Response> {
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+  static async getInteractionByTmdbId(
+    req: Request<SerialParams>,
+    res: Response,
+  ): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid series ID");
+      sendBadRequest(res, "Invalid series ID");
+      return;
     }
 
-    const state = await SerialsService.getInteraction(c.get("user").id, tmdbId);
+    const state = await SerialsService.getInteraction(req.user.id, tmdbId);
     if (!state) {
-      return sendNotFound(c, "Series not found");
+      sendNotFound(res, "Series not found");
+      return;
     }
 
-    return c.json(state, 200);
+    res.status(200).json(state);
   }
 
-  static async updateInteractionByTmdbId(c: Context<AppEnv>): Promise<Response> {
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+  static async updateInteractionByTmdbId(
+    req: Request<SerialParams>,
+    res: Response,
+  ): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid series ID");
+      sendBadRequest(res, "Invalid series ID");
+      return;
     }
 
-    const parsed = UpdateSerialInteractionSchema.safeParse(await c.req.json());
+    const parsed = UpdateSerialInteractionSchema.safeParse(req.body);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
     const result = await SerialsService.updateInteraction(
-      c.get("user").id,
+      req.user.id,
       tmdbId,
       parsed.data,
     );
 
     if (!result) {
-      return sendNotFound(c, "Series not found");
+      sendNotFound(res, "Series not found");
+      return;
     }
 
-    return c.json(result, 200);
+    res.status(200).json(result);
   }
 
-  static async createLogByTmdbId(c: Context<AppEnv>): Promise<Response> {
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+  static async createLogByTmdbId(
+    req: Request<SerialParams>,
+    res: Response,
+  ): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid series ID");
+      sendBadRequest(res, "Invalid series ID");
+      return;
     }
 
-    const parsed = CreateSerialLogSchema.safeParse(await c.req.json());
+    const parsed = CreateSerialLogSchema.safeParse(req.body);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
-    const created = await SerialsService.createLog(c.get("user").id, tmdbId, parsed.data);
+    const created = await SerialsService.createLog(req.user.id, tmdbId, parsed.data);
     if (!created) {
-      return sendNotFound(c, "Series not found");
+      sendNotFound(res, "Series not found");
+      return;
     }
 
-    return c.json(created, 201);
+    res.status(201).json(created);
   }
 
-  static async getSeasonByTmdbId(c: Context<AppEnv>): Promise<Response> {
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+  static async getSeasonByTmdbId(
+    req: Request<SerialSeasonParams>,
+    res: Response,
+  ): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid series ID");
+      sendBadRequest(res, "Invalid series ID");
+      return;
     }
 
-    const seasonParams = SerialSeasonParamsSchema.safeParse(c.req.param());
+    const seasonParams = SerialSeasonParamsSchema.safeParse(req.params);
     if (!seasonParams.success) {
-      return sendValidationError(c, seasonParams.error);
+      sendValidationError(res, seasonParams.error);
+      return;
     }
 
-    const viewerUserId = await resolveViewerUserIdFromHonoContext(c);
+    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
 
     const seasonDetail = await SerialsService.getSeasonDetail({
       tmdbId,
@@ -140,82 +182,96 @@ export class SerialsController {
     });
 
     if (!seasonDetail) {
-      return sendNotFound(c, "Season not found");
+      sendNotFound(res, "Season not found");
+      return;
     }
 
-    c.header("Cache-Control", "no-store");
-    return c.json(seasonDetail, 200);
+    res.setHeader("Cache-Control", "no-store");
+    res.status(200).json(seasonDetail);
   }
 
-  static async getArchive(c: Context<AppEnv>): Promise<Response> {
-    const viewerUserId = await resolveViewerUserIdFromHonoContext(c);
+  static async getArchive(
+    req: Request<{}, {}, {}, SerialArchiveQuery>,
+    res: Response,
+  ): Promise<void> {
+    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
 
     const archive = await SerialsService.getArchive({
-      ...normalizeSerialArchiveQuery(c.req.query()),
+      ...normalizeSerialArchiveQuery(req.query),
       viewerUserId,
     });
 
-    c.header("Cache-Control", "no-store");
-    return c.json(archive, 200);
+    res.setHeader("Cache-Control", "no-store");
+    res.status(200).json(archive);
   }
 
-  static async getTrending(c: Context<AppEnv>): Promise<Response> {
+  static async getTrending(_req: Request, res: Response): Promise<void> {
     const series = await SerialsService.getTrending();
-    c.header("Cache-Control", "public, max-age=300");
-    return c.json(series, 200);
+    res.setHeader("Cache-Control", "public, max-age=300");
+    res.status(200).json(series);
   }
 
-  static async getRecent(c: Context<AppEnv>): Promise<Response> {
+  static async getRecent(_req: Request, res: Response): Promise<void> {
     const series = await SerialsService.getRecent();
-    c.header("Cache-Control", "public, max-age=300");
-    return c.json(series, 200);
+    res.setHeader("Cache-Control", "public, max-age=300");
+    res.status(200).json(series);
   }
 
-  static async getLogsByTmdbId(c: Context<AppEnv>): Promise<Response> {
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+  static async getLogsByTmdbId(
+    req: Request<SerialParams>,
+    res: Response,
+  ): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid series ID");
+      sendBadRequest(res, "Invalid series ID");
+      return;
     }
 
-    const { limit, offset } = normalizeSerialLogsQuery(c.req.query());
+    const { limit, offset } = normalizeSerialLogsQuery(req.query);
     const logs = await SerialsService.getLogs(tmdbId, limit, offset);
     if (logs === null) {
-      return sendNotFound(c, "Series not found");
+      sendNotFound(res, "Series not found");
+      return;
     }
 
-    return c.json(logs, 200);
+    res.status(200).json(logs);
   }
 
-  static async getMyLogs(c: Context<AppEnv>): Promise<Response> {
-    const { limit, offset } = normalizeSerialLogsQuery(c.req.query());
-    const logs = await SerialsService.getMyLogs(c.get("user").id, limit, offset);
-    return c.json(logs, 200);
+  static async getMyLogs(req: Request, res: Response): Promise<void> {
+    const { limit, offset } = normalizeSerialLogsQuery(req.query);
+    const logs = await SerialsService.getMyLogs(req.user.id, limit, offset);
+    res.status(200).json(logs);
   }
 
-  static async updateLog(c: Context<AppEnv>): Promise<Response> {
-    const parsed = UpdateSerialLogSchema.safeParse(await c.req.json());
+  static async updateLog(
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> {
+    const parsed = UpdateSerialLogSchema.safeParse(req.body);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
-    const updated = await SerialsService.updateLog(
-      c.req.param("id") as string,
-      c.get("user").id,
-      parsed.data,
-    );
+    const updated = await SerialsService.updateLog(req.params.id, req.user.id, parsed.data);
     if (!updated) {
-      return sendNotFound(c, "Serial log not found");
+      sendNotFound(res, "Serial log not found");
+      return;
     }
 
-    return c.json(updated, 200);
+    res.status(200).json(updated);
   }
 
-  static async deleteLog(c: Context<AppEnv>): Promise<Response> {
-    const deleted = await SerialsService.deleteLog(c.req.param("id") as string, c.get("user").id);
+  static async deleteLog(
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> {
+    const deleted = await SerialsService.deleteLog(req.params.id, req.user.id);
     if (!deleted) {
-      return sendNotFound(c, "Serial log not found");
+      sendNotFound(res, "Serial log not found");
+      return;
     }
 
-    return c.json({ success: true }, 200);
+    res.status(200).json({ success: true });
   }
 }

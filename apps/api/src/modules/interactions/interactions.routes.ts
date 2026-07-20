@@ -1,12 +1,13 @@
-import { createHonoApp } from "../../infrastructure/http/hono-context.types";
+import { Router } from "express";
 import { InteractionsController } from "./interactions.controller";
-import { requireAuth } from "../../commons/middlewares/requireAuth.hono";
+import { requireAuth } from "../../commons/middlewares/requireAuth";
+import { asyncHandler } from "../../commons/utils/asyncHandler";
 
-const app = createHonoApp();
+const router = Router();
 
-app.use(requireAuth);
+router.use(requireAuth);
 
-app.get("/:tmdbId", InteractionsController.get);
-app.put("/:tmdbId", InteractionsController.update);
+router.get("/:tmdbId", asyncHandler(InteractionsController.get));
+router.put("/:tmdbId", asyncHandler(InteractionsController.update));
 
-export default app;
+export default router;

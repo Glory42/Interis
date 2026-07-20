@@ -1,22 +1,27 @@
-import { Hono } from "hono";
-import type { AppEnv } from "./infrastructure/http/hono-context.types";
+import express, {
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
+import cors from "cors";
+import pinoHttp from "pino-http";
+import { randomUUID } from "node:crypto";
 import { logger } from "./commons/utils/logger";
 import { env } from "./infrastructure/config/env";
-import { onError } from "./commons/errors/onError.hono";
-import { secureHeadersMiddleware } from "./commons/middlewares/secureHeaders.hono";
-import {
-  publicCorsMiddleware,
-  createTrustedOriginCorsMiddleware,
-} from "./commons/middlewares/cors.hono";
-import { requestLoggerMiddleware } from "./commons/middlewares/requestLogger.hono";
-import { requireTrustedOriginForMutations } from "./commons/middlewares/requireTrustedOriginForMutations.hono";
+import { AppError } from "./commons/errors/app-error";
+import { securityHeaders } from "./commons/middlewares/securityHeaders";
+import { helmetMiddleware } from "./commons/middlewares/helmet";
+import { requireTrustedOriginForMutations } from "./commons/middlewares/requireTrustedOriginForMutations";
 import {
   createAuthLimiter,
   createApiLimiter,
   createMutationLimiter,
-} from "./commons/middlewares/rateLimiters.hono";
-import { getTrustedOriginsFromEnv } from "./infrastructure/config/origins";
-import { registerHonoRoutes } from "./infrastructure/routing/register-hono-routes";
+} from "./commons/middlewares/rateLimiters";
+import {
+  getTrustedOriginsFromEnv,
+  isTrustedOrigin,
+} from "./infrastructure/config/origins";
+import { registerRoutes } from "./infrastructure/routing/register-routes";
 
 export type RateLimiterOverrides = {
   auth?: number;
@@ -28,27 +33,117 @@ export type CreateAppOptions = {
   rateLimiterOverrides?: RateLimiterOverrides;
 };
 
-export const createApp = (options: CreateAppOptions = {}): Hono<AppEnv> => {
-  const app = new Hono<AppEnv>();
+export const createApp = (options: CreateAppOptions = {}) => {
+  const app = express();
   const trustedOrigins = getTrustedOriginsFromEnv();
+  const authLimiter = createAuthLimiter(options.rateLimiterOverrides?.auth);
+  const apiLimiter = createApiLimiter(options.rateLimiterOverrides?.api);
+  const mutationLimiter = createMutationLimiter(options.rateLimiterOverrides?.mutation);
 
-  app.onError(onError);
+  app.disable("x-powered-by");
+  app.use(helmetMiddleware);
+  app.use(securityHeaders);
 
-  app.use("*", secureHeadersMiddleware);
+  app.use(
+    "/api/public",
+    cors({
+      origin: "*",
+      methods: ["GET", "HEAD", "OPTIONS"],
+      credentials: false,
+    }),
+  );
 
-  app.use("/api/public/*", publicCorsMiddleware);
-  app.use("*", ...createTrustedOriginCorsMiddleware(trustedOrigins));
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        if (!origin) {
+          callback(null, true);
+          return;
+        }
 
-  app.use("*", requestLoggerMiddleware);
+        if (isTrustedOrigin(origin, trustedOrigins)) {
+          callback(null, true);
+          return;
+        }
 
-  app.use("/api/*", createApiLimiter(options.rateLimiterOverrides?.api));
-  app.use("/api/*", createMutationLimiter(options.rateLimiterOverrides?.mutation));
-  app.use("*", requireTrustedOriginForMutations(trustedOrigins));
-  app.use("/api/auth/*", createAuthLimiter(options.rateLimiterOverrides?.auth));
+        callback(new Error("Not allowed by CORS"));
+      },
+      credentials: true,
+    }),
+  );
 
-  registerHonoRoutes(app);
+  app.use(
+    pinoHttp({
+      logger,
+      genReqId: (req, res) => {
+        const existingId = req.headers["x-request-id"];
+        if (typeof existingId === "string" && existingId.length > 0) {
+          res.setHeader("x-request-id", existingId);
+          return existingId;
+        }
 
-  app.get("/", (c) => c.json({ status: "ok", message: "Hello Zeytin" }));
+        const requestId = randomUUID();
+        req.headers["x-request-id"] = requestId;
+        res.setHeader("x-request-id", requestId);
+        return requestId;
+      },
+    }),
+  );
+
+  app.use("/api", apiLimiter);
+  app.use("/api", mutationLimiter);
+  app.use(requireTrustedOriginForMutations(trustedOrigins));
+  app.use("/api/auth", authLimiter);
+  // Tighter body-size limit for auth payloads than the rest of the API.
+  app.use("/api/auth", express.json({ limit: "20kb" }));
+
+  app.use(express.json({ limit: "1mb" }));
+  app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+
+  app.get("/", (req: Request, res: Response) => {
+    res.json({ status: "ok", message: "Hello Zeytin" });
+  });
+
+  app.get("/api/health", (req: Request, res: Response) => {
+    res.json({ status: "ok", message: "Interis API is alive" });
+  });
+
+  registerRoutes(app);
+
+  app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+    if (err instanceof AppError) {
+      res
+        .status(err.statusCode)
+        .json({ error: { message: err.message, code: err.code, details: err.details } });
+      return;
+    }
+
+    if (err.message === "Not allowed by CORS") {
+      res
+        .status(403)
+        .json({ error: { message: "Origin is not allowed", code: "CORS_NOT_ALLOWED" } });
+      return;
+    }
+
+    const bodyParserError = err as Error & { type?: string; status?: number };
+    if (bodyParserError.type === "entity.too.large") {
+      res
+        .status(413)
+        .json({ error: { message: "Request body too large", code: "PAYLOAD_TOO_LARGE" } });
+      return;
+    }
+    if (bodyParserError.type?.startsWith("entity.parse")) {
+      res
+        .status(400)
+        .json({ error: { message: "Malformed request body", code: "MALFORMED_BODY" } });
+      return;
+    }
+
+    logger.error(err);
+    res
+      .status(500)
+      .json({ error: { message: "Internal server error", code: "INTERNAL_SERVER_ERROR" } });
+  });
 
   return app;
 };
@@ -57,8 +152,9 @@ export const startServer = () => {
   const app = createApp();
   const port = env.PORT;
 
-  const server = Bun.serve({ fetch: app.fetch, port });
-  logger.info(`🚀 Hono server running on http://localhost:${server.port}`);
+  const server = app.listen(port, () => {
+    logger.info(`🚀 Express server running on http://localhost:${port}`);
+  });
 
   let isShuttingDown = false;
 
@@ -69,9 +165,15 @@ export const startServer = () => {
     isShuttingDown = true;
 
     logger.info(`${signal} received, shutting down gracefully`);
-    server.stop();
-    logger.info("Server closed, exiting");
-    process.exit(0);
+    server.close((err) => {
+      if (err) {
+        logger.error(err, "Error while closing server");
+        process.exit(1);
+      }
+
+      logger.info("Server closed, exiting");
+      process.exit(0);
+    });
   };
 
   process.on("SIGTERM", () => shutdown("SIGTERM"));

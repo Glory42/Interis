@@ -1,23 +1,54 @@
-import { createHonoApp } from "../../infrastructure/http/hono-context.types";
+import { Router } from "express";
 import { SocialController } from "./social.controller";
-import { requireAuth } from "../../commons/middlewares/requireAuth.hono";
+import { requireAuth } from "../../commons/middlewares/requireAuth";
+import { asyncHandler } from "../../commons/utils/asyncHandler";
 
-const app = createHonoApp();
+const router = Router();
 
 // Protected
-app.get("/feed/following", requireAuth, SocialController.getFollowingFeed);
-app.get("/feed", requireAuth, SocialController.getFeed);
-app.post("/follow/:username", requireAuth, SocialController.follow);
-app.delete("/follow/:username", requireAuth, SocialController.unfollow);
-app.delete("/follower/:username", requireAuth, SocialController.removeFollower);
-app.get("/is-following/:username", requireAuth, SocialController.checkIsFollowing);
+router.get(
+  "/feed/following",
+  requireAuth,
+  asyncHandler(SocialController.getFollowingFeed),
+);
+router.get("/feed", requireAuth, asyncHandler(SocialController.getFeed));
+router.post(
+  "/follow/:username",
+  requireAuth,
+  asyncHandler(SocialController.follow),
+);
+router.delete(
+  "/follow/:username",
+  requireAuth,
+  asyncHandler(SocialController.unfollow),
+);
+router.delete(
+  "/follower/:username",
+  requireAuth,
+  asyncHandler(SocialController.removeFollower),
+);
+
+// Protected
+router.get(
+  "/is-following/:username",
+  requireAuth,
+  asyncHandler(SocialController.checkIsFollowing),
+);
 
 // Activity likes
-app.post("/activities/:activityId/like", requireAuth, SocialController.likeActivity);
-app.delete("/activities/:activityId/like", requireAuth, SocialController.unlikeActivity);
+router.post(
+  "/activities/:activityId/like",
+  requireAuth,
+  asyncHandler(SocialController.likeActivity),
+);
+router.delete(
+  "/activities/:activityId/like",
+  requireAuth,
+  asyncHandler(SocialController.unlikeActivity),
+);
 
 // Public
-app.get("/followers/:username", SocialController.getFollowers);
-app.get("/following/:username", SocialController.getFollowing);
+router.get("/followers/:username", asyncHandler(SocialController.getFollowers));
+router.get("/following/:username", asyncHandler(SocialController.getFollowing));
 
-export default app;
+export default router;

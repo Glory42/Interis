@@ -1,14 +1,15 @@
-import { createHonoApp } from "../../infrastructure/http/hono-context.types";
+import { Router } from "express";
 import { MoviesController } from "./movies.controller";
+import { asyncHandler } from "../../commons/utils/asyncHandler";
 
-const app = createHonoApp();
+const router = Router();
 
-app.get("/search", MoviesController.search);
-app.get("/recent", MoviesController.getRecent);
-app.get("/archive", MoviesController.getArchive);
-app.get("/trending", MoviesController.getTrending);
-app.get("/:tmdbId/detail", MoviesController.getDetailByTmdbId);
-app.get("/:tmdbId/logs", MoviesController.getLogsByTmdbId);
-app.get("/:tmdbId", MoviesController.getByTmdbId);
+router.get("/search", asyncHandler(MoviesController.search));
+router.get("/recent", asyncHandler(MoviesController.getRecent));
+router.get("/archive", asyncHandler(MoviesController.getArchive));
+router.get("/trending", asyncHandler(MoviesController.getTrending));
+router.get("/:tmdbId/detail", asyncHandler(MoviesController.getDetailByTmdbId));
+router.get("/:tmdbId/logs", asyncHandler(MoviesController.getLogsByTmdbId));
+router.get("/:tmdbId", asyncHandler(MoviesController.getByTmdbId));
 
-export default app;
+export default router;

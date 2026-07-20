@@ -1,24 +1,29 @@
-import { createHonoApp } from "../../infrastructure/http/hono-context.types";
-import { requireAuth } from "../../commons/middlewares/requireAuth.hono";
+import { Router } from "express";
+import { asyncHandler } from "../../commons/utils/asyncHandler";
+import { requireAuth } from "../../commons/middlewares/requireAuth";
 import { ListsController } from "./lists.controller";
 
-const app = createHonoApp();
+const router = Router();
 
 // Public (optional auth)
-app.get("/:id", ListsController.getById);
+router.get("/:id", asyncHandler(ListsController.getById));
 
 // Protected — list CRUD
-app.post("/", requireAuth, ListsController.create);
-app.patch("/:id", requireAuth, ListsController.update);
-app.delete("/:id", requireAuth, ListsController.remove);
+router.post("/", requireAuth, asyncHandler(ListsController.create));
+router.patch("/:id", requireAuth, asyncHandler(ListsController.update));
+router.delete("/:id", requireAuth, asyncHandler(ListsController.remove));
 
 // Protected — likes
-app.post("/:id/like", requireAuth, ListsController.like);
-app.delete("/:id/like", requireAuth, ListsController.unlike);
+router.post("/:id/like", requireAuth, asyncHandler(ListsController.like));
+router.delete("/:id/like", requireAuth, asyncHandler(ListsController.unlike));
 
 // Protected — list items
-app.post("/:id/items", requireAuth, ListsController.addItem);
-app.delete("/:id/items/:itemId", requireAuth, ListsController.removeItem);
-app.patch("/:id/reorder", requireAuth, ListsController.reorder);
+router.post("/:id/items", requireAuth, asyncHandler(ListsController.addItem));
+router.delete(
+  "/:id/items/:itemId",
+  requireAuth,
+  asyncHandler(ListsController.removeItem),
+);
+router.patch("/:id/reorder", requireAuth, asyncHandler(ListsController.reorder));
 
-export default app;
+export default router;

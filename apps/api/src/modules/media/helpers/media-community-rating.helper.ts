@@ -1,10 +1,14 @@
 type RatingRow = { userId: string; rating: number | null };
 
-// Community rating = every diary-entry rating, plus each user's
-// interaction rating only if they never logged a diary entry for the item -
-// a user's diary rating(s) take precedence so the same opinion isn't
-// double-counted. Mirrors the frontend's own diary-over-interaction
-// precedence for "Your Rating", inverted for aggregation.
+// Community rating source: every diary-entry rating (one per logged
+// watch/rewatch, matching Letterboxd-style per-log averaging), plus the
+// interaction (star-widget) rating for any user who rated the item that
+// way WITHOUT ever logging a diary entry for it. A user's diary rating(s)
+// take precedence over their interaction rating so the same opinion is
+// never double-counted - mirrors the frontend's own precedence
+// (interaction rating falls back to diary rating) for "Your Rating", just
+// inverted for aggregation purposes. Shared between movies and serials
+// since both apply the identical diary-vs-interaction precedence rule.
 export const mergeCommunityRatings = (
   diaryRatingRows: RatingRow[],
   interactionRatingRows: RatingRow[],

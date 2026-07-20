@@ -3,10 +3,11 @@ import { eq } from "drizzle-orm";
 import { db } from "../src/infrastructure/database/db";
 import { credentials, user } from "../src/infrastructure/database/auth.entity";
 
-// Every existing user gets an explicit, unusable `credentials` row
-// (passwordHash: null) so their next login fails cleanly into "forgot
-// password" - never carries the old Better Auth hash forward. Safe to
-// re-run: skips users that already have a password credential row.
+// Cutover step for issue #29: every existing user gets an explicit,
+// unusable `credentials` row (passwordHash: null) so their next login
+// attempt fails cleanly and routes them into "forgot password" — never
+// carries the old Better Auth hash forward. Safe to re-run: skips users
+// that already have a password credential row.
 const run = async () => {
   const users = await db.select({ id: user.id }).from(user);
   const existing = await db

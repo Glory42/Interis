@@ -1,12 +1,18 @@
-import { createHonoApp } from "../../infrastructure/http/hono-context.types";
+import express, { Router } from "express";
 import { DataTransferController } from "./data-transfer.controller";
-import { requireAuth } from "../../commons/middlewares/requireAuth.hono";
+import { requireAuth } from "../../commons/middlewares/requireAuth";
+import { asyncHandler } from "../../commons/utils/asyncHandler";
 
-const app = createHonoApp({ bodyLimitBytes: 10 * 1024 * 1024 });
+const router = Router();
 
-app.use(requireAuth);
+router.use(requireAuth);
 
-app.get("/export", DataTransferController.export);
-app.post("/import", DataTransferController.import);
+router.get("/export", asyncHandler(DataTransferController.export));
 
-export default app;
+router.post(
+  "/import",
+  express.text({ type: "text/csv", limit: "10mb" }),
+  asyncHandler(DataTransferController.import),
+);
+
+export default router;

@@ -1,49 +1,58 @@
-import type { Context } from "hono";
-import type { AppEnv } from "../../infrastructure/http/hono-context.types";
-import { sendNotFound, sendValidationError } from "../../commons/http/validation-response.hono";
+import type { Request, Response } from "express";
+import { sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
 import { DiaryService } from "./diary.service";
 import { CreateDiarySchema, UpdateDiarySchema } from "./dto/diary.dto";
 
 export class DiaryController {
-  static async getMyDiary(c: Context<AppEnv>): Promise<Response> {
-    const entries = await DiaryService.findAllByUser(c.get("user").id);
-    return c.json(entries, 200);
+  static async getMyDiary(req: Request, res: Response): Promise<void> {
+    const entries = await DiaryService.findAllByUser(req.user.id);
+    res.status(200).json(entries);
   }
 
-  static async create(c: Context<AppEnv>): Promise<Response> {
-    const parsed = CreateDiarySchema.safeParse(await c.req.json());
+  static async create(req: Request, res: Response): Promise<void> {
+    const parsed = CreateDiarySchema.safeParse(req.body);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
-    const result = await DiaryService.create(c.get("user").id, parsed.data);
-    return c.json(result, 201);
+    const result = await DiaryService.create(req.user.id, parsed.data);
+    res.status(201).json(result);
   }
 
-  static async update(c: Context<AppEnv>): Promise<Response> {
-    const parsed = UpdateDiarySchema.safeParse(await c.req.json());
+  static async update(
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> {
+    const parsed = UpdateDiarySchema.safeParse(req.body);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
     const updated = await DiaryService.update(
-      c.req.param("id") as string,
-      c.get("user").id,
+      req.params.id,
+      req.user.id,
       parsed.data,
     );
     if (!updated) {
-      return sendNotFound(c, "Diary entry not found");
+      sendNotFound(res, "Diary entry not found");
+      return;
     }
 
-    return c.json(updated, 200);
+    res.status(200).json(updated);
   }
 
-  static async remove(c: Context<AppEnv>): Promise<Response> {
-    const deleted = await DiaryService.delete(c.req.param("id") as string, c.get("user").id);
+  static async remove(
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> {
+    const deleted = await DiaryService.delete(req.params.id, req.user.id);
     if (!deleted) {
-      return sendNotFound(c, "Diary entry not found");
+      sendNotFound(res, "Diary entry not found");
+      return;
     }
 
-    return c.json({ success: true }, 200);
+    res.status(200).json({ success: true });
   }
 }

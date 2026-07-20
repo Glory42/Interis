@@ -1,11 +1,10 @@
-import type { Context } from "hono";
-import type { AppEnv } from "../../infrastructure/http/hono-context.types";
-import { resolveViewerUserIdFromHonoContext } from "../../commons/auth/session-resolver.hono";
+import type { Request, Response } from "express";
+import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
 import {
   sendErrorForStatus,
   sendNotFound,
   sendValidationError,
-} from "../../commons/http/validation-response.hono";
+} from "../../commons/http/validation-response.helper";
 import {
   AddListItemSchema,
   CreateListSchema,
@@ -16,127 +15,152 @@ import { ListsService } from "./lists.service";
 
 export class ListsController {
   // GET /api/lists/:id
-  static async getById(c: Context): Promise<Response> {
-    const viewerUserId = await resolveViewerUserIdFromHonoContext(c);
-    const list = await ListsService.getListDetail(c.req.param("id") as string, viewerUserId);
+  static async getById(
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> {
+    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
+    const list = await ListsService.getListDetail(req.params.id, viewerUserId);
 
     if (!list) {
-      return sendNotFound(c, "List not found");
+      sendNotFound(res, "List not found");
+      return;
     }
 
-    return c.json(list, 200);
+    res.status(200).json(list);
   }
 
   // POST /api/lists
-  static async create(c: Context<AppEnv>): Promise<Response> {
-    const parsed = CreateListSchema.safeParse(await c.req.json());
+  static async create(req: Request, res: Response): Promise<void> {
+    const parsed = CreateListSchema.safeParse(req.body);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
-    const list = await ListsService.createList(c.get("user").id, parsed.data);
-    return c.json(list, 201);
+    const list = await ListsService.createList(req.user.id, parsed.data);
+    res.status(201).json(list);
   }
 
   // PATCH /api/lists/:id
-  static async update(c: Context<AppEnv>): Promise<Response> {
-    const parsed = UpdateListSchema.safeParse(await c.req.json());
+  static async update(
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> {
+    const parsed = UpdateListSchema.safeParse(req.body);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
-    const result = await ListsService.updateList(
-      c.req.param("id") as string,
-      c.get("user").id,
-      parsed.data,
-    );
+    const result = await ListsService.updateList(req.params.id, req.user.id, parsed.data);
 
     if ("error" in result) {
-      return sendErrorForStatus(c, result.status, result.error);
+      sendErrorForStatus(res, result.status, result.error);
+      return;
     }
 
-    return c.json(result, 200);
+    res.status(200).json(result);
   }
 
   // DELETE /api/lists/:id
-  static async remove(c: Context<AppEnv>): Promise<Response> {
-    const result = await ListsService.deleteList(c.req.param("id") as string, c.get("user").id);
+  static async remove(
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> {
+    const result = await ListsService.deleteList(req.params.id, req.user.id);
 
     if (result && "error" in result) {
-      return sendErrorForStatus(c, result.status, result.error);
+      sendErrorForStatus(res, result.status, result.error);
+      return;
     }
 
-    return c.json({ success: true }, 200);
+    res.status(200).json({ success: true });
   }
 
   // POST /api/lists/:id/items
-  static async addItem(c: Context<AppEnv>): Promise<Response> {
-    const parsed = AddListItemSchema.safeParse(await c.req.json());
+  static async addItem(
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> {
+    const parsed = AddListItemSchema.safeParse(req.body);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
     const result = await ListsService.addItem(
-      c.req.param("id") as string,
-      c.get("user").id,
+      req.params.id,
+      req.user.id,
       parsed.data.tmdbId,
       parsed.data.itemType,
     );
 
     if ("error" in result) {
-      return sendErrorForStatus(c, result.status, result.error);
+      sendErrorForStatus(res, result.status, result.error);
+      return;
     }
 
-    return c.json(result, 201);
+    res.status(201).json(result);
   }
 
   // DELETE /api/lists/:id/items/:itemId
-  static async removeItem(c: Context<AppEnv>): Promise<Response> {
+  static async removeItem(
+    req: Request<{ id: string; itemId: string }>,
+    res: Response,
+  ): Promise<void> {
     const result = await ListsService.removeItem(
-      c.req.param("id") as string,
-      c.get("user").id,
-      c.req.param("itemId") as string,
+      req.params.id,
+      req.user.id,
+      req.params.itemId,
     );
 
     if ("error" in result) {
-      return sendErrorForStatus(c, result.status, result.error);
+      sendErrorForStatus(res, result.status, result.error);
+      return;
     }
 
-    return c.json(result, 200);
+    res.status(200).json(result);
   }
 
   // POST /api/lists/:id/like
-  static async like(c: Context<AppEnv>): Promise<Response> {
-    const result = await ListsService.likeList(c.req.param("id") as string, c.get("user").id);
+  static async like(req: Request<{ id: string }>, res: Response): Promise<void> {
+    const result = await ListsService.likeList(req.params.id, req.user.id);
     if ("error" in result) {
-      return sendErrorForStatus(c, result.status, result.error);
+      sendErrorForStatus(res, result.status, result.error);
+      return;
     }
-    return c.json(result, 200);
+    res.status(200).json(result);
   }
 
   // DELETE /api/lists/:id/like
-  static async unlike(c: Context<AppEnv>): Promise<Response> {
-    const result = await ListsService.unlikeList(c.req.param("id") as string, c.get("user").id);
-    return c.json(result, 200);
+  static async unlike(req: Request<{ id: string }>, res: Response): Promise<void> {
+    const result = await ListsService.unlikeList(req.params.id, req.user.id);
+    res.status(200).json(result);
   }
 
   // PATCH /api/lists/:id/reorder
-  static async reorder(c: Context<AppEnv>): Promise<Response> {
-    const parsed = ReorderListItemsSchema.safeParse(await c.req.json());
+  static async reorder(
+    req: Request<{ id: string }>,
+    res: Response,
+  ): Promise<void> {
+    const parsed = ReorderListItemsSchema.safeParse(req.body);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
     const result = await ListsService.reorderItems(
-      c.req.param("id") as string,
-      c.get("user").id,
+      req.params.id,
+      req.user.id,
       parsed.data.items,
     );
 
     if ("error" in result) {
-      return sendErrorForStatus(c, result.status, result.error);
+      sendErrorForStatus(res, result.status, result.error);
+      return;
     }
 
-    return c.json(result, 200);
+    res.status(200).json(result);
   }
 }

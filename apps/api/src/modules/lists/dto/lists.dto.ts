@@ -23,7 +23,7 @@ export const ReorderListItemsSchema = z.object({
   items: z
     .array(
       z.object({
-        id: z.uuid(),
+        id: z.string().uuid(),
         position: z.number().int().positive(),
       }),
     )

@@ -1,5 +1,4 @@
-import type { Context } from "hono";
-import type { AppEnv } from "../../infrastructure/http/hono-context.types";
+import type { Request, Response } from "express";
 import {
   generateUploadUrl,
   isR2ConfigurationError,
@@ -10,7 +9,7 @@ import {
   sendBadRequest,
   sendServiceUnavailable,
   sendValidationError,
-} from "../../commons/http/validation-response.hono";
+} from "../../commons/http/validation-response.helper";
 import { logger } from "../../commons/utils/logger";
 import { UsersService } from "../users/users.service";
 import { ConfirmUploadSchema, RequestUploadSchema } from "./dto/uploads.dto";
@@ -18,37 +17,41 @@ import { ConfirmUploadSchema, RequestUploadSchema } from "./dto/uploads.dto";
 export class UploadsController {
   // POST /api/uploads/request
   // Step 1: Get a presigned URL — frontend uses it to PUT directly to R2
-  static async requestUpload(c: Context<AppEnv>): Promise<Response> {
-    const parsed = RequestUploadSchema.safeParse(await c.req.json());
+  static async requestUpload(req: Request, res: Response): Promise<void> {
+    const parsed = RequestUploadSchema.safeParse(req.body);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
     try {
       const { signedUrl, publicUrl } = await generateUploadUrl(
-        c.get("user").id,
+        req.user.id,
         parsed.data.uploadType as UploadType,
         parsed.data.contentType,
         parsed.data.fileSizeBytes,
       );
 
-      return c.json({ signedUrl, publicUrl }, 200);
+      res.status(200).json({ signedUrl, publicUrl });
     } catch (error) {
       if (isR2ConfigurationError(error)) {
         logger.error(error, "R2 uploads are not configured correctly");
-        return sendServiceUnavailable(
-          c,
+        sendServiceUnavailable(
+          res,
           "Image uploads are temporarily unavailable. Please configure R2 storage.",
         );
+        return;
       }
 
       if (error instanceof Error) {
         if (error.message.startsWith("Unsupported file type")) {
-          return sendBadRequest(c, error.message);
+          sendBadRequest(res, error.message);
+          return;
         }
 
         if (error.message.startsWith("File too large")) {
-          return sendBadRequest(c, error.message);
+          sendBadRequest(res, error.message);
+          return;
         }
       }
 
@@ -58,21 +61,29 @@ export class UploadsController {
 
   // POST /api/uploads/confirm
   // Step 2: After R2 upload succeeds, store the public URL in DB
-  static async confirmUpload(c: Context<AppEnv>): Promise<Response> {
-    const parsed = ConfirmUploadSchema.safeParse(await c.req.json());
+  static async confirmUpload(req: Request, res: Response): Promise<void> {
+    const parsed = ConfirmUploadSchema.safeParse(req.body);
 
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
-    if (!isOwnedUploadPublicUrl(c.get("user").id, parsed.data.uploadType, parsed.data.publicUrl)) {
-      return sendBadRequest(c, "Invalid upload URL. Please request a new signed upload URL.");
+    if (
+      !isOwnedUploadPublicUrl(
+        req.user.id,
+        parsed.data.uploadType,
+        parsed.data.publicUrl,
+      )
+    ) {
+      sendBadRequest(res, "Invalid upload URL. Please request a new signed upload URL.");
+      return;
     }
 
-    const updated = await UsersService.updateProfile(c.get("user").id, {
+    const updated = await UsersService.updateProfile(req.user.id, {
       avatarUrl: parsed.data.publicUrl,
     });
 
-    return c.json(updated, 200);
+    res.status(200).json(updated);
   }
 }

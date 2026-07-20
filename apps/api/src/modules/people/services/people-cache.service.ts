@@ -62,12 +62,8 @@ export class PeopleCacheService {
       return [];
     }
 
-    // Each seed does its own DB read/write chain, run concurrently — one
-    // person's cache write failing (e.g. a transient DB error under the
-    // concurrent load of a large cast) shouldn't take down the whole
-    // detail page when the movie/series data itself already resolved fine.
     const links = await Promise.all(
-      seeds.map((seed) => PeopleCacheService.ensurePersonLink(seed).catch(() => null)),
+      seeds.map((seed) => PeopleCacheService.ensurePersonLink(seed)),
     );
     const unique = new Map<string, PersonLinkItem>();
 
@@ -173,8 +169,10 @@ export class PeopleCacheService {
       inferRoleHintsFromKnownForDepartment(normalizedKnownForDepartment),
     );
 
-    // Skip the write chain when unchanged - this runs for every cast/crew
-    // member on every detail-page fetch, so redundant writes add up fast.
+    // Skip the slug-resolution + upsert + alias write chain entirely when
+    // this person's cached data hasn't changed - this path runs for every
+    // cast/crew member on every detail-page fetch, so a redundant write per
+    // person adds up fast (see MoviesDetailService.getDetail).
     if (
       existing &&
       PeopleCacheService.isPersonCacheUnchanged(existing, {

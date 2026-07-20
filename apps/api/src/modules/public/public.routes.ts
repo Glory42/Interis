@@ -1,27 +1,37 @@
-import { createHonoApp } from "../../infrastructure/http/hono-context.types";
+import { Router } from "express";
 import { PublicController } from "./public.controller";
-import { publicCorsMiddleware } from "../../commons/middlewares/cors.hono";
-import { createPublicLimiter } from "../../commons/middlewares/rateLimiters.hono";
+import { asyncHandler } from "../../commons/utils/asyncHandler";
+import rateLimit from "express-rate-limit";
 
-const app = createHonoApp();
+// Separate rate limit for public API — portfolio widget can hammer this
+const publicLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 60, // 60 req/min per IP — enough for a widget
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
-app.use(publicCorsMiddleware);
-app.use(createPublicLimiter());
+const router = Router();
 
-app.get("/:username/profile", PublicController.getProfile);
-app.get("/:username/activity", PublicController.getActivity);
-app.get("/:username/recent", PublicController.getRecent);
-app.get("/:username/reviews", PublicController.getReviews);
-app.get("/:username/lists", PublicController.getLists);
-app.get("/:username/likes", PublicController.getLikes);
-app.get("/:username/watchlist", PublicController.getWatchlist);
-app.get("/:username/diary", PublicController.getDiary);
-app.get("/:username/top4", PublicController.getTop4);
-app.get("/:username/movies/watched", PublicController.getWatchedFilms);
-// Must be registered before the :tmdbId route below to avoid :tmdbId
-// swallowing this literal path.
-app.get("/:username/serials/currently-watching", PublicController.getSerialsCurrentlyWatching);
-app.get("/:username/serials/watched", PublicController.getSerialsWatched);
-app.get("/:username/serials/:tmdbId", PublicController.getSerialProgress);
+router.use(publicLimiter);
 
-export default app;
+router.get("/:username/profile", asyncHandler(PublicController.getProfile));
+router.get("/:username/activity", asyncHandler(PublicController.getActivity));
+router.get("/:username/recent", asyncHandler(PublicController.getRecent));
+router.get("/:username/reviews", asyncHandler(PublicController.getReviews));
+router.get("/:username/lists", asyncHandler(PublicController.getLists));
+router.get("/:username/likes", asyncHandler(PublicController.getLikes));
+router.get("/:username/watchlist", asyncHandler(PublicController.getWatchlist));
+router.get("/:username/diary", asyncHandler(PublicController.getDiary));
+router.get("/:username/top4", asyncHandler(PublicController.getTop4));
+router.get("/:username/movies/watched", asyncHandler(PublicController.getWatchedFilms));
+// Must be registered before the :tmdbId route below — Express matches in
+// registration order, and :tmdbId would otherwise swallow this literal path.
+router.get(
+  "/:username/serials/currently-watching",
+  asyncHandler(PublicController.getSerialsCurrentlyWatching),
+);
+router.get("/:username/serials/watched", asyncHandler(PublicController.getSerialsWatched));
+router.get("/:username/serials/:tmdbId", asyncHandler(PublicController.getSerialProgress));
+
+export default router;

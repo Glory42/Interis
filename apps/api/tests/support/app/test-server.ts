@@ -1,3 +1,4 @@
+import type { Server } from "node:http";
 import { createApp, type CreateAppOptions } from "../../../src/index";
 
 export type RunningTestServer = {
@@ -5,16 +6,43 @@ export type RunningTestServer = {
   close: () => Promise<void>;
 };
 
+const resolveBaseUrl = (server: Server): string => {
+  const address = server.address();
+  if (!address || typeof address === "string") {
+    throw new Error("Could not resolve test server address");
+  }
+
+  return `http://127.0.0.1:${address.port}`;
+};
+
 export const startTestServer = async (
   options?: CreateAppOptions,
 ): Promise<RunningTestServer> => {
   const app = createApp(options);
-  const server = Bun.serve({ fetch: app.fetch, port: 0 });
+
+  const server = await new Promise<Server>((resolve, reject) => {
+    const createdServer = app.listen(0, () => {
+      resolve(createdServer);
+    });
+
+    createdServer.on("error", reject);
+  });
+
+  const baseUrl = resolveBaseUrl(server);
 
   return {
-    baseUrl: server.url.origin,
+    baseUrl,
     close: async () => {
-      await server.stop(true);
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+
+          resolve();
+        });
+      });
     },
   };
 };

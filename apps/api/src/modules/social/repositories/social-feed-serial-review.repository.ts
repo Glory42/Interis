@@ -26,8 +26,11 @@ export type SocialFeedSerialReviewRow = {
 };
 
 export class SocialFeedSerialReviewRepository {
-  // Unlike series-level reviews, these are never linked to a diary entry -
-  // their rating lives on the season/episode interaction row instead.
+  // Season/episode reviews for the given review ids, with their rating
+  // resolved from serialSeasonInteractions/serialEpisodeInteractions (these
+  // reviews are never linked to a diary entry, unlike series-level reviews -
+  // their rating lives on the season/episode interaction row instead, keyed
+  // by userId+seriesId+season[+episode]).
   static async getSeasonEpisodeReviewRows(
     reviewIds: string[],
   ): Promise<SocialFeedSerialReviewRow[]> {

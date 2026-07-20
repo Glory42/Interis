@@ -58,7 +58,7 @@ VITE_API_BASE_URL=
 
 ### Request flow
 ```
-Browser → Vite dev server (proxies /api) → Hono on Bun.serve (port 5000)
+Browser → Vite dev server (proxies /api) → Express on Bun.serve (port 5000)
                                                  ↓
                                     In-house auth (JWT access + refresh cookies)
                                                  ↓
@@ -74,7 +74,7 @@ Browser → Vite dev server (proxies /api) → Hono on Bun.serve (port 5000)
 Every domain under `src/modules/<module>/` follows this exact layout:
 
 ```
-<module>.routes.ts      # Hono app (created via createHonoApp()) — mounted onto the main app in register-hono-routes.ts
+<module>.routes.ts      # express.Router(), each handler wrapped in asyncHandler() — mounted onto the main app in register-routes.ts
 <module>.controller.ts  # Static class — HTTP in/out, input validation, calls service only
 <module>.service.ts     # Static facade — delegates to sub-services
 <module>.entity.ts      # Drizzle pgTable definition
@@ -95,9 +95,9 @@ constants/              # Magic values / enums
 **Enforced by `bun run lint` (ESLint):**
 - No single backend file over 380 lines (applies repo-wide under `src/`, matching the frontend's `max-lines` rule)
 
-**Auth:** `requireAuth` middleware (`commons/middlewares/requireAuth.hono.ts`) sets `user`/`session` on the Hono context, read back via `c.get("user")`/`c.get("session")`. For optional auth use `resolveViewerUserIdFromHonoContext()` from `commons/auth/session-resolver.hono.ts`. Admin-only routes use `requireAdmin`.
+**Auth:** `requireAuth` middleware (`commons/middlewares/requireAuth.ts`) sets `req.user`/`req.session`. For optional auth use `resolveViewerUserIdFromHeaders()` from `commons/auth/session-resolver.helper.ts`. Admin-only routes use `requireAdmin`.
 
-**Error handling:** thrown errors propagate natively to each module's Hono app (`app.onError(onError)`, wired in by `createHonoApp()`) — no manual try/catch or wrapper needed in routes. Use `sendBadRequest()` and friends from `commons/http/validation-response.hono.ts` for validation failures.
+**Error handling:** every route handler must be wrapped in `asyncHandler()` (`commons/utils/asyncHandler.ts`) so a thrown error reaches the global error-handling middleware at the end of `src/index.ts` instead of crashing the process — Express doesn't catch rejected promises from async handlers on its own. Use `sendBadRequest()` and friends from `commons/http/validation-response.helper.ts` for validation failures.
 
 **Database entities** are exported in FK-dependency order from `src/infrastructure/database/entities.ts` — add new entities there in the correct position. The `drizzle.config.ts` points at this single file as the schema source.
 
@@ -158,10 +158,10 @@ Apply these to every new feature, not just when something is already slow — th
 
 ## Adding a new backend module
 
-1. Create `src/modules/<module>/` with entity, routes, controller, service, repository, dto files. `<module>.routes.ts` creates its Hono app via `createHonoApp()`.
+1. Create `src/modules/<module>/` with entity, routes, controller, service, repository, dto files. `<module>.routes.ts` creates an `express.Router()`, wrapping each handler in `asyncHandler()`.
 2. Export the entity from `src/infrastructure/database/entities.ts` in FK order.
 3. Run `bunx drizzle-kit generate && bunx drizzle-kit migrate`.
-4. Mount the module's app in `src/infrastructure/routing/register-hono-routes.ts`.
+4. Mount the module's router in `src/infrastructure/routing/register-routes.ts`.
 5. Run `bun run lint:arch` to verify layer boundaries.
 
 ## Adding a new frontend feature

@@ -1,8 +1,14 @@
-import type { Context } from "hono";
-import { resolveViewerUserIdFromHonoContext } from "../../commons/auth/session-resolver.hono";
-import { sendBadRequest, sendNotFound, sendValidationError } from "../../commons/http/validation-response.hono";
+import type { Request, Response } from "express";
+import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
+import { sendBadRequest, sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
 import { parseTmdbIdParam } from "../../commons/validation/params.helper";
 import { MoviesService } from "./movies.service";
+import type {
+  CinemaArchiveQuery,
+  MovieDetailQuery,
+  MovieParams,
+  SearchMoviesQuery,
+} from "./dto/movies.dto";
 import {
   normalizeCinemaArchiveQuery,
   normalizeMovieDetailQuery,
@@ -10,82 +16,103 @@ import {
 } from "./dto/movies.dto";
 
 export class MoviesController {
-  static async search(c: Context): Promise<Response> {
-    const parsed = SearchMoviesQuerySchema.safeParse(c.req.query());
+  static async search(
+    req: Request<{}, {}, {}, SearchMoviesQuery>,
+    res: Response,
+  ): Promise<void> {
+    const parsed = SearchMoviesQuerySchema.safeParse(req.query);
     if (!parsed.success) {
-      return sendValidationError(c, parsed.error);
+      sendValidationError(res, parsed.error);
+      return;
     }
 
     const movies = await MoviesService.search(parsed.data.query);
-    return c.json(movies, 200);
+    res.status(200).json(movies);
   }
 
-  static async getByTmdbId(c: Context): Promise<Response> {
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+  static async getByTmdbId(
+    req: Request<MovieParams>,
+    res: Response,
+  ): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid movie ID");
+      sendBadRequest(res, "Invalid movie ID");
+      return;
     }
 
     const movie = await MoviesService.findOrCreate(tmdbId);
     if (!movie) {
-      return sendNotFound(c, "Movie not found");
+      sendNotFound(res, "Movie not found");
+      return;
     }
 
-    return c.json(movie, 200);
+    res.status(200).json(movie);
   }
 
-  static async getDetailByTmdbId(c: Context): Promise<Response> {
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+  static async getDetailByTmdbId(
+    req: Request<MovieParams, {}, {}, MovieDetailQuery>,
+    res: Response,
+  ): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid movie ID");
+      sendBadRequest(res, "Invalid movie ID");
+      return;
     }
 
-    const viewerUserId = await resolveViewerUserIdFromHonoContext(c);
+    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
 
     const detail = await MoviesService.getDetail({
       tmdbId,
       viewerUserId,
-      reviewsSort: normalizeMovieDetailQuery(c.req.query()).reviewsSort,
+      reviewsSort: normalizeMovieDetailQuery(req.query).reviewsSort,
     });
 
     if (!detail) {
-      return sendNotFound(c, "Movie not found");
+      sendNotFound(res, "Movie not found");
+      return;
     }
 
-    c.header("Cache-Control", "no-store");
-    return c.json(detail, 200);
+    res.setHeader("Cache-Control", "no-store");
+    res.status(200).json(detail);
   }
 
-  static async getRecent(c: Context): Promise<Response> {
+  static async getRecent(_req: Request, res: Response): Promise<void> {
     const movies = await MoviesService.getRecent();
-    return c.json(movies, 200);
+    res.status(200).json(movies);
   }
 
-  static async getArchive(c: Context): Promise<Response> {
-    const viewerUserId = await resolveViewerUserIdFromHonoContext(c);
+  static async getArchive(
+    req: Request<{}, {}, {}, CinemaArchiveQuery>,
+    res: Response,
+  ): Promise<void> {
+    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
 
     const archive = await MoviesService.getArchive({
-      ...normalizeCinemaArchiveQuery(c.req.query()),
+      ...normalizeCinemaArchiveQuery(req.query),
       viewerUserId,
     });
 
-    c.header("Cache-Control", "no-store");
-    return c.json(archive, 200);
+    res.setHeader("Cache-Control", "no-store");
+    res.status(200).json(archive);
   }
 
-  static async getTrending(c: Context): Promise<Response> {
+  static async getTrending(_req: Request, res: Response): Promise<void> {
     const movies = await MoviesService.getTrending();
-    c.header("Cache-Control", "public, max-age=300");
-    return c.json(movies, 200);
+    res.setHeader("Cache-Control", "public, max-age=300");
+    res.status(200).json(movies);
   }
 
-  static async getLogsByTmdbId(c: Context): Promise<Response> {
-    const tmdbId = parseTmdbIdParam(c.req.param("tmdbId"));
+  static async getLogsByTmdbId(
+    req: Request<MovieParams>,
+    res: Response,
+  ): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {
-      return sendBadRequest(c, "Invalid movie ID");
+      sendBadRequest(res, "Invalid movie ID");
+      return;
     }
 
     const logs = await MoviesService.getLogsByTmdbId(tmdbId);
-    return c.json(logs, 200);
+    res.status(200).json(logs);
   }
 }

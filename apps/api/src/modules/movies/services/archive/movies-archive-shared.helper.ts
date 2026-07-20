@@ -80,11 +80,13 @@ export const getArchivePeriodWindow = (
   };
 };
 
-// TMDB's discover API only sorts by raw vote_average with a vote_count.gte
-// floor (no weighted/Bayesian sort), so a low floor lets a title with e.g.
-// 10 perfect votes outrank widely-watched titles with a more reliable
-// average - hence the high floors here. Recent periods use a lower floor
-// since new releases haven't accumulated many votes yet.
+// The floor for "Highest rated (TMDB)" is much higher than for other sorts:
+// TMDB's discover API only offers a raw vote_average.desc sort with a
+// vote_count.gte floor (no weighted/Bayesian sort of its own), so a low
+// floor lets a title with e.g. 10 votes that are all a perfect 10 outrank
+// widely-watched titles with a slightly lower but far more reliable
+// average. Recent-period windows use a lower floor since new releases
+// haven't accumulated many votes yet.
 const RATING_SORT_MIN_VOTE_COUNT_BY_PERIOD: Record<CinemaArchivePeriod, number> = {
   today: 10,
   this_week: 20,

@@ -3,9 +3,10 @@ import { db } from "../../../src/infrastructure/database/db";
 import { movies } from "../../../src/modules/movies/movies.entity";
 import { tvSeries } from "../../../src/modules/serials/serials.entity";
 
-// findOrCreate() checks the DB by tmdbId before hitting the TMDB API -
-// seeding rows directly here lets tests exercise the real flow without any
-// network call or a live TMDB_ACCESS_TOKEN.
+// MoviesCacheService/SerialsCacheService.findOrCreate() checks the DB by
+// tmdbId before ever hitting the TMDB API — seeding rows directly here lets
+// list-item tests exercise the real add/remove flow without any network
+// call or a live TMDB_ACCESS_TOKEN.
 const randomTmdbId = (): number => randomInt(1_000_000, 999_000_000);
 
 export const seedTestMovie = async (

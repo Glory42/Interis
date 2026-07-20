@@ -8,7 +8,7 @@ export const ListNotificationsQuerySchema = z.object({
 export type ListNotificationsQuery = z.input<typeof ListNotificationsQuerySchema>;
 
 export const NotificationParamsSchema = z.object({
-  id: z.uuid(),
+  id: z.string().uuid(),
 });
 
 export type NotificationParams = z.input<typeof NotificationParamsSchema>;

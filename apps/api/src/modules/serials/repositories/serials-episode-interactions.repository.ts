@@ -165,9 +165,11 @@ export class SerialsEpisodeInteractionsRepository {
         numberOfSeasons: tvSeries.numberOfSeasons,
         numberOfEpisodes: tvSeries.numberOfEpisodes,
         watchedEpisodesCount: sql<number>`count(*) filter (where ${serialEpisodeInteractions.watched})::int`,
-        // updatedAt is a naive (no-timezone) column holding UTC digits;
-        // `AT TIME ZONE 'UTC'` makes Postgres return an explicit offset so
-        // the driver parses it as an unambiguous instant.
+        // updatedAt is a naive (no-timezone) column that always holds UTC
+        // wall-clock digits; casting the aggregate result to timestamptz via
+        // `AT TIME ZONE 'UTC'` makes Postgres return it with an explicit
+        // offset, so the driver parses it as an unambiguous instant instead
+        // of raw untyped text with no timezone marker at all.
         lastWatchedAt: sql<Date>`(max(${serialEpisodeInteractions.updatedAt}) filter (where ${serialEpisodeInteractions.watched})) at time zone 'UTC'`,
       })
       .from(serialEpisodeInteractions)
@@ -194,10 +196,12 @@ export class SerialsEpisodeInteractionsRepository {
       .limit(limit);
   }
 
-  // Batched across a page (one grouped query instead of one per card) to
-  // tell "still watching" apart from "fully watched" on the archive grid.
-  // Excludes season 0 (specials), matching the seasonNumber > 0 filter
-  // SerialsActivityService.getInteraction uses for the same concept.
+  // Per-series watched-episode counts for a viewer, batched across a page
+  // of archive items (one grouped query instead of one per card) - used to
+  // tell "still watching" (some but not all episodes watched) apart from
+  // "fully watched" on the archive grid. Excludes season 0 (specials), to
+  // match the seasonNumber > 0 filter SerialsActivityService.getInteraction
+  // already uses when computing the same "fully watched" concept elsewhere.
   static async getViewerWatchedEpisodeCountsByTmdbIds(userId: string, tmdbIds: number[]) {
     const uniqueTmdbIds = [...new Set(tmdbIds)];
     if (uniqueTmdbIds.length === 0) {

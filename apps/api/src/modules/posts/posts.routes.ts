@@ -1,25 +1,34 @@
-import { createHonoApp } from "../../infrastructure/http/hono-context.types";
+import { Router } from "express";
 import { PostsController } from "./posts.controller";
-import { requireAuth } from "../../commons/middlewares/requireAuth.hono";
+import { requireAuth } from "../../commons/middlewares/requireAuth";
+import { asyncHandler } from "../../commons/utils/asyncHandler";
 
-const app = createHonoApp();
+const router = Router();
 
 // Public
-app.get("/:id", PostsController.getById);
-app.get("/:id/comments", PostsController.getComments);
+router.get("/:id", asyncHandler(PostsController.getById));
+router.get("/:id/comments", asyncHandler(PostsController.getComments));
 
 // Protected — post CRUD
-app.post("/", requireAuth, PostsController.create);
-app.put("/:id", requireAuth, PostsController.update);
-app.delete("/:id", requireAuth, PostsController.remove);
+router.post("/", requireAuth, asyncHandler(PostsController.create));
+router.put("/:id", requireAuth, asyncHandler(PostsController.update));
+router.delete("/:id", requireAuth, asyncHandler(PostsController.remove));
 
 // Protected — likes
-app.post("/:id/like", requireAuth, PostsController.like);
-app.delete("/:id/like", requireAuth, PostsController.unlike);
+router.post("/:id/like", requireAuth, asyncHandler(PostsController.like));
+router.delete("/:id/like", requireAuth, asyncHandler(PostsController.unlike));
 
 // Protected — comments
 // /comments/:commentId must be before /:id/comments to avoid route conflict
-app.delete("/comments/:commentId", requireAuth, PostsController.deleteComment);
-app.post("/:id/comments", requireAuth, PostsController.addComment);
+router.delete(
+  "/comments/:commentId",
+  requireAuth,
+  asyncHandler(PostsController.deleteComment),
+);
+router.post(
+  "/:id/comments",
+  requireAuth,
+  asyncHandler(PostsController.addComment),
+);
 
-export default app;
+export default router;

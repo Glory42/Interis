@@ -1,44 +1,40 @@
-import type { Context } from "hono";
-import { stream } from "hono/streaming";
-import type { AppEnv } from "../../infrastructure/http/hono-context.types";
+import type { Request, Response } from "express";
 import { DataExportService } from "./services/export.service";
 import { DataImportService } from "./services/import.service";
-import { sendBadRequest } from "../../commons/http/validation-response.hono";
+import { sendBadRequest } from "../../commons/http/validation-response.helper";
 
 export class DataTransferController {
-  static async export(c: Context<AppEnv>): Promise<Response> {
-    const csv = await DataExportService.exportDiary(c.get("user").id);
+  static async export(req: Request, res: Response): Promise<void> {
+    const csv = await DataExportService.exportDiary(req.user.id);
     const date = new Date().toISOString().slice(0, 10);
 
-    return c.body(csv, 200, {
-      "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="interis-diary-${date}.csv"`,
-    });
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="interis-diary-${date}.csv"`,
+    );
+    res.status(200).send(csv);
   }
 
-  static async import(c: Context<AppEnv>): Promise<Response> {
-    const body = await c.req.text();
+  static async import(req: Request, res: Response): Promise<void> {
+    const body = req.body;
 
-    if (body.trim().length === 0) {
-      return sendBadRequest(c, "Request body must be a non-empty CSV text.");
+    if (typeof body !== "string" || body.trim().length === 0) {
+      sendBadRequest(res, "Request body must be a non-empty CSV text.");
+      return;
     }
 
-    const userId = c.get("user").id;
-    const filename = c.req.query("filename");
+    res.setHeader("Content-Type", "application/x-ndjson");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.flushHeaders();
 
-    c.header("Content-Type", "application/x-ndjson");
-    c.header("Cache-Control", "no-cache");
-    c.header("X-Accel-Buffering", "no");
+    const filename = typeof req.query.filename === "string" ? req.query.filename : undefined;
 
-    return stream(c, async (honoStream) => {
-      await DataImportService.importCsvStreaming(
-        userId,
-        body,
-        (event) => {
-          void honoStream.write(`${JSON.stringify(event)}\n`);
-        },
-        filename,
-      );
-    });
+    await DataImportService.importCsvStreaming(req.user.id, body, (event) => {
+      res.write(`${JSON.stringify(event)}\n`);
+    }, filename);
+
+    res.end();
   }
 }

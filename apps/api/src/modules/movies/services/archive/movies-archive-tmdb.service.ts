@@ -265,9 +265,11 @@ export const getArchiveFromTmdbCatalog = async (
   );
 
   // TMDB's discover API only sorts by raw vote_average, so a title barely
-  // above the vote_count floor can still outrank a far more widely-voted
-  // classic (e.g. 300 votes at 9.1 vs 30k votes at 8.7). Re-sort the page
-  // by weighted rating to correct that.
+  // above the vote_count floor can still outrank a much more widely-voted
+  // classic within the same page (e.g. 300 votes at 9.1 vs 30k votes at
+  // 8.7). Re-sorting the fetched page by the weighted rating corrects
+  // ordering within the page; the floor above bounds how much noise can
+  // enter the candidate set in the first place.
   const finalPageItems =
     input.sortBy === "rating_tmdb_desc"
       ? sortLocalArchiveItems(pageItemsWithViewerState, input.sortBy)
