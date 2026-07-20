@@ -63,10 +63,18 @@ Set these under Workers → Settings → Variables and Secrets, as **Secrets** (
 
 ## First-Time Setup (when you're ready to go live)
 
-1. In the Cloudflare dashboard, create a Worker and connect it to this GitHub repo via the Git integration, pointed at `apps/api/` with `master` as the deploy branch.
-2. Add the Secrets listed above under the Worker's Settings → Variables and Secrets.
-3. Push to `master` to trigger the first deploy.
-4. DB migrations are **not** run by the Worker — run `bunx drizzle-kit migrate` locally (or from CI) against the same `DATABASE_URL` before/alongside a deploy that needs a new migration.
+This is "Workers Builds" (Cloudflare's Git-integration CI/CD for Workers) — a
+different product from the Cloudflare Pages setup `apps/web`/`apps/docs`
+already use, but configured the same way: connect the repo, point it at a
+subdirectory, push to deploy.
+
+1. In the Cloudflare dashboard, create a Worker → connect it to this GitHub repo.
+2. **Root directory: `apps/api`** — this is what tells Workers Builds where `wrangler.toml` lives in the monorepo.
+3. **Worker name must exactly match `wrangler.toml`'s `name` field: `interis-api`.** Cloudflare requires these to match or the build fails — set it when creating the Worker, don't let it default to the repo name.
+4. Production branch: `master`. Leave the build command empty (no compile step — Workers Builds bundles `src/worker.ts` directly via Wrangler) and the deploy command at its default (`npx wrangler deploy`).
+5. Add the Secrets listed above under the Worker's Settings → Variables and Secrets, **before** the first deploy (a deploy will crash-loop on missing `DATABASE_URL`/`JWT_ACCESS_SECRET`/`TMDB_ACCESS_TOKEN` — `env.ts` fails closed).
+6. Push to `master` (or trigger a rebuild from the dashboard) to fire the first deploy.
+7. DB migrations are **not** run by the Worker — run `bunx drizzle-kit migrate` locally (or from CI) against the same `DATABASE_URL` before/alongside a deploy that needs a new migration.
 
 ---
 
