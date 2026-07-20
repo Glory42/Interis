@@ -74,7 +74,7 @@ export const getArchiveFromLocalCatalog = async (
         }
 
         directorByTmdbId.set(row.tmdbId, director);
-        await MoviesRepository.updateDirectorByTmdbId(row.tmdbId, director);
+        await MoviesRepository.updateDirectorByTmdbId(row.tmdbId, director).catch(() => undefined);
       }),
     );
   }
