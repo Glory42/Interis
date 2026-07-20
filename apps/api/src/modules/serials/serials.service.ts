@@ -9,6 +9,10 @@ import { SerialsActivityService } from "./services/serials-activity.service";
 import { SerialsCacheService } from "./services/serials-cache.service";
 import { SerialsDetailService } from "./services/serials-detail.service";
 import { SerialsInteractionsRepository } from "./repositories/serials-interactions.repository";
+import {
+  SerialsCacheRepository,
+  type AdminUpdateSeriesFields,
+} from "./repositories/serials-cache.repository";
 import type {
   NormalizedSerialArchiveQuery,
   CreateSerialLogDto,
@@ -111,5 +115,23 @@ export class SerialsService {
 
   static async getWatchedSeries(userId: string, limit?: number, offset?: number) {
     return SerialsInteractionsRepository.getWatchedSeriesForUser(userId, limit, offset);
+  }
+
+  static async listAllForAdmin(query: string | undefined, limit: number, offset: number) {
+    return SerialsCacheRepository.listAllForAdmin(query, limit, offset);
+  }
+
+  static async updateForAdmin(id: number, fields: AdminUpdateSeriesFields) {
+    return SerialsCacheRepository.updateById(id, fields);
+  }
+
+  static async refreshForAdmin(id: number) {
+    const existing = await SerialsCacheRepository.findById(id);
+    if (!existing) return null;
+    return SerialsCacheService.refreshForAdmin(existing.tmdbId);
+  }
+
+  static async deleteForAdmin(id: number) {
+    return SerialsCacheRepository.deleteById(id);
   }
 }

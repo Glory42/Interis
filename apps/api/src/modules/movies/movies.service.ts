@@ -13,6 +13,7 @@ import type {
 import { MoviesArchiveService } from "./services/movies-archive.service";
 import { MoviesCacheService } from "./services/movies-cache.service";
 import { MoviesDetailService } from "./services/movies-detail.service";
+import { MoviesRepository, type AdminUpdateMovieFields } from "./repositories/movies.repository";
 
 export class MoviesService {
   static async search(query: string): Promise<TMDBSearchMovie[]> {
@@ -70,5 +71,23 @@ export class MoviesService {
 
   static async getLogsByTmdbId(tmdbId: number) {
     return MoviesDetailService.getLogsByTmdbId(tmdbId);
+  }
+
+  static async listAllForAdmin(query: string | undefined, limit: number, offset: number) {
+    return MoviesRepository.listAllForAdmin(query, limit, offset);
+  }
+
+  static async updateForAdmin(id: number, fields: AdminUpdateMovieFields) {
+    return MoviesRepository.updateById(id, fields);
+  }
+
+  static async refreshForAdmin(id: number) {
+    const existing = await MoviesRepository.findById(id);
+    if (!existing) return null;
+    return MoviesCacheService.refreshForAdmin(existing.tmdbId);
+  }
+
+  static async deleteForAdmin(id: number) {
+    return MoviesRepository.deleteById(id);
   }
 }

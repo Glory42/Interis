@@ -1,6 +1,17 @@
-import { eq, inArray } from "drizzle-orm";
+import { desc, eq, ilike, inArray } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { tvSeries } from "../serials.entity";
+
+export type AdminUpdateSeriesFields = Partial<{
+  title: string;
+  originalTitle: string | null;
+  overview: string | null;
+  tagline: string | null;
+  creator: string | null;
+  network: string | null;
+  posterPath: string | null;
+  backdropPath: string | null;
+}>;
 
 export class SerialsCacheRepository {
   static async findByTmdbId(tmdbId: number) {
@@ -94,5 +105,44 @@ export class SerialsCacheRepository {
       .returning();
 
     return inserted ?? null;
+  }
+
+  static async findById(id: number) {
+    const [existing] = await db.select().from(tvSeries).where(eq(tvSeries.id, id)).limit(1);
+    return existing ?? null;
+  }
+
+  static async listAllForAdmin(query: string | undefined, limit: number, offset: number) {
+    return db
+      .select({
+        id: tvSeries.id,
+        tmdbId: tvSeries.tmdbId,
+        title: tvSeries.title,
+        originalTitle: tvSeries.originalTitle,
+        posterPath: tvSeries.posterPath,
+        firstAirYear: tvSeries.firstAirYear,
+        creator: tvSeries.creator,
+        cachedAt: tvSeries.cachedAt,
+      })
+      .from(tvSeries)
+      .where(query ? ilike(tvSeries.title, `%${query}%`) : undefined)
+      .orderBy(desc(tvSeries.cachedAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  static async updateById(id: number, fields: AdminUpdateSeriesFields) {
+    const [updated] = await db.update(tvSeries).set(fields).where(eq(tvSeries.id, id)).returning();
+    return updated ?? null;
+  }
+
+  // Cascades to every serial diary entry/interaction/season/episode
+  // interaction and list entry across all users — admin moderation only.
+  static async deleteById(id: number) {
+    const [deleted] = await db
+      .delete(tvSeries)
+      .where(eq(tvSeries.id, id))
+      .returning({ id: tvSeries.id });
+    return deleted ?? null;
   }
 }

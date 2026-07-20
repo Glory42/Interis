@@ -37,6 +37,12 @@ export class SerialsCacheService {
     throw new NotFoundError("Series not found");
   }
 
+  // Bypasses the TTL check above — always refetches from TMDB.
+  static async refreshForAdmin(tmdbId: number) {
+    const tmdbData = await getSeriesDetails(tmdbId);
+    return SerialsCacheService.cacheSeries(tmdbData);
+  }
+
   static async cacheSeries(tmdbData: TMDBSeriesDetail) {
     const normalized = normalizeTmdbSeriesDetail(tmdbData);
 

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, inArray, isNotNull, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, inArray, isNotNull, lte, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { diaryEntries } from "../../diary/diary.entity";
@@ -7,6 +7,17 @@ import { profiles } from "../../users/users.entity";
 import { reviews } from "../../reviews/reviews.entity";
 import { mergeCommunityRatings } from "../../media/helpers/media-community-rating.helper";
 import { movies } from "../movies.entity";
+
+export type AdminUpdateMovieFields = Partial<{
+  title: string;
+  originalTitle: string | null;
+  overview: string | null;
+  tagline: string | null;
+  director: string | null;
+  posterPath: string | null;
+  backdropPath: string | null;
+  releaseYear: number | null;
+}>;
 
 export class MoviesRepository {
   static async findByTmdbId(tmdbId: number) {
@@ -288,6 +299,42 @@ export class MoviesRepository {
       .update(movies)
       .set({ director })
       .where(eq(movies.tmdbId, tmdbId));
+  }
+
+  static async findById(id: number) {
+    const [existing] = await db.select().from(movies).where(eq(movies.id, id)).limit(1);
+    return existing ?? null;
+  }
+
+  static async listAllForAdmin(query: string | undefined, limit: number, offset: number) {
+    return db
+      .select({
+        id: movies.id,
+        tmdbId: movies.tmdbId,
+        title: movies.title,
+        originalTitle: movies.originalTitle,
+        posterPath: movies.posterPath,
+        releaseYear: movies.releaseYear,
+        director: movies.director,
+        cachedAt: movies.cachedAt,
+      })
+      .from(movies)
+      .where(query ? ilike(movies.title, `%${query}%`) : undefined)
+      .orderBy(desc(movies.cachedAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  static async updateById(id: number, fields: AdminUpdateMovieFields) {
+    const [updated] = await db.update(movies).set(fields).where(eq(movies.id, id)).returning();
+    return updated ?? null;
+  }
+
+  // Cascades to every diary entry/review/interaction/list entry across all
+  // users that references this movie — admin moderation only.
+  static async deleteById(id: number) {
+    const [deleted] = await db.delete(movies).where(eq(movies.id, id)).returning({ id: movies.id });
+    return deleted ?? null;
   }
 
   static async getLogsByMovieId(movieId: number) {

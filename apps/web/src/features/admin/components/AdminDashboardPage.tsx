@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AdminContentPanel } from "@/features/admin/components/AdminContentPanel";
+import { AdminMediaPanel } from "@/features/admin/components/AdminMediaPanel";
 import { AdminReportsPanel } from "@/features/admin/components/AdminReportsPanel";
 import { AdminUsersPanel } from "@/features/admin/components/AdminUsersPanel";
 
@@ -7,6 +8,7 @@ const TABS = [
   { value: "reports", label: "Reports" },
   { value: "users", label: "Users" },
   { value: "content", label: "Content" },
+  { value: "media", label: "Media" },
 ] as const;
 
 type AdminTab = (typeof TABS)[number]["value"];
@@ -37,6 +39,7 @@ export const AdminDashboardPage = () => {
       {tab === "reports" ? <AdminReportsPanel /> : null}
       {tab === "users" ? <AdminUsersPanel /> : null}
       {tab === "content" ? <AdminContentPanel /> : null}
+      {tab === "media" ? <AdminMediaPanel /> : null}
     </div>
   );
 };

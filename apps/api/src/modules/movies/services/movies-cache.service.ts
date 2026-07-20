@@ -36,6 +36,12 @@ export class MoviesCacheService {
     throw new NotFoundError("Movie not found");
   }
 
+  // Bypasses the TTL check above — always refetches from TMDB.
+  static async refreshForAdmin(tmdbId: number) {
+    const tmdbData = await tmdbGetDetails(tmdbId);
+    return MoviesCacheService.cacheMovie(tmdbData);
+  }
+
   static async cacheMovie(tmdbData: TMDBMovieDetail) {
     const releaseDate =
       tmdbData.release_date && /^\d{4}-\d{2}-\d{2}$/.test(tmdbData.release_date)
