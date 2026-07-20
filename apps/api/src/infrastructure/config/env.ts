@@ -19,7 +19,12 @@ const envSchema = z.object({
   AUTH_REFRESH_COOKIE_NAME: z.string().min(1).default("interis_refresh_token"),
   TMDB_ACCESS_TOKEN: z.string().min(1, "TMDB_ACCESS_TOKEN is required"),
   CORS_ORIGIN: z.string().optional(),
-  USE_LOCAL_DB_PROXY: z.coerce.boolean().default(false),
+  // z.coerce.boolean() uses JS's Boolean(value) semantics, not string
+  // parsing — Boolean("false") is `true` (any non-empty string is truthy),
+  // so an env var literally set to "false" would silently enable this.
+  // z.stringbool() parses "true"/"false" (and other common string forms) as
+  // actual booleans.
+  USE_LOCAL_DB_PROXY: z.stringbool().default(false),
 });
 
 export type Env = z.infer<typeof envSchema>;
