@@ -26,7 +26,23 @@ export default {
     workerEnv: Record<string, string | undefined>,
     ctx: ExecutionContext,
   ): Promise<Response> => {
-    const app = await getApp(workerEnv);
-    return app.fetch(request, workerEnv, ctx);
+    try {
+      const app = await getApp(workerEnv);
+      return app.fetch(request, workerEnv, ctx);
+    } catch (err) {
+      // A startup failure (e.g. a missing required binding) throws during
+      // the dynamic import above, outside any of the app's own routing/error
+      // handling — left uncaught, Cloudflare shows its opaque "error 1101"
+      // page instead of anything diagnosable. console.error surfaces the
+      // real cause in `wrangler tail`/Workers Logs without leaking it to
+      // the caller.
+      console.error(err);
+      return new Response(
+        JSON.stringify({
+          error: { message: "Service misconfigured", code: "STARTUP_ERROR" },
+        }),
+        { status: 503, headers: { "content-type": "application/json" } },
+      );
+    }
   },
 };

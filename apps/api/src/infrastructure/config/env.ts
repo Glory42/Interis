@@ -34,10 +34,13 @@ const loadEnv = (): Env => {
   const result = envSchema.safeParse(process.env);
 
   if (!result.success) {
-    console.error(
+    // process.exit() isn't available under the Workers runtime — it
+    // crash-kills the request with an opaque error instead of surfacing
+    // this message, so a normal throw is the only thing that reads
+    // consistently in both Bun and Workers logs.
+    throw new Error(
       `Invalid environment configuration:\n${formatIssues(result.error)}`,
     );
-    process.exit(1);
   }
 
   return result.data;
