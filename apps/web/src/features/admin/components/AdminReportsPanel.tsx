@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
+import { AdminConfirmDialog } from "@/features/admin/components/AdminConfirmDialog";
 import type { ReportItem, ReportStatus } from "@/features/admin/api";
 import {
   useAdminReports,
@@ -23,6 +24,12 @@ const ReportRow = ({ report }: { report: ReportItem }) => {
   const dismissMutation = useDismissReport();
   const removeMutation = useRemoveReportedContent();
   const isPending = resolveMutation.isPending || dismissMutation.isPending || removeMutation.isPending;
+  const [isRemoveOpen, setIsRemoveOpen] = useState(false);
+
+  const handleRemove = async () => {
+    await removeMutation.mutateAsync(report.id);
+    setIsRemoveOpen(false);
+  };
 
   return (
     <Card>
@@ -71,16 +78,23 @@ const ReportRow = ({ report }: { report: ReportItem }) => {
               size="sm"
               variant="danger"
               disabled={isPending}
-              onClick={() => {
-                if (window.confirm("Remove this content? This cannot be undone.")) {
-                  removeMutation.mutate(report.id);
-                }
-              }}
+              onClick={() => setIsRemoveOpen(true)}
             >
               Remove content
             </Button>
           </div>
         ) : null}
+
+        <AdminConfirmDialog
+          isOpen={isRemoveOpen}
+          onClose={() => setIsRemoveOpen(false)}
+          title="Remove content"
+          description="This permanently deletes the reported content. This cannot be undone."
+          confirmLabel="Remove"
+          variant="danger"
+          isLoading={removeMutation.isPending}
+          onConfirm={() => void handleRemove()}
+        />
       </CardContent>
     </Card>
   );

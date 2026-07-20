@@ -13,6 +13,7 @@ export class AdminRepository {
         email: user.email,
         avatarUrl: profiles.avatarUrl,
         isAdmin: profiles.isAdmin,
+        isSuspended: profiles.isSuspended,
         createdAt: profiles.createdAt,
       })
       .from(user)

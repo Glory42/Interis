@@ -1,11 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  deleteUser,
+  demoteUser,
   dismissReport,
   listAdminUsers,
   listReports,
+  promoteUser,
   removeReportedContent,
   resetUserPassword,
   resolveReport,
+  suspendUser,
+  unsuspendUser,
   type ReportStatus,
 } from "@/features/admin/api";
 
@@ -47,3 +52,24 @@ export const useResetUserPassword = () => {
       resetUserPassword(username, newPassword),
   });
 };
+
+const useUserAction = <TInput>(mutationFn: (input: TInput) => Promise<void>) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+    },
+  });
+};
+
+export const useSuspendUser = () =>
+  useUserAction(({ username, reason }: { username: string; reason?: string }) =>
+    suspendUser(username, reason),
+  );
+
+export const useUnsuspendUser = () => useUserAction(unsuspendUser);
+export const usePromoteUser = () => useUserAction(promoteUser);
+export const useDemoteUser = () => useUserAction(demoteUser);
+export const useDeleteUser = () => useUserAction(deleteUser);

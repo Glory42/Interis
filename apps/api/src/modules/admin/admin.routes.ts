@@ -13,5 +13,10 @@ router.post(
   "/users/:username/reset-password",
   asyncHandler(AdminController.resetUserPassword),
 );
+router.post("/users/:username/suspend", asyncHandler(AdminController.suspendUser));
+router.post("/users/:username/unsuspend", asyncHandler(AdminController.unsuspendUser));
+router.post("/users/:username/promote", asyncHandler(AdminController.promoteUser));
+router.post("/users/:username/demote", asyncHandler(AdminController.demoteUser));
+router.delete("/users/:username", asyncHandler(AdminController.deleteUser));
 
 export default router;

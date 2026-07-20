@@ -133,4 +133,28 @@ export class UsersProfileRepository {
 
     return updated ?? null;
   }
+
+  static async setAdminStatus(userId: string, isAdmin: boolean) {
+    const [updated] = await db
+      .update(profiles)
+      .set({ isAdmin })
+      .where(eq(profiles.userId, userId))
+      .returning({ userId: profiles.userId, isAdmin: profiles.isAdmin });
+
+    return updated ?? null;
+  }
+
+  static async setSuspended(userId: string, isSuspended: boolean, reason?: string) {
+    const [updated] = await db
+      .update(profiles)
+      .set({
+        isSuspended,
+        suspendedAt: isSuspended ? new Date() : null,
+        suspendedReason: isSuspended ? (reason ?? null) : null,
+      })
+      .where(eq(profiles.userId, userId))
+      .returning({ userId: profiles.userId, isSuspended: profiles.isSuspended });
+
+    return updated ?? null;
+  }
 }

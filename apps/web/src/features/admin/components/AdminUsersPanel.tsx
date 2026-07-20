@@ -1,85 +1,20 @@
 import { useDeferredValue, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { useAdminUsers, useResetUserPassword } from "@/features/admin/hooks/useAdmin";
-import { isApiError } from "@/lib/api-client";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import {
+  DeleteUserAction,
+  ResetPasswordAction,
+  RoleAction,
+  SuspendAction,
+} from "@/features/admin/components/AdminUserRowActions";
+import { useAdminUsers } from "@/features/admin/hooks/useAdmin";
 import { formatRelativeTime } from "@/lib/time";
 
-const ResetPasswordAction = ({ username }: { username: string }) => {
-  const { mutateAsync: resetPassword, isPending } = useResetUserPassword();
-  const [isOpen, setIsOpen] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-
-  if (!isOpen) {
-    return (
-      <button
-        type="button"
-        className="text-xs text-muted-foreground hover:text-primary"
-        onClick={() => {
-          setIsOpen(true);
-          setSuccess(false);
-          setError(null);
-        }}
-      >
-        Reset password
-      </button>
-    );
-  }
-
-  const handleSubmit = async () => {
-    setError(null);
-    try {
-      await resetPassword({ username, newPassword });
-      setSuccess(true);
-      setNewPassword("");
-    } catch (submitError) {
-      setError(isApiError(submitError) ? submitError.message : "Could not reset password.");
-    }
-  };
-
-  return (
-    <div className="flex flex-col items-start gap-1">
-      <div className="flex items-center gap-1.5">
-        <Input
-          value={newPassword}
-          onChange={(event) => setNewPassword(event.target.value)}
-          placeholder="New password"
-          type="text"
-          className="h-7 w-36 text-xs"
-        />
-        <Button
-          type="button"
-          size="sm"
-          className="h-7 px-2 text-xs"
-          disabled={isPending || newPassword.length < 8}
-          onClick={() => void handleSubmit()}
-        >
-          {isPending ? "..." : "Confirm"}
-        </Button>
-        <button
-          type="button"
-          className="text-xs text-muted-foreground hover:text-foreground"
-          onClick={() => {
-            setIsOpen(false);
-            setNewPassword("");
-            setError(null);
-          }}
-        >
-          Cancel
-        </button>
-      </div>
-      {error ? <p className="text-xs text-destructive">{error}</p> : null}
-      {success ? <p className="text-xs text-muted-foreground">Password reset — all sessions revoked.</p> : null}
-    </div>
-  );
-};
-
 export const AdminUsersPanel = () => {
+  const { user: viewer } = useAuth();
   const [queryInput, setQueryInput] = useState("");
   const deferredQuery = useDeferredValue(queryInput.trim());
   const usersQuery = useAdminUsers(deferredQuery.length > 0 ? deferredQuery : undefined);
@@ -135,10 +70,26 @@ export const AdminUsersPanel = () => {
                     {formatRelativeTime(adminUser.createdAt.toISOString())}
                   </td>
                   <td className="px-3 py-2">
-                    {adminUser.isAdmin ? <Badge>Admin</Badge> : null}
+                    <div className="flex items-center gap-1.5">
+                      {adminUser.isAdmin ? <Badge>Admin</Badge> : null}
+                      {adminUser.isSuspended ? (
+                        <Badge variant="muted" className="border-destructive/40 text-destructive">
+                          Suspended
+                        </Badge>
+                      ) : null}
+                    </div>
                   </td>
                   <td className="px-3 py-2">
-                    <ResetPasswordAction username={adminUser.username} />
+                    <div className="flex flex-col items-start gap-2">
+                      <ResetPasswordAction username={adminUser.username} />
+                      {viewer?.username !== adminUser.username ? (
+                        <>
+                          <RoleAction user={adminUser} />
+                          <SuspendAction user={adminUser} />
+                          <DeleteUserAction username={adminUser.username} />
+                        </>
+                      ) : null}
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -200,6 +200,19 @@ export class AuthService {
     await SessionService.revokeAllSessionsForUser(userRow.id);
   }
 
+  // No confirmation/ownership check — admin authority (requireAdmin)
+  // substitutes for it. Cascades to the user's diary entries, reviews,
+  // posts, lists, follows, etc. via the `user.id` FK on each table.
+  static async adminDeleteUser(username: string): Promise<void> {
+    const userRow = await AuthUsersRepository.findByUsername(username);
+    if (!userRow) {
+      throw new BadRequestError("User not found");
+    }
+
+    await SessionService.revokeAllSessionsForUser(userRow.id);
+    await AuthUsersRepository.deleteById(userRow.id);
+  }
+
   static async changePassword(
     userId: string,
     currentSessionId: string,

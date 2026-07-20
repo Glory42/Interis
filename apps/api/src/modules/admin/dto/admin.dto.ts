@@ -11,3 +11,7 @@ export type ListUsersQuery = z.input<typeof ListUsersQuerySchema>;
 export const AdminResetPasswordSchema = z.object({
   newPassword: z.string().min(1).max(256),
 });
+
+export const AdminSuspendUserSchema = z.object({
+  reason: z.string().trim().max(500).optional(),
+});

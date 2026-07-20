@@ -33,6 +33,14 @@ export class UsersService {
     return UsersProfileService.updateTheme(userId, themeId);
   }
 
+  static async setAdminStatus(userId: string, isAdmin: boolean) {
+    return UsersProfileService.setAdminStatus(userId, isAdmin);
+  }
+
+  static async setSuspended(userId: string, isSuspended: boolean, reason?: string) {
+    return UsersProfileService.setSuspended(userId, isSuspended, reason);
+  }
+
   static async getReviewsWithMovies(userId: string, limit?: number, offset?: number) {
     return UsersReadService.getReviewsWithMovies(userId, limit, offset);
   }
