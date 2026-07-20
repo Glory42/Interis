@@ -111,12 +111,13 @@ export class AuthService {
       throw invalidCredentialsError;
     }
 
-    const passwordMatches = await PasswordService.verify(
-      input.password,
-      credential.passwordHash,
-    );
-    if (!passwordMatches) {
+    const passwordCheck = await PasswordService.verify(input.password, credential.passwordHash);
+    if (!passwordCheck.matches) {
       throw invalidCredentialsError;
+    }
+
+    if (passwordCheck.upgradedHash) {
+      await AuthCredentialsRepository.updatePasswordHash(credential.id, passwordCheck.upgradedHash);
     }
 
     const session = await SessionService.createSession(userRow.id, deviceInfo);
@@ -167,12 +168,13 @@ export class AuthService {
       throw new BadRequestError("No account with a security question for that email");
     }
 
-    const answerMatches = await PasswordService.verify(
-      normalizeSecurityAnswer(answer),
-      row.answerHash,
-    );
-    if (!answerMatches) {
+    const answerCheck = await PasswordService.verify(normalizeSecurityAnswer(answer), row.answerHash);
+    if (!answerCheck.matches) {
       throw new UnauthorizedError("Incorrect answer");
+    }
+
+    if (answerCheck.upgradedHash) {
+      await SecurityAnswersRepository.upsert(row.userId, row.question, answerCheck.upgradedHash);
     }
 
     const passwordHash = await PasswordService.hash(newPassword);
@@ -208,11 +210,11 @@ export class AuthService {
       throw new UnauthorizedError("No password set for this account");
     }
 
-    const currentMatches = await PasswordService.verify(
+    const currentPasswordCheck = await PasswordService.verify(
       input.currentPassword,
       credential.passwordHash,
     );
-    if (!currentMatches) {
+    if (!currentPasswordCheck.matches) {
       throw new UnauthorizedError("Current password is incorrect");
     }
 
@@ -267,12 +269,20 @@ export class AuthService {
       throw new BadRequestError("Set up a security question before changing your email");
     }
 
-    const answerMatches = await PasswordService.verify(
+    const answerCheck = await PasswordService.verify(
       normalizeSecurityAnswer(answer),
       securityAnswer.answerHash,
     );
-    if (!answerMatches) {
+    if (!answerCheck.matches) {
       throw new UnauthorizedError("Incorrect answer");
+    }
+
+    if (answerCheck.upgradedHash) {
+      await SecurityAnswersRepository.upsert(
+        userId,
+        securityAnswer.question,
+        answerCheck.upgradedHash,
+      );
     }
 
     const existing = await AuthUsersRepository.findByEmail(newEmail);

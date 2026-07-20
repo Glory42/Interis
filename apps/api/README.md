@@ -64,6 +64,8 @@ bun run test:db:migrate   # apply migrations for test DB
 bun run test:db:reset     # truncate tables (guarded)
 bun run typecheck  # type check
 bun run lint:arch  # architecture guard rails
+bun run cf:dev      # wrangler dev — local Cloudflare Workers runtime, for Workers-compat verification only
+bun run cf:deploy   # wrangler deploy — do not run manually, see ../../DEPLOYMENT.md
 ```
 
 ## Database and migrations

@@ -1,0 +1,19 @@
+name = "interis-api"
+main = "src/worker.ts"
+compatibility_date = "2026-07-19"
+compatibility_flags = ["nodejs_compat"]
+keep_vars = true
+
+# All secrets (DATABASE_URL, JWT_ACCESS_SECRET, TMDB_ACCESS_TOKEN, R2_*) are
+# set via the Cloudflare dashboard (Workers → Settings → Variables and
+# Secrets), never here. keep_vars = true stops deploys from erasing them.
+
+[vars]
+NODE_ENV = "production"
+AUTH_ACCESS_COOKIE_NAME = "interis_access_token"
+AUTH_REFRESH_COOKIE_NAME = "interis_refresh_token"
+JWT_ACCESS_TTL_SECONDS = "900"
+REFRESH_TOKEN_TTL_SECONDS = "2592000"
+USE_LOCAL_DB_PROXY = "false"
+# CORS_ORIGIN is deployment-specific (the deployed web app's origin) — set it
+# as a dashboard variable too, alongside the secrets above.
