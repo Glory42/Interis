@@ -151,13 +151,11 @@ export class SerialsTrackingService {
     };
   }
 
-  // Toggling episodes one by one never touches the season's own watched
-  // flag, which otherwise only gets set by the season-level "Watch" toggle
-  // (updateSeasonInteraction) - so a season fully watched episode-by-episode
-  // stays stuck showing "Unwatched". Recomputes and persists the season flag
-  // from actual episode state after every episode toggle, so it's always a
-  // derived, correct reflection of episode completion rather than two
-  // independently-writable flags that can drift apart.
+  // Without this, a season watched episode-by-episode stays stuck showing
+  // "Unwatched" - the season's watched flag otherwise only gets set by the
+  // season-level toggle (updateSeasonInteraction). Recompute it from actual
+  // episode state after every episode toggle instead of letting the two
+  // flags drift independently.
   private static async syncSeasonWatchedFromEpisodes(
     userId: string,
     tmdbId: number,

@@ -3,13 +3,11 @@ import { normalizeTmdbSeriesDetail } from "../helpers/serials-normalization.help
 import { SerialsCacheRepository } from "../repositories/serials-cache.repository";
 import { NotFoundError } from "../../../commons/errors/app-error";
 
-// Cached series rows (season/episode counts, status, etc.) go stale for
-// still-airing shows once TMDB publishes a new season - without a refresh,
-// a "fully watched" check against a season/episode count cached before that
-// new season existed can false-positive (see updateSeasonInteraction /
-// getInteraction, which compare watched-episode totals against this cached
-// count). Ended/canceled shows won't drift, but re-checking them every 6h
-// on next view is cheap enough not to bother special-casing status.
+// Cached season/episode counts go stale for still-airing shows once TMDB
+// publishes a new season - without a refresh, a "fully watched" check
+// (updateSeasonInteraction / getInteraction) against the old count can
+// false-positive. Ended/canceled shows won't drift, but re-checking them
+// every 6h is cheap enough not to special-case status.
 const SERIES_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 
 const isStale = (cachedAt: Date): boolean => {

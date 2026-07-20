@@ -22,11 +22,9 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  // Auto-starts both servers for local runs; in CI they're started the same
-  // way (env vars are already set at the job level, inherited here) so the
-  // journeys exercise the real app instead of a mocked one. Skipped only
-  // when E2E_SKIP_WEBSERVER is set, for the rare case both are already
-  // running (e.g. manual local debugging against `bun run dev`).
+  // Auto-starts both servers so journeys exercise the real app instead of a
+  // mock. Skipped only via E2E_SKIP_WEBSERVER, for the rare case both are
+  // already running (e.g. manual local debugging against `bun run dev`).
   webServer: process.env.E2E_SKIP_WEBSERVER
     ? undefined
     : [

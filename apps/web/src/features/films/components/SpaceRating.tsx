@@ -97,12 +97,10 @@ type SpaceRatingInputProps = {
   value: number | null;
   onChange: (nextValue: number | null) => void;
   disabled?: boolean;
-  // When true, every interaction commits immediately (no inner Save step) -
-  // for contexts like the Log modal where onChange is just local form state
-  // and the surrounding form batches the real save on submit. Left false
-  // (default) for contexts like the detail-page sidebar, where onChange
-  // fires an API call per change and the explicit Save avoids writing on
-  // every drag frame.
+  // True: commits on every interaction (Log modal - onChange is local form
+  // state, form batches the real save on submit). False (default): explicit
+  // Save step, since onChange fires an API call per change here and this
+  // avoids writing on every drag frame (e.g. detail-page sidebar).
   autoSave?: boolean;
 };
 

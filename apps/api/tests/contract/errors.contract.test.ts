@@ -7,11 +7,9 @@ import {
   type RunningTestServer,
 } from "../support/app/test-server";
 
-// Locks in the unified error envelope every error path is supposed to
-// return: { error: { message, code, details? } }. A regression here (e.g.
-// a controller reverting to a bare string) breaks every frontend consumer
-// of ApiError at once, so this is worth guarding as a contract rather than
-// re-deriving per integration test.
+// Locks in the unified error envelope { error: { message, code, details? } }
+// - a regression here breaks every frontend consumer of ApiError at once,
+// worth guarding as a contract rather than re-deriving per integration test.
 const errorEnvelopeSchema = z
   .object({
     error: z

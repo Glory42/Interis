@@ -42,13 +42,9 @@ export const useUpdateSeriesInteraction = (tmdbId: number) => {
         });
       }
 
-      // The server cascades a "watched" toggle to every season/episode -
-      // mirror that in the cache immediately instead of leaving every
-      // season row showing stale state until the (TMDB-backed, potentially
-      // multi-second) cascade response comes back. Mirrors
-      // SerialsActivityService.updateInteraction's shouldCascadeSeasons: an
-      // explicit toggle always cascades, and liking/rating cascades too the
-      // first time it implicitly flips watched to true.
+      // Mirrors SerialsActivityService.updateInteraction's shouldCascadeSeasons
+      // so season rows don't show stale state until the TMDB-backed cascade
+      // response (potentially multi-second) comes back.
       const isImplicitlyWatched =
         input.liked === true || (input.rating !== undefined && input.rating !== null);
       const previousWatched = previousState?.watched ?? false;

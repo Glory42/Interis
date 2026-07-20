@@ -138,11 +138,9 @@ export class PublicService {
       return null;
     }
 
-    // Fetch enough of each source to cover through offset+limit, then merge,
-    // sort, and slice the exact page - matches the pattern used for
-    // reviews/likes/watchlist (see UsersReviewsRepository.getReviewsWithMovies)
-    // since a global offset can't be pushed down independently to two
-    // separately-paginated tables ahead of the merge.
+    // Fetch enough of each source to cover offset+limit, then merge, sort,
+    // and slice the exact page - a global offset can't be pushed down
+    // independently to two separately-paginated tables ahead of the merge.
     const fetchCap = limit + offset;
 
     const [movieEntries, serialEntries] = await Promise.all([

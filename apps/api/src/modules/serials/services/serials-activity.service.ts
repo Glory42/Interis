@@ -16,10 +16,8 @@ import { SerialsTrackingService } from "./serials-tracking.service";
 import { filterWatchedNonSpecialEpisodes } from "../helpers/serials-episode-filter.helper";
 
 export class SerialsActivityService {
-  // Shared by updateInteraction (the sidebar "Watch" toggle) and createLog
-  // (the "Log" modal) - both are ways for the user to say "I watched this
-  // series," so both must cascade the same watched state down to every
-  // season/episode instead of only flipping the series-level flag.
+  // Shared by updateInteraction and createLog - both must cascade watched
+  // state down to every season/episode, not just flip the series-level flag.
   private static async cascadeSeasonsWatched(
     userId: string,
     tmdbId: number,
@@ -87,12 +85,9 @@ export class SerialsActivityService {
 
     const resolvedIsWatched = input.watched ?? (isImplicitlyWatched ? true : undefined);
 
-    // Cascade whenever the user explicitly toggles "watched" (even to the
-    // same value - matches the existing sidebar toggle behavior), or when
-    // liking/rating implicitly flips it to watched for the first time. Once
-    // previousIsWatched is already true, re-rating doesn't re-cascade -
-    // otherwise every rating tweak on an already-watched series would
-    // needlessly re-run the season/episode cascade.
+    // Cascade on an explicit "watched" toggle, or when liking/rating flips
+    // it to watched for the first time - not on every rating tweak once
+    // already watched, or every tweak would needlessly re-run the cascade.
     const shouldCascadeSeasons =
       input.watched !== undefined || (resolvedIsWatched === true && !previousIsWatched);
 

@@ -5,12 +5,10 @@ import argon2idSimdWasm from "argon2id/dist/simd.wasm";
 import argon2idNonSimdWasm from "argon2id/dist/no-simd.wasm";
 import type { computeHash as Argon2idComputeHash } from "argon2id/lib/setup";
 
-// Cloudflare Workers' production crypto.subtle PBKDF2 implementation hard-caps
-// iterations at 100,000 ("NotSupportedError: iteration counts above 100000
-// are not supported") — confirmed live in production; wrangler dev's local
-// simulator does NOT enforce this cap, so this only surfaces once deployed.
-// OWASP's 2023 minimum for PBKDF2-HMAC-SHA256 is 600,000, but that's not
-// achievable here — 100,000 is the highest this runtime allows.
+// Cloudflare Workers' production crypto.subtle hard-caps PBKDF2 at 100,000
+// iterations (NotSupportedError above that) - wrangler dev's local
+// simulator doesn't enforce this, so it only surfaces once deployed. Below
+// OWASP's 2023 minimum of 600,000, but this is the runtime's ceiling.
 const PBKDF2_ITERATIONS = 100_000;
 const PBKDF2_HASH_LENGTH_BYTES = 32;
 const SALT_LENGTH_BYTES = 16;
@@ -86,12 +84,10 @@ const verifyPbkdf2 = async (plaintext: string, stored: string): Promise<boolean>
 
 const LEGACY_ARGON2ID_FORMAT = /^\$argon2id\$v=19\$m=(\d+),t=(\d+),p=(\d+)\$([^$]+)\$([^$]+)$/;
 
-// A `.wasm` import's shape differs by runtime: wrangler's bundler statically
-// compiles it to a WebAssembly.Module (instantiating a Module returns a bare
-// Instance), Bun's gives back the file path as a string instead of the
-// bytes, and instantiating raw bytes returns {instance, module} already.
-// argon2id's setupWasm() always wants that last shape, so normalize based on
-// what actually came through.
+// A `.wasm` import's shape differs by runtime: wrangler gives a precompiled
+// WebAssembly.Module (instantiating returns a bare Instance), Bun gives the
+// file path as a string instead of bytes. argon2id's setupWasm() always
+// wants {instance, module}, so normalize based on what came through.
 const instantiateWasmModule = async (
   wasmModuleOrBytesOrPath: WebAssembly.Module | ArrayBuffer | Uint8Array | string,
   importObject: NonNullable<Parameters<typeof WebAssembly.instantiate>[1]>,
@@ -120,13 +116,11 @@ const getArgon2idComputeHash = (): Promise<Argon2idComputeHash> => {
   return argon2idComputeHash;
 };
 
-// Hashes created by Bun.password (pre-Workers-migration). Bun's native
-// argon2id isn't available under the Workers runtime, and most WASM argon2
-// libraries hit Workers' dynamic-codegen restriction (WebAssembly.compile()
-// from an in-memory buffer is disallowed) — the `argon2id` package sidesteps
-// this by shipping real .wasm files that get statically imported and
-// precompiled by wrangler's own bundler, confirmed byte-for-byte compatible
-// with Bun's output and ~10x faster than a pure-JS fallback.
+// Hashes created by Bun.password (pre-Workers-migration). Bun's argon2id
+// isn't available under Workers, and most WASM argon2 libraries hit
+// Workers' dynamic-codegen restriction - `argon2id` sidesteps this via
+// statically-imported .wasm files precompiled by wrangler's bundler.
+// Confirmed byte-for-byte compatible with Bun's output.
 const verifyLegacyArgon2id = async (plaintext: string, stored: string): Promise<boolean> => {
   const match = LEGACY_ARGON2ID_FORMAT.exec(stored);
   if (!match) {

@@ -17,11 +17,9 @@ export const buildTestUser = (prefix: string): TestUser => {
   };
 };
 
-// Registers a fresh account through the real UI (not an API shortcut) so
-// this exercises the actual signup form end to end. Every new account is
-// then forced through the mandatory security-question setup step before
-// landing on "/" — complete that here too so callers get a fully usable
-// session, same as a real user would.
+// Registers through the real UI (not an API shortcut) to exercise the
+// actual signup form, then completes the mandatory security-question setup
+// every new account is forced through before landing on "/".
 export const registerUser = async (page: Page, user: TestUser): Promise<void> => {
   await page.goto("/register");
   await page.getByLabel("Username").fill(user.username);
@@ -37,11 +35,9 @@ export const registerUser = async (page: Page, user: TestUser): Promise<void> =>
   await page.waitForURL("/");
 };
 
-// Deletes the account currently signed in on `page` via the real
-// delete-account endpoint, using page.request so it rides the same session
-// cookies as the browser context. Keeps e2e runs from permanently inflating
-// TOTAL_USERS on every run — call this at the end of every journey that
-// registers a test account.
+// Call at the end of every journey that registers a test account, or e2e
+// runs permanently inflate TOTAL_USERS. page.request rides the same
+// session cookies as the browser context.
 export const deleteTestUser = async (page: Page): Promise<void> => {
   await page.request.delete("/api/auth/account");
 };

@@ -22,10 +22,8 @@ export type SerialSeasonEpisodeReviewRow = {
 };
 
 export class SerialsSeasonEpisodeReviewsRepository {
-  // All season and episode reviews for a series, with each review's rating
-  // resolved from serialSeasonInteractions/serialEpisodeInteractions (these
-  // reviews are never linked to a diary entry - unlike series-level reviews,
-  // their rating lives on the season/episode interaction row instead).
+  // Unlike series-level reviews, these are never linked to a diary entry -
+  // their rating lives on the season/episode interaction row instead.
   static async getReviewRowsBySeriesId(
     tmdbId: number,
     seriesId: number,

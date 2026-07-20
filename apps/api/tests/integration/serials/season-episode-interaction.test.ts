@@ -8,11 +8,9 @@ import {
 } from "../../support/app/test-server";
 
 // updateSeasonInteraction/updateEpisodeInteraction best-effort cascade to
-// TMDB-backed episode data (tmdbGetSeasonDetails) whenever the resulting
-// state is "watched" — that call is wrapped in .catch(() => null), so it
-// fails harmlessly against a fake seeded series/tmdbId and the season/
-// episode row's own watched/liked/rating state (what these tests assert on)
-// is persisted and returned correctly regardless.
+// TMDB-backed episode data on "watched", wrapped in .catch(() => null) - it
+// fails harmlessly against a fake seeded tmdbId, so the state these tests
+// assert on still persists and returns correctly regardless.
 describe("season and episode interaction", () => {
   let testServer: RunningTestServer | null = null;
 

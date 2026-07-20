@@ -19,11 +19,9 @@ const envSchema = z.object({
   AUTH_REFRESH_COOKIE_NAME: z.string().min(1).default("interis_refresh_token"),
   TMDB_ACCESS_TOKEN: z.string().min(1, "TMDB_ACCESS_TOKEN is required"),
   CORS_ORIGIN: z.string().optional(),
-  // z.coerce.boolean() uses JS's Boolean(value) semantics, not string
-  // parsing — Boolean("false") is `true` (any non-empty string is truthy),
-  // so an env var literally set to "false" would silently enable this.
-  // z.stringbool() parses "true"/"false" (and other common string forms) as
-  // actual booleans.
+  // z.coerce.boolean() uses Boolean(value) semantics, not string parsing -
+  // Boolean("false") is `true`. z.stringbool() parses "true"/"false" as
+  // actual booleans instead.
   USE_LOCAL_DB_PROXY: z.stringbool().default(false),
 });
 
@@ -39,9 +37,8 @@ const loadEnv = (): Env => {
   const result = envSchema.safeParse(process.env);
 
   if (!result.success) {
-    // process.exit() isn't available under the Workers runtime — it
-    // crash-kills the request with an opaque error instead of surfacing
-    // this message, so a normal throw is the only thing that reads
+    // process.exit() crash-kills the request with an opaque error under
+    // Workers instead of surfacing this message - a normal throw reads
     // consistently in both Bun and Workers logs.
     throw new Error(
       `Invalid environment configuration:\n${formatIssues(result.error)}`,

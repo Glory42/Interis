@@ -5,12 +5,10 @@ import type { FeedItem } from "@/features/feed/types";
 type FeedPage = { items: FeedItem[]; nextCursor: string | null };
 type FeedInfiniteData = InfiniteData<FeedPage, string | undefined>;
 
-// Patches every feed item matching `matches` across every cached page of the
-// following-feed infinite query - used by any mutation whose effect should
-// show up on feed cards (likes, comment counts, review edits) without
-// waiting on a full feed refetch. The following feed is a useInfiniteQuery,
-// so its cache entry is `{ pages, pageParams }`, not a flat FeedItem[] -
-// this walks `.pages[].items[]` correctly instead of assuming a flat array.
+// Patches matching feed items across every cached page without a full
+// refetch. The feed is a useInfiniteQuery, so its cache is
+// `{ pages, pageParams }`, not a flat FeedItem[] - this walks
+// `.pages[].items[]` accordingly.
 export const patchFeedItems = (
   queryClient: QueryClient,
   matches: (item: FeedItem) => boolean,

@@ -141,9 +141,8 @@ export class AuthService {
     await SecurityAnswersRepository.upsert(userId, question, answerHash);
   }
 
-  // Public lookup for the forgot-password flow — necessarily reveals whether
-  // an account with this email exists and, if so, its question text (the
-  // user needs to see the question to answer it). The answer itself stays
+  // Necessarily reveals whether an account with this email exists (the user
+  // needs to see the question to answer it) - the answer itself stays
   // hashed and is never returned.
   static async getSecurityQuestionByEmail(email: string): Promise<{ question: string }> {
     const row = await SecurityAnswersRepository.findByEmail(email);

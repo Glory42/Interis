@@ -4,11 +4,9 @@ import { SerialsSeasonInteractionsRepository } from "../repositories/serials-sea
 import { calculateViewerTracking } from "../helpers/serials-tracking.helper";
 
 export class SerialsCurrentlyWatchingService {
-  // Series the viewer has started but not finished watching, most
-  // recently-watched first. Candidate selection happens in one grouped DB
-  // query (SerialsEpisodeInteractionsRepository.getInProgressSeriesForUser);
-  // only the bounded result set (capped by `limit`) is enriched here with
-  // per-series TMDB detail (cached) and "up next" episode tracking.
+  // Candidate selection happens in one grouped DB query
+  // (getInProgressSeriesForUser); only the bounded result is enriched here
+  // with per-series TMDB detail and "up next" episode tracking.
   static async getCurrentlyWatching(viewerUserId: string, limit: number) {
     const candidates = await SerialsEpisodeInteractionsRepository.getInProgressSeriesForUser(
       viewerUserId,

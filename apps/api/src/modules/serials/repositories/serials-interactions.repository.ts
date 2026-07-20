@@ -47,9 +47,7 @@ export class SerialsInteractionsRepository {
   }
 
   // Diary-entry half of "logged" - the other half (rated without a diary
-  // entry) comes from getViewerSeriesInteractionStateByTmdbIds, which shares
-  // one query with the watchlisted/fully-watched archive-grid lookups
-  // instead of each re-querying serialInteractions separately.
+  // entry) comes from getViewerSeriesInteractionStateByTmdbIds instead.
   static async getViewerDiaryLoggedTmdbIds(viewerUserId: string, tmdbIds: number[]) {
     const uniqueTmdbIds = [...new Set(tmdbIds)];
     if (uniqueTmdbIds.length === 0) {
@@ -147,9 +145,8 @@ export class SerialsInteractionsRepository {
     return upserted ?? null;
   }
 
-  // Fully watched series, most recently marked watched first. isWatched is
-  // a series-level flag that can be set independently of any per-episode
-  // rows (see setWatched below), so this queries serialInteractions
+  // isWatched is a series-level flag settable independently of any
+  // per-episode rows (see setWatched), so this queries serialInteractions
   // directly rather than deriving completion from episode counts.
   static async getWatchedSeriesForUser(userId: string, limit?: number, offset?: number) {
     const baseQuery = db

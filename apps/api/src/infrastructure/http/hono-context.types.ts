@@ -19,9 +19,8 @@ const BODYLESS_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 // A handler that returns early without reading the body (e.g. rejecting a
 // bad :id before checking the payload) leaves it undrained, which can hang
-// the connection and, in turn, server.close() during test teardown.
-// c.req.json() caches its result, so pre-draining here is free for any
-// handler that reads it again.
+// server.close() during test teardown. c.req.json() caches its result, so
+// pre-draining here is free for handlers that read it again.
 const drainRequestBody: MiddlewareHandler = async (c, next) => {
   if (!BODYLESS_METHODS.has(c.req.method)) {
     await c.req.json().catch(() => undefined);
