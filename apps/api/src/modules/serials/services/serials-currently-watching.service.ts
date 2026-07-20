@@ -13,45 +13,54 @@ export class SerialsCurrentlyWatchingService {
       limit,
     );
 
-    return Promise.all(
+    const results = await Promise.all(
       candidates.map(async (candidate) => {
-        const [tmdbDetail, seasonInteractions] = await Promise.all([
-          tmdbGetDetails(candidate.tmdbId).catch(() => null),
-          SerialsSeasonInteractionsRepository.getViewerSeasonInteractions(
+        try {
+          const [tmdbDetail, seasonInteractions] = await Promise.all([
+            tmdbGetDetails(candidate.tmdbId).catch(() => null),
+            SerialsSeasonInteractionsRepository.getViewerSeasonInteractions(
+              viewerUserId,
+              candidate.seriesId,
+              candidate.tmdbId,
+            ),
+          ]);
+
+          const tracking = await calculateViewerTracking(
             viewerUserId,
             candidate.seriesId,
             candidate.tmdbId,
-          ),
-        ]);
+            tmdbDetail,
+            seasonInteractions,
+          );
 
-        const tracking = await calculateViewerTracking(
-          viewerUserId,
-          candidate.seriesId,
-          candidate.tmdbId,
-          tmdbDetail,
-          seasonInteractions,
-        );
+          const numberOfEpisodes = candidate.numberOfEpisodes ?? 0;
+          const progressPercent =
+            numberOfEpisodes > 0
+              ? Math.round((tracking.watchedEpisodesCount / numberOfEpisodes) * 100)
+              : 0;
 
-        const numberOfEpisodes = candidate.numberOfEpisodes ?? 0;
-        const progressPercent =
-          numberOfEpisodes > 0
-            ? Math.round((tracking.watchedEpisodesCount / numberOfEpisodes) * 100)
-            : 0;
-
-        return {
-          tmdbId: candidate.tmdbId,
-          title: candidate.title,
-          posterPath: candidate.posterPath,
-          backdropPath: candidate.backdropPath,
-          firstAirYear: candidate.firstAirYear,
-          numberOfSeasons: candidate.numberOfSeasons,
-          numberOfEpisodes: candidate.numberOfEpisodes,
-          watchedEpisodesCount: tracking.watchedEpisodesCount,
-          progressPercent,
-          lastWatchedAt: candidate.lastWatchedAt,
-          currentEpisode: tracking.currentEpisode,
-        };
+          return {
+            tmdbId: candidate.tmdbId,
+            title: candidate.title,
+            posterPath: candidate.posterPath,
+            backdropPath: candidate.backdropPath,
+            firstAirYear: candidate.firstAirYear,
+            numberOfSeasons: candidate.numberOfSeasons,
+            numberOfEpisodes: candidate.numberOfEpisodes,
+            watchedEpisodesCount: tracking.watchedEpisodesCount,
+            progressPercent,
+            lastWatchedAt: candidate.lastWatchedAt,
+            currentEpisode: tracking.currentEpisode,
+          };
+        } catch {
+          // One series failing to enrich (e.g. a transient DB error under
+          // concurrent per-candidate load) shouldn't blank out the whole
+          // "currently watching" list - drop just that entry.
+          return null;
+        }
       }),
     );
+
+    return results.filter((result): result is NonNullable<typeof result> => result !== null);
   }
 }
