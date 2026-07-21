@@ -19,6 +19,7 @@ export const AppNavbar = () => {
     isMobileMenuOpen,
     isProfileMenuOpen,
     visiblePrimaryNavItems,
+    pathname,
     profileMenuRef,
     profileImageUrl,
     profileInitial,
@@ -47,8 +48,8 @@ export const AppNavbar = () => {
             <NavbarBrand />
           </div>
 
-          <nav className="col-start-2 hidden min-w-0 items-center justify-center gap-1 md:flex">
-            <PrimaryNavLinks items={visiblePrimaryNavItems} />
+          <nav className="relative col-start-2 hidden min-w-0 items-center justify-center gap-1 md:flex">
+            <PrimaryNavLinks items={visiblePrimaryNavItems} pathname={pathname} />
           </nav>
 
           <div className="col-start-3 flex min-w-0 items-center justify-end gap-3 self-stretch">

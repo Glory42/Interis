@@ -138,6 +138,7 @@ export const useAppNavbarController = () => {
     isMobileMenuOpen,
     isProfileMenuOpen,
     visiblePrimaryNavItems,
+    pathname,
     profileMenuRef,
     profileImageUrl,
     profileInitial,

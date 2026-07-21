@@ -31,7 +31,7 @@ const invalidateSocialDependents = async (
   queryClient: QueryClient,
 ): Promise<void> => {
   await Promise.all([
-    queryClient.invalidateQueries({ queryKey: feedKeys.following }),
+    queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot }),
     queryClient.invalidateQueries({ queryKey: feedKeys.meSummary }),
   ]);
 };

@@ -131,4 +131,14 @@ export class ReviewsRepository {
 
     return deleted ?? null;
   }
+
+  static async updateCommentByIdAndUser(commentId: string, userId: string, content: string) {
+    const [updated] = await db
+      .update(comments)
+      .set({ content, updatedAt: new Date() })
+      .where(and(eq(comments.id, commentId), eq(comments.userId, userId)))
+      .returning({ id: comments.id });
+
+    return updated ?? null;
+  }
 }

@@ -207,6 +207,7 @@ export const PostActivityDialog = ({
           />
 
           <PostActivityDialogCommentsList
+            postId={postId}
             comments={comments}
             isPending={postCommentsQuery.isPending}
             isError={postCommentsQuery.isError}

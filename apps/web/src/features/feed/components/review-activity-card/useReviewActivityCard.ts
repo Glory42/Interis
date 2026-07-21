@@ -16,6 +16,7 @@ type ReviewActivityCardViewModel = {
   reviewContainsSpoilers: boolean;
   movie: FeedItem["movie"];
   itemId: string;
+  reviewOwnerUsername: string;
   rating: string | null;
   commentCount: number;
   likeCount: number;
@@ -145,6 +146,7 @@ export const useReviewActivityCard = (item: FeedItem): ReviewActivityCardViewMod
     reviewContainsSpoilers,
     movie: item.movie,
     itemId: item.id,
+    reviewOwnerUsername,
     rating,
     commentCount,
     likeCount,

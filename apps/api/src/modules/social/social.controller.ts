@@ -1,7 +1,10 @@
 import type { Request, Response } from "express";
 import { SocialService } from "./social.service";
 import { UsersService } from "../users/users.service";
-import { normalizeSocialFeedLimit } from "./helpers/social-query-normalizer.helper";
+import {
+  normalizeSocialFeedLimit,
+  normalizeSocialFeedMediaType,
+} from "./helpers/social-query-normalizer.helper";
 import type { FeedQueryDto, UsernameParamsDto } from "./dto/social.dto";
 import { sendBadRequest, sendNotFound } from "../../commons/http/validation-response.helper";
 
@@ -20,7 +23,13 @@ export class SocialController {
     res: Response,
   ): Promise<void> {
     const limit = normalizeSocialFeedLimit(req.query.limit, 20);
-    const feed = await SocialService.getFollowingFeed(req.user.id, limit, req.query.cursor);
+    const mediaType = normalizeSocialFeedMediaType(req.query.mediaType);
+    const feed = await SocialService.getFollowingFeed(
+      req.user.id,
+      limit,
+      req.query.cursor,
+      mediaType,
+    );
     res.status(200).json(feed);
   }
 

@@ -46,4 +46,8 @@ export class PostsCommentsService {
   static async deleteComment(commentId: string, userId: string) {
     return PostsRepository.deleteCommentByIdAndUser(commentId, userId);
   }
+
+  static async updateComment(commentId: string, userId: string, content: string) {
+    return PostsRepository.updateCommentByIdAndUser(commentId, userId, content);
+  }
 }

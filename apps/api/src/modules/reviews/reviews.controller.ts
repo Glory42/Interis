@@ -110,6 +110,28 @@ export class ReviewsController {
     res.status(200).json({ success: true });
   }
 
+  static async updateComment(
+    req: Request<{ commentId: string }>,
+    res: Response,
+  ): Promise<void> {
+    const parsed = ReviewCommentSchema.safeParse(req.body);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    const updated = await ReviewsService.updateComment(
+      req.params.commentId,
+      req.user.id,
+      parsed.data.content,
+    );
+    if (!updated) {
+      sendNotFound(res, "Comment not found");
+      return;
+    }
+    res.status(200).json(updated);
+  }
+
   static async likeReview(
     req: Request<{ id: string }>,
     res: Response,

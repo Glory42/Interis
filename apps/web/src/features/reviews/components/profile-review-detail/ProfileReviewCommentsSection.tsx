@@ -1,7 +1,11 @@
-import { Loader2 } from "lucide-react";
+import { Loader2, PenSquare, Trash2, X } from "lucide-react";
+import { useState } from "react";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Textarea } from "@/components/ui/textarea";
 import type { ReviewComment, ReviewDetail } from "@/features/reviews/api";
+import { useDeleteReviewComment, useUpdateReviewComment } from "@/features/reviews/hooks/useReviews";
 import { formatRelativeTime } from "@/features/reviews/components/profile-review-detail/utils";
 
 type ProfileReviewCommentsSectionProps = {
@@ -27,6 +31,44 @@ export const ProfileReviewCommentsSection = ({
   addCommentError,
   onSubmitComment,
 }: ProfileReviewCommentsSectionProps) => {
+  const { user } = useAuth();
+  const updateCommentMutation = useUpdateReviewComment(detail.id, detail.mediaType);
+  const deleteCommentMutation = useDeleteReviewComment(detail.id, detail.mediaType);
+
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState("");
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
+  const startEditing = (comment: ReviewComment) => {
+    setEditingCommentId(comment.id);
+    setEditDraft(comment.content);
+  };
+
+  const cancelEditing = () => {
+    setEditingCommentId(null);
+    setEditDraft("");
+  };
+
+  const saveEditing = async (commentId: string) => {
+    const trimmedContent = editDraft.trim();
+    if (trimmedContent.length === 0 || updateCommentMutation.isPending) {
+      return;
+    }
+
+    await updateCommentMutation.mutateAsync({ commentId, content: trimmedContent });
+    setEditingCommentId(null);
+    setEditDraft("");
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDeleteId || deleteCommentMutation.isPending) {
+      return;
+    }
+
+    await deleteCommentMutation.mutateAsync(pendingDeleteId);
+    setPendingDeleteId(null);
+  };
+
   return (
     <section id="review-comments" className="border border-border/60 bg-card/35 p-5 sm:p-6">
       <div className="mb-4 flex items-center justify-between gap-2">
@@ -51,7 +93,9 @@ export const ProfileReviewCommentsSection = ({
           ? comments.map((comment) => {
               const commentAuthor =
                 comment.authorDisplayUsername ?? comment.authorUsername;
-              const commentAvatar = comment.authorAvatarUrl ?? comment.authorImage;
+              const commentAvatar = comment.authorAvatarUrl;
+              const isOwnComment = Boolean(user && user.id === comment.userId);
+              const isEditing = editingCommentId === comment.id;
 
               return (
                 <article key={comment.id} className="border border-border/60 bg-card/50 p-3">
@@ -68,13 +112,65 @@ export const ProfileReviewCommentsSection = ({
                       </span>
                     )}
 
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="min-w-0 flex-1 text-[11px] text-muted-foreground">
                       <span className="font-semibold text-foreground">{commentAuthor}</span>
                       <span> · {formatRelativeTime(comment.createdAt)}</span>
                     </p>
+
+                    {isOwnComment && !isEditing ? (
+                      <div className="flex shrink-0 items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => startEditing(comment)}
+                          aria-label="Edit comment"
+                          className="text-muted-foreground transition-colors hover:text-primary"
+                        >
+                          <PenSquare className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPendingDeleteId(comment.id)}
+                          disabled={deleteCommentMutation.isPending}
+                          aria-label="Delete comment"
+                          className="text-muted-foreground transition-colors hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
 
-                  <p className="whitespace-pre-wrap text-sm text-foreground/95">{comment.content}</p>
+                  {isEditing ? (
+                    <div className="space-y-2">
+                      <Textarea
+                        value={editDraft}
+                        onChange={(event) => setEditDraft(event.target.value.slice(0, 2000))}
+                        className="min-h-20 border-border/70 bg-background/40 text-sm"
+                        autoFocus
+                      />
+                      <div className="flex items-center justify-end gap-2">
+                        <Button type="button" size="sm" variant="ghost" onClick={cancelEditing}>
+                          <X className="h-3.5 w-3.5" />
+                          Cancel
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={updateCommentMutation.isPending || editDraft.trim().length === 0}
+                          onClick={() => {
+                            void saveEditing(comment.id);
+                          }}
+                        >
+                          {updateCommentMutation.isPending ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : null}
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="whitespace-pre-wrap text-sm text-foreground/95">{comment.content}</p>
+                  )}
                 </article>
               );
             })
@@ -106,6 +202,19 @@ export const ProfileReviewCommentsSection = ({
 
         {addCommentError ? <p className="text-xs text-destructive">Could not post comment.</p> : null}
       </div>
+
+      <ConfirmDialog
+        isOpen={pendingDeleteId !== null}
+        title="Delete this comment?"
+        description="This cannot be undone."
+        confirmLabel="Delete"
+        isDestructive
+        isConfirming={deleteCommentMutation.isPending}
+        onConfirm={() => {
+          void confirmDelete();
+        }}
+        onClose={() => setPendingDeleteId(null)}
+      />
     </section>
   );
 };

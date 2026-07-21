@@ -1,5 +1,4 @@
 import { FeedActivityCard } from "@/features/feed/components/FeedActivityCard";
-import { inferFeedChannel } from "@/features/feed/components/feed-row.utils";
 import type { FeedItem } from "@/features/feed/types";
 
 export type FeedFilter = "all" | "cinema" | "serial";
@@ -9,41 +8,53 @@ type FeedActivityListProps = {
   isLoading: boolean;
   isError: boolean;
   items: FeedItem[];
-  activeFilter: FeedFilter;
 };
+
+const formatDayLabel = (value: string): string => {
+  const date = new Date(value);
+  const now = new Date();
+  const startOfDay = (input: Date) =>
+    new Date(input.getFullYear(), input.getMonth(), input.getDate()).getTime();
+  const diffDays = Math.round((startOfDay(now) - startOfDay(date)) / 86_400_000);
+
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+
+  return date.toLocaleDateString(undefined, {
+    month: "long",
+    day: "numeric",
+    year: date.getFullYear() === now.getFullYear() ? undefined : "numeric",
+  });
+};
+
+const FeedSkeletonRow = () => (
+  <div className="flex animate-pulse gap-4 border-b border-border/30 py-6 first:pt-0">
+    <div className="h-28 w-[76px] shrink-0 bg-muted/40" />
+    <div className="min-w-0 flex-1 space-y-3 pt-1">
+      <div className="flex items-center gap-2">
+        <div className="h-3 w-24 bg-muted/40" />
+        <div className="ml-auto h-3 w-10 bg-muted/25" />
+      </div>
+      <div className="h-4 w-48 bg-muted/35" />
+      <div className="space-y-2">
+        <div className="h-3 w-full bg-muted/20" />
+        <div className="h-3 w-2/3 bg-muted/20" />
+      </div>
+    </div>
+  </div>
+);
 
 export const FeedActivityList = ({
   isAuthenticated,
   isLoading,
   isError,
   items,
-  activeFilter,
 }: FeedActivityListProps) => {
   if (isLoading) {
     return (
-      <div className="border-y border-border/60">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="animate-pulse border-b border-border/60 py-6">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 shrink-0 bg-muted/50" />
-              <div className="flex flex-1 items-center gap-2">
-                <div className="h-3 w-20 bg-muted/50" />
-                <div className="h-3 w-14 bg-muted/30" />
-                <div className="ml-auto h-3 w-10 bg-muted/30" />
-              </div>
-            </div>
-            <div className="mt-3 ml-10">
-              <div className="h-5 w-52 bg-muted/40" />
-            </div>
-            <div className="mt-3 ml-10 space-y-2">
-              <div className="h-3 w-full bg-muted/25" />
-              <div className="h-3 w-2/3 bg-muted/25" />
-            </div>
-            <div className="mt-3 ml-10 flex gap-5">
-              <div className="h-3 w-8 bg-muted/30" />
-              <div className="h-3 w-8 bg-muted/30" />
-            </div>
-          </div>
+      <div>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <FeedSkeletonRow key={i} />
         ))}
       </div>
     );
@@ -51,38 +62,46 @@ export const FeedActivityList = ({
 
   if (isError) {
     return (
-      <div className="border border-destructive/45 bg-destructive/10 px-4 py-4 font-mono text-xs text-destructive">
-        could not load feed stream.
-      </div>
+      <p className="border-l-2 border-destructive/50 pl-4 text-sm text-destructive">
+        Could not load your feed right now.
+      </p>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="border border-border/70 bg-card/70 px-4 py-4 font-mono text-xs text-muted-foreground">
-        sign in to unlock your live feed.
-      </div>
+      <p className="border-l-2 border-border/60 pl-4 text-sm text-muted-foreground">
+        Sign in to see activity from people you follow.
+      </p>
     );
   }
 
-  const visibleItems =
-    activeFilter === "all"
-      ? items
-      : items.filter((item) => inferFeedChannel(item) === activeFilter);
-
-  if (visibleItems.length === 0) {
+  if (items.length === 0) {
     return (
-      <div className="border border-border/70 bg-card/70 px-4 py-4 font-mono text-xs text-muted-foreground">
-        no entries for this filter yet.
-      </div>
+      <p className="border-l-2 border-border/60 pl-4 text-sm text-muted-foreground">
+        Nothing here yet for this filter.
+      </p>
     );
   }
 
   return (
-    <div className="border-y border-border/60">
-      {visibleItems.map((item) => (
-        <FeedActivityCard key={item.id} item={item} />
-      ))}
+    <div>
+      {items.map((item, index) => {
+        const dayLabel = formatDayLabel(item.createdAt);
+        const previousDayLabel =
+          index > 0 ? formatDayLabel(items[index - 1].createdAt) : null;
+
+        return (
+          <div key={item.id}>
+            {dayLabel !== previousDayLabel ? (
+              <p className="theme-kicker mt-8 mb-2 text-[9px] text-muted-foreground/70 first:mt-0">
+                {dayLabel}
+              </p>
+            ) : null}
+            <FeedActivityCard item={item} />
+          </div>
+        );
+      })}
     </div>
   );
 };

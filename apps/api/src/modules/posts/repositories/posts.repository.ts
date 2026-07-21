@@ -198,4 +198,14 @@ export class PostsRepository {
 
     return deleted ?? null;
   }
+
+  static async updateCommentByIdAndUser(commentId: string, userId: string, content: string) {
+    const [updated] = await db
+      .update(postComments)
+      .set({ content, updatedAt: new Date() })
+      .where(and(eq(postComments.id, commentId), eq(postComments.userId, userId)))
+      .returning();
+
+    return updated ?? null;
+  }
 }

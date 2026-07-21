@@ -65,7 +65,7 @@ export const useBlockUser = (username: string) => {
         queryClient.invalidateQueries({ queryKey: stateKey }),
         queryClient.invalidateQueries({ queryKey: socialKeys.followState(username) }),
         queryClient.invalidateQueries({ queryKey: moderationKeys.blocked }),
-        queryClient.invalidateQueries({ queryKey: feedKeys.following }),
+        queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot }),
       ]);
     },
   });
@@ -95,7 +95,7 @@ export const useUnblockUser = (username: string) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: stateKey }),
         queryClient.invalidateQueries({ queryKey: moderationKeys.blocked }),
-        queryClient.invalidateQueries({ queryKey: feedKeys.following }),
+        queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot }),
       ]);
     },
   });
@@ -125,7 +125,7 @@ export const useMuteUser = (username: string) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: stateKey }),
         queryClient.invalidateQueries({ queryKey: moderationKeys.muted }),
-        queryClient.invalidateQueries({ queryKey: feedKeys.following }),
+        queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot }),
       ]);
     },
   });
@@ -155,7 +155,7 @@ export const useUnmuteUser = (username: string) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: stateKey }),
         queryClient.invalidateQueries({ queryKey: moderationKeys.muted }),
-        queryClient.invalidateQueries({ queryKey: feedKeys.following }),
+        queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot }),
       ]);
     },
   });

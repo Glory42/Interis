@@ -131,4 +131,27 @@ export class PostsController {
     }
     res.status(200).json({ success: true });
   }
+
+  // PUT /api/posts/comments/:commentId
+  static async updateComment(
+    req: Request<{ commentId: string }>,
+    res: Response,
+  ): Promise<void> {
+    const parsed = PostCommentSchema.safeParse(req.body);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    const updated = await PostsService.updateComment(
+      req.params.commentId,
+      req.user.id,
+      parsed.data.content,
+    );
+    if (!updated) {
+      sendNotFound(res, "Comment not found");
+      return;
+    }
+    res.status(200).json(updated);
+  }
 }

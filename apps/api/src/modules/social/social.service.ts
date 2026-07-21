@@ -2,6 +2,7 @@ import { SocialFeedService } from "./services/social-feed.service";
 import { SocialFollowService } from "./services/social-follow.service";
 import { SocialRepository, type ActivityType } from "./repositories/social.repository";
 import { NotificationsService } from "../notifications/notifications.service";
+import type { FeedMediaType } from "./types/social-feed.types";
 
 export type {
   FeedActivityKind,
@@ -47,8 +48,13 @@ export class SocialService {
     return SocialFeedService.getFeed(userId, cursor, limit);
   }
 
-  static async getFollowingFeed(userId: string, limit?: number, cursor?: string) {
-    return SocialFeedService.getFollowingFeed(userId, limit, cursor);
+  static async getFollowingFeed(
+    userId: string,
+    limit?: number,
+    cursor?: string,
+    mediaType?: FeedMediaType,
+  ) {
+    return SocialFeedService.getFollowingFeed(userId, limit, cursor, mediaType);
   }
 
   static async likeActivity(
