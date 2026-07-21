@@ -1,18 +1,16 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Star, TriangleAlert } from "lucide-react";
-import { formatRatingLabel } from "@/lib/rating";
 import { getPosterUrl } from "@/features/films/components/utils";
 import type { UserReview } from "@/features/profile/api";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import { ReviewCardSkeleton } from "@/features/profile/components/ReviewCardSkeleton";
+import { DiaryRatingStars } from "@/features/profile/components/diary/DiaryRatingStars";
 import { useUserReviews } from "@/features/profile/hooks/useProfile";
 
 type ProfileReviewsPageProps = {
   username: string;
 };
-
-type RatingToken = "full" | "half" | "empty";
 
 const mediaMetaByType: Record<
   UserReview["mediaType"],
@@ -42,67 +40,6 @@ const formatDate = (value: string | null): string => {
   }
 
   return date.toLocaleDateString("en-US");
-};
-
-const toRatingTokens = (rating: number | null | undefined): RatingToken[] => {
-  if (rating === null || rating === undefined || Number.isNaN(rating)) {
-    return Array.from({ length: 10 }, () => "empty" as RatingToken);
-  }
-
-  const normalized = Math.max(0, Math.min(10, rating));
-
-  return Array.from({ length: 10 }, (_, index) => {
-    const delta = normalized - index;
-    if (delta >= 1) return "full";
-    if (delta >= 0.5) return "half";
-    return "empty";
-  });
-};
-
-const ReviewStars = ({
-  rating,
-}: {
-  rating: number | null | undefined;
-}) => {
-  const tokens = toRatingTokens(rating);
-  const label = formatRatingLabel(rating ?? null) ?? "Unrated";
-
-  return (
-    <span className="flex items-center gap-0.5" aria-label={label}>
-      {tokens.map((token, index) => {
-        if (token === "full") {
-          return (
-            <span
-              key={`review-rating-full-${index}`}
-              style={{ color: "var(--module-cinema)", fontSize: 11 }}
-            >
-              ★
-            </span>
-          );
-        }
-
-        if (token === "half") {
-          return (
-            <span
-              key={`review-rating-half-${index}`}
-              style={{ color: "var(--module-cinema)", fontSize: 11 }}
-            >
-              ½
-            </span>
-          );
-        }
-
-        return (
-          <span
-            key={`review-rating-empty-${index}`}
-            style={{ color: "var(--profile-shell-muted)", fontSize: 11 }}
-          >
-            ★
-          </span>
-        );
-      })}
-    </span>
-  );
 };
 
 export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
@@ -232,7 +169,10 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <ReviewStars rating={entry.rating} />
+                  <DiaryRatingStars
+                    rating={entry.rating ?? null}
+                    color={mediaMetaByType[entry.mediaType].color}
+                  />
                   <span className="font-mono text-[9px] profile-shell-muted">
                     Reviewed on {formatDate(entry.createdAt)}
                   </span>
