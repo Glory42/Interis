@@ -1,13 +1,13 @@
 import { memo, useState, type MouseEvent } from "react";
 import { Link } from "@tanstack/react-router";
-import {
-  Heart,
-  Loader2,
-  MessageSquare,
-  PenSquare,
-  TriangleAlert,
-} from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
+import {
+  CommentButton,
+  EditButton,
+  EngagementActionBar,
+  LikeButton,
+} from "@/features/feed/components/EngagementActionBar";
 import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
 import { FeedCardHeader } from "@/features/feed/components/FeedCardHeader";
 import { FeedReviewEditDialog } from "@/features/feed/components/FeedReviewEditDialog";
@@ -15,7 +15,6 @@ import { ReviewActivityDialog } from "@/features/feed/components/ReviewActivityD
 import { toSeasonEpisodeLabel, truncateQuote } from "@/features/feed/components/feed-row.utils";
 import { getPosterUrl } from "@/features/films/components/utils";
 import type { FeedItem } from "@/features/feed/types";
-import { cn } from "@/lib/utils";
 import { useReviewActivityCard } from "./review-activity-card/useReviewActivityCard";
 
 type ReviewActivityCardProps = {
@@ -88,10 +87,10 @@ export const ReviewActivityCard = memo(function ReviewActivityCard({
   const seLabel = toSeasonEpisodeLabel(item);
   const ratingValue = rating === null ? null : Number.parseFloat(rating);
   const reviewId = item.review?.id ?? item.metadata.reviewId ?? null;
-  const isOwnReview = Boolean(user && reviewId && user.id === item.actor.id);
   const verbPrefix = getReviewVerbPrefix(item);
   const needsOf = NEEDS_OF_PREPOSITION_KINDS.includes(item.kind);
   const showRating = item.kind === "review" || item.kind === "diary_entry";
+  const isOwnReview = Boolean(showRating && user && reviewId && user.id === item.actor.id);
   const showPoster = showRating && movie?.posterPath;
   const quotedOriginal = item.kind === "commented" ? item.review?.content : null;
 
@@ -210,51 +209,34 @@ export const ReviewActivityCard = memo(function ReviewActivityCard({
             />
           ) : null}
 
-          <div className="mt-3 flex items-center gap-6 text-xs text-muted-foreground">
-            <button
-              type="button"
-              onClick={() => {
-                setIsCommentDialogOpen(true);
-              }}
-              disabled={!hasReviewId}
-              className="inline-flex items-center gap-1.5 transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <MessageSquare className="h-4 w-4" />
-              {commentCount}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                void toggleLike();
-              }}
-              disabled={!hasReviewId || isLikePending}
-              className={cn(
-                "inline-flex items-center gap-1.5 transition-colors",
-                viewerHasLiked ? "text-primary" : "hover:text-primary",
-                !hasReviewId || isLikePending ? "cursor-not-allowed opacity-50" : "",
-              )}
-            >
-              {isLikePending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Heart className={cn("h-4 w-4", viewerHasLiked ? "fill-current" : "")} />
-              )}
-              {likeCount}
-            </button>
-
-            {isOwnReview && reviewId ? (
-              <button
-                type="button"
+          {showRating ? (
+            <EngagementActionBar className="mt-3">
+              <CommentButton
+                count={commentCount}
+                disabled={!hasReviewId}
                 onClick={() => {
-                  setIsEditDialogOpen(true);
+                  setIsCommentDialogOpen(true);
                 }}
-                className="inline-flex items-center gap-1.5 transition-colors hover:text-primary"
-              >
-                <PenSquare className="h-4 w-4" />
-                Edit
-              </button>
-            ) : null}
-          </div>
+              />
+              <LikeButton
+                count={likeCount}
+                isLiked={viewerHasLiked}
+                isPending={isLikePending}
+                disabled={!hasReviewId}
+                onToggle={() => {
+                  void toggleLike();
+                }}
+              />
+
+              {isOwnReview && reviewId ? (
+                <EditButton
+                  onClick={() => {
+                    setIsEditDialogOpen(true);
+                  }}
+                />
+              ) : null}
+            </EngagementActionBar>
+          ) : null}
         </div>
       </article>
 

@@ -1,7 +1,13 @@
 import { memo, useState, type MouseEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Flag, Heart, Loader2, MessageSquare, PenSquare } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import {
+  CommentButton,
+  EditButton,
+  EngagementActionBar,
+  LikeButton,
+  ReportButton,
+} from "@/features/feed/components/EngagementActionBar";
 import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
 import { FeedCardHeader } from "@/features/feed/components/FeedCardHeader";
 import { FeedMoviePreviewCard } from "@/features/feed/components/FeedMoviePreviewCard";
@@ -14,7 +20,6 @@ import {
 import type { FeedItem } from "@/features/feed/types";
 import { useLikePost, useUnlikePost } from "@/features/posts/hooks/usePosts";
 import { ReportContentDialog } from "@/features/reports/components/ReportContentDialog";
-import { cn } from "@/lib/utils";
 
 type PostActivityCardProps = {
   item: FeedItem;
@@ -155,64 +160,39 @@ export const PostActivityCard = memo(function PostActivityCard({ item }: PostAct
             />
           ) : null}
 
-          <div className="mt-2.5 flex items-center gap-6 text-xs text-muted-foreground">
-            <button
-              type="button"
-              onClick={() => {
+          <EngagementActionBar className="mt-2.5">
+            <LikeButton
+              count={item.engagement.likeCount}
+              isLiked={viewerHasLiked}
+              isPending={isLikePending}
+              onToggle={() => {
                 void handleToggleLike();
               }}
-              disabled={isLikePending}
-              className={cn(
-                "inline-flex items-center gap-1.5 transition-colors",
-                viewerHasLiked ? "text-primary" : "hover:text-primary",
-                isLikePending ? "cursor-not-allowed opacity-50" : "",
-              )}
-            >
-              {isLikePending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Heart className={cn("h-4 w-4", viewerHasLiked ? "fill-current" : "")} />
-              )}
-              {item.engagement.likeCount}
-            </button>
+            />
 
-            <button
-              type="button"
+            <CommentButton
+              count={item.engagement.commentCount}
               onClick={() => {
                 openDialog("view");
               }}
-              className="inline-flex items-center gap-1.5 transition-colors hover:text-primary"
-            >
-              <MessageSquare className="h-4 w-4" />
-              {item.engagement.commentCount}
-            </button>
+            />
 
             {isOwnPost ? (
-              <button
-                type="button"
+              <EditButton
                 onClick={() => {
                   openDialog("edit");
                 }}
-                className="inline-flex items-center gap-1.5 transition-colors hover:text-primary"
-              >
-                <PenSquare className="h-4 w-4" />
-                Edit
-              </button>
+              />
             ) : null}
 
             {!isOwnPost && postId ? (
-              <button
-                type="button"
+              <ReportButton
                 onClick={() => {
                   void handleReport();
                 }}
-                className="ml-auto inline-flex items-center gap-1.5 transition-colors hover:text-destructive"
-              >
-                <Flag className="h-4 w-4" />
-                Report
-              </button>
+              />
             ) : null}
-          </div>
+          </EngagementActionBar>
         </div>
       </article>
 
