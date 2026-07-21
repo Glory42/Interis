@@ -7,11 +7,18 @@ import {
   buildReviewContext,
 } from "../helpers/social-feed-context.helper";
 import { dedupeReviewFeedItems } from "../helpers/social-feed-dedupe.helper";
+import { inferFeedItemMediaType } from "../helpers/social-feed-channel.helper";
 import { toFeedItem } from "../helpers/social-feed-item.helper";
 import { decodeFeedCursor, encodeFeedCursor } from "../helpers/social-feed-cursor.helper";
 import { SocialRepository } from "../repositories/social.repository";
 import { ModerationRepository } from "../../moderation/repositories/moderation.repository";
-import type { ActivityRow, FeedItem } from "../types/social-feed.types";
+import type { ActivityRow, FeedItem, FeedMediaType } from "../types/social-feed.types";
+
+// Safety cap on how many raw activity rows a single filtered request will
+// scan looking for matches (e.g. a viewer whose followed users have logged
+// almost no movies at all, with the "movie" filter active) - bounds one
+// request's latency instead of scanning the whole feed history.
+const MEDIA_FILTER_SCAN_ROW_CAP = 300;
 
 export type FeedPage = {
   items: FeedItem[];
@@ -46,15 +53,7 @@ const buildFeedItems = async (
   return dedupeReviewFeedItems(feedItems);
 };
 
-const getFollowingFeedUncached = async (
-  userId: string,
-  limit?: number,
-  cursor?: string,
-): Promise<FeedPage> => {
-  const normalizedLimit = normalizeLimit(limit);
-  const fetchLimit = normalizedLimit * 2;
-  const decodedCursor = decodeFeedCursor(cursor);
-
+const getFeedUserIds = async (userId: string): Promise<string[]> => {
   const [followingRows, blockedIds, blockedByIds, mutedIds] = await Promise.all([
     SocialRepository.getFollowingIdsByFollowerId(userId),
     ModerationRepository.getBlockedIds(userId),
@@ -65,7 +64,8 @@ const getFollowingFeedUncached = async (
   // are one-directional — being muted by someone else must not hide your
   // own activity from your own feed.
   const excludedIds = new Set([...blockedIds, ...blockedByIds, ...mutedIds]);
-  const feedUserIds = [
+
+  return [
     userId,
     ...new Set(
       followingRows
@@ -73,26 +73,81 @@ const getFollowingFeedUncached = async (
         .filter((followingId) => !excludedIds.has(followingId)),
     ),
   ];
+};
 
-  const rows = await SocialRepository.getFeedActivityRows(feedUserIds, fetchLimit, decodedCursor);
-  const items = await buildFeedItems(rows, userId);
+const getFollowingFeedUncached = async (
+  userId: string,
+  limit?: number,
+  cursor?: string,
+  mediaType?: FeedMediaType,
+): Promise<FeedPage> => {
+  const normalizedLimit = normalizeLimit(limit);
+  const fetchLimit = normalizedLimit * 2;
+  const feedUserIds = await getFeedUserIds(userId);
 
-  // Raw rows (pre-dedupe) filling the fetch cap means there may be more
-  // beyond this page; otherwise we've reached the end of the feed.
-  const hasMore = rows.length === fetchLimit;
-  const lastRow = rows.at(-1);
-  const nextCursor =
-    hasMore && lastRow
+  if (!mediaType) {
+    const decodedCursor = decodeFeedCursor(cursor);
+    const rows = await SocialRepository.getFeedActivityRows(feedUserIds, fetchLimit, decodedCursor);
+    const items = await buildFeedItems(rows, userId);
+
+    // Raw rows (pre-dedupe) filling the fetch cap means there may be more
+    // beyond this page; otherwise we've reached the end of the feed.
+    const hasMore = rows.length === fetchLimit;
+    const lastRow = rows.at(-1);
+    const nextCursor =
+      hasMore && lastRow
+        ? encodeFeedCursor({ createdAt: lastRow.activity.createdAt, id: lastRow.activity.id })
+        : null;
+
+    return { items, nextCursor };
+  }
+
+  // Media-type filter: the raw activities table is polymorphic (reviews,
+  // posts, follows, likes, ...) with no single column to filter on directly,
+  // so instead of one query we scan successive batches, resolve each into a
+  // full FeedItem (same pipeline as the unfiltered path), and keep only the
+  // ones matching the requested channel - advancing the cursor by rows
+  // *scanned*, not rows *matched*, so a later page resumes from the right
+  // place instead of re-scanning what was already filtered out.
+  let decodedCursor = decodeFeedCursor(cursor);
+  const collected: FeedItem[] = [];
+  let scannedRows = 0;
+  let nextCursor: string | null = null;
+
+  while (collected.length < normalizedLimit && scannedRows < MEDIA_FILTER_SCAN_ROW_CAP) {
+    const rows = await SocialRepository.getFeedActivityRows(feedUserIds, fetchLimit, decodedCursor);
+    if (rows.length === 0) {
+      nextCursor = null;
+      break;
+    }
+
+    scannedRows += rows.length;
+    const items = await buildFeedItems(rows, userId);
+    collected.push(...items.filter((item) => inferFeedItemMediaType(item) === mediaType));
+
+    const lastRow = rows.at(-1);
+    decodedCursor = lastRow
+      ? { createdAt: lastRow.activity.createdAt, id: lastRow.activity.id }
+      : decodedCursor;
+
+    if (rows.length < fetchLimit) {
+      // Reached the true end of the underlying feed.
+      nextCursor = null;
+      break;
+    }
+
+    nextCursor = lastRow
       ? encodeFeedCursor({ createdAt: lastRow.activity.createdAt, id: lastRow.activity.id })
       : null;
+  }
 
-  return { items, nextCursor };
+  return { items: collected, nextCursor };
 };
 
 const cachedGetFollowingFeed = createTtlCache(getFollowingFeedUncached, {
   ttlMs: FEED_CACHE_TTL_MS,
-  keyFn: (userId: string, limit?: number, cursor?: string) =>
-    `${userId}:${limit ?? ""}:${cursor ?? ""}`,
+  keyFn: (userId: string, limit?: number, cursor?: string, mediaType?: FeedMediaType) =>
+    `${userId}:${limit ?? ""}:${cursor ?? ""}:${mediaType ?? ""}`,
 });
 
 const getUserActivityFeedUncached = async (
@@ -122,8 +177,9 @@ export class SocialFeedService {
     userId: string,
     limit?: number,
     cursor?: string,
+    mediaType?: FeedMediaType,
   ): Promise<FeedPage> {
-    return cachedGetFollowingFeed(userId, limit, cursor);
+    return cachedGetFollowingFeed(userId, limit, cursor, mediaType);
   }
 
   static async getUserActivityFeed(userId: string, limit?: number): Promise<FeedItem[]> {
