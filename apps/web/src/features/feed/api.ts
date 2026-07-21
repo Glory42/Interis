@@ -22,14 +22,20 @@ type QueryRequestOptions = {
   signal?: AbortSignal;
 };
 
+export type FeedMediaTypeFilter = "movie" | "tv";
+
 export const getFollowingFeed = async (
   limit = 20,
   cursor?: string,
+  mediaType?: FeedMediaTypeFilter,
   options: QueryRequestOptions = {},
 ): Promise<FeedPage> => {
   const params = new URLSearchParams({ limit: String(normalizeLimit(limit, 20)) });
   if (cursor) {
     params.set("cursor", cursor);
+  }
+  if (mediaType) {
+    params.set("mediaType", mediaType);
   }
 
   const response = await apiRequest<unknown>(
@@ -74,16 +80,4 @@ export const getNetworkStats = async (
   });
 
   return networkStatsSchema.parse(response);
-};
-
-export const likeActivity = async (activityId: string): Promise<void> => {
-  await apiRequest<unknown>(`/api/social/activities/${activityId}/like`, {
-    method: "POST",
-  });
-};
-
-export const unlikeActivity = async (activityId: string): Promise<void> => {
-  await apiRequest<unknown>(`/api/social/activities/${activityId}/like`, {
-    method: "DELETE",
-  });
 };

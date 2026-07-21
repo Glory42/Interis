@@ -1,20 +1,27 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import type { FeedFilter } from "@/features/feed/components/FeedActivityList";
 import {
   getFollowingFeed,
   getMyFeedSummary,
   getNetworkStats,
   getTrendingMovies,
-  likeActivity,
-  unlikeActivity,
+  type FeedMediaTypeFilter,
 } from "@/features/feed/api";
-import { patchFeedItems } from "@/features/feed/hooks/feed-cache.helper";
-import { restoreQueries } from "@/lib/query-optimistic";
 
 export const FEED_PAGE_SIZE = 15;
 
+const toMediaTypeFilter = (filter: FeedFilter): FeedMediaTypeFilter | undefined => {
+  if (filter === "cinema") return "movie";
+  if (filter === "serial") return "tv";
+  return undefined;
+};
+
 export const feedKeys = {
   all: ["feed"] as const,
-  following: ["feed", "following"] as const,
+  // Root prefix for invalidating/patching every filter variant at once
+  // (e.g. after liking a post, regardless of which tab is active).
+  followingRoot: ["feed", "following"] as const,
+  following: (filter: FeedFilter = "all") => ["feed", "following", filter] as const,
   trending: ["feed", "trending"] as const,
   meSummary: ["feed", "me-summary"] as const,
   networkStats: ["feed", "network-stats"] as const,
@@ -22,18 +29,18 @@ export const feedKeys = {
 
 // Shared between useFollowingFeed and the route loader's prefetch call so
 // both stay in sync on queryKey/queryFn/pagination behavior.
-export const followingFeedInfiniteQueryOptions = () => ({
-  queryKey: feedKeys.following,
+export const followingFeedInfiniteQueryOptions = (filter: FeedFilter = "all") => ({
+  queryKey: feedKeys.following(filter),
   queryFn: ({ signal, pageParam }: { signal: AbortSignal; pageParam: string | undefined }) =>
-    getFollowingFeed(FEED_PAGE_SIZE, pageParam, { signal }),
+    getFollowingFeed(FEED_PAGE_SIZE, pageParam, toMediaTypeFilter(filter), { signal }),
   initialPageParam: undefined as string | undefined,
   getNextPageParam: (lastPage: Awaited<ReturnType<typeof getFollowingFeed>>) =>
     lastPage.nextCursor ?? undefined,
 });
 
-export const useFollowingFeed = (enabled = true) =>
+export const useFollowingFeed = (filter: FeedFilter = "all", enabled = true) =>
   useInfiniteQuery({
-    ...followingFeedInfiniteQueryOptions(),
+    ...followingFeedInfiniteQueryOptions(filter),
     enabled,
   });
 
@@ -57,67 +64,3 @@ export const useNetworkStats = () =>
     queryFn: ({ signal }) => getNetworkStats({ signal }),
     staleTime: 300_000,
   });
-
-export const useLikeActivity = (activityId: string) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: () => likeActivity(activityId),
-    onMutate: async () => {
-      const previousQueries = patchFeedItems(
-        queryClient,
-        (item) => item.id === activityId,
-        (item) => ({
-          ...item,
-          engagement: {
-            ...item.engagement,
-            viewerHasLiked: true,
-            likeCount: item.engagement.viewerHasLiked
-              ? item.engagement.likeCount
-              : item.engagement.likeCount + 1,
-          },
-        }),
-      );
-
-      return { previousQueries };
-    },
-    onError: (_error, _variables, context) => {
-      restoreQueries(queryClient, context?.previousQueries ?? []);
-    },
-    onSettled: () => {
-      // Prefix-matches every limit variant of the following feed only -
-      // trending/meSummary/networkStats never contain like data.
-      void queryClient.invalidateQueries({ queryKey: feedKeys.following });
-    },
-  });
-};
-
-export const useUnlikeActivity = (activityId: string) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: () => unlikeActivity(activityId),
-    onMutate: async () => {
-      const previousQueries = patchFeedItems(
-        queryClient,
-        (item) => item.id === activityId,
-        (item) => ({
-          ...item,
-          engagement: {
-            ...item.engagement,
-            viewerHasLiked: false,
-            likeCount: item.engagement.viewerHasLiked
-              ? Math.max(item.engagement.likeCount - 1, 0)
-              : item.engagement.likeCount,
-          },
-        }),
-      );
-
-      return { previousQueries };
-    },
-    onError: (_error, _variables, context) => {
-      restoreQueries(queryClient, context?.previousQueries ?? []);
-    },
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: feedKeys.following });
-    },
-  });
-};

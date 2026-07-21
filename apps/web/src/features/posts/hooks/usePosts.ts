@@ -6,12 +6,15 @@ import { restoreQueries } from "@/lib/query-optimistic";
 import {
   addPostComment,
   createPost,
+  deletePostComment,
   getPostById,
   getPostComments,
   likePost,
   unlikePost,
   updatePost,
+  updatePostComment,
   type CreatePostInput,
+  type PostComment,
   type PostCommentInput,
   type PostDetail,
   type UpdatePostInput,
@@ -54,7 +57,7 @@ export const useCreatePost = () => {
   return useMutation({
     mutationFn: (payload: CreatePostInput) => createPost(payload),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: feedKeys.following });
+      await queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot });
     },
   });
 };
@@ -84,7 +87,7 @@ export const useUpdatePost = (postId: string) => {
       );
 
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: feedKeys.following }),
+        queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot }),
         queryClient.invalidateQueries({ queryKey: postKeys.detail(postId) }),
       ]);
     },
@@ -131,8 +134,51 @@ export const useAddPostComment = (postId: string) => {
     onSettled: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: postKeys.comments(postId) }),
-        queryClient.invalidateQueries({ queryKey: feedKeys.following }),
+        queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot }),
       ]);
+    },
+  });
+};
+
+export const useUpdatePostComment = (postId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: { commentId: string; content: string }) =>
+      updatePostComment(input.commentId, { content: input.content }),
+    onSuccess: (updatedComment) => {
+      queryClient.setQueryData<PostComment[]>(postKeys.comments(postId), (currentComments) =>
+        currentComments?.map((comment) =>
+          comment.id === updatedComment.id ? { ...comment, content: updatedComment.content } : comment,
+        ),
+      );
+    },
+  });
+};
+
+export const useDeletePostComment = (postId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (commentId: string) => deletePostComment(commentId),
+    onSuccess: async (_data, commentId) => {
+      queryClient.setQueryData<PostComment[]>(postKeys.comments(postId), (currentComments) =>
+        currentComments?.filter((comment) => comment.id !== commentId),
+      );
+
+      patchFeedItems(
+        queryClient,
+        (item) => matchesPost(item, postId),
+        (item) => ({
+          ...item,
+          engagement: {
+            ...item.engagement,
+            commentCount: Math.max(item.engagement.commentCount - 1, 0),
+          },
+        }),
+      );
+
+      await queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot });
     },
   });
 };
@@ -173,7 +219,7 @@ export const useLikePost = (postId: string) => {
     },
     onSettled: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: feedKeys.following }),
+        queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot }),
         queryClient.invalidateQueries({ queryKey: postKeys.detail(postId) }),
       ]);
     },
@@ -216,7 +262,7 @@ export const useUnlikePost = (postId: string) => {
     },
     onSettled: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: feedKeys.following }),
+        queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot }),
         queryClient.invalidateQueries({ queryKey: postKeys.detail(postId) }),
       ]);
     },

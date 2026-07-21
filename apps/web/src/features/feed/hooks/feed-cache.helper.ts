@@ -14,7 +14,7 @@ export const patchFeedItems = (
   matches: (item: FeedItem) => boolean,
   updater: (item: FeedItem) => FeedItem,
 ) => {
-  const queryKey = feedKeys.following;
+  const queryKey = feedKeys.followingRoot;
   const previousQueries = queryClient.getQueriesData<FeedInfiniteData>({
     queryKey,
     exact: false,

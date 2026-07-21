@@ -14,7 +14,6 @@ const reviewCommentSchema = z
     authorUsername: z.string(),
     authorDisplayUsername: z.string().nullable(),
     authorAvatarUrl: z.string().nullable(),
-    authorImage: z.string().nullable(),
   })
   .passthrough();
 
@@ -150,6 +149,29 @@ export const addReviewComment = async (
   );
 
   return reviewCommentSchema.parse(response);
+};
+
+export const updateReviewComment = async (
+  commentId: string,
+  input: AddReviewCommentInput,
+): Promise<ReviewComment> => {
+  const payload = addReviewCommentInputSchema.parse(input);
+
+  const response = await apiRequest<unknown, AddReviewCommentInput>(
+    `/api/reviews/comments/${encodeURIComponent(commentId)}`,
+    {
+      method: "PUT",
+      body: payload,
+    },
+  );
+
+  return reviewCommentSchema.parse(response);
+};
+
+export const deleteReviewComment = async (commentId: string): Promise<void> => {
+  await apiRequest<unknown>(`/api/reviews/comments/${encodeURIComponent(commentId)}`, {
+    method: "DELETE",
+  });
 };
 
 export const likeReview = async (reviewId: string) => {

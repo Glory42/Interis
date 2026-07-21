@@ -166,6 +166,29 @@ export const addPostComment = async (
   return postCommentSchema.parse(response);
 };
 
+export const updatePostComment = async (
+  commentId: string,
+  payload: PostCommentInput,
+): Promise<PostComment> => {
+  const normalizedPayload = postCommentInputSchema.parse(payload);
+
+  const response = await apiRequest<unknown, PostCommentInput>(
+    `/api/posts/comments/${encodeURIComponent(commentId)}`,
+    {
+      method: "PUT",
+      body: normalizedPayload,
+    },
+  );
+
+  return postCommentSchema.parse(response);
+};
+
+export const deletePostComment = async (commentId: string): Promise<void> => {
+  await apiRequest<unknown>(`/api/posts/comments/${encodeURIComponent(commentId)}`, {
+    method: "DELETE",
+  });
+};
+
 export const likePost = async (postId: string) => {
   const response = await apiRequest<unknown>(`${toPostBasePath(postId)}/like`, {
     method: "POST",

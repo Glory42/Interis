@@ -5,6 +5,7 @@ import { patchFeedItems } from "@/features/feed/hooks/feed-cache.helper";
 import { restoreQueries, type QuerySnapshot } from "@/lib/query-optimistic";
 import {
   addReviewComment,
+  deleteReviewComment,
   getProfileReviewDetail,
   getReviewComments,
   likeReview,
@@ -12,6 +13,7 @@ import {
   type ReviewDetail,
   type ReviewMediaType,
   updateReview,
+  updateReviewComment,
   unlikeReview,
 } from "@/features/reviews/api";
 
@@ -119,8 +121,62 @@ export const useAddReviewComment = (reviewId: string, mediaType: ReviewMediaType
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: reviewKeys.comments(mediaType, reviewId) }),
-        queryClient.invalidateQueries({ queryKey: feedKeys.following }),
+        queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot }),
       ]);
+    },
+  });
+};
+
+export const useUpdateReviewComment = (reviewId: string, mediaType: ReviewMediaType) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: { commentId: string; content: string }) =>
+      updateReviewComment(input.commentId, { content: input.content }),
+    onSuccess: (updatedComment) => {
+      queryClient.setQueryData<ReviewComment[]>(
+        reviewKeys.comments(mediaType, reviewId),
+        (currentComments) =>
+          currentComments?.map((comment) =>
+            comment.id === updatedComment.id ? updatedComment : comment,
+          ) ?? currentComments,
+      );
+    },
+  });
+};
+
+export const useDeleteReviewComment = (reviewId: string, mediaType: ReviewMediaType) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (commentId: string) => deleteReviewComment(commentId),
+    onSuccess: async (_data, commentId) => {
+      queryClient.setQueryData<ReviewComment[]>(
+        reviewKeys.comments(mediaType, reviewId),
+        (currentComments) => currentComments?.filter((comment) => comment.id !== commentId),
+      );
+
+      patchFeedItems(
+        queryClient,
+        (item) => matchesReview(item, reviewId),
+        (item) => ({
+          ...item,
+          engagement: {
+            ...item.engagement,
+            commentCount: Math.max(item.engagement.commentCount - 1, 0),
+          },
+        }),
+      );
+
+      patchReviewDetailQueries(queryClient, reviewId, (detail) => ({
+        ...detail,
+        engagement: {
+          ...detail.engagement,
+          commentCount: Math.max(detail.engagement.commentCount - 1, 0),
+        },
+      }));
+
+      await queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot });
     },
   });
 };
@@ -164,7 +220,7 @@ export const useLikeReview = (reviewId: string) => {
       restoreQueries(queryClient, context?.previousDetailQueries ?? []);
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: feedKeys.following });
+      await queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot });
     },
   });
 };
@@ -208,7 +264,7 @@ export const useUnlikeReview = (reviewId: string) => {
       restoreQueries(queryClient, context?.previousDetailQueries ?? []);
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: feedKeys.following });
+      await queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot });
     },
   });
 };
@@ -247,7 +303,7 @@ export const useUpdateReview = (reviewId: string) => {
         updatedAt: updatedReview.updatedAt,
       }));
 
-      await queryClient.invalidateQueries({ queryKey: feedKeys.following });
+      await queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot });
     },
   });
 };
