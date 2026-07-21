@@ -1,7 +1,12 @@
 import { useDeferredValue, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminConfirmDialog } from "@/features/admin/components/AdminConfirmDialog";
+import { AdminPanelHeader } from "@/features/admin/components/AdminPanelHeader";
+import { AdminPanelState } from "@/features/admin/components/AdminPanelState";
+import { AdminSearchInput } from "@/features/admin/components/AdminSearchInput";
 import type { AdminDiaryEntry } from "@/features/admin/content-api";
 import {
   useAdminDiaryEntries,
@@ -27,13 +32,17 @@ const DeleteDiaryEntryAction = ({ entry }: { entry: AdminDiaryEntry }) => {
 
   return (
     <>
-      <button
+      <Button
         type="button"
-        className="text-xs text-destructive/80 hover:text-destructive"
+        variant="ghost"
+        size="sm"
+        title="Delete"
+        aria-label="Delete"
+        className="h-7 w-7 p-0 text-destructive/80 hover:text-destructive"
         onClick={() => setIsOpen(true)}
       >
-        Delete
-      </button>
+        <Trash2 className="h-3.5 w-3.5" />
+      </Button>
       <AdminConfirmDialog
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
@@ -58,53 +67,56 @@ export const AdminDiaryPanel = () => {
 
   return (
     <div className="space-y-4">
-      <Input
-        value={usernameInput}
-        onChange={(event) => setUsernameInput(event.target.value)}
-        placeholder="Filter by username..."
-        className="max-w-sm"
+      <AdminPanelHeader
+        title="Diary"
+        description="Moderate logged watches across the archive."
+        action={
+          <AdminSearchInput
+            value={usernameInput}
+            onChange={(event) => setUsernameInput(event.target.value)}
+            placeholder="Filter by username..."
+          />
+        }
       />
 
-      {entriesQuery.isPending ? (
-        <div className="flex items-center justify-center py-10">
-          <Spinner />
-        </div>
-      ) : entriesQuery.isError ? (
-        <p className="text-sm text-muted-foreground">Could not load diary entries.</p>
-      ) : entriesQuery.data.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No diary entries found.</p>
-      ) : (
-        <div className="border border-border/60">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border/60 text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <th className="px-3 py-2">User</th>
-                <th className="px-3 py-2">Movie</th>
-                <th className="px-3 py-2">Watched</th>
-                <th className="px-3 py-2">Rating</th>
-                <th className="px-3 py-2">Logged</th>
-                <th className="px-3 py-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {entriesQuery.data.map((entry) => (
-                <tr key={entry.id} className="border-b border-border/40 last:border-0">
-                  <td className="px-3 py-2 text-foreground">@{entry.authorUsername}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{entry.movieTitle}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{entry.watchedDate}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{entry.rating ?? "—"}</td>
-                  <td className="px-3 py-2 text-muted-foreground">
-                    {formatRelativeTime(entry.createdAt.toISOString())}
-                  </td>
-                  <td className="px-3 py-2">
-                    <DeleteDiaryEntryAction entry={entry} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <AdminPanelState
+        query={entriesQuery}
+        emptyMessage="No diary entries found."
+        errorMessage="Could not load diary entries."
+      >
+        {(entries) => (
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow className="border-0 hover:bg-transparent">
+                  <TableHead>User</TableHead>
+                  <TableHead>Movie</TableHead>
+                  <TableHead>Watched</TableHead>
+                  <TableHead>Rating</TableHead>
+                  <TableHead>Logged</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {entries.map((entry) => (
+                  <TableRow key={entry.id}>
+                    <TableCell className="text-foreground">@{entry.authorUsername}</TableCell>
+                    <TableCell className="text-muted-foreground">{entry.movieTitle}</TableCell>
+                    <TableCell className="text-muted-foreground">{entry.watchedDate}</TableCell>
+                    <TableCell className="text-muted-foreground">{entry.rating ?? "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {formatRelativeTime(entry.createdAt.toISOString())}
+                    </TableCell>
+                    <TableCell>
+                      <DeleteDiaryEntryAction entry={entry} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        )}
+      </AdminPanelState>
     </div>
   );
 };

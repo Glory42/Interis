@@ -15,7 +15,7 @@ export const Route = createFileRoute("/admin/")({
 
 function AdminPage() {
   return (
-    <PageWrapper title="Admin" subtitle="Moderation reports and user directory">
+    <PageWrapper title="Admin" subtitle="Moderation, user directory, and content oversight">
       <AdminDashboardPage />
     </PageWrapper>
   );

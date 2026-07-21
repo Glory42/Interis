@@ -1,8 +1,13 @@
 import { useDeferredValue, useState } from "react";
+import { Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminConfirmDialog } from "@/features/admin/components/AdminConfirmDialog";
+import { AdminPanelHeader } from "@/features/admin/components/AdminPanelHeader";
+import { AdminPanelState } from "@/features/admin/components/AdminPanelState";
+import { AdminSearchInput } from "@/features/admin/components/AdminSearchInput";
 import type { AdminList } from "@/features/admin/community-api";
 import { useAdminLists, useDeleteAdminList } from "@/features/admin/hooks/useAdminCommunity";
 import { isApiError } from "@/lib/api-client";
@@ -25,13 +30,17 @@ const DeleteListAction = ({ list }: { list: AdminList }) => {
 
   return (
     <>
-      <button
+      <Button
         type="button"
-        className="text-xs text-destructive/80 hover:text-destructive"
+        variant="ghost"
+        size="sm"
+        title="Delete"
+        aria-label="Delete"
+        className="h-7 w-7 p-0 text-destructive/80 hover:text-destructive"
         onClick={() => setIsOpen(true)}
       >
-        Delete
-      </button>
+        <Trash2 className="h-3.5 w-3.5" />
+      </Button>
       <AdminConfirmDialog
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
@@ -54,55 +63,54 @@ export const AdminListsPanel = () => {
 
   return (
     <div className="space-y-4">
-      <Input
-        value={usernameInput}
-        onChange={(event) => setUsernameInput(event.target.value)}
-        placeholder="Filter by username..."
-        className="max-w-sm"
+      <AdminPanelHeader
+        title="Lists"
+        description="Moderate user-created lists."
+        action={
+          <AdminSearchInput
+            value={usernameInput}
+            onChange={(event) => setUsernameInput(event.target.value)}
+            placeholder="Filter by username..."
+          />
+        }
       />
 
-      {listsQuery.isPending ? (
-        <div className="flex items-center justify-center py-10">
-          <Spinner />
-        </div>
-      ) : listsQuery.isError ? (
-        <p className="text-sm text-muted-foreground">Could not load lists.</p>
-      ) : listsQuery.data.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No lists found.</p>
-      ) : (
-        <div className="border border-border/60">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border/60 text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <th className="px-3 py-2">Title</th>
-                <th className="px-3 py-2">User</th>
-                <th className="px-3 py-2">Items</th>
-                <th className="px-3 py-2">Visibility</th>
-                <th className="px-3 py-2">Created</th>
-                <th className="px-3 py-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {listsQuery.data.map((list) => (
-                <tr key={list.id} className="border-b border-border/40 last:border-0">
-                  <td className="px-3 py-2 text-foreground">{list.title}</td>
-                  <td className="px-3 py-2 text-muted-foreground">@{list.authorUsername}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{list.itemCount}</td>
-                  <td className="px-3 py-2">
-                    <Badge variant="muted">{list.isPublic ? "Public" : "Private"}</Badge>
-                  </td>
-                  <td className="px-3 py-2 text-muted-foreground">
-                    {formatRelativeTime(list.createdAt.toISOString())}
-                  </td>
-                  <td className="px-3 py-2">
-                    <DeleteListAction list={list} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <AdminPanelState query={listsQuery} emptyMessage="No lists found." errorMessage="Could not load lists.">
+        {(lists) => (
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow className="border-0 hover:bg-transparent">
+                  <TableHead>Title</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Items</TableHead>
+                  <TableHead>Visibility</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {lists.map((list) => (
+                  <TableRow key={list.id}>
+                    <TableCell className="text-foreground">{list.title}</TableCell>
+                    <TableCell className="text-muted-foreground">@{list.authorUsername}</TableCell>
+                    <TableCell className="text-muted-foreground">{list.itemCount}</TableCell>
+                    <TableCell>
+                      <Badge variant="muted">{list.isPublic ? "Public" : "Private"}</Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {formatRelativeTime(list.createdAt.toISOString())}
+                    </TableCell>
+                    <TableCell>
+                      <DeleteListAction list={list} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        )}
+      </AdminPanelState>
     </div>
   );
 };

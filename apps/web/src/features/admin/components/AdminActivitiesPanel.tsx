@@ -1,8 +1,13 @@
 import { useDeferredValue, useState } from "react";
+import { Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminConfirmDialog } from "@/features/admin/components/AdminConfirmDialog";
+import { AdminPanelHeader } from "@/features/admin/components/AdminPanelHeader";
+import { AdminPanelState } from "@/features/admin/components/AdminPanelState";
+import { AdminSearchInput } from "@/features/admin/components/AdminSearchInput";
 import type { AdminActivity, ActivityType } from "@/features/admin/community-api";
 import {
   useAdminActivities,
@@ -40,13 +45,17 @@ const DeleteActivityAction = ({ activity }: { activity: AdminActivity }) => {
 
   return (
     <>
-      <button
+      <Button
         type="button"
-        className="text-xs text-destructive/80 hover:text-destructive"
+        variant="ghost"
+        size="sm"
+        title="Delete"
+        aria-label="Delete"
+        className="h-7 w-7 p-0 text-destructive/80 hover:text-destructive"
         onClick={() => setIsOpen(true)}
       >
-        Delete
-      </button>
+        <Trash2 className="h-3.5 w-3.5" />
+      </Button>
       <AdminConfirmDialog
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
@@ -73,65 +82,69 @@ export const AdminActivitiesPanel = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Input
-          value={usernameInput}
-          onChange={(event) => setUsernameInput(event.target.value)}
-          placeholder="Filter by username..."
-          className="max-w-sm"
-        />
-        <select
-          value={type}
-          onChange={(event) => setType(event.target.value as ActivityType | "")}
-          className="h-9 border border-border bg-background/30 px-2 text-sm text-foreground outline-none focus:border-primary"
-        >
-          <option value="">All types</option>
-          {ACTIVITY_TYPES.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {activitiesQuery.isPending ? (
-        <div className="flex items-center justify-center py-10">
-          <Spinner />
-        </div>
-      ) : activitiesQuery.isError ? (
-        <p className="text-sm text-muted-foreground">Could not load activities.</p>
-      ) : activitiesQuery.data.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No activities found.</p>
-      ) : (
-        <div className="border border-border/60">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border/60 text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <th className="px-3 py-2">User</th>
-                <th className="px-3 py-2">Type</th>
-                <th className="px-3 py-2">When</th>
-                <th className="px-3 py-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {activitiesQuery.data.map((activity) => (
-                <tr key={activity.id} className="border-b border-border/40 last:border-0">
-                  <td className="px-3 py-2 text-foreground">@{activity.authorUsername}</td>
-                  <td className="px-3 py-2">
-                    <Badge variant="muted">{activity.type}</Badge>
-                  </td>
-                  <td className="px-3 py-2 text-muted-foreground">
-                    {formatRelativeTime(activity.createdAt.toISOString())}
-                  </td>
-                  <td className="px-3 py-2">
-                    <DeleteActivityAction activity={activity} />
-                  </td>
-                </tr>
+      <AdminPanelHeader
+        title="Activities"
+        description="Moderate rows in the social activity feed."
+        action={
+          <div className="flex items-center gap-2">
+            <AdminSearchInput
+              wrapperClassName="max-w-[11rem]"
+              value={usernameInput}
+              onChange={(event) => setUsernameInput(event.target.value)}
+              placeholder="Filter by username..."
+            />
+            <select
+              value={type}
+              onChange={(event) => setType(event.target.value as ActivityType | "")}
+              className="h-9 border border-border bg-input px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+            >
+              <option value="">All types</option>
+              {ACTIVITY_TYPES.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
               ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+            </select>
+          </div>
+        }
+      />
+
+      <AdminPanelState
+        query={activitiesQuery}
+        emptyMessage="No activities found."
+        errorMessage="Could not load activities."
+      >
+        {(activities) => (
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow className="border-0 hover:bg-transparent">
+                  <TableHead>User</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>When</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activities.map((activity) => (
+                  <TableRow key={activity.id}>
+                    <TableCell className="text-foreground">@{activity.authorUsername}</TableCell>
+                    <TableCell>
+                      <Badge variant="muted">{activity.type}</Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {formatRelativeTime(activity.createdAt.toISOString())}
+                    </TableCell>
+                    <TableCell>
+                      <DeleteActivityAction activity={activity} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        )}
+      </AdminPanelState>
     </div>
   );
 };

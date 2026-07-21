@@ -1,6 +1,9 @@
 import { useDeferredValue, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { Card } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AdminPanelHeader } from "@/features/admin/components/AdminPanelHeader";
+import { AdminPanelState } from "@/features/admin/components/AdminPanelState";
+import { AdminSearchInput } from "@/features/admin/components/AdminSearchInput";
 import {
   DeleteMovieAction,
   EditMovieAction,
@@ -15,53 +18,56 @@ export const AdminMoviesPanel = () => {
 
   return (
     <div className="space-y-4">
-      <Input
-        value={queryInput}
-        onChange={(event) => setQueryInput(event.target.value)}
-        placeholder="Search by title..."
-        className="max-w-sm"
+      <AdminPanelHeader
+        title="Movies"
+        description="Manage locally cached movie records."
+        action={
+          <AdminSearchInput
+            value={queryInput}
+            onChange={(event) => setQueryInput(event.target.value)}
+            placeholder="Search by title..."
+          />
+        }
       />
 
-      {moviesQuery.isPending ? (
-        <div className="flex items-center justify-center py-10">
-          <Spinner />
-        </div>
-      ) : moviesQuery.isError ? (
-        <p className="text-sm text-muted-foreground">Could not load movies.</p>
-      ) : moviesQuery.data.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No cached movies found.</p>
-      ) : (
-        <div className="border border-border/60">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border/60 text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <th className="px-3 py-2">Title</th>
-                <th className="px-3 py-2">Year</th>
-                <th className="px-3 py-2">Director</th>
-                <th className="px-3 py-2">TMDB ID</th>
-                <th className="px-3 py-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {moviesQuery.data.map((movie) => (
-                <tr key={movie.id} className="border-b border-border/40 last:border-0">
-                  <td className="px-3 py-2 text-foreground">{movie.title}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{movie.releaseYear ?? "—"}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{movie.director ?? "—"}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{movie.tmdbId}</td>
-                  <td className="px-3 py-2">
-                    <div className="flex items-center gap-3">
-                      <EditMovieAction movie={movie} />
-                      <RefreshMovieAction movie={movie} />
-                      <DeleteMovieAction movie={movie} />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <AdminPanelState
+        query={moviesQuery}
+        emptyMessage="No cached movies found."
+        errorMessage="Could not load movies."
+      >
+        {(movies) => (
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow className="border-0 hover:bg-transparent">
+                  <TableHead>Title</TableHead>
+                  <TableHead>Year</TableHead>
+                  <TableHead>Director</TableHead>
+                  <TableHead>TMDB ID</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {movies.map((movie) => (
+                  <TableRow key={movie.id}>
+                    <TableCell className="text-foreground">{movie.title}</TableCell>
+                    <TableCell className="text-muted-foreground">{movie.releaseYear ?? "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">{movie.director ?? "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">{movie.tmdbId}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <EditMovieAction movie={movie} />
+                        <RefreshMovieAction movie={movie} />
+                        <DeleteMovieAction movie={movie} />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        )}
+      </AdminPanelState>
     </div>
   );
 };

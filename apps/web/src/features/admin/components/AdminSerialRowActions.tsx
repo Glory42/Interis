@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Pencil, RefreshCw, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { AdminConfirmDialog } from "@/features/admin/components/AdminConfirmDialog";
@@ -37,13 +39,17 @@ export const EditSerialAction = ({ serial }: { serial: AdminSerial }) => {
 
   return (
     <>
-      <button
+      <Button
         type="button"
-        className="text-xs text-muted-foreground hover:text-primary"
+        variant="ghost"
+        size="sm"
+        title="Edit"
+        aria-label="Edit"
+        className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
         onClick={() => setIsOpen(true)}
       >
-        Edit
-      </button>
+        <Pencil className="h-3.5 w-3.5" />
+      </Button>
       <AdminConfirmDialog
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
@@ -96,13 +102,17 @@ export const RefreshSerialAction = ({ serial }: { serial: AdminSerial }) => {
 
   return (
     <>
-      <button
+      <Button
         type="button"
-        className="text-xs text-muted-foreground hover:text-primary"
+        variant="ghost"
+        size="sm"
+        title="Refresh from TMDB"
+        aria-label="Refresh from TMDB"
+        className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
         onClick={() => setIsOpen(true)}
       >
-        Refresh
-      </button>
+        <RefreshCw className="h-3.5 w-3.5" />
+      </Button>
       <AdminConfirmDialog
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
@@ -136,16 +146,20 @@ export const DeleteSerialAction = ({ serial }: { serial: AdminSerial }) => {
 
   return (
     <>
-      <button
+      <Button
         type="button"
-        className="text-xs text-destructive/80 hover:text-destructive"
+        variant="ghost"
+        size="sm"
+        title="Delete"
+        aria-label="Delete"
+        className="h-7 w-7 p-0 text-destructive/80 hover:text-destructive"
         onClick={() => {
           setIsOpen(true);
           setConfirmText("");
         }}
       >
-        Delete
-      </button>
+        <Trash2 className="h-3.5 w-3.5" />
+      </Button>
       <AdminConfirmDialog
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}

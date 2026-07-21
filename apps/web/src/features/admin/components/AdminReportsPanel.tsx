@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Spinner } from "@/components/ui/spinner";
 import { AdminConfirmDialog } from "@/features/admin/components/AdminConfirmDialog";
+import { AdminPanelHeader } from "@/features/admin/components/AdminPanelHeader";
+import { AdminPanelState } from "@/features/admin/components/AdminPanelState";
 import type { ReportItem, ReportStatus } from "@/features/admin/api";
 import {
   useAdminReports,
@@ -11,6 +12,7 @@ import {
   useRemoveReportedContent,
   useResolveReport,
 } from "@/features/admin/hooks/useAdmin";
+import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/time";
 
 const STATUS_TABS: { value: ReportStatus; label: string }[] = [
@@ -106,39 +108,42 @@ export const AdminReportsPanel = () => {
 
   return (
     <div className="space-y-4">
+      <AdminPanelHeader
+        title="Reports"
+        description="Review user-submitted reports and act on the reported content."
+      />
+
       <div className="flex items-center gap-2">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.value}
             type="button"
             onClick={() => setStatus(tab.value)}
-            className={
-              "border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors " +
-              (status === tab.value
+            className={cn(
+              "border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors",
+              status === tab.value
                 ? "border-primary/45 bg-primary/10 text-primary"
-                : "border-border/70 text-muted-foreground hover:text-foreground")
-            }
+                : "border-border/70 text-muted-foreground hover:text-foreground",
+            )}
           >
             {tab.label}
           </button>
         ))}
       </div>
 
-      {reportsQuery.isPending ? (
-        <div className="flex items-center justify-center py-10">
-          <Spinner />
-        </div>
-      ) : reportsQuery.isError ? (
-        <p className="text-sm text-muted-foreground">Could not load reports.</p>
-      ) : reportsQuery.data.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No {status} reports.</p>
-      ) : (
-        <div className="space-y-3">
-          {reportsQuery.data.map((report) => (
-            <ReportRow key={report.id} report={report} />
-          ))}
-        </div>
-      )}
+      <AdminPanelState
+        query={reportsQuery}
+        emptyMessage={`No ${status} reports.`}
+        errorMessage="Could not load reports."
+      >
+        {(reports) => (
+          <div className="space-y-3">
+            {reports.map((report) => (
+              <ReportRow key={report.id} report={report} />
+            ))}
+          </div>
+        )}
+      </AdminPanelState>
     </div>
   );
 };

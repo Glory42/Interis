@@ -1,8 +1,12 @@
 import { useDeferredValue, useState } from "react";
+import { Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { AdminConfirmDialog } from "@/features/admin/components/AdminConfirmDialog";
+import { AdminPanelHeader } from "@/features/admin/components/AdminPanelHeader";
+import { AdminPanelState } from "@/features/admin/components/AdminPanelState";
+import { AdminSearchInput } from "@/features/admin/components/AdminSearchInput";
 import type { AdminPost } from "@/features/admin/content-api";
 import { useAdminPosts, useDeleteAdminPost } from "@/features/admin/hooks/useAdminContent";
 import { isApiError } from "@/lib/api-client";
@@ -25,13 +29,17 @@ const DeletePostAction = ({ post }: { post: AdminPost }) => {
 
   return (
     <>
-      <button
+      <Button
         type="button"
-        className="text-xs text-destructive/80 hover:text-destructive"
+        variant="ghost"
+        size="sm"
+        title="Delete"
+        aria-label="Delete"
+        className="h-7 w-7 p-0 text-destructive/80 hover:text-destructive"
         onClick={() => setIsOpen(true)}
       >
-        Delete
-      </button>
+        <Trash2 className="h-3.5 w-3.5" />
+      </Button>
       <AdminConfirmDialog
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
@@ -56,44 +64,45 @@ export const AdminPostsPanel = () => {
 
   return (
     <div className="space-y-4">
-      <Input
-        value={usernameInput}
-        onChange={(event) => setUsernameInput(event.target.value)}
-        placeholder="Filter by username..."
-        className="max-w-sm"
+      <AdminPanelHeader
+        title="Posts"
+        description="Moderate free-form community posts."
+        action={
+          <AdminSearchInput
+            value={usernameInput}
+            onChange={(event) => setUsernameInput(event.target.value)}
+            placeholder="Filter by username..."
+          />
+        }
       />
 
-      {postsQuery.isPending ? (
-        <div className="flex items-center justify-center py-10">
-          <Spinner />
-        </div>
-      ) : postsQuery.isError ? (
-        <p className="text-sm text-muted-foreground">Could not load posts.</p>
-      ) : postsQuery.data.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No posts found.</p>
-      ) : (
-        <div className="space-y-3">
-          {postsQuery.data.map((post) => (
-            <div key={post.id} className="border border-border/60 p-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-foreground">@{post.authorUsername}</span>
-                  {post.mediaType ? <Badge variant="muted">{post.mediaType}</Badge> : null}
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-muted-foreground">
-                    {formatRelativeTime(post.createdAt.toISOString())}
-                  </span>
-                  <DeletePostAction post={post} />
-                </div>
-              </div>
-              <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-foreground/90">
-                {post.content}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
+      <AdminPanelState query={postsQuery} emptyMessage="No posts found." errorMessage="Could not load posts.">
+        {(posts) => (
+          <div className="space-y-3">
+            {posts.map((post) => (
+              <Card key={post.id}>
+                <CardContent className="space-y-2 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-foreground">@{post.authorUsername}</span>
+                      {post.mediaType ? <Badge variant="muted">{post.mediaType}</Badge> : null}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        {formatRelativeTime(post.createdAt.toISOString())}
+                      </span>
+                      <DeletePostAction post={post} />
+                    </div>
+                  </div>
+                  <p className="line-clamp-3 whitespace-pre-wrap text-sm text-foreground/90">
+                    {post.content}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </AdminPanelState>
     </div>
   );
 };

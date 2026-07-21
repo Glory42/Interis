@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Ban, CheckCircle2, KeyRound, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AdminConfirmDialog } from "@/features/admin/components/AdminConfirmDialog";
 import type { AdminUser } from "@/features/admin/api";
@@ -31,16 +33,20 @@ export const ResetPasswordAction = ({ username }: { username: string }) => {
 
   return (
     <>
-      <button
+      <Button
         type="button"
-        className="text-xs text-muted-foreground hover:text-primary"
+        variant="ghost"
+        size="sm"
+        title="Reset password"
+        aria-label="Reset password"
+        className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
         onClick={() => {
           setIsOpen(true);
           setError(null);
         }}
       >
-        Reset password
-      </button>
+        <KeyRound className="h-3.5 w-3.5" />
+      </Button>
       <AdminConfirmDialog
         isOpen={isOpen}
         onClose={() => {
@@ -90,16 +96,24 @@ export const RoleAction = ({ user }: { user: AdminUser }) => {
 
   return (
     <>
-      <button
+      <Button
         type="button"
-        className="text-xs text-muted-foreground hover:text-primary"
+        variant="ghost"
+        size="sm"
+        title={user.isAdmin ? "Demote" : "Promote"}
+        aria-label={user.isAdmin ? "Demote" : "Promote"}
+        className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
         onClick={() => {
           setIsOpen(true);
           setError(null);
         }}
       >
-        {user.isAdmin ? "Demote" : "Promote"}
-      </button>
+        {user.isAdmin ? (
+          <ShieldOff className="h-3.5 w-3.5" />
+        ) : (
+          <ShieldCheck className="h-3.5 w-3.5" />
+        )}
+      </Button>
       <AdminConfirmDialog
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
@@ -139,16 +153,20 @@ export const SuspendAction = ({ user }: { user: AdminUser }) => {
 
     return (
       <>
-        <button
+        <Button
           type="button"
-          className="text-xs text-muted-foreground hover:text-primary"
+          variant="ghost"
+          size="sm"
+          title="Unsuspend"
+          aria-label="Unsuspend"
+          className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
           onClick={() => {
             setIsOpen(true);
             setError(null);
           }}
         >
-          Unsuspend
-        </button>
+          <CheckCircle2 className="h-3.5 w-3.5" />
+        </Button>
         <AdminConfirmDialog
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
@@ -176,16 +194,20 @@ export const SuspendAction = ({ user }: { user: AdminUser }) => {
 
   return (
     <>
-      <button
+      <Button
         type="button"
-        className="text-xs text-muted-foreground hover:text-destructive"
+        variant="ghost"
+        size="sm"
+        title="Suspend"
+        aria-label="Suspend"
+        className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
         onClick={() => {
           setIsOpen(true);
           setError(null);
         }}
       >
-        Suspend
-      </button>
+        <Ban className="h-3.5 w-3.5" />
+      </Button>
       <AdminConfirmDialog
         isOpen={isOpen}
         onClose={() => {
@@ -233,16 +255,20 @@ export const DeleteUserAction = ({ username }: { username: string }) => {
 
   return (
     <>
-      <button
+      <Button
         type="button"
-        className="text-xs text-destructive/80 hover:text-destructive"
+        variant="ghost"
+        size="sm"
+        title="Delete"
+        aria-label="Delete"
+        className="h-7 w-7 p-0 text-destructive/80 hover:text-destructive"
         onClick={() => {
           setIsOpen(true);
           setError(null);
         }}
       >
-        Delete
-      </button>
+        <Trash2 className="h-3.5 w-3.5" />
+      </Button>
       <AdminConfirmDialog
         isOpen={isOpen}
         onClose={() => {

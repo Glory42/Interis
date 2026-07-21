@@ -1,48 +1,37 @@
-import { useState } from "react";
-import { AdminCommunityPanel } from "@/features/admin/components/AdminCommunityPanel";
-import { AdminContentPanel } from "@/features/admin/components/AdminContentPanel";
-import { AdminMediaPanel } from "@/features/admin/components/AdminMediaPanel";
+import { useState, type ComponentType } from "react";
+import { AdminActivitiesPanel } from "@/features/admin/components/AdminActivitiesPanel";
+import { AdminDiaryPanel } from "@/features/admin/components/AdminDiaryPanel";
+import { AdminListsPanel } from "@/features/admin/components/AdminListsPanel";
+import { AdminMoviesPanel } from "@/features/admin/components/AdminMoviesPanel";
+import { AdminPostsPanel } from "@/features/admin/components/AdminPostsPanel";
 import { AdminReportsPanel } from "@/features/admin/components/AdminReportsPanel";
+import { AdminReviewsPanel } from "@/features/admin/components/AdminReviewsPanel";
+import { AdminSerialsPanel } from "@/features/admin/components/AdminSerialsPanel";
+import { AdminSidebarNav, type AdminSection } from "@/features/admin/components/AdminSidebarNav";
 import { AdminUsersPanel } from "@/features/admin/components/AdminUsersPanel";
 
-const TABS = [
-  { value: "reports", label: "Reports" },
-  { value: "users", label: "Users" },
-  { value: "content", label: "Content" },
-  { value: "media", label: "Media" },
-  { value: "community", label: "Community" },
-] as const;
-
-type AdminTab = (typeof TABS)[number]["value"];
+const SECTION_PANELS: Record<AdminSection, ComponentType> = {
+  reports: AdminReportsPanel,
+  users: AdminUsersPanel,
+  reviews: AdminReviewsPanel,
+  diary: AdminDiaryPanel,
+  posts: AdminPostsPanel,
+  movies: AdminMoviesPanel,
+  serials: AdminSerialsPanel,
+  lists: AdminListsPanel,
+  activities: AdminActivitiesPanel,
+};
 
 export const AdminDashboardPage = () => {
-  const [tab, setTab] = useState<AdminTab>("reports");
+  const [section, setSection] = useState<AdminSection>("reports");
+  const ActivePanel = SECTION_PANELS[section];
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center gap-2 border-b border-border/60 pb-3">
-        {TABS.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => setTab(option.value)}
-            className={
-              "border px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors " +
-              (tab === option.value
-                ? "border-primary/45 bg-primary/10 text-primary"
-                : "border-border/70 text-muted-foreground hover:text-foreground")
-            }
-          >
-            {option.label}
-          </button>
-        ))}
+    <div className="flex flex-col gap-6 md:flex-row md:items-start">
+      <AdminSidebarNav active={section} onChange={setSection} />
+      <div className="min-w-0 flex-1 overflow-y-auto max-h-[calc(100vh-11rem)]">
+        <ActivePanel />
       </div>
-
-      {tab === "reports" ? <AdminReportsPanel /> : null}
-      {tab === "users" ? <AdminUsersPanel /> : null}
-      {tab === "content" ? <AdminContentPanel /> : null}
-      {tab === "media" ? <AdminMediaPanel /> : null}
-      {tab === "community" ? <AdminCommunityPanel /> : null}
     </div>
   );
 };
