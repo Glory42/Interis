@@ -1,45 +1,41 @@
 import { Award, CalendarDays, Funnel, Globe2 } from "lucide-react";
 import type { FocusEventHandler, RefObject } from "react";
-import type {
-  SerialArchivePeriod,
-  SerialArchiveResponse,
-  SerialArchiveSort,
-} from "@/features/serials/api";
-import { ArchiveMenuRadioOption } from "@/features/serials/components/serial-archive/ArchiveMenuRadioOption";
-import { ArchiveMenuTrigger } from "@/features/serials/components/serial-archive/ArchiveMenuTrigger";
-import {
-  languageOptions,
-  periodOptions,
-  SERIAL_MODULE_STYLES,
-  sortOptions,
-} from "@/features/serials/components/serial-archive/constants";
-import type {
-  OpenMenu,
-} from "@/features/serials/components/serial-archive/types";
+import { ArchiveMenuRadioOption } from "@/features/media-archive/components/ArchiveMenuRadioOption";
+import { ArchiveMenuTrigger } from "@/features/media-archive/components/ArchiveMenuTrigger";
+import type { ArchiveCardModuleStyles, ArchiveMenuKey } from "@/features/media-archive/types";
 
-type SerialArchiveControlsProps = {
+type ArchiveFilterOption<TValue extends string> = {
+  value: TValue;
+  label: string;
+};
+
+type ArchiveFilterControlsProps<TSort extends string, TPeriod extends string> = {
   controlsRef: RefObject<HTMLDivElement | null>;
-  openMenu: OpenMenu;
+  openMenu: ArchiveMenuKey | null;
   onBlurCapture: FocusEventHandler<HTMLDivElement>;
-  onToggleMenu: (menu: Exclude<OpenMenu, null>) => void;
+  onToggleMenu: (menu: ArchiveMenuKey) => void;
   onCloseMenu: () => void;
   selectedGenre: string;
   selectedLanguage: string;
-  selectedSort: SerialArchiveSort;
-  selectedPeriod: SerialArchivePeriod;
+  selectedSort: TSort;
+  selectedPeriod: TPeriod;
   selectedSortLabel: string;
   selectedLanguageLabel: string;
   selectedPeriodLabel: string;
   isPeriodDisabled: boolean;
-  availableGenres?: SerialArchiveResponse["availableGenres"];
   archiveCountLabel: string;
+  availableGenres?: ReadonlyArray<{ name: string; count?: number | null }>;
+  sortOptions: ReadonlyArray<ArchiveFilterOption<TSort>>;
+  periodOptions: ReadonlyArray<ArchiveFilterOption<TPeriod>>;
+  languageOptions: ReadonlyArray<ArchiveFilterOption<string>>;
   onSelectGenre: (genre: string) => void;
-  onSelectSort: (sort: SerialArchiveSort) => void;
+  onSelectSort: (sort: TSort) => void;
   onSelectLanguage: (language: string) => void;
-  onSelectPeriod: (period: SerialArchivePeriod) => void;
+  onSelectPeriod: (period: TPeriod) => void;
+  moduleStyles: ArchiveCardModuleStyles;
 };
 
-export const SerialArchiveControls = ({
+export const ArchiveFilterControls = <TSort extends string, TPeriod extends string>({
   controlsRef,
   openMenu,
   onBlurCapture,
@@ -53,24 +49,28 @@ export const SerialArchiveControls = ({
   selectedLanguageLabel,
   selectedPeriodLabel,
   isPeriodDisabled,
-  availableGenres,
   archiveCountLabel,
+  availableGenres,
+  sortOptions,
+  periodOptions,
+  languageOptions,
   onSelectGenre,
   onSelectSort,
   onSelectLanguage,
   onSelectPeriod,
-}: SerialArchiveControlsProps) => {
+  moduleStyles,
+}: ArchiveFilterControlsProps<TSort, TPeriod>) => {
   return (
     <div
       ref={controlsRef}
       onBlurCapture={onBlurCapture}
       className="mb-8 border-b pb-4"
-      style={{ borderColor: SERIAL_MODULE_STYLES.border }}
+      style={{ borderColor: moduleStyles.border }}
     >
       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         <span
           className="font-mono text-[10px] uppercase tracking-[0.22em]"
-          style={{ color: SERIAL_MODULE_STYLES.faint }}
+          style={{ color: moduleStyles.faint }}
         >
           Filter:
         </span>
@@ -82,6 +82,7 @@ export const SerialArchiveControls = ({
           icon={<Funnel className="h-3 w-3" />}
           label={selectedGenre === "all" ? "All Genres" : selectedGenre}
           menuClassName="min-w-42.5"
+          moduleStyles={moduleStyles}
         >
           <div className="max-h-36 overflow-y-auto sm:max-h-48">
             <ArchiveMenuRadioOption
@@ -90,18 +91,20 @@ export const SerialArchiveControls = ({
                 onSelectGenre("all");
                 onCloseMenu();
               }}
+              moduleStyles={moduleStyles}
             >
               All Genres
             </ArchiveMenuRadioOption>
 
             {(availableGenres ?? []).map((genre) => (
               <ArchiveMenuRadioOption
-                key={`serial-genre-option-${genre.name}`}
+                key={`genre-option-${genre.name}`}
                 isSelected={selectedGenre === genre.name}
                 onSelect={() => {
                   onSelectGenre(genre.name);
                   onCloseMenu();
                 }}
+                moduleStyles={moduleStyles}
               >
                 {typeof genre.count === "number"
                   ? `${genre.name} (${genre.count})`
@@ -118,15 +121,17 @@ export const SerialArchiveControls = ({
           icon={<Award className="h-3 w-3" />}
           label={`Sort: ${selectedSortLabel}`}
           menuClassName="min-w-45"
+          moduleStyles={moduleStyles}
         >
           {sortOptions.map((option) => (
             <ArchiveMenuRadioOption
-              key={`serial-sort-option-${option.value}`}
+              key={`sort-option-${option.value}`}
               isSelected={selectedSort === option.value}
               onSelect={() => {
                 onSelectSort(option.value);
                 onCloseMenu();
               }}
+              moduleStyles={moduleStyles}
             >
               {option.label}
             </ArchiveMenuRadioOption>
@@ -140,16 +145,18 @@ export const SerialArchiveControls = ({
           icon={<Globe2 className="h-3 w-3" />}
           label={`Language: ${selectedLanguageLabel}`}
           menuClassName="min-w-45"
+          moduleStyles={moduleStyles}
         >
           <div className="max-h-36 overflow-y-auto sm:max-h-48">
             {languageOptions.map((option) => (
               <ArchiveMenuRadioOption
-                key={`serial-language-option-${option.value}`}
+                key={`language-option-${option.value}`}
                 isSelected={selectedLanguage === option.value}
                 onSelect={() => {
                   onSelectLanguage(option.value);
                   onCloseMenu();
                 }}
+                moduleStyles={moduleStyles}
               >
                 {option.label}
               </ArchiveMenuRadioOption>
@@ -165,15 +172,17 @@ export const SerialArchiveControls = ({
           icon={<CalendarDays className="h-3 w-3" />}
           label={`Time: ${selectedPeriodLabel}`}
           menuClassName="min-w-40"
+          moduleStyles={moduleStyles}
         >
           {periodOptions.map((option) => (
             <ArchiveMenuRadioOption
-              key={`serial-period-option-${option.value}`}
+              key={`period-option-${option.value}`}
               isSelected={selectedPeriod === option.value}
               onSelect={() => {
                 onSelectPeriod(option.value);
                 onCloseMenu();
               }}
+              moduleStyles={moduleStyles}
             >
               {option.label}
             </ArchiveMenuRadioOption>
@@ -183,7 +192,7 @@ export const SerialArchiveControls = ({
         {isPeriodDisabled ? (
           <p
             className="font-mono text-[9px] uppercase tracking-[0.12em]"
-            style={{ color: SERIAL_MODULE_STYLES.faint }}
+            style={{ color: moduleStyles.faint }}
           >
             Weekly trending mode
           </p>
@@ -191,11 +200,10 @@ export const SerialArchiveControls = ({
 
         <p
           className="ml-auto shrink-0 font-mono text-[10px]"
-          style={{ color: SERIAL_MODULE_STYLES.faint }}
+          style={{ color: moduleStyles.faint }}
         >
           {archiveCountLabel}
         </p>
-
       </div>
     </div>
   );

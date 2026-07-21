@@ -1,7 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArchiveMovieCard } from "@/features/films/components/cinema-archive/ArchiveMovieCard";
-import { ArchiveSkeletonGrid } from "@/features/films/components/cinema-archive/ArchiveSkeletonGrid";
-import { ArchiveSortControls } from "@/features/films/components/cinema-archive/ArchiveSortControls";
 import {
   ARCHIVE_PAGE_SIZE,
   CINEMA_MODULE_STYLES,
@@ -9,10 +6,20 @@ import {
   periodOptions,
   sortOptions,
 } from "@/features/films/components/cinema-archive/constants";
-import type { ArchiveRatingSource, OpenMenu } from "@/features/films/components/cinema-archive/types";
-import { formatArchiveCount } from "@/features/films/components/cinema-archive/utils";
+import { getPosterUrl } from "@/features/films/components/utils";
+import {
+  getMovieStateLabel,
+  getRating,
+  getReleaseYearLabel,
+  formatArchiveCount,
+} from "@/features/films/components/cinema-archive/utils";
+import type { ArchiveRatingSource } from "@/features/films/components/cinema-archive/types";
 import type { MovieArchivePeriod, MovieArchiveSort } from "@/features/films/api";
 import { useMovieArchive } from "@/features/films/hooks/useMovies";
+import { ArchiveFilterControls } from "@/features/media-archive/components/ArchiveFilterControls";
+import { ArchiveMediaCard } from "@/features/media-archive/components/ArchiveMediaCard";
+import { ArchiveSkeletonGrid } from "@/features/media-archive/components/ArchiveSkeletonGrid";
+import type { ArchiveMenuKey } from "@/features/media-archive/types";
 
 export const CinemaArchivePage = () => {
   const [selectedSort, setSelectedSort] = useState<MovieArchiveSort>("trending");
@@ -20,7 +27,7 @@ export const CinemaArchivePage = () => {
   const [selectedLanguage, setSelectedLanguage] = useState("all");
   const [selectedPeriod, setSelectedPeriod] =
     useState<MovieArchivePeriod>("this_year");
-  const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
+  const [openMenu, setOpenMenu] = useState<ArchiveMenuKey | null>(null);
 
   const controlsRef = useRef<HTMLDivElement | null>(null);
 
@@ -126,7 +133,7 @@ export const CinemaArchivePage = () => {
           </p>
         </div>
 
-        <ArchiveSortControls
+        <ArchiveFilterControls
           controlsRef={controlsRef}
           openMenu={openMenu}
           onBlurCapture={(event) => {
@@ -160,13 +167,17 @@ export const CinemaArchivePage = () => {
           selectedPeriodLabel={selectedPeriodLabel}
           availableGenres={firstPage?.availableGenres}
           isPeriodDisabled={isPeriodDisabled}
+          sortOptions={sortOptions}
+          periodOptions={periodOptions}
+          languageOptions={languageOptions}
           onSelectGenre={setSelectedGenre}
           onSelectSort={setSelectedSort}
           onSelectLanguage={setSelectedLanguage}
           onSelectPeriod={setSelectedPeriod}
+          moduleStyles={CINEMA_MODULE_STYLES}
         />
 
-        {archiveQuery.isPending ? <ArchiveSkeletonGrid /> : null}
+        {archiveQuery.isPending ? <ArchiveSkeletonGrid moduleStyles={CINEMA_MODULE_STYLES} /> : null}
 
         {archiveQuery.isError ? (
           <div
@@ -198,7 +209,20 @@ export const CinemaArchivePage = () => {
           <>
             <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
               {archiveItems.map((movie) => (
-                <ArchiveMovieCard key={`cinema-archive-item-${movie.tmdbId}`} movie={movie} ratingSource={archiveRatingSource} />
+                <ArchiveMediaCard
+                  key={`cinema-archive-item-${movie.tmdbId}`}
+                  kind="cinema"
+                  tmdbId={movie.tmdbId}
+                  title={movie.title}
+                  posterPath={movie.posterPath}
+                  getPosterUrl={getPosterUrl}
+                  stateLabel={getMovieStateLabel(movie)}
+                  rating={getRating(movie, archiveRatingSource)}
+                  ratingSource={archiveRatingSource}
+                  moduleStyles={CINEMA_MODULE_STYLES}
+                  subtitlePrimary={movie.director ?? "Unknown director"}
+                  subtitleSecondary={getReleaseYearLabel(movie)}
+                />
               ))}
             </div>
 

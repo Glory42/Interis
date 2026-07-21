@@ -1,18 +1,18 @@
 import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
-import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-archive/constants";
-import type { OpenMenu } from "@/features/serials/components/serial-archive/types";
+import type { ArchiveCardModuleStyles, ArchiveMenuKey } from "@/features/media-archive/types";
 import { cn } from "@/lib/utils";
 
 type ArchiveMenuTriggerProps = {
-  menu: Exclude<OpenMenu, null>;
-  openMenu: OpenMenu;
-  onToggleMenu: (menu: Exclude<OpenMenu, null>) => void;
+  menu: ArchiveMenuKey;
+  openMenu: ArchiveMenuKey | null;
+  onToggleMenu: (menu: ArchiveMenuKey) => void;
   icon: ReactNode;
   label: ReactNode;
   menuClassName: string;
   children: ReactNode;
   disabled?: boolean;
+  moduleStyles: Pick<ArchiveCardModuleStyles, "accent" | "muted" | "faint" | "border" | "borderSoft" | "panel">;
 };
 
 export const ArchiveMenuTrigger = ({
@@ -24,6 +24,7 @@ export const ArchiveMenuTrigger = ({
   menuClassName,
   children,
   disabled = false,
+  moduleStyles,
 }: ArchiveMenuTriggerProps) => {
   const isOpen = !disabled && openMenu === menu;
 
@@ -35,15 +36,15 @@ export const ArchiveMenuTrigger = ({
         className="inline-flex items-center gap-2 border px-3 py-1.5 font-mono text-[10px] transition-colors"
         style={{
           borderColor: disabled
-            ? SERIAL_MODULE_STYLES.borderSoft
+            ? moduleStyles.borderSoft
             : isOpen
-              ? SERIAL_MODULE_STYLES.accent
-              : SERIAL_MODULE_STYLES.borderSoft,
+              ? moduleStyles.accent
+              : moduleStyles.borderSoft,
           color: disabled
-            ? SERIAL_MODULE_STYLES.faint
+            ? moduleStyles.faint
             : isOpen
-              ? SERIAL_MODULE_STYLES.accent
-              : SERIAL_MODULE_STYLES.muted,
+              ? moduleStyles.accent
+              : moduleStyles.muted,
           background: "transparent",
         }}
         aria-haspopup="menu"
@@ -66,8 +67,8 @@ export const ArchiveMenuTrigger = ({
             menuClassName,
           )}
           style={{
-            borderColor: SERIAL_MODULE_STYLES.border,
-            background: SERIAL_MODULE_STYLES.panel,
+            borderColor: moduleStyles.border,
+            background: moduleStyles.panel,
           }}
         >
           {children}

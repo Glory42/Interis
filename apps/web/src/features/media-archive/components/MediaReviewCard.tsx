@@ -1,24 +1,43 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Heart, Loader2 } from "lucide-react";
-import { memo, useState, type CSSProperties, type MouseEvent } from "react";
+import { memo, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import type { MovieDetailResponse } from "@/features/films/api";
 import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
-import { CINEMA_MODULE_STYLES } from "@/features/films/components/cinema-detail/styles";
-import { formatRelativeTime } from "@/features/films/components/cinema-detail/utils";
 import { formatRatingLabel } from "@/lib/rating";
 import { useLikeReview, useUnlikeReview } from "@/features/reviews/hooks/useReviews";
+import type { ReviewCardModuleStyles } from "@/features/media-archive/types";
 
-type CinemaReviewCardProps = {
-  review: MovieDetailResponse["reviews"][number];
+type MediaReviewCardReview = {
+  id: string;
+  content: string;
+  containsSpoilers: boolean;
+  createdAt: string;
+  rating: number | null;
+  likeCount: number;
+  viewerHasLiked: boolean;
+  author: {
+    username: string;
+    displayUsername: string | null;
+    avatarUrl: string | null;
+  };
 };
 
-// Memoized because it's rendered in a .map() alongside sort-toggle state in
-// the parent section — this skips re-rendering every card when only the
-// sort button's local state changes.
-export const CinemaReviewCard = memo(function CinemaReviewCard({
+type MediaReviewCardProps = {
+  review: MediaReviewCardReview;
+  moduleStyles: ReviewCardModuleStyles;
+  formatRelativeTime: (value: string) => string;
+  renderContextLabel?: () => ReactNode;
+};
+
+// Memoized because it's rendered in a .map() alongside sort-toggle / accordion
+// state in the parent section - this skips re-rendering every card when only
+// that unrelated local state changes.
+export const MediaReviewCard = memo(function MediaReviewCard({
   review,
-}: CinemaReviewCardProps) {
+  moduleStyles,
+  formatRelativeTime,
+  renderContextLabel,
+}: MediaReviewCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const authorName = review.author.displayUsername ?? review.author.username;
@@ -28,9 +47,9 @@ export const CinemaReviewCard = memo(function CinemaReviewCard({
   const unlikeReviewMutation = useUnlikeReview(review.id);
   const isLikePending = likeReviewMutation.isPending || unlikeReviewMutation.isPending;
 
-  // Local optimistic override — the movie-detail query this card's data
-  // comes from isn't patched by the review-like mutations (those only patch
-  // the feed and review-detail caches), so reflect the toggle here directly.
+  // Local optimistic override — the detail query this card's data comes from
+  // isn't patched by the review-like mutations (those only patch the feed and
+  // review-detail caches), so reflect the toggle here directly.
   const [optimisticLike, setOptimisticLike] = useState<{
     liked: boolean;
     count: number;
@@ -77,9 +96,9 @@ export const CinemaReviewCard = memo(function CinemaReviewCard({
       className="cursor-pointer border bg-[var(--row-bg)] p-4 transition-colors hover:bg-[var(--row-hover-bg)]"
       style={
         {
-          borderColor: CINEMA_MODULE_STYLES.border,
-          "--row-bg": CINEMA_MODULE_STYLES.panel,
-          "--row-hover-bg": CINEMA_MODULE_STYLES.panelElevated,
+          borderColor: moduleStyles.border,
+          "--row-bg": moduleStyles.panel,
+          "--row-hover-bg": moduleStyles.panelElevated,
         } as CSSProperties
       }
       onClick={handleRowClick}
@@ -92,15 +111,15 @@ export const CinemaReviewCard = memo(function CinemaReviewCard({
                 src={avatarUrl}
                 alt={`${review.author.username} avatar`}
                 className="h-9 w-9 border object-cover"
-                style={{ borderColor: CINEMA_MODULE_STYLES.border }}
+                style={{ borderColor: moduleStyles.border }}
               />
             ) : (
               <span
                 className="inline-flex h-9 w-9 items-center justify-center border font-mono text-xs"
                 style={{
-                  borderColor: CINEMA_MODULE_STYLES.border,
-                  color: CINEMA_MODULE_STYLES.text,
-                  background: CINEMA_MODULE_STYLES.panelElevated,
+                  borderColor: moduleStyles.border,
+                  color: moduleStyles.text,
+                  background: moduleStyles.panelElevated,
                 }}
               >
                 {review.author.username.slice(0, 1).toUpperCase()}
@@ -113,18 +132,20 @@ export const CinemaReviewCard = memo(function CinemaReviewCard({
               to="/profile/$username"
               params={{ username: review.author.username }}
               className="font-mono text-xs font-bold"
-              style={{ color: CINEMA_MODULE_STYLES.text }}
+              style={{ color: moduleStyles.text }}
               viewTransition
             >
               {authorName}
             </Link>
 
+            {renderContextLabel ? <div className="mt-0.5">{renderContextLabel()}</div> : null}
+
             <div className="mt-0.5 flex items-center gap-2">
               <SpaceRatingDisplay rating={review.rating} size="sm" />
-              <span className="font-mono text-[10px]" style={{ color: CINEMA_MODULE_STYLES.faint }}>
+              <span className="font-mono text-[10px]" style={{ color: moduleStyles.faint }}>
                 {formatRatingLabel(review.rating) ?? "Unrated"}
               </span>
-              <span className="font-mono text-[10px]" style={{ color: CINEMA_MODULE_STYLES.faint }}>
+              <span className="font-mono text-[10px]" style={{ color: moduleStyles.faint }}>
                 {formatRelativeTime(review.createdAt)}
               </span>
             </div>
@@ -140,8 +161,8 @@ export const CinemaReviewCard = memo(function CinemaReviewCard({
           className="inline-flex items-center gap-1 font-mono text-[10px] text-[var(--like-color)] transition-colors hover:text-[var(--like-hover-color)] disabled:cursor-not-allowed disabled:opacity-60"
           style={
             {
-              "--like-color": viewerHasLiked ? CINEMA_MODULE_STYLES.accent : CINEMA_MODULE_STYLES.faint,
-              "--like-hover-color": viewerHasLiked ? CINEMA_MODULE_STYLES.faint : CINEMA_MODULE_STYLES.text,
+              "--like-color": viewerHasLiked ? moduleStyles.accent : moduleStyles.faint,
+              "--like-hover-color": viewerHasLiked ? moduleStyles.faint : moduleStyles.text,
             } as CSSProperties
           }
         >
@@ -158,16 +179,16 @@ export const CinemaReviewCard = memo(function CinemaReviewCard({
         <p
           className="mb-2 inline-flex border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em]"
           style={{
-            borderColor: CINEMA_MODULE_STYLES.accent,
-            color: CINEMA_MODULE_STYLES.accent,
-            background: CINEMA_MODULE_STYLES.badge,
+            borderColor: moduleStyles.accent,
+            color: moduleStyles.accent,
+            background: moduleStyles.badge,
           }}
         >
           Spoilers
         </p>
       ) : null}
 
-      <p className="whitespace-pre-wrap text-sm leading-relaxed" style={{ color: CINEMA_MODULE_STYLES.muted }}>
+      <p className="whitespace-pre-wrap text-sm leading-relaxed" style={{ color: moduleStyles.muted }}>
         {review.content}
       </p>
     </article>

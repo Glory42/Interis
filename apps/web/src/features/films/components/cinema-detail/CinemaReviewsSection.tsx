@@ -1,6 +1,8 @@
 import type { MovieDetailResponse, MovieDetailReviewSort } from "@/features/films/api";
-import { CinemaReviewCard } from "@/features/films/components/cinema-detail/CinemaReviewCard";
 import { CINEMA_MODULE_STYLES } from "@/features/films/components/cinema-detail/styles";
+import { formatRelativeTime } from "@/features/films/components/cinema-detail/utils";
+import { MediaReviewCard } from "@/features/media-archive/components/MediaReviewCard";
+import { MediaReviewsEmptyState } from "@/features/media-archive/components/MediaReviewsEmptyState";
 
 type CinemaReviewsSectionProps = {
   reviewsSort: MovieDetailReviewSort;
@@ -71,20 +73,19 @@ export const CinemaReviewsSection = ({
       </div>
 
       {reviews.length === 0 ? (
-        <div
-          className="border p-4 font-mono text-xs"
-          style={{
-            borderColor: CINEMA_MODULE_STYLES.border,
-            color: CINEMA_MODULE_STYLES.muted,
-            background: CINEMA_MODULE_STYLES.panel,
-          }}
-        >
-          No reviews yet for this movie.
-        </div>
+        <MediaReviewsEmptyState
+          message="No reviews yet for this movie."
+          moduleStyles={CINEMA_MODULE_STYLES}
+        />
       ) : (
         <div className="space-y-4">
           {reviews.map((review) => (
-            <CinemaReviewCard key={review.id} review={review} />
+            <MediaReviewCard
+              key={review.id}
+              review={review}
+              moduleStyles={CINEMA_MODULE_STYLES}
+              formatRelativeTime={formatRelativeTime}
+            />
           ))}
         </div>
       )}
