@@ -25,6 +25,11 @@ router.delete(
   requireAuth,
   asyncHandler(PostsController.deleteComment),
 );
+router.put(
+  "/comments/:commentId",
+  requireAuth,
+  asyncHandler(PostsController.updateComment),
+);
 router.post(
   "/:id/comments",
   requireAuth,

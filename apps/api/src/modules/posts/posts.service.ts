@@ -55,4 +55,8 @@ export class PostsService {
   static async deleteComment(commentId: string, userId: string) {
     return PostsCommentsService.deleteComment(commentId, userId);
   }
+
+  static async updateComment(commentId: string, userId: string, content: string) {
+    return PostsCommentsService.updateComment(commentId, userId, content);
+  }
 }
