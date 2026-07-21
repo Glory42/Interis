@@ -53,7 +53,12 @@ export class SerialsTrackingService {
       }).catch(() => {});
     }
 
-    if (input.rating !== undefined && input.rating !== null && row.rating !== null) {
+    if (
+      input.rating !== undefined &&
+      input.rating !== null &&
+      row.rating !== null &&
+      row.rating !== previousRow?.rating
+    ) {
       SocialRepository.insertActivity({
         userId,
         type: "liked_movie",
@@ -126,7 +131,12 @@ export class SerialsTrackingService {
       }).catch(() => {});
     }
 
-    if (input.rating !== undefined && input.rating !== null && row.rating !== null) {
+    if (
+      input.rating !== undefined &&
+      input.rating !== null &&
+      row.rating !== null &&
+      row.rating !== previousRow?.rating
+    ) {
       SocialRepository.insertActivity({
         userId,
         type: "liked_movie",

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import type { SerialDetailResponse } from "@/features/serials/api";
 import { getPosterUrl } from "@/features/serials/components/utils";
@@ -114,11 +114,28 @@ export const SeasonAccordionItem = ({
 
   const handleSeasonLikedToggle = () => handleSeasonLikedChange(!(season.viewerInteraction?.liked ?? false));
 
+  // SpaceRatingInput (used inside the review modal) commits on every
+  // click/drag/arrow-key nudge rather than once per gesture - debounce the
+  // actual mutation so dialing in a rating doesn't fire a PATCH (and a
+  // duplicate "Rated" feed activity) per intermediate value.
+  const seasonRatingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const episodeRatingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (seasonRatingTimeoutRef.current) clearTimeout(seasonRatingTimeoutRef.current);
+      if (episodeRatingTimeoutRef.current) clearTimeout(episodeRatingTimeoutRef.current);
+    };
+  }, []);
+
   const handleSeasonRatingChange = (nextRating: number | null) => {
-    updateSeasonInteractionMutation.mutate({
-      seasonNumber: season.seasonNumber,
-      input: { rating: nextRating },
-    });
+    if (seasonRatingTimeoutRef.current) clearTimeout(seasonRatingTimeoutRef.current);
+    seasonRatingTimeoutRef.current = setTimeout(() => {
+      updateSeasonInteractionMutation.mutate({
+        seasonNumber: season.seasonNumber,
+        input: { rating: nextRating },
+      });
+    }, 500);
   };
 
   const handleSeasonReviewSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -167,10 +184,13 @@ export const SeasonAccordionItem = ({
   };
 
   const handleEpisodeRatingChange = (episodeNumber: number, nextRating: number | null) => {
-    updateEpisodeInteractionMutation.mutate({
-      episodeNumber,
-      input: { rating: nextRating },
-    });
+    if (episodeRatingTimeoutRef.current) clearTimeout(episodeRatingTimeoutRef.current);
+    episodeRatingTimeoutRef.current = setTimeout(() => {
+      updateEpisodeInteractionMutation.mutate({
+        episodeNumber,
+        input: { rating: nextRating },
+      });
+    }, 500);
   };
 
   const handleEpisodeReviewSubmit = async (e: FormEvent<HTMLFormElement>) => {
