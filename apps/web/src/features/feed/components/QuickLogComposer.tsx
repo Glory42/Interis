@@ -17,15 +17,15 @@ export const QuickLogComposer = ({ user }: QuickLogComposerProps) => {
 
   if (!user) {
     return (
-      <div className="border border-border/70 bg-card/72 p-4">
-        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-          // LOG_CONSOLE_LOCKED
+      <div className="border border-border/50 bg-card/40 p-5">
+        <p className="theme-kicker text-[10px] text-muted-foreground">
+          Log console locked
         </p>
-        <p className="mt-2 font-mono text-xs text-muted-foreground">
-          sign in to publish quick log entries.
+        <p className="mt-2 text-sm text-muted-foreground">
+          Sign in to publish quick log entries.
         </p>
         <Button asChild size="sm" className="mt-3">
-          <Link to="/login">SIGN IN</Link>
+          <Link to="/login">Sign in</Link>
         </Button>
       </div>
     );
@@ -58,20 +58,20 @@ export const QuickLogComposer = ({ user }: QuickLogComposerProps) => {
   };
 
   return (
-    <div className="border border-border/70 bg-card/72 p-4">
+    <div className="border border-border/50 bg-card/40 p-5">
       <div className="flex items-start gap-3">
         <div className="flex shrink-0 flex-col items-center gap-2">
           <FeedActorAvatar
             avatarUrl={avatarUrl}
             username={user.username}
             initial={profileInitial}
-            className="flex h-8 w-8 items-center justify-center overflow-hidden border border-primary/35 bg-primary/10 font-mono text-xs font-bold text-primary"
+            className="flex h-9 w-9 items-center justify-center overflow-hidden bg-primary/10 text-xs font-bold text-primary"
           />
 
           <Button
             type="button"
             size="sm"
-            className="h-7 px-2.5 text-[10px]"
+            className="h-7 w-9 px-0"
             disabled={!canSubmit}
             onClick={() => {
               void handleSubmit();
@@ -94,23 +94,23 @@ export const QuickLogComposer = ({ user }: QuickLogComposerProps) => {
                 setContent(event.target.value);
               }
             }}
-            placeholder="log a thought..."
-            className="min-h-18 resize-y border-border/70 bg-background/55 font-mono text-sm"
+            placeholder="Log a thought…"
+            className="min-h-18 resize-y border-border/50 bg-background/40 text-sm"
           />
 
           <div className="flex items-center justify-between gap-2">
-            <span className="font-mono text-[10px] text-muted-foreground">
-              Enter submits. Shift+Enter newline. {content.length}/250
+            <span className="theme-kicker text-[9px] text-muted-foreground">
+              Enter submits · Shift+Enter newline · {content.length}/250
             </span>
           </div>
         </div>
       </div>
 
       {createPostMutation.isError ? (
-        <p className="mt-2 font-mono text-[11px] text-destructive">
+        <p className="mt-2 text-xs text-destructive">
           {createPostMutation.error instanceof Error
             ? createPostMutation.error.message
-            : "could not publish post."}
+            : "Could not publish post."}
         </p>
       ) : null}
     </div>

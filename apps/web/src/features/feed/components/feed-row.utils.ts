@@ -68,3 +68,8 @@ export const toSeasonEpisodeLabel = (item: FeedItem): string | null => {
   }
   return null;
 };
+
+// Used for quoted "replying to" snippets (the original review/post text),
+// which are shown truncated rather than in full.
+export const truncateQuote = (text: string, maxLength: number): string =>
+  text.length > maxLength ? `${text.slice(0, maxLength - 1).trimEnd()}…` : text;

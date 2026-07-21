@@ -1,13 +1,15 @@
-import { memo, useMemo, useState, type CSSProperties, type MouseEvent } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { CornerDownRight, Flag, Heart, Loader2, MessageSquare, PenSquare } from "lucide-react";
+import { memo, useState, type MouseEvent } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { Flag, Heart, Loader2, MessageSquare, PenSquare } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
+import { FeedCardHeader } from "@/features/feed/components/FeedCardHeader";
+import { FeedMoviePreviewCard } from "@/features/feed/components/FeedMoviePreviewCard";
 import { PostActivityDialog } from "@/features/feed/components/PostActivityDialog";
 import {
   feedChannelMeta,
-  getRelativeTime,
   inferFeedChannel,
+  truncateQuote,
 } from "@/features/feed/components/feed-row.utils";
 import type { FeedItem } from "@/features/feed/types";
 import { useLikePost, useUnlikePost } from "@/features/posts/hooks/usePosts";
@@ -18,20 +20,6 @@ type PostActivityCardProps = {
   item: FeedItem;
 };
 
-const getMediaLabel = (item: FeedItem): { title: string; year: string | null } => {
-  if (item.movie) {
-    return {
-      title: item.movie.title,
-      year: item.movie.releaseYear ? String(item.movie.releaseYear) : null,
-    };
-  }
-
-  return {
-    title: `@${item.actor.username}`,
-    year: null,
-  };
-};
-
 export const PostActivityCard = memo(function PostActivityCard({ item }: PostActivityCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -39,11 +27,24 @@ export const PostActivityCard = memo(function PostActivityCard({ item }: PostAct
   const actorName = item.actor.displayUsername ?? item.actor.username;
   const actorAvatar = item.actor.avatarUrl ?? null;
   const actorInitial = item.actor.username.slice(0, 1).toUpperCase();
-  const postContent = item.post?.content ?? item.metadata.excerpt ?? "Shared a post.";
   const channel = inferFeedChannel(item);
-  const mediaLabel = getMediaLabel(item);
+  const channelColor = channel ? feedChannelMeta[channel].color : "var(--module-neutral)";
   const postId = item.post?.id ?? item.metadata.postId ?? null;
-  const isOwnPost = Boolean(user && user.id === item.actor.id);
+
+  // "post" is the actor's own new post — no verb needed, no quoted
+  // original. "commented_post"/"liked_post" are activity *about* someone's
+  // post, so they get an explicit verb and a quoted snippet of the
+  // original post instead of silently re-showing it as if it were new.
+  const isCommentOnPost = item.kind === "commented_post";
+  const isLikeOnPost = item.kind === "liked_post";
+  const verb = isCommentOnPost ? "Commented on a post" : isLikeOnPost ? "Liked a post" : null;
+  const primaryText = isCommentOnPost
+    ? item.metadata.excerpt || "Left a comment on a post."
+    : isLikeOnPost
+      ? null
+      : (item.post?.content ?? item.metadata.excerpt ?? "Shared a post.");
+  const quotedOriginal = verb ? (item.post?.content ?? null) : null;
+  const isOwnPost = item.kind === "post" && Boolean(user && user.id === item.actor.id);
 
   const likePostMutation = useLikePost(postId ?? "");
   const unlikePostMutation = useUnlikePost(postId ?? "");
@@ -52,24 +53,6 @@ export const PostActivityCard = memo(function PostActivityCard({ item }: PostAct
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<"view" | "edit">("view");
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
-
-  const channelVisual = useMemo(() => {
-    if (channel) {
-      return feedChannelMeta[channel];
-    }
-
-    return {
-      label: "NETWORK",
-      color: "var(--destructive)",
-      tint: "color-mix(in srgb, var(--destructive) 12%, transparent)",
-    };
-  }, [channel]);
-
-  const channelStyle = {
-    borderColor: `color-mix(in srgb, ${channelVisual.color} 36%, transparent)`,
-    background: channelVisual.tint,
-    color: channelVisual.color,
-  } satisfies CSSProperties;
 
   const to = item.movie
     ? item.movie.mediaType === "tv"
@@ -125,119 +108,111 @@ export const PostActivityCard = memo(function PostActivityCard({ item }: PostAct
   return (
     <>
       <article
-        className="group cursor-pointer border-b border-border/60 py-6"
+        className="group -mx-2 flex cursor-pointer gap-3 border border-transparent border-b-border/40 px-3 py-3.5 transition-colors hover:border-border/60 hover:bg-foreground/[0.025]"
         onClick={handleRowClick}
       >
-        <div className="flex items-center gap-3">
-          <FeedActorAvatar
-            avatarUrl={actorAvatar}
-            username={item.actor.username}
-            initial={actorInitial}
-            style={channelStyle}
-          />
-          <div className="flex min-w-0 flex-1 items-baseline gap-2">
-            <Link
-              to="/profile/$username"
-              params={{ username: item.actor.username }}
-              className="truncate font-mono text-xs font-bold text-foreground hover:text-primary"
-              viewTransition
-            >
-              {actorName}
-            </Link>
-            <span className="truncate font-mono text-[10px] text-muted-foreground/80">
-              @{item.actor.username}
-            </span>
-            <span className="ml-auto shrink-0 font-mono text-[10px] text-muted-foreground">
-              {getRelativeTime(item.createdAt)}
-            </span>
-          </div>
-        </div>
+        <FeedActorAvatar
+          avatarUrl={actorAvatar}
+          username={item.actor.username}
+          initial={actorInitial}
+          className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden text-sm font-bold text-foreground"
+          style={{ background: "linear-gradient(135deg, var(--primary), var(--accent))" }}
+        />
 
-        <div className="mt-3 ml-10 flex flex-wrap items-center gap-3">
-          <div className="flex min-w-0 items-center gap-2 border px-2.5 py-1" style={channelStyle}>
-            <span className="font-mono text-[9px] uppercase tracking-[0.14em]">
-              {channelVisual.label}
-            </span>
-            <CornerDownRight className="h-3 w-3" />
-            {to && item.movie ? (
-              <Link
-                to={to}
-                params={{ tmdbId: String(item.movie.tmdbId) }}
-                className="line-clamp-1 font-mono text-xs font-bold text-foreground hover:text-primary"
-                viewTransition
+        <div className="min-w-0 flex-1">
+          <FeedCardHeader
+            username={item.actor.username}
+            displayName={actorName}
+            createdAt={item.createdAt}
+          />
+
+          {verb ? (
+            <p className="mt-0.5 text-[15px] leading-snug text-foreground/90">{verb}</p>
+          ) : null}
+
+          {primaryText ? (
+            <p className="mt-0.5 w-full whitespace-pre-wrap text-[15px] leading-snug text-foreground/90 transition-colors group-hover:text-foreground">
+              {primaryText}
+            </p>
+          ) : null}
+
+          {quotedOriginal ? (
+            <div className="mt-2 border-l-2 border-border/50 pl-3">
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                "{truncateQuote(quotedOriginal, 140)}"
+              </p>
+            </div>
+          ) : null}
+
+          {to && item.movie ? (
+            <FeedMoviePreviewCard
+              to={to}
+              tmdbId={item.movie.tmdbId}
+              title={item.movie.title}
+              releaseYear={item.movie.releaseYear}
+              posterPath={item.movie.posterPath}
+              accentColor={channelColor}
+            />
+          ) : null}
+
+          <div className="mt-2.5 flex items-center gap-6 text-xs text-muted-foreground">
+            <button
+              type="button"
+              onClick={() => {
+                void handleToggleLike();
+              }}
+              disabled={isLikePending}
+              className={cn(
+                "inline-flex items-center gap-1.5 transition-colors",
+                viewerHasLiked ? "text-primary" : "hover:text-primary",
+                isLikePending ? "cursor-not-allowed opacity-50" : "",
+              )}
+            >
+              {isLikePending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Heart className={cn("h-4 w-4", viewerHasLiked ? "fill-current" : "")} />
+              )}
+              {item.engagement.likeCount}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                openDialog("view");
+              }}
+              className="inline-flex items-center gap-1.5 transition-colors hover:text-primary"
+            >
+              <MessageSquare className="h-4 w-4" />
+              {item.engagement.commentCount}
+            </button>
+
+            {isOwnPost ? (
+              <button
+                type="button"
+                onClick={() => {
+                  openDialog("edit");
+                }}
+                className="inline-flex items-center gap-1.5 transition-colors hover:text-primary"
               >
-                {mediaLabel.title}
-              </Link>
-            ) : (
-              <span className="font-mono text-xs font-bold text-foreground">{mediaLabel.title}</span>
-            )}
-            {mediaLabel.year ? (
-              <span className="font-mono text-[10px] text-muted-foreground">{mediaLabel.year}</span>
+                <PenSquare className="h-4 w-4" />
+                Edit
+              </button>
+            ) : null}
+
+            {!isOwnPost && postId ? (
+              <button
+                type="button"
+                onClick={() => {
+                  void handleReport();
+                }}
+                className="ml-auto inline-flex items-center gap-1.5 transition-colors hover:text-destructive"
+              >
+                <Flag className="h-4 w-4" />
+                Report
+              </button>
             ) : null}
           </div>
-        </div>
-
-        <p className="mt-3 ml-10 w-full pr-3 whitespace-pre-wrap font-mono text-sm leading-relaxed text-foreground/80 transition-colors group-hover:text-foreground">
-          {postContent}
-        </p>
-
-        <div className="mt-3 ml-10 flex items-center gap-5">
-          <button
-            type="button"
-            onClick={() => {
-              void handleToggleLike();
-            }}
-            disabled={isLikePending}
-            className={cn(
-              "inline-flex items-center gap-1.5 font-mono text-[11px] transition-colors",
-              viewerHasLiked ? "text-primary" : "text-muted-foreground hover:text-foreground",
-              isLikePending ? "cursor-not-allowed opacity-50" : "",
-            )}
-          >
-            {isLikePending ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Heart className={cn("h-3.5 w-3.5", viewerHasLiked ? "fill-current" : "")} />
-            )}
-            {item.engagement.likeCount}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              openDialog("view");
-            }}
-            className="inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <MessageSquare className="h-3.5 w-3.5" />
-            {item.engagement.commentCount}
-          </button>
-
-          {isOwnPost ? (
-            <button
-              type="button"
-              onClick={() => {
-                openDialog("edit");
-              }}
-              className="inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <PenSquare className="h-3.5 w-3.5" />
-              EDIT
-            </button>
-          ) : null}
-
-          {!isOwnPost && postId ? (
-            <button
-              type="button"
-              onClick={() => {
-                void handleReport();
-              }}
-              className="ml-auto inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground transition-colors hover:text-destructive"
-            >
-              <Flag className="h-3.5 w-3.5" />
-              REPORT
-            </button>
-          ) : null}
         </div>
       </article>
 
