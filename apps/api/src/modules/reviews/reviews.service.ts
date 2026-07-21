@@ -56,6 +56,10 @@ export class ReviewsService {
     return ReviewsCommentsService.deleteComment(commentId, userId);
   }
 
+  static async updateComment(commentId: string, userId: string, content: string) {
+    return ReviewsCommentsService.updateComment(commentId, userId, content);
+  }
+
   static async likeReview(userId: string, reviewId: string) {
     return ReviewsLikesService.likeReview(userId, reviewId);
   }

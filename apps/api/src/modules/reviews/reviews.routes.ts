@@ -25,6 +25,11 @@ router.delete(
   requireAuth,
   asyncHandler(ReviewsController.deleteComment),
 );
+router.put(
+  "/comments/:commentId",
+  requireAuth,
+  asyncHandler(ReviewsController.updateComment),
+);
 
 // Protected — likes
 router.post(

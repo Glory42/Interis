@@ -72,4 +72,13 @@ export class ReviewsCommentsService {
   static async deleteComment(commentId: string, userId: string) {
     return ReviewsRepository.deleteCommentByIdAndUser(commentId, userId);
   }
+
+  static async updateComment(commentId: string, userId: string, content: string) {
+    const updated = await ReviewsRepository.updateCommentByIdAndUser(commentId, userId, content);
+    if (!updated) {
+      return null;
+    }
+
+    return ReviewsRepository.getCommentWithAuthorById(commentId);
+  }
 }
