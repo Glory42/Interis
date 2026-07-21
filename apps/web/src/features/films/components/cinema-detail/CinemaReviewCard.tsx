@@ -2,45 +2,33 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Heart, Loader2 } from "lucide-react";
 import { memo, useState, type CSSProperties, type MouseEvent } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import type { SerialDetailResponse } from "@/features/serials/api";
+import type { MovieDetailResponse } from "@/features/films/api";
 import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
+import { CINEMA_MODULE_STYLES } from "@/features/films/components/cinema-detail/styles";
+import { formatRelativeTime } from "@/features/films/components/cinema-detail/utils";
 import { formatRatingLabel } from "@/lib/rating";
 import { useLikeReview, useUnlikeReview } from "@/features/reviews/hooks/useReviews";
-import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
-import { formatRelativeTime } from "@/features/serials/components/serial-detail/utils";
 
-type SerialReviewCardProps = {
-  review: SerialDetailResponse["reviews"][number];
+type CinemaReviewCardProps = {
+  review: MovieDetailResponse["reviews"][number];
 };
 
-const formatReviewContextLabel = (
-  context: SerialDetailResponse["reviews"][number]["context"],
-): string | null => {
-  if (!context) return null;
-  if (context.episodeNumber !== null) {
-    const episodeLabel = `S${context.seasonNumber}E${context.episodeNumber}`;
-    return context.episodeName ? `${episodeLabel} · ${context.episodeName}` : episodeLabel;
-  }
-  return `Season ${context.seasonNumber}`;
-};
-
-// Rendered in a .map() inside SerialReviewsSection, which sits under
-// SerialDetailPage's season-accordion toggle state - without memo, every
-// accordion open/close re-renders every review card despite unchanged data.
-export const SerialReviewCard = memo(function SerialReviewCard({
+// Memoized because it's rendered in a .map() alongside sort-toggle state in
+// the parent section — this skips re-rendering every card when only the
+// sort button's local state changes.
+export const CinemaReviewCard = memo(function CinemaReviewCard({
   review,
-}: SerialReviewCardProps) {
+}: CinemaReviewCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const authorName = review.author.displayUsername ?? review.author.username;
   const avatarUrl = review.author.avatarUrl;
-  const contextLabel = formatReviewContextLabel(review.context);
 
   const likeReviewMutation = useLikeReview(review.id);
   const unlikeReviewMutation = useUnlikeReview(review.id);
   const isLikePending = likeReviewMutation.isPending || unlikeReviewMutation.isPending;
 
-  // Local optimistic override — the serial-detail query this card's data
+  // Local optimistic override — the movie-detail query this card's data
   // comes from isn't patched by the review-like mutations (those only patch
   // the feed and review-detail caches), so reflect the toggle here directly.
   const [optimisticLike, setOptimisticLike] = useState<{
@@ -89,9 +77,9 @@ export const SerialReviewCard = memo(function SerialReviewCard({
       className="cursor-pointer border bg-[var(--row-bg)] p-4 transition-colors hover:bg-[var(--row-hover-bg)]"
       style={
         {
-          borderColor: SERIAL_MODULE_STYLES.border,
-          "--row-bg": SERIAL_MODULE_STYLES.panel,
-          "--row-hover-bg": SERIAL_MODULE_STYLES.panelElevated,
+          borderColor: CINEMA_MODULE_STYLES.border,
+          "--row-bg": CINEMA_MODULE_STYLES.panel,
+          "--row-hover-bg": CINEMA_MODULE_STYLES.panelElevated,
         } as CSSProperties
       }
       onClick={handleRowClick}
@@ -104,15 +92,15 @@ export const SerialReviewCard = memo(function SerialReviewCard({
                 src={avatarUrl}
                 alt={`${review.author.username} avatar`}
                 className="h-9 w-9 border object-cover"
-                style={{ borderColor: SERIAL_MODULE_STYLES.border }}
+                style={{ borderColor: CINEMA_MODULE_STYLES.border }}
               />
             ) : (
               <span
                 className="inline-flex h-9 w-9 items-center justify-center border font-mono text-xs"
                 style={{
-                  borderColor: SERIAL_MODULE_STYLES.border,
-                  color: SERIAL_MODULE_STYLES.text,
-                  background: SERIAL_MODULE_STYLES.panelElevated,
+                  borderColor: CINEMA_MODULE_STYLES.border,
+                  color: CINEMA_MODULE_STYLES.text,
+                  background: CINEMA_MODULE_STYLES.panelElevated,
                 }}
               >
                 {review.author.username.slice(0, 1).toUpperCase()}
@@ -125,39 +113,18 @@ export const SerialReviewCard = memo(function SerialReviewCard({
               to="/profile/$username"
               params={{ username: review.author.username }}
               className="font-mono text-xs font-bold"
-              style={{ color: SERIAL_MODULE_STYLES.text }}
+              style={{ color: CINEMA_MODULE_STYLES.text }}
               viewTransition
             >
               {authorName}
             </Link>
 
-            {contextLabel ? (
-              <div className="mt-0.5">
-                <span
-                  className="inline-flex items-center border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em]"
-                  style={{
-                    borderColor: SERIAL_MODULE_STYLES.borderSoft,
-                    color: SERIAL_MODULE_STYLES.faint,
-                    background: SERIAL_MODULE_STYLES.panelElevated,
-                  }}
-                >
-                  {contextLabel}
-                </span>
-              </div>
-            ) : null}
-
             <div className="mt-0.5 flex items-center gap-2">
               <SpaceRatingDisplay rating={review.rating} size="sm" />
-              <span
-                className="font-mono text-[10px]"
-                style={{ color: SERIAL_MODULE_STYLES.faint }}
-              >
+              <span className="font-mono text-[10px]" style={{ color: CINEMA_MODULE_STYLES.faint }}>
                 {formatRatingLabel(review.rating) ?? "Unrated"}
               </span>
-              <span
-                className="font-mono text-[10px]"
-                style={{ color: SERIAL_MODULE_STYLES.faint }}
-              >
+              <span className="font-mono text-[10px]" style={{ color: CINEMA_MODULE_STYLES.faint }}>
                 {formatRelativeTime(review.createdAt)}
               </span>
             </div>
@@ -173,10 +140,8 @@ export const SerialReviewCard = memo(function SerialReviewCard({
           className="inline-flex items-center gap-1 font-mono text-[10px] text-[var(--like-color)] transition-colors hover:text-[var(--like-hover-color)] disabled:cursor-not-allowed disabled:opacity-60"
           style={
             {
-              "--like-color": viewerHasLiked ? SERIAL_MODULE_STYLES.accent : SERIAL_MODULE_STYLES.faint,
-              "--like-hover-color": viewerHasLiked
-                ? SERIAL_MODULE_STYLES.faint
-                : SERIAL_MODULE_STYLES.text,
+              "--like-color": viewerHasLiked ? CINEMA_MODULE_STYLES.accent : CINEMA_MODULE_STYLES.faint,
+              "--like-hover-color": viewerHasLiked ? CINEMA_MODULE_STYLES.faint : CINEMA_MODULE_STYLES.text,
             } as CSSProperties
           }
         >
@@ -193,19 +158,16 @@ export const SerialReviewCard = memo(function SerialReviewCard({
         <p
           className="mb-2 inline-flex border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em]"
           style={{
-            borderColor: SERIAL_MODULE_STYLES.accent,
-            color: SERIAL_MODULE_STYLES.accent,
-            background: SERIAL_MODULE_STYLES.badge,
+            borderColor: CINEMA_MODULE_STYLES.accent,
+            color: CINEMA_MODULE_STYLES.accent,
+            background: CINEMA_MODULE_STYLES.badge,
           }}
         >
           Spoilers
         </p>
       ) : null}
 
-      <p
-        className="whitespace-pre-wrap text-sm leading-relaxed"
-        style={{ color: SERIAL_MODULE_STYLES.muted }}
-      >
+      <p className="whitespace-pre-wrap text-sm leading-relaxed" style={{ color: CINEMA_MODULE_STYLES.muted }}>
         {review.content}
       </p>
     </article>
