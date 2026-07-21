@@ -1,7 +1,6 @@
-import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { MediaPosterGridItem } from "@/features/profile/components/MediaPosterGridItem";
 import {
   PROFILE_MEDIA_GRID_CLASSES,
   ProfileMediaGridSkeleton,
@@ -11,7 +10,6 @@ import {
   type ProfileTabEmptyStateCta,
 } from "@/features/profile/components/ProfileTabEmptyState";
 import type { UserInteractionMovie } from "@/features/profile/api";
-import { getRelativeTime } from "@/features/profile/utils/profile.utils";
 
 type FavoritesFilter = "all" | "cinema" | "serial";
 
@@ -20,11 +18,6 @@ const filterTabs: Array<{ key: FavoritesFilter; label: string }> = [
   { key: "cinema", label: "Cinema" },
   { key: "serial", label: "Serial" },
 ];
-
-const routeByMediaType: Record<string, "/cinema/$tmdbId" | "/serials/$tmdbId" | null> = {
-  movie: "/cinema/$tmdbId",
-  tv: "/serials/$tmdbId",
-};
 
 const filterMatches = (item: UserInteractionMovie, filter: FavoritesFilter): boolean => {
   if (filter === "all") {
@@ -143,53 +136,13 @@ export const ProfileMediaInteractionGridSection = ({
             </div>
           ) : (
             <div className={PROFILE_MEDIA_GRID_CLASSES}>
-              {filteredItems.map((item) => {
-                const mediaRoute = routeByMediaType[item.mediaType];
-
-                const card = (
-                  <>
-                    <div className="relative mb-1.5 aspect-2/3 overflow-hidden border border-border/70 bg-card/25">
-                      <img
-                        src={getPosterUrl(item.posterPath)}
-                        alt={item.title}
-                        className="h-full w-full object-cover opacity-90 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
-                        loading="lazy"
-                      />
-                    </div>
-
-                    <p className="line-clamp-1 text-[11px] font-semibold text-foreground/95 transition-colors group-hover:text-primary">
-                      {item.title}
-                    </p>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground/85">
-                      {item.releaseYear ?? "Unknown year"} · {interactionVerb}{" "}
-                      {getRelativeTime(item.lastInteractionAt)}
-                    </p>
-                  </>
-                );
-
-                if (mediaRoute) {
-                  return (
-                    <Link
-                      key={`${sectionTitle}-${item.mediaType}-${item.tmdbId}`}
-                      to={mediaRoute}
-                      params={{ tmdbId: String(item.tmdbId) }}
-                      className="group block"
-                      viewTransition
-                    >
-                      {card}
-                    </Link>
-                  );
-                }
-
-                return (
-                  <div
-                    key={`${sectionTitle}-${item.mediaType}-${item.tmdbId}`}
-                    className="group block"
-                  >
-                    {card}
-                  </div>
-                );
-              })}
+              {filteredItems.map((item) => (
+                <MediaPosterGridItem
+                  key={`${sectionTitle}-${item.mediaType}-${item.tmdbId}`}
+                  item={item}
+                  interactionVerb={interactionVerb}
+                />
+              ))}
             </div>
           )}
 
