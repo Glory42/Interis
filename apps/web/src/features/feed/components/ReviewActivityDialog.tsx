@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import FocusLock from "react-focus-lock";
+import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { X } from "lucide-react";
+import { ModalShell } from "@/components/ui/ModalShell";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { ProfileReviewCommentsSection } from "@/features/reviews/components/profile-review-detail/ProfileReviewCommentsSection";
 import { ProfileReviewSection } from "@/features/reviews/components/profile-review-detail/ProfileReviewSection";
@@ -45,23 +44,6 @@ export const ReviewActivityDialog = ({
   const addCommentMutation = useAddReviewComment(reviewId, mediaType);
   const likeReviewMutation = useLikeReview(reviewId);
   const unlikeReviewMutation = useUnlikeReview(reviewId);
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [isOpen, onClose]);
 
   if (!isOpen) {
     return null;
@@ -108,16 +90,12 @@ export const ReviewActivityDialog = ({
     setCommentDraft("");
   };
 
-  return createPortal(
-    <div className="theme-modal-overlay fixed inset-0 z-140 flex items-center justify-center bg-background/70 px-4 py-6 backdrop-blur-sm sm:py-10">
-      <button
-        type="button"
-        aria-label="Close review dialog"
-        className="absolute inset-0"
-        onClick={onClose}
-      />
-
-      <FocusLock returnFocus className="contents">
+  return (
+    <ModalShell
+      onClose={onClose}
+      containerClassName="max-w-2xl px-4 py-6 sm:py-10"
+      ariaCloseLabel="Close review dialog"
+    >
         <section className="theme-modal-panel relative z-10 flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden border border-border/80 bg-card/95 animate-fade-up">
           <div className="flex items-start justify-between border-b border-border/70 px-4 py-3">
             <div className="min-w-0">
@@ -170,8 +148,6 @@ export const ReviewActivityDialog = ({
             )}
           </div>
         </section>
-      </FocusLock>
-    </div>,
-    document.body,
+    </ModalShell>
   );
 };

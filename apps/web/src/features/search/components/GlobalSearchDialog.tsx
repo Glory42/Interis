@@ -1,9 +1,8 @@
 import { useEffect, useId, useRef, type KeyboardEvent } from "react";
-import { createPortal } from "react-dom";
-import FocusLock from "react-focus-lock";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { ModalShell } from "@/components/ui/ModalShell";
 import { scopedPlaceholder } from "@/features/search/components/global-search/constants";
 import { GlobalSearchResults } from "@/features/search/components/global-search/GlobalSearchResults";
 import { openSearchEntry } from "@/features/search/components/global-search/navigation";
@@ -161,17 +160,13 @@ export const GlobalSearchDialog = ({
       ? scopedPlaceholder[state.scopedTarget]
       : "Search users, cinema, serials...";
 
-  return createPortal(
-    <div className="theme-modal-overlay fixed inset-0 z-120 bg-background/75 backdrop-blur-sm">
-      <button
-        type="button"
-        onClick={closeDialog}
-        className="absolute inset-0"
-        aria-label="Close search"
-      />
-
-      <div className="relative mx-auto flex h-full w-full max-w-2xl items-start px-4 pt-16 sm:pt-20">
-        <FocusLock returnFocus className="contents">
+  return (
+    <ModalShell
+      onClose={closeDialog}
+      overlayClassName="z-120 bg-background/75"
+      containerClassName="max-w-2xl items-start px-4 pt-16 sm:pt-20"
+      ariaCloseLabel="Close search"
+    >
         <section
           role="dialog"
           aria-modal="true"
@@ -272,9 +267,6 @@ export const GlobalSearchDialog = ({
             <span className="font-mono text-[9px] text-muted-foreground/45">esc to close</span>
           </div>
         </section>
-        </FocusLock>
-      </div>
-    </div>,
-    document.body,
+    </ModalShell>
   );
 };

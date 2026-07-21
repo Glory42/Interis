@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
-import FocusLock from "react-focus-lock";
+import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { ModalShell } from "@/components/ui/ModalShell";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { PostActivityDialogActions } from "@/features/feed/components/post-activity-dialog/PostActivityDialogActions";
 import { PostActivityDialogAuthorRow } from "@/features/feed/components/post-activity-dialog/PostActivityDialogAuthorRow";
@@ -52,23 +51,6 @@ export const PostActivityDialog = ({
 
   const content = postDetailQuery.data?.content ?? item.post?.content ?? item.metadata.excerpt ?? "";
   const currentEditDraft = editDraft ?? content;
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [isOpen, onClose]);
 
   const actorAvatar = item.actor.avatarUrl ?? null;
   const actorInitial = item.actor.username.slice(0, 1).toUpperCase();
@@ -148,16 +130,12 @@ export const PostActivityDialog = ({
     return null;
   }
 
-  return createPortal(
-    <div className="theme-modal-overlay fixed inset-0 z-140 flex items-center justify-center bg-background/70 px-4 py-6 backdrop-blur-sm sm:py-10">
-      <button
-        type="button"
-        aria-label="Close post dialog"
-        className="absolute inset-0"
-        onClick={onClose}
-      />
-
-      <FocusLock returnFocus className="contents">
+  return (
+    <ModalShell
+      onClose={onClose}
+      containerClassName="max-w-2xl px-4 py-6 sm:py-10"
+      ariaCloseLabel="Close post dialog"
+    >
       <section className="theme-modal-panel relative z-10 flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
         <PostActivityDialogHeader dialogTitle={dialogTitle} onClose={onClose} />
 
@@ -225,8 +203,6 @@ export const PostActivityDialog = ({
           />
         </div>
       </section>
-      </FocusLock>
-    </div>,
-    document.body,
+    </ModalShell>
   );
 };

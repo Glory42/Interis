@@ -1,8 +1,6 @@
-import { useEffect } from "react";
-import { createPortal } from "react-dom";
-import FocusLock from "react-focus-lock";
 import { Link } from "@tanstack/react-router";
-import { X } from "lucide-react";
+import { ModalHeader } from "@/components/ui/ModalHeader";
+import { ModalShell } from "@/components/ui/ModalShell";
 import { Spinner } from "@/components/ui/spinner";
 import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
 import {
@@ -32,15 +30,6 @@ export const FollowListDialog = ({
   const unfollowMutation = useUnfollowFromList(profileUsername);
   const removeFollowerMutation = useRemoveFollowerFromList(profileUsername);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isOpen, onClose]);
-
   if (!isOpen) return null;
 
   const query = mode === "followers" ? followersQuery : followingQuery;
@@ -51,33 +40,12 @@ export const FollowListDialog = ({
   const isMutating =
     unfollowMutation.isPending || removeFollowerMutation.isPending;
 
-  return createPortal(
-    <div className="theme-modal-overlay fixed inset-0 z-140 bg-background/70 backdrop-blur-sm">
-      <button
-        type="button"
-        aria-label="Close dialog"
-        className="absolute inset-0"
-        onClick={onClose}
-      />
+  return (
+    <ModalShell onClose={onClose} containerClassName="max-w-sm">
+      <section className="theme-modal-panel relative w-full overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
+        <ModalHeader title={title} onClose={onClose} closeAriaLabel={`Close ${title.toLowerCase()} dialog`} />
 
-      <div className="relative mx-auto flex h-full w-full max-w-sm items-center justify-center p-4">
-        <FocusLock returnFocus className="contents">
-        <section className="theme-modal-panel relative w-full overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
-          <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
-            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-              {title}
-            </p>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label={`Close ${title.toLowerCase()} dialog`}
-              className="inline-flex h-7 w-7 items-center justify-center border border-border/70 text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div className="max-h-[420px] overflow-y-auto">
+        <div className="max-h-[420px] overflow-y-auto">
             {query.isPending ? (
               <div className="flex items-center justify-center py-10">
                 <Spinner />
@@ -163,11 +131,8 @@ export const FollowListDialog = ({
                 })}
               </ul>
             )}
-          </div>
-        </section>
-        </FocusLock>
-      </div>
-    </div>,
-    document.body,
+        </div>
+      </section>
+    </ModalShell>
   );
 };

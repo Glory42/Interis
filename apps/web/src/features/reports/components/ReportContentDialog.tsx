@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import FocusLock from "react-focus-lock";
-import { Loader2, X } from "lucide-react";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
+import { ModalHeader } from "@/components/ui/ModalHeader";
+import { ModalShell } from "@/components/ui/ModalShell";
 import { Textarea } from "@/components/ui/textarea";
 import { useSubmitReport } from "@/features/reports/hooks/useReports";
 import type { ReportReason, ReportTargetType } from "@/features/reports/api";
@@ -40,19 +40,6 @@ const ReportContentDialogContent = ({
   const [submitted, setSubmitted] = useState(false);
   const submitReportMutation = useSubmitReport();
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [onClose]);
-
   const handleSubmit = async () => {
     if (submitReportMutation.isPending) {
       return;
@@ -67,33 +54,12 @@ const ReportContentDialogContent = ({
     setSubmitted(true);
   };
 
-  return createPortal(
-    <div className="theme-modal-overlay fixed inset-0 z-140 bg-background/70 backdrop-blur-sm">
-      <button
-        type="button"
-        aria-label="Close report dialog"
-        className="absolute inset-0"
-        onClick={onClose}
-      />
+  return (
+    <ModalShell onClose={onClose} containerClassName="max-w-md" ariaCloseLabel="Close report dialog">
+      <section className="theme-modal-panel relative w-full overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
+        <ModalHeader title={`Report ${targetType}`} onClose={onClose} closeAriaLabel="Close report dialog" align="start" />
 
-      <div className="relative mx-auto flex h-full w-full max-w-md items-center justify-center p-4">
-        <FocusLock returnFocus className="contents">
-        <section className="theme-modal-panel relative w-full overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
-          <div className="flex items-start justify-between border-b border-border/70 px-4 py-3">
-            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-              Report {targetType}
-            </p>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close report dialog"
-              className="inline-flex h-7 w-7 items-center justify-center border border-border/70 text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
-          {submitted ? (
+        {submitted ? (
             <div className="space-y-4 px-4 py-6 text-center">
               <p className="font-mono text-sm text-foreground">
                 Thanks — this has been reported for review.
@@ -178,10 +144,7 @@ const ReportContentDialogContent = ({
               ) : null}
             </div>
           )}
-        </section>
-        </FocusLock>
-      </div>
-    </div>,
-    document.body
+      </section>
+    </ModalShell>
   );
 };

@@ -1,5 +1,4 @@
 import type { FormEvent } from "react";
-import FocusLock from "react-focus-lock";
 import {
   AlertTriangle,
   MessageSquare,
@@ -8,6 +7,7 @@ import {
   Heart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ModalShell } from "@/components/ui/ModalShell";
 import { Textarea } from "@/components/ui/textarea";
 import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
 import { CalendarPicker } from "@/components/ui/CalendarPicker";
@@ -84,15 +84,14 @@ export const LogMediaDialog = ({
     ?? (year ? `${yearDescriptionLabel} ${year}` : yearDescriptionLabel ? `${yearDescriptionLabel} unavailable` : null);
 
   return (
-    <div
-      className="theme-modal-overlay fixed inset-0 z-150 flex items-center justify-center bg-background/80 p-2 backdrop-blur-sm sm:p-4"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
-      }}
+    <ModalShell
+      onClose={onClose}
+      portal={false}
+      closeOnEscape={false}
+      overlayClassName="z-150 bg-background/80 p-2 sm:p-4"
+      containerClassName="p-0"
+      ariaCloseLabel="Close review modal"
     >
-      <FocusLock returnFocus className="contents">
       <div
         role="dialog"
         aria-modal="true"
@@ -266,7 +265,6 @@ export const LogMediaDialog = ({
           </div>
         </form>
       </div>
-      </FocusLock>
-    </div>
+    </ModalShell>
   );
 };

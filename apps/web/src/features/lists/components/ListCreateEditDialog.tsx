@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import FocusLock from "react-focus-lock";
-import { X } from "lucide-react";
+import { useState } from "react";
+import { ModalHeader } from "@/components/ui/ModalHeader";
+import { ModalShell } from "@/components/ui/ModalShell";
 import { Spinner } from "@/components/ui/spinner";
 import { useCreateList, useUpdateList } from "@/features/lists/hooks/useLists";
 import type { ListSummary } from "@/features/lists/api";
@@ -47,14 +46,6 @@ const ListCreateEditDialogContent = (props: ListCreateEditDialogProps) => {
   const [isPublic, setIsPublic] = useState(initialPublic);
   const [isRanked, setIsRanked] = useState(initialRanked);
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onClose]);
-
   const createMutation = useCreateList(props.ownerUsername);
   const editListId = props.mode === "edit" ? props.list.id : "";
   const updateMutation = useUpdateList(editListId, props.ownerUsername);
@@ -83,32 +74,16 @@ const ListCreateEditDialogContent = (props: ListCreateEditDialogProps) => {
     onClose();
   };
 
-  return createPortal(
-    <div className="theme-modal-overlay fixed inset-0 z-140 bg-background/70 backdrop-blur-sm">
-      <button
-        type="button"
-        aria-label="Close dialog"
-        className="absolute inset-0"
-        onClick={onClose}
-      />
-      <div className="relative mx-auto flex h-full w-full max-w-md items-center justify-center p-4">
-        <FocusLock returnFocus className="contents">
-        <section className="theme-modal-panel relative w-full overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
-          <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
-            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-              {props.mode === "create" ? "New List" : "Edit List"}
-            </p>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label={props.mode === "create" ? "Close new list dialog" : "Close edit list dialog"}
-              className="inline-flex h-7 w-7 items-center justify-center border border-border/70 text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+  return (
+    <ModalShell onClose={onClose} containerClassName="max-w-md">
+      <section className="theme-modal-panel relative w-full overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
+        <ModalHeader
+          title={props.mode === "create" ? "New List" : "Edit List"}
+          onClose={onClose}
+          closeAriaLabel={props.mode === "create" ? "Close new list dialog" : "Close edit list dialog"}
+        />
 
-          <div className="space-y-4 px-4 py-4">
+        <div className="space-y-4 px-4 py-4">
             <div>
               <label className="mb-1.5 block font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                 Title
@@ -234,11 +209,8 @@ const ListCreateEditDialogContent = (props: ListCreateEditDialogProps) => {
                 )}
               </button>
             </div>
-          </div>
-        </section>
-        </FocusLock>
-      </div>
-    </div>,
-    document.body,
+        </div>
+      </section>
+    </ModalShell>
   );
 };
