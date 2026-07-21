@@ -91,7 +91,7 @@ Copy the structure from an existing theme block in the file as a template. The f
 Add the theme ID to the `ThemeRegistryId` union type:
 
 ```typescript
-type ThemeRegistryId = "rose-pine" | "null-log" | "gruvbox" | "your-theme-id";
+type ThemeRegistryId = "rose-pine" | "null-log" | "tokyo-night" | "amoled" | "your-theme-id";
 ```
 
 Missing this causes type errors wherever `ThemeRegistryId` is used as a narrowed string type.

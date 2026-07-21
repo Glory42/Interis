@@ -24,7 +24,7 @@ On next page load: bootstrapStoredTheme() reads localStorage, resolves against r
 
 ### Key concepts
 
-- **Theme ID**: A kebab-case string (e.g., `rose-pine`, `null-log`, `gruvbox`) that identifies a theme.
+- **Theme ID**: A kebab-case string (e.g., `rose-pine`, `null-log`, `tokyo-night`) that identifies a theme.
 - **Theme registry**: A JavaScript object (`window.__THIS_IS_CINEMA_THEME_REGISTRY__`) that maps theme IDs to their full definitions (label, description, preview swatches, CSS tokens). Loaded from `public/theme-registry.js` before React hydrates to prevent flash of unstyled content.
 - **CSS tokens**: Custom properties (e.g., `--background`, `--primary`, `--theme-shell-gradient`) applied to `:root` via `document.documentElement.style.setProperty()`.
 - **Supported themes**: A whitelist on both backend and frontend. Only themes in both lists are selectable.
@@ -62,7 +62,8 @@ Add your theme ID to `SUPPORTED_THEME_IDS`:
 export const SUPPORTED_THEME_IDS = [
   "rose-pine",
   "null-log",
-  "gruvbox",
+  "tokyo-night",
+  "amoled",
   "your-theme-id",  // <-- add here
 ] as const;
 ```
@@ -83,7 +84,7 @@ If you are retiring an existing theme, move it from `SUPPORTED_THEME_IDS` to the
 Add your theme ID to `SUPPORTED_THEME_IDS` (line 16):
 
 ```typescript
-const SUPPORTED_THEME_IDS = ["rose-pine", "null-log", "gruvbox", "your-theme-id"] as const;
+const SUPPORTED_THEME_IDS = ["rose-pine", "null-log", "tokyo-night", "amoled", "your-theme-id"] as const;
 ```
 
 Also update `DEFAULT_THEME_ID` (line 14) if you want your theme to be the new default.
@@ -154,7 +155,7 @@ window.__THIS_IS_CINEMA_DEFAULT_THEME_ID__ = "your-theme-id";
 
 **File:** `apps/web/src/index.css`
 
-Add a `:root[data-theme-id="your-theme-id"]` block with ALL tokens. Use an existing theme block (e.g., `:root[data-theme-id="gruvbox"]` starting at line 300) as a template.
+Add a `:root[data-theme-id="your-theme-id"]` block with ALL tokens. Use an existing theme block (e.g., `:root[data-theme-id="tokyo-night"]` starting at line 295) as a template.
 
 You must define every token that appears in the `:root` default block. Tokens not overridden will inherit from `:root`.
 
@@ -269,7 +270,7 @@ You must define every token that appears in the `:root` default block. Tokens no
 Update the `ThemeRegistryId` union type to include your theme:
 
 ```typescript
-type ThemeRegistryId = "rose-pine" | "null-log" | "gruvbox" | "your-theme-id";
+type ThemeRegistryId = "rose-pine" | "null-log" | "tokyo-night" | "amoled" | "your-theme-id";
 ```
 
 ---
@@ -282,7 +283,7 @@ Update the `CardDescription` text (around line 72) to include your theme name in
 
 ```tsx
 <CardDescription>
-  Choose between Rose Pine, NULL://LOG, Gruvbox, and Your Theme Name. Selection applies immediately and syncs to your account.
+  Choose between Rose Pine, NULL://LOG, Tokyo Night, AMOLED, and Your Theme Name. Selection applies immediately and syncs to your account.
 </CardDescription>
 ```
 

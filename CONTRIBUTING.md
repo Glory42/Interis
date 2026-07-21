@@ -39,7 +39,7 @@ Both packages run on Bun. The frontend proxies `/api` requests to the backend du
 - Public profile pages with stats, lists, likes, and watchlists
 - Public API endpoints (`/api/public/*`) for external widgets
 - Avatar uploads via Cloudflare R2
-- Theme system (rose-pine, null-log, gruvbox)
+- Theme system (rose-pine, null-log, tokyo-night, amoled)
 
 ## Architecture
 

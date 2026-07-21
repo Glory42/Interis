@@ -3,7 +3,7 @@ import { z } from "zod";
 export const SUPPORTED_THEME_IDS = [
   "rose-pine",
   "null-log",
-  "gruvbox",
+  "tokyo-night",
   "amoled",
 ] as const;
 
@@ -17,6 +17,7 @@ const THEME_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SUPPORTED_THEME_ID_SET = new Set<ThemeId>(SUPPORTED_THEME_IDS);
 
 const LEGACY_THEME_IDS = new Set([
+  "gruvbox",
   "arkheion",
   "amber-signal",
   "goth",
