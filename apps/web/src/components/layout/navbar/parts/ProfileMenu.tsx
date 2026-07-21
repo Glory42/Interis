@@ -87,6 +87,16 @@ export const ProfileMenu = ({
           >
             Profile
           </Link>
+          {user.isAdmin ? (
+            <Link
+              to="/admin"
+              viewTransition
+              className={dropdownItemClass}
+              onClick={onClose}
+            >
+              Admin
+            </Link>
+          ) : null}
           <div>
             <button
               type="button"

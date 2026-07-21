@@ -1,17 +1,15 @@
 import {
   Film,
   Rss,
-  Shield,
   Tv,
   type LucideIcon,
 } from "lucide-react";
 
 export type PrimaryNavItem = {
-  to: "/" | "/cinema" | "/serials" | "/admin";
+  to: "/" | "/cinema" | "/serials";
   label: string;
   icon: LucideIcon;
   exact?: boolean;
-  adminOnly?: boolean;
   activeColor?: string;
 };
 
@@ -34,13 +32,6 @@ export const primaryNavItems: PrimaryNavItem[] = [
     label: "SERIAL",
     icon: Tv,
     activeColor: "var(--module-serial)",
-  },
-  {
-    to: "/admin",
-    label: "ADMIN",
-    icon: Shield,
-    adminOnly: true,
-    activeColor: "var(--primary)",
   },
 ];
 
