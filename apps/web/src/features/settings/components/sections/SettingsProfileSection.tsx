@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Globe } from "lucide-react";
+import { Camera, Globe } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import {
@@ -99,159 +99,141 @@ export const SettingsProfileSection = () => {
 
   return (
     <div className="space-y-6">
-      <form onSubmit={handleSaveChanges} className="border p-6 space-y-5 settings-shell-border settings-shell-panel">
-        <p className="font-mono text-[10px] uppercase tracking-[0.16em] settings-shell-accent">
-          Profile Info
-        </p>
+      <form onSubmit={handleSaveChanges} className="border p-6 settings-shell-border settings-shell-panel">
+        <p className="mb-6 text-lg font-bold text-foreground">Profile Info</p>
 
-        <div>
-          <p className="mb-3 font-mono text-[9px] uppercase tracking-[0.16em] settings-shell-muted">
-            Avatar
-          </p>
+        <div className="flex flex-col gap-8 sm:flex-row">
+          <div className="shrink-0 sm:w-40">
+            <button
+              type="button"
+              onClick={openAvatarPicker}
+              disabled={isAvatarUploading}
+              className="group relative h-20 w-20 overflow-hidden border-2 settings-shell-border"
+              aria-label="Change avatar"
+            >
+              {avatarImage ? (
+                <img
+                  src={avatarImage}
+                  alt={`${user.username} avatar`}
+                  className="h-full w-full object-cover"
+                  style={{
+                    backgroundColor: "color-mix(in srgb, var(--primary) 8%, transparent)",
+                  }}
+                />
+              ) : (
+                <div
+                  className="flex h-full w-full items-center justify-center font-mono text-3xl font-bold settings-shell-accent"
+                  style={{
+                    backgroundColor: "color-mix(in srgb, var(--primary) 8%, transparent)",
+                  }}
+                >
+                  <span>{avatarInitial}</span>
+                </div>
+              )}
 
-          <div className="flex items-center gap-4">
-            {avatarImage ? (
-              <img
-                src={avatarImage}
-                alt={`${user.username} avatar`}
-                className="h-16 w-16 shrink-0 border-2 object-cover settings-shell-border"
-                style={{
-                  backgroundColor: "color-mix(in srgb, var(--primary) 8%, transparent)",
-                }}
-              />
-            ) : (
-              <div
-                className="flex h-16 w-16 shrink-0 items-center justify-center border-2 font-mono text-2xl font-bold settings-shell-border settings-shell-accent"
-                style={{
-                  backgroundColor: "color-mix(in srgb, var(--primary) 8%, transparent)",
-                }}
-              >
-                <span>{avatarInitial}</span>
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
+                <Camera className="h-5 w-5 text-white" aria-hidden="true" />
+                <span className="text-[11px] font-medium text-white">
+                  {isAvatarUploading ? "Uploading..." : "Change"}
+                </span>
               </div>
-            )}
+            </button>
 
-            <div className="space-y-2">
-              <button
-                type="button"
-                className="block border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors settings-shell-border settings-shell-dim-text hover:text-foreground"
-                onClick={openAvatarPicker}
-                disabled={isAvatarUploading}
-              >
-                {isAvatarUploading ? "Uploading..." : "Upload Image"}
-              </button>
-              <p className="font-mono text-[9px] settings-shell-muted">
-                JPEG, PNG or WebP · max 10MB
-              </p>
-            </div>
-          </div>
+            <p className="mt-3 text-sm font-semibold text-foreground">{user.username}</p>
+            <p className="mt-1 text-xs settings-shell-muted">JPEG, PNG or WebP · max 10MB</p>
 
-          <input
-            ref={avatarInputRef}
-            type="file"
-            accept={acceptValue}
-            className="hidden"
-            onChange={handleAvatarFileChange}
-          />
+            {avatarUploadError ? (
+              <p className="mt-2 text-xs text-destructive">{avatarUploadError}</p>
+            ) : null}
 
-          {avatarUploadError ? (
-            <p className="mt-3 border border-destructive/40 bg-destructive/10 px-3 py-2 font-mono text-xs text-destructive">
-              {avatarUploadError}
-            </p>
-          ) : null}
+            {avatarUploadSuccess ? (
+              <p className="mt-2 text-xs settings-shell-accent">{avatarUploadSuccess}</p>
+            ) : null}
 
-          {avatarUploadSuccess ? (
-            <p className="mt-3 border px-3 py-2 font-mono text-xs settings-shell-border settings-shell-accent settings-shell-active-pill">
-              {avatarUploadSuccess}
-            </p>
-          ) : null}
-        </div>
-
-        <div>
-          <label
-            className="mb-2 block font-mono text-[9px] uppercase tracking-[0.16em] settings-shell-muted"
-            htmlFor="settings-username"
-          >
-            Username
-          </label>
-          <input
-            id="settings-username"
-            className="w-full border bg-transparent px-3 py-2 font-mono text-xs text-foreground focus:outline-none settings-shell-border settings-shell-input"
-            placeholder="username"
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
-            minLength={USERNAME_MIN_LENGTH}
-            maxLength={USERNAME_MAX_LENGTH}
-            required
-          />
-        </div>
-
-        <div>
-          <label
-            className="mb-2 block font-mono text-[9px] uppercase tracking-[0.16em] settings-shell-muted"
-            htmlFor="settings-bio"
-          >
-            Bio
-          </label>
-          <textarea
-            id="settings-bio"
-            rows={3}
-            className="w-full resize-none border bg-transparent px-3 py-2 font-mono text-xs text-foreground focus:outline-none settings-shell-border settings-shell-input settings-shell-bio"
-            placeholder="Write something about yourself..."
-            value={bio}
-            onChange={(event) => setBio(event.target.value)}
-            maxLength={300}
-          />
-        </div>
-
-        <div>
-          <label
-            className="mb-2 block font-mono text-[9px] uppercase tracking-[0.16em] settings-shell-muted"
-            htmlFor="settings-location"
-          >
-            Location
-          </label>
-
-          <div className="relative">
-            <Globe
-              className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 settings-shell-muted"
-              aria-hidden="true"
-            />
             <input
-              id="settings-location"
-              className="w-full border bg-transparent py-2 pl-8 pr-3 font-mono text-xs text-foreground focus:outline-none settings-shell-border settings-shell-input"
-              placeholder="City, Country"
-              value={location}
-              onChange={(event) => setLocation(event.target.value)}
-              maxLength={100}
+              ref={avatarInputRef}
+              type="file"
+              accept={acceptValue}
+              className="hidden"
+              onChange={handleAvatarFileChange}
             />
           </div>
+
+          <div className="min-w-0 flex-1 space-y-3 border-t pt-6 sm:border-l sm:border-t-0 sm:pl-8 sm:pt-0 settings-shell-row-border">
+            <div>
+              <label className="mb-1 block text-xs font-medium settings-shell-muted" htmlFor="settings-username">
+                Username
+              </label>
+              <input
+                id="settings-username"
+                className="w-full border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+                placeholder="username"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                minLength={USERNAME_MIN_LENGTH}
+                maxLength={USERNAME_MAX_LENGTH}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium settings-shell-muted" htmlFor="settings-bio">
+                Bio
+              </label>
+              <textarea
+                id="settings-bio"
+                rows={3}
+                className="w-full resize-none border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input settings-shell-bio"
+                placeholder="Write something about yourself..."
+                value={bio}
+                onChange={(event) => setBio(event.target.value)}
+                maxLength={300}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium settings-shell-muted" htmlFor="settings-location">
+                Location
+              </label>
+
+              <div className="relative">
+                <Globe
+                  className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 settings-shell-muted"
+                  aria-hidden="true"
+                />
+                <input
+                  id="settings-location"
+                  className="w-full border bg-transparent py-2 pl-8 pr-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+                  placeholder="City, Country"
+                  value={location}
+                  onChange={(event) => setLocation(event.target.value)}
+                  maxLength={100}
+                />
+              </div>
+            </div>
+
+            {saveError ? (
+              <p role="alert" className="border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {saveError}
+              </p>
+            ) : null}
+
+            {saveSuccess ? (
+              <p role="status" className="border px-3 py-2 text-sm settings-shell-border settings-shell-accent settings-shell-active-pill">
+                {saveSuccess}
+              </p>
+            ) : null}
+
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              style={{ background: "var(--settings-shell-accent)", color: "var(--primary-foreground)" }}
+            >
+              {isSaving ? "Saving..." : "Save changes"}
+            </button>
+          </div>
         </div>
-
-        {saveError ? (
-          <p
-            role="alert"
-            className="border border-destructive/40 bg-destructive/10 px-3 py-2 font-mono text-xs text-destructive"
-          >
-            {saveError}
-          </p>
-        ) : null}
-
-        {saveSuccess ? (
-          <p
-            role="status"
-            className="border px-3 py-2 font-mono text-xs settings-shell-border settings-shell-accent settings-shell-active-pill"
-          >
-            {saveSuccess}
-          </p>
-        ) : null}
-
-        <button
-          type="submit"
-          disabled={isSaving}
-          className="border px-5 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors settings-shell-border settings-shell-accent settings-shell-active-pill disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {isSaving ? "Saving..." : "Save Changes"}
-        </button>
       </form>
     </div>
   );

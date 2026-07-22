@@ -1,10 +1,8 @@
-import { Link } from "@tanstack/react-router";
-import { useMatchRoute } from "@tanstack/react-router";
+import { Link, useMatchRoute } from "@tanstack/react-router";
 import { Download, Layers, Lock, Palette, ShieldOff, Trophy, User } from "lucide-react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { settingsSections } from "@/features/settings/model/settings.constants";
-
-const tabClass =
-  "flex w-full items-center gap-3 border-b border-l-2 px-4 py-3 text-left font-mono text-[11px] uppercase tracking-[0.16em] no-underline transition-all last:border-b-0";
+import type { SettingsSectionId } from "@/features/settings/model/settings.types";
 
 const iconBySection = {
   profile: User,
@@ -16,46 +14,71 @@ const iconBySection = {
   data: Download,
 } as const;
 
+const tabClass =
+  "relative z-10 flex items-center gap-2 whitespace-nowrap px-4 py-3 text-sm transition-colors";
+
+type IndicatorRect = { left: number; width: number };
+
 export const SettingsTabs = () => {
   const matchRoute = useMatchRoute();
+  const tabRefs = useRef<Partial<Record<SettingsSectionId, HTMLAnchorElement>>>({});
+  const [indicator, setIndicator] = useState<IndicatorRect | null>(null);
+
+  const activeSectionId = settingsSections.find((section) =>
+    Boolean(matchRoute({ to: section.to })),
+  )?.id;
+
+  useLayoutEffect(() => {
+    if (!activeSectionId) {
+      return;
+    }
+
+    const activeElement = tabRefs.current[activeSectionId];
+    if (activeElement) {
+      setIndicator({ left: activeElement.offsetLeft, width: activeElement.offsetWidth });
+    }
+  }, [activeSectionId]);
 
   return (
-    <nav className="shrink-0 sm:w-44">
-      <div className="space-y-0 border settings-shell-border">
-        {settingsSections.map((section) => {
-          const Icon = iconBySection[section.id];
-          const isActive = Boolean(matchRoute({ to: section.to }));
+    <nav
+      className="relative flex gap-0 overflow-x-auto border-b settings-shell-row-border"
+      aria-label="Settings sections"
+    >
+      {indicator ? (
+        <div
+          className="absolute bottom-0 h-0.5 transition-all duration-300 ease-out"
+          style={{
+            left: indicator.left,
+            width: indicator.width,
+            background: "var(--settings-shell-accent)",
+          }}
+        />
+      ) : null}
 
-          return (
-            <Link
-              key={section.id}
-              to={section.to}
-              className={tabClass}
-              style={
-                isActive
-                  ? {
-                      borderColor:
-                        "var(--settings-shell-row-border) var(--settings-shell-row-border) var(--settings-shell-row-border) var(--settings-shell-accent)",
-                      background:
-                        "color-mix(in srgb, var(--settings-shell-accent) 10%, transparent)",
-                      color: "var(--settings-shell-accent)",
-                    }
-                  : {
-                      borderColor:
-                        "var(--settings-shell-row-border) var(--settings-shell-row-border) var(--settings-shell-row-border) transparent",
-                      background: "transparent",
-                      color: "var(--settings-shell-dim)",
-                    }
+      {settingsSections.map((section) => {
+        const Icon = iconBySection[section.id];
+        const isActive = activeSectionId === section.id;
+
+        return (
+          <Link
+            key={section.id}
+            ref={(el) => {
+              if (el) {
+                tabRefs.current[section.id] = el;
               }
-              viewTransition
-              aria-current={isActive ? "page" : undefined}
-            >
-              <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              <span>{section.label}</span>
-            </Link>
-          );
-        })}
-      </div>
+            }}
+            to={section.to}
+            className={tabClass}
+            style={{
+              color: isActive ? "var(--settings-shell-accent)" : "var(--settings-shell-muted)",
+            }}
+            aria-current={isActive ? "page" : undefined}
+          >
+            <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <span>{section.label}</span>
+          </Link>
+        );
+      })}
     </nav>
   );
 };

@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { getPosterUrl } from "@/features/films/components/utils";
 import type { TopPickCategoryKey, TopPickSlot } from "./models";
 
 type FavoritesSlotListProps = {
@@ -19,18 +20,31 @@ export const FavoritesSlotList = ({
   return (
     <div className="space-y-2">
       {slots.map((slot, index) => (
-        <div key={`${category}-slot-${index + 1}`} className="flex items-center gap-2">
-          <span className="w-4 shrink-0 text-right font-mono text-[9px] settings-shell-muted">
-            {index + 1}.
-          </span>
+        <div key={`${category}-slot-${index + 1}`} className="flex items-center gap-3">
+          <span className="w-4 shrink-0 text-right text-xs settings-shell-muted">{index + 1}.</span>
 
           <button
             type="button"
             onClick={() => onOpenSlotPicker(category, index)}
-            className="flex-1 border px-3 py-1.5 text-left font-mono text-xs focus:outline-none transition-colors settings-shell-border settings-shell-input hover:border-[color:var(--profile-shell-accent)]"
+            className="flex flex-1 items-center gap-3 border px-3 py-2 text-left focus:outline-none transition-colors settings-shell-border settings-shell-input hover:border-[color:var(--settings-shell-accent)]"
             disabled={isBusy}
           >
-            <span className={slot ? "text-foreground" : "settings-shell-muted"}>
+            {slot ? (
+              <span
+                className="h-10 w-7 shrink-0 overflow-hidden border settings-shell-border"
+                style={{ background: "color-mix(in srgb, var(--settings-shell-bg) 85%, black)" }}
+              >
+                {slot.posterPath ? (
+                  <img
+                    src={getPosterUrl(slot.posterPath)}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                ) : null}
+              </span>
+            ) : null}
+
+            <span className={"text-sm " + (slot ? "text-foreground" : "settings-shell-muted")}>
               {slot?.title ?? `${category === "cinema" ? "Cinema" : "Serial"} #${index + 1}`}
             </span>
           </button>
@@ -42,7 +56,7 @@ export const FavoritesSlotList = ({
             disabled={!slot || isBusy}
             aria-label={`Clear ${category} slot ${index + 1}`}
           >
-            <X className="h-3 w-3" aria-hidden="true" />
+            <X className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
         </div>
       ))}

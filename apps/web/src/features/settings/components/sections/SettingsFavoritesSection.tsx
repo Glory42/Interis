@@ -22,24 +22,19 @@ export const SettingsFavoritesSection = () => {
   return (
     <div className="space-y-4">
       <div className="border p-5 settings-shell-border settings-shell-panel">
-        <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.16em] settings-shell-accent">
-          Top Picks
-        </p>
-        <p className="mb-5 font-mono text-[10px] settings-shell-muted">
+        <p className="mb-1 text-base font-bold text-foreground">Top Picks</p>
+        <p className="mb-5 text-sm settings-shell-muted">
           Set up to 4 favorites for Cinema and Serial. These appear as a showcase on your public profile.
         </p>
 
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div>
             <div className="mb-3 flex items-center gap-2">
               <Film className="h-3.5 w-3.5" style={{ color: "var(--module-cinema)" }} />
-              <span
-                className="font-mono text-[9px] uppercase tracking-[0.16em]"
-                style={{ color: "var(--module-cinema)" }}
-              >
+              <span className="text-sm font-semibold" style={{ color: "var(--module-cinema)" }}>
                 Cinema
               </span>
-              <span className="font-mono text-[9px] settings-shell-muted">
+              <span className="text-xs settings-shell-muted">
                 ({controller.selectedCinemaCount}/4)
               </span>
             </div>
@@ -56,13 +51,10 @@ export const SettingsFavoritesSection = () => {
           <div>
             <div className="mb-3 flex items-center gap-2">
               <Tv className="h-3.5 w-3.5" style={{ color: "var(--module-serial)" }} />
-              <span
-                className="font-mono text-[9px] uppercase tracking-[0.16em]"
-                style={{ color: "var(--module-serial)" }}
-              >
+              <span className="text-sm font-semibold" style={{ color: "var(--module-serial)" }}>
                 Serial
               </span>
-              <span className="font-mono text-[9px] settings-shell-muted">
+              <span className="text-xs settings-shell-muted">
                 ({controller.selectedSerialCount}/4)
               </span>
             </div>
@@ -78,25 +70,25 @@ export const SettingsFavoritesSection = () => {
         </div>
 
         {controller.topPicksQuery.isPending ? (
-          <p className="mt-4 flex items-center gap-2 font-mono text-xs settings-shell-muted">
+          <p className="mt-4 flex items-center gap-2 text-sm settings-shell-muted">
             <Spinner className="h-3.5 w-3.5" /> Loading saved favorites...
           </p>
         ) : null}
 
         {controller.topPicksQuery.isError ? (
-          <p className="mt-4 border border-destructive/40 bg-destructive/10 px-3 py-2 font-mono text-xs text-destructive">
+          <p className="mt-4 border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             Could not load saved favorites.
           </p>
         ) : null}
 
         {controller.saveError ? (
-          <p className="mt-4 border border-destructive/40 bg-destructive/10 px-3 py-2 font-mono text-xs text-destructive">
+          <p className="mt-4 border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {controller.saveError}
           </p>
         ) : null}
 
         {controller.saveSuccess ? (
-          <p className="mt-4 border px-3 py-2 font-mono text-xs settings-shell-border settings-shell-accent settings-shell-active-pill">
+          <p className="mt-4 border px-3 py-2 text-sm settings-shell-border settings-shell-accent settings-shell-active-pill">
             {controller.saveSuccess}
           </p>
         ) : null}
@@ -107,9 +99,10 @@ export const SettingsFavoritesSection = () => {
             void controller.handleSaveFavorites();
           }}
           disabled={controller.updateProfileMutation.isPending || !controller.isDirty}
-          className="mt-6 border px-5 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors settings-shell-border settings-shell-accent settings-shell-active-pill disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-5 px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          style={{ background: "var(--settings-shell-accent)", color: "var(--primary-foreground)" }}
         >
-          {controller.updateProfileMutation.isPending ? "Saving..." : "Save Favorites"}
+          {controller.updateProfileMutation.isPending ? "Saving..." : "Save favorites"}
         </button>
       </div>
 

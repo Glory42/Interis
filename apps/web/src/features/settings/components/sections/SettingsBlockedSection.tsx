@@ -10,7 +10,7 @@ import {
 } from "@/features/moderation/hooks/useModeration";
 
 const rowClass =
-  "flex items-center gap-3 border-b px-4 py-3 last:border-0 settings-shell-row-border";
+  "flex items-center gap-3 border-b px-4 py-2.5 last:border-0 settings-shell-row-border";
 
 const UnblockButton = ({ username }: { username: string }) => {
   const unblockMutation = useUnblockUser(username);
@@ -20,7 +20,7 @@ const UnblockButton = ({ username }: { username: string }) => {
       type="button"
       disabled={unblockMutation.isPending}
       onClick={() => unblockMutation.mutate()}
-      className="shrink-0 border px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.12em] transition-colors settings-shell-border settings-shell-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+      className="shrink-0 border px-3 py-1.5 text-xs font-medium transition-colors settings-shell-border settings-shell-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
     >
       {unblockMutation.isPending ? "Saving" : "Unblock"}
     </button>
@@ -35,7 +35,7 @@ const UnmuteButton = ({ username }: { username: string }) => {
       type="button"
       disabled={unmuteMutation.isPending}
       onClick={() => unmuteMutation.mutate()}
-      className="shrink-0 border px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.12em] transition-colors settings-shell-border settings-shell-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+      className="shrink-0 border px-3 py-1.5 text-xs font-medium transition-colors settings-shell-border settings-shell-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
     >
       {unmuteMutation.isPending ? "Saving" : "Unmute"}
     </button>
@@ -68,12 +68,10 @@ const UserRow = ({
         params={{ username: moderatedUser.username }}
         className="min-w-0 flex-1"
       >
-        <p className="truncate font-mono text-sm font-medium settings-shell-accent">
+        <p className="truncate text-sm font-semibold settings-shell-accent">
           {moderatedUser.displayUsername ?? moderatedUser.username}
         </p>
-        <p className="truncate font-mono text-[10px] settings-shell-muted">
-          @{moderatedUser.username}
-        </p>
+        <p className="truncate text-xs settings-shell-muted">@{moderatedUser.username}</p>
       </Link>
 
       {action === "unblock" ? (
@@ -90,13 +88,11 @@ export const SettingsBlockedSection = () => {
   const mutedQuery = useMutedUsers();
 
   return (
-    <div className="space-y-6">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <div className="border settings-shell-border settings-shell-panel">
-        <div className="border-b px-6 py-4 settings-shell-row-border">
-          <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.16em] settings-shell-accent">
-            Blocked Users
-          </p>
-          <p className="font-mono text-[10px] settings-shell-muted">
+        <div className="border-b px-5 py-4 settings-shell-row-border">
+          <p className="mb-1 text-base font-bold text-foreground">Blocked Users</p>
+          <p className="text-sm settings-shell-muted">
             Blocked users can't follow you, and their activity is hidden from your feed.
           </p>
         </div>
@@ -106,11 +102,11 @@ export const SettingsBlockedSection = () => {
             <Spinner />
           </div>
         ) : blockedQuery.isError ? (
-          <p className="py-10 text-center font-mono text-xs settings-shell-muted">
+          <p className="py-10 text-center text-sm settings-shell-muted">
             Could not load blocked users.
           </p>
         ) : blockedQuery.data.length === 0 ? (
-          <p className="py-10 text-center font-mono text-xs settings-shell-muted">
+          <p className="py-10 text-center text-sm settings-shell-muted">
             You haven't blocked anyone.
           </p>
         ) : (
@@ -123,11 +119,9 @@ export const SettingsBlockedSection = () => {
       </div>
 
       <div className="border settings-shell-border settings-shell-panel">
-        <div className="border-b px-6 py-4 settings-shell-row-border">
-          <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.16em] settings-shell-accent">
-            Muted Users
-          </p>
-          <p className="font-mono text-[10px] settings-shell-muted">
+        <div className="border-b px-5 py-4 settings-shell-row-border">
+          <p className="mb-1 text-base font-bold text-foreground">Muted Users</p>
+          <p className="text-sm settings-shell-muted">
             Muted users don't know you've muted them. Their activity is hidden from your feed only.
           </p>
         </div>
@@ -137,11 +131,11 @@ export const SettingsBlockedSection = () => {
             <Spinner />
           </div>
         ) : mutedQuery.isError ? (
-          <p className="py-10 text-center font-mono text-xs settings-shell-muted">
+          <p className="py-10 text-center text-sm settings-shell-muted">
             Could not load muted users.
           </p>
         ) : mutedQuery.data.length === 0 ? (
-          <p className="py-10 text-center font-mono text-xs settings-shell-muted">
+          <p className="py-10 text-center text-sm settings-shell-muted">
             You haven't muted anyone.
           </p>
         ) : (

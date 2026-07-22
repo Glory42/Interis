@@ -58,17 +58,15 @@ export const SettingsThemeSection = () => {
   const themeOptions = listThemes();
 
   return (
-    <div className="border p-6 space-y-5 settings-shell-border settings-shell-panel">
+    <div className="border p-6 sm:p-8 space-y-6 settings-shell-border settings-shell-panel">
       <div>
-        <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.16em] settings-shell-accent">
-          Appearance
-        </p>
-        <p className="font-mono text-[10px] settings-shell-muted">
+        <p className="mb-1 text-lg font-bold text-foreground">Appearance</p>
+        <p className="text-sm settings-shell-muted">
           Choose between Rose Pine, NULL://LOG, Tokyo Night, and AMOLED. Selection applies immediately.
         </p>
       </div>
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {themeOptions.map((theme) => {
           const isActive = theme.id === activeThemeId;
 
@@ -102,7 +100,7 @@ export const SettingsThemeSection = () => {
 
                   <span
                     className={
-                      "font-mono text-xs font-bold " +
+                      "text-sm font-semibold " +
                       (isActive ? "settings-shell-accent" : "text-foreground")
                     }
                   >
@@ -110,36 +108,34 @@ export const SettingsThemeSection = () => {
                   </span>
 
                   {isActive ? (
-                    <span className="border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.16em] settings-shell-border settings-shell-accent">
+                    <span
+                      className="px-1.5 py-0.5 text-xs font-medium"
+                      style={{ background: "var(--settings-shell-accent)", color: "var(--primary-foreground)" }}
+                    >
                       Active
                     </span>
                   ) : null}
                 </div>
 
-                <span
-                  className={
-                    "flex h-4 w-4 items-center justify-center border " +
-                    (isActive ? "settings-shell-border" : "settings-shell-border")
-                  }
-                >
+                <span className="flex h-4 w-4 items-center justify-center border settings-shell-border">
                   {isActive ? <span className="h-2 w-2 settings-shell-dot" aria-hidden="true" /> : null}
                 </span>
               </div>
 
-              <p className="font-mono text-[10px] settings-shell-dim-text">{theme.description}</p>
+              <p className="text-xs settings-shell-dim-text">{theme.description}</p>
             </button>
           );
         })}
       </div>
 
       {themeError ? (
-        <p className="border border-destructive/40 bg-destructive/10 px-3 py-2 font-mono text-xs text-destructive">
+        <p className="border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {themeError}
         </p>
       ) : null}
 
       {themeSuccess ? (
-        <p className="border px-3 py-2 font-mono text-xs settings-shell-border settings-shell-accent settings-shell-active-pill">
+        <p className="border px-3 py-2 text-sm settings-shell-border settings-shell-accent settings-shell-active-pill">
           {themeSuccess}
         </p>
       ) : null}
