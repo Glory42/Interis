@@ -50,16 +50,9 @@ export const ModalShell = ({
         "theme-modal-overlay fixed inset-0 z-140 bg-background/70 backdrop-blur-sm",
         overlayClassName,
       )}
+      aria-label={closeOnBackdropClick ? ariaCloseLabel : undefined}
+      onClick={closeOnBackdropClick ? onClose : undefined}
     >
-      {closeOnBackdropClick ? (
-        <button
-          type="button"
-          aria-label={ariaCloseLabel}
-          className="absolute inset-0"
-          onClick={onClose}
-        />
-      ) : null}
-
       <div
         className={cn(
           "relative mx-auto flex h-full w-full items-center justify-center p-4",
@@ -67,7 +60,9 @@ export const ModalShell = ({
         )}
       >
         <FocusLock returnFocus className="contents">
-          {children}
+          <div className="contents" onClick={(event) => event.stopPropagation()}>
+            {children}
+          </div>
         </FocusLock>
       </div>
     </div>
