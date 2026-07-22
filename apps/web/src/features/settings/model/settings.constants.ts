@@ -13,7 +13,7 @@ export const IMAGE_UPLOAD_MIME_TYPE_SET = new Set<string>(
   IMAGE_UPLOAD_MIME_TYPES,
 );
 
-export const MAX_FAVORITE_GENRES = 8;
+export const MAX_FAVORITE_GENRES = 4;
 
 export const FAVORITE_GENRE_OPTIONS: FavoriteGenre[] = [...favoriteGenreValues];
 

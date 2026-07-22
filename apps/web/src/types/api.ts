@@ -234,7 +234,7 @@ export const updateProfileInputSchema = z.object({
   location: z.string().max(100).optional(),
   avatarUrl: z.url().optional().or(z.literal("")),
   topPicks: z.array(updateTopPickCategoryInputSchema).max(2).optional(),
-  favoriteGenres: z.array(favoriteGenreSchema).max(8).optional(),
+  favoriteGenres: z.array(favoriteGenreSchema).max(4).optional(),
 });
 
 export const profileUpdateResponseSchema = z

@@ -1,4 +1,4 @@
-export const MAX_FAVORITE_GENRES = 8;
+export const MAX_FAVORITE_GENRES = 4;
 
 export const FAVORITE_GENRES = [
   "Action",
