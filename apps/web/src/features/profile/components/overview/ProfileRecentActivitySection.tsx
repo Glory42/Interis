@@ -1,4 +1,7 @@
 import { Link } from "@tanstack/react-router";
+import { Film, Tv } from "lucide-react";
+import { useState } from "react";
+import { getPosterUrl } from "@/features/films/components/utils";
 import { getRelativeTime } from "@/features/profile/utils/profile.utils";
 import type { ProfileRecentActivityItem } from "./profileOverview.utils";
 
@@ -10,6 +13,38 @@ type ProfileRecentActivitySectionProps = {
 
 const formatActionLabel = (action: ProfileRecentActivityItem["actionLabel"]): string => {
   return action.toLowerCase();
+};
+
+const ActivityThumbnail = ({ item }: { item: ProfileRecentActivityItem }) => {
+  const [didPosterFail, setDidPosterFail] = useState(false);
+  const isSerial = item.mediaType === "tv";
+  const accentColor = isSerial ? "var(--module-serial)" : "var(--module-cinema)";
+  const Icon = isSerial ? Tv : Film;
+  const posterUrl = item.posterPath ? getPosterUrl(item.posterPath) : null;
+  const showPoster = Boolean(posterUrl && !didPosterFail);
+
+  return (
+    <div
+      className="h-10 w-7 shrink-0 overflow-hidden border"
+      style={{
+        borderColor: `color-mix(in srgb, ${accentColor} 30%, transparent)`,
+        background: "color-mix(in srgb, var(--profile-shell-bg) 85%, black)",
+      }}
+    >
+      {showPoster ? (
+        <img
+          src={posterUrl ?? undefined}
+          alt=""
+          className="h-full w-full object-cover"
+          onError={() => setDidPosterFail(true)}
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center">
+          <Icon className="h-3 w-3" style={{ color: accentColor, opacity: 0.5 }} aria-hidden="true" />
+        </div>
+      )}
+    </div>
+  );
 };
 
 export const ProfileRecentActivitySection = ({
@@ -56,6 +91,8 @@ export const ProfileRecentActivitySection = ({
                 style={{ backgroundColor: accentColor }}
                 aria-hidden="true"
               />
+
+              <ActivityThumbnail item={item} />
 
               <div className="min-w-0 flex-1">
                 <span className="font-mono text-xs profile-shell-muted">

@@ -6,6 +6,7 @@ export type ProfileRecentActivityItem = {
   tmdbId: number;
   mediaType: "movie" | "tv";
   mediaTitle: string;
+  posterPath: string | null;
   actionLabel: string;
   ratingLabel: string | null;
   createdAt: string;
@@ -42,6 +43,7 @@ export const buildRecentActivityItems = (
         tmdbId: media.tmdbId,
         mediaType: media.mediaType,
         mediaTitle: media.title,
+        posterPath: media.posterPath,
         actionLabel: "Logged",
         ratingLabel: null,
         createdAt: activity.createdAt,
@@ -53,6 +55,7 @@ export const buildRecentActivityItems = (
           tmdbId: media.tmdbId,
           mediaType: media.mediaType,
           mediaTitle: media.title,
+          posterPath: media.posterPath,
           actionLabel: "Reviewed",
           ratingLabel: null,
           createdAt: activity.createdAt,
@@ -65,6 +68,7 @@ export const buildRecentActivityItems = (
           tmdbId: media.tmdbId,
           mediaType: media.mediaType,
           mediaTitle: media.title,
+          posterPath: media.posterPath,
           actionLabel: "Rated",
           ratingLabel: formatRatingLabel(activity.metadata.rating),
           createdAt: activity.createdAt,
@@ -79,6 +83,7 @@ export const buildRecentActivityItems = (
       tmdbId: media.tmdbId,
       mediaType: media.mediaType,
       mediaTitle: media.title,
+      posterPath: media.posterPath,
       actionLabel:
         activity.kind === "review"
           ? "Reviewed"

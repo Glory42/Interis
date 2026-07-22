@@ -211,8 +211,8 @@ export const ProfileLayout = ({
         isOwnProfile={isOwnProfile}
       />
 
-      <div className="mx-auto w-full max-w-5xl px-4 py-8">
-        <div className="mb-8 border-b pb-8 profile-shell-border">
+      <div className="mx-auto w-full max-w-5xl px-4 py-10">
+        <div className="mb-5">
           <ProfileHeaderCompact
             key={profile.username}
             profile={profile}
@@ -235,7 +235,7 @@ export const ProfileLayout = ({
 
         <ProfileTabs username={username} activeTab={activeTab} />
 
-        <div>
+        <div className="mt-8">
           {typeof children === "function" ? children(profile) : children}
         </div>
       </div>

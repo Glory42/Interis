@@ -9,6 +9,7 @@ import {
   Star,
   User,
 } from "lucide-react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 export type ProfileTab =
   | "overview"
@@ -26,19 +27,7 @@ type ProfileTabsProps = {
 };
 
 const tabClass =
-  "flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.16em] transition-colors";
-
-const activeTabStyle = {
-  borderBottomColor: "var(--profile-shell-accent)",
-  color: "var(--profile-shell-accent)",
-  marginBottom: "-1px",
-} as const;
-
-const inactiveTabStyle = {
-  borderBottomColor: "transparent",
-  color: "var(--profile-shell-muted)",
-  marginBottom: "-1px",
-} as const;
+  "relative z-10 flex items-center gap-2 whitespace-nowrap px-4 py-3 text-sm transition-colors";
 
 const tabItems: Array<{
   id: ProfileTab;
@@ -100,9 +89,32 @@ const tabItems: Array<{
   },
 ];
 
+type IndicatorRect = { left: number; width: number };
+
 export const ProfileTabs = ({ username, activeTab }: ProfileTabsProps) => {
+  const tabRefs = useRef<Partial<Record<ProfileTab, HTMLAnchorElement>>>({});
+  const [indicator, setIndicator] = useState<IndicatorRect | null>(null);
+
+  useLayoutEffect(() => {
+    const activeElement = tabRefs.current[activeTab];
+    if (activeElement) {
+      setIndicator({ left: activeElement.offsetLeft, width: activeElement.offsetWidth });
+    }
+  }, [activeTab]);
+
   return (
-    <nav className="mb-8 flex gap-0 overflow-x-auto border-b profile-shell-border">
+    <nav className="relative flex gap-0 overflow-x-auto" aria-label="Profile sections">
+      {indicator ? (
+        <div
+          className="absolute bottom-0 h-0.5 transition-all duration-300 ease-out"
+          style={{
+            left: indicator.left,
+            width: indicator.width,
+            background: "var(--profile-shell-accent)",
+          }}
+        />
+      ) : null}
+
       {tabItems.map((tab) => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id;
@@ -110,12 +122,16 @@ export const ProfileTabs = ({ username, activeTab }: ProfileTabsProps) => {
         return (
           <Link
             key={tab.id}
+            ref={(el) => {
+              if (el) {
+                tabRefs.current[tab.id] = el;
+              }
+            }}
             to={tab.to}
             params={{ username }}
             className={tabClass}
-            style={isActive ? activeTabStyle : inactiveTabStyle}
+            style={{ color: isActive ? "var(--profile-shell-accent)" : "var(--profile-shell-muted)" }}
             resetScroll={false}
-            viewTransition
             aria-label={tab.label}
           >
             <Icon className="h-3.5 w-3.5" aria-hidden="true" />
