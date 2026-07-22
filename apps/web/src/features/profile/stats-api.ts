@@ -5,7 +5,9 @@ const detailedStatsSchema = z.object({
   entriesPerMonth: z.array(z.object({ month: z.string(), count: z.number() })),
   ratingDistribution: z.array(z.object({ rating: z.number(), count: z.number() })),
   topGenres: z.array(z.object({ genre: z.string(), count: z.number() })),
-  topDirectors: z.array(z.object({ director: z.string(), count: z.number() })),
+  topDirectors: z.array(
+    z.object({ director: z.string(), count: z.number(), slug: z.string().nullable() }),
+  ),
 });
 
 export type DetailedStats = z.infer<typeof detailedStatsSchema>;

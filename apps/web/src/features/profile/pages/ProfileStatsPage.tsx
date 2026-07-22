@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import {
   Bar,
   BarChart,
@@ -157,7 +158,18 @@ export const ProfileStatsPage = ({ username }: ProfileStatsPageProps) => {
           <ul className="space-y-2">
             {topDirectors.map((row) => (
               <li key={row.director} className="flex items-center justify-between text-sm">
-                <span className="text-foreground/90">{row.director}</span>
+                {row.slug ? (
+                  <Link
+                    to="/director/$slug"
+                    params={{ slug: row.slug }}
+                    className="text-foreground/90 hover:text-primary hover:underline"
+                    viewTransition
+                  >
+                    {row.director}
+                  </Link>
+                ) : (
+                  <span className="text-foreground/90">{row.director}</span>
+                )}
                 <span className="font-mono text-xs profile-shell-accent">{row.count}</span>
               </li>
             ))}

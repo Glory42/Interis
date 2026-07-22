@@ -152,14 +152,22 @@ export class UsersStatsRepository {
           ORDER BY count DESC
           LIMIT 8
         `),
-        db.execute<{ director: string; count: number }>(sql`
-          SELECT m.director AS director, count(*)::int AS count
-          FROM diary_entry d
-          JOIN movie m ON m.id = d.movie_id
-          WHERE d.user_id = ${userId} AND m.director IS NOT NULL AND m.director != ''
-          GROUP BY m.director
-          ORDER BY count DESC
-          LIMIT 8
+        db.execute<{ director: string; count: number; slug: string | null }>(sql`
+          WITH director_counts AS (
+            SELECT m.director AS director, count(*)::int AS count
+            FROM diary_entry d
+            JOIN movie m ON m.id = d.movie_id
+            WHERE d.user_id = ${userId} AND m.director IS NOT NULL AND m.director != ''
+            GROUP BY m.director
+            ORDER BY count DESC
+            LIMIT 8
+          )
+          SELECT dc.director, dc.count, p.slug AS slug
+          FROM director_counts dc
+          LEFT JOIN LATERAL (
+            SELECT slug FROM person WHERE lower(person.name) = lower(dc.director) LIMIT 1
+          ) p ON true
+          ORDER BY dc.count DESC
         `),
       ]);
 
