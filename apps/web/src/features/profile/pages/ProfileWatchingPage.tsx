@@ -22,7 +22,7 @@ export const ProfileWatchingPage = ({ username }: ProfileWatchingPageProps) => {
       {currentlyWatchingQuery.isPending ? <ProfileMediaGridSkeleton /> : null}
 
       {currentlyWatchingQuery.isError ? (
-        <div className="border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+        <div className="rounded-xl border border-border/60 bg-card/30 p-4 text-sm text-destructive">
           Could not load currently watching.
         </div>
       ) : null}
@@ -52,7 +52,7 @@ export const ProfileWatchingPage = ({ username }: ProfileWatchingPageProps) => {
                 key={`watching-${item.tmdbId}`}
                 to="/serials/$tmdbId"
                 params={{ tmdbId: String(item.tmdbId) }}
-                className="group block border border-border/70 bg-card/25 transition-colors hover:border-border"
+                className="group block overflow-hidden rounded-lg border border-border/70 bg-card/25 transition-colors hover:border-border"
                 viewTransition
               >
                 <div className="aspect-2/3 overflow-hidden border-b border-border/70">

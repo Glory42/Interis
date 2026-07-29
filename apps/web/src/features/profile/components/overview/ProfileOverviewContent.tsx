@@ -16,7 +16,7 @@ export const ProfileOverviewContent = ({ username }: ProfileOverviewContentProps
 
   if (recentActivityQuery.isError && topPicksQuery.isError) {
     return (
-      <div className="border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+      <div className="rounded-lg border border-border/60 bg-card/30 p-4 text-sm text-destructive">
         Could not load profile overview.
       </div>
     );

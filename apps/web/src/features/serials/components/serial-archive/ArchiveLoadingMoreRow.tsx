@@ -5,7 +5,7 @@ export const ArchiveLoadingMoreRow = () => {
       {Array.from({ length: 6 }).map((_, index) => (
         <div
           key={`serial-archive-loading-grid-${index}`}
-          className="aspect-2/3 animate-pulse border"
+          className="aspect-2/3 animate-pulse rounded-lg border"
           style={{
             borderColor: SERIAL_MODULE_STYLES.border,
             background: SERIAL_MODULE_STYLES.panel,

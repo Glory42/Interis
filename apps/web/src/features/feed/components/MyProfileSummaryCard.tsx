@@ -19,14 +19,14 @@ export const MyProfileSummaryCard = ({
 }: MyProfileSummaryCardProps) => {
   if (!user) {
     return (
-      <section className="border border-border/50 bg-card/30 p-5">
+      <section className="rounded-2xl border border-border/50 bg-card/30 p-5">
         <p className="theme-kicker mb-2 text-[9px] text-primary">Your profile</p>
         <p className="text-xs text-muted-foreground">
           Sign in to see your stats and recent activity.
         </p>
         <Link
           to="/login"
-          className="mt-3 inline-block border border-primary/45 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/15"
+          className="mt-3 inline-block rounded-full border border-primary/45 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/15"
         >
           Sign in
         </Link>
@@ -36,7 +36,7 @@ export const MyProfileSummaryCard = ({
 
   if (isLoading || !summary) {
     return (
-      <section className="border border-border/50 bg-card/30 p-5">
+      <section className="rounded-2xl border border-border/50 bg-card/30 p-5">
         <div className="flex animate-pulse items-center gap-3">
           <div className="h-12 w-12 shrink-0 bg-muted/40" />
           <div className="min-w-0 flex-1 space-y-2">
@@ -50,7 +50,7 @@ export const MyProfileSummaryCard = ({
 
   if (isError) {
     return (
-      <section className="border border-border/50 bg-card/30 p-5">
+      <section className="rounded-2xl border border-border/50 bg-card/30 p-5">
         <p className="text-xs text-destructive">Could not load your profile.</p>
       </section>
     );
@@ -59,7 +59,7 @@ export const MyProfileSummaryCard = ({
   const displayName = summary.displayUsername ?? summary.username;
 
   return (
-    <section className="border border-border/50 bg-card/30 p-5">
+    <section className="rounded-2xl border border-border/50 bg-card/30 p-5">
       <Link
         to="/profile/$username"
         params={{ username: summary.username }}
@@ -107,10 +107,10 @@ export const MyProfileSummaryCard = ({
                   src={getPosterUrl(poster.posterPath)}
                   alt={`${poster.title} poster`}
                   loading="lazy"
-                  className="h-12 w-8 flex-1 object-cover"
+                  className="h-12 w-8 flex-1 rounded-md object-cover"
                 />
               ) : (
-                <span key={poster.tmdbId} className="h-12 w-8 flex-1 bg-muted/40" />
+                <span key={poster.tmdbId} className="h-12 w-8 flex-1 rounded-md bg-muted/40" />
               ),
             )}
           </div>

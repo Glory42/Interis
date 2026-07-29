@@ -190,7 +190,7 @@ export const GlobalSearchDialog = ({
                     state.returnToHomeMode();
                     focusInput();
                   }}
-                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:bg-secondary/45 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary/45 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                   aria-label="Back to global search"
                 >
                   <ArrowLeft className="h-4 w-4" />
@@ -226,7 +226,7 @@ export const GlobalSearchDialog = ({
                 <button
                   type="button"
                   onClick={closeDialog}
-                  className="p-0.5 text-muted-foreground/60 transition-colors hover:text-foreground"
+                  className="rounded-full p-0.5 text-muted-foreground/60 transition-colors hover:text-foreground"
                   aria-label="Close search"
                 >
                   <X className="h-3.5 w-3.5" />

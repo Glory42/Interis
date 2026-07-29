@@ -76,7 +76,7 @@ export const ProfileMediaInteractionGridSection = ({
       {isPending ? <ProfileMediaGridSkeleton /> : null}
 
       {isError ? (
-        <div className=" border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+        <div className="rounded-xl border border-border/60 bg-card/30 p-4 text-sm text-destructive">
           {errorLabel}
         </div>
       ) : null}
@@ -104,7 +104,7 @@ export const ProfileMediaInteractionGridSection = ({
                   <button
                     key={`${sectionTitle}-filter-${filterTab.key}`}
                     type="button"
-                    className="border px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest transition-colors"
+                    className="rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest transition-colors"
                     style={
                       isActive
                         ? {
@@ -152,7 +152,7 @@ export const ProfileMediaInteractionGridSection = ({
                 type="button"
                 disabled={isLoadingMore}
                 onClick={onLoadMore}
-                className="border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-full border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isLoadingMore ? "Loading..." : "Load more"}
               </button>

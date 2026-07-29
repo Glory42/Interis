@@ -96,7 +96,7 @@ export const AdminActivitiesPanel = () => {
             <select
               value={type}
               onChange={(event) => setType(event.target.value as ActivityType | "")}
-              className="h-9 border border-border bg-input px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+              className="h-9 rounded-lg border border-border bg-input px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
             >
               <option value="">All types</option>
               {ACTIVITY_TYPES.map((option) => (

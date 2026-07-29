@@ -11,7 +11,7 @@ export const ArchiveSkeletonGrid = ({ moduleStyles }: ArchiveSkeletonGridProps) 
       {Array.from({ length: 12 }).map((_, index) => (
         <div key={`archive-skeleton-${index}`}>
           <Skeleton
-            className="aspect-2/3 border"
+            className="aspect-2/3 rounded-lg border"
             style={{ borderColor: moduleStyles.border, background: moduleStyles.panel }}
           />
           <Skeleton className="mt-3 h-3 w-11/12" style={{ background: moduleStyles.borderSoft }} />

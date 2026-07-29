@@ -32,7 +32,7 @@ export const DiaryEntryItem = ({ entry }: DiaryEntryProps) => {
         <img
           src={getPosterUrl(entry.moviePosterPath)}
           alt={`${entry.movieTitle} poster`}
-          className="h-31.5 w-21  border border-border/70 object-cover"
+          className="h-31.5 w-21 rounded-lg border border-border/70 object-cover"
           loading="lazy"
         />
 
@@ -62,7 +62,7 @@ export const DiaryEntryItem = ({ entry }: DiaryEntryProps) => {
           </div>
 
           {entry.reviewContent ? (
-            <div className="space-y-1  border border-border/60 bg-secondary/20 p-3">
+            <div className="space-y-1 rounded-lg border border-border/60 bg-secondary/20 p-3">
               {entry.reviewContainsSpoilers ? <Badge>Spoilers</Badge> : null}
               <p className="text-sm text-foreground">{entry.reviewContent}</p>
               {entry.reviewCreatedAt ? (

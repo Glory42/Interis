@@ -28,7 +28,7 @@ export const CinemaReviewsSection = ({
         <div className="flex gap-2">
           <button
             type="button"
-            className="border px-3 py-1.5 font-mono text-[10px] transition-all"
+            className="rounded-full border px-3 py-1.5 font-mono text-[10px] transition-all"
             style={{
               borderColor:
                 reviewsSort === "popular"
@@ -50,7 +50,7 @@ export const CinemaReviewsSection = ({
 
           <button
             type="button"
-            className="border px-3 py-1.5 font-mono text-[10px] transition-all"
+            className="rounded-full border px-3 py-1.5 font-mono text-[10px] transition-all"
             style={{
               borderColor:
                 reviewsSort === "recent"

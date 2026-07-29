@@ -14,7 +14,7 @@ type ProfileReviewSidebarProps = {
 export const ProfileReviewSidebar = ({ detail }: ProfileReviewSidebarProps) => {
   return (
     <aside className="space-y-8 lg:col-span-4">
-      <section className="border border-border/60 bg-card/35 p-5">
+      <section className="rounded-2xl border border-border/60 bg-card/35 p-5">
         <h2 className="mb-5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
           Review Stats
         </h2>
@@ -56,7 +56,7 @@ export const ProfileReviewSidebar = ({ detail }: ProfileReviewSidebarProps) => {
         </div>
       </section>
 
-      <section className="border border-border/60 bg-card/35 p-5">
+      <section className="rounded-2xl border border-border/60 bg-card/35 p-5">
         <h2 className="mb-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
           Watch Page
         </h2>

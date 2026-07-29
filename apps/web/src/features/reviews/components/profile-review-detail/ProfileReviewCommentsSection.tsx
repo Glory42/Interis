@@ -70,7 +70,7 @@ export const ProfileReviewCommentsSection = ({
   };
 
   return (
-    <section id="review-comments" className="border border-border/60 bg-card/35 p-5 sm:p-6">
+    <section id="review-comments" className="rounded-2xl border border-border/60 bg-card/35 p-5 sm:p-6">
       <div className="mb-4 flex items-center justify-between gap-2">
         <h2 className="text-sm font-bold text-foreground">Comments</h2>
         <span className="text-xs text-muted-foreground">
@@ -98,7 +98,7 @@ export const ProfileReviewCommentsSection = ({
               const isEditing = editingCommentId === comment.id;
 
               return (
-                <article key={comment.id} className="border border-border/60 bg-card/50 p-3">
+                <article key={comment.id} className="rounded-lg border border-border/60 bg-card/50 p-3">
                   <div className="mb-1.5 flex items-center gap-2">
                     {commentAvatar ? (
                       <img

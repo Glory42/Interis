@@ -24,7 +24,7 @@ export const RouteErrorBoundary = ({
           onClick={() => {
             reset();
           }}
-          className="border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-foreground transition-colors hover:bg-secondary/40"
+          className="rounded-full border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-foreground transition-colors hover:bg-secondary/40"
         >
           Retry
         </button>

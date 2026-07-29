@@ -120,7 +120,7 @@ export const AdminReportsPanel = () => {
             type="button"
             onClick={() => setStatus(tab.value)}
             className={cn(
-              "border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors",
+              "rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors",
               status === tab.value
                 ? "border-primary/45 bg-primary/10 text-primary"
                 : "border-border/70 text-muted-foreground hover:text-foreground",

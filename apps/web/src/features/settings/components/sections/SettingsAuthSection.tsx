@@ -145,7 +145,7 @@ export const SettingsAuthSection = () => {
             </label>
             <input
               id="settings-new-email"
-              className="w-full border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+              className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
               placeholder="new@mail.com"
               type="email"
               value={newEmail}
@@ -161,7 +161,7 @@ export const SettingsAuthSection = () => {
             </label>
             <input
               id="settings-email-security-answer"
-              className="w-full border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+              className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
               type="text"
               value={securityAnswer}
               onChange={(event) => setSecurityAnswer(event.target.value)}
@@ -170,7 +170,7 @@ export const SettingsAuthSection = () => {
           </div>
 
           {authEmailError ? (
-            <p role="alert" className="border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {authEmailError}
             </p>
           ) : null}
@@ -184,7 +184,7 @@ export const SettingsAuthSection = () => {
           <button
             type="submit"
             disabled={changeEmailMutation.isPending}
-            className="px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-full px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             style={{ background: "var(--settings-shell-accent)", color: "var(--primary-foreground)" }}
           >
             {changeEmailMutation.isPending ? "Updating..." : "Update email"}
@@ -210,7 +210,7 @@ export const SettingsAuthSection = () => {
             <div className="relative">
               <input
                 id="settings-current-password"
-                className="w-full border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+                className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
                 placeholder="••••••••"
                 type={showCurrentPassword ? "text" : "password"}
                 value={currentPassword}
@@ -235,7 +235,7 @@ export const SettingsAuthSection = () => {
             <div className="relative">
               <input
                 id="settings-new-password"
-                className="w-full border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+                className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
                 placeholder="••••••••"
                 type={showNewPassword ? "text" : "password"}
                 value={newPassword}
@@ -261,7 +261,7 @@ export const SettingsAuthSection = () => {
             <div className="relative">
               <input
                 id="settings-confirm-password"
-                className="w-full border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+                className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
                 placeholder="••••••••"
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
@@ -280,7 +280,7 @@ export const SettingsAuthSection = () => {
             <button
               type="button"
               className={
-                "flex items-center gap-2 border px-4 py-2 text-xs font-medium transition-colors " +
+                "flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition-colors " +
                 (revokeOtherSessions
                   ? "settings-shell-danger-option"
                   : "settings-shell-border settings-shell-dim-text")
@@ -296,7 +296,7 @@ export const SettingsAuthSection = () => {
             <button
               type="submit"
               disabled={changePasswordMutation.isPending}
-              className="px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-full px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               style={{ background: "var(--settings-shell-accent)", color: "var(--primary-foreground)" }}
             >
               {changePasswordMutation.isPending ? "Updating..." : "Change password"}
@@ -304,7 +304,7 @@ export const SettingsAuthSection = () => {
           </div>
 
           {authPasswordError ? (
-            <p role="alert" className="border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {authPasswordError}
             </p>
           ) : null}

@@ -51,7 +51,7 @@ export const CinemaActionsSidebar = ({
   return (
     <aside>
       <div
-        className="mb-4 aspect-2/3 overflow-hidden border"
+        className="mb-4 aspect-2/3 overflow-hidden rounded-xl border"
         style={{ borderColor: CINEMA_MODULE_STYLES.border }}
       >
         {movie.posterPath ? (
@@ -94,7 +94,7 @@ export const CinemaActionsSidebar = ({
             initialState={modalInitialState}
             triggerVariant="outline"
             triggerLabel="Log"
-            triggerClassName="h-auto flex-1 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
+            triggerClassName="h-auto flex-1 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
             triggerContent={
               <>
                 <Check className="h-3 w-3" />
@@ -107,7 +107,7 @@ export const CinemaActionsSidebar = ({
             <button
               type="button"
               disabled={isInteractionBusy}
-              className="flex flex-1 items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
               style={{
                 borderColor: !isInteractionLoading && watchlisted
                   ? CINEMA_MODULE_STYLES.accent
@@ -129,7 +129,7 @@ export const CinemaActionsSidebar = ({
           ) : (
             <Link
               to="/login"
-              className="flex flex-1 items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
               style={{
                 borderColor: CINEMA_MODULE_STYLES.border,
                 color: CINEMA_MODULE_STYLES.muted,
@@ -147,7 +147,7 @@ export const CinemaActionsSidebar = ({
             <button
               type="button"
               disabled={isInteractionBusy}
-              className="flex flex-1 items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
               style={{
                 borderColor: !isInteractionLoading && watched
                   ? CINEMA_MODULE_STYLES.accent
@@ -165,7 +165,7 @@ export const CinemaActionsSidebar = ({
           ) : (
             <Link
               to="/login"
-              className="flex flex-1 items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
               style={{
                 borderColor: CINEMA_MODULE_STYLES.border,
                 color: CINEMA_MODULE_STYLES.muted,
@@ -181,7 +181,7 @@ export const CinemaActionsSidebar = ({
             <button
               type="button"
               disabled={isInteractionBusy}
-              className="flex flex-1 items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
               style={{
                 borderColor: !isInteractionLoading && liked
                   ? CINEMA_MODULE_STYLES.accent
@@ -199,7 +199,7 @@ export const CinemaActionsSidebar = ({
           ) : (
             <Link
               to="/login"
-              className="flex flex-1 items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
               style={{
                 borderColor: CINEMA_MODULE_STYLES.border,
                 color: CINEMA_MODULE_STYLES.muted,
@@ -216,7 +216,7 @@ export const CinemaActionsSidebar = ({
           <AddToListDialog
             tmdbId={movie.tmdbId}
             itemType="cinema"
-            triggerClassName="flex w-full items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all"
+            triggerClassName="flex w-full items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all"
             triggerStyle={{
               borderColor: CINEMA_MODULE_STYLES.border,
               color: CINEMA_MODULE_STYLES.muted,
@@ -225,7 +225,7 @@ export const CinemaActionsSidebar = ({
         ) : null}
 
         <div
-          className="border p-3"
+          className="rounded-xl border p-3"
           style={{
             borderColor: CINEMA_MODULE_STYLES.border,
             background: CINEMA_MODULE_STYLES.panelElevated,

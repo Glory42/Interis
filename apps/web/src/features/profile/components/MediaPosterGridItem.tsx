@@ -18,7 +18,7 @@ export const MediaPosterGridItem = ({ item, interactionVerb }: MediaPosterGridIt
 
   const card = (
     <>
-      <div className="relative mb-1.5 aspect-2/3 overflow-hidden border border-border/70 bg-card/25">
+      <div className="relative mb-1.5 aspect-2/3 overflow-hidden rounded-lg border border-border/70 bg-card/25">
         <img
           src={getPosterUrl(item.posterPath)}
           alt={item.title}

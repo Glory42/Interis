@@ -155,7 +155,7 @@ export const CalendarPicker = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between border border-border/70 bg-background/45 px-3.5 py-2 font-mono text-sm text-foreground transition-all hover:border-border sm:h-11"
+        className="flex w-full items-center justify-between rounded-lg border border-border/70 bg-background/45 px-3.5 py-2 font-mono text-sm text-foreground transition-all hover:border-border sm:h-11"
       >
         <span className="flex items-center gap-2">
           <CalendarDays className="h-4 w-4 text-muted-foreground" />
@@ -166,13 +166,13 @@ export const CalendarPicker = ({
 
       {/* Calendar Dropdown Panel */}
       {isOpen && (
-        <div className="absolute left-0 top-full z-50 mt-1.5 w-72 border border-border/80 bg-card/95 p-3.5 shadow-2xl backdrop-blur-md animate-fade-up">
+        <div className="absolute left-0 top-full z-50 mt-1.5 w-72 rounded-2xl border border-border/80 bg-card/95 p-3.5 shadow-2xl backdrop-blur-md animate-fade-up">
           {/* Calendar Header */}
           <div className="mb-3.5 flex items-center justify-between">
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="flex h-7 w-7 items-center justify-center border border-border/60 hover:bg-secondary/40 text-muted-foreground hover:text-foreground"
+              className="flex h-7 w-7 items-center justify-center rounded-full border border-border/60 hover:bg-secondary/40 text-muted-foreground hover:text-foreground"
               aria-label="Previous Month"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -205,7 +205,7 @@ export const CalendarPicker = ({
             <button
               type="button"
               onClick={handleNextMonth}
-              className="flex h-7 w-7 items-center justify-center border border-border/60 hover:bg-secondary/40 text-muted-foreground hover:text-foreground"
+              className="flex h-7 w-7 items-center justify-center rounded-full border border-border/60 hover:bg-secondary/40 text-muted-foreground hover:text-foreground"
               aria-label="Next Month"
             >
               <ChevronRight className="h-4 w-4" />
@@ -236,7 +236,7 @@ export const CalendarPicker = ({
                   type="button"
                   disabled={isFuture}
                   onClick={() => handleDaySelect(dateStr)}
-                  className="flex aspect-square items-center justify-center font-mono text-xs transition-all border border-transparent disabled:cursor-not-allowed disabled:opacity-20"
+                  className="flex aspect-square items-center justify-center rounded-full font-mono text-xs transition-all border border-transparent disabled:cursor-not-allowed disabled:opacity-20"
                   style={{
                     color: isSelected
                       ? "var(--card)"

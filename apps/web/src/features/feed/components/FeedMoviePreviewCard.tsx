@@ -31,7 +31,7 @@ export const FeedMoviePreviewCard = ({
     to={to}
     params={{ tmdbId: String(tmdbId) }}
     className={cn(
-      "mt-2 flex max-w-xs items-center gap-3 border border-border/50 py-2 pr-3 pl-2.5 transition-colors hover:bg-secondary/15",
+      "mt-2 flex max-w-xs items-center gap-3 rounded-lg border border-border/50 py-2 pr-3 pl-2.5 transition-colors hover:bg-secondary/15",
       className,
     )}
     style={{ borderLeftColor: accentColor, borderLeftWidth: 3 }}
@@ -41,7 +41,7 @@ export const FeedMoviePreviewCard = ({
       <img
         src={getPosterUrl(posterPath)}
         alt=""
-        className="h-14 w-9 shrink-0 object-cover"
+        className="h-14 w-9 shrink-0 rounded-md object-cover"
       />
     ) : null}
     <span className="min-w-0 flex-1">

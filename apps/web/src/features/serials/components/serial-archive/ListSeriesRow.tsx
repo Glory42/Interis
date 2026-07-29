@@ -29,7 +29,7 @@ export const ListSeriesRow = ({
     <Link
       to="/serials/$tmdbId"
       params={{ tmdbId: String(series.tmdbId) }}
-      className="group flex items-center gap-3 border px-3 py-3 transition-colors"
+      className="group flex items-center gap-3 rounded-xl border px-3 py-3 transition-colors"
       style={{
         borderColor: SERIAL_MODULE_STYLES.border,
         background: SERIAL_MODULE_STYLES.panel,
@@ -46,7 +46,7 @@ export const ListSeriesRow = ({
       <img
         src={getPosterUrl(series.posterPath)}
         alt={`${series.title} poster`}
-        className="h-14 w-10 shrink-0 object-cover"
+        className="h-14 w-10 shrink-0 rounded-md object-cover"
         loading="lazy"
       />
 

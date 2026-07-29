@@ -93,7 +93,7 @@ export const MediaReviewCard = memo(function MediaReviewCard({
 
   return (
     <article
-      className="cursor-pointer border bg-[var(--row-bg)] p-4 transition-colors hover:bg-[var(--row-hover-bg)]"
+      className="cursor-pointer rounded-xl border bg-[var(--row-bg)] p-4 transition-colors hover:bg-[var(--row-hover-bg)]"
       style={
         {
           borderColor: moduleStyles.border,
@@ -110,12 +110,12 @@ export const MediaReviewCard = memo(function MediaReviewCard({
               <img
                 src={avatarUrl}
                 alt={`${review.author.username} avatar`}
-                className="h-9 w-9 border object-cover"
+                className="h-9 w-9 rounded-full border object-cover"
                 style={{ borderColor: moduleStyles.border }}
               />
             ) : (
               <span
-                className="inline-flex h-9 w-9 items-center justify-center border font-mono text-xs"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border font-mono text-xs"
                 style={{
                   borderColor: moduleStyles.border,
                   color: moduleStyles.text,
@@ -177,7 +177,7 @@ export const MediaReviewCard = memo(function MediaReviewCard({
 
       {review.containsSpoilers ? (
         <p
-          className="mb-2 inline-flex border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em]"
+          className="mb-2 inline-flex rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em]"
           style={{
             borderColor: moduleStyles.accent,
             color: moduleStyles.accent,

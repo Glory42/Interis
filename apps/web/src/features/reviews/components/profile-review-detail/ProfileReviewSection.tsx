@@ -23,7 +23,7 @@ export const ProfileReviewSection = ({
   onReport,
 }: ProfileReviewSectionProps) => {
   return (
-    <section className="border border-border/60 bg-card/35 p-5 sm:p-6">
+    <section className="rounded-2xl border border-border/60 bg-card/35 p-5 sm:p-6">
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="text-base font-bold text-foreground">Review</h2>
         <span className="text-xs text-muted-foreground">@{detail.author.username}</span>

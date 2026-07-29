@@ -42,7 +42,7 @@ export const SerialReviewsSection = ({
         <div className="flex gap-2">
           <button
             type="button"
-            className="border px-3 py-1.5 font-mono text-[10px] transition-all"
+            className="rounded-full border px-3 py-1.5 font-mono text-[10px] transition-all"
             style={{
               borderColor:
                 reviewsSort === "popular"
@@ -64,7 +64,7 @@ export const SerialReviewsSection = ({
 
           <button
             type="button"
-            className="border px-3 py-1.5 font-mono text-[10px] transition-all"
+            className="rounded-full border px-3 py-1.5 font-mono text-[10px] transition-all"
             style={{
               borderColor:
                 reviewsSort === "recent"
@@ -103,7 +103,7 @@ export const SerialReviewsSection = ({
                 formatReviewContextLabel(review.context)
                   ? () => (
                       <span
-                        className="inline-flex items-center border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em]"
+                        className="inline-flex items-center rounded-full border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em]"
                         style={{
                           borderColor: SERIAL_MODULE_STYLES.borderSoft,
                           color: SERIAL_MODULE_STYLES.faint,

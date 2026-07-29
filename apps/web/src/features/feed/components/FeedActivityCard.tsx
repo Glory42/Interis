@@ -47,7 +47,7 @@ const AttachedMediaCard = ({ item }: { item: FeedItem }) => {
       <Link
         to="/profile/$username/lists/$listId"
         params={{ username: item.actor.username, listId: item.metadata.listId }}
-        className="mt-2 inline-flex max-w-xs items-center border border-border/50 px-3 py-2.5 transition-colors hover:bg-secondary/15"
+        className="mt-2 inline-flex max-w-xs items-center rounded-lg border border-border/50 px-3 py-2.5 transition-colors hover:bg-secondary/15"
         viewTransition
       >
         <span className="truncate text-sm font-semibold text-foreground">
@@ -100,7 +100,7 @@ export const FeedActivityCard = memo(function FeedActivityCard({ item }: FeedAct
   const actorAvatar = item.actor.avatarUrl ?? null;
 
   return (
-    <article className="-mx-2 flex gap-3 border border-transparent border-b-border/40 px-3 py-3.5 transition-colors hover:border-border/60 hover:bg-foreground/[0.025]">
+    <article className="-mx-2 flex gap-3 rounded-xl border border-transparent border-b-border/40 px-3 py-3.5 transition-colors hover:border-border/60 hover:bg-foreground/[0.025]">
       <FeedActorAvatar
         avatarUrl={actorAvatar}
         username={item.actor.username}

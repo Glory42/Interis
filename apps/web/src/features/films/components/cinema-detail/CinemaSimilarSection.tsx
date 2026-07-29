@@ -27,7 +27,7 @@ export const CinemaSimilarSection = ({ similar }: CinemaSimilarSectionProps) => 
             className="group flex flex-col gap-2"
           >
             <div
-              className="relative aspect-[2/3] overflow-hidden border transition-all duration-300 group-hover:scale-[1.03]"
+              className="relative aspect-[2/3] overflow-hidden rounded-lg border transition-all duration-300 group-hover:scale-[1.03]"
               style={{ borderColor: CINEMA_MODULE_STYLES.borderSoft }}
             >
               <img

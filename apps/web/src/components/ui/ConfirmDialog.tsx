@@ -55,7 +55,7 @@ export const ConfirmDialog = ({
       onClick={onConfirm}
       disabled={isConfirming || isConfirmDisabled}
       className={cn(
-        "inline-flex items-center gap-1.5 border px-3 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50",
         variant === "panel" && "font-mono text-[10px] uppercase tracking-[0.12em] px-2.5 py-1",
         isDestructive
           ? "border-destructive/45 bg-destructive/10 text-destructive hover:bg-destructive/15"
@@ -79,7 +79,7 @@ export const ConfirmDialog = ({
       onClick={onClose}
       disabled={isConfirming}
       className={cn(
-        "border border-border/70 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50",
+        "rounded-full border border-border/70 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50",
         variant === "panel" && "font-mono text-[10px] uppercase tracking-[0.12em] px-2.5 py-1",
       )}
     >
@@ -90,7 +90,7 @@ export const ConfirmDialog = ({
   if (variant === "panel") {
     return (
       <ModalShell onClose={onClose} containerClassName={maxWidthClassName} ariaCloseLabel={`Close ${title} dialog`}>
-        <section className="theme-modal-panel relative w-full overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
+        <section className="theme-modal-panel relative w-full border border-border/80 bg-card/95 p-0 animate-fade-up">
           <ModalHeader title={title} onClose={onClose} closeAriaLabel={`Close ${title} dialog`} />
 
           <div className="space-y-3 px-4 py-4">

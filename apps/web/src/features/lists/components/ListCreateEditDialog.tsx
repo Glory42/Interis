@@ -188,7 +188,7 @@ const ListCreateEditDialogContent = (props: ListCreateEditDialogProps) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground hover:text-foreground"
+                className="rounded-full border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground hover:text-foreground"
               >
                 Cancel
               </button>
@@ -196,7 +196,7 @@ const ListCreateEditDialogContent = (props: ListCreateEditDialogProps) => {
                 type="button"
                 onClick={() => { void handleSubmit(); }}
                 disabled={!canSubmit}
-                className="border border-primary/45 bg-primary/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-full border border-primary/45 bg-primary/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-primary disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isPending ? (
                   <span className="inline-flex items-center gap-1.5">

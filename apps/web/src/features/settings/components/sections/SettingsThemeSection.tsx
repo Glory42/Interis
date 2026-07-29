@@ -79,7 +79,7 @@ export const SettingsThemeSection = () => {
               }}
               disabled={updateThemeMutation.isPending}
               className={
-                "w-full border p-4 text-left transition-all " +
+                "w-full rounded-xl border p-4 text-left transition-all " +
                 (isActive
                   ? "settings-shell-active-option"
                   : "settings-shell-border settings-shell-input")
@@ -91,7 +91,7 @@ export const SettingsThemeSection = () => {
                     {(theme.preview?.swatches ?? []).map((swatch) => (
                       <span
                         key={`${theme.id}-${swatch}`}
-                        className="h-3.5 w-3.5 border border-white/10"
+                        className="h-3.5 w-3.5 rounded-full border border-white/10"
                         style={{ backgroundColor: swatch }}
                         aria-hidden="true"
                       />
@@ -109,7 +109,7 @@ export const SettingsThemeSection = () => {
 
                   {isActive ? (
                     <span
-                      className="px-1.5 py-0.5 text-xs font-medium"
+                      className="rounded-full px-1.5 py-0.5 text-xs font-medium"
                       style={{ background: "var(--settings-shell-accent)", color: "var(--primary-foreground)" }}
                     >
                       Active
@@ -117,8 +117,8 @@ export const SettingsThemeSection = () => {
                   ) : null}
                 </div>
 
-                <span className="flex h-4 w-4 items-center justify-center border settings-shell-border">
-                  {isActive ? <span className="h-2 w-2 settings-shell-dot" aria-hidden="true" /> : null}
+                <span className="flex h-4 w-4 items-center justify-center rounded-full border settings-shell-border">
+                  {isActive ? <span className="h-2 w-2 rounded-full settings-shell-dot" aria-hidden="true" /> : null}
                 </span>
               </div>
 
@@ -129,7 +129,7 @@ export const SettingsThemeSection = () => {
       </div>
 
       {themeError ? (
-        <p className="border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {themeError}
         </p>
       ) : null}

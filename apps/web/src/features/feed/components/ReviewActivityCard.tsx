@@ -109,7 +109,7 @@ export const ReviewActivityCard = memo(function ReviewActivityCard({
   return (
     <>
       <article
-        className="group -mx-2 flex cursor-pointer gap-3 border border-transparent border-b-border/40 px-3 py-4 transition-colors hover:border-border/60 hover:bg-foreground/[0.025]"
+        className="group -mx-2 flex cursor-pointer gap-3 rounded-xl border border-transparent border-b-border/40 px-3 py-4 transition-colors hover:border-border/60 hover:bg-foreground/[0.025]"
         onClick={handleRowClick}
       >
         <FeedActorAvatar
@@ -162,7 +162,7 @@ export const ReviewActivityCard = memo(function ReviewActivityCard({
           {reviewContainsSpoilers && !isSpoilerRevealed ? (
             <button
               type="button"
-              className="mt-2 inline-flex items-center gap-2 border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-200 transition-colors hover:bg-amber-500/15"
+              className="mt-2 inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-200 transition-colors hover:bg-amber-500/15"
               onClick={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -205,7 +205,7 @@ export const ReviewActivityCard = memo(function ReviewActivityCard({
               src={getPosterUrl(movie.posterPath)}
               alt={`${movie.title} poster`}
               loading="lazy"
-              className="mt-3 h-32 w-[88px] object-cover"
+              className="mt-3 h-32 w-[88px] rounded-lg object-cover"
             />
           ) : null}
 

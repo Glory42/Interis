@@ -46,7 +46,7 @@ export const ArchiveMediaCard = memo(function ArchiveMediaCard({
       viewTransition
     >
       <div
-        className="relative mb-3 aspect-2/3 overflow-hidden border transition-colors"
+        className="relative mb-3 aspect-2/3 overflow-hidden rounded-lg border transition-colors"
         style={{
           borderColor: moduleStyles.border,
           background: moduleStyles.panel,

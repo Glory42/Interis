@@ -5,7 +5,7 @@ export const Table = ({
   className,
   ...props
 }: HTMLAttributes<HTMLTableElement>) => (
-  <div className="overflow-x-auto">
+  <div className="overflow-x-auto overflow-y-hidden rounded-xl border border-border/60">
     <table className={cn("w-full border-collapse text-sm", className)} {...props} />
   </div>
 );

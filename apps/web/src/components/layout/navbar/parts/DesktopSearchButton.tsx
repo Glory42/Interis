@@ -21,7 +21,7 @@ export const DesktopSearchButton = ({
       aria-haspopup="dialog"
       aria-expanded={isSearchDialogOpen}
       aria-label="Open global search"
-      className="w-40 border border-border/70 bg-background/45 py-1.5 pr-3 pl-7 font-mono text-[11px] text-foreground/80 transition-colors placeholder:text-muted-foreground/60 focus:border-border focus:outline-none"
+      className="w-40 rounded-full border border-border/70 bg-background/45 py-1.5 pr-3 pl-7 font-mono text-[11px] text-foreground/80 transition-colors placeholder:text-muted-foreground/60 focus:border-border focus:outline-none"
     />
   </div>
 );

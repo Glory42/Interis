@@ -29,7 +29,7 @@ export const ModalHeader = ({
       type="button"
       onClick={onClose}
       aria-label={closeAriaLabel}
-      className="inline-flex h-7 w-7 shrink-0 items-center justify-center border border-border/70 text-muted-foreground transition-colors hover:text-foreground"
+      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border/70 text-muted-foreground transition-colors hover:text-foreground"
     >
       <X className="h-4 w-4" />
     </button>

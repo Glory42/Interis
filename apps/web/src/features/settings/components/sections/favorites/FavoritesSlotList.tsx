@@ -26,12 +26,12 @@ export const FavoritesSlotList = ({
           <button
             type="button"
             onClick={() => onOpenSlotPicker(category, index)}
-            className="flex flex-1 items-center gap-3 border px-3 py-2 text-left focus:outline-none transition-colors settings-shell-border settings-shell-input hover:border-[color:var(--settings-shell-accent)]"
+            className="flex flex-1 items-center gap-3 rounded-lg border px-3 py-2 text-left focus:outline-none transition-colors settings-shell-border settings-shell-input hover:border-[color:var(--settings-shell-accent)]"
             disabled={isBusy}
           >
             {slot ? (
               <span
-                className="h-10 w-7 shrink-0 overflow-hidden border settings-shell-border"
+                className="h-10 w-7 shrink-0 overflow-hidden rounded-md border settings-shell-border"
                 style={{ background: "color-mix(in srgb, var(--settings-shell-bg) 85%, black)" }}
               >
                 {slot.posterPath ? (

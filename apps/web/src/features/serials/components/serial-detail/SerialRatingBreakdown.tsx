@@ -34,7 +34,7 @@ export const SerialRatingBreakdown = ({ buckets }: SerialRatingBreakdownProps) =
             </div>
 
             <div
-              className="h-1.5 flex-1 overflow-hidden"
+              className="h-1.5 flex-1 overflow-hidden rounded-full"
               style={{ background: SERIAL_MODULE_STYLES.panelSoft }}
             >
               <div

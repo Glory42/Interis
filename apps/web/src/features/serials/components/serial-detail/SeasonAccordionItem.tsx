@@ -224,7 +224,7 @@ export const SeasonAccordionItem = ({
 
   return (
     <div
-      className="overflow-hidden border"
+      className="overflow-hidden rounded-xl border"
       style={{
         borderColor: SERIAL_MODULE_STYLES.border,
         background: SERIAL_MODULE_STYLES.panel,

@@ -35,7 +35,7 @@ export const FeedFilterTabs = ({ activeFilter, onFilterChange }: FeedFilterTabsP
     <div className="theme-segment-shell relative inline-flex gap-1 border p-1">
       {indicator ? (
         <div
-          className="absolute top-1 bottom-1 border transition-all duration-300 ease-out"
+          className="absolute top-1 bottom-1 rounded-full border transition-all duration-300 ease-out"
           style={{
             left: indicator.left,
             width: indicator.width,

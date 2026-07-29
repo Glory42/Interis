@@ -19,7 +19,7 @@ export const PersonCreditsGrid = ({
   if (credits.length === 0) {
     return (
       <div
-        className="border p-4 font-mono text-xs"
+        className="rounded-xl border p-4 font-mono text-xs"
         style={{
           borderColor: styles.border,
           background: styles.panel,
@@ -41,7 +41,7 @@ export const PersonCreditsGrid = ({
             key={`${credit.mediaType}-${credit.tmdbId}-${credit.character ?? credit.job ?? "credit"}`}
             to={credit.mediaType === "movie" ? "/cinema/$tmdbId" : "/serials/$tmdbId"}
             params={{ tmdbId: String(credit.tmdbId) }}
-            className="border p-3 transition-colors"
+            className="rounded-xl border p-3 transition-colors"
             style={{
               borderColor: styles.border,
               background: styles.panel,
@@ -52,7 +52,7 @@ export const PersonCreditsGrid = ({
               <img
                 src={getCreditPosterUrl(credit.posterPath)}
                 alt={`${credit.title} poster`}
-                className="h-20 w-14 shrink-0 object-cover"
+                className="h-20 w-14 shrink-0 rounded-md object-cover"
               />
 
               <div className="min-w-0 flex-1">

@@ -41,7 +41,7 @@ export const ProfileMenu = ({
       <button
         type="button"
         onClick={onToggle}
-        className="flex max-w-[10rem] items-center gap-1.5 border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground transition-all hover:text-foreground"
+        className="flex max-w-[10rem] items-center gap-1.5 rounded-full border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground transition-all hover:text-foreground"
         aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-label="Open profile menu"
@@ -50,7 +50,7 @@ export const ProfileMenu = ({
           <img
             src={profileImageUrl ?? undefined}
             alt={`${user.username} avatar`}
-            className="h-4 w-4 border object-cover"
+            className="h-4 w-4 rounded-full border object-cover"
             style={{ borderColor: "var(--theme-pill-border)" }}
             onError={() => {
               setFailedProfileImageUrl(profileImageUrl);
@@ -58,7 +58,7 @@ export const ProfileMenu = ({
           />
         ) : (
           <span
-            className="inline-flex h-4 w-4 items-center justify-center border text-[9px] font-bold"
+            className="inline-flex h-4 w-4 items-center justify-center rounded-full border text-[9px] font-bold"
             style={{
               borderColor: "var(--theme-pill-border)",
               background: "var(--theme-pill-bg)",
@@ -73,7 +73,7 @@ export const ProfileMenu = ({
 
       {isOpen ? (
         <div
-          className="absolute right-0 top-[calc(100%-1px)] z-50 w-44 border bg-popover/95 p-1 backdrop-blur-md animate-fade-up"
+          className="absolute right-0 top-[calc(100%-1px)] z-50 w-44 rounded-xl border bg-popover/95 p-1 backdrop-blur-md animate-fade-up"
           style={{ borderColor: "color-mix(in srgb, var(--primary) 30%, transparent)" }}
           role="menu"
           aria-label="Profile options"

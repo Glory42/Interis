@@ -88,7 +88,7 @@ export const AdminSidebarNav = ({ active, onChange }: AdminSidebarNavProps) => (
                 onClick={() => onChange(item.value)}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex shrink-0 items-center gap-2 border px-3 py-1.5 text-left font-mono text-[11px] uppercase tracking-[0.1em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
+                  "flex shrink-0 items-center gap-2 rounded-lg border px-3 py-1.5 text-left font-mono text-[11px] uppercase tracking-[0.1em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
                   isActive
                     ? "border-primary/45 bg-primary/10 text-primary"
                     : "border-transparent text-muted-foreground hover:border-border/60 hover:bg-secondary/40 hover:text-foreground",

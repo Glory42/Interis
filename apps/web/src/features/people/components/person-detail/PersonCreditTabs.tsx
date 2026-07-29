@@ -32,7 +32,7 @@ export const PersonCreditTabs = ({
           <button
             key={`person-media-tab-${tab}`}
             type="button"
-            className="border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em]"
+            className="rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em]"
             style={{
               borderColor: mediaTab === tab ? styles.accent : styles.borderSoft,
               color: mediaTab === tab ? styles.accent : styles.faint,
@@ -53,7 +53,7 @@ export const PersonCreditTabs = ({
           <button
             key={`person-role-tab-${tab}`}
             type="button"
-            className="border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em]"
+            className="rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em]"
             style={{
               borderColor: roleTab === tab ? styles.accent : styles.borderSoft,
               color: roleTab === tab ? styles.accent : styles.faint,

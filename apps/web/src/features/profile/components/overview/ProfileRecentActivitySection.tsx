@@ -25,7 +25,7 @@ const ActivityThumbnail = ({ item }: { item: ProfileRecentActivityItem }) => {
 
   return (
     <div
-      className="h-10 w-7 shrink-0 overflow-hidden border"
+      className="h-10 w-7 shrink-0 overflow-hidden rounded-md border"
       style={{
         borderColor: `color-mix(in srgb, ${accentColor} 30%, transparent)`,
         background: "color-mix(in srgb, var(--profile-shell-bg) 85%, black)",
@@ -110,7 +110,7 @@ export const ProfileRecentActivitySection = ({
               </div>
 
               <span
-                className="shrink-0 border px-1.5 py-0.5 font-mono text-[9px]"
+                className="shrink-0 rounded-full border px-1.5 py-0.5 font-mono text-[9px]"
                 style={{
                   borderColor: `color-mix(in srgb, ${accentColor} 25%, transparent)`,
                   color: accentColor,

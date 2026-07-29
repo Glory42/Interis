@@ -56,7 +56,7 @@ export const TrendingAmongUsersRail = ({ feedItems }: TrendingAmongUsersRailProp
   const topLoggedThings = buildTopLoggedThings(feedItems);
 
   return (
-    <section className="border border-border/50 bg-card/30 p-5">
+    <section className="rounded-2xl border border-border/50 bg-card/30 p-5">
       <p className="theme-kicker mb-4 text-[9px] text-(--module-serial)">
         Trending among users
       </p>
@@ -76,11 +76,11 @@ export const TrendingAmongUsersRail = ({ feedItems }: TrendingAmongUsersRailProp
                   src={getPosterUrl(entry.posterPath)}
                   alt=""
                   loading="lazy"
-                  className="h-11 w-8 shrink-0 object-cover"
+                  className="h-11 w-8 shrink-0 rounded-md object-cover"
                 />
               ) : (
                 <span
-                  className="h-11 w-8 shrink-0 bg-muted/40"
+                  className="h-11 w-8 shrink-0 rounded-md bg-muted/40"
                   style={{ borderLeft: `2px solid ${entry.color}` }}
                 />
               )}
@@ -88,7 +88,7 @@ export const TrendingAmongUsersRail = ({ feedItems }: TrendingAmongUsersRailProp
                 {entry.title}
               </span>
               <span
-                className="theme-kicker shrink-0 border px-1.5 py-0.5 text-[8px]"
+                className="theme-kicker shrink-0 rounded-full border px-1.5 py-0.5 text-[8px]"
                 style={{ borderColor: entry.color, color: entry.color }}
               >
                 {entry.module}

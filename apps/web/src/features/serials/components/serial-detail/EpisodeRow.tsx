@@ -45,7 +45,7 @@ export const EpisodeRow = ({
       }}
     >
       <div
-        className="relative aspect-video overflow-hidden border"
+        className="relative aspect-video overflow-hidden rounded-lg border"
         style={{
           borderColor: SERIAL_MODULE_STYLES.borderSoft,
           background: SERIAL_MODULE_STYLES.panelSoft,
@@ -100,7 +100,7 @@ export const EpisodeRow = ({
               <button
                 type="button"
                 onClick={() => onToggleWatched(episode.episodeNumber, epWatched)}
-                className="flex h-6 px-1.5 items-center justify-center border font-mono text-[8px] uppercase font-bold transition-all hover:bg-secondary/40"
+                className="flex h-6 rounded-full px-1.5 items-center justify-center border font-mono text-[8px] uppercase font-bold transition-all hover:bg-secondary/40"
                 style={{
                   borderColor: epWatched ? SERIAL_MODULE_STYLES.accent : SERIAL_MODULE_STYLES.borderSoft,
                   color: epWatched ? SERIAL_MODULE_STYLES.accent : SERIAL_MODULE_STYLES.muted,
@@ -114,7 +114,7 @@ export const EpisodeRow = ({
               <button
                 type="button"
                 onClick={() => onToggleLiked(episode.episodeNumber, epLiked)}
-                className="flex h-6 w-6 items-center justify-center border transition-all hover:bg-secondary/40"
+                className="flex h-6 w-6 items-center justify-center rounded-full border transition-all hover:bg-secondary/40"
                 style={{
                   borderColor: epLiked ? "#ef4444" : SERIAL_MODULE_STYLES.borderSoft,
                   color: epLiked ? "#ef4444" : SERIAL_MODULE_STYLES.muted,
@@ -134,7 +134,7 @@ export const EpisodeRow = ({
               <button
                 type="button"
                 onClick={() => onOpenReview(episode.episodeNumber, episode.name)}
-                className="flex h-6 px-1.5 items-center gap-1 border font-mono text-[8px] uppercase font-bold transition-all hover:bg-secondary/40"
+                className="flex h-6 rounded-full px-1.5 items-center gap-1 border font-mono text-[8px] uppercase font-bold transition-all hover:bg-secondary/40"
                 style={{
                   borderColor: epHasReview ? SERIAL_MODULE_STYLES.accent : SERIAL_MODULE_STYLES.borderSoft,
                   color: epHasReview ? SERIAL_MODULE_STYLES.accent : SERIAL_MODULE_STYLES.muted,

@@ -17,7 +17,7 @@ export const LikedReviewCard = memo(function LikedReviewCard({
       <div className="flex gap-3">
         {tmdbId ? (
           <Link to={route} params={{ tmdbId: String(tmdbId) }} className="shrink-0">
-            <div className="h-16 w-11 overflow-hidden border border-border/50 bg-card/30">
+            <div className="h-16 w-11 overflow-hidden rounded-md border border-border/50 bg-card/30">
               {review.mediaPosterPath ? (
                 <img
                   src={getPosterUrl(review.mediaPosterPath)}

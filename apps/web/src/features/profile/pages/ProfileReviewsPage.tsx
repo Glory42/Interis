@@ -60,7 +60,7 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
       ) : null}
 
       {reviewsQuery.isError ? (
-        <div className=" border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+        <div className="rounded-xl border border-border/60 bg-card/30 p-4 text-sm text-destructive">
           Could not load reviews.
         </div>
       ) : null}
@@ -85,7 +85,7 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
         {reviews.map((entry) => (
           <article
             key={entry.id}
-            className="group border transition-colors hover:border-primary/30"
+            className="group rounded-xl border transition-colors hover:border-primary/30"
             style={{
               borderColor: "var(--profile-shell-border)",
               background: "var(--profile-shell-panel)",
@@ -100,7 +100,7 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
                   viewTransition
                 >
                   <div
-                    className="overflow-hidden border"
+                    className="overflow-hidden rounded-lg border"
                     style={{
                       width: 68,
                       height: 102,
@@ -124,7 +124,7 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
                   viewTransition
                 >
                   <div
-                    className="overflow-hidden border"
+                    className="overflow-hidden rounded-lg border"
                     style={{
                       width: 68,
                       height: 102,
@@ -158,7 +158,7 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
                   </Link>
 
                   <span
-                    className="mt-0.5 shrink-0 border px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-widest"
+                    className="mt-0.5 shrink-0 rounded-full border px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-widest"
                     style={{
                       borderColor: `color-mix(in srgb, ${mediaMetaByType[entry.mediaType].color} 25%, transparent)`,
                       color: mediaMetaByType[entry.mediaType].color,
@@ -181,7 +181,7 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
                 {entry.containsSpoilers && !revealedSpoilersById[entry.id] ? (
                   <button
                     type="button"
-                    className="inline-flex items-center gap-2 border border-amber-500/40 bg-amber-500/12 px-2.5 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-200 transition-colors hover:bg-amber-500/18"
+                    className="inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/12 px-2.5 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-200 transition-colors hover:bg-amber-500/18"
                     onClick={(event) => {
                       event.preventDefault();
                       event.stopPropagation();
@@ -217,7 +217,7 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
             type="button"
             disabled={reviewsQuery.isFetchingNextPage}
             onClick={() => { void reviewsQuery.fetchNextPage(); }}
-            className="border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-full border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
           >
             {reviewsQuery.isFetchingNextPage ? "Loading..." : "Load more"}
           </button>

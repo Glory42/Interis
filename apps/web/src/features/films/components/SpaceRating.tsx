@@ -290,7 +290,7 @@ export const SpaceRatingInput = ({
             onClick={() => {
               if (draft !== null) onChange(draft);
             }}
-            className="border border-primary/50 bg-primary/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-primary transition-all hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-25"
+            className="rounded-full border border-primary/50 bg-primary/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-primary transition-all hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-25"
           >
             Save
           </button>
@@ -302,7 +302,7 @@ export const SpaceRatingInput = ({
             setDraft(null);
             onChange(null);
           }}
-          className="border border-border/60 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground transition-all hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-25"
+          className="rounded-full border border-border/60 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground transition-all hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-25"
         >
           Clear
         </button>

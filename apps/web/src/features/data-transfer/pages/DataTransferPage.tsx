@@ -55,7 +55,7 @@ export const DataTransferPage = () => {
             type="button"
             onClick={() => exportMutation.mutate()}
             disabled={exportMutation.isPending}
-            className="flex items-center gap-2 border px-4 py-2 text-sm font-medium transition-colors settings-shell-border settings-shell-muted hover:text-foreground disabled:opacity-50"
+            className="flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors settings-shell-border settings-shell-muted hover:text-foreground disabled:opacity-50"
           >
             {exportMutation.isPending ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -106,7 +106,7 @@ export const DataTransferPage = () => {
 
           {/* Done in background banner */}
           {isImportDone && !dialogOpen && (
-            <div className="flex items-center justify-between border px-3 py-2 settings-shell-border">
+            <div className="flex items-center justify-between rounded-lg border px-3 py-2 settings-shell-border">
               <span className="text-sm settings-shell-muted">
                 Last import: {importState.summary.imported} imported ·{" "}
                 {importState.summary.skipped} skipped ·{" "}
@@ -124,7 +124,7 @@ export const DataTransferPage = () => {
 
           <div className="space-y-3">
             <div
-              className="flex cursor-pointer flex-col items-center justify-center gap-2 border border-dashed px-6 py-8 transition-colors settings-shell-border hover:border-[color:var(--settings-shell-accent)]"
+              className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-6 py-8 transition-colors settings-shell-border hover:border-[color:var(--settings-shell-accent)]"
               onClick={() => fileInputRef.current?.click()}
               onKeyDown={(e) => e.key === "Enter" && fileInputRef.current?.click()}
               role="button"
@@ -153,7 +153,7 @@ export const DataTransferPage = () => {
               type="button"
               onClick={handleImport}
               disabled={!selectedFile || isImportRunning}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               style={{ background: "var(--settings-shell-accent)", color: "var(--primary-foreground)" }}
             >
               <Upload className="h-3.5 w-3.5" />

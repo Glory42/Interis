@@ -33,7 +33,7 @@ export const ArchiveMenuTrigger = ({
       <button
         type="button"
         disabled={disabled}
-        className="inline-flex items-center gap-2 border px-3 py-1.5 font-mono text-[10px] transition-colors"
+        className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 font-mono text-[10px] transition-colors"
         style={{
           borderColor: disabled
             ? moduleStyles.borderSoft
@@ -63,7 +63,7 @@ export const ArchiveMenuTrigger = ({
       {isOpen ? (
         <div
           className={cn(
-            "absolute left-0 top-full z-40 mt-1 overflow-hidden border",
+            "absolute left-0 top-full z-40 mt-1 overflow-hidden rounded-xl border",
             menuClassName,
           )}
           style={{

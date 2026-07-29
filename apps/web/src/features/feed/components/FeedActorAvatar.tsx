@@ -7,8 +7,6 @@ type FeedActorAvatarProps = {
   initial: string;
   className?: string;
   style?: CSSProperties;
-  // "circle" is used by the feed's own editorial layout; "square" keeps the
-  // original look for any other caller that doesn't opt in.
   shape?: "square" | "circle";
 };
 
@@ -18,7 +16,7 @@ export const FeedActorAvatar = ({
   initial,
   className,
   style,
-  shape = "square",
+  shape = "circle",
 }: FeedActorAvatarProps) => {
   const [isFailed, setIsFailed] = useState(false);
   const shouldShowImage = Boolean(avatarUrl && !isFailed);

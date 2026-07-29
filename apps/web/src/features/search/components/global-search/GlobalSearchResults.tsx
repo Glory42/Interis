@@ -40,7 +40,7 @@ export const GlobalSearchResults = ({
   if (normalizedQuery.length === 0) {
     if (isScopedMode && scopedTarget) {
       return (
-        <p className="mx-3 border border-dashed border-border/70 px-3 py-4 font-mono text-xs text-muted-foreground">
+        <p className="mx-3 rounded-lg border border-dashed border-border/70 px-3 py-4 font-mono text-xs text-muted-foreground">
           {scopedEmptyPrompt[scopedTarget]}
         </p>
       );
@@ -55,13 +55,13 @@ export const GlobalSearchResults = ({
             <button
               key={link.target}
               type="button"
-              className="group flex w-full items-center gap-3 border-b border-border/45 px-4 py-3 text-left transition-colors hover:bg-secondary/20"
+              className="group flex w-full items-center gap-3 rounded-lg border-b border-border/45 px-4 py-3 text-left transition-colors hover:bg-secondary/20"
               onClick={() => {
                 onEnterScope(link.target);
               }}
             >
               <span
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center border"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border"
                 style={{
                   borderColor: `color-mix(in srgb, ${link.color} 40%, transparent)`,
                   background: link.tint,
@@ -89,7 +89,7 @@ export const GlobalSearchResults = ({
 
   if (!hasMinQueryLength) {
     return (
-      <p className="mx-3 border border-dashed border-border/70 px-3 py-4 font-mono text-xs text-muted-foreground">
+      <p className="mx-3 rounded-lg border border-dashed border-border/70 px-3 py-4 font-mono text-xs text-muted-foreground">
         Type at least {MIN_QUERY_LENGTH} characters to search.
       </p>
     );
@@ -98,7 +98,7 @@ export const GlobalSearchResults = ({
   return (
     <div className="space-y-3 px-2 pb-2">
       {isAnyLoading && suggestionsCount === 0 ? (
-        <p className="mx-1 flex items-center gap-2 border border-border/70 px-3 py-3 font-mono text-xs text-muted-foreground">
+        <p className="mx-1 flex items-center gap-2 rounded-lg border border-border/70 px-3 py-3 font-mono text-xs text-muted-foreground">
           <Spinner /> Searching...
         </p>
       ) : null}
@@ -130,7 +130,7 @@ export const GlobalSearchResults = ({
 
             if (scopedSection.section.isError) {
               return (
-                <p className="mx-1 border border-destructive/35 bg-destructive/8 px-3 py-3 font-mono text-xs text-destructive">
+                <p className="mx-1 rounded-lg border border-destructive/35 bg-destructive/8 px-3 py-3 font-mono text-xs text-destructive">
                   Could not load {scopedSection.section.label.toLowerCase()} results.
                 </p>
               );
@@ -172,7 +172,7 @@ export const GlobalSearchResults = ({
                 ) : null}
 
                 {!hasItems && section.isError ? (
-                  <p className="mx-1 border border-destructive/35 bg-destructive/8 px-3 py-2 font-mono text-[10px] text-destructive">
+                  <p className="mx-1 rounded-lg border border-destructive/35 bg-destructive/8 px-3 py-2 font-mono text-[10px] text-destructive">
                     Could not load {section.label.toLowerCase()} results.
                   </p>
                 ) : null}
@@ -183,7 +183,7 @@ export const GlobalSearchResults = ({
       {!isAnyLoading &&
       !sectionOffsets.some(({ section }) => section.isError) &&
       suggestionsCount === 0 ? (
-        <p className="mx-1 border border-border/70 px-3 py-3 font-mono text-xs text-muted-foreground">
+        <p className="mx-1 rounded-lg border border-border/70 px-3 py-3 font-mono text-xs text-muted-foreground">
           {isScopedMode
             ? "No matches found for this scope."
             : "No matches found across users, movies, and TV shows."}

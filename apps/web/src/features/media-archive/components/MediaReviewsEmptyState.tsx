@@ -7,7 +7,7 @@ type MediaReviewsEmptyStateProps = {
 
 export const MediaReviewsEmptyState = ({ message, moduleStyles }: MediaReviewsEmptyStateProps) => (
   <div
-    className="border p-4 font-mono text-xs"
+    className="rounded-xl border p-4 font-mono text-xs"
     style={{
       borderColor: moduleStyles.border,
       color: moduleStyles.muted,

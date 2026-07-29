@@ -166,7 +166,7 @@ export const ImportDialog = ({
               <button
                 type="button"
                 onClick={onBackground}
-                className="border border-border/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground"
+                className="rounded-full border border-border/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground"
               >
                 Work in background
               </button>
@@ -175,7 +175,7 @@ export const ImportDialog = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="border border-border/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground"
+                className="rounded-full border border-border/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground"
               >
                 Close
               </button>

@@ -110,7 +110,7 @@ export const SettingsGenresSection = () => {
                 key={`selected-${genre}`}
                 type="button"
                 onClick={() => toggleGenre(genre)}
-                className="flex items-center gap-1.5 border px-3 py-1 text-sm transition-colors settings-shell-border settings-shell-accent settings-shell-active-pill"
+                className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors settings-shell-border settings-shell-accent settings-shell-active-pill"
               >
                 <span>{genre}</span>
                 <X className="h-3 w-3" aria-hidden="true" />
@@ -134,7 +134,7 @@ export const SettingsGenresSection = () => {
                   type="button"
                   onClick={() => toggleGenre(genre)}
                   className={
-                    "border px-3 py-1 text-sm transition-colors " +
+                    "rounded-full border px-3 py-1 text-sm transition-colors " +
                     (isSelected
                       ? "settings-shell-border settings-shell-accent settings-shell-active-pill"
                       : "settings-shell-border settings-shell-dim-text")
@@ -149,7 +149,7 @@ export const SettingsGenresSection = () => {
       </div>
 
       {saveError ? (
-        <p className="border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {saveError}
         </p>
       ) : null}
@@ -166,7 +166,7 @@ export const SettingsGenresSection = () => {
           void handleSaveGenres();
         }}
         disabled={updateProfileMutation.isPending}
-        className="px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+        className="rounded-full px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         style={{ background: "var(--settings-shell-accent)", color: "var(--primary-foreground)" }}
       >
         {updateProfileMutation.isPending ? "Saving..." : "Save genres"}

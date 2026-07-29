@@ -79,7 +79,7 @@ const TopPickSlot = ({
 
   const body = (
     <div
-      className="aspect-[2/3] overflow-hidden border"
+      className="aspect-[2/3] overflow-hidden rounded-lg border"
       style={{
         borderColor: "var(--profile-shell-row-border)",
         background: "color-mix(in srgb, var(--profile-shell-bg) 85%, black)",

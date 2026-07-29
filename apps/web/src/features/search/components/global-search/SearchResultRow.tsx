@@ -30,7 +30,7 @@ export const SearchResultRow = ({
           role="option"
           aria-selected={isHighlighted}
           className={cn(
-            "group flex w-full items-center gap-3 border px-3 py-2 text-left transition-all",
+            "group flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-all",
             isHighlighted
               ? "border-primary/45 bg-primary/10"
               : "border-border/70 bg-background/40 hover:bg-secondary/35",
@@ -42,12 +42,12 @@ export const SearchResultRow = ({
             <img
               src={entry.avatarUrl}
               alt={`${entry.username} avatar`}
-              className="h-9 w-9 shrink-0 border border-border/70 object-cover"
+              className="h-9 w-9 shrink-0 rounded-full border border-border/70 object-cover"
               loading="lazy"
             />
           ) : (
             <span
-              className="inline-flex h-9 w-9 shrink-0 items-center justify-center border font-mono text-xs"
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border font-mono text-xs"
               style={{
                 borderColor: "color-mix(in srgb, var(--module-serial) 40%, transparent)",
                 color: "var(--module-serial)",
@@ -95,7 +95,7 @@ export const SearchResultRow = ({
         <img
           src={getPosterUrl(entry.posterPath)}
           alt={`${entry.title} poster`}
-          className="h-11 w-8 shrink-0 border border-border/70 object-cover"
+          className="h-11 w-8 shrink-0 rounded-md border border-border/70 object-cover"
           loading="lazy"
         />
 

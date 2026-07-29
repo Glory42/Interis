@@ -80,7 +80,7 @@ export const PostActivityDialogCommentsList = ({
         const isEditing = editingCommentId === comment.id;
 
         return (
-          <div key={comment.id} className="border border-border/70 bg-background/35 px-3 py-2">
+          <div key={comment.id} className="rounded-lg border border-border/70 bg-background/35 px-3 py-2">
             <div className="flex items-center gap-2">
               <p className="min-w-0 flex-1 font-mono text-[10px] text-muted-foreground">
                 @{comment.authorUsername ?? "unknown"} · {getRelativeTime(comment.createdAt)}

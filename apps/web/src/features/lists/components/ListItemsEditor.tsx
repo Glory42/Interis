@@ -63,7 +63,7 @@ export const ListItemsEditor = ({
 
   if (items.length === 0) {
     return (
-      <div className="border border-dashed border-border/50 py-12 text-center">
+      <div className="rounded-xl border border-dashed border-border/50 py-12 text-center">
         <p className="font-mono text-sm text-muted-foreground">
           Search above to add films and series to this list.
         </p>
@@ -110,7 +110,7 @@ export const ListItemsEditor = ({
             ) : null}
 
             {/* Poster */}
-            <div className="h-[72px] w-12 shrink-0 overflow-hidden border border-border/40 bg-muted/20">
+            <div className="h-[72px] w-12 shrink-0 overflow-hidden rounded-md border border-border/40 bg-muted/20">
               {posterPath ? (
                 <img
                   src={getPosterUrl(posterPath)}
@@ -140,7 +140,7 @@ export const ListItemsEditor = ({
                 type="button"
                 disabled={idx === 0 || isReorderPending}
                 onClick={() => { void handleMoveItem(idx, -1); }}
-                className="inline-flex h-7 w-7 items-center justify-center border border-border/50 text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
               >
                 <ChevronUp className="h-3.5 w-3.5" />
               </button>
@@ -148,7 +148,7 @@ export const ListItemsEditor = ({
                 type="button"
                 disabled={idx === items.length - 1 || isReorderPending}
                 onClick={() => { void handleMoveItem(idx, 1); }}
-                className="inline-flex h-7 w-7 items-center justify-center border border-border/50 text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
               >
                 <ChevronDown className="h-3.5 w-3.5" />
               </button>
@@ -156,7 +156,7 @@ export const ListItemsEditor = ({
                 type="button"
                 disabled={isAnyRemovePending}
                 onClick={() => onRemove(mode === "edit" ? (itemId as string) : idx)}
-                className="inline-flex h-7 w-7 items-center justify-center border border-border/50 text-muted-foreground/60 transition-colors hover:border-destructive/50 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-30"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border/50 text-muted-foreground/60 transition-colors hover:border-destructive/50 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-30"
               >
                 {isThisItemRemoving ? (
                   <Spinner className="h-3 w-3" />

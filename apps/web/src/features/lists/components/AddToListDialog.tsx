@@ -133,7 +133,7 @@ export const AddToListDialog = ({
                           type="button"
                           disabled={createMutation.isPending || !newTitle.trim()}
                           onClick={() => void handleCreateAndAdd()}
-                          className="border border-primary/45 bg-primary/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-primary disabled:opacity-50"
+                          className="rounded-full border border-primary/45 bg-primary/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-primary disabled:opacity-50"
                         >
                           Create
                         </button>
@@ -143,7 +143,7 @@ export const AddToListDialog = ({
                             setIsCreating(false);
                             setNewTitle("");
                           }}
-                          className="border border-border/70 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground"
+                          className="rounded-full border border-border/70 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground"
                         >
                           Cancel
                         </button>

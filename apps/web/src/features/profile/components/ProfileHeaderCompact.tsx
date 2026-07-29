@@ -89,7 +89,7 @@ export const ProfileHeaderCompact = ({
             <img
               src={avatarUrl}
               alt="Profile avatar"
-              className="h-28 w-28 border-2 object-cover profile-shell-border"
+              className="h-28 w-28 rounded-full border-2 object-cover profile-shell-border"
               onError={() => {
                 if (rawAvatarUrl) {
                   setFailedAvatarUrl(rawAvatarUrl);
@@ -101,7 +101,7 @@ export const ProfileHeaderCompact = ({
             />
           ) : (
             <span
-              className="inline-flex h-28 w-28 items-center justify-center border-2 font-mono text-3xl font-bold profile-shell-accent profile-shell-border"
+              className="inline-flex h-28 w-28 items-center justify-center rounded-full border-2 font-mono text-3xl font-bold profile-shell-accent profile-shell-border"
               style={{
                 backgroundColor: "color-mix(in srgb, var(--primary) 8%, transparent)",
               }}
@@ -119,7 +119,7 @@ export const ProfileHeaderCompact = ({
           </div>
 
           {actionError ? (
-            <p className="mt-3 border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            <p className="mt-3 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
               {actionError}
             </p>
           ) : null}

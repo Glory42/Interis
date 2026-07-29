@@ -190,7 +190,7 @@ export const SerialsArchivePage = () => {
 
         {archiveQuery.isError ? (
           <div
-            className="border p-4 font-mono text-xs"
+            className="rounded-xl border p-4 font-mono text-xs"
             style={{
               borderColor: SERIAL_MODULE_STYLES.border,
               color: SERIAL_MODULE_STYLES.muted,
@@ -205,7 +205,7 @@ export const SerialsArchivePage = () => {
         !archiveQuery.isError &&
         archiveItems.length === 0 ? (
           <div
-            className="border p-8 text-center font-mono text-xs"
+            className="rounded-xl border p-8 text-center font-mono text-xs"
             style={{
               borderColor: SERIAL_MODULE_STYLES.border,
               color: SERIAL_MODULE_STYLES.muted,
@@ -243,7 +243,7 @@ export const SerialsArchivePage = () => {
                 <button
                   type="button"
                   disabled={isFetchingNextPage}
-                  className="border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-full border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
                   style={{
                     borderColor: SERIAL_MODULE_STYLES.border,
                     color: SERIAL_MODULE_STYLES.muted,

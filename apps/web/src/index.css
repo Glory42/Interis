@@ -31,7 +31,7 @@
 }
 
 :root {
-  --radius: 0.5rem;
+  --radius: 0.75rem;
 
   --background: #171420;
   --foreground: #e8e3f7;
@@ -167,7 +167,7 @@
 }
 
 :root[data-theme-id="null-log"] {
-  --radius: 0.36rem;
+  --radius: 0.55rem;
 
   --background: #080808;
   --foreground: #e0e0e0;
@@ -293,7 +293,7 @@
 }
 
 :root[data-theme-id="tokyo-night"] {
-  --radius: 0.4rem;
+  --radius: 0.6rem;
 
   --background: #1a1b26;
   --foreground: #c0caf5;
@@ -416,7 +416,7 @@
 }
 
 :root[data-theme-id="amoled"] {
-  --radius: 0.25rem;
+  --radius: 0.4rem;
 
   --background: #000000;
   --foreground: #ffffff;
@@ -525,6 +525,32 @@
 @layer base {
   * {
     @apply border-border outline-ring/40;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--foreground) 22%, transparent) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--foreground) 20%, transparent);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in srgb, var(--primary) 55%, var(--foreground) 15%);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
   }
 
   body {
@@ -671,6 +697,8 @@
     border-color: var(--theme-modal-border) !important;
     background: var(--card) !important;
     box-shadow: var(--theme-modal-shadow) !important;
+    border-radius: var(--radius-2xl);
+    overflow: hidden;
   }
 
   .theme-modal-panel::before {
@@ -705,11 +733,13 @@
     border-color: var(--theme-pill-border) !important;
     color: var(--theme-pill-text) !important;
     box-shadow: var(--theme-pill-shadow);
+    border-radius: 999px;
   }
 
   .theme-segment-shell {
     border-color: var(--theme-segment-border) !important;
     background: var(--theme-segment-bg) !important;
+    border-radius: 999px;
   }
 
   .theme-kicker {
@@ -762,6 +792,7 @@
 
   .profile-shell-panel {
     background: var(--profile-shell-panel);
+    border-radius: var(--radius-xl);
   }
 
   .profile-shell-bio {
@@ -795,6 +826,7 @@
 
   .settings-shell-panel {
     background: var(--settings-shell-panel);
+    border-radius: var(--radius-xl);
   }
 
   .settings-shell-input {
@@ -811,6 +843,7 @@
 
   .settings-shell-active-pill {
     background: color-mix(in srgb, var(--settings-shell-accent) 9%, transparent);
+    border-radius: var(--radius-xl);
   }
 
   .settings-shell-nav-idle {
@@ -830,12 +863,14 @@
   .settings-shell-active-option {
     border-color: var(--settings-shell-accent);
     background: color-mix(in srgb, var(--settings-shell-accent) 7%, transparent);
+    border-radius: var(--radius-lg);
   }
 
   .settings-shell-danger-option {
     border-color: color-mix(in srgb, var(--destructive) 48%, transparent);
     color: var(--destructive);
     background: color-mix(in srgb, var(--destructive) 8%, transparent);
+    border-radius: var(--radius-lg);
   }
 }
 

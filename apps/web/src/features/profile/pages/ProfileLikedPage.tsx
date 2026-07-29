@@ -112,7 +112,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
             <button
               key={tab.key}
               type="button"
-              className="border px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest transition-colors"
+              className="rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest transition-colors"
               style={tabButtonStyle(activeTab === tab.key)}
               onClick={() => { setActiveTab(tab.key); }}
             >
@@ -126,7 +126,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
             <button
               key={f.key}
               type="button"
-              className="border px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest transition-colors"
+              className="rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest transition-colors"
               style={tabButtonStyle(activeSubFilters.active === f.key)}
               onClick={() => { activeSubFilters.onChange(f.key); }}
             >
@@ -142,7 +142,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
           {mediasQuery.isPending ? (
             <ProfileMediaGridSkeleton />
           ) : mediasQuery.isError ? (
-            <div className="border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+            <div className="rounded-lg border border-border/60 bg-card/30 p-4 text-sm text-destructive">
               Could not load liked media.
             </div>
           ) : mediaItems.length === 0 ? (
@@ -162,7 +162,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
                 type="button"
                 disabled={mediasQuery.isFetchingNextPage}
                 onClick={() => { void mediasQuery.fetchNextPage(); }}
-                className="border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-full border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {mediasQuery.isFetchingNextPage ? "Loading..." : "Load more"}
               </button>
@@ -174,11 +174,11 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
       {activeTab === "reviews" ? (
         <>
           {reviewsQuery.isPending ? (
-            <div className="border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
+            <div className="rounded-lg border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
               Loading liked reviews...
             </div>
           ) : reviewsQuery.isError ? (
-            <div className="border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+            <div className="rounded-lg border border-border/60 bg-card/30 p-4 text-sm text-destructive">
               Could not load liked reviews.
             </div>
           ) : reviewItems.length === 0 ? (
@@ -205,7 +205,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
                 type="button"
                 disabled={reviewsQuery.isFetchingNextPage}
                 onClick={() => { void reviewsQuery.fetchNextPage(); }}
-                className="border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-full border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {reviewsQuery.isFetchingNextPage ? "Loading..." : "Load more"}
               </button>
@@ -217,11 +217,11 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
       {activeTab === "lists" ? (
         <>
           {listsQuery.isPending ? (
-            <div className="border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
+            <div className="rounded-lg border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
               Loading liked lists...
             </div>
           ) : listsQuery.isError ? (
-            <div className="border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+            <div className="rounded-lg border border-border/60 bg-card/30 p-4 text-sm text-destructive">
               Could not load liked lists.
             </div>
           ) : listItems.length === 0 ? (
@@ -248,7 +248,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
                 type="button"
                 disabled={listsQuery.isFetchingNextPage}
                 onClick={() => { void listsQuery.fetchNextPage(); }}
-                className="border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-full border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {listsQuery.isFetchingNextPage ? "Loading..." : "Load more"}
               </button>

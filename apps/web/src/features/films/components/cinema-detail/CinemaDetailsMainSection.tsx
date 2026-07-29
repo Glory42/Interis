@@ -108,7 +108,7 @@ export const CinemaDetailsMainSection = ({
         {movie.genres.slice(0, 3).map((genre) => (
           <span
             key={`detail-genre-${genre.id}`}
-            className="border px-2 py-0.5 font-mono text-[9px]"
+            className="rounded-full border px-2 py-0.5 font-mono text-[9px]"
             style={{
               borderColor: CINEMA_MODULE_STYLES.border,
               color: CINEMA_MODULE_STYLES.muted,
@@ -224,7 +224,7 @@ export const CinemaDetailsMainSection = ({
                 <PersonRouteLink
                   key={`movie-cast-${castMember.tmdbPersonId}-${castMember.character ?? "cast"}`}
                   person={castMember}
-                  className="border px-2 py-1 font-mono text-[10px]"
+                  className="rounded-full border px-2 py-1 font-mono text-[10px]"
                   style={{
                     borderColor: CINEMA_MODULE_STYLES.border,
                     color: CINEMA_MODULE_STYLES.muted,
@@ -241,7 +241,7 @@ export const CinemaDetailsMainSection = ({
             {movie.cast.length > 5 ? (
               <button
                 type="button"
-                className="mt-3 border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors"
+                className="mt-3 rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors"
                 style={{
                   borderColor: CINEMA_MODULE_STYLES.border,
                   color: CINEMA_MODULE_STYLES.muted,

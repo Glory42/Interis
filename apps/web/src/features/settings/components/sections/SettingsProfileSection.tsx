@@ -108,7 +108,7 @@ export const SettingsProfileSection = () => {
               type="button"
               onClick={openAvatarPicker}
               disabled={isAvatarUploading}
-              className="group relative h-20 w-20 overflow-hidden border-2 settings-shell-border"
+              className="group relative h-20 w-20 overflow-hidden rounded-full border-2 settings-shell-border"
               aria-label="Change avatar"
             >
               {avatarImage ? (
@@ -166,7 +166,7 @@ export const SettingsProfileSection = () => {
               </label>
               <input
                 id="settings-username"
-                className="w-full border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+                className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
                 placeholder="username"
                 value={username}
                 onChange={(event) => setUsername(event.target.value)}
@@ -183,7 +183,7 @@ export const SettingsProfileSection = () => {
               <textarea
                 id="settings-bio"
                 rows={3}
-                className="w-full resize-none border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input settings-shell-bio"
+                className="w-full resize-none rounded-lg border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input settings-shell-bio"
                 placeholder="Write something about yourself..."
                 value={bio}
                 onChange={(event) => setBio(event.target.value)}
@@ -203,7 +203,7 @@ export const SettingsProfileSection = () => {
                 />
                 <input
                   id="settings-location"
-                  className="w-full border bg-transparent py-2 pl-8 pr-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+                  className="w-full rounded-lg border bg-transparent py-2 pl-8 pr-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
                   placeholder="City, Country"
                   value={location}
                   onChange={(event) => setLocation(event.target.value)}
@@ -213,7 +213,7 @@ export const SettingsProfileSection = () => {
             </div>
 
             {saveError ? (
-              <p role="alert" className="border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {saveError}
               </p>
             ) : null}
@@ -227,7 +227,7 @@ export const SettingsProfileSection = () => {
             <button
               type="submit"
               disabled={isSaving}
-              className="px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-full px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               style={{ background: "var(--settings-shell-accent)", color: "var(--primary-foreground)" }}
             >
               {isSaving ? "Saving..." : "Save changes"}

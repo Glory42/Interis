@@ -84,7 +84,7 @@ export const NotificationsBell = () => {
       <button
         type="button"
         onClick={() => setIsOpen((current) => !current)}
-        className="relative flex h-7 w-7 items-center justify-center border border-border/70 text-muted-foreground transition-colors hover:text-foreground"
+        className="relative flex h-7 w-7 items-center justify-center rounded-full border border-border/70 text-muted-foreground transition-colors hover:text-foreground"
         aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-label="Open notifications"
@@ -99,7 +99,7 @@ export const NotificationsBell = () => {
 
       {isOpen ? (
         <div
-          className="absolute right-0 top-[calc(100%-1px)] z-50 w-72 border bg-popover/95 backdrop-blur-md animate-fade-up"
+          className="absolute right-0 top-[calc(100%-1px)] z-50 w-72 rounded-xl border bg-popover/95 backdrop-blur-md animate-fade-up overflow-hidden"
           style={{ borderColor: "color-mix(in srgb, var(--primary) 30%, transparent)" }}
           role="menu"
           aria-label="Notifications"
@@ -148,7 +148,7 @@ export const NotificationsBell = () => {
                           }
                         }}
                         className={
-                          "flex items-start gap-2.5 border-b border-border/50 px-3 py-2.5 text-left transition-colors last:border-0 hover:bg-secondary/25 " +
+                          "flex items-start gap-2.5 rounded-lg border-b border-border/50 px-3 py-2.5 text-left transition-colors last:border-0 hover:bg-secondary/25 " +
                           (notification.isRead ? "" : "bg-primary/5")
                         }
                       >

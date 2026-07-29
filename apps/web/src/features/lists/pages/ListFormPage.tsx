@@ -38,7 +38,7 @@ export const ListFormPage = (props: ListFormPageProps) => {
 
   if (mode === "edit" && (detailQuery.isError || !list)) {
     return (
-      <div className="border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+      <div className="rounded-xl border border-border/60 bg-card/30 p-4 text-sm text-destructive">
         This list could not be loaded.
       </div>
     );
@@ -199,7 +199,7 @@ const ListFormPageContent = ({
           <Link
             to="/profile/$username/lists"
             params={{ username }}
-            className="border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground"
+            className="rounded-full border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground"
           >
             Cancel
           </Link>
@@ -207,7 +207,7 @@ const ListFormPageContent = ({
             type="button"
             disabled={!canSave}
             onClick={() => { void handleSave(); }}
-            className="border border-primary/45 bg-primary/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-primary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-full border border-primary/45 bg-primary/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-primary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSaving ? (
               <span className="inline-flex items-center gap-1.5">

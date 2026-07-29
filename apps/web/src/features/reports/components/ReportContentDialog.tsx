@@ -67,7 +67,7 @@ const ReportContentDialogContent = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground"
+                className="rounded-full border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground"
               >
                 Close
               </button>
@@ -113,7 +113,7 @@ const ReportContentDialogContent = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="border border-border/70 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground"
+                  className="rounded-full border border-border/70 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground"
                 >
                   cancel
                 </button>
@@ -123,7 +123,7 @@ const ReportContentDialogContent = ({
                     void handleSubmit();
                   }}
                   disabled={submitReportMutation.isPending}
-                  className="border border-primary/45 bg-primary/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-full border border-primary/45 bg-primary/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-primary disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {submitReportMutation.isPending ? (
                     <span className="inline-flex items-center gap-1">

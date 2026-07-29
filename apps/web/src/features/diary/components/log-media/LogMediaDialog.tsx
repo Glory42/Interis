@@ -105,7 +105,7 @@ export const LogMediaDialog = ({
 
           <button
             type="button"
-            className="p-1 text-muted-foreground transition-all hover:bg-secondary/60 hover:text-foreground sm:p-1.5"
+            className="rounded-full p-1 text-muted-foreground transition-all hover:bg-secondary/60 hover:text-foreground sm:p-1.5"
             onClick={onClose}
             aria-label="Close review modal"
           >
@@ -118,7 +118,7 @@ export const LogMediaDialog = ({
             <div className="grid gap-4 lg:grid-cols-[176px_minmax(0,1fr)] lg:gap-5">
               <aside className="space-y-2.5 lg:space-y-3.5">
                 <div className="flex items-start gap-3 lg:block lg:space-y-3">
-                  <div className="w-20 shrink-0 overflow-hidden border border-border/70 bg-background/30 shadow-sm sm:w-24 lg:w-full">
+                  <div className="w-20 shrink-0 overflow-hidden rounded-lg border border-border/70 bg-background/30 shadow-sm sm:w-24 lg:w-full">
                     <img src={posterUrl} alt={`${title} poster`} className="aspect-2/3 w-full object-cover" />
                   </div>
 
@@ -146,7 +146,7 @@ export const LogMediaDialog = ({
                       />
                     </div>
                     {rewatch !== undefined && onRewatchChange && (
-                      <label className="flex cursor-pointer items-center gap-2.5 border border-border/70 bg-secondary/20 px-3 py-2.5 transition-colors hover:border-border sm:shrink-0">
+                      <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border/70 bg-secondary/20 px-3 py-2.5 transition-colors hover:border-border sm:shrink-0">
                         <input
                           type="checkbox"
                           checked={rewatch}
@@ -158,7 +158,7 @@ export const LogMediaDialog = ({
                     )}
                   </div>
                 ) : watched !== undefined && onWatchedChange ? (
-                  <label className="flex cursor-pointer items-center gap-3 border border-border/70 bg-secondary/20 p-2.5 transition-colors hover:border-border sm:p-3">
+                  <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-border/70 bg-secondary/20 p-2.5 transition-colors hover:border-border sm:p-3">
                     <input
                       type="checkbox"
                       checked={watched}
@@ -203,7 +203,7 @@ export const LogMediaDialog = ({
                   <button
                     type="button"
                     onClick={() => onLikedChange(!liked)}
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all hover:bg-secondary/30"
+                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all hover:bg-secondary/30"
                     style={{
                       borderColor: liked ? "var(--primary)" : "var(--border)",
                       color: liked ? "var(--primary)" : "var(--muted-foreground)",
@@ -214,7 +214,7 @@ export const LogMediaDialog = ({
                     <span>{liked ? "Liked" : "Like"}</span>
                   </button>
 
-                  <label className="flex flex-1 cursor-pointer items-center gap-2.5 border border-destructive/35 bg-destructive/10 px-3 py-2 transition-colors hover:border-destructive/50">
+                  <label className="flex flex-1 cursor-pointer items-center gap-2.5 rounded-lg border border-destructive/35 bg-destructive/10 px-3 py-2 transition-colors hover:border-destructive/50">
                     <input
                       type="checkbox"
                       checked={containsSpoilers}
@@ -229,7 +229,7 @@ export const LogMediaDialog = ({
                 {formError ? (
                   <p
                     role="alert"
-                    className="border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                    className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
                   >
                     {formError}
                   </p>

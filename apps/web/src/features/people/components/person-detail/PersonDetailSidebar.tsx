@@ -18,7 +18,7 @@ export const PersonDetailSidebar = ({
   return (
     <aside>
       <div
-        className="mb-4 aspect-2/3 overflow-hidden border"
+        className="mb-4 aspect-2/3 overflow-hidden rounded-xl border"
         style={{ borderColor: styles.border }}
       >
         <img
@@ -29,7 +29,7 @@ export const PersonDetailSidebar = ({
       </div>
 
       <div
-        className="space-y-2 border p-3"
+        className="space-y-2 rounded-xl border p-3"
         style={{ borderColor: styles.border, background: styles.panel }}
       >
         <p
@@ -55,7 +55,7 @@ export const PersonDetailSidebar = ({
 
       {externalLinks.length > 0 ? (
         <div
-          className="mt-3 space-y-2 border p-3"
+          className="mt-3 space-y-2 rounded-xl border p-3"
           style={{ borderColor: styles.border, background: styles.panel }}
         >
           <p

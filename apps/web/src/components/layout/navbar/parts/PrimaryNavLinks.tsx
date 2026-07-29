@@ -99,7 +99,7 @@ export const PrimaryNavLinks = ({
     <>
       {indicator ? (
         <div
-          className="absolute inset-y-0.5 border transition-all duration-300 ease-out"
+          className="absolute inset-y-0.5 rounded-full border transition-all duration-300 ease-out"
           style={{
             left: indicator.left,
             width: indicator.width,
