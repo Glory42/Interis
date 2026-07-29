@@ -16,7 +16,6 @@ export const DesktopSearchButton = ({
       type="text"
       value=""
       onClick={onOpen}
-      onFocus={onOpen}
       placeholder="search..."
       aria-haspopup="dialog"
       aria-expanded={isSearchDialogOpen}
