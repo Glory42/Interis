@@ -10,10 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SetupSecurityQuestionRouteImport } from './routes/setup-security-question'
-import { Route as RegisterRouteImport } from './routes/register'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DeveloperRouteImport } from './routes/developer'
+import { Route as AuthLayoutRouteImport } from './routes/_authLayout'
 import { Route as SettingsRouteRouteImport } from './routes/settings/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
@@ -33,6 +31,9 @@ import { Route as FilmsTmdbIdRouteImport } from './routes/films/$tmdbId'
 import { Route as DirectorSlugRouteImport } from './routes/director/$slug'
 import { Route as CinemaTmdbIdRouteImport } from './routes/cinema/$tmdbId'
 import { Route as ActorSlugRouteImport } from './routes/actor/$slug'
+import { Route as AuthLayoutRegisterRouteImport } from './routes/_authLayout/register'
+import { Route as AuthLayoutLoginRouteImport } from './routes/_authLayout/login'
+import { Route as AuthLayoutForgotPasswordRouteImport } from './routes/_authLayout/forgot-password'
 import { Route as ProfileUsernameRouteRouteImport } from './routes/profile/$username/route'
 import { Route as ProfileUsernameIndexRouteImport } from './routes/profile/$username/index'
 import { Route as ReviewsUsernameReviewIdRouteImport } from './routes/reviews/$username/$reviewId'
@@ -54,24 +55,13 @@ const SetupSecurityQuestionRoute = SetupSecurityQuestionRouteImport.update({
   path: '/setup-security-question',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DeveloperRoute = DeveloperRouteImport.update({
   id: '/developer',
   path: '/developer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLayoutRoute = AuthLayoutRouteImport.update({
+  id: '/_authLayout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRouteRoute = SettingsRouteRouteImport.update({
@@ -169,6 +159,22 @@ const ActorSlugRoute = ActorSlugRouteImport.update({
   path: '/actor/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthLayoutRegisterRoute = AuthLayoutRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => AuthLayoutRoute,
+} as any)
+const AuthLayoutLoginRoute = AuthLayoutLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AuthLayoutRoute,
+} as any)
+const AuthLayoutForgotPasswordRoute =
+  AuthLayoutForgotPasswordRouteImport.update({
+    id: '/forgot-password',
+    path: '/forgot-password',
+    getParentRoute: () => AuthLayoutRoute,
+  } as any)
 const ProfileUsernameRouteRoute = ProfileUsernameRouteRouteImport.update({
   id: '/profile/$username',
   path: '/profile/$username',
@@ -253,11 +259,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRouteRouteWithChildren
   '/developer': typeof DeveloperRoute
-  '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
   '/setup-security-question': typeof SetupSecurityQuestionRoute
   '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
+  '/forgot-password': typeof AuthLayoutForgotPasswordRoute
+  '/login': typeof AuthLayoutLoginRoute
+  '/register': typeof AuthLayoutRegisterRoute
   '/actor/$slug': typeof ActorSlugRoute
   '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
   '/director/$slug': typeof DirectorSlugRoute
@@ -293,10 +299,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/developer': typeof DeveloperRoute
-  '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
   '/setup-security-question': typeof SetupSecurityQuestionRoute
+  '/forgot-password': typeof AuthLayoutForgotPasswordRoute
+  '/login': typeof AuthLayoutLoginRoute
+  '/register': typeof AuthLayoutRegisterRoute
   '/actor/$slug': typeof ActorSlugRoute
   '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
   '/director/$slug': typeof DirectorSlugRoute
@@ -333,12 +339,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/settings': typeof SettingsRouteRouteWithChildren
+  '/_authLayout': typeof AuthLayoutRouteWithChildren
   '/developer': typeof DeveloperRoute
-  '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
   '/setup-security-question': typeof SetupSecurityQuestionRoute
   '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
+  '/_authLayout/forgot-password': typeof AuthLayoutForgotPasswordRoute
+  '/_authLayout/login': typeof AuthLayoutLoginRoute
+  '/_authLayout/register': typeof AuthLayoutRegisterRoute
   '/actor/$slug': typeof ActorSlugRoute
   '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
   '/director/$slug': typeof DirectorSlugRoute
@@ -377,11 +384,11 @@ export interface FileRouteTypes {
     | '/'
     | '/settings'
     | '/developer'
+    | '/setup-security-question'
+    | '/profile/$username'
     | '/forgot-password'
     | '/login'
     | '/register'
-    | '/setup-security-question'
-    | '/profile/$username'
     | '/actor/$slug'
     | '/cinema/$tmdbId'
     | '/director/$slug'
@@ -417,10 +424,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/developer'
+    | '/setup-security-question'
     | '/forgot-password'
     | '/login'
     | '/register'
-    | '/setup-security-question'
     | '/actor/$slug'
     | '/cinema/$tmdbId'
     | '/director/$slug'
@@ -456,12 +463,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/settings'
+    | '/_authLayout'
     | '/developer'
-    | '/forgot-password'
-    | '/login'
-    | '/register'
     | '/setup-security-question'
     | '/profile/$username'
+    | '/_authLayout/forgot-password'
+    | '/_authLayout/login'
+    | '/_authLayout/register'
     | '/actor/$slug'
     | '/cinema/$tmdbId'
     | '/director/$slug'
@@ -498,10 +506,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SettingsRouteRoute: typeof SettingsRouteRouteWithChildren
+  AuthLayoutRoute: typeof AuthLayoutRouteWithChildren
   DeveloperRoute: typeof DeveloperRoute
-  ForgotPasswordRoute: typeof ForgotPasswordRoute
-  LoginRoute: typeof LoginRoute
-  RegisterRoute: typeof RegisterRoute
   SetupSecurityQuestionRoute: typeof SetupSecurityQuestionRoute
   ProfileUsernameRouteRoute: typeof ProfileUsernameRouteRouteWithChildren
   ActorSlugRoute: typeof ActorSlugRoute
@@ -525,32 +531,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SetupSecurityQuestionRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/developer': {
       id: '/developer'
       path: '/developer'
       fullPath: '/developer'
       preLoaderRoute: typeof DeveloperRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authLayout': {
+      id: '/_authLayout'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthLayoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -686,6 +678,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ActorSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authLayout/register': {
+      id: '/_authLayout/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof AuthLayoutRegisterRouteImport
+      parentRoute: typeof AuthLayoutRoute
+    }
+    '/_authLayout/login': {
+      id: '/_authLayout/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof AuthLayoutLoginRouteImport
+      parentRoute: typeof AuthLayoutRoute
+    }
+    '/_authLayout/forgot-password': {
+      id: '/_authLayout/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof AuthLayoutForgotPasswordRouteImport
+      parentRoute: typeof AuthLayoutRoute
+    }
     '/profile/$username': {
       id: '/profile/$username'
       path: '/profile/$username'
@@ -820,6 +833,22 @@ const SettingsRouteRouteWithChildren = SettingsRouteRoute._addFileChildren(
   SettingsRouteRouteChildren,
 )
 
+interface AuthLayoutRouteChildren {
+  AuthLayoutForgotPasswordRoute: typeof AuthLayoutForgotPasswordRoute
+  AuthLayoutLoginRoute: typeof AuthLayoutLoginRoute
+  AuthLayoutRegisterRoute: typeof AuthLayoutRegisterRoute
+}
+
+const AuthLayoutRouteChildren: AuthLayoutRouteChildren = {
+  AuthLayoutForgotPasswordRoute: AuthLayoutForgotPasswordRoute,
+  AuthLayoutLoginRoute: AuthLayoutLoginRoute,
+  AuthLayoutRegisterRoute: AuthLayoutRegisterRoute,
+}
+
+const AuthLayoutRouteWithChildren = AuthLayoutRoute._addFileChildren(
+  AuthLayoutRouteChildren,
+)
+
 interface ProfileUsernameRouteRouteChildren {
   ProfileUsernameCinemaRoute: typeof ProfileUsernameCinemaRoute
   ProfileUsernameDiaryRoute: typeof ProfileUsernameDiaryRoute
@@ -858,10 +887,8 @@ const ProfileUsernameRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SettingsRouteRoute: SettingsRouteRouteWithChildren,
+  AuthLayoutRoute: AuthLayoutRouteWithChildren,
   DeveloperRoute: DeveloperRoute,
-  ForgotPasswordRoute: ForgotPasswordRoute,
-  LoginRoute: LoginRoute,
-  RegisterRoute: RegisterRoute,
   SetupSecurityQuestionRoute: SetupSecurityQuestionRoute,
   ProfileUsernameRouteRoute: ProfileUsernameRouteRouteWithChildren,
   ActorSlugRoute: ActorSlugRoute,

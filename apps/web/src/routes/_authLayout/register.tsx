@@ -1,9 +1,9 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { PageWrapper } from "@/components/layout/PageWrapper";
+import { AuthPageHeader } from "@/features/auth/components/AuthPageHeader";
 import { RegisterForm } from "@/features/auth/components/RegisterForm";
 import { requireGuestUser } from "@/lib/router/auth-guards";
 
-export const Route = createFileRoute("/register")({
+export const Route = createFileRoute("/_authLayout/register")({
   beforeLoad: async ({ context }) => {
     await requireGuestUser(context.queryClient);
   },
@@ -12,19 +12,20 @@ export const Route = createFileRoute("/register")({
 
 function RegisterPage() {
   return (
-    <PageWrapper
-      title="Create your account"
-      subtitle="Choose your username once, and your profile is ready immediately."
-    >
+    <>
+      <AuthPageHeader
+        title="Create your account"
+        subtitle="Choose your username once, and your profile is ready immediately."
+      />
       <div className="space-y-4">
         <RegisterForm />
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link to="/login" className="font-semibold text-primary hover:text-primary/80">
             Sign in
           </Link>
         </p>
       </div>
-    </PageWrapper>
+    </>
   );
 }

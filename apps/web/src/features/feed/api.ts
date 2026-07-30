@@ -50,14 +50,14 @@ export const getFollowingFeed = async (
 };
 
 export const getTrendingMovies = async (
-  options: QueryRequestOptions = {},
+  options: QueryRequestOptions & { limit?: number } = {},
 ): Promise<TrendingMovie[]> => {
   const response = await apiRequest<unknown>("/api/movies/trending", {
     method: "GET",
     signal: options.signal,
   });
 
-  return trendingMovieListSchema.parse(response).slice(0, 3);
+  return trendingMovieListSchema.parse(response).slice(0, options.limit ?? 3);
 };
 
 export const getMyFeedSummary = async (

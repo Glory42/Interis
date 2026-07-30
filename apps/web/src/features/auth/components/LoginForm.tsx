@@ -2,13 +2,6 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { isApiError } from "@/lib/api-client";
 import { normalizeInternalRedirectPath } from "@/lib/router/redirect";
@@ -58,74 +51,60 @@ export const LoginForm = ({ redirectTo }: LoginFormProps) => {
   };
 
   return (
-    <Card className="mx-auto w-full max-w-md">
-      <CardHeader>
-        <CardTitle>Welcome back</CardTitle>
-        <CardDescription>
-          Sign in to continue logging films and building your diary.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="space-y-1.5">
-            <label
-              className="text-sm font-medium text-foreground"
-              htmlFor="login-email"
-            >
-              Email
+    <div className="w-full max-w-md">
+      <form className="space-y-4" onSubmit={handleSubmit}>
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-foreground" htmlFor="login-email">
+            Email
+          </label>
+          <Input
+            id="login-email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-foreground" htmlFor="login-password">
+              Password
             </label>
-            <Input
-              id="login-email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label
-                className="text-sm font-medium text-foreground"
-                htmlFor="login-password"
-              >
-                Password
-              </label>
-              <Link
-                to="/forgot-password"
-                className="text-sm text-muted-foreground hover:text-primary"
-              >
-                Forgot password?
-              </Link>
-            </div>
-            <Input
-              id="login-password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              minLength={8}
-              required
-            />
-          </div>
-
-          {formError ? (
-            <p
-              role="alert"
-              className=" border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            <Link
+              to="/forgot-password"
+              className="text-sm text-muted-foreground hover:text-primary"
             >
-              {formError}
-            </p>
-          ) : null}
+              Forgot password?
+            </Link>
+          </div>
+          <Input
+            id="login-password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            minLength={8}
+            required
+          />
+        </div>
 
-          <Button className="w-full" type="submit" disabled={isLoginPending}>
-            {isLoginPending ? "Signing in..." : "Sign in"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+        {formError ? (
+          <p
+            role="alert"
+            className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          >
+            {formError}
+          </p>
+        ) : null}
+
+        <Button className="w-full" type="submit" disabled={isLoginPending}>
+          {isLoginPending ? "Signing in..." : "Sign in"}
+        </Button>
+      </form>
+    </div>
   );
 };

@@ -27,7 +27,7 @@ export class MoviesService {
   static async getTrending() {
     const trendingMovies = await tmdbTrending("week");
 
-    return trendingMovies.slice(0, 4).map((movie) => {
+    return trendingMovies.slice(0, 9).map((movie) => {
       const releaseYear = movie.release_date
         ? Number.parseInt(movie.release_date.slice(0, 4), 10)
         : Number.NaN;

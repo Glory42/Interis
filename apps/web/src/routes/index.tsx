@@ -15,7 +15,7 @@ export const Route = createFileRoute("/")({
   loader: ({ context }) => {
     void context.queryClient.prefetchQuery(authQueryOptions);
     void context.queryClient.prefetchQuery({
-      queryKey: feedKeys.trending,
+      queryKey: feedKeys.trending(),
       queryFn: ({ signal }) => getTrendingMovies({ signal }),
     });
     void context.queryClient.prefetchQuery({

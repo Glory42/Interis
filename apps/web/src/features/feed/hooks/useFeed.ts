@@ -22,7 +22,7 @@ export const feedKeys = {
   // (e.g. after liking a post, regardless of which tab is active).
   followingRoot: ["feed", "following"] as const,
   following: (filter: FeedFilter = "all") => ["feed", "following", filter] as const,
-  trending: ["feed", "trending"] as const,
+  trending: (limit = 3) => ["feed", "trending", limit] as const,
   meSummary: ["feed", "me-summary"] as const,
   networkStats: ["feed", "network-stats"] as const,
 };
@@ -44,10 +44,10 @@ export const useFollowingFeed = (filter: FeedFilter = "all", enabled = true) =>
     enabled,
   });
 
-export const useTrendingNow = () =>
+export const useTrendingNow = (limit = 3) =>
   useQuery({
-    queryKey: feedKeys.trending,
-    queryFn: ({ signal }) => getTrendingMovies({ signal }),
+    queryKey: feedKeys.trending(limit),
+    queryFn: ({ signal }) => getTrendingMovies({ signal, limit }),
     staleTime: 300_000,
   });
 

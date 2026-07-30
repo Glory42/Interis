@@ -29,7 +29,7 @@ export class SerialsService {
   static async getTrending() {
     const trendingSeries = await tmdbTrending("week");
 
-    return trendingSeries.slice(0, 4).map((series) => {
+    return trendingSeries.slice(0, 9).map((series) => {
       const firstAirYear = series.first_air_date
         ? Number.parseInt(series.first_air_date.slice(0, 4), 10)
         : Number.NaN;
