@@ -5,15 +5,10 @@ import {
   type FeedFilter,
 } from "@/features/feed/components/FeedActivityList";
 import { FeedFilterTabs } from "@/features/feed/components/FeedFilterTabs";
-import { MyProfileSummaryCard } from "@/features/feed/components/MyProfileSummaryCard";
 import { QuickLogComposer } from "@/features/feed/components/QuickLogComposer";
 import { TrendingAmongUsersRail } from "@/features/feed/components/TrendingAmongUsersRail";
 import { TrendingNowRail } from "@/features/feed/components/TrendingNowRail";
-import {
-  useFollowingFeed,
-  useMyFeedSummary,
-  useTrendingNow,
-} from "@/features/feed/hooks/useFeed";
+import { useFollowingFeed, useTrendingNow } from "@/features/feed/hooks/useFeed";
 import { useTrendingSeries } from "@/features/serials/hooks/useSerials";
 
 export const HomePage = () => {
@@ -30,7 +25,6 @@ export const HomePage = () => {
   const followingFeedQuery = useFollowingFeed(activeFilter, isFollowingEnabled);
   const cinemaTrendingQuery = useTrendingNow();
   const serialTrendingQuery = useTrendingSeries();
-  const mySummaryQuery = useMyFeedSummary(Boolean(user));
 
   const feedItems = useMemo(
     () => followingFeedQuery.data?.pages.flatMap((page) => page.items) ?? [],
@@ -99,13 +93,6 @@ export const HomePage = () => {
         </div>
 
         <aside className="order-3 w-full shrink-0 space-y-6 lg:sticky lg:top-16 lg:w-72">
-          <MyProfileSummaryCard
-            user={user}
-            isLoading={mySummaryQuery.isPending}
-            isError={mySummaryQuery.isError}
-            summary={mySummaryQuery.data ?? null}
-          />
-
           <TrendingAmongUsersRail feedItems={allFeedItems} />
         </aside>
       </div>
