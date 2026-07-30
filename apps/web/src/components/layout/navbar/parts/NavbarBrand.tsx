@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { MoonStarIcon } from "lucide-react";
 
 export const NavbarBrand = () => (
   <div className="shrink-0">
@@ -8,9 +7,28 @@ export const NavbarBrand = () => (
       viewTransition
       className="group flex shrink-0 items-center gap-2"
     >
-      <div className="flex h-6 w-6 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-primary transition-all group-hover:border-primary">
-        <MoonStarIcon className="h-4 w-4 text-current" />
-      </div>
+      <svg
+        viewBox="0 -115.5 1255 1255"
+        className="h-4 w-4 shrink-0"
+        aria-hidden="true"
+      >
+        <path
+          d="M640.505087 0a414.805401 414.805401 0 0 1 414.805401 414.805401v22.77363q-17.080222 308.257347-17.080223 372.511517a325.337569 325.337569 0 0 0 73.200953 197.642574A612.447975 612.447975 0 0 0 895.081735 920.705322c-81.334392 0-143.148531 93.534551-178.12232 87.0278-81.334392-14.640191-124.44162-87.0278-148.028594-87.0278a154.535346 154.535346 0 0 0-127.694996 87.841143 139.895155 139.895155 0 0 0-121.188244-64.25417A251.323272 251.323272 0 0 0 163.072203 1008.546465a919.078634 919.078634 0 0 0 67.507546-297.683876 904.438443 904.438443 0 0 0-29.280381-226.922954v-43.920572A439.205719 439.205719 0 0 1 640.505087 0z"
+          fill="var(--primary)"
+        />
+        <path
+          d="M1037.416921 686.462272c94.347895-11.386815 92.721207 125.254964 168.362193 108.174742 52.054011-18.70691 65.880858-147.21525 24.400317-209.029389a244.003177 244.003177 0 0 0-175.682287-116.308181c-54.494043-8.946783-39.853852 219.602859-17.080223 217.162828zM213.499527 686.462272c-91.094519-11.386815-89.467832 122.814932-162.668785 107.361398-54.494043-18.70691-68.32089-147.21525-26.027006-209.029389a244.003177 244.003177 0 0 1 175.682288-116.308181c54.494043-8.133439 39.853852 220.416203 13.013503 217.976172z"
+          style={{ fill: "color-mix(in srgb, var(--primary) 65%, black)" }}
+        />
+        <path
+          d="M457.502704 321.27085m-101.667991 0a101.66799 101.66799 0 1 0 203.335981 0 101.66799 101.66799 0 1 0-203.335981 0Z"
+          style={{ fill: "color-mix(in srgb, var(--primary) 35%, white)" }}
+        />
+        <path
+          d="M782.840273 321.27085m-101.66799 0a101.66799 101.66799 0 1 0 203.335981 0 101.66799 101.66799 0 1 0-203.335981 0Z"
+          style={{ fill: "color-mix(in srgb, var(--primary) 35%, white)" }}
+        />
+      </svg>
       <span className="font-mono text-[11px] font-extrabold tracking-widest text-foreground/80 transition-colors group-hover:text-foreground">
         Interis
       </span>

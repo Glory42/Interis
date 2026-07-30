@@ -84,7 +84,7 @@ export const NotificationsBell = () => {
       <button
         type="button"
         onClick={() => setIsOpen((current) => !current)}
-        className="relative flex h-7 w-7 items-center justify-center rounded-full border border-border/70 text-muted-foreground transition-colors hover:text-foreground"
+        className="relative flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
         aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-label="Open notifications"

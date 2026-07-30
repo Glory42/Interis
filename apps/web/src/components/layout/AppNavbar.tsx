@@ -43,7 +43,7 @@ export const AppNavbar = () => {
           }}
         />
 
-        <div className="mx-auto grid h-12 w-full max-w-400 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4">
+        <div className="mx-auto grid h-14 w-full max-w-400 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4">
           <div className="col-start-1 flex min-w-0 items-center">
             <NavbarBrand />
           </div>
@@ -106,7 +106,7 @@ export const AppNavbar = () => {
         <button
           type="button"
           onClick={closeMobileMenu}
-          className="theme-navbar-overlay fixed inset-0 top-12 z-30 bg-black/45 md:hidden"
+          className="theme-navbar-overlay fixed inset-0 top-14 z-30 bg-black/45 md:hidden"
           aria-label="Close navigation overlay"
         />
       ) : null}

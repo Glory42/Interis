@@ -41,7 +41,7 @@ export const ProfileMenu = ({
       <button
         type="button"
         onClick={onToggle}
-        className="flex max-w-[10rem] items-center gap-1.5 rounded-full border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground transition-all hover:text-foreground"
+        className="flex max-w-[10rem] items-center gap-1.5 rounded-full px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
         aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-label="Open profile menu"
