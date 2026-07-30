@@ -63,7 +63,7 @@ export const HomePage = () => {
             <FeedFilterTabs activeFilter={activeFilter} onFilterChange={setActiveFilter} />
           </div>
 
-          <div id="quick-log-composer" className="mb-8">
+          <div id="quick-log-composer" className="mb-4">
             <QuickLogComposer user={user} />
           </div>
 

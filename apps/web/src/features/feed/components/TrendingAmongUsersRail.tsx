@@ -56,19 +56,19 @@ export const TrendingAmongUsersRail = ({ feedItems }: TrendingAmongUsersRailProp
   const topLoggedThings = buildTopLoggedThings(feedItems);
 
   return (
-    <section className="rounded-2xl border border-border/50 bg-card/30 p-5">
-      <p className="theme-kicker mb-4 text-[9px] text-(--module-serial)">
+    <section>
+      <p className="theme-kicker border-b border-border/50 pb-2 text-[9px] text-(--module-serial)">
         Trending among users
       </p>
 
       {topLoggedThings.length > 0 ? (
-        <div className="space-y-3">
+        <div className="divide-y divide-border/30">
           {topLoggedThings.map((entry) => (
             <Link
               key={entry.id}
               to={entry.to}
               params={{ tmdbId: String(entry.tmdbId) }}
-              className="group -mx-2 flex items-center gap-3 border border-transparent px-2 py-1 transition-colors hover:border-border/60"
+              className="group -mx-2 flex items-center gap-3 px-2 py-2.5 transition-colors hover:bg-foreground/[0.025]"
               viewTransition
             >
               {entry.posterPath ? (
@@ -97,7 +97,7 @@ export const TrendingAmongUsersRail = ({ feedItems }: TrendingAmongUsersRailProp
           ))}
         </div>
       ) : (
-        <p className="text-xs text-muted-foreground">
+        <p className="pt-3 text-xs text-muted-foreground">
           Not enough logs yet to calculate trends.
         </p>
       )}

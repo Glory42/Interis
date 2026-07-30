@@ -55,13 +55,15 @@ export const TrendingNowRail = ({
   ].slice(0, 6);
 
   return (
-    <section className="rounded-2xl border border-border/50 bg-card/30 p-5">
-      <p className="theme-kicker mb-4 text-[9px] text-primary">Trending now</p>
+    <section>
+      <p className="theme-kicker border-b border-border/50 pb-2 text-[9px] text-primary">
+        Trending now
+      </p>
 
       {isLoading ? (
-        <div className="animate-pulse space-y-3">
+        <div className="animate-pulse divide-y divide-border/30">
           {[0, 1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex items-center gap-3">
+            <div key={i} className="flex items-center gap-3 py-2.5">
               <div className="h-11 w-8 shrink-0 bg-muted/40" />
               <div className="h-3 flex-1 bg-muted/30" />
             </div>
@@ -70,21 +72,21 @@ export const TrendingNowRail = ({
       ) : null}
 
       {isError ? (
-        <p className="text-xs text-destructive">Could not load trends.</p>
+        <p className="pt-3 text-xs text-destructive">Could not load trends.</p>
       ) : null}
 
       {!isLoading && !isError && mergedEntries.length === 0 ? (
-        <p className="text-xs text-muted-foreground">No trending titles yet.</p>
+        <p className="pt-3 text-xs text-muted-foreground">No trending titles yet.</p>
       ) : null}
 
       {!isLoading && !isError && mergedEntries.length > 0 ? (
-        <div className="space-y-3">
+        <div className="divide-y divide-border/30">
           {mergedEntries.map((entry) => (
             <Link
               key={entry.id}
               to={entry.to}
               params={{ tmdbId: String(entry.tmdbId) }}
-              className="group -mx-2 flex items-center gap-3 border border-transparent px-2 py-1 transition-colors hover:border-border/60"
+              className="group -mx-2 flex items-center gap-3 px-2 py-2.5 transition-colors hover:bg-foreground/[0.025]"
               viewTransition
             >
               {entry.posterPath ? (

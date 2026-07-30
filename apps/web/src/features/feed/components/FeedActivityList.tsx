@@ -1,5 +1,6 @@
 import { FeedActivityCard } from "@/features/feed/components/FeedActivityCard";
 import type { FeedItem } from "@/features/feed/types";
+import { cn } from "@/lib/utils";
 
 export type FeedFilter = "all" | "cinema" | "serial";
 
@@ -28,7 +29,7 @@ const formatDayLabel = (value: string): string => {
 };
 
 const FeedSkeletonRow = () => (
-  <div className="flex animate-pulse gap-4 border-b border-border/30 py-6 first:pt-0">
+  <div className="flex animate-pulse gap-4 py-6 first:pt-0">
     <div className="h-28 w-[76px] shrink-0 bg-muted/40" />
     <div className="min-w-0 flex-1 space-y-3 pt-1">
       <div className="flex items-center gap-2">
@@ -52,7 +53,7 @@ export const FeedActivityList = ({
 }: FeedActivityListProps) => {
   if (isLoading) {
     return (
-      <div>
+      <div className="divide-y divide-border/30">
         {Array.from({ length: 4 }).map((_, i) => (
           <FeedSkeletonRow key={i} />
         ))}
@@ -85,7 +86,7 @@ export const FeedActivityList = ({
   }
 
   return (
-    <div>
+    <div className="divide-y divide-border/40">
       {items.map((item, index) => {
         const dayLabel = formatDayLabel(item.createdAt);
         const previousDayLabel =
@@ -94,7 +95,12 @@ export const FeedActivityList = ({
         return (
           <div key={item.id}>
             {dayLabel !== previousDayLabel ? (
-              <p className="theme-kicker mt-8 mb-2 text-[9px] text-muted-foreground/70 first:mt-0">
+              <p
+                className={cn(
+                  "theme-kicker mb-1.5 text-[9px] text-muted-foreground/70",
+                  index === 0 ? "mt-0" : "mt-6",
+                )}
+              >
                 {dayLabel}
               </p>
             ) : null}

@@ -17,7 +17,7 @@ export const QuickLogComposer = ({ user }: QuickLogComposerProps) => {
 
   if (!user) {
     return (
-      <div className="rounded-2xl border border-border/50 bg-card/40 p-5">
+      <div className="border-b border-border/50 pb-5">
         <p className="theme-kicker text-[10px] text-muted-foreground">
           Log console locked
         </p>
@@ -58,7 +58,7 @@ export const QuickLogComposer = ({ user }: QuickLogComposerProps) => {
   };
 
   return (
-    <div className="rounded-2xl border border-border/50 bg-card/40 p-5">
+    <div className="border-b border-border/50 pb-5">
       <div className="flex items-start gap-3">
         <div className="flex shrink-0 flex-col items-center gap-2">
           <FeedActorAvatar

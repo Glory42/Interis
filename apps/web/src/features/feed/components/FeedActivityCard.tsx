@@ -100,7 +100,7 @@ export const FeedActivityCard = memo(function FeedActivityCard({ item }: FeedAct
   const actorAvatar = item.actor.avatarUrl ?? null;
 
   return (
-    <article className="-mx-2 flex gap-3 rounded-xl border border-transparent border-b-border/40 px-3 py-3.5 transition-colors hover:border-border/60 hover:bg-foreground/[0.025]">
+    <article className="-mx-2 flex gap-3 rounded-xl px-3 py-3.5 transition-colors hover:bg-foreground/[0.025]">
       <FeedActorAvatar
         avatarUrl={actorAvatar}
         username={item.actor.username}

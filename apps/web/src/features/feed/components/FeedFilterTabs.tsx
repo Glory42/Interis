@@ -32,10 +32,10 @@ export const FeedFilterTabs = ({ activeFilter, onFilterChange }: FeedFilterTabsP
   const activeColor = TABS.find((tab) => tab.id === activeFilter)?.color ?? "var(--primary)";
 
   return (
-    <div className="theme-segment-shell relative inline-flex gap-1 border p-1">
+    <div className="relative inline-flex items-center gap-1">
       {indicator ? (
         <div
-          className="absolute top-1 bottom-1 rounded-full border transition-all duration-300 ease-out"
+          className="absolute inset-y-0 rounded-full border transition-all duration-300 ease-out"
           style={{
             left: indicator.left,
             width: indicator.width,
