@@ -87,7 +87,7 @@ export const ImportDialog = ({
           {isRunning && total > 0 && (
             <div className="h-px bg-border/40">
               <div
-                className="h-full bg-primary/50 transition-all duration-300"
+                className="h-full bg-primary/50 transition-[width] duration-300"
                 style={{ width: `${Math.round((processed / total) * 100)}%` }}
               />
             </div>

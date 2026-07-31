@@ -1,7 +1,9 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import FocusLock from "react-focus-lock";
 import { cn } from "@/lib/utils";
+
+const EXIT_DURATION_MS = 200;
 
 type ModalShellProps = {
   onClose: () => void;
@@ -27,6 +29,20 @@ export const ModalShell = ({
   closeOnBackdropClick = true,
   portal = true,
 }: ModalShellProps) => {
+  const [isClosing, setIsClosing] = useState(false);
+
+  const requestClose = () => {
+    setIsClosing(true);
+  };
+
+  useEffect(() => {
+    if (!isClosing) {
+      return;
+    }
+    const timeoutId = window.setTimeout(onClose, EXIT_DURATION_MS);
+    return () => window.clearTimeout(timeoutId);
+  }, [isClosing, onClose]);
+
   useEffect(() => {
     if (!closeOnEscape) {
       return;
@@ -34,7 +50,7 @@ export const ModalShell = ({
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        onClose();
+        requestClose();
       }
     };
 
@@ -42,20 +58,22 @@ export const ModalShell = ({
     return () => {
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [closeOnEscape, onClose]);
+  }, [closeOnEscape]);
 
   const content = (
     <div
       className={cn(
-        "theme-modal-overlay fixed inset-0 z-140 bg-background/70 backdrop-blur-sm",
+        "theme-modal-overlay fixed inset-0 z-140 bg-background/70 backdrop-blur-sm transition-opacity duration-200 ease-(--ease-out)",
+        isClosing ? "opacity-0" : "opacity-100",
         overlayClassName,
       )}
       aria-label={closeOnBackdropClick ? ariaCloseLabel : undefined}
-      onClick={closeOnBackdropClick ? onClose : undefined}
+      onClick={closeOnBackdropClick ? requestClose : undefined}
     >
       <div
         className={cn(
-          "relative mx-auto flex h-full w-full items-center justify-center p-4",
+          "relative mx-auto flex h-full w-full items-center justify-center p-4 transition-[opacity,transform] duration-200 ease-(--ease-out)",
+          isClosing ? "translate-y-2 scale-[0.98] opacity-0" : "translate-y-0 scale-100 opacity-100",
           containerClassName,
         )}
       >

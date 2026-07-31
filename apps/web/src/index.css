@@ -32,6 +32,7 @@
 
 :root {
   --radius: 0.75rem;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 
   --background: #171420;
   --foreground: #e8e3f7;
@@ -628,6 +629,28 @@
   }
 }
 
+@keyframes fade-only {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes like-pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 @layer components {
   .theme-shell-gradient {
     background: var(--theme-shell-gradient);
@@ -884,7 +907,7 @@
   }
 
   .animate-fade-up {
-    animation: fade-up 280ms ease both;
+    animation: fade-up 280ms var(--ease-out) both;
   }
 
   .no-scrollbar {
@@ -895,6 +918,24 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
+  .animate-like-pop {
+    animation: like-pop 320ms var(--ease-out);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-route-enter,
+  .animate-fade-up {
+    animation-name: fade-only;
+    animation-duration: 150ms;
+    animation-timing-function: ease;
+    animation-fill-mode: both;
+  }
+
+  .animate-like-pop {
+    animation: none;
+  }
 }
 
 @supports (view-transition-name: root) {
@@ -902,5 +943,21 @@
   ::view-transition-new(root) {
     animation-duration: 220ms;
     animation-timing-function: ease;
+  }
+}
+
+:root.theme-transitioning,
+:root.theme-transitioning * {
+  transition:
+    background-color 200ms var(--ease-out),
+    color 200ms var(--ease-out),
+    border-color 200ms var(--ease-out),
+    fill 200ms var(--ease-out) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root.theme-transitioning,
+  :root.theme-transitioning * {
+    transition: none !important;
   }
 }

@@ -81,7 +81,7 @@ const useAutoRotatePage = (pageCount: number, initialDelayMs: number): number =>
 const SlidingRow = ({ pages, activePage }: { pages: Tile[][]; activePage: number }) => (
   <div className="overflow-hidden">
     <div
-      className="flex transition-transform duration-700 ease-out"
+      className="flex transition-transform duration-500 ease-in-out"
       style={{ transform: `translateX(-${activePage * 100}%)` }}
     >
       {pages.map((pageTiles, index) => (

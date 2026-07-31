@@ -27,7 +27,7 @@ export const LikeButton = ({ count, isLiked, isPending, disabled, onToggle }: Li
     onClick={onToggle}
     disabled={disabled || isPending}
     className={cn(
-      "inline-flex items-center gap-1.5 transition-colors",
+      "inline-flex items-center gap-1.5 transition-colors active:scale-[0.97]",
       isLiked ? "text-primary" : "hover:text-primary",
       disabled || isPending ? "cursor-not-allowed opacity-50" : "",
     )}
@@ -35,7 +35,7 @@ export const LikeButton = ({ count, isLiked, isPending, disabled, onToggle }: Li
     {isPending ? (
       <Loader2 className="h-4 w-4 animate-spin" />
     ) : (
-      <Heart className={cn("h-4 w-4", isLiked ? "fill-current" : "")} />
+      <Heart className={cn("h-4 w-4", isLiked ? "fill-current animate-like-pop" : "")} />
     )}
     {count}
   </button>

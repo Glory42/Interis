@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Film, Tv, type LucideIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { getPosterUrl } from "@/features/films/components/utils";
 import type { UserTopPickCategory, UserTopPickItem } from "@/features/profile/api";
@@ -57,16 +57,18 @@ const toSlotItems = (
   return [1, 2, 3, 4].map((slot) => bySlot.get(slot) ?? null);
 };
 
-const linkClassName = "block transition-opacity duration-200 hover:opacity-80";
+const linkClassName = "block transition-opacity duration-200 hover:opacity-80 animate-fade-up";
 
 const TopPickSlot = ({
   categoryKey,
   item,
   isCategorySupported,
+  style,
 }: {
   categoryKey: TopPickCategoryKey;
   item: UserTopPickItem | null;
   isCategorySupported: boolean;
+  style?: CSSProperties;
 }) => {
   const [didPosterFail, setDidPosterFail] = useState(false);
   const meta = topPickCategoryMeta[categoryKey];
@@ -115,6 +117,7 @@ const TopPickSlot = ({
         to="/cinema/$tmdbId"
         params={{ tmdbId: String(tmdbId) }}
         className={linkClassName}
+        style={style}
         viewTransition
       >
         {body}
@@ -128,6 +131,7 @@ const TopPickSlot = ({
         to="/serials/$tmdbId"
         params={{ tmdbId: String(tmdbId) }}
         className={linkClassName}
+        style={style}
         viewTransition
       >
         {body}
@@ -135,7 +139,11 @@ const TopPickSlot = ({
     );
   }
 
-  return <div className={linkClassName}>{body}</div>;
+  return (
+    <div className={linkClassName} style={style}>
+      {body}
+    </div>
+  );
 };
 
 type ProfileTopPicksRowProps = {
@@ -181,6 +189,7 @@ export const ProfileTopPicksRow = ({
               categoryKey={categoryKey}
               item={slotItem}
               isCategorySupported={isCategorySupported}
+              style={{ animationDelay: `${Math.min(index * 40, 400)}ms` }}
             />
           ))}
         </div>

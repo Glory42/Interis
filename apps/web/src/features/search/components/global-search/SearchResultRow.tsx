@@ -30,7 +30,7 @@ export const SearchResultRow = ({
           role="option"
           aria-selected={isHighlighted}
           className={cn(
-            "group flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-all",
+            "group flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
             isHighlighted
               ? "border-primary/45 bg-primary/10"
               : "border-border/70 bg-background/40 hover:bg-secondary/35",
@@ -84,7 +84,7 @@ export const SearchResultRow = ({
         role="option"
         aria-selected={isHighlighted}
         className={cn(
-          "group flex w-full items-center gap-3 border px-3 py-2 text-left transition-all",
+          "group flex w-full items-center gap-3 border px-3 py-2 text-left transition-colors",
           isHighlighted
             ? "border-primary/45 bg-primary/10"
             : "border-border/70 bg-background/40 hover:bg-secondary/35",

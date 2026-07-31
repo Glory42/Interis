@@ -19,15 +19,16 @@ export const SerialSimilarSection = ({ similar }: SerialSimilarSectionProps) => 
       </h2>
 
       <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-6">
-        {similar.map((series) => (
+        {similar.map((series, index) => (
           <Link
             key={`similar-${series.tmdbId}`}
             to="/serials/$tmdbId"
             params={{ tmdbId: String(series.tmdbId) }}
-            className="group flex flex-col gap-2"
+            className="group flex flex-col gap-2 animate-fade-up"
+            style={{ animationDelay: `${Math.min(index * 40, 400)}ms` }}
           >
             <div
-              className="relative aspect-[2/3] overflow-hidden rounded-lg border transition-all duration-300 group-hover:scale-[1.03]"
+              className="relative aspect-[2/3] overflow-hidden rounded-lg border transition-transform duration-300 group-hover:scale-[1.03]"
               style={{ borderColor: SERIAL_MODULE_STYLES.borderSoft }}
             >
               <img

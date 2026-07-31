@@ -1,7 +1,8 @@
-import { memo } from "react";
+import { memo, type CSSProperties } from "react";
 import { Link } from "@tanstack/react-router";
 import { Award } from "lucide-react";
 import type { ArchiveCardModuleStyles, ArchiveRatingSource } from "@/features/media-archive/types";
+import { cn } from "@/lib/utils";
 
 type ArchiveMediaCardProps = {
   kind: "cinema" | "serial";
@@ -17,6 +18,8 @@ type ArchiveMediaCardProps = {
   subtitlePrimary: string;
   subtitleSecondary?: string | null;
   moduleStyles: ArchiveCardModuleStyles;
+  className?: string;
+  style?: CSSProperties;
 };
 
 // Memoized because the archive grid re-renders on unrelated local state
@@ -35,6 +38,8 @@ export const ArchiveMediaCard = memo(function ArchiveMediaCard({
   subtitlePrimary,
   subtitleSecondary,
   moduleStyles,
+  className,
+  style,
 }: ArchiveMediaCardProps) {
   const to = kind === "cinema" ? "/cinema/$tmdbId" : "/serials/$tmdbId";
 
@@ -42,7 +47,8 @@ export const ArchiveMediaCard = memo(function ArchiveMediaCard({
     <Link
       to={to}
       params={{ tmdbId: String(tmdbId) }}
-      className="block w-full text-left"
+      className={cn("block w-full text-left", className)}
+      style={style}
       viewTransition
     >
       <div

@@ -59,7 +59,7 @@ export const ProfileWatchingPage = ({ username }: ProfileWatchingPageProps) => {
                   <img
                     src={getPosterUrl(item.posterPath)}
                     alt={item.title}
-                    className="h-full w-full object-cover opacity-90 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+                    className="h-full w-full object-cover opacity-90 transition-[transform,opacity] duration-500 group-hover:scale-105 group-hover:opacity-100"
                     loading="lazy"
                   />
                 </div>

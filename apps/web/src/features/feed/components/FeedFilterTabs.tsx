@@ -35,9 +35,9 @@ export const FeedFilterTabs = ({ activeFilter, onFilterChange }: FeedFilterTabsP
     <div className="relative inline-flex items-center gap-1">
       {indicator ? (
         <div
-          className="absolute inset-y-0 rounded-full border transition-all duration-300 ease-out"
+          className="absolute inset-y-0 rounded-full border transition-[transform,width] duration-300 ease-in-out"
           style={{
-            left: indicator.left,
+            transform: `translateX(${indicator.left}px)`,
             width: indicator.width,
             borderColor: activeColor,
             background: `color-mix(in srgb, ${activeColor} 14%, transparent)`,

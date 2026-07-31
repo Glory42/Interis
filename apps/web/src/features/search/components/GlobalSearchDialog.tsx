@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { scopedPlaceholder } from "@/features/search/components/global-search/co
 import { GlobalSearchResults } from "@/features/search/components/global-search/GlobalSearchResults";
 import { openSearchEntry } from "@/features/search/components/global-search/navigation";
 import { useGlobalSearchState } from "@/features/search/components/global-search/useGlobalSearchState";
+import { cn } from "@/lib/utils";
 import { navigateWithViewTransitionFallback } from "@/lib/view-transition";
 
 type GlobalSearchDialogProps = {
@@ -21,6 +22,7 @@ export const GlobalSearchDialog = ({
   const navigate = useNavigate();
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   const state = useGlobalSearchState();
 
@@ -100,13 +102,18 @@ export const GlobalSearchDialog = ({
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    const frame = window.requestAnimationFrame(() => {
+    const showFrame = window.requestAnimationFrame(() => {
+      setIsVisible(true);
+    });
+    const focusFrame = window.requestAnimationFrame(() => {
       inputRef.current?.focus();
     });
 
     return () => {
       document.body.style.overflow = previousOverflow;
-      window.cancelAnimationFrame(frame);
+      window.cancelAnimationFrame(showFrame);
+      window.cancelAnimationFrame(focusFrame);
+      setIsVisible(false);
     };
   }, [isOpen]);
 
@@ -171,7 +178,10 @@ export const GlobalSearchDialog = ({
           role="dialog"
           aria-modal="true"
           aria-labelledby={inputId}
-          className="theme-modal-panel w-full overflow-hidden border border-border/80 bg-card/95 shadow-2xl shadow-background/45 animate-fade-up"
+          className={cn(
+            "theme-modal-panel w-full overflow-hidden border border-border/80 bg-card/95 shadow-2xl shadow-background/45 transition-[opacity,transform] duration-200 ease-(--ease-out)",
+            isVisible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
+          )}
         >
           <div
             className="h-px w-full"

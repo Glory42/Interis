@@ -113,7 +113,7 @@ export const SpaceRatingInput = ({
   autoSave = false,
 }: SpaceRatingInputProps) => {
   const trackRef = useRef<HTMLDivElement>(null);
-  const dragging = useRef(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [draft, setDraft] = useState<number | null>(value);
 
   // Keep draft in sync when the saved value changes externally (e.g. after a
@@ -146,19 +146,19 @@ export const SpaceRatingInput = ({
     if (disabled) return;
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
-    dragging.current = true;
+    setIsDragging(true);
     const next = snapRating(e.clientY);
     setDraft(next === draft ? null : next);
   };
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragging.current || disabled) return;
+    if (!isDragging || disabled) return;
     setDraft(snapRating(e.clientY));
   };
 
   const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     e.currentTarget.releasePointerCapture(e.pointerId);
-    dragging.current = false;
+    setIsDragging(false);
     if (autoSave && draft !== null) {
       onChange(draft);
     }
@@ -221,8 +221,11 @@ export const SpaceRatingInput = ({
 
         {/* Fill */}
         <div
-          className="absolute bottom-0 left-1/2 w-px -translate-x-1/2 bg-primary/65 transition-[height] duration-100"
-          style={{ height: `${fillPct}%` }}
+          className={cn(
+            "absolute inset-y-0 left-1/2 w-px origin-bottom bg-primary/65",
+            !isDragging && "transition-transform duration-100",
+          )}
+          style={{ transform: `translateX(-50%) scaleY(${fillPct / 100})` }}
         />
 
         {/* Tick marks */}
@@ -247,11 +250,12 @@ export const SpaceRatingInput = ({
 
         {/* Rocket */}
         <div
-          className="absolute pointer-events-none transition-[bottom] duration-150"
+          className={cn(
+            "absolute bottom-0 left-1/2 pointer-events-none",
+            !isDragging && "transition-transform duration-150",
+          )}
           style={{
-            bottom: `${fillPct}%`,
-            left: "50%",
-            transform: "translateX(-50%) translateY(50%)",
+            transform: `translate(-50%, 50%) translateY(-${(fillPct / 100) * TRACK_HEIGHT}px)`,
           }}
         >
           <Rocket
@@ -290,7 +294,7 @@ export const SpaceRatingInput = ({
             onClick={() => {
               if (draft !== null) onChange(draft);
             }}
-            className="rounded-full border border-primary/50 bg-primary/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-primary transition-all hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-25"
+            className="rounded-full border border-primary/50 bg-primary/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-primary transition-[color,background-color,transform] active:scale-[0.97] hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-25"
           >
             Save
           </button>
@@ -302,7 +306,7 @@ export const SpaceRatingInput = ({
             setDraft(null);
             onChange(null);
           }}
-          className="rounded-full border border-border/60 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground transition-all hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-25"
+          className="rounded-full border border-border/60 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground transition-[color,background-color,transform] active:scale-[0.97] hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-25"
         >
           Clear
         </button>

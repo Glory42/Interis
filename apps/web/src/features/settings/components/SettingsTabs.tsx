@@ -46,9 +46,9 @@ export const SettingsTabs = () => {
     >
       {indicator ? (
         <div
-          className="absolute bottom-0 h-0.5 transition-all duration-300 ease-out"
+          className="absolute bottom-0 h-0.5 transition-[transform,width] duration-300 ease-in-out"
           style={{
-            left: indicator.left,
+            transform: `translateX(${indicator.left}px)`,
             width: indicator.width,
             background: "var(--settings-shell-accent)",
           }}

@@ -30,6 +30,7 @@ export const CinemaArchivePage = () => {
   const [openMenu, setOpenMenu] = useState<ArchiveMenuKey | null>(null);
 
   const controlsRef = useRef<HTMLDivElement | null>(null);
+  const [hasStaggeredInitialLoad, setHasStaggeredInitialLoad] = useState(false);
 
   const selectedSortLabel = useMemo(() => {
     return (
@@ -74,6 +75,26 @@ export const CinemaArchivePage = () => {
 
     return archivePages.flatMap((page) => page.items);
   }, [archivePages]);
+
+  // Latches one frame after the first non-empty result set has painted, so
+  // that initial paint still renders with the stagger classes present; only
+  // "load more"/filter-change renders after this effect fires get skipped.
+  // Deferred via rAF (not set synchronously during render or in the effect
+  // body) — setting it synchronously would flip the flag before the very
+  // commit it's supposed to gate ever reaches the screen.
+  useEffect(() => {
+    if (hasStaggeredInitialLoad || archiveItems.length === 0) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      setHasStaggeredInitialLoad(true);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, [hasStaggeredInitialLoad, archiveItems.length]);
 
   const archiveCount = firstPage?.filteredCount ?? archiveItems.length;
   const archiveCountLabel = formatArchiveCount(archiveCount);
@@ -208,7 +229,7 @@ export const CinemaArchivePage = () => {
         {!archiveQuery.isPending && !archiveQuery.isError && archiveItems.length > 0 ? (
           <>
             <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-              {archiveItems.map((movie) => (
+              {archiveItems.map((movie, index) => (
                 <ArchiveMediaCard
                   key={`cinema-archive-item-${movie.tmdbId}`}
                   kind="cinema"
@@ -222,6 +243,12 @@ export const CinemaArchivePage = () => {
                   moduleStyles={CINEMA_MODULE_STYLES}
                   subtitlePrimary={movie.director ?? "Unknown director"}
                   subtitleSecondary={getReleaseYearLabel(movie)}
+                  className={hasStaggeredInitialLoad ? undefined : "animate-fade-up"}
+                  style={
+                    hasStaggeredInitialLoad
+                      ? undefined
+                      : { animationDelay: `${Math.min(index * 40, 400)}ms` }
+                  }
                 />
               ))}
             </div>
@@ -231,7 +258,7 @@ export const CinemaArchivePage = () => {
                 <button
                   type="button"
                   disabled={isFetchingNextPage}
-                  className="rounded-full border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-full border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                   style={{
                     borderColor: CINEMA_MODULE_STYLES.border,
                     color: CINEMA_MODULE_STYLES.muted,

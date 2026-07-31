@@ -74,7 +74,7 @@ export const SeasonHeaderRow = ({
             <button
               type="button"
               onClick={onToggleWatched}
-              className="flex h-7 rounded-full px-2 items-center justify-center border font-mono text-[9px] uppercase font-bold transition-all hover:bg-secondary/40"
+              className="flex h-7 rounded-full px-2 items-center justify-center border font-mono text-[9px] uppercase font-bold transition-colors hover:bg-secondary/40"
               style={{
                 borderColor: seasonWatched ? SERIAL_MODULE_STYLES.accent : SERIAL_MODULE_STYLES.borderSoft,
                 color: seasonWatched ? SERIAL_MODULE_STYLES.accent : SERIAL_MODULE_STYLES.muted,
@@ -88,7 +88,7 @@ export const SeasonHeaderRow = ({
             <button
               type="button"
               onClick={onToggleLiked}
-              className="flex h-7 w-7 items-center justify-center rounded-full border transition-all hover:bg-secondary/40"
+              className="flex h-7 w-7 items-center justify-center rounded-full border transition-colors hover:bg-secondary/40"
               style={{
                 borderColor: seasonLiked ? "#ef4444" : SERIAL_MODULE_STYLES.borderSoft,
                 color: seasonLiked ? "#ef4444" : SERIAL_MODULE_STYLES.muted,
@@ -104,7 +104,7 @@ export const SeasonHeaderRow = ({
             <button
               type="button"
               onClick={onOpenReview}
-              className="flex h-7 rounded-full px-2 items-center gap-1 border font-mono text-[9px] uppercase font-bold transition-all hover:bg-secondary/40"
+              className="flex h-7 rounded-full px-2 items-center gap-1 border font-mono text-[9px] uppercase font-bold transition-colors hover:bg-secondary/40"
               style={{
                 borderColor: seasonHasReview ? SERIAL_MODULE_STYLES.accent : SERIAL_MODULE_STYLES.borderSoft,
                 color: seasonHasReview ? SERIAL_MODULE_STYLES.accent : SERIAL_MODULE_STYLES.muted,

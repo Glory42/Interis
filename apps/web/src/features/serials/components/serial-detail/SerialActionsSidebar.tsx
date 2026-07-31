@@ -82,7 +82,7 @@ export const SerialActionsSidebar = ({
             <button
               type="button"
               disabled={isInteractionBusy}
-              className="flex items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
               style={{
                 borderColor: watchlisted
                   ? SERIAL_MODULE_STYLES.accent
@@ -122,7 +122,7 @@ export const SerialActionsSidebar = ({
             <button
               type="button"
               disabled={isInteractionBusy}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
               style={{
                 borderColor: watched
                   ? SERIAL_MODULE_STYLES.accent
@@ -156,7 +156,7 @@ export const SerialActionsSidebar = ({
             <button
               type="button"
               disabled={isInteractionBusy}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
               style={{
                 borderColor: liked
                   ? SERIAL_MODULE_STYLES.accent
@@ -191,7 +191,7 @@ export const SerialActionsSidebar = ({
           <AddToListDialog
             tmdbId={series.tmdbId}
             itemType="serial"
-            triggerClassName="flex w-full items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all"
+            triggerClassName="flex w-full items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors"
             triggerStyle={{
               borderColor: SERIAL_MODULE_STYLES.border,
               color: SERIAL_MODULE_STYLES.muted,

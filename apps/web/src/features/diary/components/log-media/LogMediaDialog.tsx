@@ -95,7 +95,7 @@ export const LogMediaDialog = ({
       <div
         role="dialog"
         aria-modal="true"
-        className="theme-modal-panel relative z-50 flex w-[calc(100vw-1rem)] max-h-[calc(100dvh-1rem)] max-w-4xl flex-col overflow-hidden border border-border/70 bg-card/95 shadow-2xl backdrop-blur-xl sm:w-[calc(100vw-2rem)] sm:max-h-[calc(100dvh-2rem)]"
+        className="theme-modal-panel relative z-50 flex w-[calc(100vw-1rem)] max-h-[calc(100dvh-1rem)] max-w-4xl flex-col overflow-hidden border border-border/70 bg-card/95 shadow-2xl backdrop-blur-xl animate-fade-up sm:w-[calc(100vw-2rem)] sm:max-h-[calc(100dvh-2rem)]"
       >
         <div className="flex items-start justify-between border-b border-border/60 bg-card/90 px-4 py-3.5 backdrop-blur-sm sm:px-5 sm:py-4">
           <div>
@@ -105,7 +105,7 @@ export const LogMediaDialog = ({
 
           <button
             type="button"
-            className="rounded-full p-1 text-muted-foreground transition-all hover:bg-secondary/60 hover:text-foreground sm:p-1.5"
+            className="rounded-full p-1 text-muted-foreground transition-[color,background-color,transform] hover:bg-secondary/60 hover:text-foreground active:scale-[0.97] sm:p-1.5"
             onClick={onClose}
             aria-label="Close review modal"
           >
@@ -203,7 +203,7 @@ export const LogMediaDialog = ({
                   <button
                     type="button"
                     onClick={() => onLikedChange(!liked)}
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all hover:bg-secondary/30"
+                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-[color,background-color,border-color,transform] hover:bg-secondary/30 active:scale-[0.97]"
                     style={{
                       borderColor: liked ? "var(--primary)" : "var(--border)",
                       color: liked ? "var(--primary)" : "var(--muted-foreground)",

@@ -123,7 +123,7 @@ export const ProfileReviewCommentsSection = ({
                           type="button"
                           onClick={() => startEditing(comment)}
                           aria-label="Edit comment"
-                          className="text-muted-foreground transition-colors hover:text-primary"
+                          className="text-muted-foreground transition-[color,transform] hover:text-primary active:scale-[0.97]"
                         >
                           <PenSquare className="h-3.5 w-3.5" />
                         </button>
@@ -132,7 +132,7 @@ export const ProfileReviewCommentsSection = ({
                           onClick={() => setPendingDeleteId(comment.id)}
                           disabled={deleteCommentMutation.isPending}
                           aria-label="Delete comment"
-                          className="text-muted-foreground transition-colors hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
+                          className="text-muted-foreground transition-[color,transform] hover:text-destructive active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>

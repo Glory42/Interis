@@ -67,7 +67,7 @@ export const HomePage = () => {
             <QuickLogComposer user={user} />
           </div>
 
-          <div key={activeFilter} className="animate-fade-up">
+          <div className="animate-fade-up">
             <FeedActivityList
               isAuthenticated={isFollowingEnabled}
               isLoading={isFeedLoading}
