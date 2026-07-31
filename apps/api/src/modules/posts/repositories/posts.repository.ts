@@ -165,22 +165,6 @@ export class PostsRepository {
       .orderBy(postComments.createdAt);
   }
 
-  static async findPostById(postId: string) {
-    const [post] = await db
-      .select({
-        id: posts.id,
-        userId: posts.userId,
-        content: posts.content,
-        mediaId: posts.mediaId,
-        mediaType: posts.mediaType,
-      })
-      .from(posts)
-      .where(eq(posts.id, postId))
-      .limit(1);
-
-    return post ?? null;
-  }
-
   static async insertComment(userId: string, postId: string, content: string) {
     const [comment] = await db
       .insert(postComments)

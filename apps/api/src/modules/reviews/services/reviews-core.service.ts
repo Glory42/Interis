@@ -5,7 +5,7 @@ import { movies } from "../../movies/movies.entity";
 import { MoviesService } from "../../movies/movies.service";
 import { SerialsService } from "../../serials/serials.service";
 import { SerialsReviewsRepository } from "../../serials/repositories/serials-reviews.repository";
-import { activities } from "../../social/social.entity";
+import { SocialRepository } from "../../social/repositories/social.repository";
 import { reviewLikes, reviews } from "../reviews.entity";
 import { buildReviewCreatedActivityMetadata } from "../helpers/reviews-activity.helper";
 import type { CreateReviewDto, UpdateReviewDto } from "../dto/reviews.dto";
@@ -27,7 +27,7 @@ export class ReviewsCoreService {
 
       if (!review) throw new Error("Could not create review");
 
-      await db.insert(activities).values({
+      await SocialRepository.insertActivity({
         userId,
         type: "review",
         entityId: review.id,
@@ -85,7 +85,7 @@ export class ReviewsCoreService {
       throw new Error("Could not create review");
     }
 
-    await db.insert(activities).values({
+    await SocialRepository.insertActivity({
       userId,
       type: "review",
       entityId: review.id,

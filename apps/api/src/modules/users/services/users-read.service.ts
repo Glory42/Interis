@@ -35,11 +35,11 @@ export class UsersReadService {
   }
 
   static async getLikedFilms(userId: string, limit?: number, offset?: number) {
-    return UsersMediaInteractionsRepository.getLikedFilms(userId, limit, offset);
+    return UsersMediaInteractionsRepository.getFilmsByFlag(userId, "liked", limit, offset);
   }
 
   static async getWatchlistedFilms(userId: string, limit?: number, offset?: number) {
-    return UsersMediaInteractionsRepository.getWatchlistedFilms(userId, limit, offset);
+    return UsersMediaInteractionsRepository.getFilmsByFlag(userId, "watchlisted", limit, offset);
   }
 
   static async getStats(userId: string) {

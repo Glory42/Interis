@@ -1,8 +1,6 @@
-import { and, eq } from "drizzle-orm";
-import { db } from "../../../infrastructure/database/db";
-import { reviews } from "../../reviews/reviews.entity";
 import { SerialsSeasonInteractionsRepository } from "../repositories/serials-season-interactions.repository";
 import { SerialsEpisodeInteractionsRepository } from "../repositories/serials-episode-interactions.repository";
+import { SerialsSeasonEpisodeReviewsRepository } from "../repositories/serials-season-episode-reviews.repository";
 import { SerialsCacheService } from "./serials-cache.service";
 import { getSeriesSeasonDetails as tmdbGetSeasonDetails } from "../../../infrastructure/tmdb/serials";
 import { SocialRepository } from "../../social/repositories/social.repository";
@@ -201,20 +199,7 @@ export class SerialsTrackingService {
   }
 
   static async getSeasonReview(userId: string, seriesTmdbId: number, seasonNumber: number) {
-    const mediaSourceId = `${seriesTmdbId}:${seasonNumber}`;
-    const [row] = await db
-      .select()
-      .from(reviews)
-      .where(
-        and(
-          eq(reviews.userId, userId),
-          eq(reviews.mediaType, "tv_season"),
-          eq(reviews.mediaSourceId, mediaSourceId),
-        ),
-      )
-      .limit(1);
-
-    return row ?? null;
+    return SerialsSeasonEpisodeReviewsRepository.getSeasonReview(userId, seriesTmdbId, seasonNumber);
   }
 
   static async upsertSeasonReview(
@@ -223,33 +208,12 @@ export class SerialsTrackingService {
     seasonNumber: number,
     input: { content: string; containsSpoilers?: boolean },
   ) {
-    const mediaSourceId = `${seriesTmdbId}:${seasonNumber}`;
-
-    const [existing] = await db
-      .select({ id: reviews.id })
-      .from(reviews)
-      .where(and(eq(reviews.userId, userId), eq(reviews.mediaType, "tv_season"), eq(reviews.mediaSourceId, mediaSourceId)))
-      .limit(1);
-    const isNew = !existing;
-
-    const [row] = await db
-      .insert(reviews)
-      .values({
-        userId,
-        mediaType: "tv_season",
-        mediaSourceId,
-        content: input.content,
-        containsSpoilers: input.containsSpoilers ?? false,
-      })
-      .onConflictDoUpdate({
-        target: [reviews.userId, reviews.mediaType, reviews.mediaSource, reviews.mediaSourceId],
-        set: {
-          content: input.content,
-          containsSpoilers: input.containsSpoilers ?? false,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
+    const { row, isNew } = await SerialsSeasonEpisodeReviewsRepository.upsertSeasonReview(
+      userId,
+      seriesTmdbId,
+      seasonNumber,
+      input,
+    );
 
     if (isNew && row) {
       SerialsCacheService.findOrCreate(seriesTmdbId).then((series) => {
@@ -272,18 +236,7 @@ export class SerialsTrackingService {
   }
 
   static async deleteSeasonReview(userId: string, seriesTmdbId: number, seasonNumber: number) {
-    const mediaSourceId = `${seriesTmdbId}:${seasonNumber}`;
-    const [deleted] = await db
-      .delete(reviews)
-      .where(
-        and(
-          eq(reviews.userId, userId),
-          eq(reviews.mediaType, "tv_season"),
-          eq(reviews.mediaSourceId, mediaSourceId),
-        ),
-      )
-      .returning();
-    return deleted ?? null;
+    return SerialsSeasonEpisodeReviewsRepository.deleteSeasonReview(userId, seriesTmdbId, seasonNumber);
   }
 
   static async getEpisodeReview(
@@ -292,20 +245,12 @@ export class SerialsTrackingService {
     seasonNumber: number,
     episodeNumber: number,
   ) {
-    const mediaSourceId = `${seriesTmdbId}:${seasonNumber}:${episodeNumber}`;
-    const [row] = await db
-      .select()
-      .from(reviews)
-      .where(
-        and(
-          eq(reviews.userId, userId),
-          eq(reviews.mediaType, "tv_episode"),
-          eq(reviews.mediaSourceId, mediaSourceId),
-        ),
-      )
-      .limit(1);
-
-    return row ?? null;
+    return SerialsSeasonEpisodeReviewsRepository.getEpisodeReview(
+      userId,
+      seriesTmdbId,
+      seasonNumber,
+      episodeNumber,
+    );
   }
 
   static async upsertEpisodeReview(
@@ -315,33 +260,13 @@ export class SerialsTrackingService {
     episodeNumber: number,
     input: { content: string; containsSpoilers?: boolean },
   ) {
-    const mediaSourceId = `${seriesTmdbId}:${seasonNumber}:${episodeNumber}`;
-
-    const [existing] = await db
-      .select({ id: reviews.id })
-      .from(reviews)
-      .where(and(eq(reviews.userId, userId), eq(reviews.mediaType, "tv_episode"), eq(reviews.mediaSourceId, mediaSourceId)))
-      .limit(1);
-    const isNew = !existing;
-
-    const [row] = await db
-      .insert(reviews)
-      .values({
-        userId,
-        mediaType: "tv_episode",
-        mediaSourceId,
-        content: input.content,
-        containsSpoilers: input.containsSpoilers ?? false,
-      })
-      .onConflictDoUpdate({
-        target: [reviews.userId, reviews.mediaType, reviews.mediaSource, reviews.mediaSourceId],
-        set: {
-          content: input.content,
-          containsSpoilers: input.containsSpoilers ?? false,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
+    const { row, isNew } = await SerialsSeasonEpisodeReviewsRepository.upsertEpisodeReview(
+      userId,
+      seriesTmdbId,
+      seasonNumber,
+      episodeNumber,
+      input,
+    );
 
     if (isNew && row) {
       SerialsCacheService.findOrCreate(seriesTmdbId).then((series) => {
@@ -370,17 +295,11 @@ export class SerialsTrackingService {
     seasonNumber: number,
     episodeNumber: number,
   ) {
-    const mediaSourceId = `${seriesTmdbId}:${seasonNumber}:${episodeNumber}`;
-    const [deleted] = await db
-      .delete(reviews)
-      .where(
-        and(
-          eq(reviews.userId, userId),
-          eq(reviews.mediaType, "tv_episode"),
-          eq(reviews.mediaSourceId, mediaSourceId),
-        ),
-      )
-      .returning();
-    return deleted ?? null;
+    return SerialsSeasonEpisodeReviewsRepository.deleteEpisodeReview(
+      userId,
+      seriesTmdbId,
+      seasonNumber,
+      episodeNumber,
+    );
   }
 }

@@ -1,9 +1,9 @@
 import { z } from "zod";
+import { paginationQuerySchema } from "../../../commons/validation/common.schemas";
 
 export const ListUsersQuerySchema = z.object({
   query: z.string().trim().optional(),
-  limit: z.coerce.number().int().positive().max(100).optional(),
-  offset: z.coerce.number().int().nonnegative().optional(),
+  ...paginationQuerySchema.shape,
 });
 
 export type ListUsersQuery = z.input<typeof ListUsersQuerySchema>;

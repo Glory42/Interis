@@ -1,5 +1,6 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
+import { mergeSortedPaginated } from "../../../commons/helpers/merge-sorted-paginated.helper";
 import { diaryEntries } from "../../diary/diary.entity";
 import { reviews } from "../../reviews/reviews.entity";
 import { serialDiaryEntries, tvSeries } from "../../serials/serials.entity";
@@ -100,11 +101,11 @@ export class UsersReviewsListRepository {
       })
       .filter((reviewRow): reviewRow is NonNullable<typeof reviewRow> => reviewRow !== null);
 
-    const merged = [...normalizedMovieReviewRows, ...serialReviewRows].sort(
-      (leftReview, rightReview) =>
-        rightReview.createdAt.getTime() - leftReview.createdAt.getTime()
+    return mergeSortedPaginated(
+      [...normalizedMovieReviewRows, ...serialReviewRows],
+      limit,
+      offset,
+      (row) => row.createdAt.getTime(),
     );
-
-    return limit ? merged.slice(offset ?? 0, (offset ?? 0) + limit) : merged;
   }
 }

@@ -1,10 +1,10 @@
 import { z } from "zod";
+import { paginationQuerySchema } from "../../../commons/validation/common.schemas";
 
 export const AdminListContentQuerySchema = z.object({
   username: z.string().trim().optional(),
   movieId: z.coerce.number().int().positive().optional(),
-  limit: z.coerce.number().int().positive().max(100).optional(),
-  offset: z.coerce.number().int().nonnegative().optional(),
+  ...paginationQuerySchema.shape,
 });
 
 export type AdminListContentQuery = z.input<typeof AdminListContentQuerySchema>;

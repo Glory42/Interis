@@ -1,6 +1,7 @@
 import { SerialsEpisodeInteractionsRepository } from "../repositories/serials-episode-interactions.repository";
 import { toNormalizedSeasonItems } from "./serials-normalization.helper";
 import { filterWatchedNonSpecialEpisodes, toWatchedEpisodeKeySet } from "./serials-episode-filter.helper";
+import { isNonSpecialSeasonNumber } from "../constants/serials-season.constants";
 import type { TMDBSeriesDetail } from "../../../infrastructure/tmdb/serials";
 import type { SerialDetailViewerTracking } from "../types/serials.types";
 
@@ -28,7 +29,7 @@ export async function calculateViewerTracking(
   let currentEpisode: { seasonNumber: number; episodeNumber: number; name: string } | null = null;
 
   const sortedSeasons = (tmdbDetail ? toNormalizedSeasonItems(tmdbDetail) : [])
-    .filter((s) => s.seasonNumber > 0)
+    .filter((s) => isNonSpecialSeasonNumber(s.seasonNumber))
     .sort((a, b) => a.seasonNumber - b.seasonNumber);
 
   let foundNext = false;

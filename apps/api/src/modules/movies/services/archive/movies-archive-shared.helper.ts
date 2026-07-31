@@ -5,7 +5,13 @@ import {
   toReleaseTimestamp,
 } from "../../helpers/movies-format.helper";
 import { buildAvailableGenresFromItems } from "../../../media/helpers/media-archive-genres.helper";
-import { sortByWeightedTmdbRatingDesc } from "../../../media/helpers/media-weighted-rating.helper";
+import {
+  computeArchivePeriodWindow,
+  getGenericTmdbMinVoteCountForPeriod,
+  isItemInArchivePeriod,
+  type ArchivePeriod,
+} from "../../../media/helpers/media-archive-period.helper";
+import { sortArchiveItemsGeneric, type ArchiveSortKind } from "../../../media/helpers/media-archive-sort.helper";
 import type {
   ArchiveGenreOption,
   CinemaArchiveItem,
@@ -18,65 +24,16 @@ export const toAvailableGenresFromItems = (
   return buildAvailableGenresFromItems(items) as ArchiveGenreOption[];
 };
 
-const toIsoDateUtc = (date: Date): string => {
-  return date.toISOString().slice(0, 10);
-};
-
 export const getArchivePeriodWindow = (
   period: CinemaArchivePeriod,
 ): MoviesArchivePeriodWindow => {
-  if (period === "all_time") {
-    return {
-      releaseDateGte: null,
-      releaseDateLte: null,
-      startYear: null,
-      endYear: null,
-    };
-  }
-
-  const now = new Date();
-  const nowYear = now.getUTCFullYear();
-  const todayIsoDate = toIsoDateUtc(now);
-
-  if (period === "today") {
-    return {
-      releaseDateGte: todayIsoDate,
-      releaseDateLte: todayIsoDate,
-      startYear: nowYear,
-      endYear: nowYear,
-    };
-  }
-
-  if (period === "this_week") {
-    const daysSinceSunday = now.getUTCDay();
-    const weekStartDate = new Date(
-      Date.UTC(nowYear, now.getUTCMonth(), now.getUTCDate() - daysSinceSunday),
-    );
-
-    return {
-      releaseDateGte: toIsoDateUtc(weekStartDate),
-      releaseDateLte: todayIsoDate,
-      startYear: weekStartDate.getUTCFullYear(),
-      endYear: nowYear,
-    };
-  }
-
-  if (period === "this_year") {
-    return {
-      releaseDateGte: `${nowYear}-01-01`,
-      releaseDateLte: todayIsoDate,
-      startYear: nowYear,
-      endYear: nowYear,
-    };
-  }
-
-  const startYear = nowYear - 9;
+  const window = computeArchivePeriodWindow(period as ArchivePeriod);
 
   return {
-    releaseDateGte: `${startYear}-01-01`,
-    releaseDateLte: todayIsoDate,
-    startYear,
-    endYear: nowYear,
+    releaseDateGte: window.dateGte,
+    releaseDateLte: window.dateLte,
+    startYear: window.startYear,
+    endYear: window.endYear,
   };
 };
 
@@ -99,15 +56,12 @@ export const getTmdbMinVoteCountForPeriod = (
   period: CinemaArchivePeriod,
   sortBy: CinemaArchiveSort,
 ): number => {
-  if (sortBy === "rating_tmdb_desc") {
-    return RATING_SORT_MIN_VOTE_COUNT_BY_PERIOD[period];
-  }
-
-  if (period === "this_week" || period === "today") {
-    return 0;
-  }
-
-  return 15;
+  return getGenericTmdbMinVoteCountForPeriod(
+    period as ArchivePeriod,
+    sortBy,
+    "rating_tmdb_desc",
+    RATING_SORT_MIN_VOTE_COUNT_BY_PERIOD as Record<ArchivePeriod, number>,
+  );
 };
 
 // Same confidence threshold as the TMDB-catalog floor above, applied as a
@@ -124,127 +78,36 @@ export const isMovieInArchivePeriod = (
   period: CinemaArchivePeriod,
   periodWindow: MoviesArchivePeriodWindow,
 ): boolean => {
-  if (period === "all_time") {
-    return true;
-  }
+  // Preserves the exact original call - no release-year fallback passed here.
+  const timestamp = toReleaseTimestamp(movie.releaseDate, null);
 
-  const releaseDateMs = toReleaseTimestamp(movie.releaseDate, null);
-  if (releaseDateMs !== Number.NEGATIVE_INFINITY) {
-    const startDateMs = periodWindow.releaseDateGte
-      ? Date.parse(periodWindow.releaseDateGte)
-      : Number.NEGATIVE_INFINITY;
-    const endDateMs = periodWindow.releaseDateLte
-      ? Date.parse(periodWindow.releaseDateLte)
-      : Number.POSITIVE_INFINITY;
+  return isItemInArchivePeriod(timestamp, movie.releaseYear, period as ArchivePeriod, {
+    dateGte: periodWindow.releaseDateGte,
+    dateLte: periodWindow.releaseDateLte,
+    startYear: periodWindow.startYear,
+    endYear: periodWindow.endYear,
+  });
+};
 
-    return releaseDateMs >= startDateMs && releaseDateMs <= endDateMs;
-  }
-
-  if (movie.releaseYear === null) {
-    return false;
-  }
-
-  if (period === "today" || period === "this_week") {
-    return false;
-  }
-
-  const startYear = periodWindow.startYear ?? Number.NEGATIVE_INFINITY;
-  const endYear = periodWindow.endYear ?? Number.POSITIVE_INFINITY;
-
-  return movie.releaseYear >= startYear && movie.releaseYear <= endYear;
+const SORT_KIND_BY_CINEMA_SORT: Record<CinemaArchiveSort, ArchiveSortKind> = {
+  trending: "trending",
+  release_desc: "date_desc",
+  release_asc: "date_asc",
+  logs_desc: "logs_desc",
+  rating_user_desc: "rating_user_desc",
+  rating_tmdb_desc: "rating_tmdb_desc",
+  title_asc: "title_asc",
 };
 
 export const sortLocalArchiveItems = (
   items: CinemaArchiveItem[],
   sortBy: CinemaArchiveSort,
 ): CinemaArchiveItem[] => {
-  const sortedItems = [...items];
-
-  if (sortBy === "trending") {
-    sortedItems.sort((left, right) => {
-      if (right.logCount !== left.logCount) {
-        return right.logCount - left.logCount;
-      }
-
-      const leftRating = left.avgRatingOutOfTen ?? -1;
-      const rightRating = right.avgRatingOutOfTen ?? -1;
-      if (rightRating !== leftRating) {
-        return rightRating - leftRating;
-      }
-
-      return compareByReleaseDesc(left, right);
-    });
-
-    return sortedItems;
-  }
-
-  if (sortBy === "release_desc") {
-    sortedItems.sort(compareByReleaseDesc);
-    return sortedItems;
-  }
-
-  if (sortBy === "release_asc") {
-    sortedItems.sort(compareByReleaseAsc);
-    return sortedItems;
-  }
-
-  if (sortBy === "logs_desc") {
-    sortedItems.sort((left, right) => {
-      if (right.logCount !== left.logCount) {
-        return right.logCount - left.logCount;
-      }
-
-      return compareByReleaseDesc(left, right);
-    });
-
-    return sortedItems;
-  }
-
-  if (sortBy === "rating_user_desc") {
-    sortedItems.sort((left, right) => {
-      const leftRating = left.avgRatingOutOfTen;
-      const rightRating = right.avgRatingOutOfTen;
-
-      if (leftRating === null && rightRating !== null) {
-        return 1;
-      }
-
-      if (leftRating !== null && rightRating === null) {
-        return -1;
-      }
-
-      if (leftRating !== null && rightRating !== null && rightRating !== leftRating) {
-        return rightRating - leftRating;
-      }
-
-      if (right.ratedLogCount !== left.ratedLogCount) {
-        return right.ratedLogCount - left.ratedLogCount;
-      }
-
-      return compareByReleaseDesc(left, right);
-    });
-
-    return sortedItems;
-  }
-
-  if (sortBy === "rating_tmdb_desc") {
-    return sortByWeightedTmdbRatingDesc(sortedItems, RATING_SORT_MIN_VOTES_FOR_CONFIDENCE, (left, right) => {
-      if (right.logCount !== left.logCount) {
-        return right.logCount - left.logCount;
-      }
-
-      return compareByReleaseDesc(left, right);
-    });
-  }
-
-  sortedItems.sort((left, right) => {
-    const titleOrder = left.title.localeCompare(right.title);
-    if (titleOrder !== 0) {
-      return titleOrder;
-    }
-
-    return compareByReleaseDesc(left, right);
-  });
-
-  return sortedItems;
+  return sortArchiveItemsGeneric(
+    items,
+    SORT_KIND_BY_CINEMA_SORT[sortBy],
+    compareByReleaseDesc,
+    compareByReleaseAsc,
+    RATING_SORT_MIN_VOTES_FOR_CONFIDENCE,
+  );
 };

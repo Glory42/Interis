@@ -145,4 +145,158 @@ export class SerialsSeasonEpisodeReviewsRepository {
       })),
     ];
   }
+
+  // Single season/episode review persistence (get/upsert/delete by owner +
+  // media source) - season and episode reviews only differ in mediaType and
+  // how their mediaSourceId is composed, so the CRUD itself is shared here.
+  private static async getReviewByMediaSource(
+    userId: string,
+    mediaType: "tv_season" | "tv_episode",
+    mediaSourceId: string,
+  ) {
+    const [row] = await db
+      .select()
+      .from(reviews)
+      .where(
+        and(
+          eq(reviews.userId, userId),
+          eq(reviews.mediaType, mediaType),
+          eq(reviews.mediaSourceId, mediaSourceId),
+        ),
+      )
+      .limit(1);
+
+    return row ?? null;
+  }
+
+  private static async upsertReviewByMediaSource(
+    userId: string,
+    mediaType: "tv_season" | "tv_episode",
+    mediaSourceId: string,
+    input: { content: string; containsSpoilers?: boolean },
+  ) {
+    const [existing] = await db
+      .select({ id: reviews.id })
+      .from(reviews)
+      .where(
+        and(
+          eq(reviews.userId, userId),
+          eq(reviews.mediaType, mediaType),
+          eq(reviews.mediaSourceId, mediaSourceId),
+        ),
+      )
+      .limit(1);
+    const isNew = !existing;
+
+    const [row] = await db
+      .insert(reviews)
+      .values({
+        userId,
+        mediaType,
+        mediaSourceId,
+        content: input.content,
+        containsSpoilers: input.containsSpoilers ?? false,
+      })
+      .onConflictDoUpdate({
+        target: [reviews.userId, reviews.mediaType, reviews.mediaSource, reviews.mediaSourceId],
+        set: {
+          content: input.content,
+          containsSpoilers: input.containsSpoilers ?? false,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+
+    return { row: row ?? null, isNew };
+  }
+
+  private static async deleteReviewByMediaSource(
+    userId: string,
+    mediaType: "tv_season" | "tv_episode",
+    mediaSourceId: string,
+  ) {
+    const [deleted] = await db
+      .delete(reviews)
+      .where(
+        and(
+          eq(reviews.userId, userId),
+          eq(reviews.mediaType, mediaType),
+          eq(reviews.mediaSourceId, mediaSourceId),
+        ),
+      )
+      .returning();
+
+    return deleted ?? null;
+  }
+
+  static async getSeasonReview(userId: string, seriesTmdbId: number, seasonNumber: number) {
+    return SerialsSeasonEpisodeReviewsRepository.getReviewByMediaSource(
+      userId,
+      "tv_season",
+      `${seriesTmdbId}:${seasonNumber}`,
+    );
+  }
+
+  static async upsertSeasonReview(
+    userId: string,
+    seriesTmdbId: number,
+    seasonNumber: number,
+    input: { content: string; containsSpoilers?: boolean },
+  ) {
+    return SerialsSeasonEpisodeReviewsRepository.upsertReviewByMediaSource(
+      userId,
+      "tv_season",
+      `${seriesTmdbId}:${seasonNumber}`,
+      input,
+    );
+  }
+
+  static async deleteSeasonReview(userId: string, seriesTmdbId: number, seasonNumber: number) {
+    return SerialsSeasonEpisodeReviewsRepository.deleteReviewByMediaSource(
+      userId,
+      "tv_season",
+      `${seriesTmdbId}:${seasonNumber}`,
+    );
+  }
+
+  static async getEpisodeReview(
+    userId: string,
+    seriesTmdbId: number,
+    seasonNumber: number,
+    episodeNumber: number,
+  ) {
+    return SerialsSeasonEpisodeReviewsRepository.getReviewByMediaSource(
+      userId,
+      "tv_episode",
+      `${seriesTmdbId}:${seasonNumber}:${episodeNumber}`,
+    );
+  }
+
+  static async upsertEpisodeReview(
+    userId: string,
+    seriesTmdbId: number,
+    seasonNumber: number,
+    episodeNumber: number,
+    input: { content: string; containsSpoilers?: boolean },
+  ) {
+    return SerialsSeasonEpisodeReviewsRepository.upsertReviewByMediaSource(
+      userId,
+      "tv_episode",
+      `${seriesTmdbId}:${seasonNumber}:${episodeNumber}`,
+      input,
+    );
+  }
+
+  static async deleteEpisodeReview(
+    userId: string,
+    seriesTmdbId: number,
+    seasonNumber: number,
+    episodeNumber: number,
+  ) {
+    return SerialsSeasonEpisodeReviewsRepository.deleteReviewByMediaSource(
+      userId,
+      "tv_episode",
+      `${seriesTmdbId}:${seasonNumber}:${episodeNumber}`,
+    );
+  }
 }

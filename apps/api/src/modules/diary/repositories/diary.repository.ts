@@ -3,7 +3,7 @@ import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
 import { reviews } from "../../reviews/reviews.entity";
-import { activities } from "../../social/social.entity";
+import { SocialRepository } from "../../social/repositories/social.repository";
 import { diaryEntries } from "../diary.entity";
 
 export class DiaryRepository {
@@ -78,12 +78,7 @@ export class DiaryRepository {
     entityId: string;
     metadata: string;
   }) {
-    await db.insert(activities).values({
-      userId: input.userId,
-      type: input.type,
-      entityId: input.entityId,
-      metadata: input.metadata,
-    });
+    await SocialRepository.insertActivity(input);
   }
 
   static async findAllByUser(userId: string, limit?: number) {

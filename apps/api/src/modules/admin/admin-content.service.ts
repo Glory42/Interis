@@ -1,15 +1,9 @@
 import { DiaryService } from "../diary/diary.service";
 import { PostsService } from "../posts/posts.service";
 import { ReviewsService } from "../reviews/reviews.service";
-import { AuthUsersRepository } from "../auth/repositories/auth-users.repository";
+import { resolveUserId } from "./helpers/resolve-user-id.helper";
 
 type ContentFilters = { username?: string; movieId?: number };
-
-const resolveUserId = async (username: string | undefined): Promise<string | undefined> => {
-  if (!username) return undefined;
-  const userRow = await AuthUsersRepository.findByUsername(username);
-  return userRow?.id;
-};
 
 export class AdminContentService {
   static async listReviews(filters: ContentFilters, limit: number, offset: number) {

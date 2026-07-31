@@ -1,9 +1,5 @@
-import { REVIEW_ACTIVITY_EXCERPT_LENGTH } from "../constants/reviews.constants";
+import { truncateExcerpt as toExcerpt } from "../../../commons/helpers/text.helper";
 import type { ReviewMediaMetadata } from "../types/reviews.types";
-
-const toExcerpt = (content: string): string => {
-  return content.slice(0, REVIEW_ACTIVITY_EXCERPT_LENGTH);
-};
 
 export const buildReviewCreatedActivityMetadata = (input: {
   reviewId: string;

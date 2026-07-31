@@ -2,6 +2,7 @@ import {
   decodeFeedCursor,
   encodeFeedCursor,
 } from "../social/helpers/social-feed-cursor.helper";
+import { normalizeBoundedLimit } from "../../commons/helpers/pagination.helper";
 import {
   NotificationsRepository,
   type NotificationType,
@@ -10,12 +11,8 @@ import {
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 50;
 
-const normalizeLimit = (limit?: number): number => {
-  if (!limit || Number.isNaN(limit)) {
-    return DEFAULT_PAGE_SIZE;
-  }
-  return Math.max(1, Math.min(limit, MAX_PAGE_SIZE));
-};
+const normalizeLimit = (limit?: number): number =>
+  normalizeBoundedLimit(limit, { default: DEFAULT_PAGE_SIZE, max: MAX_PAGE_SIZE });
 
 export type NotificationPage = Awaited<ReturnType<typeof NotificationsService.listForUser>>;
 

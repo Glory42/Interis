@@ -1,13 +1,7 @@
 import { ListsService } from "../lists/lists.service";
 import { SocialService } from "../social/social.service";
 import type { ActivityType } from "../social/repositories/social.repository";
-import { AuthUsersRepository } from "../auth/repositories/auth-users.repository";
-
-const resolveUserId = async (username: string | undefined): Promise<string | undefined> => {
-  if (!username) return undefined;
-  const userRow = await AuthUsersRepository.findByUsername(username);
-  return userRow?.id;
-};
+import { resolveUserId } from "./helpers/resolve-user-id.helper";
 
 export class AdminCommunityService {
   static async listLists(username: string | undefined, limit: number, offset: number) {

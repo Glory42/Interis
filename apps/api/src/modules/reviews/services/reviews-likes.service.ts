@@ -1,8 +1,8 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
-import { activities } from "../../social/social.entity";
 import { buildReviewLikedActivityMetadata } from "../helpers/reviews-activity.helper";
 import { ReviewsRepository } from "../repositories/reviews.repository";
+import { SocialRepository } from "../../social/repositories/social.repository";
 import { reviewLikes } from "../reviews.entity";
 import { NotificationsService } from "../../notifications/notifications.service";
 
@@ -29,7 +29,7 @@ export class ReviewsLikesService {
         : null;
 
     await Promise.all([
-      db.insert(activities).values({
+      SocialRepository.insertActivity({
         userId,
         type: "liked_review",
         entityId: reviewId,

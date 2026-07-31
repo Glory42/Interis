@@ -39,6 +39,7 @@ const CODE_BY_STATUS: Partial<Record<number, ErrorCode>> = {
   403: "FORBIDDEN",
   404: "NOT_FOUND",
   409: "CONFLICT",
+  503: "SERVICE_UNAVAILABLE",
 };
 
 // For service-layer `{ status, error }` results where the status is only

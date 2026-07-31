@@ -1,5 +1,4 @@
-import { db } from "../../../infrastructure/database/db";
-import { activities } from "../../social/social.entity";
+import { SocialRepository } from "../../social/repositories/social.repository";
 import type { CreatePostDto, UpdatePostDto } from "../dto/posts.dto";
 import { buildPostCreatedActivityMetadata } from "../helpers/posts-activity.helper";
 import { PostsRepository } from "../repositories/posts.repository";
@@ -17,7 +16,7 @@ export class PostsCoreService {
       throw new Error("Could not create post");
     }
 
-    await db.insert(activities).values({
+    await SocialRepository.insertActivity({
       userId,
       type: "post",
       entityId: post.id,

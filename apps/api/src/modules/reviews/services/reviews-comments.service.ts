@@ -1,8 +1,8 @@
 import { db } from "../../../infrastructure/database/db";
-import { activities } from "../../social/social.entity";
 import { comments } from "../reviews.entity";
 import { buildCommentCreatedActivityMetadata } from "../helpers/reviews-activity.helper";
 import { ReviewsRepository } from "../repositories/reviews.repository";
+import { SocialRepository } from "../../social/repositories/social.repository";
 import { NotificationsService } from "../../notifications/notifications.service";
 
 export class ReviewsCommentsService {
@@ -31,7 +31,7 @@ export class ReviewsCommentsService {
         : null;
 
     const [, commentWithAuthor] = await Promise.all([
-      db.insert(activities).values({
+      SocialRepository.insertActivity({
         userId,
         type: "commented",
         entityId: comment.id,

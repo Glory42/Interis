@@ -1,5 +1,4 @@
-import { db } from "../../../infrastructure/database/db";
-import { activities } from "../../social/social.entity";
+import { SocialRepository } from "../../social/repositories/social.repository";
 import { buildPostCommentedActivityMetadata } from "../helpers/posts-activity.helper";
 import { PostsRepository } from "../repositories/posts.repository";
 import { NotificationsService } from "../../notifications/notifications.service";
@@ -10,7 +9,7 @@ export class PostsCommentsService {
   }
 
   static async addComment(userId: string, postId: string, content: string) {
-    const post = await PostsRepository.findPostById(postId);
+    const post = await PostsRepository.getPostFeedMetadata(postId);
     if (!post) {
       return null;
     }
@@ -19,7 +18,7 @@ export class PostsCommentsService {
 
     if (comment) {
       await Promise.all([
-        db.insert(activities).values({
+        SocialRepository.insertActivity({
           userId,
           type: "commented",
           entityId: comment.id,

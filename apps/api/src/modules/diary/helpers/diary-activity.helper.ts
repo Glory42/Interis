@@ -1,4 +1,4 @@
-import { DIARY_REVIEW_EXCERPT_LENGTH } from "../constants/diary.constants";
+import { truncateExcerpt } from "../../../commons/helpers/text.helper";
 
 export const buildDiaryEntryActivityMetadata = (input: {
   movie: {
@@ -48,5 +48,5 @@ export const buildDiaryReviewActivityMetadata = (input: {
   releaseYear: input.movie.releaseYear,
   rating: input.rating,
   containsSpoilers: input.review.containsSpoilers,
-  excerpt: input.review.content.slice(0, DIARY_REVIEW_EXCERPT_LENGTH),
+  excerpt: truncateExcerpt(input.review.content),
 });

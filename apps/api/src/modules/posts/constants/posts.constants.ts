@@ -1,1 +1,0 @@
-export const POST_ACTIVITY_EXCERPT_LENGTH = 120;

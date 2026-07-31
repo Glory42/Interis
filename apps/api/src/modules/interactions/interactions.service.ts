@@ -1,7 +1,5 @@
-import { eq, and } from "drizzle-orm";
-import { db } from "../../infrastructure/database/db";
-import { movieInteractions } from "./interactions.entity";
-import { activities } from "../social/social.entity";
+import { InteractionsRepository } from "./repositories/interactions.repository";
+import { SocialRepository } from "../social/repositories/social.repository";
 import { MoviesService } from "../movies/movies.service";
 import type { UpdateInteractionDto } from "./dto/interactions.dto";
 
@@ -23,17 +21,7 @@ export class InteractionsService {
   // GET current state — null means no row yet (both false)
   static async get(userId: string, tmdbId: number) {
     const movie = await MoviesService.findOrCreate(tmdbId);
-
-    const [row] = await db
-      .select()
-      .from(movieInteractions)
-      .where(
-        and(
-          eq(movieInteractions.userId, userId),
-          eq(movieInteractions.movieId, movie.id),
-        ),
-      )
-      .limit(1);
+    const row = await InteractionsRepository.findByUserAndMovie(userId, movie.id);
 
     return toInteractionResponse(
       row ?? {
@@ -59,52 +47,31 @@ export class InteractionsService {
       input.liked === true ||
       (input.rating !== undefined && input.rating !== null);
 
-    const [upserted] = await db
-      .insert(movieInteractions)
-      .values({
-        userId,
-        movieId: movie.id,
-        liked: input.liked ?? false,
-        watchlisted: input.watchlisted ?? false,
-        rating: rating ?? null,
-        isWatched: input.watched ?? isImplicitlyWatched ?? false,
-      })
-      .onConflictDoUpdate({
-        target: [movieInteractions.userId, movieInteractions.movieId],
-        set: {
-          ...(input.liked !== undefined && { liked: input.liked }),
-          ...(input.watchlisted !== undefined && {
-            watchlisted: input.watchlisted,
-          }),
-          ...(input.rating !== undefined && {
-            rating: rating ?? null,
-          }),
-          ...(input.watched !== undefined && { isWatched: input.watched }),
-          ...(isImplicitlyWatched && { isWatched: true }),
-        },
-      })
-      .returning();
+    const upserted = await InteractionsRepository.upsertInteractionState(userId, movie.id, {
+      liked: input.liked,
+      watchlisted: input.watchlisted,
+      rating: input.rating,
+      watched: input.watched,
+      isImplicitlyWatched,
+    });
 
     // Write activity only for meaningful state changes
     if (input.liked === true) {
-      await db
-        .insert(activities)
-        .values({
-          userId,
-          type: "liked_movie",
-          entityId: String(movie.id),
-          metadata: JSON.stringify({
-            movieId: movie.id,
-            tmdbId: movie.tmdbId,
-            title: movie.title,
-            posterPath: movie.posterPath,
-          }),
-        })
-        .onConflictDoNothing();
+      await SocialRepository.insertActivity({
+        userId,
+        type: "liked_movie",
+        entityId: String(movie.id),
+        metadata: JSON.stringify({
+          movieId: movie.id,
+          tmdbId: movie.tmdbId,
+          title: movie.title,
+          posterPath: movie.posterPath,
+        }),
+      });
     }
 
     if (input.watchlisted === true) {
-      await db.insert(activities).values({
+      await SocialRepository.insertActivity({
         userId,
         type: "watchlisted_movie",
         entityId: String(movie.id),
@@ -128,41 +95,18 @@ export class InteractionsService {
   }
 
   static async setWatched(userId: string, movieId: number): Promise<void> {
-    await db
-      .insert(movieInteractions)
-      .values({ userId, movieId, liked: false, watchlisted: false, isWatched: true })
-      .onConflictDoUpdate({
-        target: [movieInteractions.userId, movieInteractions.movieId],
-        set: { isWatched: true },
-      });
+    await InteractionsRepository.upsertField(userId, movieId, "isWatched", true);
   }
 
   static async setWatchlisted(userId: string, movieId: number): Promise<void> {
-    await db
-      .insert(movieInteractions)
-      .values({ userId, movieId, liked: false, watchlisted: true })
-      .onConflictDoUpdate({
-        target: [movieInteractions.userId, movieInteractions.movieId],
-        set: { watchlisted: true },
-      });
+    await InteractionsRepository.upsertField(userId, movieId, "watchlisted", true);
   }
 
   static async setRating(userId: string, movieId: number, ratingOutOfTen: number): Promise<void> {
-    await db
-      .insert(movieInteractions)
-      .values({ userId, movieId, liked: false, watchlisted: false, rating: ratingOutOfTen })
-      .onConflictDoUpdate({
-        target: [movieInteractions.userId, movieInteractions.movieId],
-        set: { rating: ratingOutOfTen },
-      });
+    await InteractionsRepository.upsertField(userId, movieId, "rating", ratingOutOfTen);
   }
 
   static async hasRating(userId: string, movieId: number): Promise<boolean> {
-    const [row] = await db
-      .select({ rating: movieInteractions.rating })
-      .from(movieInteractions)
-      .where(and(eq(movieInteractions.userId, userId), eq(movieInteractions.movieId, movieId)))
-      .limit(1);
-    return row?.rating !== null && row?.rating !== undefined;
+    return InteractionsRepository.hasRating(userId, movieId);
   }
 }

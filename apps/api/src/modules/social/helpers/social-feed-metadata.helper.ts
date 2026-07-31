@@ -2,6 +2,7 @@ import {
   DEFAULT_FEED_PAGE_SIZE,
   MAX_FEED_PAGE_SIZE,
 } from "../constants/social-feed.constants";
+import { normalizeBoundedLimit } from "../../../commons/helpers/pagination.helper";
 import type {
   ActivityType,
   FeedActivityKind,
@@ -85,10 +86,5 @@ export const resolveActivityKind = (
   return activityType;
 };
 
-export const normalizeLimit = (limit?: number): number => {
-  if (!limit || Number.isNaN(limit)) {
-    return DEFAULT_FEED_PAGE_SIZE;
-  }
-
-  return Math.max(1, Math.min(limit, MAX_FEED_PAGE_SIZE));
-};
+export const normalizeLimit = (limit?: number): number =>
+  normalizeBoundedLimit(limit, { default: DEFAULT_FEED_PAGE_SIZE, max: MAX_FEED_PAGE_SIZE });

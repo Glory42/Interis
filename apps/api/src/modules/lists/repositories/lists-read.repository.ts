@@ -1,5 +1,6 @@
 import { asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
+import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
 import { tvSeries } from "../../serials/serials.entity";
@@ -46,7 +47,7 @@ export class ListsReadRepository {
       .orderBy(desc(lists.updatedAt))
       .$dynamic();
 
-    return limit ? query.limit(limit).offset(offset ?? 0) : query;
+    return applyOptionalPagination(query, limit, offset);
   }
 
   static async getCoverImages(listIds: string[]) {

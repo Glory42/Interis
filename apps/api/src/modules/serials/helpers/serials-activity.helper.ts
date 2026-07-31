@@ -1,4 +1,4 @@
-import { DIARY_REVIEW_EXCERPT_LENGTH } from "../../diary/constants/diary.constants";
+import { truncateExcerpt } from "../../../commons/helpers/text.helper";
 
 type SeriesInfo = {
   id: number;
@@ -7,6 +7,15 @@ type SeriesInfo = {
   posterPath: string | null;
   firstAirYear: number | null;
 };
+
+const toSeriesMediaFields = (series: SeriesInfo) => ({
+  seriesId: series.id,
+  tmdbId: series.tmdbId,
+  title: series.title,
+  posterPath: series.posterPath,
+  releaseYear: series.firstAirYear,
+  mediaType: "tv" as const,
+});
 
 export const buildSerialDiaryEntryActivityMetadata = (input: {
   series: {
@@ -26,18 +35,13 @@ export const buildSerialDiaryEntryActivityMetadata = (input: {
       }
     | null;
 }) => ({
-  seriesId: input.series.id,
-  tmdbId: input.series.tmdbId,
-  title: input.series.title,
-  posterPath: input.series.posterPath,
-  releaseYear: input.series.firstAirYear,
+  ...toSeriesMediaFields(input.series),
   rating: input.rating,
   rewatch: input.rewatch,
-  mediaType: "tv",
   hasReview: Boolean(input.review),
   reviewId: input.review?.id ?? null,
   containsSpoilers: input.review?.containsSpoilers ?? null,
-  excerpt: input.review?.content.slice(0, DIARY_REVIEW_EXCERPT_LENGTH) ?? null,
+  excerpt: input.review ? truncateExcerpt(input.review.content) : null,
 });
 
 export const buildSerialInteractionActivityMetadata = (input: {
@@ -48,25 +52,13 @@ export const buildSerialInteractionActivityMetadata = (input: {
     posterPath: string | null;
     firstAirYear: number | null;
   };
-}) => ({
-  seriesId: input.series.id,
-  tmdbId: input.series.tmdbId,
-  title: input.series.title,
-  posterPath: input.series.posterPath,
-  releaseYear: input.series.firstAirYear,
-  mediaType: "tv",
-});
+}) => toSeriesMediaFields(input.series);
 
 export const buildSeasonLikedActivityMetadata = (input: {
   series: SeriesInfo;
   seasonNumber: number;
 }) => ({
-  seriesId: input.series.id,
-  tmdbId: input.series.tmdbId,
-  title: input.series.title,
-  posterPath: input.series.posterPath,
-  releaseYear: input.series.firstAirYear,
-  mediaType: "tv",
+  ...toSeriesMediaFields(input.series),
   seasonNumber: input.seasonNumber,
 });
 
@@ -75,12 +67,7 @@ export const buildEpisodeLikedActivityMetadata = (input: {
   seasonNumber: number;
   episodeNumber: number;
 }) => ({
-  seriesId: input.series.id,
-  tmdbId: input.series.tmdbId,
-  title: input.series.title,
-  posterPath: input.series.posterPath,
-  releaseYear: input.series.firstAirYear,
-  mediaType: "tv",
+  ...toSeriesMediaFields(input.series),
   seasonNumber: input.seasonNumber,
   episodeNumber: input.episodeNumber,
 });
@@ -90,15 +77,10 @@ export const buildSeasonReviewActivityMetadata = (input: {
   seasonNumber: number;
   review: { id: string; content: string; containsSpoilers: boolean };
 }) => ({
-  seriesId: input.series.id,
-  tmdbId: input.series.tmdbId,
-  title: input.series.title,
-  posterPath: input.series.posterPath,
-  releaseYear: input.series.firstAirYear,
-  mediaType: "tv",
+  ...toSeriesMediaFields(input.series),
   seasonNumber: input.seasonNumber,
   reviewId: input.review.id,
-  excerpt: input.review.content.slice(0, DIARY_REVIEW_EXCERPT_LENGTH),
+  excerpt: truncateExcerpt(input.review.content),
   containsSpoilers: input.review.containsSpoilers,
 });
 
@@ -121,12 +103,7 @@ export const buildSeasonRatingActivityMetadata = (input: {
   seasonNumber: number;
   rating: number;
 }) => ({
-  seriesId: input.series.id,
-  tmdbId: input.series.tmdbId,
-  title: input.series.title,
-  posterPath: input.series.posterPath,
-  releaseYear: input.series.firstAirYear,
-  mediaType: "tv",
+  ...toSeriesMediaFields(input.series),
   seasonNumber: input.seasonNumber,
   rating: input.rating,
 });
@@ -137,12 +114,7 @@ export const buildEpisodeRatingActivityMetadata = (input: {
   episodeNumber: number;
   rating: number;
 }) => ({
-  seriesId: input.series.id,
-  tmdbId: input.series.tmdbId,
-  title: input.series.title,
-  posterPath: input.series.posterPath,
-  releaseYear: input.series.firstAirYear,
-  mediaType: "tv",
+  ...toSeriesMediaFields(input.series),
   seasonNumber: input.seasonNumber,
   episodeNumber: input.episodeNumber,
   rating: input.rating,

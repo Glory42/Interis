@@ -2,6 +2,7 @@ import { eq, and, like, or, isNull, inArray, gt, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { serialEpisodeInteractions, serialInteractions, tvSeries } from "../serials.entity";
 import { reviews } from "../../reviews/reviews.entity";
+import { SPECIALS_SEASON_NUMBER } from "../constants/serials-season.constants";
 
 export class SerialsEpisodeInteractionsRepository {
   static async getViewerEpisodeInteractions(
@@ -199,9 +200,9 @@ export class SerialsEpisodeInteractionsRepository {
   // Per-series watched-episode counts for a viewer, batched across a page
   // of archive items (one grouped query instead of one per card) - used to
   // tell "still watching" (some but not all episodes watched) apart from
-  // "fully watched" on the archive grid. Excludes season 0 (specials), to
-  // match the seasonNumber > 0 filter SerialsActivityService.getInteraction
-  // already uses when computing the same "fully watched" concept elsewhere.
+  // "fully watched" on the archive grid. Excludes SPECIALS_SEASON_NUMBER,
+  // matching the same isNonSpecialSeasonNumber filter used elsewhere when
+  // computing the same "fully watched" concept.
   static async getViewerWatchedEpisodeCountsByTmdbIds(userId: string, tmdbIds: number[]) {
     const uniqueTmdbIds = [...new Set(tmdbIds)];
     if (uniqueTmdbIds.length === 0) {
@@ -218,7 +219,7 @@ export class SerialsEpisodeInteractionsRepository {
       .where(
         and(
           eq(serialEpisodeInteractions.userId, userId),
-          gt(serialEpisodeInteractions.seasonNumber, 0),
+          gt(serialEpisodeInteractions.seasonNumber, SPECIALS_SEASON_NUMBER),
           inArray(tvSeries.tmdbId, uniqueTmdbIds),
         ),
       )

@@ -1,5 +1,6 @@
 import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
+import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
 import { reviews, reviewLikes } from "../../reviews/reviews.entity";
@@ -33,7 +34,7 @@ export class UsersLikesRepository {
       .orderBy(desc(reviewLikes.createdAt))
       .$dynamic();
 
-    const rows = await (limit ? baseQuery.limit(limit).offset(offset ?? 0) : baseQuery);
+    const rows = await applyOptionalPagination(baseQuery, limit, offset);
 
     return rows.map((row) => ({
       id: row.id,
@@ -75,7 +76,7 @@ export class UsersLikesRepository {
       .orderBy(desc(listLikes.createdAt))
       .$dynamic();
 
-    const likedRows = await (limit ? baseQuery.limit(limit).offset(offset ?? 0) : baseQuery);
+    const likedRows = await applyOptionalPagination(baseQuery, limit, offset);
 
     if (likedRows.length === 0) return [];
 

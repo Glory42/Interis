@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { paginationQuerySchema } from "../../../commons/validation/common.schemas";
 
 export const SubmitReportSchema = z.object({
   targetType: z.enum(["review", "post"]),
@@ -11,8 +12,7 @@ export type SubmitReportDto = z.infer<typeof SubmitReportSchema>;
 
 export const ListReportsQuerySchema = z.object({
   status: z.enum(["pending", "resolved", "dismissed"]).optional(),
-  limit: z.coerce.number().int().positive().max(100).optional(),
-  offset: z.coerce.number().int().nonnegative().optional(),
+  ...paginationQuerySchema.shape,
 });
 
 export type ListReportsQuery = z.input<typeof ListReportsQuerySchema>;

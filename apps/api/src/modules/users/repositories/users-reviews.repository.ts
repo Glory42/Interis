@@ -8,6 +8,31 @@ import { serialDiaryEntries, serialSeasonInteractions, serialEpisodeInteractions
 import { movies } from "../../movies/movies.entity";
 import { profiles } from "../users.entity";
 
+type ReviewAuthorRow = {
+  authorId: string;
+  authorUsername: string;
+  authorDisplayUsername: string | null;
+  authorAvatarUrl: string | null;
+};
+
+const buildAuthorFromRow = (row: ReviewAuthorRow) => ({
+  id: row.authorId,
+  username: row.authorUsername,
+  displayUsername: row.authorDisplayUsername,
+  avatarUrl: row.authorAvatarUrl,
+});
+
+const buildEngagementSummary = (
+  likeRow: Array<{ count: number }>,
+  commentRow: Array<{ count: number }>,
+  viewerLikeRow: unknown[],
+  viewerUserId?: string | null,
+) => ({
+  likeCount: likeRow[0]?.count ?? 0,
+  commentCount: commentRow[0]?.count ?? 0,
+  viewerHasLiked: viewerUserId ? viewerLikeRow.length > 0 : null,
+});
+
 export class UsersReviewsRepository {
   static async getReviewDetailByUsername(
     username: string,
@@ -106,12 +131,7 @@ export class UsersReviewsRepository {
         createdAt: reviewRow.createdAt,
         updatedAt: reviewRow.updatedAt,
         rating,
-        author: {
-          id: reviewRow.authorId,
-          username: reviewRow.authorUsername,
-          displayUsername: reviewRow.authorDisplayUsername,
-          avatarUrl: reviewRow.authorAvatarUrl,
-        },
+        author: buildAuthorFromRow(reviewRow),
         media: {
           tmdbId,
           title: movieRow[0]?.title ?? "Unknown movie",
@@ -121,11 +141,7 @@ export class UsersReviewsRepository {
           director: movieRow[0]?.director ?? null,
           creator: null,
         },
-        engagement: {
-          likeCount: likeRow[0]?.count ?? 0,
-          commentCount: commentRow[0]?.count ?? 0,
-          viewerHasLiked: viewerUserId ? viewerLikeRow.length > 0 : null,
-        },
+        engagement: buildEngagementSummary(likeRow, commentRow, viewerLikeRow, viewerUserId),
       };
     }
 
@@ -168,12 +184,7 @@ export class UsersReviewsRepository {
         createdAt: reviewRow.createdAt,
         updatedAt: reviewRow.updatedAt,
         rating,
-        author: {
-          id: reviewRow.authorId,
-          username: reviewRow.authorUsername,
-          displayUsername: reviewRow.authorDisplayUsername,
-          avatarUrl: reviewRow.authorAvatarUrl,
-        },
+        author: buildAuthorFromRow(reviewRow),
         media: {
           tmdbId,
           title: seriesRow[0]?.title ?? "Unknown series",
@@ -183,11 +194,7 @@ export class UsersReviewsRepository {
           director: null,
           creator: seriesRow[0]?.creator ?? null,
         },
-        engagement: {
-          likeCount: likeRow[0]?.count ?? 0,
-          commentCount: commentRow[0]?.count ?? 0,
-          viewerHasLiked: viewerUserId ? viewerLikeRow.length > 0 : null,
-        },
+        engagement: buildEngagementSummary(likeRow, commentRow, viewerLikeRow, viewerUserId),
       };
     }
 
@@ -256,12 +263,7 @@ export class UsersReviewsRepository {
         createdAt: reviewRow.createdAt,
         updatedAt: reviewRow.updatedAt,
         rating: interactionRow[0]?.rating ?? null,
-        author: {
-          id: reviewRow.authorId,
-          username: reviewRow.authorUsername,
-          displayUsername: reviewRow.authorDisplayUsername,
-          avatarUrl: reviewRow.authorAvatarUrl,
-        },
+        author: buildAuthorFromRow(reviewRow),
         media: {
           tmdbId: seriesTmdbId,
           title: seriesData ? `${seriesData.title} · ${seriesLabel}` : `Unknown series · ${seriesLabel}`,
@@ -271,11 +273,7 @@ export class UsersReviewsRepository {
           director: null,
           creator: seriesData?.creator ?? null,
         },
-        engagement: {
-          likeCount: likeRow[0]?.count ?? 0,
-          commentCount: commentRow[0]?.count ?? 0,
-          viewerHasLiked: viewerUserId ? viewerLikeRow.length > 0 : null,
-        },
+        engagement: buildEngagementSummary(likeRow, commentRow, viewerLikeRow, viewerUserId),
       };
     }
 
