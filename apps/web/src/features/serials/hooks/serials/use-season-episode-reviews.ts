@@ -7,10 +7,11 @@ import {
   upsertEpisodeReview,
   upsertSeasonReview,
 } from "@/features/serials/api";
+import { serialKeys } from "./query-keys";
 
 export const useSeasonReview = (tmdbId: number, seasonNumber: number, enabled = true) =>
   useQuery({
-    queryKey: ["serials", "season-review", tmdbId, seasonNumber],
+    queryKey: serialKeys.seasonReview(tmdbId, seasonNumber),
     queryFn: () => getSeasonReview(tmdbId, seasonNumber),
     enabled,
   });
@@ -24,10 +25,10 @@ export const useUpsertSeasonReview = (tmdbId: number, seasonNumber: number) => {
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: ["serials", "season-review", tmdbId, seasonNumber],
+          queryKey: serialKeys.seasonReview(tmdbId, seasonNumber),
         }),
         queryClient.invalidateQueries({
-          queryKey: ["serials", "detail-view", tmdbId],
+          queryKey: serialKeys.detailViewRoot(tmdbId),
         }),
       ]);
     },
@@ -42,10 +43,10 @@ export const useDeleteSeasonReview = (tmdbId: number, seasonNumber: number) => {
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: ["serials", "season-review", tmdbId, seasonNumber],
+          queryKey: serialKeys.seasonReview(tmdbId, seasonNumber),
         }),
         queryClient.invalidateQueries({
-          queryKey: ["serials", "detail-view", tmdbId],
+          queryKey: serialKeys.detailViewRoot(tmdbId),
         }),
       ]);
     },
@@ -59,7 +60,7 @@ export const useEpisodeReview = (
   enabled = true,
 ) =>
   useQuery({
-    queryKey: ["serials", "episode-review", tmdbId, seasonNumber, episodeNumber],
+    queryKey: serialKeys.episodeReview(tmdbId, seasonNumber, episodeNumber),
     queryFn: () => getEpisodeReview(tmdbId, seasonNumber, episodeNumber),
     enabled,
   });
@@ -77,10 +78,10 @@ export const useUpsertEpisodeReview = (
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: ["serials", "episode-review", tmdbId, seasonNumber, episodeNumber],
+          queryKey: serialKeys.episodeReview(tmdbId, seasonNumber, episodeNumber),
         }),
         queryClient.invalidateQueries({
-          queryKey: ["serials", "season-detail", tmdbId, seasonNumber],
+          queryKey: serialKeys.seasonDetail(tmdbId, seasonNumber),
         }),
       ]);
     },
@@ -99,10 +100,10 @@ export const useDeleteEpisodeReview = (
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: ["serials", "episode-review", tmdbId, seasonNumber, episodeNumber],
+          queryKey: serialKeys.episodeReview(tmdbId, seasonNumber, episodeNumber),
         }),
         queryClient.invalidateQueries({
-          queryKey: ["serials", "season-detail", tmdbId, seasonNumber],
+          queryKey: serialKeys.seasonDetail(tmdbId, seasonNumber),
         }),
       ]);
     },

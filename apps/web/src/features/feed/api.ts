@@ -1,4 +1,4 @@
-import { apiRequest } from "@/lib/api-client";
+import { apiRequest, type QueryRequestOptions } from "@/lib/api-client";
 import {
   feedPageSchema,
   meFeedSummarySchema,
@@ -16,10 +16,6 @@ const normalizeLimit = (limit: number, fallback: number): number => {
   }
 
   return Math.max(1, Math.min(Math.floor(limit), 300));
-};
-
-type QueryRequestOptions = {
-  signal?: AbortSignal;
 };
 
 export type FeedMediaTypeFilter = "movie" | "tv";

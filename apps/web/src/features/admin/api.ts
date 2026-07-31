@@ -1,11 +1,9 @@
 import { z } from "zod";
 import { apiRequest } from "@/lib/api-client";
+import { reportReasonSchema, reportTargetTypeSchema } from "@/features/reports/api";
 
 export const reportStatusSchema = z.enum(["pending", "resolved", "dismissed"]);
 export type ReportStatus = z.infer<typeof reportStatusSchema>;
-
-const reportTargetTypeSchema = z.enum(["review", "post"]);
-const reportReasonSchema = z.enum(["spam", "harassment", "inappropriate", "other"]);
 
 const reportItemSchema = z.object({
   id: z.string(),

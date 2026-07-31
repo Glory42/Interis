@@ -3,6 +3,7 @@ import type {
   SerialDetailResponse,
   SerialSeasonDetailResponse,
 } from "@/features/serials/api";
+import { serialKeys } from "@/features/serials/hooks/serials/query-keys";
 
 export type ViewerInteractionPatch = {
   watched?: boolean;
@@ -39,7 +40,7 @@ export const patchSeasonsInDetailViewCache = (
   seasonNumber: number | "all",
   patch: ViewerInteractionPatch,
 ) => {
-  const queryKey = ["serials", "detail-view", tmdbId];
+  const queryKey = serialKeys.detailViewRoot(tmdbId);
   const previousQueries = queryClient.getQueriesData<SerialDetailResponse>({ queryKey });
 
   queryClient.setQueriesData<SerialDetailResponse>({ queryKey }, (old) => {
@@ -76,8 +77,8 @@ export const patchEpisodesInSeasonDetailCache = (
 ) => {
   const queryKey =
     seasonNumber === "all"
-      ? ["serials", "season-detail", tmdbId]
-      : ["serials", "season-detail", tmdbId, seasonNumber];
+      ? serialKeys.seasonDetailRoot(tmdbId)
+      : serialKeys.seasonDetail(tmdbId, seasonNumber);
   const previousQueries = queryClient.getQueriesData<SerialSeasonDetailResponse>({ queryKey });
 
   queryClient.setQueriesData<SerialSeasonDetailResponse>({ queryKey }, (old) => {

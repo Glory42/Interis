@@ -39,9 +39,7 @@ export type UpdateSerialInteractionInput = z.infer<
 export type CreateSeriesLogInput = z.infer<typeof createSeriesLogInputSchema>;
 export type CreateSeriesLogResponse = z.infer<typeof createSeriesLogResponseSchema>;
 
-export type QueryRequestOptions = {
-  signal?: AbortSignal;
-};
+export type { QueryRequestOptions } from "@/lib/api-client";
 
 export type SerialArchiveInput = {
   genre?: string;

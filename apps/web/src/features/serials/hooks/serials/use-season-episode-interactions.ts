@@ -24,8 +24,8 @@ export const useUpdateSeasonInteraction = (tmdbId: number) => {
     }) => updateSeasonInteraction(tmdbId, seasonNumber, input),
     onMutate: async ({ seasonNumber, input }) => {
       await Promise.all([
-        queryClient.cancelQueries({ queryKey: ["serials", "detail-view", tmdbId] }),
-        queryClient.cancelQueries({ queryKey: ["serials", "season-detail", tmdbId, seasonNumber] }),
+        queryClient.cancelQueries({ queryKey: serialKeys.detailViewRoot(tmdbId) }),
+        queryClient.cancelQueries({ queryKey: serialKeys.seasonDetail(tmdbId, seasonNumber) }),
       ]);
 
       const previousSeasonQueries = patchSeasonsInDetailViewCache(
@@ -53,10 +53,10 @@ export const useUpdateSeasonInteraction = (tmdbId: number) => {
     onSuccess: async (_data, variables) => {
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: ["serials", "detail-view", tmdbId],
+          queryKey: serialKeys.detailViewRoot(tmdbId),
         }),
         queryClient.invalidateQueries({
-          queryKey: ["serials", "season-detail", tmdbId, variables.seasonNumber],
+          queryKey: serialKeys.seasonDetail(tmdbId, variables.seasonNumber),
         }),
         queryClient.invalidateQueries({
           queryKey: serialKeys.interaction(tmdbId),
@@ -78,7 +78,7 @@ export const useUpdateEpisodeInteraction = (tmdbId: number, seasonNumber: number
       input: { watched?: boolean; liked?: boolean; rating?: number | null };
     }) => updateEpisodeInteraction(tmdbId, seasonNumber, episodeNumber, input),
     onMutate: async ({ episodeNumber, input }) => {
-      const seasonDetailKey = ["serials", "season-detail", tmdbId, seasonNumber];
+      const seasonDetailKey = serialKeys.seasonDetail(tmdbId, seasonNumber);
       await queryClient.cancelQueries({ queryKey: seasonDetailKey });
 
       const previousEpisodeQueries = patchEpisodesInSeasonDetailCache(
@@ -103,7 +103,7 @@ export const useUpdateEpisodeInteraction = (tmdbId: number, seasonNumber: number
             (episode) => episode.viewerInteraction?.watched ?? false,
           );
 
-          await queryClient.cancelQueries({ queryKey: ["serials", "detail-view", tmdbId] });
+          await queryClient.cancelQueries({ queryKey: serialKeys.detailViewRoot(tmdbId) });
           previousSeasonQueries = patchSeasonsInDetailViewCache(queryClient, tmdbId, seasonNumber, {
             watched: allEpisodesWatched,
           });
@@ -119,10 +119,10 @@ export const useUpdateEpisodeInteraction = (tmdbId: number, seasonNumber: number
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: ["serials", "season-detail", tmdbId, seasonNumber],
+          queryKey: serialKeys.seasonDetail(tmdbId, seasonNumber),
         }),
         queryClient.invalidateQueries({
-          queryKey: ["serials", "detail-view", tmdbId],
+          queryKey: serialKeys.detailViewRoot(tmdbId),
         }),
         queryClient.invalidateQueries({
           queryKey: serialKeys.interaction(tmdbId),

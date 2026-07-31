@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { apiRequest } from "@/lib/api-client";
+import { apiRequest, type QueryRequestOptions } from "@/lib/api-client";
 import { personRouteRoleSchema } from "@/features/people/shared";
 
 const personImageSchema = z.object({
@@ -77,10 +77,6 @@ const personDetailResponseSchema = z.object({
 export type PersonCreditItem = z.infer<typeof personCreditItemSchema>;
 export type PersonCreditGroup = z.infer<typeof personCreditGroupSchema>;
 export type PersonDetailResponse = z.infer<typeof personDetailResponseSchema>;
-
-type QueryRequestOptions = {
-  signal?: AbortSignal;
-};
 
 export const getPersonDetailBySlug = async (
   role: z.infer<typeof personRouteRoleSchema>,

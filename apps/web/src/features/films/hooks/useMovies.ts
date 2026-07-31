@@ -17,6 +17,9 @@ export const movieKeys = {
   detail: (tmdbId: number) => ["movies", "detail", tmdbId] as const,
   detailView: (tmdbId: number, reviewsSort: MovieDetailReviewSort) =>
     ["movies", "detail-view", tmdbId, reviewsSort] as const,
+  // Prefix-only variant (no reviewsSort) - matches every sort variant for a
+  // given movie, for invalidations that don't care which sort is cached.
+  detailViewRoot: (tmdbId: number) => ["movies", "detail-view", tmdbId] as const,
   recent: ["movies", "recent"] as const,
   logs: (tmdbId: number) => ["movies", "logs", tmdbId] as const,
   archive: (

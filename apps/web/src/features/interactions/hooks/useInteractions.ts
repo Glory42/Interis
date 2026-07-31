@@ -71,7 +71,7 @@ export const useUpdateMovieInteraction = (tmdbId: number) => {
         }),
         // Prefix-matches every reviewsSort variant for this movie only.
         queryClient.invalidateQueries({
-          queryKey: ["movies", "detail-view", tmdbId],
+          queryKey: movieKeys.detailViewRoot(tmdbId),
         }),
         queryClient.invalidateQueries({
           queryKey: movieKeys.logs(tmdbId),

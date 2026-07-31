@@ -20,6 +20,9 @@ import {
 export const reviewKeys = {
   detail: (username: string, reviewId: string) =>
     ["reviews", "detail", username, reviewId] as const,
+  // Prefix-only variant - used to filter/match every cached review-detail
+  // query regardless of username, e.g. when patching by reviewId alone.
+  detailRoot: ["reviews", "detail"] as const,
   comments: (mediaType: ReviewMediaType, reviewId: string) =>
     ["reviews", "comments", mediaType, reviewId] as const,
 };
@@ -37,7 +40,7 @@ const patchReviewDetailQueries = (
   updater: (detail: ReviewDetail) => ReviewDetail,
 ): QuerySnapshot => {
   const queryFilter = {
-    queryKey: ["reviews", "detail"],
+    queryKey: reviewKeys.detailRoot,
     exact: false,
     predicate: (query: { queryKey: readonly unknown[] }) => {
       const [scope, kind, , candidateReviewId] = query.queryKey;

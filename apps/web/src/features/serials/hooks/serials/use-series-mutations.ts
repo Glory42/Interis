@@ -56,8 +56,8 @@ export const useUpdateSeriesInteraction = (tmdbId: number) => {
       let previousEpisodeQueries: ReturnType<typeof patchEpisodesInSeasonDetailCache> = [];
       if (shouldCascade) {
         await Promise.all([
-          queryClient.cancelQueries({ queryKey: ["serials", "detail-view", tmdbId] }),
-          queryClient.cancelQueries({ queryKey: ["serials", "season-detail", tmdbId] }),
+          queryClient.cancelQueries({ queryKey: serialKeys.detailViewRoot(tmdbId) }),
+          queryClient.cancelQueries({ queryKey: serialKeys.seasonDetailRoot(tmdbId) }),
         ]);
 
         const cascadeWatched = resolvedWatched ?? false;
@@ -89,7 +89,7 @@ export const useUpdateSeriesInteraction = (tmdbId: number) => {
         }),
         // Prefix-matches every reviewsSort variant for this series only.
         queryClient.invalidateQueries({
-          queryKey: ["serials", "detail-view", tmdbId],
+          queryKey: serialKeys.detailViewRoot(tmdbId),
         }),
         queryClient.invalidateQueries({
           queryKey: serialKeys.logs(tmdbId),
@@ -107,7 +107,7 @@ export const useCreateSeriesLog = (tmdbId: number) => {
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: ["serials", "detail-view", tmdbId],
+          queryKey: serialKeys.detailViewRoot(tmdbId),
         }),
         queryClient.invalidateQueries({ queryKey: serialKeys.detail(tmdbId) }),
       ]);

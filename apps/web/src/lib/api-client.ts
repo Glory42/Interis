@@ -3,6 +3,13 @@ type ApiRequestOptions<TBody> = Omit<RequestInit, "body"> & {
   timeoutMs?: number;
 };
 
+// Shared shape for read-only query functions that accept an AbortSignal
+// (from React Query's queryFn context) - one definition every feature's
+// api.ts imports instead of redefining.
+export type QueryRequestOptions = {
+  signal?: AbortSignal;
+};
+
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 
 const extractErrorMessage = (

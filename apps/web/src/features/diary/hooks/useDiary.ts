@@ -71,7 +71,7 @@ export const useCreateDiaryEntry = () => {
         queryClient.invalidateQueries({ queryKey: diaryKeys.myLogs }),
         queryClient.invalidateQueries({ queryKey: movieKeys.logs(variables.tmdbId) }),
         queryClient.invalidateQueries({
-          queryKey: ["movies", "detail-view", variables.tmdbId],
+          queryKey: movieKeys.detailViewRoot(variables.tmdbId),
         }),
       ];
 

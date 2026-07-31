@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { importDiaryStream } from "../api";
 import type { ImportStreamEvent } from "../api";
+import { diaryKeys } from "@/features/diary/hooks/useDiary";
 
 export type TerminalLine = {
   id: number;
@@ -80,7 +81,7 @@ export function useImportStream() {
       }
 
       if (event.type === "done") {
-        queryClient.invalidateQueries({ queryKey: ["diary"] });
+        queryClient.invalidateQueries({ queryKey: diaryKeys.all });
         setState({
           phase: "done",
           format: capturedFormat,

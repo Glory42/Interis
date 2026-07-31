@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { apiRequest } from "@/lib/api-client";
+import { apiRequest, type QueryRequestOptions } from "@/lib/api-client";
 import { feedListSchema, type FeedItem } from "@/features/feed/types";
 import {
   movieGenreSchema,
@@ -61,10 +61,6 @@ const userSearchResultSchema = z.object({
 });
 
 const userSearchResultListSchema = z.array(userSearchResultSchema);
-
-type QueryRequestOptions = {
-  signal?: AbortSignal;
-};
 
 const normalizeRecentLimit = (limit: number, fallback: number, max = 300): number => {
   if (!Number.isFinite(limit)) {

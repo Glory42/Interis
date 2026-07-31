@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { apiRequest } from "@/lib/api-client";
+import { apiRequest, type QueryRequestOptions } from "@/lib/api-client";
 
 const reviewMediaTypeSchema = z.enum(["movie", "tv"]);
 
@@ -97,9 +97,6 @@ export type ReviewDetail = z.infer<typeof reviewDetailSchema>;
 
 type AddReviewCommentInput = z.infer<typeof addReviewCommentInputSchema>;
 type UpdateReviewInput = z.infer<typeof updateReviewInputSchema>;
-type QueryRequestOptions = {
-  signal?: AbortSignal;
-};
 
 export type UpdatedReview = z.infer<typeof updatedReviewSchema>;
 
