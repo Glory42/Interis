@@ -54,7 +54,7 @@ const RootLayout = () => {
 export const Route = createRootRouteWithContext<RouterContext>()({
   head: () => ({
     meta: [
-      { title: "Interis — Social Movie Journal" },
+      { title: "Interis" },
       {
         name: "description",
         content:
@@ -62,7 +62,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Interis" },
-      { property: "og:title", content: "Interis — Social Movie Journal" },
+      { property: "og:title", content: "Interis" },
       {
         property: "og:description",
         content:
