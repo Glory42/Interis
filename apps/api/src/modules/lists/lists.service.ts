@@ -5,12 +5,13 @@ import { ListsWriteService } from "./services/lists-write.service";
 export class ListsService {
   static async getUserLists(
     userId: string,
-    publicOnly: boolean,
+    viewerUserId: string | null | undefined,
     checkTmdbId?: number,
     checkItemType?: string,
     limit?: number,
     offset?: number,
   ) {
+    const publicOnly = viewerUserId !== userId;
     return ListsReadService.getUserLists(
       userId,
       publicOnly,

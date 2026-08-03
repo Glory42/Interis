@@ -27,6 +27,23 @@ export const sendForbidden = (res: Response, message = "Forbidden"): void =>
 export const sendNotFound = (res: Response, message: string): void =>
   sendError(res, 404, { message, code: "NOT_FOUND" });
 
+// Runs `lookup`, sending a 404 (and returning null) if it resolves to a
+// nullish value — collapses the repeated "fetch by param or 404" block
+// found at the top of many controller handlers into one call.
+export const resolveOrNotFound = async <T>(
+  res: Response,
+  message: string,
+  lookup: () => Promise<T | null | undefined>,
+): Promise<T | null> => {
+  const result = await lookup();
+  if (!result) {
+    sendNotFound(res, message);
+    return null;
+  }
+
+  return result;
+};
+
 export const sendConflict = (res: Response, message: string, details?: unknown): void =>
   sendError(res, 409, { message, code: "CONFLICT", details });
 

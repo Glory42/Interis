@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
 import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
-import { sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
+import {
+  resolveOrNotFound,
+  sendNotFound,
+  sendValidationError,
+} from "../../commons/http/validation-response.helper";
 import { ListsService } from "../lists/lists.service";
 import { GetUserListsQuerySchema } from "../lists/dto/lists.dto";
 import { UsersService } from "./users.service";
@@ -37,23 +41,23 @@ export class UsersController {
     req: Request<{ username: string }>,
     res: Response,
   ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+    const profile = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.getPublicProfileWithStats(req.params.username),
+    );
     if (!profile) {
-      sendNotFound(res, "User not found");
       return;
     }
-    const stats = await UsersService.getStats(profile.id);
-    const { email: _email, ...publicProfile } = profile;
-    res.status(200).json({ ...publicProfile, stats });
+    res.status(200).json(profile);
   }
 
   static async getDetailedStats(
     req: Request<{ username: string }>,
     res: Response,
   ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+    const profile = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!profile) {
-      sendNotFound(res, "User not found");
       return;
     }
     const stats = await UsersService.getDetailedStats(profile.id);
@@ -64,9 +68,10 @@ export class UsersController {
     req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
     res: Response,
   ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+    const profile = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!profile) {
-      sendNotFound(res, "User not found");
       return;
     }
     const { limit, offset } = parseProfileListPagination(req.query);
@@ -78,9 +83,10 @@ export class UsersController {
     req: Request<{ username: string; reviewId: string }>,
     res: Response,
   ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+    const profile = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!profile) {
-      sendNotFound(res, "User not found");
       return;
     }
 
@@ -103,9 +109,10 @@ export class UsersController {
     req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
     res: Response,
   ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+    const profile = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!profile) {
-      sendNotFound(res, "User not found");
       return;
     }
     const { limit, offset } = parseProfileListPagination(req.query);
@@ -117,9 +124,10 @@ export class UsersController {
     req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
     res: Response,
   ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+    const profile = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!profile) {
-      sendNotFound(res, "User not found");
       return;
     }
     const { limit, offset } = parseProfileListPagination(req.query);
@@ -131,9 +139,10 @@ export class UsersController {
     req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
     res: Response,
   ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+    const profile = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!profile) {
-      sendNotFound(res, "User not found");
       return;
     }
     const { limit, offset } = parseProfileListPagination(req.query);
@@ -145,9 +154,10 @@ export class UsersController {
     req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
     res: Response,
   ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+    const profile = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!profile) {
-      sendNotFound(res, "User not found");
       return;
     }
 
@@ -215,19 +225,19 @@ export class UsersController {
       return;
     }
 
-    const profile = await UsersService.findByUsername(req.params.username);
+    const profile = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!profile) {
-      sendNotFound(res, "User not found");
       return;
     }
 
     const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
-    const publicOnly = viewerUserId !== profile.id;
     const { limit, offset } = parseProfileListPagination(req.query);
 
     const lists = await ListsService.getUserLists(
       profile.id,
-      publicOnly,
+      viewerUserId,
       parsed.data.tmdbId,
       parsed.data.itemType,
       limit,

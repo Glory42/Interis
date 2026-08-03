@@ -21,6 +21,17 @@ export class UsersService {
     return UsersProfileService.findByUsername(username);
   }
 
+  static async getPublicProfileWithStats(username: string) {
+    const profile = await UsersProfileService.findByUsername(username);
+    if (!profile) {
+      return null;
+    }
+
+    const stats = await UsersReadService.getStats(profile.id);
+    const { email: _email, ...publicProfile } = profile;
+    return { ...publicProfile, stats };
+  }
+
   static async findById(userId: string) {
     return UsersProfileService.findById(userId);
   }

@@ -6,7 +6,11 @@ import {
   normalizeSocialFeedMediaType,
 } from "./helpers/social-query-normalizer.helper";
 import type { FeedQueryDto, UsernameParamsDto } from "./dto/social.dto";
-import { sendBadRequest, sendNotFound } from "../../commons/http/validation-response.helper";
+import {
+  resolveOrNotFound,
+  sendBadRequest,
+  sendNotFound,
+} from "../../commons/http/validation-response.helper";
 
 export class SocialController {
   static async getFeed(
@@ -37,9 +41,10 @@ export class SocialController {
     req: Request<UsernameParamsDto>,
     res: Response,
   ): Promise<void> {
-    const target = await UsersService.findByUsername(req.params.username);
+    const target = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!target) {
-      sendNotFound(res, "User not found");
       return;
     }
 
@@ -59,9 +64,10 @@ export class SocialController {
     req: Request<UsernameParamsDto>,
     res: Response,
   ): Promise<void> {
-    const target = await UsersService.findByUsername(req.params.username);
+    const target = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!target) {
-      sendNotFound(res, "User not found");
       return;
     }
 
@@ -73,9 +79,10 @@ export class SocialController {
     req: Request<UsernameParamsDto>,
     res: Response,
   ): Promise<void> {
-    const target = await UsersService.findByUsername(req.params.username);
+    const target = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!target) {
-      sendNotFound(res, "User not found");
       return;
     }
 
@@ -87,9 +94,10 @@ export class SocialController {
     req: Request<UsernameParamsDto>,
     res: Response,
   ): Promise<void> {
-    const target = await UsersService.findByUsername(req.params.username);
+    const target = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!target) {
-      sendNotFound(res, "User not found");
       return;
     }
 
@@ -101,9 +109,10 @@ export class SocialController {
     req: Request<UsernameParamsDto>,
     res: Response,
   ): Promise<void> {
-    const target = await UsersService.findByUsername(req.params.username);
+    const target = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!target) {
-      sendNotFound(res, "User not found");
       return;
     }
 
@@ -115,9 +124,10 @@ export class SocialController {
     req: Request<UsernameParamsDto>,
     res: Response,
   ): Promise<void> {
-    const follower = await UsersService.findByUsername(req.params.username);
+    const follower = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!follower) {
-      sendNotFound(res, "User not found");
       return;
     }
 
