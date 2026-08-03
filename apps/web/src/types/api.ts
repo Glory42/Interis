@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+export const successResponseSchema = z.object({ success: z.boolean() });
+
+export const userSummarySchema = z.object({
+  id: z.string(),
+  username: z.string(),
+  displayUsername: z.string().nullable(),
+  avatarUrl: z.string().nullable(),
+});
+
 export const tmdbSearchMovieSchema = z.object({
   id: z.number().int(),
   title: z.string(),

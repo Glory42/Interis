@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { apiRequest } from "@/lib/api-client";
-
-const actionResponseSchema = z.object({ success: z.boolean() });
+import { successResponseSchema as actionResponseSchema } from "@/types/api";
 
 export type AdminContentFilters = { username?: string; movieId?: number };
 

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { apiRequest } from "@/lib/api-client";
+import { successResponseSchema } from "@/types/api";
 
 export const reportReasonSchema = z.enum(["spam", "harassment", "inappropriate", "other"]);
 export type ReportReason = z.infer<typeof reportReasonSchema>;
@@ -7,7 +8,7 @@ export type ReportReason = z.infer<typeof reportReasonSchema>;
 export const reportTargetTypeSchema = z.enum(["review", "post"]);
 export type ReportTargetType = z.infer<typeof reportTargetTypeSchema>;
 
-const reportActionResponseSchema = z.object({ success: z.boolean() });
+const reportActionResponseSchema = successResponseSchema;
 
 export type SubmitReportInput = {
   targetType: ReportTargetType;

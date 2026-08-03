@@ -6,6 +6,7 @@ import {
   publicTop4ResponseSchema,
   profileUpdateResponseSchema,
   publicProfileSchema,
+  userSummarySchema,
   type PublicTop4Response,
   type ProfileUpdateResponse,
   type PublicProfile,
@@ -53,12 +54,7 @@ const userInteractionMovieSchema = z
 
 const userInteractionMovieListSchema = z.array(userInteractionMovieSchema);
 
-const userSearchResultSchema = z.object({
-  id: z.string(),
-  username: z.string(),
-  displayUsername: z.string().nullable(),
-  avatarUrl: z.string().nullable(),
-});
+const userSearchResultSchema = userSummarySchema;
 
 const userSearchResultListSchema = z.array(userSearchResultSchema);
 

@@ -1,6 +1,12 @@
 import { z } from "zod";
 import { personLinkSchema } from "@/features/people/shared";
-import { movieLogSchema, movieGenreSchema, movieSchema, tmdbSearchMovieSchema } from "@/types/api";
+import {
+  movieLogSchema,
+  movieGenreSchema,
+  movieSchema,
+  tmdbSearchMovieSchema,
+  userSummarySchema,
+} from "@/types/api";
 
 export { movieLogSchema, movieSchema, tmdbSearchMovieSchema };
 
@@ -110,12 +116,7 @@ const movieDetailReviewSchema = z.object({
   rating: z.number().nullable(),
   likeCount: z.number().int().nonnegative(),
   viewerHasLiked: z.boolean(),
-  author: z.object({
-    id: z.string(),
-    username: z.string(),
-    displayUsername: z.string().nullable(),
-    avatarUrl: z.string().nullable(),
-  }),
+  author: userSummarySchema,
 });
 
 const movieDetailRatingBreakdownBucketSchema = z.object({

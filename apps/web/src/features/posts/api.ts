@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { apiRequest } from "@/lib/api-client";
+import { userSummarySchema } from "@/types/api";
 
 const postMediaTypeSchema = z.enum(["movie", "tv"]);
 
@@ -38,14 +39,7 @@ const postBaseSchema = z.object({
 const postDetailSchema = postBaseSchema
   .extend({
     likeCount: z.number().int().nonnegative().default(0),
-    author: z
-      .object({
-        username: z.string(),
-        displayUsername: z.string().nullable(),
-        avatarUrl: z.string().nullable(),
-      })
-      .nullable()
-      .optional(),
+    author: userSummarySchema.omit({ id: true }).nullable().optional(),
   })
   .passthrough();
 

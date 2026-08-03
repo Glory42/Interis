@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { apiRequest, type QueryRequestOptions } from "@/lib/api-client";
+import { userSummarySchema } from "@/types/api";
 
 const reviewMediaTypeSchema = z.enum(["movie", "tv"]);
 
@@ -52,12 +53,7 @@ const reviewDetailSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   rating: z.number().nullable(),
-  author: z.object({
-    id: z.string(),
-    username: z.string(),
-    displayUsername: z.string().nullable(),
-    avatarUrl: z.string().nullable(),
-  }),
+  author: userSummarySchema,
   media: z.object({
     tmdbId: z.number().int().positive(),
     title: z.string(),

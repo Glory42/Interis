@@ -1,18 +1,15 @@
 import { z } from "zod";
 import { apiRequest } from "@/lib/api-client";
+import { successResponseSchema, userSummarySchema } from "@/types/api";
 
 const relationshipStateSchema = z.object({
   isBlocked: z.boolean(),
   isMuted: z.boolean(),
 });
 
-const moderationActionResponseSchema = z.object({
-  success: z.boolean(),
-});
+const moderationActionResponseSchema = successResponseSchema;
 
-const moderatedUserSchema = z.object({
-  id: z.string(),
-  username: z.string(),
+const moderatedUserSchema = userSummarySchema.extend({
   displayUsername: z.string().nullish(),
   avatarUrl: z.string().nullish(),
   createdAt: z.coerce.date(),

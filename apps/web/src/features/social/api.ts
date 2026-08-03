@@ -1,17 +1,14 @@
 import { z } from "zod";
 import { apiRequest } from "@/lib/api-client";
+import { successResponseSchema, userSummarySchema } from "@/types/api";
 
 const followStateSchema = z.object({
   isFollowing: z.boolean(),
 });
 
-const followActionResponseSchema = z.object({
-  success: z.boolean(),
-});
+const followActionResponseSchema = successResponseSchema;
 
-const followUserSchema = z.object({
-  id: z.string(),
-  username: z.string(),
+const followUserSchema = userSummarySchema.extend({
   displayUsername: z.string().nullish(),
   avatarUrl: z.string().nullish(),
 });

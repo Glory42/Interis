@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { apiRequest } from "@/lib/api-client";
 import { reportReasonSchema, reportTargetTypeSchema } from "@/features/reports/api";
+import { successResponseSchema, userSummarySchema } from "@/types/api";
 
 export const reportStatusSchema = z.enum(["pending", "resolved", "dismissed"]);
 export type ReportStatus = z.infer<typeof reportStatusSchema>;
@@ -20,19 +21,15 @@ const reportItemSchema = z.object({
 });
 export type ReportItem = z.infer<typeof reportItemSchema>;
 
-const adminUserSchema = z.object({
-  id: z.string(),
-  username: z.string(),
-  displayUsername: z.string().nullable(),
+const adminUserSchema = userSummarySchema.extend({
   email: z.string(),
-  avatarUrl: z.string().nullable(),
   isAdmin: z.boolean(),
   isSuspended: z.boolean(),
   createdAt: z.coerce.date(),
 });
 export type AdminUser = z.infer<typeof adminUserSchema>;
 
-const actionResponseSchema = z.object({ success: z.boolean() });
+const actionResponseSchema = successResponseSchema;
 
 export const listReports = async (status?: ReportStatus): Promise<ReportItem[]> => {
   const query = status ? `?status=${status}` : "";
