@@ -945,19 +945,3 @@
     animation-timing-function: ease;
   }
 }
-
-:root.theme-transitioning,
-:root.theme-transitioning * {
-  transition:
-    background-color 200ms var(--ease-out),
-    color 200ms var(--ease-out),
-    border-color 200ms var(--ease-out),
-    fill 200ms var(--ease-out) !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :root.theme-transitioning,
-  :root.theme-transitioning * {
-    transition: none !important;
-  }
-}
