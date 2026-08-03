@@ -2,10 +2,12 @@ import type { Request, Response } from "express";
 import { sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
 import { DiaryService } from "./diary.service";
 import { CreateDiarySchema, UpdateDiarySchema } from "./dto/diary.dto";
+import { parseDiaryPagination } from "./helpers/diary-pagination.helper";
 
 export class DiaryController {
   static async getMyDiary(req: Request, res: Response): Promise<void> {
-    const entries = await DiaryService.findAllByUser(req.user.id);
+    const { limit, offset } = parseDiaryPagination(req.query);
+    const entries = await DiaryService.findAllByUser(req.user.id, limit, offset);
     res.status(200).json(entries);
   }
 

@@ -7,8 +7,8 @@ export class DiaryService {
     return DiaryWriteService.create(userId, input);
   }
 
-  static async findAllByUser(userId: string) {
-    return DiaryRepository.findAllByUser(userId);
+  static async findAllByUser(userId: string, limit?: number, offset?: number) {
+    return DiaryRepository.findAllByUser(userId, limit, offset);
   }
 
   static async findOne(entryId: string, userId: string) {

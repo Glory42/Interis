@@ -82,7 +82,7 @@ export class DiaryRepository {
     await SocialRepository.insertActivity(input);
   }
 
-  static async findAllByUser(userId: string, limit?: number) {
+  static async findAllByUser(userId: string, limit?: number, offset?: number) {
     const query = db
       .select({
         id: diaryEntries.id,
@@ -115,7 +115,7 @@ export class DiaryRepository {
       .orderBy(desc(diaryEntries.watchedDate), desc(diaryEntries.createdAt))
       .$dynamic();
 
-    return applyOptionalPagination(query, limit);
+    return applyOptionalPagination(query, limit, offset);
   }
 
   static async findOneByIdAndUser(entryId: string, userId: string) {
