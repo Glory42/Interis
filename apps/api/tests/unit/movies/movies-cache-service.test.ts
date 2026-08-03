@@ -1,17 +1,27 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
+import * as RealCinemas from "../../../src/infrastructure/tmdb/cinemas";
+import * as RealMoviesRepositoryModule from "../../../src/modules/movies/repositories/movies.repository";
 
 const getMovieDetailsMock = mock(() => Promise.resolve<unknown>(null));
 const getMovieDirectorMock = mock(() => Promise.resolve<string | null>(null));
 const findByTmdbIdMock = mock(() => Promise.resolve<unknown>(null));
 const upsertCachedMovieMock = mock(() => Promise.resolve<unknown>(null));
 
+// Spread the real module's exports rather than replacing the module
+// wholesale - `bun test tests/unit` runs every file in one process, and
+// other files import other named exports (e.g. searchMovieByTitleAndYear)
+// from these same module paths. A bare replacement here would silently
+// break them.
 mock.module("../../../src/infrastructure/tmdb/cinemas", () => ({
+  ...RealCinemas,
   getMovieDetails: getMovieDetailsMock,
   getMovieDirector: getMovieDirectorMock,
 }));
 
 mock.module("../../../src/modules/movies/repositories/movies.repository", () => ({
+  ...RealMoviesRepositoryModule,
   MoviesRepository: {
+    ...RealMoviesRepositoryModule.MoviesRepository,
     findByTmdbId: findByTmdbIdMock,
     upsertCachedMovie: upsertCachedMovieMock,
   },
