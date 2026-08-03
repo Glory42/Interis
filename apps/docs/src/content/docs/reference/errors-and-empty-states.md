@@ -25,6 +25,10 @@ description: Status code behavior and empty-response conventions for public rout
 | `/likes` | `[]` |
 | `/watchlist` | `[]` |
 | `/diary` | `[]` |
+| `/movies/watched` | `[]` |
+| `/serials/currently-watching` | `[]` |
+| `/serials/watched` | `[]` |
+| `/serials/:tmdbId` | No special empty object; returns `404` if user or serial missing |
 
 ## Query normalization behavior
 
