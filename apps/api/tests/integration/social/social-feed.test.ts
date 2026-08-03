@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
+import { seedTestMovie } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -228,17 +229,10 @@ describe("social feed and activity likes", () => {
         items: Array<{ id: string }>;
         nextCursor: string | null;
       };
-      // Known bug, not the intended contract: getFollowingFeedUncached's
-      // unfiltered branch fetches `limit * 2` rows (headroom for dedup) but
-      // never slices the built items back down to `limit` before
-      // returning, unlike its mediaType-filtered sibling branch which does
-      // respect the limit. So limit=1 here actually returns 2 items. Fixing
-      // this isn't a safe one-line change: nextCursor is derived from the
-      // last *fetched* row, so naively slicing items to `limit` without
-      // also moving the cursor to the new boundary would silently drop
-      // the un-returned items from ever appearing on any page. Documenting
-      // actual behavior here rather than asserting the intended contract.
-      expect(firstPage.items.length).toBeGreaterThanOrEqual(1);
+      // getFollowingFeedUncached's unfiltered branch fetches `limit * 2`
+      // rows as headroom for the dedup step, but must still only return
+      // `limit` items to the caller.
+      expect(firstPage.items.length).toBe(1);
       expect(firstPage.nextCursor).not.toBeNull();
 
       const secondPageResponse = await apiRequest(
@@ -251,10 +245,84 @@ describe("social feed and activity likes", () => {
         items: Array<{ id: string }>;
         nextCursor: string | null;
       };
+      expect(secondPage.items.length).toBe(1);
 
-      const firstPageIds = new Set(firstPage.items.map((i) => i.id));
-      const overlap = secondPage.items.filter((i) => firstPageIds.has(i.id));
-      expect(overlap.length).toBe(0);
+      const thirdPageResponse = await apiRequest(
+        getServer().baseUrl,
+        `/api/social/feed/following?limit=1&cursor=${encodeURIComponent(secondPage.nextCursor!)}`,
+        {},
+        viewer.jar,
+      );
+      const thirdPage = (await thirdPageResponse.json()) as {
+        items: Array<{ id: string }>;
+        nextCursor: string | null;
+      };
+      expect(thirdPage.items.length).toBe(1);
+
+      // 3 posts plus the viewer's own "followed_user" activity (a user's
+      // own following feed includes their own activity, see
+      // getFeedUserIds) = 4 total, one per page across 4 pages.
+      const fourthPageResponse = await apiRequest(
+        getServer().baseUrl,
+        `/api/social/feed/following?limit=1&cursor=${encodeURIComponent(thirdPage.nextCursor!)}`,
+        {},
+        viewer.jar,
+      );
+      const fourthPage = (await fourthPageResponse.json()) as {
+        items: Array<{ id: string }>;
+        nextCursor: string | null;
+      };
+      expect(fourthPage.items.length).toBe(1);
+
+      const allIds = [firstPage, secondPage, thirdPage, fourthPage].flatMap((page) =>
+        page.items.map((i) => i.id),
+      );
+      expect(new Set(allIds).size).toBe(4);
+
+      // Exhausted the feed - the fourth page must be the end.
+      expect(fourthPage.nextCursor).toBeNull();
+    });
+
+    it("returns no more than the requested limit even when dedup would otherwise inflate the page", async () => {
+      const viewer = await signUpTestUser(getServer().baseUrl, "sfdedupviewer");
+      const followed = await signUpTestUser(getServer().baseUrl, "sfdedupfollowed");
+      const movie = await seedTestMovie("Feed Dedupe Movie");
+
+      await apiRequest(
+        getServer().baseUrl,
+        `/api/social/follow/${followed.username}`,
+        { method: "POST" },
+        viewer.jar,
+      );
+
+      // A diary entry with an inline review produces two activity rows
+      // (diary_entry + review) that dedupeReviewFeedItems collapses into
+      // one feed item - exercising the exact case the fetchLimit
+      // over-fetch/dedup/slice logic needs to get right.
+      await apiRequest(
+        getServer().baseUrl,
+        "/api/diary",
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            tmdbId: movie.tmdbId,
+            watchedDate: "2026-01-01",
+            review: "Dedup test review",
+          }),
+        },
+        followed.jar,
+      );
+      await createPost(followed.jar, "Second activity for dedupe test");
+
+      const response = await apiRequest(
+        getServer().baseUrl,
+        "/api/social/feed/following?limit=2",
+        {},
+        viewer.jar,
+      );
+      const body = (await response.json()) as { items: Array<{ id: string }> };
+      expect(body.items.length).toBe(2);
     });
   });
 });
