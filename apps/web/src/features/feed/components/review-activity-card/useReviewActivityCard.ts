@@ -4,7 +4,7 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import type { FeedItem } from "@/features/feed/types";
 import { useLikeReview, useUnlikeReview } from "@/features/reviews/hooks/useReviews";
 import { navigateWithViewTransitionFallback } from "@/lib/view-transition";
-import { getRating } from "./reviewActivityCard.utils";
+import { formatRatingLabel } from "@/lib/rating";
 
 type ReviewActivityCardViewModel = {
   user: ReturnType<typeof useAuth>["user"];
@@ -66,7 +66,7 @@ export const useReviewActivityCard = (item: FeedItem): ReviewActivityCardViewMod
   const likeCount = item.engagement.likeCount;
   const viewerHasLiked = item.engagement.viewerHasLiked === true;
 
-  const rating = getRating(item.review?.rating ?? item.metadata.rating);
+  const rating = formatRatingLabel(item.review?.rating ?? item.metadata.rating, { withSuffix: false });
 
   const goToLogin = async () => {
     const redirectPath = `${window.location.pathname}${window.location.search}`;
