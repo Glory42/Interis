@@ -1,74 +1,34 @@
-import { ChevronRight } from "lucide-react";
-import { publicSurface, uiColors } from "./developer-content";
-
-const { border, rowBorder, panelBackground, mutedText, dimText } = uiColors;
+import { Badge } from "@/components/ui/badge";
+import { publicSurface } from "./developer-content";
 
 export const DeveloperApiSurface = () => (
-  <section id="api-surface" className="mb-10">
-    <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.18em] text-primary">
-      / Public API Surface
-    </p>
-    <p className="mb-5 font-mono text-[10px]" style={{ color: dimText }}>
-      Response size depends on user data. Empty collections return
-      <code
-        className="mx-1 px-1"
-        style={{
-          color: "var(--module-cinema)",
-          background: "color-mix(in srgb, var(--foreground) 6%, transparent)",
-        }}
-      >
+  <section id="api-surface" className="mb-12 scroll-mt-6">
+    <h2 className="mb-1 text-lg font-semibold tracking-tight text-foreground">
+      Public API surface
+    </h2>
+    <p className="mb-5 text-sm developer-shell-muted">
+      Response size depends on user data. Empty collections return{" "}
+      <code className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
         []
       </code>
       .
     </p>
 
-    <div className="overflow-hidden border" style={{ borderColor: border }}>
-      <div
-        className="grid grid-cols-[1fr_auto] gap-0 border-b px-4 py-2 sm:grid-cols-[auto_1fr]"
-        style={{ borderColor: border, background: panelBackground }}
-      >
-        <span
-          className="font-mono text-[9px] uppercase tracking-[0.18em]"
-          style={{ color: dimText }}
-        >
-          / Endpoint
-        </span>
-        <span
-          className="hidden font-mono text-[9px] uppercase tracking-[0.18em] sm:block"
-          style={{ color: dimText }}
-        >
-          / Description
-        </span>
-      </div>
-
-      {publicSurface.map((endpoint, index) => (
+    <div className="overflow-hidden rounded-2xl border developer-shell-border developer-shell-panel">
+      {publicSurface.map((endpoint) => (
         <div
           key={endpoint.path}
-          className="group flex flex-col gap-1 border-b px-4 py-3 last:border-b-0 sm:flex-row sm:items-center sm:gap-6"
-          style={{
-            borderColor: rowBorder,
-            background:
-              index % 2
-                ? "color-mix(in srgb, var(--primary) 4%, transparent)"
-                : "transparent",
-          }}
+          className="flex flex-col gap-2 border-b border-border/40 px-4 py-3 last:border-b-0 sm:flex-row sm:items-center sm:gap-4"
         >
-          <div className="flex min-w-0 shrink-0 items-center gap-2 sm:w-80">
-            <ChevronRight
-              className="h-3 w-3 shrink-0"
-              style={{ color: "var(--module-cinema)" }}
-            />
-            <code
-              className="truncate font-mono text-[10px]"
-              style={{ color: "var(--primary)" }}
-            >
+          <div className="flex shrink-0 items-center gap-2 sm:w-[28rem]">
+            <Badge variant="muted" className="shrink-0 font-mono">
+              {endpoint.method}
+            </Badge>
+            <code className="whitespace-nowrap font-mono text-xs text-primary">
               {endpoint.path}
             </code>
           </div>
-          <p
-            className="flex-1 font-mono text-[10px] leading-relaxed"
-            style={{ color: mutedText }}
-          >
+          <p className="text-xs leading-relaxed developer-shell-muted sm:flex-1">
             {endpoint.description}
           </p>
         </div>
