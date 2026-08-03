@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { Check, CodeXml, Copy } from "lucide-react";
-import { codeExamples, uiColors } from "./developer-content";
-
-const { border, panelBackground, dimText } = uiColors;
+import { Check, Copy } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { highlightExampleCode } from "./code-highlighter";
+import { codeExamples } from "./developer-content";
 
 export const DeveloperCodeExamples = () => {
   const [activeExampleIndex, setActiveExampleIndex] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
 
   const activeExample = codeExamples[activeExampleIndex] ?? codeExamples[0];
 
@@ -15,6 +16,18 @@ export const DeveloperCodeExamples = () => {
     const timeoutId = window.setTimeout(() => setCopied(false), 1400);
     return () => window.clearTimeout(timeoutId);
   }, [copied]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    highlightExampleCode(activeExample.code, activeExample.language).then((html) => {
+      if (!cancelled) setHighlightedHtml(html);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeExample]);
 
   const handleCopyCode = async () => {
     if (!navigator.clipboard?.writeText) return;
@@ -27,15 +40,12 @@ export const DeveloperCodeExamples = () => {
   };
 
   return (
-    <section className="mb-10">
-      <p className="mb-5 font-mono text-[10px] uppercase tracking-[0.18em] text-primary">
-        / Mini Examples
-      </p>
-      <div className="border" style={{ borderColor: border }}>
-        <div
-          className="no-scrollbar flex overflow-x-auto border-b"
-          style={{ borderColor: border, background: panelBackground }}
-        >
+    <section className="mb-12">
+      <h2 className="mb-5 text-lg font-semibold tracking-tight text-foreground">
+        Mini examples
+      </h2>
+      <div className="overflow-hidden rounded-2xl border developer-shell-border developer-shell-panel">
+        <div className="no-scrollbar flex overflow-x-auto border-b border-border/40">
           {codeExamples.map((example, index) => {
             const isActive = index === activeExampleIndex;
             return (
@@ -46,69 +56,57 @@ export const DeveloperCodeExamples = () => {
                   setActiveExampleIndex(index);
                   setCopied(false);
                 }}
-                className="shrink-0 whitespace-nowrap border-b-2 px-4 py-3 font-mono text-[9px] uppercase tracking-[0.18em] transition-all"
-                style={{
-                  borderBottomColor: isActive ? "var(--primary)" : "transparent",
-                  color: isActive ? "var(--primary)" : dimText,
-                }}
+                className={cn(
+                  "shrink-0 whitespace-nowrap border-b-2 px-4 py-3 text-xs font-medium transition-colors",
+                  isActive
+                    ? "border-primary text-primary"
+                    : "border-transparent developer-shell-muted hover:text-foreground",
+                )}
               >
-                <span className="flex items-center gap-2">
-                  <CodeXml className="h-3 w-3 shrink-0" />
-                  <span>{example.title}</span>
-                </span>
+                {example.title}
               </button>
             );
           })}
         </div>
 
-        <div
-          className="px-5 py-4"
-          style={{ background: "color-mix(in srgb, var(--background) 68%, black)" }}
-        >
+        <div className="px-5 py-4">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2">
-              <span
-                className="border px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.18em]"
-                style={{
-                  borderColor: "color-mix(in srgb, var(--primary) 25%, transparent)",
-                  color: "var(--primary)",
-                  background: "color-mix(in srgb, var(--primary) 6%, transparent)",
-                }}
-              >
+              <span className="rounded-md border border-primary/25 bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-primary">
                 {activeExample.language}
-              </span>
-              <span className="truncate font-mono text-[9px]" style={{ color: dimText }}>
-                {activeExample.title}
               </span>
             </div>
 
             <button
               type="button"
               aria-label="Copy code"
-              onClick={() => { void handleCopyCode(); }}
-              className="flex shrink-0 items-center gap-1 border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.16em] transition-all"
-              style={{
-                borderColor: border,
-                color: copied ? "var(--module-cinema)" : dimText,
-                background: copied
-                  ? "color-mix(in srgb, var(--module-cinema) 8%, transparent)"
-                  : "transparent",
+              onClick={() => {
+                void handleCopyCode();
               }}
+              className={cn(
+                "flex shrink-0 items-center gap-1 rounded-md border px-2 py-1 text-xs transition-colors",
+                copied
+                  ? "border-primary/30 bg-primary/10 text-primary"
+                  : "developer-shell-border developer-shell-muted hover:text-foreground",
+              )}
             >
-              {copied ? <Check className="h-2.5 w-2.5" /> : <Copy className="h-2.5 w-2.5" />}
+              {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
               <span>{copied ? "Copied" : "Copy"}</span>
             </button>
           </div>
 
-          <pre
-            className="overflow-x-auto font-mono text-[11px] leading-relaxed"
-            style={{
-              color: "color-mix(in srgb, var(--foreground) 74%, var(--module-cinema) 26%)",
-              tabSize: 2,
-            }}
-          >
-            <code>{activeExample.code}</code>
-          </pre>
+          {highlightedHtml ? (
+            <div
+              className="overflow-hidden rounded-xl text-xs leading-relaxed [&_pre]:m-0 [&_pre]:overflow-x-auto [&_pre]:p-4 [&_pre]:font-mono"
+              // Shiki's output is static, developer-authored code from
+              // developer-content.ts — never user input.
+              dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+            />
+          ) : (
+            <pre className="overflow-x-auto rounded-xl bg-muted/40 p-4 font-mono text-xs leading-relaxed text-foreground">
+              <code>{activeExample.code}</code>
+            </pre>
+          )}
         </div>
       </div>
     </section>
