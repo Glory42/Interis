@@ -35,7 +35,13 @@ export default defineConfig({
 						{ label: 'Watchlist', slug: 'api/endpoints/watchlist' },
 						{ label: 'Diary', slug: 'api/endpoints/diary' },
 						{ label: 'Activity', slug: 'api/endpoints/activity' },
+						{ label: 'Movies Watched', slug: 'api/endpoints/movies-watched' },
 						{ label: 'Serials Progress', slug: 'api/endpoints/serials-progress' },
+						{
+							label: 'Serials Currently Watching',
+							slug: 'api/endpoints/serials-currently-watching',
+						},
+						{ label: 'Serials Watched', slug: 'api/endpoints/serials-watched' },
 					],
 				},
 				{
