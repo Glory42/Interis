@@ -4,6 +4,7 @@ import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
 import { reviews } from "../../reviews/reviews.entity";
 import { SocialRepository } from "../../social/repositories/social.repository";
+import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
 import { diaryEntries } from "../diary.entity";
 
 export class DiaryRepository {
@@ -111,9 +112,10 @@ export class DiaryRepository {
         ),
       )
       .where(eq(diaryEntries.userId, userId))
-      .orderBy(desc(diaryEntries.watchedDate), desc(diaryEntries.createdAt));
+      .orderBy(desc(diaryEntries.watchedDate), desc(diaryEntries.createdAt))
+      .$dynamic();
 
-    return limit ? query.limit(limit) : query;
+    return applyOptionalPagination(query, limit);
   }
 
   static async findOneByIdAndUser(entryId: string, userId: string) {

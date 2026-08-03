@@ -4,6 +4,7 @@ import { user } from "../../../infrastructure/database/auth.entity";
 import { profiles } from "../../users/users.entity";
 import { reviews } from "../../reviews/reviews.entity";
 import { mergeCommunityRatings } from "../../media/helpers/media-community-rating.helper";
+import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
 import { serialDiaryEntries, serialInteractions, tvSeries } from "../serials.entity";
 
 export class SerialsInteractionsRepository {
@@ -170,7 +171,7 @@ export class SerialsInteractionsRepository {
       .orderBy(desc(serialInteractions.updatedAt))
       .$dynamic();
 
-    return limit ? baseQuery.limit(limit).offset(offset ?? 0) : baseQuery;
+    return applyOptionalPagination(baseQuery, limit, offset);
   }
 
   static async setWatched(userId: string, seriesId: number): Promise<void> {
@@ -290,7 +291,7 @@ export class SerialsInteractionsRepository {
       .orderBy(desc(serialDiaryEntries.watchedDate), desc(serialDiaryEntries.createdAt))
       .$dynamic();
 
-    return limit ? query.limit(limit).offset(offset ?? 0) : query;
+    return applyOptionalPagination(query, limit, offset);
   }
 
   static async updateDiaryEntry(
@@ -350,6 +351,6 @@ export class SerialsInteractionsRepository {
       .orderBy(desc(serialDiaryEntries.createdAt))
       .$dynamic();
 
-    return limit ? query.limit(limit).offset(offset ?? 0) : query;
+    return applyOptionalPagination(query, limit, offset);
   }
 }
