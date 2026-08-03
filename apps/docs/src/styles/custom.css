@@ -1,100 +1,32 @@
 :root {
-  --background: #080808;
-  --foreground: #e0e0e0;
-  --card: #0c0c0c;
-  --card-foreground: #e0e0e0;
-  --popover: #0b0b0b;
-  --popover-foreground: #e0e0e0;
-  --primary: #00ff88;
-  --primary-foreground: #020202;
-  --secondary: #111111;
-  --secondary-foreground: #dedede;
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #0d0d0d;
+  --card-foreground: #ffffff;
+  --popover: #080808;
+  --popover-foreground: #ffffff;
+  --primary: #a855f7;
+  --primary-foreground: #000000;
+  --secondary: #1f1f1f;
+  --secondary-foreground: #ffffff;
   --muted: #0a0a0a;
-  --muted-foreground: #8d8d8d;
-  --accent: #00cfff;
-  --accent-foreground: #020202;
-  --border: #232323;
-  --input: #101010;
-  --ring: #00ff88;
-  --destructive: #ff6b85;
-  --aura-primary: #00ff88;
-  --aura-secondary: #00cfff;
-  --aura-muted: #2a2a2a;
+  --muted-foreground: #888888;
+  --accent: #d4a8ff;
+  --accent-foreground: #000000;
+  --border: #5a5a5a;
+  --input: #1f1f1f;
+  --ring: #a855f7;
+  --destructive: #ef4444;
+  --aura-primary: #a855f7;
+  --aura-secondary: #d4a8ff;
+  --aura-muted: #1f1f1f;
 }
 
-:root[data-interis-theme="rose-pine"] {
-  --background: #171420;
-  --foreground: #e8e3f7;
-  --card: #1f1b2b;
-  --card-foreground: #e8e3f7;
-  --popover: #1c1927;
-  --popover-foreground: #e8e3f7;
-  --primary: #d4b5ff;
-  --primary-foreground: #181422;
-  --secondary: #26213a;
-  --secondary-foreground: #e8e3f7;
-  --muted: #151220;
-  --muted-foreground: #9f98bb;
-  --accent: #f4c2bf;
-  --accent-foreground: #171420;
-  --border: #3f3958;
-  --input: #26213a;
-  --ring: #9fd4df;
-  --destructive: #f17fa0;
-  --aura-primary: #d4b5ff;
-  --aura-secondary: #9fd4df;
-  --aura-muted: #6f6789;
-}
-
-:root[data-interis-theme="null-log"] {
-  --background: #080808;
-  --foreground: #e0e0e0;
-  --card: #0c0c0c;
-  --card-foreground: #e0e0e0;
-  --popover: #0b0b0b;
-  --popover-foreground: #e0e0e0;
-  --primary: #00ff88;
-  --primary-foreground: #020202;
-  --secondary: #111111;
-  --secondary-foreground: #dedede;
-  --muted: #0a0a0a;
-  --muted-foreground: #8d8d8d;
-  --accent: #00cfff;
-  --accent-foreground: #020202;
-  --border: #232323;
-  --input: #101010;
-  --ring: #00ff88;
-  --destructive: #ff6b85;
-  --aura-primary: #00ff88;
-  --aura-secondary: #00cfff;
-  --aura-muted: #2a2a2a;
-}
-
-:root[data-interis-theme="gruvbox"] {
-  --background: #1d2021;
-  --foreground: #ebdbb2;
-  --card: #272727;
-  --card-foreground: #ebdbb2;
-  --popover: #242424;
-  --popover-foreground: #ebdbb2;
-  --primary: #d79921;
-  --primary-foreground: #1d2021;
-  --secondary: #3a3734;
-  --secondary-foreground: #ebdbb2;
-  --muted: #232323;
-  --muted-foreground: #a89984;
-  --accent: #83a598;
-  --accent-foreground: #1d2021;
-  --border: #504945;
-  --input: #32302f;
-  --ring: #fabd2f;
-  --destructive: #fb4934;
-  --aura-primary: #d79921;
-  --aura-secondary: #83a598;
-  --aura-muted: #7c6f64;
-}
-
-:root[data-theme="dark"][data-interis-theme] {
+/*
+ * Gated on [data-theme="dark"] (set unconditionally by InterisThemeProvider)
+ * so these win over Starlight's own same-specificity dark-mode defaults.
+ */
+:root[data-theme="dark"] {
   --sl-color-white: var(--foreground);
   --sl-color-black: color-mix(in srgb, black 72%, var(--background) 28%);
 
@@ -144,9 +76,16 @@
   --sl-color-hairline-shade: color-mix(in srgb, black 74%, var(--background) 26%);
 
   --sl-color-backdrop-overlay: color-mix(in srgb, var(--background) 82%, black 18%);
+
+  /* Expressive Code chrome: match the AMOLED card surface and round the frame
+     instead of the library's hardcoded blue-gray bg + square corners. */
+  --ec-codeBg: var(--card);
+  --ec-codeSelBg: color-mix(in srgb, var(--primary) 30%, transparent);
+  --ec-brdRad: 0.75rem;
+  --ec-frm-edTabBrdRad: 0.5rem 0.5rem 0 0;
 }
 
-:root[data-theme="dark"][data-interis-theme] body {
+:root[data-theme="dark"] body {
   background:
     radial-gradient(
       980px 420px at 12% -12%,
