@@ -1,13 +1,7 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
-import { db } from "../../infrastructure/database/db";
-import { user } from "../../infrastructure/database/auth.entity";
 import { DiaryRepository } from "../diary/repositories/diary.repository";
-import { listEntries, lists } from "../lists/lists.entity";
 import { UsersService } from "../users/users.service";
-import { movies } from "../movies/movies.entity";
-import { reviews } from "../reviews/reviews.entity";
-import { serialDiaryEntries, tvSeries } from "../serials/serials.entity";
 import { SocialFeedService } from "../social/services/social-feed.service";
+import { PublicRepository } from "./repositories/public.repository";
 import { PublicTopPicksService } from "./services/public-top-picks.service";
 
 import type {
@@ -30,14 +24,8 @@ const toTimestamp = (value: string | Date): number => {
 };
 
 export class PublicService {
-  private static async findUserIdByUsername(username: string): Promise<string | null> {
-    const [profile] = await db
-      .select({ id: user.id })
-      .from(user)
-      .where(eq(user.username, username))
-      .limit(1);
-
-    return profile?.id ?? null;
+  private static findUserIdByUsername(username: string): Promise<string | null> {
+    return PublicRepository.findUserIdByUsername(username);
   }
 
   static async getProfile(username: string): Promise<PublicProfileResponse | null> {
@@ -147,36 +135,7 @@ export class PublicService {
 
     const [movieEntries, serialEntries] = await Promise.all([
       DiaryRepository.findAllByUser(userId, fetchCap),
-      db
-        .select({
-          id: serialDiaryEntries.id,
-          watchedDate: serialDiaryEntries.watchedDate,
-          rating: serialDiaryEntries.rating,
-          rewatch: serialDiaryEntries.rewatch,
-          createdAt: serialDiaryEntries.createdAt,
-          updatedAt: serialDiaryEntries.updatedAt,
-          tmdbId: tvSeries.tmdbId,
-          title: tvSeries.title,
-          posterPath: tvSeries.posterPath,
-          releaseYear: tvSeries.firstAirYear,
-          reviewId: reviews.id,
-          reviewContent: reviews.content,
-          reviewContainsSpoilers: reviews.containsSpoilers,
-          reviewCreatedAt: reviews.createdAt,
-        })
-        .from(serialDiaryEntries)
-        .innerJoin(tvSeries, eq(tvSeries.id, serialDiaryEntries.seriesId))
-        .leftJoin(
-          reviews,
-          and(
-            eq(reviews.userId, serialDiaryEntries.userId),
-            eq(reviews.diaryEntryId, serialDiaryEntries.id),
-            eq(reviews.mediaType, "tv"),
-          ),
-        )
-        .where(eq(serialDiaryEntries.userId, userId))
-        .orderBy(desc(serialDiaryEntries.watchedDate), desc(serialDiaryEntries.createdAt))
-        .limit(fetchCap),
+      PublicRepository.findSerialDiaryEntriesByUser(userId, fetchCap),
     ]);
 
     const normalizedMovieEntries: PublicDiaryItem[] = movieEntries.map((entry) => ({
@@ -249,19 +208,7 @@ export class PublicService {
       return null;
     }
 
-    const listRows = await db
-      .select({
-        id: lists.id,
-        title: lists.title,
-        description: lists.description,
-        isRanked: lists.isRanked,
-        createdAt: lists.createdAt,
-        updatedAt: lists.updatedAt,
-      })
-      .from(lists)
-      .where(and(eq(lists.userId, userId), eq(lists.isPublic, true)))
-      .orderBy(desc(lists.updatedAt), desc(lists.createdAt))
-      .limit(limit);
+    const listRows = await PublicRepository.findPublicListsByUser(userId, limit);
 
     if (listRows.length === 0) {
       return [];
@@ -269,20 +216,7 @@ export class PublicService {
 
     const listIds = listRows.map((listRow) => listRow.id);
 
-    const entryRows = await db
-      .select({
-        listId: listEntries.listId,
-        position: listEntries.position,
-        note: listEntries.note,
-        tmdbId: movies.tmdbId,
-        title: movies.title,
-        posterPath: movies.posterPath,
-        releaseYear: movies.releaseYear,
-      })
-      .from(listEntries)
-      .innerJoin(movies, eq(movies.id, listEntries.movieId))
-      .where(inArray(listEntries.listId, listIds))
-      .orderBy(asc(listEntries.listId), asc(listEntries.position), asc(listEntries.createdAt));
+    const entryRows = await PublicRepository.findListEntriesByListIds(listIds);
 
     const entriesByListId = new Map<string, PublicListEntry[]>();
 

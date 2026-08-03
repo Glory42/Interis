@@ -1,7 +1,3 @@
-import { asc, eq, inArray } from "drizzle-orm";
-import { db } from "../../../infrastructure/database/db";
-import { movies } from "../../movies/movies.entity";
-import { tvSeries } from "../../serials/serials.entity";
 import {
   TOP_PICK_CATEGORY_IDS,
   TOP_PICK_CATEGORY_KEYS,
@@ -9,7 +5,7 @@ import {
   type TopPickCategoryId,
   type TopPickCategoryKey,
 } from "../../users/constants/top-picks.constants";
-import { profileTopPicks } from "../../users/users.entity";
+import { PublicTopPicksRepository } from "../repositories/public-top-picks.repository";
 
 type PublicTopPickItem = {
   slot: number;
@@ -36,20 +32,7 @@ type PublicTopPicksResponse = {
 
 export class PublicTopPicksService {
   static async getTop4ByUserId(userId: string): Promise<PublicTopPicksResponse> {
-    const topPickRows = await db
-      .select({
-        categoryId: profileTopPicks.categoryId,
-        slot: profileTopPicks.slot,
-        mediaType: profileTopPicks.mediaType,
-        mediaSource: profileTopPicks.mediaSource,
-        mediaSourceId: profileTopPicks.mediaSourceId,
-        title: profileTopPicks.title,
-        posterPath: profileTopPicks.posterPath,
-        releaseYear: profileTopPicks.releaseYear,
-      })
-      .from(profileTopPicks)
-      .where(eq(profileTopPicks.userId, userId))
-      .orderBy(asc(profileTopPicks.categoryId), asc(profileTopPicks.slot));
+    const topPickRows = await PublicTopPicksRepository.getTopPicksByUserId(userId);
 
     const cinemaTmdbIds = topPickRows
       .filter(
@@ -72,30 +55,8 @@ export class PublicTopPicksService {
       .map((row) => Number(row.mediaSourceId));
 
     const [movieRows, serialRows] = await Promise.all([
-      cinemaTmdbIds.length > 0
-        ? db
-            .select({
-              id: movies.id,
-              tmdbId: movies.tmdbId,
-              title: movies.title,
-              posterPath: movies.posterPath,
-              releaseYear: movies.releaseYear,
-            })
-            .from(movies)
-            .where(inArray(movies.tmdbId, [...new Set(cinemaTmdbIds)]))
-        : Promise.resolve([]),
-      serialTmdbIds.length > 0
-        ? db
-            .select({
-              id: tvSeries.id,
-              tmdbId: tvSeries.tmdbId,
-              title: tvSeries.title,
-              posterPath: tvSeries.posterPath,
-              releaseYear: tvSeries.firstAirYear,
-            })
-            .from(tvSeries)
-            .where(inArray(tvSeries.tmdbId, [...new Set(serialTmdbIds)]))
-        : Promise.resolve([]),
+      PublicTopPicksRepository.getMoviesByTmdbIds([...new Set(cinemaTmdbIds)]),
+      PublicTopPicksRepository.getSeriesByTmdbIds([...new Set(serialTmdbIds)]),
     ]);
 
     const movieByTmdbId = new Map(movieRows.map((row) => [row.tmdbId, row]));
