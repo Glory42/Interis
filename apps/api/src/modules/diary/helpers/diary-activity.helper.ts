@@ -1,3 +1,4 @@
+import { toMediaFields } from "../../../commons/helpers/media-activity-fields.helper";
 import { truncateExcerpt } from "../../../commons/helpers/text.helper";
 
 export const buildDiaryEntryActivityMetadata = (input: {
@@ -14,10 +15,7 @@ export const buildDiaryEntryActivityMetadata = (input: {
   reviewId: string | null;
 }) => ({
   movieId: input.movie.id,
-  tmdbId: input.movie.tmdbId,
-  title: input.movie.title,
-  posterPath: input.movie.posterPath,
-  releaseYear: input.movie.releaseYear,
+  ...toMediaFields(input.movie),
   rating: input.rating,
   rewatch: input.rewatch,
   mediaType: "movie",
@@ -42,10 +40,7 @@ export const buildDiaryReviewActivityMetadata = (input: {
 }) => ({
   reviewId: input.review.id,
   movieId: input.movie.id,
-  tmdbId: input.movie.tmdbId,
-  title: input.movie.title,
-  posterPath: input.movie.posterPath,
-  releaseYear: input.movie.releaseYear,
+  ...toMediaFields(input.movie),
   rating: input.rating,
   containsSpoilers: input.review.containsSpoilers,
   excerpt: truncateExcerpt(input.review.content),
