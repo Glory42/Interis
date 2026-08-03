@@ -10,11 +10,20 @@ import {
 } from "@/features/admin/content-api";
 
 export const adminContentKeys = {
+  reviewsAll: ["admin", "reviews"] as const,
   reviews: (filters: AdminContentFilters) => ["admin", "reviews", filters] as const,
+  diaryAll: ["admin", "diary"] as const,
   diary: (filters: AdminContentFilters) => ["admin", "diary", filters] as const,
+  postsAll: ["admin", "posts"] as const,
   posts: (filters: Pick<AdminContentFilters, "username">) =>
     ["admin", "posts", filters] as const,
 };
+
+const adminContentAllKeys = {
+  reviews: adminContentKeys.reviewsAll,
+  diary: adminContentKeys.diaryAll,
+  posts: adminContentKeys.postsAll,
+} as const;
 
 export const useAdminReviews = (filters: AdminContentFilters) =>
   useQuery({
@@ -34,13 +43,16 @@ export const useAdminPosts = (filters: Pick<AdminContentFilters, "username">) =>
     queryFn: () => listAdminPosts(filters),
   });
 
-const useContentDelete = (mutationFn: (id: string) => Promise<void>, keyPrefix: string) => {
+const useContentDelete = (
+  mutationFn: (id: string) => Promise<void>,
+  keyPrefix: keyof typeof adminContentAllKeys,
+) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["admin", keyPrefix] });
+      await queryClient.invalidateQueries({ queryKey: adminContentAllKeys[keyPrefix] });
     },
   });
 };

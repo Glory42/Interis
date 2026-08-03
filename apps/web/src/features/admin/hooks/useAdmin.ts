@@ -15,7 +15,9 @@ import {
 } from "@/features/admin/api";
 
 export const adminKeys = {
+  reportsAll: ["admin", "reports"] as const,
   reports: (status?: ReportStatus) => ["admin", "reports", status ?? "all"] as const,
+  usersAll: ["admin", "users"] as const,
   users: (query?: string) => ["admin", "users", query ?? ""] as const,
 };
 
@@ -37,7 +39,7 @@ const useReportAction = (mutationFn: (id: string) => Promise<void>) => {
   return useMutation({
     mutationFn,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["admin", "reports"] });
+      await queryClient.invalidateQueries({ queryKey: adminKeys.reportsAll });
     },
   });
 };
@@ -59,7 +61,7 @@ const useUserAction = <TInput>(mutationFn: (input: TInput) => Promise<void>) => 
   return useMutation({
     mutationFn,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      await queryClient.invalidateQueries({ queryKey: adminKeys.usersAll });
     },
   });
 };

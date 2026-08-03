@@ -13,7 +13,9 @@ import {
 } from "@/features/admin/media-api";
 
 export const adminMediaKeys = {
+  moviesAll: ["admin", "movies"] as const,
   movies: (query?: string) => ["admin", "movies", query ?? ""] as const,
+  serialsAll: ["admin", "serials"] as const,
   serials: (query?: string) => ["admin", "serials", query ?? ""] as const,
 };
 
@@ -28,7 +30,7 @@ const useMovieAction = <TInput>(mutationFn: (input: TInput) => Promise<void>) =>
   return useMutation({
     mutationFn,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["admin", "movies"] });
+      await queryClient.invalidateQueries({ queryKey: adminMediaKeys.moviesAll });
     },
   });
 };
@@ -38,7 +40,7 @@ const useSerialAction = <TInput>(mutationFn: (input: TInput) => Promise<void>) =
   return useMutation({
     mutationFn,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["admin", "serials"] });
+      await queryClient.invalidateQueries({ queryKey: adminMediaKeys.serialsAll });
     },
   });
 };
