@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
+import { searchMovies } from "@/features/films/api/requests";
+import { searchSeries } from "@/features/serials/api/requests";
 import {
   addListItem,
   createList,
@@ -23,7 +25,28 @@ export const listKeys = {
   userListsForItem: (username: string, tmdbId: number, itemType: string) =>
     ["lists", "user", username, "item", tmdbId, itemType] as const,
   detail: (listId: string) => ["lists", "detail", listId] as const,
+  formSearch: (kind: "movies" | "series", query: string) =>
+    ["lists", "formSearch", kind, query] as const,
 };
+
+const FORM_SEARCH_MIN_QUERY_LENGTH = 2;
+const FORM_SEARCH_STALE_TIME_MS = 30_000;
+
+export const useListFormSearchMovies = (query: string) =>
+  useQuery({
+    queryKey: listKeys.formSearch("movies", query),
+    queryFn: ({ signal }) => searchMovies(query, { signal }),
+    enabled: query.trim().length >= FORM_SEARCH_MIN_QUERY_LENGTH,
+    staleTime: FORM_SEARCH_STALE_TIME_MS,
+  });
+
+export const useListFormSearchSeries = (query: string) =>
+  useQuery({
+    queryKey: listKeys.formSearch("series", query),
+    queryFn: ({ signal }) => searchSeries(query, { signal }),
+    enabled: query.trim().length >= FORM_SEARCH_MIN_QUERY_LENGTH,
+    staleTime: FORM_SEARCH_STALE_TIME_MS,
+  });
 
 export const useUserLists = (username: string, enabled = true) =>
   useQuery({

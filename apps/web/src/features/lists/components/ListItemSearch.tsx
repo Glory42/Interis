@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
-import { searchMovies } from "@/features/films/api/requests";
-import { searchSeries } from "@/features/serials/api/requests";
+import { useListFormSearchMovies, useListFormSearchSeries } from "@/features/lists/hooks/useLists";
 import type { TmdbSearchMovie } from "@/types/api";
 import type { TmdbSearchSeries } from "@/features/serials/api/types";
 
@@ -61,19 +59,8 @@ export const ListItemSearch = ({ existingTmdbIds, onSelect }: ListItemSearchProp
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const moviesQuery = useQuery({
-    queryKey: ["listFormSearch", "movies", debouncedQuery],
-    queryFn: ({ signal }) => searchMovies(debouncedQuery, { signal }),
-    enabled: debouncedQuery.trim().length >= 2,
-    staleTime: 30_000,
-  });
-
-  const seriesQuery = useQuery({
-    queryKey: ["listFormSearch", "series", debouncedQuery],
-    queryFn: ({ signal }) => searchSeries(debouncedQuery, { signal }),
-    enabled: debouncedQuery.trim().length >= 2,
-    staleTime: 30_000,
-  });
+  const moviesQuery = useListFormSearchMovies(debouncedQuery);
+  const seriesQuery = useListFormSearchSeries(debouncedQuery);
 
   const isSearchPending =
     debouncedQuery.trim().length >= 2 &&
