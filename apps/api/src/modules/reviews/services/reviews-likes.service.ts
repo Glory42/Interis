@@ -1,26 +1,17 @@
-import { and, eq } from "drizzle-orm";
-import { db } from "../../../infrastructure/database/db";
 import { buildReviewLikedActivityMetadata } from "../helpers/reviews-activity.helper";
 import { ReviewsRepository } from "../repositories/reviews.repository";
 import { SocialRepository } from "../../social/repositories/social.repository";
-import { reviewLikes } from "../reviews.entity";
 import { NotificationsService } from "../../notifications/notifications.service";
 
 export class ReviewsLikesService {
   static async likeReview(userId: string, reviewId: string) {
-    const [existing] = await db
-      .select()
-      .from(reviewLikes)
-      .where(
-        and(eq(reviewLikes.userId, userId), eq(reviewLikes.reviewId, reviewId)),
-      )
-      .limit(1);
+    const existing = await ReviewsRepository.getExistingLike(userId, reviewId);
 
     if (existing) {
       return { liked: true, alreadyLiked: true };
     }
 
-    await db.insert(reviewLikes).values({ userId, reviewId });
+    await ReviewsRepository.insertLike(userId, reviewId);
 
     const review = await ReviewsRepository.getReviewWithMedia(reviewId);
     const activityMediaType =
@@ -63,13 +54,6 @@ export class ReviewsLikesService {
   }
 
   static async unlikeReview(userId: string, reviewId: string) {
-    const [deleted] = await db
-      .delete(reviewLikes)
-      .where(
-        and(eq(reviewLikes.userId, userId), eq(reviewLikes.reviewId, reviewId)),
-      )
-      .returning({ reviewId: reviewLikes.reviewId });
-
-    return deleted ?? null;
+    return ReviewsRepository.deleteLike(userId, reviewId);
   }
 }

@@ -1,5 +1,3 @@
-import { db } from "../../../infrastructure/database/db";
-import { comments } from "../reviews.entity";
 import { buildCommentCreatedActivityMetadata } from "../helpers/reviews-activity.helper";
 import { ReviewsRepository } from "../repositories/reviews.repository";
 import { SocialRepository } from "../../social/repositories/social.repository";
@@ -16,10 +14,7 @@ export class ReviewsCommentsService {
       return null;
     }
 
-    const [comment] = await db
-      .insert(comments)
-      .values({ userId, reviewId, content })
-      .returning();
+    const comment = await ReviewsRepository.insertComment({ userId, reviewId, content });
 
     if (!comment) {
       throw new Error("Could not create comment");

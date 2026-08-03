@@ -1,9 +1,10 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { diaryEntries } from "../../diary/diary.entity";
 import { profiles } from "../../users/users.entity";
-import { reviewLikes, reviews } from "../../reviews/reviews.entity";
+import { reviews } from "../../reviews/reviews.entity";
+import { ReviewsRepository } from "../../reviews/repositories/reviews.repository";
 
 export class MoviesReviewsRepository {
   static async getReviewRowsByMovieId(movieId: number) {
@@ -30,33 +31,10 @@ export class MoviesReviewsRepository {
   }
 
   static async getReviewLikeCounts(reviewIds: string[]) {
-    if (reviewIds.length === 0) {
-      return [];
-    }
-
-    return db
-      .select({
-        reviewId: reviewLikes.reviewId,
-        likeCount: sql<number>`count(*)::int`.as("likeCount"),
-      })
-      .from(reviewLikes)
-      .where(inArray(reviewLikes.reviewId, reviewIds))
-      .groupBy(reviewLikes.reviewId);
+    return ReviewsRepository.getLikeCounts(reviewIds);
   }
 
   static async getViewerLikedReviewRows(viewerUserId: string, reviewIds: string[]) {
-    if (reviewIds.length === 0) {
-      return [];
-    }
-
-    return db
-      .select({ reviewId: reviewLikes.reviewId })
-      .from(reviewLikes)
-      .where(
-        and(
-          eq(reviewLikes.userId, viewerUserId),
-          inArray(reviewLikes.reviewId, reviewIds),
-        ),
-      );
+    return ReviewsRepository.getViewerLikedReviewIds(viewerUserId, reviewIds);
   }
 }
