@@ -88,16 +88,40 @@ const getFollowingFeedUncached = async (
   if (!mediaType) {
     const decodedCursor = decodeFeedCursor(cursor);
     const rows = await SocialRepository.getFeedActivityRows(feedUserIds, fetchLimit, decodedCursor);
-    const items = await buildFeedItems(rows, userId);
+    const dedupedItems = await buildFeedItems(rows, userId);
 
-    // Raw rows (pre-dedupe) filling the fetch cap means there may be more
-    // beyond this page; otherwise we've reached the end of the feed.
-    const hasMore = rows.length === fetchLimit;
-    const lastRow = rows.at(-1);
-    const nextCursor =
-      hasMore && lastRow
-        ? encodeFeedCursor({ createdAt: lastRow.activity.createdAt, id: lastRow.activity.id })
-        : null;
+    // dedupedItems can be shorter than rows (dedupeReviewFeedItems only
+    // ever *drops* items, it never merges two rows into one - each
+    // surviving item's id/createdAt is still a genuine row's identity,
+    // see toFeedItem), so it can also be longer than normalizedLimit
+    // since fetchLimit over-fetches 2x as headroom for that dedup step.
+    // Slicing here (rather than returning dedupedItems as-is) is the fix:
+    // the page must never return more than what was asked for.
+    const items = dedupedItems.slice(0, normalizedLimit);
+    const lastReturnedItem = items.at(-1);
+    const lastFetchedRow = rows.at(-1);
+
+    let nextCursor: string | null = null;
+    if (dedupedItems.length > normalizedLimit && lastReturnedItem) {
+      // More already-built items exist beyond this page - resume right
+      // after the last one actually returned.
+      nextCursor = encodeFeedCursor({
+        createdAt: lastReturnedItem.createdAt,
+        id: lastReturnedItem.id,
+      });
+    } else if (rows.length === fetchLimit && lastFetchedRow) {
+      // Dedup left us with a page at or under the limit, but the fetch
+      // cap was hit - there may be more beyond what was fetched, even if
+      // nothing new survived dedup this time. Resume from the last
+      // *fetched* row (not the last item, which may not exist) so the
+      // next page keeps scanning forward instead of re-fetching the same
+      // window - same "advance by rows scanned" principle as the
+      // mediaType-filtered branch below.
+      nextCursor = encodeFeedCursor({
+        createdAt: lastFetchedRow.activity.createdAt,
+        id: lastFetchedRow.activity.id,
+      });
+    }
 
     return { items, nextCursor };
   }
