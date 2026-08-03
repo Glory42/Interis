@@ -38,14 +38,22 @@ export const AddToListDialog = ({
     const trimmed = newTitle.trim();
     if (!trimmed) return;
 
-    const created = await createMutation.mutateAsync({
-      title: trimmed,
-      isPublic: true,
-    });
+    try {
+      const created = await createMutation.mutateAsync({
+        title: trimmed,
+        isPublic: true,
+      });
 
-    await toggleMutation.mutateAsync({ listId: created.id, entryId: null });
-    setIsCreating(false);
-    setNewTitle("");
+      await toggleMutation.mutateAsync({ listId: created.id, entryId: null });
+      setIsCreating(false);
+      setNewTitle("");
+    } catch {
+      // No visible error UI for a failed create-and-add (same pre-existing
+      // gap as ListCreateEditDialog) - caught only so the fire-and-forget
+      // `void handleCreateAndAdd()` call site doesn't produce an
+      // unhandled promise rejection. The create form stays open with
+      // whatever was typed so the user can retry.
+    }
   };
 
   if (!user) return null;
@@ -98,7 +106,13 @@ export const AddToListDialog = ({
                                 type="button"
                                 disabled={isPending}
                                 onClick={() =>
-                                  void toggleMutation.mutateAsync({
+                                  // .mutate() (not .mutateAsync()) since the
+                                  // result isn't awaited here - mutateAsync
+                                  // would produce an unhandled promise
+                                  // rejection on failure since nothing
+                                  // catches it at this fire-and-forget call
+                                  // site.
+                                  toggleMutation.mutate({
                                     listId: list.id,
                                     entryId: list.entryId,
                                   })
