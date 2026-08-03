@@ -55,6 +55,8 @@ export const MediaReviewCard = memo(function MediaReviewCard({
     count: number;
   } | null>(null);
 
+  const [isSpoilerRevealed, setIsSpoilerRevealed] = useState(false);
+
   const viewerHasLiked = optimisticLike?.liked ?? review.viewerHasLiked;
   const likeCount = optimisticLike?.count ?? review.likeCount;
 
@@ -175,22 +177,42 @@ export const MediaReviewCard = memo(function MediaReviewCard({
         </button>
       </div>
 
-      {review.containsSpoilers ? (
-        <p
-          className="mb-2 inline-flex rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em]"
+      {review.containsSpoilers && !isSpoilerRevealed ? (
+        <button
+          type="button"
+          className="mb-2 inline-flex items-center gap-2 rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] transition-colors"
           style={{
             borderColor: moduleStyles.accent,
             color: moduleStyles.accent,
             background: moduleStyles.badge,
           }}
+          onClick={(event) => {
+            event.stopPropagation();
+            setIsSpoilerRevealed(true);
+          }}
         >
-          Spoilers
-        </p>
-      ) : null}
+          Spoilers · show
+        </button>
+      ) : (
+        <>
+          {review.containsSpoilers ? (
+            <p
+              className="mb-2 inline-flex rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em]"
+              style={{
+                borderColor: moduleStyles.accent,
+                color: moduleStyles.accent,
+                background: moduleStyles.badge,
+              }}
+            >
+              Spoilers
+            </p>
+          ) : null}
 
-      <p className="whitespace-pre-wrap text-sm leading-relaxed" style={{ color: moduleStyles.muted }}>
-        {review.content}
-      </p>
+          <p className="whitespace-pre-wrap text-sm leading-relaxed" style={{ color: moduleStyles.muted }}>
+            {review.content}
+          </p>
+        </>
+      )}
     </article>
   );
 });
