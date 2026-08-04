@@ -4,6 +4,7 @@ import { SerialsSeasonEpisodeReviewsRepository } from "../repositories/serials-s
 import { SerialsCacheService } from "./serials-cache.service";
 import { getSeriesSeasonDetails as tmdbGetSeasonDetails } from "../../../infrastructure/tmdb/serials";
 import { SocialRepository } from "../../social/repositories/social.repository";
+import { SocialFeedService } from "../../social/services/social-feed.service";
 import {
   buildSeasonLikedActivityMetadata,
   buildEpisodeLikedActivityMetadata,
@@ -48,7 +49,9 @@ export class SerialsTrackingService {
         type: "liked_movie",
         entityId: String(series.id),
         metadata: JSON.stringify(buildSeasonLikedActivityMetadata({ series, seasonNumber })),
-      }).catch(() => {});
+      })
+        .then(() => SocialFeedService.invalidateFollowingFeed(userId))
+        .catch(() => {});
     }
 
     if (
@@ -62,7 +65,9 @@ export class SerialsTrackingService {
         type: "liked_movie",
         entityId: String(series.id),
         metadata: JSON.stringify(buildSeasonRatingActivityMetadata({ series, seasonNumber, rating: row.rating })),
-      }).catch(() => {});
+      })
+        .then(() => SocialFeedService.invalidateFollowingFeed(userId))
+        .catch(() => {});
     }
 
     if (input.watched === false || row.watched) {
@@ -126,7 +131,9 @@ export class SerialsTrackingService {
         type: "liked_movie",
         entityId: String(series.id),
         metadata: JSON.stringify(buildEpisodeLikedActivityMetadata({ series, seasonNumber, episodeNumber })),
-      }).catch(() => {});
+      })
+        .then(() => SocialFeedService.invalidateFollowingFeed(userId))
+        .catch(() => {});
     }
 
     if (
@@ -140,7 +147,9 @@ export class SerialsTrackingService {
         type: "liked_movie",
         entityId: String(series.id),
         metadata: JSON.stringify(buildEpisodeRatingActivityMetadata({ series, seasonNumber, episodeNumber, rating: row.rating })),
-      }).catch(() => {});
+      })
+        .then(() => SocialFeedService.invalidateFollowingFeed(userId))
+        .catch(() => {});
     }
 
     if (input.watched !== undefined) {
@@ -227,7 +236,9 @@ export class SerialsTrackingService {
               seasonNumber,
               review: { id: row.id, content: row.content, containsSpoilers: row.containsSpoilers },
             })),
-          }).catch(() => {});
+          })
+            .then(() => SocialFeedService.invalidateFollowingFeed(userId))
+            .catch(() => {});
         }
       }).catch(() => {});
     }
@@ -281,7 +292,9 @@ export class SerialsTrackingService {
               episodeNumber,
               review: { id: row.id, content: row.content, containsSpoilers: row.containsSpoilers },
             })),
-          }).catch(() => {});
+          })
+            .then(() => SocialFeedService.invalidateFollowingFeed(userId))
+            .catch(() => {});
         }
       }).catch(() => {});
     }

@@ -283,6 +283,37 @@ describe("social feed and activity likes", () => {
       expect(fourthPage.nextCursor).toBeNull();
     });
 
+    it("reflects new activity in the actor's own feed immediately, even after a stale empty page was already cached", async () => {
+      const author = await signUpTestUser(getServer().baseUrl, "sffreshactivity");
+
+      // Warms the feed's short in-memory TTL cache with an empty page -
+      // mirrors a user landing on "/" right after signing up, before
+      // they've done anything. Without invalidating this cache on write,
+      // the post created below would stay invisible in the author's own
+      // feed for up to FEED_CACHE_TTL_MS.
+      const beforeResponse = await apiRequest(
+        getServer().baseUrl,
+        "/api/social/feed/following",
+        {},
+        author.jar,
+      );
+      const before = (await beforeResponse.json()) as { items: Array<{ id: string }> };
+      expect(before.items.length).toBe(0);
+
+      await createPost(author.jar, "Fresh activity right after signup");
+
+      const afterResponse = await apiRequest(
+        getServer().baseUrl,
+        "/api/social/feed/following",
+        {},
+        author.jar,
+      );
+      const after = (await afterResponse.json()) as {
+        items: Array<{ actor: { username: string } }>;
+      };
+      expect(after.items.some((i) => i.actor.username === author.username)).toBe(true);
+    });
+
     it("returns no more than the requested limit even when dedup would otherwise inflate the page", async () => {
       const viewer = await signUpTestUser(getServer().baseUrl, "sfdedupviewer");
       const followed = await signUpTestUser(getServer().baseUrl, "sfdedupfollowed");

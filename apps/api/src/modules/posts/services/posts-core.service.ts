@@ -1,4 +1,5 @@
 import { SocialRepository } from "../../social/repositories/social.repository";
+import { SocialFeedService } from "../../social/services/social-feed.service";
 import type { CreatePostDto, UpdatePostDto } from "../dto/posts.dto";
 import { buildPostCreatedActivityMetadata } from "../helpers/posts-activity.helper";
 import { PostsRepository } from "../repositories/posts.repository";
@@ -32,6 +33,8 @@ export class PostsCoreService {
       ),
     });
 
+    SocialFeedService.invalidateFollowingFeed(userId);
+
     return post;
   }
 
@@ -57,7 +60,9 @@ export class PostsCoreService {
   }
 
   static async delete(postId: string, userId: string) {
-    return PostsRepository.deleteByIdAndUser(postId, userId);
+    const deleted = await PostsRepository.deleteByIdAndUser(postId, userId);
+    SocialFeedService.invalidateFollowingFeed(userId);
+    return deleted;
   }
 
   static async deleteById(postId: string) {
@@ -69,6 +74,8 @@ export class PostsCoreService {
   }
 
   static async update(postId: string, userId: string, input: UpdatePostDto) {
-    return PostsRepository.updateByIdAndUser(postId, userId, input.content);
+    const updated = await PostsRepository.updateByIdAndUser(postId, userId, input.content);
+    SocialFeedService.invalidateFollowingFeed(userId);
+    return updated;
   }
 }

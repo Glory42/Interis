@@ -1,4 +1,5 @@
 import { SocialRepository } from "../../social/repositories/social.repository";
+import { SocialFeedService } from "../../social/services/social-feed.service";
 import { buildPostCommentedActivityMetadata } from "../helpers/posts-activity.helper";
 import { PostsRepository } from "../repositories/posts.repository";
 import { NotificationsService } from "../../notifications/notifications.service";
@@ -37,6 +38,8 @@ export class PostsCommentsService {
           entityId: postId,
         }),
       ]);
+
+      SocialFeedService.invalidateFollowingFeed(userId);
     }
 
     return comment;

@@ -1,4 +1,5 @@
 import { SocialRepository } from "../../social/repositories/social.repository";
+import { SocialFeedService } from "../../social/services/social-feed.service";
 import type {
   CreateSerialLogDto,
   UpdateSerialInteractionDto,
@@ -156,6 +157,7 @@ export class SerialsActivityService {
 
     if (activityTasks.length > 0) {
       await Promise.all(activityTasks);
+      SocialFeedService.invalidateFollowingFeed(userId);
     }
 
     const userEpisodeInteractions =
@@ -245,6 +247,8 @@ export class SerialsActivityService {
         true,
       ),
     ]);
+
+    SocialFeedService.invalidateFollowingFeed(userId);
 
     return { entry, series, review };
   }

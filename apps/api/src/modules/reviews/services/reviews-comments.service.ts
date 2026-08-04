@@ -1,6 +1,7 @@
 import { buildCommentCreatedActivityMetadata } from "../helpers/reviews-activity.helper";
 import { ReviewsRepository } from "../repositories/reviews.repository";
 import { SocialRepository } from "../../social/repositories/social.repository";
+import { SocialFeedService } from "../../social/services/social-feed.service";
 import { NotificationsService } from "../../notifications/notifications.service";
 
 export class ReviewsCommentsService {
@@ -60,6 +61,8 @@ export class ReviewsCommentsService {
     if (!commentWithAuthor) {
       throw new Error("Could not load comment author details");
     }
+
+    SocialFeedService.invalidateFollowingFeed(userId);
 
     return commentWithAuthor;
   }
