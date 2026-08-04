@@ -17,7 +17,11 @@ export default defineConfig({
     env: {
       VITE_API_BASE_URL: "http://localhost",
     },
-    environment: "jsdom",
+    // Custom wrapper around jsdom that restores Node's native fetch/
+    // AbortController globals after jsdom installs its own incompatible
+    // versions - see the file for why this is necessary for MSW-backed
+    // network calls to work under jsdom. See also tests/support/setup.ts.
+    environment: "./tests/support/environments/jsdom-native-fetch.ts",
     setupFiles: ["./tests/support/setup.ts"],
     include: ["tests/**/*.{test,spec}.{ts,tsx}"],
     clearMocks: true,

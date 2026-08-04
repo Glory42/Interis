@@ -45,13 +45,20 @@ const ReportContentDialogContent = ({
       return;
     }
 
-    await submitReportMutation.mutateAsync({
-      targetType,
-      targetId,
-      reason,
-      details: details.trim().length > 0 ? details.trim() : undefined,
-    });
-    setSubmitted(true);
+    try {
+      await submitReportMutation.mutateAsync({
+        targetType,
+        targetId,
+        reason,
+        details: details.trim().length > 0 ? details.trim() : undefined,
+      });
+      setSubmitted(true);
+    } catch {
+      // Surfaced via submitReportMutation.isError/.error below - nothing
+      // further to do here, but the rejection must be caught since this
+      // is called fire-and-forget (`void handleSubmit()`) and would
+      // otherwise become an unhandled promise rejection.
+    }
   };
 
   return (

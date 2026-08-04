@@ -56,22 +56,31 @@ const ListCreateEditDialogContent = (props: ListCreateEditDialogProps) => {
   const handleSubmit = async () => {
     if (!canSubmit) return;
 
-    if (props.mode === "create") {
-      await createMutation.mutateAsync({
-        title: title.trim(),
-        description: description.trim() || undefined,
-        isPublic,
-        isRanked,
-      });
-    } else {
-      await updateMutation.mutateAsync({
-        title: title.trim(),
-        description: description.trim() || null,
-        isPublic,
-        isRanked,
-      });
+    try {
+      if (props.mode === "create") {
+        await createMutation.mutateAsync({
+          title: title.trim(),
+          description: description.trim() || undefined,
+          isPublic,
+          isRanked,
+        });
+      } else {
+        await updateMutation.mutateAsync({
+          title: title.trim(),
+          description: description.trim() || null,
+          isPublic,
+          isRanked,
+        });
+      }
+      onClose();
+    } catch {
+      // This dialog has no visible error UI for a failed create/update
+      // (unlike ReportContentDialog) - that's a separate, pre-existing
+      // gap left as-is here. This catch only stops the fire-and-forget
+      // `void handleSubmit()` call site from producing an unhandled
+      // promise rejection; createMutation/updateMutation.isError is
+      // still available for a future error-UI addition.
     }
-    onClose();
   };
 
   return (

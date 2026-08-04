@@ -54,10 +54,25 @@ export class UploadsService {
     uploadType: UploadType,
     publicUrl: string,
   ): Promise<
-    | { error: string; status: 400 }
+    | { error: string; status: 400 | 503 }
     | { success: true; profile: Awaited<ReturnType<typeof UsersService.updateProfile>> }
   > {
-    if (!isOwnedUploadPublicUrl(userId, uploadType, publicUrl)) {
+    let owned: boolean;
+    try {
+      owned = isOwnedUploadPublicUrl(userId, uploadType, publicUrl);
+    } catch (error) {
+      if (isR2ConfigurationError(error)) {
+        logger.error(error, "R2 uploads are not configured correctly");
+        return {
+          error: "Image uploads are temporarily unavailable. Please configure R2 storage.",
+          status: 503,
+        };
+      }
+
+      throw error;
+    }
+
+    if (!owned) {
       return {
         error: "Invalid upload URL. Please request a new signed upload URL.",
         status: 400,

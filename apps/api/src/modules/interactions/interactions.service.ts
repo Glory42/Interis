@@ -1,5 +1,6 @@
 import { InteractionsRepository } from "./repositories/interactions.repository";
 import { SocialRepository } from "../social/repositories/social.repository";
+import { SocialFeedService } from "../social/services/social-feed.service";
 import { MoviesService } from "../movies/movies.service";
 import type { UpdateInteractionDto } from "./dto/interactions.dto";
 
@@ -82,6 +83,10 @@ export class InteractionsService {
           posterPath: movie.posterPath,
         }),
       });
+    }
+
+    if (input.liked === true || input.watchlisted === true) {
+      SocialFeedService.invalidateFollowingFeed(userId);
     }
 
     return toInteractionResponse(

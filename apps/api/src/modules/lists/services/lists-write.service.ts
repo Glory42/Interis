@@ -1,6 +1,7 @@
 import { MoviesCacheService } from "../../movies/services/movies-cache.service";
 import { SerialsCacheService } from "../../serials/services/serials-cache.service";
 import { SocialRepository } from "../../social/repositories/social.repository";
+import { SocialFeedService } from "../../social/services/social-feed.service";
 import { MAX_LIST_ITEMS } from "../constants/lists.constants";
 import type { CreateListDto, UpdateListDto } from "../dto/lists.dto";
 import { deriveListType } from "../helpers/derive-list-type.helper";
@@ -29,6 +30,8 @@ export class ListsWriteService {
       entityId: list.id,
       metadata: JSON.stringify({ title: list.title }),
     });
+
+    SocialFeedService.invalidateFollowingFeed(userId);
 
     return list;
   }

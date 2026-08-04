@@ -101,10 +101,13 @@ export class UsersLikesRepository {
           le.item_type,
           COALESCE(m.poster_path, ts.poster_path) AS poster_path,
           ROW_NUMBER() OVER (PARTITION BY le.list_id ORDER BY le.position) AS rn
-        FROM list_entries le
-        LEFT JOIN movies m ON le.movie_id = m.id
+        FROM list_entry le
+        LEFT JOIN movie m ON le.movie_id = m.id
         LEFT JOIN tv_series ts ON le.tv_series_id = ts.id
-        WHERE le.list_id = ANY(${listIds})
+        WHERE le.list_id IN (${sql.join(
+          listIds.map((id) => sql`${id}`),
+          sql`, `,
+        )})
       )
       SELECT list_id, item_type, poster_path FROM ranked WHERE rn <= 4
     `);

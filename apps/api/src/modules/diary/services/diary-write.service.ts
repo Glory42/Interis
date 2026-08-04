@@ -1,5 +1,6 @@
 import { InteractionsService } from "../../interactions/interactions.service";
 import { MoviesService } from "../../movies/movies.service";
+import { SocialFeedService } from "../../social/services/social-feed.service";
 import { buildDiaryEntryActivityMetadata } from "../helpers/diary-activity.helper";
 import { DiaryRepository } from "../repositories/diary.repository";
 import type { CreateDiaryDto, UpdateDiaryDto } from "../dto/diary.dto";
@@ -70,6 +71,8 @@ export class DiaryWriteService {
         ),
       }),
     ]);
+
+    SocialFeedService.invalidateFollowingFeed(userId);
 
     return { entry, movie, review };
   }

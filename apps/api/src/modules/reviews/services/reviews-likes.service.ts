@@ -1,6 +1,7 @@
 import { buildReviewLikedActivityMetadata } from "../helpers/reviews-activity.helper";
 import { ReviewsRepository } from "../repositories/reviews.repository";
 import { SocialRepository } from "../../social/repositories/social.repository";
+import { SocialFeedService } from "../../social/services/social-feed.service";
 import { NotificationsService } from "../../notifications/notifications.service";
 
 export class ReviewsLikesService {
@@ -50,10 +51,14 @@ export class ReviewsLikesService {
         : Promise.resolve(),
     ]);
 
+    SocialFeedService.invalidateFollowingFeed(userId);
+
     return { liked: true, alreadyLiked: false };
   }
 
   static async unlikeReview(userId: string, reviewId: string) {
-    return ReviewsRepository.deleteLike(userId, reviewId);
+    const result = await ReviewsRepository.deleteLike(userId, reviewId);
+    SocialFeedService.invalidateFollowingFeed(userId);
+    return result;
   }
 }

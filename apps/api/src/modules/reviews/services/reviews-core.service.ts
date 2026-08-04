@@ -2,6 +2,7 @@ import { MoviesService } from "../../movies/movies.service";
 import { SerialsService } from "../../serials/serials.service";
 import { SerialsReviewsRepository } from "../../serials/repositories/serials-reviews.repository";
 import { SocialRepository } from "../../social/repositories/social.repository";
+import { SocialFeedService } from "../../social/services/social-feed.service";
 import { ReviewsRepository } from "../repositories/reviews.repository";
 import { buildReviewCreatedActivityMetadata } from "../helpers/reviews-activity.helper";
 import type { CreateReviewDto, UpdateReviewDto } from "../dto/reviews.dto";
@@ -43,6 +44,8 @@ export class ReviewsCoreService {
         ),
       });
 
+      SocialFeedService.invalidateFollowingFeed(userId);
+
       return { review, series };
     }
 
@@ -81,6 +84,8 @@ export class ReviewsCoreService {
       ),
     });
 
+    SocialFeedService.invalidateFollowingFeed(userId);
+
     return { review, movie };
   }
 
@@ -97,11 +102,15 @@ export class ReviewsCoreService {
   }
 
   static async update(reviewId: string, userId: string, input: UpdateReviewDto) {
-    return ReviewsRepository.updateByIdAndUser(reviewId, userId, input);
+    const updated = await ReviewsRepository.updateByIdAndUser(reviewId, userId, input);
+    SocialFeedService.invalidateFollowingFeed(userId);
+    return updated;
   }
 
   static async delete(reviewId: string, userId: string) {
-    return ReviewsRepository.deleteByIdAndUser(reviewId, userId);
+    const deleted = await ReviewsRepository.deleteByIdAndUser(reviewId, userId);
+    SocialFeedService.invalidateFollowingFeed(userId);
+    return deleted;
   }
 
   // No ownership check — admin moderation only.

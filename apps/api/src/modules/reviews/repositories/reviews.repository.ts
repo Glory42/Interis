@@ -106,7 +106,7 @@ export class ReviewsRepository {
     const [review] = await db
       .select({
         review: reviews,
-        likeCount: sql<number>`count(${reviewLikes.reviewId})`.as("like_count"),
+        likeCount: sql<number>`count(${reviewLikes.reviewId})::int`.as("like_count"),
       })
       .from(reviews)
       .leftJoin(reviewLikes, eq(reviewLikes.reviewId, reviews.id))

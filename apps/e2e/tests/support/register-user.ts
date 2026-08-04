@@ -22,8 +22,14 @@ export const buildTestUser = (prefix: string): TestUser => {
 // every new account is forced through before landing on "/".
 export const registerUser = async (page: Page, user: TestUser): Promise<void> => {
   await page.goto("/register");
-  await page.getByLabel("Username").fill(user.username);
-  await page.getByLabel("Email").fill(user.email);
+  // exact: true - TanStack Router Devtools (dev-mode only, see
+  // routes/__root.tsx) renders per-route buttons whose aria-label is
+  // "Open match details for /profile/$username/...", which a non-exact
+  // getByLabel("Username") can match as a substring depending on mount
+  // timing, intermittently turning this into a Playwright strict-mode
+  // violation (multiple elements matched).
+  await page.getByLabel("Username", { exact: true }).fill(user.username);
+  await page.getByLabel("Email", { exact: true }).fill(user.email);
   await page.getByLabel("Password", { exact: true }).fill(user.password);
   await page.getByLabel("Confirm password").fill(user.password);
   await page.getByRole("button", { name: "Create account" }).click();

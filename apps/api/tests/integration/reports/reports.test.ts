@@ -139,4 +139,110 @@ describe("reports", () => {
     const pendingAfter = (await listAfterResolve.json()) as { id: string }[];
     expect(pendingAfter.find((item) => item.id === report!.id)).toBeUndefined();
   });
+
+  it("dismisses a report without touching the reported content", async () => {
+    const reporter = await signUpTestUser(getServer().baseUrl, "repf");
+    const postAuthor = await signUpTestUser(getServer().baseUrl, "repg");
+    const admin = await signUpTestUser(getServer().baseUrl, "reph");
+    await promoteToAdmin(admin.username);
+
+    const createPost = await apiRequest(
+      getServer().baseUrl,
+      "/api/posts",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ content: "not actually spam" }),
+      },
+      postAuthor.jar,
+    );
+    const post = (await createPost.json()) as { id: string };
+
+    await apiRequest(
+      getServer().baseUrl,
+      "/api/reports",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ targetType: "post", targetId: post.id, reason: "spam" }),
+      },
+      reporter.jar,
+    );
+
+    const listResponse = await apiRequest(
+      getServer().baseUrl,
+      "/api/reports?status=pending",
+      {},
+      admin.jar,
+    );
+    const list = (await listResponse.json()) as { id: string; targetId: string }[];
+    const report = list.find((item) => item.targetId === post.id);
+    expect(report).toBeDefined();
+
+    const dismissResponse = await apiRequest(
+      getServer().baseUrl,
+      `/api/reports/${report!.id}/dismiss`,
+      { method: "POST" },
+      admin.jar,
+    );
+    expect(dismissResponse.status).toBe(200);
+
+    const listAfterDismiss = await apiRequest(
+      getServer().baseUrl,
+      "/api/reports?status=pending",
+      {},
+      admin.jar,
+    );
+    const pendingAfter = (await listAfterDismiss.json()) as { id: string }[];
+    expect(pendingAfter.find((item) => item.id === report!.id)).toBeUndefined();
+
+    // Dismissing must not delete the underlying content, unlike remove-content.
+    const postAfterDismiss = await apiRequest(getServer().baseUrl, `/api/posts/${post.id}`);
+    expect(postAfterDismiss.status).toBe(200);
+  });
+
+  it("rejects a non-admin dismissing or removing content for a report", async () => {
+    const reporter = await signUpTestUser(getServer().baseUrl, "repi");
+    const nonAdmin = await signUpTestUser(getServer().baseUrl, "repj");
+
+    const createPost = await apiRequest(
+      getServer().baseUrl,
+      "/api/posts",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ content: "some content" }),
+      },
+      reporter.jar,
+    );
+    const post = (await createPost.json()) as { id: string };
+
+    const reportResponse = await apiRequest(
+      getServer().baseUrl,
+      "/api/reports",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ targetType: "post", targetId: post.id, reason: "spam" }),
+      },
+      reporter.jar,
+    );
+    const report = (await reportResponse.json()) as { id: string };
+
+    const dismissResponse = await apiRequest(
+      getServer().baseUrl,
+      `/api/reports/${report.id}/dismiss`,
+      { method: "POST" },
+      nonAdmin.jar,
+    );
+    expect(dismissResponse.status).toBe(403);
+
+    const removeResponse = await apiRequest(
+      getServer().baseUrl,
+      `/api/reports/${report.id}/remove-content`,
+      { method: "POST" },
+      nonAdmin.jar,
+    );
+    expect(removeResponse.status).toBe(403);
+  });
 });
