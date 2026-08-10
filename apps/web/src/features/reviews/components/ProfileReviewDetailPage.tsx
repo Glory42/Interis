@@ -18,6 +18,7 @@ import {
   useUnlikeReview,
 } from "@/features/reviews/hooks/useReviews";
 import { ReportContentDialog } from "@/features/reports/components/ReportContentDialog";
+import { runDialogSubmit } from "@/lib/fire-and-forget";
 
 type ProfileReviewDetailPageProps = {
   username: string;
@@ -85,47 +86,50 @@ export function ProfileReviewDetailPage({
     });
   };
 
-  const toggleLike = async () => {
-    if (likeBusy) {
-      return;
-    }
+  const toggleLike = () =>
+    runDialogSubmit(async () => {
+      if (likeBusy) {
+        return;
+      }
 
-    if (!user) {
-      await goToLogin();
-      return;
-    }
+      if (!user) {
+        await goToLogin();
+        return;
+      }
 
-    if (detail.engagement.viewerHasLiked) {
-      await unlikeReviewMutation.mutateAsync();
-      return;
-    }
+      if (detail.engagement.viewerHasLiked) {
+        await unlikeReviewMutation.mutateAsync();
+        return;
+      }
 
-    await likeReviewMutation.mutateAsync();
-  };
+      await likeReviewMutation.mutateAsync();
+    });
 
-  const submitComment = async () => {
-    const normalizedContent = commentDraft.trim();
-    if (normalizedContent.length === 0 || addCommentMutation.isPending) {
-      return;
-    }
+  const submitComment = () =>
+    runDialogSubmit(async () => {
+      const normalizedContent = commentDraft.trim();
+      if (normalizedContent.length === 0 || addCommentMutation.isPending) {
+        return;
+      }
 
-    if (!user) {
-      await goToLogin();
-      return;
-    }
+      if (!user) {
+        await goToLogin();
+        return;
+      }
 
-    await addCommentMutation.mutateAsync({ content: normalizedContent });
-    setCommentDraft("");
-  };
+      await addCommentMutation.mutateAsync({ content: normalizedContent });
+      setCommentDraft("");
+    });
 
-  const handleReport = async () => {
-    if (!user) {
-      await goToLogin();
-      return;
-    }
+  const handleReport = () =>
+    runDialogSubmit(async () => {
+      if (!user) {
+        await goToLogin();
+        return;
+      }
 
-    setIsReportDialogOpen(true);
-  };
+      setIsReportDialogOpen(true);
+    });
 
   return (
     <div className="min-h-screen">

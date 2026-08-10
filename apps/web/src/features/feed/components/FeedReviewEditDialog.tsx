@@ -4,6 +4,7 @@ import { ModalHeader } from "@/components/ui/ModalHeader";
 import { ModalShell } from "@/components/ui/ModalShell";
 import { Textarea } from "@/components/ui/textarea";
 import { useUpdateReview } from "@/features/reviews/hooks/useReviews";
+import { runDialogSubmit } from "@/lib/fire-and-forget";
 
 type FeedReviewEditDialogProps = {
   isOpen: boolean;
@@ -37,17 +38,18 @@ const FeedReviewEditDialogContent = ({
     draftContent !== initialContent &&
     !updateReviewMutation.isPending;
 
-  const handleSave = async () => {
-    if (!canSave) {
-      return;
-    }
+  const handleSave = () =>
+    runDialogSubmit(async () => {
+      if (!canSave) {
+        return;
+      }
 
-    await updateReviewMutation.mutateAsync({
-      content: draftContent.trim(),
-      containsSpoilers,
+      await updateReviewMutation.mutateAsync({
+        content: draftContent.trim(),
+        containsSpoilers,
+      });
+      onClose();
     });
-    onClose();
-  };
 
   return (
     <ModalShell onClose={onClose} containerClassName="max-w-2xl" ariaCloseLabel="Close review edit dialog">

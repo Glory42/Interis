@@ -4,6 +4,7 @@ import { ModalShell } from "@/components/ui/ModalShell";
 import { Spinner } from "@/components/ui/spinner";
 import { useCreateList, useUpdateList } from "@/features/lists/hooks/useLists";
 import type { ListSummary } from "@/features/lists/api";
+import { runDialogSubmit } from "@/lib/fire-and-forget";
 
 type CreateMode = {
   mode: "create";
@@ -53,10 +54,15 @@ const ListCreateEditDialogContent = (props: ListCreateEditDialogProps) => {
   const isPending = createMutation.isPending || updateMutation.isPending;
   const canSubmit = title.trim().length > 0 && !isPending;
 
-  const handleSubmit = async () => {
-    if (!canSubmit) return;
+  // This dialog has no visible error UI for a failed create/update (unlike
+  // ReportContentDialog) - that's a separate, pre-existing gap left as-is
+  // here; createMutation/updateMutation.isError is still available for a
+  // future error-UI addition. runDialogSubmit only guards the
+  // fire-and-forget `void handleSubmit()` call site.
+  const handleSubmit = () =>
+    runDialogSubmit(async () => {
+      if (!canSubmit) return;
 
-    try {
       if (props.mode === "create") {
         await createMutation.mutateAsync({
           title: title.trim(),
@@ -73,15 +79,7 @@ const ListCreateEditDialogContent = (props: ListCreateEditDialogProps) => {
         });
       }
       onClose();
-    } catch {
-      // This dialog has no visible error UI for a failed create/update
-      // (unlike ReportContentDialog) - that's a separate, pre-existing
-      // gap left as-is here. This catch only stops the fire-and-forget
-      // `void handleSubmit()` call site from producing an unhandled
-      // promise rejection; createMutation/updateMutation.isError is
-      // still available for a future error-UI addition.
-    }
-  };
+    });
 
   return (
     <ModalShell onClose={onClose} containerClassName="max-w-md">

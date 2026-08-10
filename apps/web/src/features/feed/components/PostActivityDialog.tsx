@@ -17,6 +17,7 @@ import {
   useUnlikePost,
   useUpdatePost,
 } from "@/features/posts/hooks/usePosts";
+import { runDialogSubmit } from "@/lib/fire-and-forget";
 
 type PostActivityDialogProps = {
   item: FeedItem;
@@ -85,46 +86,49 @@ export const PostActivityDialog = ({
     await navigate({ to: "/login", search: { redirect: redirectPath } });
   };
 
-  const handleToggleLike = async () => {
-    if (!postId || isLikePending) {
-      return;
-    }
+  const handleToggleLike = () =>
+    runDialogSubmit(async () => {
+      if (!postId || isLikePending) {
+        return;
+      }
 
-    if (!user) {
-      await goToLogin();
-      return;
-    }
+      if (!user) {
+        await goToLogin();
+        return;
+      }
 
-    if (viewerHasLiked) {
-      await unlikePostMutation.mutateAsync();
-      return;
-    }
+      if (viewerHasLiked) {
+        await unlikePostMutation.mutateAsync();
+        return;
+      }
 
-    await likePostMutation.mutateAsync();
-  };
+      await likePostMutation.mutateAsync();
+    });
 
-  const handleSubmitComment = async () => {
-    if (!postId || !canSubmitComment) {
-      return;
-    }
+  const handleSubmitComment = () =>
+    runDialogSubmit(async () => {
+      if (!postId || !canSubmitComment) {
+        return;
+      }
 
-    if (!user) {
-      await goToLogin();
-      return;
-    }
+      if (!user) {
+        await goToLogin();
+        return;
+      }
 
-    await addCommentMutation.mutateAsync({ content: commentDraft.trim() });
-    setCommentDraft("");
-  };
+      await addCommentMutation.mutateAsync({ content: commentDraft.trim() });
+      setCommentDraft("");
+    });
 
-  const handleSaveEdit = async () => {
-    if (!postId || !canSaveEdit) {
-      return;
-    }
+  const handleSaveEdit = () =>
+    runDialogSubmit(async () => {
+      if (!postId || !canSaveEdit) {
+        return;
+      }
 
-    await updatePostMutation.mutateAsync({ content: currentEditDraft.trim() });
-    setIsEditing(false);
-  };
+      await updatePostMutation.mutateAsync({ content: currentEditDraft.trim() });
+      setIsEditing(false);
+    });
 
   if (!isOpen || !postId) {
     return null;

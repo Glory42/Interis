@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useSubmitReport } from "@/features/reports/hooks/useReports";
 import type { ReportReason, ReportTargetType } from "@/features/reports/api";
 import { isApiError } from "@/lib/api-client";
+import { runDialogSubmit } from "@/lib/fire-and-forget";
 import { cn } from "@/lib/utils";
 
 type ReportContentDialogProps = {
@@ -40,12 +41,15 @@ const ReportContentDialogContent = ({
   const [submitted, setSubmitted] = useState(false);
   const submitReportMutation = useSubmitReport();
 
-  const handleSubmit = async () => {
-    if (submitReportMutation.isPending) {
-      return;
-    }
+  // Failure is surfaced via submitReportMutation.isError/.error below;
+  // runDialogSubmit only guards the fire-and-forget `void handleSubmit()`
+  // call site from an unhandled promise rejection.
+  const handleSubmit = () =>
+    runDialogSubmit(async () => {
+      if (submitReportMutation.isPending) {
+        return;
+      }
 
-    try {
       await submitReportMutation.mutateAsync({
         targetType,
         targetId,
@@ -53,13 +57,7 @@ const ReportContentDialogContent = ({
         details: details.trim().length > 0 ? details.trim() : undefined,
       });
       setSubmitted(true);
-    } catch {
-      // Surfaced via submitReportMutation.isError/.error below - nothing
-      // further to do here, but the rejection must be caught since this
-      // is called fire-and-forget (`void handleSubmit()`) and would
-      // otherwise become an unhandled promise rejection.
-    }
-  };
+    });
 
   return (
     <ModalShell onClose={onClose} containerClassName="max-w-md" ariaCloseLabel="Close report dialog">

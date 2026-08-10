@@ -12,6 +12,7 @@ import {
   useReviewDetail,
   useUnlikeReview,
 } from "@/features/reviews/hooks/useReviews";
+import { runDialogSubmit } from "@/lib/fire-and-forget";
 
 type ReviewActivityDialogProps = {
   reviewId: string;
@@ -57,38 +58,40 @@ export const ReviewActivityDialog = ({
     await navigate({ to: "/login", search: { redirect: redirectPath } });
   };
 
-  const toggleLike = async () => {
-    if (likeBusy || !detail) {
-      return;
-    }
+  const toggleLike = () =>
+    runDialogSubmit(async () => {
+      if (likeBusy || !detail) {
+        return;
+      }
 
-    if (!user) {
-      await goToLogin();
-      return;
-    }
+      if (!user) {
+        await goToLogin();
+        return;
+      }
 
-    if (detail.engagement.viewerHasLiked) {
-      await unlikeReviewMutation.mutateAsync();
-      return;
-    }
+      if (detail.engagement.viewerHasLiked) {
+        await unlikeReviewMutation.mutateAsync();
+        return;
+      }
 
-    await likeReviewMutation.mutateAsync();
-  };
+      await likeReviewMutation.mutateAsync();
+    });
 
-  const submitComment = async () => {
-    const normalizedContent = commentDraft.trim();
-    if (normalizedContent.length === 0 || addCommentMutation.isPending) {
-      return;
-    }
+  const submitComment = () =>
+    runDialogSubmit(async () => {
+      const normalizedContent = commentDraft.trim();
+      if (normalizedContent.length === 0 || addCommentMutation.isPending) {
+        return;
+      }
 
-    if (!user) {
-      await goToLogin();
-      return;
-    }
+      if (!user) {
+        await goToLogin();
+        return;
+      }
 
-    await addCommentMutation.mutateAsync({ content: normalizedContent });
-    setCommentDraft("");
-  };
+      await addCommentMutation.mutateAsync({ content: normalizedContent });
+      setCommentDraft("");
+    });
 
   return (
     <ModalShell

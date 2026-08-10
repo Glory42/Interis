@@ -9,6 +9,7 @@ import {
   useToggleListItem,
   useUserListsForItem,
 } from "@/features/lists/hooks/useLists";
+import { runDialogSubmit } from "@/lib/fire-and-forget";
 
 type AddToListDialogProps = {
   tmdbId: number;
@@ -34,11 +35,16 @@ export const AddToListDialog = ({
   const toggleMutation = useToggleListItem(username, tmdbId, itemType);
   const createMutation = useCreateList(username);
 
-  const handleCreateAndAdd = async () => {
-    const trimmed = newTitle.trim();
-    if (!trimmed) return;
+  // No visible error UI for a failed create-and-add (same pre-existing gap
+  // as ListCreateEditDialog) - runDialogSubmit still guards the
+  // fire-and-forget `void handleCreateAndAdd()` call site from producing an
+  // unhandled promise rejection. The create form stays open with whatever
+  // was typed so the user can retry.
+  const handleCreateAndAdd = () =>
+    runDialogSubmit(async () => {
+      const trimmed = newTitle.trim();
+      if (!trimmed) return;
 
-    try {
       const created = await createMutation.mutateAsync({
         title: trimmed,
         isPublic: true,
@@ -47,14 +53,7 @@ export const AddToListDialog = ({
       await toggleMutation.mutateAsync({ listId: created.id, entryId: null });
       setIsCreating(false);
       setNewTitle("");
-    } catch {
-      // No visible error UI for a failed create-and-add (same pre-existing
-      // gap as ListCreateEditDialog) - caught only so the fire-and-forget
-      // `void handleCreateAndAdd()` call site doesn't produce an
-      // unhandled promise rejection. The create form stays open with
-      // whatever was typed so the user can retry.
-    }
-  };
+    });
 
   if (!user) return null;
 
