@@ -5,8 +5,23 @@ import { diaryEntries } from "../../diary/diary.entity";
 import { movieInteractions } from "../../interactions/interactions.entity";
 import { profiles } from "../../users/users.entity";
 import { reviews } from "../../reviews/reviews.entity";
-import { mergeCommunityRatings } from "../../media/helpers/media-community-rating.helper";
+import {
+  buildCommunityRatingAggregateSql,
+  mergeCommunityRatings,
+} from "../../media/helpers/media-community-rating.helper";
 import { movies } from "../movies.entity";
+import type { CommunityRatingAggregateSource } from "../../media/helpers/media-community-rating.helper";
+
+const MOVIE_COMMUNITY_RATING_SOURCE: CommunityRatingAggregateSource = {
+  diaryTableName: "diary_entry",
+  diaryEntityIdColumn: diaryEntries.movieId,
+  diaryRatingColumn: diaryEntries.rating,
+  diaryUserIdColumn: diaryEntries.userId,
+  interactionTableName: "movie_interaction",
+  interactionEntityIdColumn: movieInteractions.movieId,
+  interactionRatingColumn: movieInteractions.rating,
+  interactionUserIdColumn: movieInteractions.userId,
+};
 
 export type AdminUpdateMovieFields = Partial<{
   title: string;
@@ -208,6 +223,11 @@ export class MoviesRepository {
       return [];
     }
 
+    const communityRating = buildCommunityRatingAggregateSql(
+      MOVIE_COMMUNITY_RATING_SOURCE,
+      movies.id,
+    );
+
     return db
       .select({
         tmdbId: movies.tmdbId,
@@ -216,28 +236,8 @@ export class MoviesRepository {
         director: movies.director,
         genres: movies.genres,
         logCount: sql<number>`count(${diaryEntries.id})::int`.as("logCount"),
-        avgRatingOutOfTen: sql<number | null>`(
-          select avg(r.rating)::double precision from (
-            select rating from diary_entry where movie_id = ${movies.id} and rating is not null
-            union all
-            select mi.rating from movie_interaction mi
-            where mi.movie_id = ${movies.id} and mi.rating is not null
-              and not exists (
-                select 1 from diary_entry de2 where de2.movie_id = ${movies.id} and de2.user_id = mi.user_id
-              )
-          ) r
-        )`.as("avgRatingOutOfTen"),
-        ratedLogCount: sql<number>`(
-          select count(*)::int from (
-            select rating from diary_entry where movie_id = ${movies.id} and rating is not null
-            union all
-            select mi.rating from movie_interaction mi
-            where mi.movie_id = ${movies.id} and mi.rating is not null
-              and not exists (
-                select 1 from diary_entry de2 where de2.movie_id = ${movies.id} and de2.user_id = mi.user_id
-              )
-          ) r
-        )`.as("ratedLogCount"),
+        avgRatingOutOfTen: communityRating.avgRatingOutOfTen.as("avgRatingOutOfTen"),
+        ratedLogCount: communityRating.ratedLogCount.as("ratedLogCount"),
       })
       .from(movies)
       .leftJoin(diaryEntries, eq(diaryEntries.movieId, movies.id))
@@ -246,6 +246,11 @@ export class MoviesRepository {
   }
 
   static async getLocalArchiveRows(dateRange?: { watchedDateGte: string; watchedDateLte: string }) {
+    const communityRating = buildCommunityRatingAggregateSql(
+      MOVIE_COMMUNITY_RATING_SOURCE,
+      movies.id,
+    );
+
     return db
       .select({
         tmdbId: movies.tmdbId,
@@ -257,28 +262,8 @@ export class MoviesRepository {
         director: movies.director,
         genres: movies.genres,
         logCount: sql<number>`count(${diaryEntries.id})::int`.as("logCount"),
-        avgRatingOutOfTen: sql<number | null>`(
-          select avg(r.rating)::double precision from (
-            select rating from diary_entry where movie_id = ${movies.id} and rating is not null
-            union all
-            select mi.rating from movie_interaction mi
-            where mi.movie_id = ${movies.id} and mi.rating is not null
-              and not exists (
-                select 1 from diary_entry de2 where de2.movie_id = ${movies.id} and de2.user_id = mi.user_id
-              )
-          ) r
-        )`.as("avgRatingOutOfTen"),
-        ratedLogCount: sql<number>`(
-          select count(*)::int from (
-            select rating from diary_entry where movie_id = ${movies.id} and rating is not null
-            union all
-            select mi.rating from movie_interaction mi
-            where mi.movie_id = ${movies.id} and mi.rating is not null
-              and not exists (
-                select 1 from diary_entry de2 where de2.movie_id = ${movies.id} and de2.user_id = mi.user_id
-              )
-          ) r
-        )`.as("ratedLogCount"),
+        avgRatingOutOfTen: communityRating.avgRatingOutOfTen.as("avgRatingOutOfTen"),
+        ratedLogCount: communityRating.ratedLogCount.as("ratedLogCount"),
       })
       .from(movies)
       .leftJoin(diaryEntries, eq(diaryEntries.movieId, movies.id))

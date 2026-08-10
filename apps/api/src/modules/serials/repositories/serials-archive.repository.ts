@@ -1,6 +1,21 @@
 import { asc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
-import { serialDiaryEntries, tvSeries } from "../serials.entity";
+import { serialDiaryEntries, serialInteractions, tvSeries } from "../serials.entity";
+import {
+  buildCommunityRatingAggregateSql,
+  type CommunityRatingAggregateSource,
+} from "../../media/helpers/media-community-rating.helper";
+
+const SERIAL_COMMUNITY_RATING_SOURCE: CommunityRatingAggregateSource = {
+  diaryTableName: "serial_diary_entry",
+  diaryEntityIdColumn: serialDiaryEntries.seriesId,
+  diaryRatingColumn: serialDiaryEntries.rating,
+  diaryUserIdColumn: serialDiaryEntries.userId,
+  interactionTableName: "serial_interaction",
+  interactionEntityIdColumn: serialInteractions.seriesId,
+  interactionRatingColumn: serialInteractions.rating,
+  interactionUserIdColumn: serialInteractions.userId,
+};
 
 export class SerialsArchiveRepository {
   static async getLocalArchiveAggregateRowsByTmdbIds(tmdbIds: number[]) {
@@ -8,6 +23,11 @@ export class SerialsArchiveRepository {
     if (uniqueTmdbIds.length === 0) {
       return [];
     }
+
+    const communityRating = buildCommunityRatingAggregateSql(
+      SERIAL_COMMUNITY_RATING_SOURCE,
+      tvSeries.id,
+    );
 
     return db
       .select({
@@ -20,28 +40,8 @@ export class SerialsArchiveRepository {
         genres: tvSeries.genres,
         numberOfEpisodes: tvSeries.numberOfEpisodes,
         logCount: sql<number>`count(${serialDiaryEntries.id})::int`.as("logCount"),
-        avgRatingOutOfTen: sql<number | null>`(
-          select avg(r.rating)::double precision from (
-            select rating from serial_diary_entry where series_id = ${tvSeries.id} and rating is not null
-            union all
-            select si.rating from serial_interaction si
-            where si.series_id = ${tvSeries.id} and si.rating is not null
-              and not exists (
-                select 1 from serial_diary_entry sde2 where sde2.series_id = ${tvSeries.id} and sde2.user_id = si.user_id
-              )
-          ) r
-        )`.as("avgRatingOutOfTen"),
-        ratedLogCount: sql<number>`(
-          select count(*)::int from (
-            select rating from serial_diary_entry where series_id = ${tvSeries.id} and rating is not null
-            union all
-            select si.rating from serial_interaction si
-            where si.series_id = ${tvSeries.id} and si.rating is not null
-              and not exists (
-                select 1 from serial_diary_entry sde2 where sde2.series_id = ${tvSeries.id} and sde2.user_id = si.user_id
-              )
-          ) r
-        )`.as("ratedLogCount"),
+        avgRatingOutOfTen: communityRating.avgRatingOutOfTen.as("avgRatingOutOfTen"),
+        ratedLogCount: communityRating.ratedLogCount.as("ratedLogCount"),
       })
       .from(tvSeries)
       .leftJoin(serialDiaryEntries, eq(serialDiaryEntries.seriesId, tvSeries.id))
@@ -50,6 +50,11 @@ export class SerialsArchiveRepository {
   }
 
   static async getLocalArchiveRows() {
+    const communityRating = buildCommunityRatingAggregateSql(
+      SERIAL_COMMUNITY_RATING_SOURCE,
+      tvSeries.id,
+    );
+
     return db
       .select({
         tmdbId: tvSeries.tmdbId,
@@ -64,28 +69,8 @@ export class SerialsArchiveRepository {
         genres: tvSeries.genres,
         numberOfEpisodes: tvSeries.numberOfEpisodes,
         logCount: sql<number>`count(${serialDiaryEntries.id})::int`.as("logCount"),
-        avgRatingOutOfTen: sql<number | null>`(
-          select avg(r.rating)::double precision from (
-            select rating from serial_diary_entry where series_id = ${tvSeries.id} and rating is not null
-            union all
-            select si.rating from serial_interaction si
-            where si.series_id = ${tvSeries.id} and si.rating is not null
-              and not exists (
-                select 1 from serial_diary_entry sde2 where sde2.series_id = ${tvSeries.id} and sde2.user_id = si.user_id
-              )
-          ) r
-        )`.as("avgRatingOutOfTen"),
-        ratedLogCount: sql<number>`(
-          select count(*)::int from (
-            select rating from serial_diary_entry where series_id = ${tvSeries.id} and rating is not null
-            union all
-            select si.rating from serial_interaction si
-            where si.series_id = ${tvSeries.id} and si.rating is not null
-              and not exists (
-                select 1 from serial_diary_entry sde2 where sde2.series_id = ${tvSeries.id} and sde2.user_id = si.user_id
-              )
-          ) r
-        )`.as("ratedLogCount"),
+        avgRatingOutOfTen: communityRating.avgRatingOutOfTen.as("avgRatingOutOfTen"),
+        ratedLogCount: communityRating.ratedLogCount.as("ratedLogCount"),
       })
       .from(tvSeries)
       .leftJoin(serialDiaryEntries, eq(serialDiaryEntries.seriesId, tvSeries.id))
