@@ -3,16 +3,8 @@ import { SerialsEpisodeInteractionsRepository } from "../repositories/serials-ep
 import { SerialsSeasonEpisodeReviewsRepository } from "../repositories/serials-season-episode-reviews.repository";
 import { SerialsCacheService } from "./serials-cache.service";
 import { getSeriesSeasonDetails as tmdbGetSeasonDetails } from "../../../infrastructure/tmdb/serials";
-import { SocialRepository } from "../../social/repositories/social.repository";
-import { SocialFeedService } from "../../social/services/social-feed.service";
-import {
-  buildSeasonLikedActivityMetadata,
-  buildEpisodeLikedActivityMetadata,
-  buildSeasonReviewActivityMetadata,
-  buildEpisodeReviewActivityMetadata,
-  buildSeasonRatingActivityMetadata,
-  buildEpisodeRatingActivityMetadata,
-} from "../helpers/serials-activity.helper";
+import { SerialsActivityRecorder } from "./serials-activity-recorder.service";
+import { buildReviewExtraMetadata } from "../helpers/serials-activity.helper";
 
 export class SerialsTrackingService {
   static async updateSeasonInteraction(
@@ -44,14 +36,13 @@ export class SerialsTrackingService {
     if (!row) return null;
 
     if (input.liked === true && !previousLiked && row.liked) {
-      SocialRepository.insertActivity({
+      SerialsActivityRecorder.record({
         userId,
+        series,
+        target: { kind: "season", seasonNumber },
         type: "liked_movie",
         entityId: String(series.id),
-        metadata: JSON.stringify(buildSeasonLikedActivityMetadata({ series, seasonNumber })),
-      })
-        .then(() => SocialFeedService.invalidateFollowingFeed(userId))
-        .catch(() => {});
+      });
     }
 
     if (
@@ -60,14 +51,14 @@ export class SerialsTrackingService {
       row.rating !== null &&
       row.rating !== previousRow?.rating
     ) {
-      SocialRepository.insertActivity({
+      SerialsActivityRecorder.record({
         userId,
+        series,
+        target: { kind: "season", seasonNumber },
         type: "liked_movie",
         entityId: String(series.id),
-        metadata: JSON.stringify(buildSeasonRatingActivityMetadata({ series, seasonNumber, rating: row.rating })),
-      })
-        .then(() => SocialFeedService.invalidateFollowingFeed(userId))
-        .catch(() => {});
+        extraMetadata: { rating: row.rating },
+      });
     }
 
     if (input.watched === false || row.watched) {
@@ -126,14 +117,13 @@ export class SerialsTrackingService {
     if (!row) return null;
 
     if (input.liked === true && !previousLiked && row.liked) {
-      SocialRepository.insertActivity({
+      SerialsActivityRecorder.record({
         userId,
+        series,
+        target: { kind: "episode", seasonNumber, episodeNumber },
         type: "liked_movie",
         entityId: String(series.id),
-        metadata: JSON.stringify(buildEpisodeLikedActivityMetadata({ series, seasonNumber, episodeNumber })),
-      })
-        .then(() => SocialFeedService.invalidateFollowingFeed(userId))
-        .catch(() => {});
+      });
     }
 
     if (
@@ -142,14 +132,14 @@ export class SerialsTrackingService {
       row.rating !== null &&
       row.rating !== previousRow?.rating
     ) {
-      SocialRepository.insertActivity({
+      SerialsActivityRecorder.record({
         userId,
+        series,
+        target: { kind: "episode", seasonNumber, episodeNumber },
         type: "liked_movie",
         entityId: String(series.id),
-        metadata: JSON.stringify(buildEpisodeRatingActivityMetadata({ series, seasonNumber, episodeNumber, rating: row.rating })),
-      })
-        .then(() => SocialFeedService.invalidateFollowingFeed(userId))
-        .catch(() => {});
+        extraMetadata: { rating: row.rating },
+      });
     }
 
     if (input.watched !== undefined) {
@@ -225,22 +215,21 @@ export class SerialsTrackingService {
     );
 
     if (isNew && row) {
-      SerialsCacheService.findOrCreate(seriesTmdbId).then((series) => {
-        if (series) {
-          SocialRepository.insertActivity({
-            userId,
-            type: "review",
-            entityId: row.id,
-            metadata: JSON.stringify(buildSeasonReviewActivityMetadata({
-              series,
-              seasonNumber,
-              review: { id: row.id, content: row.content, containsSpoilers: row.containsSpoilers },
-            })),
-          })
-            .then(() => SocialFeedService.invalidateFollowingFeed(userId))
-            .catch(() => {});
-        }
-      }).catch(() => {});
+      const series = await SerialsCacheService.findOrCreate(seriesTmdbId).catch(() => null);
+      if (series) {
+        SerialsActivityRecorder.record({
+          userId,
+          series,
+          target: { kind: "season", seasonNumber },
+          type: "review",
+          entityId: row.id,
+          extraMetadata: buildReviewExtraMetadata({
+            id: row.id,
+            content: row.content,
+            containsSpoilers: row.containsSpoilers,
+          }),
+        });
+      }
     }
 
     return row ?? null;
@@ -280,23 +269,21 @@ export class SerialsTrackingService {
     );
 
     if (isNew && row) {
-      SerialsCacheService.findOrCreate(seriesTmdbId).then((series) => {
-        if (series) {
-          SocialRepository.insertActivity({
-            userId,
-            type: "review",
-            entityId: row.id,
-            metadata: JSON.stringify(buildEpisodeReviewActivityMetadata({
-              series,
-              seasonNumber,
-              episodeNumber,
-              review: { id: row.id, content: row.content, containsSpoilers: row.containsSpoilers },
-            })),
-          })
-            .then(() => SocialFeedService.invalidateFollowingFeed(userId))
-            .catch(() => {});
-        }
-      }).catch(() => {});
+      const series = await SerialsCacheService.findOrCreate(seriesTmdbId).catch(() => null);
+      if (series) {
+        SerialsActivityRecorder.record({
+          userId,
+          series,
+          target: { kind: "episode", seasonNumber, episodeNumber },
+          type: "review",
+          entityId: row.id,
+          extraMetadata: buildReviewExtraMetadata({
+            id: row.id,
+            content: row.content,
+            containsSpoilers: row.containsSpoilers,
+          }),
+        });
+      }
     }
 
     return row ?? null;

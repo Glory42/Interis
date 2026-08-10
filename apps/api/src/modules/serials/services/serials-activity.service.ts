@@ -1,14 +1,10 @@
-import { SocialRepository } from "../../social/repositories/social.repository";
-import { SocialFeedService } from "../../social/services/social-feed.service";
 import type {
   CreateSerialLogDto,
   UpdateSerialInteractionDto,
   UpdateSerialLogDto,
 } from "../dto/serials.dto";
-import {
-  buildSerialDiaryEntryActivityMetadata,
-  buildSerialInteractionActivityMetadata,
-} from "../helpers/serials-activity.helper";
+import { buildDiaryEntryExtraMetadata } from "../helpers/serials-activity.helper";
+import { SerialsActivityRecorder } from "./serials-activity-recorder.service";
 import { SerialsInteractionsRepository } from "../repositories/serials-interactions.repository";
 import { SerialsReviewsRepository } from "../repositories/serials-reviews.repository";
 import { SerialsCacheService } from "./serials-cache.service";
@@ -119,45 +115,24 @@ export class SerialsActivityService {
     const resolvedWatchlisted =
       row?.watchlisted ?? input.watchlisted ?? previousWatchlisted;
 
-    const metadata = JSON.stringify(
-      buildSerialInteractionActivityMetadata({
-        series: {
-          id: series.id,
-          tmdbId: series.tmdbId,
-          title: series.title,
-          posterPath: series.posterPath,
-          firstAirYear: series.firstAirYear,
-        },
-      }),
-    );
-
-    const activityTasks: Promise<unknown>[] = [];
-
     if (input.liked === true && !previousLiked && resolvedLiked) {
-      activityTasks.push(
-        SocialRepository.insertActivity({
-          userId,
-          type: "liked_movie",
-          entityId: String(series.id),
-          metadata,
-        }),
-      );
+      SerialsActivityRecorder.record({
+        userId,
+        series,
+        target: { kind: "series" },
+        type: "liked_movie",
+        entityId: String(series.id),
+      });
     }
 
     if (input.watchlisted === true && !previousWatchlisted && resolvedWatchlisted) {
-      activityTasks.push(
-        SocialRepository.insertActivity({
-          userId,
-          type: "watchlisted_movie",
-          entityId: String(series.id),
-          metadata,
-        }),
-      );
-    }
-
-    if (activityTasks.length > 0) {
-      await Promise.all(activityTasks);
-      SocialFeedService.invalidateFollowingFeed(userId);
+      SerialsActivityRecorder.record({
+        userId,
+        series,
+        target: { kind: "series" },
+        type: "watchlisted_movie",
+        entityId: String(series.id),
+      });
     }
 
     const userEpisodeInteractions =
@@ -219,26 +194,16 @@ export class SerialsActivityService {
       });
     }
 
+    SerialsActivityRecorder.record({
+      userId,
+      series,
+      target: { kind: "series" },
+      type: "diary_entry",
+      entityId: entry.id,
+      extraMetadata: buildDiaryEntryExtraMetadata({ rating, rewatch, review }),
+    });
+
     await Promise.all([
-      SocialRepository.insertActivity({
-        userId,
-        type: "diary_entry",
-        entityId: entry.id,
-        metadata: JSON.stringify(
-          buildSerialDiaryEntryActivityMetadata({
-            series: {
-              id: series.id,
-              tmdbId: series.tmdbId,
-              title: series.title,
-              posterPath: series.posterPath,
-              firstAirYear: series.firstAirYear,
-            },
-            rating: rating,
-            rewatch,
-            review,
-          }),
-        ),
-      }),
       SerialsInteractionsRepository.setWatched(userId, series.id),
       SerialsActivityService.cascadeSeasonsWatched(
         userId,
@@ -247,8 +212,6 @@ export class SerialsActivityService {
         true,
       ),
     ]);
-
-    SocialFeedService.invalidateFollowingFeed(userId);
 
     return { entry, series, review };
   }

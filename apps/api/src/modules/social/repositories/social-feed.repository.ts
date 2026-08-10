@@ -108,8 +108,8 @@ export class SocialFeedRepository {
       // Season/episode reviews are represented in FeedItem the same way a
       // series review is - movie.mediaType "tv" for the series, with
       // seasonNumber/episodeNumber carried separately via activity metadata
-      // (see buildSeasonReviewActivityMetadata) - so they use the same "tv"
-      // tag here rather than "tv_season"/"tv_episode".
+      // (see SerialsActivityRecorder) - so they use the same "tv" tag here
+      // rather than "tv_season"/"tv_episode".
       ...tvRows.map((row) => ({ ...row, mediaType: "tv" as const })),
       ...seasonEpisodeTvRows.map((row) => ({ ...row, mediaType: "tv" as const })),
     ];
