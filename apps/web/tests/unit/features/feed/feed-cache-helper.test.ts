@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { QueryClient } from "@tanstack/react-query";
-import { patchFeedItems } from "@/features/feed/hooks/feed-cache.helper";
+import { invalidateFollowingFeed, patchFeedItems } from "@/features/feed/hooks/feed-cache.helper";
 import { feedKeys } from "@/features/feed/hooks/useFeed";
 import { restoreQueries } from "@/lib/query-optimistic";
 import type { FeedItem } from "@/features/feed/types";
@@ -99,5 +99,21 @@ describe("patchFeedItems", () => {
       pages: Array<{ items: FeedItem[] }>;
     };
     expect(data.pages[0]!.items[0]!.engagement.likeCount).toBe(0);
+  });
+});
+
+describe("invalidateFollowingFeed", () => {
+  it("invalidates every cached following-feed filter variant via the shared root key", async () => {
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(feedKeys.following("all"), { pages: [], pageParams: [undefined] });
+    queryClient.setQueryData(feedKeys.following("movie"), { pages: [], pageParams: [undefined] });
+    queryClient.setQueryData(feedKeys.trending(), []);
+
+    await invalidateFollowingFeed(queryClient);
+
+    expect(queryClient.getQueryState(feedKeys.following("all"))?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(feedKeys.following("movie"))?.isInvalidated).toBe(true);
+    // Unrelated feed query - trending isn't under the followingRoot prefix.
+    expect(queryClient.getQueryState(feedKeys.trending())?.isInvalidated).toBe(false);
   });
 });

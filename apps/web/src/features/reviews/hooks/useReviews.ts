@@ -1,7 +1,6 @@
 import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { FeedItem } from "@/features/feed/types";
-import { feedKeys } from "@/features/feed/hooks/useFeed";
-import { patchFeedItems } from "@/features/feed/hooks/feed-cache.helper";
+import { patchFeedItems, invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
 import { restoreQueries, type QuerySnapshot } from "@/lib/query-optimistic";
 import {
   addReviewComment,
@@ -124,7 +123,7 @@ export const useAddReviewComment = (reviewId: string, mediaType: ReviewMediaType
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: reviewKeys.comments(mediaType, reviewId) }),
-        queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot }),
+        invalidateFollowingFeed(queryClient),
       ]);
     },
   });
@@ -179,7 +178,7 @@ export const useDeleteReviewComment = (reviewId: string, mediaType: ReviewMediaT
         },
       }));
 
-      await queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot });
+      await invalidateFollowingFeed(queryClient);
     },
   });
 };
@@ -223,7 +222,7 @@ export const useLikeReview = (reviewId: string) => {
       restoreQueries(queryClient, context?.previousDetailQueries ?? []);
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot });
+      await invalidateFollowingFeed(queryClient);
     },
   });
 };
@@ -267,7 +266,7 @@ export const useUnlikeReview = (reviewId: string) => {
       restoreQueries(queryClient, context?.previousDetailQueries ?? []);
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot });
+      await invalidateFollowingFeed(queryClient);
     },
   });
 };
@@ -306,7 +305,7 @@ export const useUpdateReview = (reviewId: string) => {
         updatedAt: updatedReview.updatedAt,
       }));
 
-      await queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot });
+      await invalidateFollowingFeed(queryClient);
     },
   });
 };

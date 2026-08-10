@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authKeys } from "@/features/auth/hooks/useAuth";
+import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
 import { createDiaryEntry, getMyFilmLogs } from "@/features/diary/api";
 import { movieKeys } from "@/features/films/hooks/useMovies";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
@@ -73,6 +74,7 @@ export const useCreateDiaryEntry = () => {
         queryClient.invalidateQueries({
           queryKey: movieKeys.detailViewRoot(variables.tmdbId),
         }),
+        invalidateFollowingFeed(queryClient),
       ];
 
       if (me?.username) {

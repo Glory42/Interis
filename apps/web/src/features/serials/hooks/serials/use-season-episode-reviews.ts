@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
 import {
   deleteEpisodeReview,
   deleteSeasonReview,
@@ -30,6 +31,7 @@ export const useUpsertSeasonReview = (tmdbId: number, seasonNumber: number) => {
         queryClient.invalidateQueries({
           queryKey: serialKeys.detailViewRoot(tmdbId),
         }),
+        invalidateFollowingFeed(queryClient),
       ]);
     },
   });
@@ -48,6 +50,7 @@ export const useDeleteSeasonReview = (tmdbId: number, seasonNumber: number) => {
         queryClient.invalidateQueries({
           queryKey: serialKeys.detailViewRoot(tmdbId),
         }),
+        invalidateFollowingFeed(queryClient),
       ]);
     },
   });
@@ -83,6 +86,7 @@ export const useUpsertEpisodeReview = (
         queryClient.invalidateQueries({
           queryKey: serialKeys.seasonDetail(tmdbId, seasonNumber),
         }),
+        invalidateFollowingFeed(queryClient),
       ]);
     },
   });
@@ -105,6 +109,7 @@ export const useDeleteEpisodeReview = (
         queryClient.invalidateQueries({
           queryKey: serialKeys.seasonDetail(tmdbId, seasonNumber),
         }),
+        invalidateFollowingFeed(queryClient),
       ]);
     },
   });

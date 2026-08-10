@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { server } from "../../../support/msw/server";
 import { diaryKeys, useCreateDiaryEntry } from "@/features/diary/hooks/useDiary";
 import { authKeys } from "@/features/auth/hooks/useAuth";
+import { feedKeys } from "@/features/feed/hooks/useFeed";
 import { movieKeys } from "@/features/films/hooks/useMovies";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import type { MeProfile, MovieLog } from "@/types/api";
@@ -198,5 +199,22 @@ describe("useCreateDiaryEntry", () => {
     expect(queryClient.getQueryState(profileKeys.detail("someone-else"))?.isInvalidated).toBe(
       false,
     );
+  });
+
+  it("invalidates the following feed so the new watch/review shows up for followers", async () => {
+    server.use(http.post("*/api/diary", async () => successResponse()));
+
+    const queryClient = createTestQueryClient();
+    queryClient.setQueryData(authKeys.me, me);
+    queryClient.setQueryData(feedKeys.followingRoot, { pages: [], pageParams: [] });
+
+    const { result } = renderHook(() => useCreateDiaryEntry(), {
+      wrapper: wrapperFor(queryClient),
+    });
+
+    result.current.mutate({ tmdbId: 550, watchedDate: "2026-01-15" });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(queryClient.getQueryState(feedKeys.followingRoot)?.isInvalidated).toBe(true);
   });
 });

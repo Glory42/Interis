@@ -1,7 +1,6 @@
 import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { FeedItem } from "@/features/feed/types";
-import { feedKeys } from "@/features/feed/hooks/useFeed";
-import { patchFeedItems } from "@/features/feed/hooks/feed-cache.helper";
+import { patchFeedItems, invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
 import { restoreQueries } from "@/lib/query-optimistic";
 import {
   addPostComment,
@@ -57,7 +56,7 @@ export const useCreatePost = () => {
   return useMutation({
     mutationFn: (payload: CreatePostInput) => createPost(payload),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot });
+      await invalidateFollowingFeed(queryClient);
     },
   });
 };
@@ -87,7 +86,7 @@ export const useUpdatePost = (postId: string) => {
       );
 
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot }),
+        invalidateFollowingFeed(queryClient),
         queryClient.invalidateQueries({ queryKey: postKeys.detail(postId) }),
       ]);
     },
@@ -134,7 +133,7 @@ export const useAddPostComment = (postId: string) => {
     onSettled: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: postKeys.comments(postId) }),
-        queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot }),
+        invalidateFollowingFeed(queryClient),
       ]);
     },
   });
@@ -178,7 +177,7 @@ export const useDeletePostComment = (postId: string) => {
         }),
       );
 
-      await queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot });
+      await invalidateFollowingFeed(queryClient);
     },
   });
 };
@@ -219,7 +218,7 @@ export const useLikePost = (postId: string) => {
     },
     onSettled: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot }),
+        invalidateFollowingFeed(queryClient),
         queryClient.invalidateQueries({ queryKey: postKeys.detail(postId) }),
       ]);
     },
@@ -262,7 +261,7 @@ export const useUnlikePost = (postId: string) => {
     },
     onSettled: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot }),
+        invalidateFollowingFeed(queryClient),
         queryClient.invalidateQueries({ queryKey: postKeys.detail(postId) }),
       ]);
     },

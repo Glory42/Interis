@@ -5,6 +5,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { feedKeys } from "@/features/feed/hooks/useFeed";
+import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import {
   followUser,
@@ -31,7 +32,7 @@ const invalidateSocialDependents = async (
   queryClient: QueryClient,
 ): Promise<void> => {
   await Promise.all([
-    queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot }),
+    invalidateFollowingFeed(queryClient),
     queryClient.invalidateQueries({ queryKey: feedKeys.meSummary }),
   ]);
 };

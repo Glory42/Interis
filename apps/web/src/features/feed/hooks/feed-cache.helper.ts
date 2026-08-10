@@ -5,6 +5,13 @@ import type { FeedItem } from "@/features/feed/types";
 type FeedPage = { items: FeedItem[]; nextCursor: string | null };
 type FeedInfiniteData = InfiniteData<FeedPage, string | undefined>;
 
+// The single place every mutation that affects the following feed
+// (posts, reviews, social graph, moderation, diary, serials) invalidates
+// it from - keeps the query key and invalidation scope in one spot instead
+// of duplicated at each call site.
+export const invalidateFollowingFeed = (queryClient: QueryClient): Promise<void> =>
+  queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot });
+
 // Patches matching feed items across every cached page without a full
 // refetch. The feed is a useInfiniteQuery, so its cache is
 // `{ pages, pageParams }`, not a flat FeedItem[] - this walks
