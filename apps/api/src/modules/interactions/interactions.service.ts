@@ -100,7 +100,7 @@ export class InteractionsService {
   }
 
   static async setWatched(userId: string, movieId: number): Promise<void> {
-    await InteractionsRepository.upsertField(userId, movieId, "isWatched", true);
+    await InteractionsRepository.markWatched(userId, movieId);
   }
 
   static async setWatchlisted(userId: string, movieId: number): Promise<void> {

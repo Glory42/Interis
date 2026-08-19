@@ -116,6 +116,9 @@ export class SerialsInteractionsRepository {
     return row ?? null;
   }
 
+  // Liking or marking watched implies the series is no longer "to watch" -
+  // auto-clear watchlisted alongside it, unless the caller sent an explicit
+  // watchlisted value in the same request (that always wins).
   static async upsertInteraction(input: {
     userId: string;
     seriesId: number;
@@ -124,6 +127,9 @@ export class SerialsInteractionsRepository {
     isWatched?: boolean;
     rating?: number | null;
   }) {
+    const shouldAutoClearWatchlist =
+      input.watchlisted === undefined && (input.liked === true || input.isWatched === true);
+
     const [upserted] = await db
       .insert(serialInteractions)
       .values({
@@ -139,6 +145,7 @@ export class SerialsInteractionsRepository {
         set: {
           ...(input.liked !== undefined && { liked: input.liked }),
           ...(input.watchlisted !== undefined && { watchlisted: input.watchlisted }),
+          ...(shouldAutoClearWatchlist && { watchlisted: false }),
           ...(input.isWatched !== undefined && { isWatched: input.isWatched }),
           ...(input.rating !== undefined && { rating: input.rating }),
         },
@@ -180,7 +187,7 @@ export class SerialsInteractionsRepository {
       .values({ userId, seriesId, liked: false, watchlisted: false, isWatched: true })
       .onConflictDoUpdate({
         target: [serialInteractions.userId, serialInteractions.seriesId],
-        set: { isWatched: true },
+        set: { isWatched: true, watchlisted: false },
       });
   }
 
