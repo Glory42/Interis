@@ -1,8 +1,10 @@
-import { InteractionsRepository } from "./repositories/interactions.repository";
+import { MediaInteractions } from "../media-interactions/media-interactions.repository";
 import { SocialRepository } from "../social/repositories/social.repository";
 import { SocialFeedService } from "../social/services/social-feed.service";
 import { MoviesService } from "../movies/movies.service";
 import type { UpdateInteractionDto } from "./dto/interactions.dto";
+
+const movieInteractionStore = MediaInteractions.forMovie();
 
 const toInteractionResponse = (row: {
   liked: boolean;
@@ -22,7 +24,7 @@ export class InteractionsService {
   // GET current state — null means no row yet (both false)
   static async get(userId: string, tmdbId: number) {
     const movie = await MoviesService.findOrCreate(tmdbId);
-    const row = await InteractionsRepository.findByUserAndMovie(userId, movie.id);
+    const row = await movieInteractionStore.find(userId, movie.id);
 
     return toInteractionResponse(
       row ?? {
@@ -41,19 +43,12 @@ export class InteractionsService {
     input: UpdateInteractionDto,
   ) {
     const movie = await MoviesService.findOrCreate(tmdbId);
-    const rating = input.rating;
 
-    // Implicit watch if user liked or rated the movie
-    const isImplicitlyWatched =
-      input.liked === true ||
-      (input.rating !== undefined && input.rating !== null);
-
-    const upserted = await InteractionsRepository.upsertInteractionState(userId, movie.id, {
+    const upserted = await movieInteractionStore.upsertState(userId, movie.id, {
       liked: input.liked,
       watchlisted: input.watchlisted,
       rating: input.rating,
       watched: input.watched,
-      isImplicitlyWatched,
     });
 
     // Write activity only for meaningful state changes
@@ -93,25 +88,25 @@ export class InteractionsService {
       upserted ?? {
         liked: input.liked ?? false,
         watchlisted: input.watchlisted ?? false,
-        rating: rating ?? null,
-        isWatched: input.watched ?? isImplicitlyWatched ?? false,
+        rating: input.rating ?? null,
+        isWatched: input.watched ?? false,
       },
     );
   }
 
   static async setWatched(userId: string, movieId: number): Promise<void> {
-    await InteractionsRepository.markWatched(userId, movieId);
+    await movieInteractionStore.markWatched(userId, movieId);
   }
 
   static async setWatchlisted(userId: string, movieId: number): Promise<void> {
-    await InteractionsRepository.upsertField(userId, movieId, "watchlisted", true);
+    await movieInteractionStore.setWatchlisted(userId, movieId);
   }
 
   static async setRating(userId: string, movieId: number, ratingOutOfTen: number): Promise<void> {
-    await InteractionsRepository.upsertField(userId, movieId, "rating", ratingOutOfTen);
+    await movieInteractionStore.setRating(userId, movieId, ratingOutOfTen);
   }
 
   static async hasRating(userId: string, movieId: number): Promise<boolean> {
-    return InteractionsRepository.hasRating(userId, movieId);
+    return movieInteractionStore.hasRating(userId, movieId);
   }
 }

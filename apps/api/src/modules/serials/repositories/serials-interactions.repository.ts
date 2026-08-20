@@ -5,7 +5,10 @@ import { profiles } from "../../users/users.entity";
 import { reviews } from "../../reviews/reviews.entity";
 import { mergeCommunityRatings } from "../../media/helpers/media-community-rating.helper";
 import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
+import { MediaInteractions } from "../../media-interactions/media-interactions.repository";
 import { serialDiaryEntries, serialInteractions, tvSeries } from "../serials.entity";
+
+const seriesInteractionStore = MediaInteractions.forSeries();
 
 export class SerialsInteractionsRepository {
   static async getViewerDiaryRows(viewerUserId: string, seriesId: number) {
@@ -102,23 +105,9 @@ export class SerialsInteractionsRepository {
   }
 
   static async getInteractionRow(userId: string, seriesId: number) {
-    const [row] = await db
-      .select()
-      .from(serialInteractions)
-      .where(
-        and(
-          eq(serialInteractions.userId, userId),
-          eq(serialInteractions.seriesId, seriesId),
-        ),
-      )
-      .limit(1);
-
-    return row ?? null;
+    return seriesInteractionStore.find(userId, seriesId);
   }
 
-  // Liking or marking watched implies the series is no longer "to watch" -
-  // auto-clear watchlisted alongside it, unless the caller sent an explicit
-  // watchlisted value in the same request (that always wins).
   static async upsertInteraction(input: {
     userId: string;
     seriesId: number;
@@ -127,32 +116,12 @@ export class SerialsInteractionsRepository {
     isWatched?: boolean;
     rating?: number | null;
   }) {
-    const shouldAutoClearWatchlist =
-      input.watchlisted === undefined && (input.liked === true || input.isWatched === true);
-
-    const [upserted] = await db
-      .insert(serialInteractions)
-      .values({
-        userId: input.userId,
-        seriesId: input.seriesId,
-        liked: input.liked ?? false,
-        watchlisted: input.watchlisted ?? false,
-        isWatched: input.isWatched ?? false,
-        rating: input.rating ?? null,
-      })
-      .onConflictDoUpdate({
-        target: [serialInteractions.userId, serialInteractions.seriesId],
-        set: {
-          ...(input.liked !== undefined && { liked: input.liked }),
-          ...(input.watchlisted !== undefined && { watchlisted: input.watchlisted }),
-          ...(shouldAutoClearWatchlist && { watchlisted: false }),
-          ...(input.isWatched !== undefined && { isWatched: input.isWatched }),
-          ...(input.rating !== undefined && { rating: input.rating }),
-        },
-      })
-      .returning();
-
-    return upserted ?? null;
+    return seriesInteractionStore.upsertState(input.userId, input.seriesId, {
+      liked: input.liked,
+      watchlisted: input.watchlisted,
+      rating: input.rating,
+      watched: input.isWatched,
+    });
   }
 
   // Fully watched series, most recently marked watched first. isWatched is
@@ -182,13 +151,7 @@ export class SerialsInteractionsRepository {
   }
 
   static async setWatched(userId: string, seriesId: number): Promise<void> {
-    await db
-      .insert(serialInteractions)
-      .values({ userId, seriesId, liked: false, watchlisted: false, isWatched: true })
-      .onConflictDoUpdate({
-        target: [serialInteractions.userId, serialInteractions.seriesId],
-        set: { isWatched: true, watchlisted: false },
-      });
+    await seriesInteractionStore.markWatched(userId, seriesId);
   }
 
   static async insertDiaryEntry(input: {
@@ -237,32 +200,15 @@ export class SerialsInteractionsRepository {
   }
 
   static async setWatchlisted(userId: string, seriesId: number): Promise<void> {
-    await db
-      .insert(serialInteractions)
-      .values({ userId, seriesId, liked: false, watchlisted: true })
-      .onConflictDoUpdate({
-        target: [serialInteractions.userId, serialInteractions.seriesId],
-        set: { watchlisted: true },
-      });
+    await seriesInteractionStore.setWatchlisted(userId, seriesId);
   }
 
   static async setRating(userId: string, seriesId: number, ratingOutOfTen: number): Promise<void> {
-    await db
-      .insert(serialInteractions)
-      .values({ userId, seriesId, liked: false, watchlisted: false, rating: ratingOutOfTen })
-      .onConflictDoUpdate({
-        target: [serialInteractions.userId, serialInteractions.seriesId],
-        set: { rating: ratingOutOfTen },
-      });
+    await seriesInteractionStore.setRating(userId, seriesId, ratingOutOfTen);
   }
 
   static async hasRating(userId: string, seriesId: number): Promise<boolean> {
-    const [row] = await db
-      .select({ rating: serialInteractions.rating })
-      .from(serialInteractions)
-      .where(and(eq(serialInteractions.userId, userId), eq(serialInteractions.seriesId, seriesId)))
-      .limit(1);
-    return row?.rating !== null && row?.rating !== undefined;
+    return seriesInteractionStore.hasRating(userId, seriesId);
   }
 
   static async findAllDiaryByUser(userId: string, limit?: number, offset?: number) {

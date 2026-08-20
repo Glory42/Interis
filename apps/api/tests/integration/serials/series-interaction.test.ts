@@ -141,4 +141,66 @@ describe("series-level interaction", () => {
     expect(body.rating).toBe(8);
     expect(body.watched).toBe(true);
   });
+
+  it("liking a watchlisted series removes it from the watchlist", async () => {
+    const { jar } = await signUpTestUser(getServer().baseUrl, "siwlclrlik");
+    const serial = await seedTestSerial();
+
+    await apiRequest(
+      getServer().baseUrl,
+      `/api/serials/${serial.tmdbId}/interaction`,
+      {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ watchlisted: true }),
+      },
+      jar,
+    );
+
+    const response = await apiRequest(
+      getServer().baseUrl,
+      `/api/serials/${serial.tmdbId}/interaction`,
+      {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ liked: true }),
+      },
+      jar,
+    );
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { liked: boolean; watchlisted: boolean };
+    expect(body.liked).toBe(true);
+    expect(body.watchlisted).toBe(false);
+  });
+
+  it("rating a watchlisted series removes it from the watchlist", async () => {
+    const { jar } = await signUpTestUser(getServer().baseUrl, "siwlclrrate");
+    const serial = await seedTestSerial();
+
+    await apiRequest(
+      getServer().baseUrl,
+      `/api/serials/${serial.tmdbId}/interaction`,
+      {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ watchlisted: true }),
+      },
+      jar,
+    );
+
+    const response = await apiRequest(
+      getServer().baseUrl,
+      `/api/serials/${serial.tmdbId}/interaction`,
+      {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ rating: 9 }),
+      },
+      jar,
+    );
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { rating: number; watchlisted: boolean };
+    expect(body.rating).toBe(9);
+    expect(body.watchlisted).toBe(false);
+  });
 });

@@ -259,6 +259,88 @@ describe("movie-level interaction", () => {
     expect(body.liked).toBe(false);
   });
 
+  it("liking a watchlisted movie removes it from the watchlist", async () => {
+    const { jar } = await signUpTestUser(getServer().baseUrl, "iiwlclrlik");
+    const movie = await seedTestMovie();
+
+    await apiRequest(
+      getServer().baseUrl,
+      `/api/interactions/${movie.tmdbId}`,
+      {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ watchlisted: true }),
+      },
+      jar,
+    );
+
+    const response = await apiRequest(
+      getServer().baseUrl,
+      `/api/interactions/${movie.tmdbId}`,
+      {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ liked: true }),
+      },
+      jar,
+    );
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { liked: boolean; watchlisted: boolean };
+    expect(body.liked).toBe(true);
+    expect(body.watchlisted).toBe(false);
+  });
+
+  it("rating a watchlisted movie removes it from the watchlist", async () => {
+    const { jar } = await signUpTestUser(getServer().baseUrl, "iiwlclrrate");
+    const movie = await seedTestMovie();
+
+    await apiRequest(
+      getServer().baseUrl,
+      `/api/interactions/${movie.tmdbId}`,
+      {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ watchlisted: true }),
+      },
+      jar,
+    );
+
+    const response = await apiRequest(
+      getServer().baseUrl,
+      `/api/interactions/${movie.tmdbId}`,
+      {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ rating: 9 }),
+      },
+      jar,
+    );
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { rating: number; watchlisted: boolean };
+    expect(body.rating).toBe(9);
+    expect(body.watchlisted).toBe(false);
+  });
+
+  it("watchlisting a movie in the same request as liking it is respected over the auto-clear", async () => {
+    const { jar } = await signUpTestUser(getServer().baseUrl, "iiwlexplicit");
+    const movie = await seedTestMovie();
+
+    const response = await apiRequest(
+      getServer().baseUrl,
+      `/api/interactions/${movie.tmdbId}`,
+      {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ liked: true, watchlisted: true }),
+      },
+      jar,
+    );
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { liked: boolean; watchlisted: boolean };
+    expect(body.liked).toBe(true);
+    expect(body.watchlisted).toBe(true);
+  });
+
   it("clearing a rating sets it back to null without erroring", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "iiclear");
     const movie = await seedTestMovie();
