@@ -1,6 +1,6 @@
 import { InteractionsService } from "../../interactions/interactions.service";
 import { MoviesService } from "../../movies/movies.service";
-import { SocialFeedService } from "../../social/services/social-feed.service";
+import { MovieActivityRecorder } from "../../movies/services/movie-activity-recorder.service";
 import { buildDiaryEntryActivityMetadata } from "../helpers/diary-activity.helper";
 import { DiaryRepository } from "../repositories/diary.repository";
 import type { CreateDiaryDto, UpdateDiaryDto } from "../dto/diary.dto";
@@ -48,31 +48,20 @@ export class DiaryWriteService {
       });
     }
 
-    await Promise.all([
-      InteractionsService.setWatched(userId, movie.id),
-      DiaryRepository.insertActivity({
-        userId,
-        type: "diary_entry",
-        entityId: entry.id,
-        metadata: JSON.stringify(
-          buildDiaryEntryActivityMetadata({
-            movie: {
-              id: movie.id,
-              tmdbId: movie.tmdbId,
-              title: movie.title,
-              posterPath: movie.posterPath,
-              releaseYear: movie.releaseYear,
-            },
-            rating,
-            rewatch,
-            hasReview: Boolean(review),
-            reviewId: review?.id ?? null,
-          }),
-        ),
-      }),
-    ]);
+    await InteractionsService.setWatched(userId, movie.id);
 
-    SocialFeedService.invalidateFollowingFeed(userId);
+    MovieActivityRecorder.record({
+      userId,
+      movie,
+      type: "diary_entry",
+      entityId: entry.id,
+      extraMetadata: buildDiaryEntryActivityMetadata({
+        rating,
+        rewatch,
+        hasReview: Boolean(review),
+        reviewId: review?.id ?? null,
+      }),
+    });
 
     return { entry, movie, review };
   }

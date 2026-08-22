@@ -1,16 +1,16 @@
-import { toMediaFields, toNullableMediaFields } from "../../../commons/helpers/media-activity-fields.helper";
+import { toNullableMediaFields } from "../../../commons/helpers/media-activity-fields.helper";
 import { truncateExcerpt as toExcerpt } from "../../../commons/helpers/text.helper";
 import type { ReviewMediaMetadata } from "../types/reviews.types";
 
+// Extra fields only - MovieActivityRecorder/SerialsActivityRecorder already
+// supply the movie/series id, mediaType, and base media fields for every
+// review-creation activity.
 export const buildReviewCreatedActivityMetadata = (input: {
   reviewId: string;
   content: string;
   containsSpoilers: boolean;
-  media: ReviewMediaMetadata;
 }) => ({
   reviewId: input.reviewId,
-  mediaType: input.media.mediaType,
-  ...toMediaFields(input.media),
   containsSpoilers: input.containsSpoilers,
   excerpt: toExcerpt(input.content),
 });

@@ -1,6 +1,5 @@
 import { MediaInteractions } from "../media-interactions/media-interactions.repository";
-import { SocialRepository } from "../social/repositories/social.repository";
-import { SocialFeedService } from "../social/services/social-feed.service";
+import { MovieActivityRecorder } from "../movies/services/movie-activity-recorder.service";
 import { MoviesService } from "../movies/movies.service";
 import type { UpdateInteractionDto } from "./dto/interactions.dto";
 
@@ -53,35 +52,21 @@ export class InteractionsService {
 
     // Write activity only for meaningful state changes
     if (input.liked === true) {
-      await SocialRepository.insertActivity({
+      MovieActivityRecorder.record({
         userId,
+        movie,
         type: "liked_movie",
         entityId: String(movie.id),
-        metadata: JSON.stringify({
-          movieId: movie.id,
-          tmdbId: movie.tmdbId,
-          title: movie.title,
-          posterPath: movie.posterPath,
-        }),
       });
     }
 
     if (input.watchlisted === true) {
-      await SocialRepository.insertActivity({
+      MovieActivityRecorder.record({
         userId,
+        movie,
         type: "watchlisted_movie",
         entityId: String(movie.id),
-        metadata: JSON.stringify({
-          movieId: movie.id,
-          tmdbId: movie.tmdbId,
-          title: movie.title,
-          posterPath: movie.posterPath,
-        }),
       });
-    }
-
-    if (input.liked === true || input.watchlisted === true) {
-      SocialFeedService.invalidateFollowingFeed(userId);
     }
 
     return toInteractionResponse(

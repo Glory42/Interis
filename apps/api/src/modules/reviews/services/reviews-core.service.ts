@@ -1,9 +1,10 @@
 import { MoviesService } from "../../movies/movies.service";
+import { MovieActivityRecorder } from "../../movies/services/movie-activity-recorder.service";
 import { SerialsService } from "../../serials/serials.service";
 import { SerialsReviewsRepository } from "../../serials/repositories/serials-reviews.repository";
 import { SerialsInteractionsRepository } from "../../serials/repositories/serials-interactions.repository";
+import { SerialsActivityRecorder } from "../../serials/services/serials-activity-recorder.service";
 import { InteractionsService } from "../../interactions/interactions.service";
-import { SocialRepository } from "../../social/repositories/social.repository";
 import { SocialFeedService } from "../../social/services/social-feed.service";
 import { ReviewsRepository } from "../repositories/reviews.repository";
 import { buildReviewCreatedActivityMetadata } from "../helpers/reviews-activity.helper";
@@ -26,30 +27,20 @@ export class ReviewsCoreService {
 
       if (!review) throw new Error("Could not create review");
 
-      await Promise.all([
-        SerialsInteractionsRepository.setWatched(userId, series.id),
-        SocialRepository.insertActivity({
-          userId,
-          type: "review",
-          entityId: review.id,
-          metadata: JSON.stringify(
-            buildReviewCreatedActivityMetadata({
-              reviewId: review.id,
-              content: input.content,
-              containsSpoilers: review.containsSpoilers,
-              media: {
-                mediaType: "tv",
-                tmdbId: series.tmdbId,
-                title: series.title,
-                posterPath: series.posterPath,
-                releaseYear: series.firstAirYear,
-              },
-            }),
-          ),
-        }),
-      ]);
+      await SerialsInteractionsRepository.setWatched(userId, series.id);
 
-      SocialFeedService.invalidateFollowingFeed(userId);
+      SerialsActivityRecorder.record({
+        userId,
+        series,
+        target: { kind: "series" },
+        type: "review",
+        entityId: review.id,
+        extraMetadata: buildReviewCreatedActivityMetadata({
+          reviewId: review.id,
+          content: input.content,
+          containsSpoilers: review.containsSpoilers,
+        }),
+      });
 
       return { review, series };
     }
@@ -69,30 +60,19 @@ export class ReviewsCoreService {
       throw new Error("Could not create review");
     }
 
-    await Promise.all([
-      InteractionsService.setWatched(userId, movie.id),
-      SocialRepository.insertActivity({
-        userId,
-        type: "review",
-        entityId: review.id,
-        metadata: JSON.stringify(
-          buildReviewCreatedActivityMetadata({
-            reviewId: review.id,
-            content: input.content,
-            containsSpoilers: review.containsSpoilers,
-            media: {
-              mediaType: "movie",
-              tmdbId: movie.tmdbId,
-              title: movie.title,
-              posterPath: movie.posterPath,
-              releaseYear: movie.releaseYear,
-            },
-          }),
-        ),
-      }),
-    ]);
+    await InteractionsService.setWatched(userId, movie.id);
 
-    SocialFeedService.invalidateFollowingFeed(userId);
+    MovieActivityRecorder.record({
+      userId,
+      movie,
+      type: "review",
+      entityId: review.id,
+      extraMetadata: buildReviewCreatedActivityMetadata({
+        reviewId: review.id,
+        content: input.content,
+        containsSpoilers: review.containsSpoilers,
+      }),
+    });
 
     return { review, movie };
   }

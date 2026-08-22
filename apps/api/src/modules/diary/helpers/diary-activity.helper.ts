@@ -1,24 +1,16 @@
 import { toMediaFields } from "../../../commons/helpers/media-activity-fields.helper";
 import { truncateExcerpt } from "../../../commons/helpers/text.helper";
 
+// Extra fields only - MovieActivityRecorder already supplies movieId,
+// mediaType, and the base media fields for every movie activity.
 export const buildDiaryEntryActivityMetadata = (input: {
-  movie: {
-    id: number;
-    tmdbId: number;
-    title: string;
-    posterPath: string | null;
-    releaseYear: number | null;
-  };
   rating: number | null;
   rewatch: boolean;
   hasReview: boolean;
   reviewId: string | null;
 }) => ({
-  movieId: input.movie.id,
-  ...toMediaFields(input.movie),
   rating: input.rating,
   rewatch: input.rewatch,
-  mediaType: "movie",
   hasReview: input.hasReview,
   reviewId: input.reviewId,
 });
