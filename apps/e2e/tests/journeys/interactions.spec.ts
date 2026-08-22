@@ -25,9 +25,25 @@ test("toggling watchlist/watch/like/rating on a film reflects on the profile tab
       });
     });
 
-    await test.step("toggles watched", async () => {
+    await test.step("the movie shows up on the watchlist profile tab", async () => {
+      await page.goto(`/profile/${user.username}/watchlist`);
+      await expect(page.getByText(KNOWN_MOVIE_TITLE).first()).toBeVisible({ timeout: 10_000 });
+
+      await page.goto(`/cinema/${KNOWN_MOVIE_TMDB_ID}`);
+      await expect(page.getByRole("button", { name: "watchlisted" })).toBeVisible({
+        timeout: 10_000,
+      });
+    });
+
+    // Marking watched auto-clears watchlisted (see MediaInteractions /
+    // interaction-state-rules.helper.ts) - watching, liking, or rating
+    // something means it's no longer "to watch".
+    await test.step("toggles watched, which clears the watchlist", async () => {
       await page.getByRole("button", { name: "Watch", exact: true }).click();
       await expect(page.getByRole("button", { name: "Watched" })).toBeVisible({
+        timeout: 10_000,
+      });
+      await expect(page.getByRole("button", { name: "watchlist", exact: true })).toBeVisible({
         timeout: 10_000,
       });
     });
@@ -57,22 +73,17 @@ test("toggling watchlist/watch/like/rating on a film reflects on the profile tab
       await expect(slider).toHaveAttribute("aria-valuenow", "8", { timeout: 10_000 });
     });
 
-    await test.step("the movie shows up on the watchlist and liked profile tabs", async () => {
+    await test.step("the movie shows up on the liked profile tab, but not the watchlist tab anymore", async () => {
       await page.goto(`/profile/${user.username}/watchlist`);
-      await expect(page.getByText(KNOWN_MOVIE_TITLE).first()).toBeVisible({ timeout: 10_000 });
+      await expect(page.getByText(KNOWN_MOVIE_TITLE)).toHaveCount(0, { timeout: 10_000 });
 
       await page.goto(`/profile/${user.username}/liked`);
       await expect(page.getByText(KNOWN_MOVIE_TITLE).first()).toBeVisible({ timeout: 10_000 });
     });
 
-    await test.step("un-toggles watchlist and like", async () => {
+    await test.step("un-toggles like", async () => {
       await page.goto(`/cinema/${KNOWN_MOVIE_TMDB_ID}`);
-      await expect(page.getByRole("button", { name: "watchlisted" })).toBeVisible({
-        timeout: 10_000,
-      });
-
-      await page.getByRole("button", { name: "watchlisted" }).click();
-      await expect(page.getByRole("button", { name: "watchlist", exact: true })).toBeVisible({
+      await expect(page.getByRole("button", { name: "Liked", exact: true })).toBeVisible({
         timeout: 10_000,
       });
 
@@ -81,7 +92,7 @@ test("toggling watchlist/watch/like/rating on a film reflects on the profile tab
         timeout: 10_000,
       });
 
-      await page.goto(`/profile/${user.username}/watchlist`);
+      await page.goto(`/profile/${user.username}/liked`);
       await expect(page.getByText(KNOWN_MOVIE_TITLE)).toHaveCount(0, { timeout: 10_000 });
     });
   } finally {
