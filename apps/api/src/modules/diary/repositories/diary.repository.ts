@@ -3,7 +3,6 @@ import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
 import { reviews } from "../../reviews/reviews.entity";
-import { SocialRepository } from "../../social/repositories/social.repository";
 import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
 import { diaryEntries } from "../diary.entity";
 
@@ -71,15 +70,6 @@ export class DiaryRepository {
       });
 
     return review ?? null;
-  }
-
-  static async insertActivity(input: {
-    userId: string;
-    type: "diary_entry" | "review";
-    entityId: string;
-    metadata: string;
-  }) {
-    await SocialRepository.insertActivity(input);
   }
 
   static async findAllByUser(userId: string, limit?: number, offset?: number) {

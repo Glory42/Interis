@@ -103,14 +103,32 @@ test("toggles episode/season/series watch state and rating, and writes a season 
     // ambiguous the moment that cascade lands.
     const sidebar = page.getByRole("complementary").first();
 
-    await test.step("toggles series-level watchlist/watch/like and rating", async () => {
+    await test.step("toggles series-level watchlist", async () => {
       await sidebar.getByRole("button", { name: "watchlist" }).click();
       await expect(sidebar.getByRole("button", { name: "watchlisted" })).toBeVisible({
         timeout: 10_000,
       });
+    });
 
+    await test.step("the series shows up on the watchlist profile tab", async () => {
+      await page.goto(`/profile/${user.username}/watchlist`);
+      await expect(page.getByText(KNOWN_SERIES_TITLE).first()).toBeVisible({ timeout: 10_000 });
+
+      await page.goto(`/serials/${KNOWN_SERIES_TMDB_ID}`);
+      await expect(sidebar.getByRole("button", { name: "watchlisted" })).toBeVisible({
+        timeout: 10_000,
+      });
+    });
+
+    // Marking watched auto-clears watchlisted (see MediaInteractions /
+    // interaction-state-rules.helper.ts) - watching, liking, or rating
+    // something means it's no longer "to watch".
+    await test.step("toggles series-level watch, like, and rating - watching clears the watchlist", async () => {
       await sidebar.getByRole("button", { name: "Watch", exact: true }).click();
       await expect(sidebar.getByRole("button", { name: "Watched", exact: true })).toBeVisible({
+        timeout: 10_000,
+      });
+      await expect(sidebar.getByRole("button", { name: "watchlist", exact: true })).toBeVisible({
         timeout: 10_000,
       });
 
@@ -128,9 +146,9 @@ test("toggles episode/season/series watch state and rating, and writes a season 
       await expect(slider).toHaveAttribute("aria-valuenow", "8", { timeout: 10_000 });
     });
 
-    await test.step("the series shows up on the watchlist and liked profile tabs", async () => {
+    await test.step("the series shows up on the liked profile tab, but not the watchlist tab anymore", async () => {
       await page.goto(`/profile/${user.username}/watchlist`);
-      await expect(page.getByText(KNOWN_SERIES_TITLE).first()).toBeVisible({ timeout: 10_000 });
+      await expect(page.getByText(KNOWN_SERIES_TITLE)).toHaveCount(0, { timeout: 10_000 });
 
       await page.goto(`/profile/${user.username}/liked`);
       await expect(page.getByText(KNOWN_SERIES_TITLE).first()).toBeVisible({ timeout: 10_000 });
