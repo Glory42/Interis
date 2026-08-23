@@ -13,8 +13,12 @@ import { NotFoundError } from "../../../commons/errors/app-error";
 
 type Movie = Awaited<ReturnType<typeof MoviesService.findOrCreate>>;
 type Series = NonNullable<Awaited<ReturnType<typeof SerialsService.findOrCreate>>>;
-type MovieReviewRow = NonNullable<Awaited<ReturnType<typeof ReviewsRepository.insertMovieReview>>>;
-type SeriesReviewRow = NonNullable<Awaited<ReturnType<typeof SerialsReviewsRepository.upsertReview>>>;
+// SerialsReviewsRepository.upsertReview and DiaryRepository.upsertReview both
+// delegate to ReviewsRepository.upsertReview now (see issue #48), so movie
+// and TV reviews share one concrete row shape.
+type ReviewsTableRow = NonNullable<Awaited<ReturnType<typeof ReviewsRepository.upsertReview>>>;
+type MovieReviewRow = ReviewsTableRow;
+type SeriesReviewRow = ReviewsTableRow;
 
 type ReviewRow = { id: string; containsSpoilers: boolean };
 
@@ -44,10 +48,11 @@ const movieReviewAdapter: ReviewMediaAdapter<
 > = {
   findOrCreateMedia: (tmdbId) => MoviesService.findOrCreate(tmdbId),
   insertReview: (movie, input, userId) =>
-    ReviewsRepository.insertMovieReview({
+    ReviewsRepository.upsertReview({
       userId,
+      mediaType: "movie",
+      tmdbId: movie.tmdbId,
       movieId: movie.id,
-      movieTmdbId: movie.tmdbId,
       diaryEntryId: input.diaryEntryId ?? null,
       content: input.content,
       containsSpoilers: input.containsSpoilers ?? false,

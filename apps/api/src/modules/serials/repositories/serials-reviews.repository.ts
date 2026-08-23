@@ -151,37 +151,14 @@ export class SerialsReviewsRepository {
     content: string;
     containsSpoilers: boolean;
   }) {
-    const [review] = await db
-      .insert(reviews)
-      .values({
-        userId: input.userId,
-        mediaType: "tv",
-        mediaSource: "tmdb",
-        mediaSourceId: String(input.seriesTmdbId),
-        diaryEntryId: input.diaryEntryId,
-        content: input.content,
-        containsSpoilers: input.containsSpoilers,
-      })
-      .onConflictDoUpdate({
-        target: [
-          reviews.userId,
-          reviews.mediaType,
-          reviews.mediaSource,
-          reviews.mediaSourceId,
-        ],
-        set: {
-          diaryEntryId: input.diaryEntryId,
-          content: input.content,
-          containsSpoilers: input.containsSpoilers,
-          updatedAt: new Date(),
-        },
-      })
-      .returning({
-        id: reviews.id,
-        content: reviews.content,
-        containsSpoilers: reviews.containsSpoilers,
-      });
-
-    return review ?? null;
+    return ReviewsRepository.upsertReview({
+      userId: input.userId,
+      mediaType: "tv",
+      tmdbId: input.seriesTmdbId,
+      movieId: null,
+      diaryEntryId: input.diaryEntryId,
+      content: input.content,
+      containsSpoilers: input.containsSpoilers,
+    });
   }
 }

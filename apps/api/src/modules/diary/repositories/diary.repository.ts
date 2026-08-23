@@ -3,6 +3,7 @@ import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
 import { reviews } from "../../reviews/reviews.entity";
+import { ReviewsRepository } from "../../reviews/repositories/reviews.repository";
 import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
 import { diaryEntries } from "../diary.entity";
 
@@ -36,40 +37,15 @@ export class DiaryRepository {
     content: string;
     containsSpoilers: boolean;
   }) {
-    const [review] = await db
-      .insert(reviews)
-      .values({
-        userId: input.userId,
-        mediaType: "movie",
-        mediaSource: "tmdb",
-        mediaSourceId: String(input.movieTmdbId),
-        movieId: input.movieId,
-        diaryEntryId: input.diaryEntryId,
-        content: input.content,
-        containsSpoilers: input.containsSpoilers,
-      })
-      .onConflictDoUpdate({
-        target: [
-          reviews.userId,
-          reviews.mediaType,
-          reviews.mediaSource,
-          reviews.mediaSourceId,
-        ],
-        set: {
-          diaryEntryId: input.diaryEntryId,
-          movieId: input.movieId,
-          content: input.content,
-          containsSpoilers: input.containsSpoilers,
-          updatedAt: new Date(),
-        },
-      })
-      .returning({
-        id: reviews.id,
-        content: reviews.content,
-        containsSpoilers: reviews.containsSpoilers,
-      });
-
-    return review ?? null;
+    return ReviewsRepository.upsertReview({
+      userId: input.userId,
+      mediaType: "movie",
+      tmdbId: input.movieTmdbId,
+      movieId: input.movieId,
+      diaryEntryId: input.diaryEntryId,
+      content: input.content,
+      containsSpoilers: input.containsSpoilers,
+    });
   }
 
   static async findAllByUser(userId: string, limit?: number, offset?: number) {
