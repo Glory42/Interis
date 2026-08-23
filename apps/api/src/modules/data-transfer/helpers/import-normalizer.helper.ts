@@ -1,5 +1,6 @@
 import { searchMovieByTitleAndYear } from "../../../infrastructure/tmdb/cinemas";
 import { searchSeriesByTitleAndYear } from "../../../infrastructure/tmdb/serials";
+import type { MediaType } from "../../media/constants/media-type.constant";
 
 export type ImportStreamEvent =
   | { type: "start"; total: number; format: string }
@@ -57,7 +58,7 @@ export type NormalizedRow = {
   title: string;
   year: number | null;
   tmdbId: number | null;
-  mediaType: "movie" | "tv";
+  mediaType: MediaType;
   watchedDate: string;
   rating: number | null;
   rewatch: boolean;
@@ -156,7 +157,7 @@ export function normalizeInterisRow(row: Record<string, string>): NormalizedRow 
   const year = Number.isNaN(yearRaw) ? null : yearRaw;
 
   const mediaTypeRaw = (row["MediaType"] ?? "").trim().toLowerCase();
-  const mediaType: "movie" | "tv" = mediaTypeRaw === "tv" ? "tv" : "movie";
+  const mediaType: MediaType = mediaTypeRaw === "tv" ? "tv" : "movie";
 
   return {
     title,

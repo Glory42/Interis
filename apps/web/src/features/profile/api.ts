@@ -2,6 +2,7 @@ import { z } from "zod";
 import { apiRequest, type QueryRequestOptions } from "@/lib/api-client";
 import { feedListSchema, type FeedItem } from "@/features/feed/types";
 import {
+  mediaTypeSchema,
   movieGenreSchema,
   publicTop4ResponseSchema,
   profileUpdateResponseSchema,
@@ -33,7 +34,7 @@ const userReviewSchema = z
     title: z.string(),
     posterPath: z.string().nullable(),
     releaseYear: z.number().int().nullable(),
-    mediaType: z.enum(["movie", "tv"]).default("movie"),
+    mediaType: mediaTypeSchema.default("movie"),
   })
   .passthrough();
 
@@ -47,7 +48,7 @@ const userInteractionMovieSchema = z
     releaseYear: z.number().int().nullable(),
     runtime: z.number().int().nullable(),
     genres: z.array(movieGenreSchema).nullish(),
-    mediaType: z.enum(["movie", "tv"]).default("movie"),
+    mediaType: mediaTypeSchema.default("movie"),
     lastInteractionAt: z.string(),
   })
   .passthrough();
@@ -136,7 +137,7 @@ const likedReviewSchema = z.object({
   containsSpoilers: z.boolean(),
   createdAt: z.string(),
   likedAt: z.string(),
-  mediaType: z.enum(["movie", "tv"]),
+  mediaType: mediaTypeSchema,
   reviewerUsername: z.string(),
   reviewerDisplayUsername: z.string().nullable().optional(),
   mediaTitle: z.string().nullable(),

@@ -1,4 +1,5 @@
 import { activities } from "../social.entity";
+import type { MediaType } from "../../media/constants/media-type.constant";
 
 export type ActivityType = typeof activities.$inferSelect["type"];
 
@@ -20,7 +21,7 @@ export type FeedActivityKind =
   | "liked_post"
   | "commented_post";
 
-export type FeedMediaType = "movie" | "tv";
+export type FeedMediaType = MediaType;
 
 export type FeedMovie = {
   tmdbId: number;
@@ -30,7 +31,7 @@ export type FeedMovie = {
   mediaType: FeedMediaType;
 };
 
-export type FeedPostMediaType = "movie" | "tv";
+export type FeedPostMediaType = MediaType;
 
 export type FeedPost = {
   id: string;

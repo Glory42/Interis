@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { mediaTypeSchema } from "@/types/api";
 
 export const feedActivityTypeSchema = z.enum([
   "diary_entry",
@@ -40,11 +41,11 @@ export const feedMovieSchema = z
     title: z.string(),
     posterPath: z.string().nullable(),
     releaseYear: z.number().int().nullable(),
-    mediaType: z.enum(["movie", "tv"]).default("movie"),
+    mediaType: mediaTypeSchema.default("movie"),
   })
   .nullable();
 
-export const feedPostMediaTypeSchema = z.enum(["movie", "tv"]);
+export const feedPostMediaTypeSchema = mediaTypeSchema;
 
 export const feedPostSchema = z
   .object({
@@ -71,7 +72,7 @@ export const feedMetadataSchema = z.object({
   rating: z.number().nullable(),
   rewatch: z.boolean().nullable(),
   hasReview: z.boolean().nullable().optional(),
-  mediaType: z.enum(["movie", "tv"]).nullable().optional(),
+  mediaType: mediaTypeSchema.nullable().optional(),
   containsSpoilers: z.boolean().nullable(),
   reviewId: z.string().nullable(),
   commentId: z.string().nullable(),

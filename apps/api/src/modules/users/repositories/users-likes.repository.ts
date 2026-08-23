@@ -5,6 +5,7 @@ import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
 import { reviews, reviewLikes } from "../../reviews/reviews.entity";
 import { lists, listLikes, listEntries } from "../../lists/lists.entity";
+import type { MediaType } from "../../media/constants/media-type.constant";
 
 export class UsersLikesRepository {
   static async getLikedReviews(userId: string, limit?: number, offset?: number) {
@@ -42,7 +43,7 @@ export class UsersLikesRepository {
       containsSpoilers: row.containsSpoilers,
       createdAt: row.createdAt.toISOString(),
       likedAt: row.likedAt.toISOString(),
-      mediaType: row.mediaType as "movie" | "tv",
+      mediaType: row.mediaType as MediaType,
       mediaSourceId: row.mediaSourceId,
       reviewerUsername: row.reviewerUsername,
       reviewerDisplayUsername: row.reviewerDisplayUsername,

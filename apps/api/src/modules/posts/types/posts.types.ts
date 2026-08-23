@@ -1,6 +1,8 @@
+import type { MediaType } from "../../media/constants/media-type.constant";
+
 export type PostFeedMetadata = {
   id: string;
   content: string;
   mediaId: number | null;
-  mediaType: "movie" | "tv" | null;
+  mediaType: MediaType | null;
 };

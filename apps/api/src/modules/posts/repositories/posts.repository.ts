@@ -3,13 +3,14 @@ import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { profiles } from "../../users/users.entity";
 import { postComments, postLikes, posts } from "../posts.entity";
+import type { MediaType } from "../../media/constants/media-type.constant";
 
 export class PostsRepository {
   static async insertPost(input: {
     userId: string;
     content: string;
     mediaId: number | null;
-    mediaType: "movie" | "tv" | null;
+    mediaType: MediaType | null;
   }) {
     const [post] = await db
       .insert(posts)

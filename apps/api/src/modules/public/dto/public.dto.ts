@@ -1,3 +1,5 @@
+import type { MediaType } from "../../media/constants/media-type.constant";
+
 export type PublicRecentQueryDto = {
   limit?: string;
 };
@@ -38,7 +40,7 @@ export type PublicProfileResponse = {
 
 export type PublicDiaryItem = {
   id: string;
-  mediaType: "movie" | "tv";
+  mediaType: MediaType;
   watchedDate: string;
   rating: number | null;
   rewatch: boolean;

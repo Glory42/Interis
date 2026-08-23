@@ -1,10 +1,11 @@
 import { MoviesService } from "../movies/movies.service";
 import { SerialsService } from "../serials/serials.service";
+import type { MediaType } from "../media/constants/media-type.constant";
 
 const MAX_RESULTS = 20;
 
 export type UnifiedSearchResult = {
-  mediaType: "movie" | "tv";
+  mediaType: MediaType;
   tmdbId: number;
   title: string;
   posterPath: string | null;

@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { MEDIA_TYPES } from "../../media/constants/media-type.constant";
 
 export const CreateReviewSchema = z.object({
   tmdbId: z.number().int().positive(),
-  mediaType: z.enum(["movie", "tv"]).default("movie"),
+  mediaType: z.enum(MEDIA_TYPES).default("movie"),
   content: z.string().min(1).max(10000),
   containsSpoilers: z.boolean().optional(),
   diaryEntryId: z.uuid().optional(),

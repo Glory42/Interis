@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { mediaTypeSchema } from "@/types/api";
 
 export const diaryItemSchema = z.object({
   id: z.string(),
-  mediaType: z.enum(["movie", "tv"]),
+  mediaType: mediaTypeSchema,
   watchedDate: z.string(),
   rating: z.number().nullable(),
   rewatch: z.boolean(),

@@ -1,3 +1,5 @@
+import type { MediaType } from "../../media/constants/media-type.constant";
+
 export const personRouteRoleValues = ["actor", "director"] as const;
 
 export type PersonRouteRole = (typeof personRouteRoleValues)[number];
@@ -15,7 +17,7 @@ export type PersonLinkItem = {
 };
 
 export type PersonCreditItem = {
-  mediaType: "movie" | "tv";
+  mediaType: MediaType;
   tmdbId: number;
   title: string;
   originalTitle: string | null;

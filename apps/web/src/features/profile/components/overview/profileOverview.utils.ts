@@ -1,10 +1,11 @@
 import type { UserRecentActivity } from "@/features/profile/api";
 import { formatRatingLabel } from "@/lib/rating";
+import type { MediaType } from "@/types/api";
 
 export type ProfileRecentActivityItem = {
   id: string;
   tmdbId: number;
-  mediaType: "movie" | "tv";
+  mediaType: MediaType;
   mediaTitle: string;
   posterPath: string | null;
   actionLabel: string;

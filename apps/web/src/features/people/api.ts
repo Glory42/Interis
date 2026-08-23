@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { apiRequest, type QueryRequestOptions } from "@/lib/api-client";
 import { personRouteRoleSchema } from "@/features/people/shared";
+import { mediaTypeSchema } from "@/types/api";
 
 const personImageSchema = z.object({
   filePath: z.string(),
@@ -11,7 +12,7 @@ const personImageSchema = z.object({
 });
 
 const personCreditItemSchema = z.object({
-  mediaType: z.enum(["movie", "tv"]),
+  mediaType: mediaTypeSchema,
   tmdbId: z.number().int().positive(),
   title: z.string(),
   originalTitle: z.string().nullable(),
