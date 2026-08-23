@@ -62,10 +62,15 @@ export class ReviewsRepository {
     return deleted ?? null;
   }
 
-  static async insertMovieReview(input: {
+  // The one write path for the reviews table - standalone movie reviews,
+  // TV reviews (SerialsReviewsRepository.upsertReview), and diary-linked
+  // movie reviews (DiaryRepository.upsertReview) all funnel through here.
+  // movieId is null for TV reviews, which have no row in the movies table.
+  static async upsertReview(input: {
     userId: string;
-    movieId: number;
-    movieTmdbId: number;
+    mediaType: "movie" | "tv";
+    tmdbId: number;
+    movieId: number | null;
     diaryEntryId: string | null;
     content: string;
     containsSpoilers: boolean;
@@ -74,9 +79,9 @@ export class ReviewsRepository {
       .insert(reviews)
       .values({
         userId: input.userId,
-        mediaType: "movie",
+        mediaType: input.mediaType,
         mediaSource: "tmdb",
-        mediaSourceId: String(input.movieTmdbId),
+        mediaSourceId: String(input.tmdbId),
         movieId: input.movieId,
         diaryEntryId: input.diaryEntryId,
         content: input.content,
