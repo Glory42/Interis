@@ -1,8 +1,9 @@
 import type { UserTopPickCategory } from "@/features/profile/api";
+import type { MediaType } from "@/types/api";
 
 export type TopPickSlot = {
   slot: number;
-  mediaType: "movie" | "tv";
+  mediaType: MediaType;
   mediaSource: "tmdb";
   mediaSourceId: string;
   tmdbId: number;
@@ -32,7 +33,7 @@ export const asTopPickSlot = (slot: TopPickSlot | null): slot is TopPickSlot =>
 
 export const resolveCategorySlots = (
   category: UserTopPickCategory | undefined,
-  mediaType: "movie" | "tv",
+  mediaType: MediaType,
 ): Array<TopPickSlot | null> => {
   if (!category) {
     return [null, null, null, null];

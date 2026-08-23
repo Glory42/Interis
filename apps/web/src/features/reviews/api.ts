@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { apiRequest, type QueryRequestOptions } from "@/lib/api-client";
-import { userSummarySchema } from "@/types/api";
+import { mediaTypeSchema, userSummarySchema } from "@/types/api";
 
-const reviewMediaTypeSchema = z.enum(["movie", "tv"]);
+const reviewMediaTypeSchema = mediaTypeSchema;
 
 const reviewCommentSchema = z
   .object({

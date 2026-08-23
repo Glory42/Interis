@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { apiRequest } from "@/lib/api-client";
 import type { QueryRequestOptions } from "@/features/films/api";
+import { mediaTypeSchema } from "@/types/api";
 
 export const unifiedSearchResultSchema = z.object({
-  mediaType: z.enum(["movie", "tv"]),
+  mediaType: mediaTypeSchema,
   tmdbId: z.number(),
   title: z.string(),
   posterPath: z.string().nullable(),

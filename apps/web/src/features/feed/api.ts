@@ -9,6 +9,7 @@ import {
   type NetworkStats,
   type TrendingMovie,
 } from "@/features/feed/types";
+import type { MediaType } from "@/types/api";
 
 const normalizeLimit = (limit: number, fallback: number): number => {
   if (!Number.isFinite(limit)) {
@@ -18,7 +19,7 @@ const normalizeLimit = (limit: number, fallback: number): number => {
   return Math.max(1, Math.min(Math.floor(limit), 300));
 };
 
-export type FeedMediaTypeFilter = "movie" | "tv";
+export type FeedMediaTypeFilter = MediaType;
 
 export const getFollowingFeed = async (
   limit = 20,

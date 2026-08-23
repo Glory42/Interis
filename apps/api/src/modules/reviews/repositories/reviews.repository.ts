@@ -6,6 +6,7 @@ import { tvSeries } from "../../serials/serials.entity";
 import { profiles } from "../../users/users.entity";
 import { comments, reviewLikes, reviews } from "../reviews.entity";
 import type { UpdateReviewDto } from "../dto/reviews.dto";
+import type { MediaType } from "../../media/constants/media-type.constant";
 
 export class ReviewsRepository {
   static async getLikeCounts(reviewIds: string[]) {
@@ -68,7 +69,7 @@ export class ReviewsRepository {
   // movieId is null for TV reviews, which have no row in the movies table.
   static async upsertReview(input: {
     userId: string;
-    mediaType: "movie" | "tv";
+    mediaType: MediaType;
     tmdbId: number;
     movieId: number | null;
     diaryEntryId: string | null;

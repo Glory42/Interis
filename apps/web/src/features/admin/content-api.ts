@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { apiRequest } from "@/lib/api-client";
-import { successResponseSchema as actionResponseSchema } from "@/types/api";
+import { mediaTypeSchema, successResponseSchema as actionResponseSchema } from "@/types/api";
 
 export type AdminContentFilters = { username?: string; movieId?: number };
 
@@ -70,7 +70,7 @@ const adminPostSchema = z.object({
   authorUsername: z.string(),
   content: z.string(),
   mediaId: z.number().nullable(),
-  mediaType: z.enum(["movie", "tv"]).nullable(),
+  mediaType: mediaTypeSchema.nullable(),
   createdAt: z.coerce.date(),
 });
 export type AdminPost = z.infer<typeof adminPostSchema>;

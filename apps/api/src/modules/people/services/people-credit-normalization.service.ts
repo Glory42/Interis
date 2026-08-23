@@ -5,6 +5,7 @@ import type {
 } from "../../../infrastructure/tmdb/people";
 import type { PersonCreditItem } from "../types/people.types";
 import { normalizeVoteAverage } from "../../media/helpers/media-vote-average.helper";
+import type { MediaType } from "../../media/constants/media-type.constant";
 import {
   toIsoDateOrNull,
   toNonNegativeIntOrNull,
@@ -12,7 +13,7 @@ import {
   toYearOrNull,
 } from "./people-text.utils";
 
-type CreditMediaType = "movie" | "tv";
+type CreditMediaType = MediaType;
 
 const MAX_COMBINED_CREDITS = 120;
 const MAX_MEDIA_CREDITS = 100;
