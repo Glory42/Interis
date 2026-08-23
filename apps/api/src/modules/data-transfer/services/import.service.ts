@@ -2,7 +2,7 @@ import { MoviesService } from "../../movies/movies.service";
 import { SerialsService } from "../../serials/serials.service";
 import { DiaryRepository } from "../../diary/repositories/diary.repository";
 import { SerialsInteractionsRepository } from "../../serials/repositories/serials-interactions.repository";
-import { InteractionsService } from "../../interactions/interactions.service";
+import { MediaInteractions } from "../../media-interactions/media-interactions.repository";
 import { parseCsv, getCsvHeaders } from "../helpers/csv-parser";
 import {
   type ImportStreamEvent,
@@ -20,6 +20,9 @@ import {
 } from "../helpers/import-normalizer.helper";
 
 export type { ImportStreamEvent };
+
+const movieInteractionStore = MediaInteractions.forMovie();
+const seriesInteractionStore = MediaInteractions.forSeries();
 
 export class DataImportService {
   static async importCsvStreaming(
@@ -83,6 +86,15 @@ export class DataImportService {
         return;
       }
 
+      // Resolved once per row instead of branching at every interaction-state
+      // call site below (see issue #50).
+      const interactionStore =
+        resolved.mediaType === "series" ? seriesInteractionStore : movieInteractionStore;
+      const findOrCreateMedia = () =>
+        resolved.mediaType === "series"
+          ? SerialsService.findOrCreate(resolved.tmdbId)
+          : MoviesService.findOrCreate(resolved.tmdbId);
+
       // --- Ratings path ---
       if (format === "letterboxd-ratings") {
         const ratingOutOfTen = toRatingOutOfTen(normalized.rating);
@@ -93,25 +105,14 @@ export class DataImportService {
         }
 
         try {
-          if (resolved.mediaType === "series") {
-            const series = await SerialsService.findOrCreate(resolved.tmdbId);
-            const already = await SerialsInteractionsRepository.hasRating(userId, series.id);
-            if (already) {
-              skipped++;
-              write({ type: "row", title: normalized.title, year: normalized.year, status: "skipped", reason: "Rating already set." });
-              return;
-            }
-            await SerialsInteractionsRepository.setRating(userId, series.id, ratingOutOfTen);
-          } else {
-            const movie = await MoviesService.findOrCreate(resolved.tmdbId);
-            const already = await InteractionsService.hasRating(userId, movie.id);
-            if (already) {
-              skipped++;
-              write({ type: "row", title: normalized.title, year: normalized.year, status: "skipped", reason: "Rating already set." });
-              return;
-            }
-            await InteractionsService.setRating(userId, movie.id, ratingOutOfTen);
+          const media = await findOrCreateMedia();
+          const already = await interactionStore.hasRating(userId, media.id);
+          if (already) {
+            skipped++;
+            write({ type: "row", title: normalized.title, year: normalized.year, status: "skipped", reason: "Rating already set." });
+            return;
           }
+          await interactionStore.setRating(userId, media.id, ratingOutOfTen);
           imported++;
           write({ type: "row", title: normalized.title, year: normalized.year, status: "imported" });
         } catch {
@@ -124,13 +125,8 @@ export class DataImportService {
       // --- Watchlist path ---
       if (format === "letterboxd-watchlist") {
         try {
-          if (resolved.mediaType === "series") {
-            const series = await SerialsService.findOrCreate(resolved.tmdbId);
-            await SerialsInteractionsRepository.setWatchlisted(userId, series.id);
-          } else {
-            const movie = await MoviesService.findOrCreate(resolved.tmdbId);
-            await InteractionsService.setWatchlisted(userId, movie.id);
-          }
+          const media = await findOrCreateMedia();
+          await interactionStore.setWatchlisted(userId, media.id);
           imported++;
           write({ type: "row", title: normalized.title, year: normalized.year, status: "imported" });
         } catch {
@@ -179,7 +175,7 @@ export class DataImportService {
 
         if (seriesRating) {
           try {
-            await SerialsInteractionsRepository.setRating(userId, series.id, seriesRating);
+            await interactionStore.setRating(userId, series.id, seriesRating);
           } catch {
             // non-fatal
           }
@@ -241,7 +237,7 @@ export class DataImportService {
       const ratingOutOfTen = toRatingOutOfTen(normalized.rating);
       if (ratingOutOfTen) {
         try {
-          await InteractionsService.setRating(userId, movie.id, ratingOutOfTen);
+          await interactionStore.setRating(userId, movie.id, ratingOutOfTen);
         } catch {
           // non-fatal
         }
