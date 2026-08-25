@@ -65,20 +65,20 @@ export const BooksArchiveQuerySchema = z.object({
 
 export const CreateBookLogSchema = z.object({
   readDate: isoDateSchema,
-  ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).optional(),
+  rating: z.number().min(0.5).max(10).multipleOf(0.5).optional(),
   reread: z.boolean().optional(),
 });
 
 export const UpdateBookLogSchema = z.object({
   readDate: isoDateSchema.optional(),
-  ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+  rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
   reread: z.boolean().optional(),
 });
 
 export const UpdateBookInteractionSchema = z.object({
   liked: z.boolean().optional(),
   wantToRead: z.boolean().optional(),
-  ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+  rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
 });
 
 export type CreateBookLogDto = z.infer<typeof CreateBookLogSchema>;

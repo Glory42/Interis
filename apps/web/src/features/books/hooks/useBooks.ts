@@ -74,7 +74,7 @@ export const useUpdateBookInteraction = (volumeId: string) => {
           ...previousState,
           ...(input.liked !== undefined ? { liked: input.liked } : {}),
           ...(input.wantToRead !== undefined ? { wantToRead: input.wantToRead } : {}),
-          ...(input.ratingOutOfFive !== undefined ? { ratingOutOfFive: input.ratingOutOfFive } : {}),
+          ...(input.rating !== undefined ? { rating: input.rating } : {}),
         });
       }
       return { previousState };

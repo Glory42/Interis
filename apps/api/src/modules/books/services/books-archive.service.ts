@@ -32,8 +32,7 @@ export class BooksArchiveService {
       language: r.language,
       categories: (r.categories ?? []) as string[],
       logCount: r.logCount,
-      avgRatingOutOfFive:
-        r.avgRatingOutOfTen !== null ? Math.round((r.avgRatingOutOfTen / 2) * 10) / 10 : null,
+      avgRating: r.avgRatingOutOfTen !== null ? Math.round(r.avgRatingOutOfTen * 10) / 10 : null,
       viewerHasLogged: loggedSet.has(r.googleVolumeId),
       viewerWantToRead: wantToReadSet.has(r.googleVolumeId),
     }));

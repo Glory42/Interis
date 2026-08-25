@@ -85,8 +85,7 @@ export class BooksDetailService {
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
       readDate: null,
-      ratingOutOfTen: null,
-      ratingOutOfFive: null,
+      rating: null,
       likeCount: likeCountMap.get(r.id) ?? 0,
       viewerHasLiked: viewerLikedSet.has(r.id),
       author: {
@@ -107,8 +106,7 @@ export class BooksDetailService {
           diaryEntryId: viewerLogRow.id,
           readDate: viewerLogRow.readDate,
           reread: viewerLogRow.reread,
-          ratingOutOfTen: viewerLogRow.rating,
-          ratingOutOfFive: viewerLogRow.rating !== null ? viewerLogRow.rating / 2 : null,
+          rating: viewerLogRow.rating,
         }
       : null;
 
@@ -116,9 +114,7 @@ export class BooksDetailService {
       ? {
           liked: viewerInteractionRow.liked,
           wantToRead: viewerInteractionRow.wantToRead,
-          ratingOutOfTen: viewerInteractionRow.rating,
-          ratingOutOfFive:
-            viewerInteractionRow.rating !== null ? viewerInteractionRow.rating / 2 : null,
+          rating: viewerInteractionRow.rating,
         }
       : null;
 

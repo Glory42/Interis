@@ -33,8 +33,7 @@ export class MusicArchiveService {
       firstReleaseYear: r.firstReleaseYear,
       genres: (r.genres ?? []) as { name: string; count: number }[],
       logCount: r.logCount,
-      avgRatingOutOfFive:
-        r.avgRatingOutOfTen !== null ? Math.round((r.avgRatingOutOfTen / 2) * 10) / 10 : null,
+      avgRating: r.avgRatingOutOfTen !== null ? Math.round(r.avgRatingOutOfTen * 10) / 10 : null,
       viewerHasLogged: loggedSet.has(r.mbid),
       viewerWantToListen: wantToListenSet.has(r.mbid),
     }));

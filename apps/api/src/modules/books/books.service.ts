@@ -14,8 +14,6 @@ import { BooksArchiveService } from "./services/books-archive.service";
 import { BooksDetailService } from "./services/books-detail.service";
 import { BooksInteractionsRepository } from "./repositories/books-interactions.repository";
 
-const RATING_FACTOR = 2;
-
 export class BooksService {
   static async search(query: string, language?: string): Promise<GoogleBooksVolume[]> {
     const q = language ? `${query} langRestrict=${language}` : query;
@@ -46,35 +44,28 @@ export class BooksService {
     const book = await BooksCacheService.findOrCreate(volumeId);
     if (!book) return null;
     const row = await BooksInteractionsRepository.getInteraction(userId, book.id);
-    if (!row) return { liked: false, wantToRead: false, ratingOutOfTen: null, ratingOutOfFive: null };
+    if (!row) return { liked: false, wantToRead: false, rating: null };
     return {
       liked: row.liked,
       wantToRead: row.wantToRead,
-      ratingOutOfTen: row.rating,
-      ratingOutOfFive: row.rating !== null ? row.rating / RATING_FACTOR : null,
+      rating: row.rating,
     };
   }
 
   static async updateInteraction(userId: string, volumeId: string, input: UpdateBookInteractionDto) {
     const book = await BooksCacheService.findOrCreate(volumeId);
     if (!book) return null;
-    const ratingOutOfTen =
-      input.ratingOutOfFive !== undefined
-        ? input.ratingOutOfFive === null ? null : Math.round(input.ratingOutOfFive * RATING_FACTOR)
-        : undefined;
     return BooksInteractionsRepository.upsertInteraction(userId, book.id, {
       liked: input.liked,
       wantToRead: input.wantToRead,
-      rating: ratingOutOfTen,
+      rating: input.rating,
     });
   }
 
   static async createLog(userId: string, volumeId: string, input: CreateBookLogDto) {
     const book = await BooksCacheService.findOrCreate(volumeId);
     if (!book) return null;
-    const rating = input.ratingOutOfFive !== undefined
-      ? Math.round(input.ratingOutOfFive * RATING_FACTOR)
-      : null;
+    const rating = input.rating ?? null;
     const entry = await BooksInteractionsRepository.createLog(userId, book.id, {
       readDate: input.readDate,
       rating,
@@ -106,13 +97,9 @@ export class BooksService {
   }
 
   static async updateLog(id: string, userId: string, input: UpdateBookLogDto) {
-    const ratingOutOfTen =
-      input.ratingOutOfFive !== undefined
-        ? input.ratingOutOfFive === null ? null : Math.round(input.ratingOutOfFive * RATING_FACTOR)
-        : undefined;
     return BooksInteractionsRepository.updateLog(id, userId, {
       readDate: input.readDate,
-      rating: ratingOutOfTen,
+      rating: input.rating,
       reread: input.reread,
     });
   }

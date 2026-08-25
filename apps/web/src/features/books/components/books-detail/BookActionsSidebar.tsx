@@ -2,14 +2,13 @@ import { Link } from "@tanstack/react-router";
 import { BookOpen, Check, Heart, Plus } from "lucide-react";
 import type { BookDetailResponse } from "@/features/books/api";
 import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
-import { formatRatingOutOfFiveLabel } from "@/lib/rating-five-point";
 import { BOOK_MODULE_STYLES } from "@/features/books/components/books-detail/styles";
 
 type BookActionsSidebarProps = {
   detail: BookDetailResponse;
-  currentRatingOutOfFive: number | null;
+  currentRating: number | null;
   isRatingSaving: boolean;
-  onRatingChange: (ratingOutOfFive: number | null) => void;
+  onRatingChange: (rating: number | null) => void;
   isAuthenticated: boolean;
   wantToRead: boolean;
   liked: boolean;
@@ -21,7 +20,7 @@ type BookActionsSidebarProps = {
 
 export const BookActionsSidebar = ({
   detail,
-  currentRatingOutOfFive,
+  currentRating,
   isRatingSaving,
   onRatingChange,
   isAuthenticated,
@@ -33,7 +32,6 @@ export const BookActionsSidebar = ({
   onOpenLog,
 }: BookActionsSidebarProps) => {
   const book = detail.book;
-  const ratingLabel = formatRatingOutOfFiveLabel(currentRatingOutOfFive) ?? "No rating yet";
 
   return (
     <aside>
@@ -171,7 +169,7 @@ export const BookActionsSidebar = ({
           </p>
           {isAuthenticated ? (
             <SpaceRatingInput
-              value={currentRatingOutOfFive}
+              value={currentRating}
               onChange={onRatingChange}
               disabled={isRatingSaving}
             />
@@ -185,12 +183,6 @@ export const BookActionsSidebar = ({
               Sign in to rate
             </Link>
           )}
-          <p
-            className="mt-2 font-mono text-[10px]"
-            style={{ color: BOOK_MODULE_STYLES.muted }}
-          >
-            {isRatingSaving ? "Saving..." : ratingLabel}
-          </p>
         </div>
       </div>
     </aside>

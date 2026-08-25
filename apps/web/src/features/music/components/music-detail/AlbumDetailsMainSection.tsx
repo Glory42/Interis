@@ -9,8 +9,8 @@ export const AlbumDetailsMainSection = ({ detail }: AlbumDetailsMainSectionProps
   const album = detail.album;
 
   const communityRatingLabel =
-    detail.userLog?.ratingOutOfFive !== null && detail.userLog?.ratingOutOfFive !== undefined
-      ? detail.userLog.ratingOutOfFive.toFixed(1)
+    detail.userLog?.rating !== null && detail.userLog?.rating !== undefined
+      ? detail.userLog.rating.toFixed(1)
       : "--";
 
   const allGenres = [...(album.genres ?? [])].slice(0, 5);

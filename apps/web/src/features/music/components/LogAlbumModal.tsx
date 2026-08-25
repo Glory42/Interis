@@ -4,7 +4,6 @@ import { CalendarDays, Music, Rocket, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
-import { formatRatingOutOfFiveLabel } from "@/lib/rating-five-point";
 import { isApiError } from "@/lib/api-client";
 import { useCreateMusicLog } from "@/features/music/hooks/useMusic";
 import { MUSIC_MODULE_STYLES } from "./music-detail/styles";
@@ -31,7 +30,7 @@ export const LogAlbumModal = ({
   const createLogMutation = useCreateMusicLog(mbid);
 
   const [listenedDate, setListenedDate] = useState(todayAsDateInput);
-  const [ratingOutOfFive, setRatingOutOfFive] = useState<number | null>(null);
+  const [rating, setRating] = useState<number | null>(null);
   const [relisten, setRelisten] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -42,7 +41,7 @@ export const LogAlbumModal = ({
     setPrevIsOpen(isOpen);
     if (isOpen) {
       setListenedDate(todayAsDateInput());
-      setRatingOutOfFive(null);
+      setRating(null);
       setRelisten(false);
       setFormError(null);
     }
@@ -64,7 +63,7 @@ export const LogAlbumModal = ({
     try {
       await createLogMutation.mutateAsync({
         listenedDate,
-        ...(ratingOutOfFive !== null ? { ratingOutOfFive } : {}),
+        ...(rating !== null ? { rating } : {}),
         relisten,
       });
       onClose();
@@ -147,12 +146,7 @@ export const LogAlbumModal = ({
                       <span>Rating</span>
                     </span>
                   </label>
-                  <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-                    <SpaceRatingInput value={ratingOutOfFive} onChange={setRatingOutOfFive} />
-                    <div className="border border-border/70 bg-secondary/35 px-2.5 py-1 text-xs font-semibold text-foreground">
-                      {formatRatingOutOfFiveLabel(ratingOutOfFive) ?? "Unrated"}
-                    </div>
-                  </div>
+                  <SpaceRatingInput value={rating} onChange={setRating} />
                 </section>
 
                 <label className="flex cursor-pointer items-center gap-3 border border-border/70 bg-secondary/20 p-2.5 transition-colors hover:border-border sm:p-3">

@@ -14,8 +14,6 @@ import { MusicDetailService } from "./services/music-detail.service";
 import { MusicInteractionsRepository } from "./repositories/music-interactions.repository";
 import type { NormalizedMusicArchiveQuery } from "./dto/music.dto";
 
-const RATING_FACTOR = 2;
-
 export class MusicService {
   static async search(query: string): Promise<IReleaseGroup[]> {
     return searchAlbums(query);
@@ -45,35 +43,28 @@ export class MusicService {
     const album = await MusicCacheService.findOrCreate(mbid);
     if (!album) return null;
     const row = await MusicInteractionsRepository.getInteraction(userId, album.id);
-    if (!row) return { liked: false, wantToListen: false, ratingOutOfTen: null, ratingOutOfFive: null };
+    if (!row) return { liked: false, wantToListen: false, rating: null };
     return {
       liked: row.liked,
       wantToListen: row.wantToListen,
-      ratingOutOfTen: row.rating,
-      ratingOutOfFive: row.rating !== null ? row.rating / RATING_FACTOR : null,
+      rating: row.rating,
     };
   }
 
   static async updateInteraction(userId: string, mbid: string, input: UpdateMusicInteractionDto) {
     const album = await MusicCacheService.findOrCreate(mbid);
     if (!album) return null;
-    const ratingOutOfTen =
-      input.ratingOutOfFive !== undefined
-        ? input.ratingOutOfFive === null ? null : Math.round(input.ratingOutOfFive * RATING_FACTOR)
-        : undefined;
     return MusicInteractionsRepository.upsertInteraction(userId, album.id, {
       liked: input.liked,
       wantToListen: input.wantToListen,
-      rating: ratingOutOfTen,
+      rating: input.rating,
     });
   }
 
   static async createLog(userId: string, mbid: string, input: CreateMusicLogDto) {
     const album = await MusicCacheService.findOrCreate(mbid);
     if (!album) return null;
-    const rating = input.ratingOutOfFive !== undefined
-      ? Math.round(input.ratingOutOfFive * RATING_FACTOR)
-      : null;
+    const rating = input.rating ?? null;
     const entry = await MusicInteractionsRepository.createLog(userId, album.id, {
       listenedDate: input.listenedDate,
       rating,
@@ -105,13 +96,9 @@ export class MusicService {
   }
 
   static async updateLog(id: string, userId: string, input: UpdateMusicLogDto) {
-    const ratingOutOfTen =
-      input.ratingOutOfFive !== undefined
-        ? input.ratingOutOfFive === null ? null : Math.round(input.ratingOutOfFive * RATING_FACTOR)
-        : undefined;
     return MusicInteractionsRepository.updateLog(id, userId, {
       listenedDate: input.listenedDate,
-      rating: ratingOutOfTen,
+      rating: input.rating,
       relisten: input.relisten,
     });
   }

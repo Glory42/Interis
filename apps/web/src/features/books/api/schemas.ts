@@ -50,7 +50,7 @@ export const booksArchiveItemSchema = z.object({
   language: z.string().nullable(),
   categories: z.array(z.string()),
   logCount: z.number().int(),
-  avgRatingOutOfFive: z.number().nullable(),
+  avgRating: z.number().nullable(),
   viewerHasLogged: z.boolean(),
   viewerWantToRead: z.boolean(),
 });
@@ -76,8 +76,7 @@ export const bookDetailReviewItemSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   readDate: z.string().nullable(),
-  ratingOutOfTen: z.number().nullable(),
-  ratingOutOfFive: z.number().nullable(),
+  rating: z.number().nullable(),
   likeCount: z.number().int(),
   viewerHasLiked: z.boolean(),
   author: z.object({
@@ -97,14 +96,12 @@ export const bookDetailResponseSchema = z.object({
     diaryEntryId: z.string().nullable(),
     readDate: z.string().nullable(),
     reread: z.boolean(),
-    ratingOutOfTen: z.number().nullable(),
-    ratingOutOfFive: z.number().nullable(),
+    rating: z.number().nullable(),
   }).nullable(),
   interaction: z.object({
     liked: z.boolean(),
     wantToRead: z.boolean(),
-    ratingOutOfTen: z.number().nullable(),
-    ratingOutOfFive: z.number().nullable(),
+    rating: z.number().nullable(),
   }).nullable(),
   reviewsSort: z.string(),
   reviews: z.array(bookDetailReviewItemSchema),
@@ -113,14 +110,13 @@ export const bookDetailResponseSchema = z.object({
 export const bookInteractionSchema = z.object({
   liked: z.boolean(),
   wantToRead: z.boolean(),
-  ratingOutOfTen: z.number().nullable(),
-  ratingOutOfFive: z.number().nullable(),
+  rating: z.number().nullable(),
 });
 
 export const bookLogItemSchema = z.object({
   diaryEntryId: z.string(),
   readDate: z.string(),
-  rating: z.number().int().nullable(),
+  rating: z.number().nullable(),
   reread: z.boolean(),
   createdAt: z.string(),
   username: z.string(),
@@ -136,7 +132,7 @@ export const bookLogsListSchema = z.array(bookLogItemSchema);
 export const myBookLogSchema = z.object({
   id: z.string(),
   readDate: z.string(),
-  rating: z.number().int().nullable(),
+  rating: z.number().nullable(),
   reread: z.boolean(),
   bookId: z.number().int(),
   createdAt: z.string(),
@@ -154,18 +150,18 @@ export const myBookLogsListSchema = z.array(myBookLogSchema);
 
 export const updateBookLogInputSchema = z.object({
   readDate: z.string().optional(),
-  ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+  rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
   reread: z.boolean().optional(),
 });
 
 export const createBookLogInputSchema = z.object({
   readDate: z.string(),
-  ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).optional(),
+  rating: z.number().min(0.5).max(10).multipleOf(0.5).optional(),
   reread: z.boolean().optional(),
 });
 
 export const updateBookInteractionInputSchema = z.object({
   liked: z.boolean().optional(),
   wantToRead: z.boolean().optional(),
-  ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+  rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
 });

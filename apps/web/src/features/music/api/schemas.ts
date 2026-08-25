@@ -40,7 +40,7 @@ export const musicArchiveItemSchema = z.object({
   firstReleaseYear: z.number().int().nullable(),
   genres: z.array(z.object({ name: z.string(), count: z.number().int() })),
   logCount: z.number().int(),
-  avgRatingOutOfFive: z.number().nullable(),
+  avgRating: z.number().nullable(),
   viewerHasLogged: z.boolean(),
   viewerWantToListen: z.boolean(),
 });
@@ -65,8 +65,7 @@ export const musicDetailReviewItemSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   listenedDate: z.string().nullable(),
-  ratingOutOfTen: z.number().nullable(),
-  ratingOutOfFive: z.number().nullable(),
+  rating: z.number().nullable(),
   likeCount: z.number().int(),
   viewerHasLiked: z.boolean(),
   author: z.object({
@@ -86,14 +85,12 @@ export const musicDetailResponseSchema = z.object({
     diaryEntryId: z.string().nullable(),
     listenedDate: z.string().nullable(),
     relisten: z.boolean(),
-    ratingOutOfTen: z.number().nullable(),
-    ratingOutOfFive: z.number().nullable(),
+    rating: z.number().nullable(),
   }).nullable(),
   interaction: z.object({
     liked: z.boolean(),
     wantToListen: z.boolean(),
-    ratingOutOfTen: z.number().nullable(),
-    ratingOutOfFive: z.number().nullable(),
+    rating: z.number().nullable(),
   }).nullable(),
   reviewsSort: z.string(),
   reviews: z.array(musicDetailReviewItemSchema),
@@ -102,14 +99,13 @@ export const musicDetailResponseSchema = z.object({
 export const musicInteractionSchema = z.object({
   liked: z.boolean(),
   wantToListen: z.boolean(),
-  ratingOutOfTen: z.number().nullable(),
-  ratingOutOfFive: z.number().nullable(),
+  rating: z.number().nullable(),
 });
 
 export const musicLogItemSchema = z.object({
   diaryEntryId: z.string(),
   listenedDate: z.string(),
-  rating: z.number().int().nullable(),
+  rating: z.number().nullable(),
   relisten: z.boolean(),
   createdAt: z.string(),
   username: z.string(),
@@ -125,7 +121,7 @@ export const musicLogsListSchema = z.array(musicLogItemSchema);
 export const myMusicLogSchema = z.object({
   id: z.string(),
   listenedDate: z.string(),
-  rating: z.number().int().nullable(),
+  rating: z.number().nullable(),
   relisten: z.boolean(),
   albumId: z.number().int(),
   createdAt: z.string(),
@@ -143,18 +139,18 @@ export const myMusicLogsListSchema = z.array(myMusicLogSchema);
 
 export const updateMusicLogInputSchema = z.object({
   listenedDate: z.string().optional(),
-  ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+  rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
   relisten: z.boolean().optional(),
 });
 
 export const createMusicLogInputSchema = z.object({
   listenedDate: z.string(),
-  ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).optional(),
+  rating: z.number().min(0.5).max(10).multipleOf(0.5).optional(),
   relisten: z.boolean().optional(),
 });
 
 export const updateMusicInteractionInputSchema = z.object({
   liked: z.boolean().optional(),
   wantToListen: z.boolean().optional(),
-  ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+  rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
 });

@@ -2,14 +2,13 @@ import { Link } from "@tanstack/react-router";
 import { Check, Heart, Music, Plus } from "lucide-react";
 import type { MusicDetailResponse } from "@/features/music/api";
 import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
-import { formatRatingOutOfFiveLabel } from "@/lib/rating-five-point";
 import { MUSIC_MODULE_STYLES } from "@/features/music/components/music-detail/styles";
 
 type AlbumActionsSidebarProps = {
   detail: MusicDetailResponse;
-  currentRatingOutOfFive: number | null;
+  currentRating: number | null;
   isRatingSaving: boolean;
-  onRatingChange: (ratingOutOfFive: number | null) => void;
+  onRatingChange: (rating: number | null) => void;
   isAuthenticated: boolean;
   wantToListen: boolean;
   liked: boolean;
@@ -21,7 +20,7 @@ type AlbumActionsSidebarProps = {
 
 export const AlbumActionsSidebar = ({
   detail,
-  currentRatingOutOfFive,
+  currentRating,
   isRatingSaving,
   onRatingChange,
   isAuthenticated,
@@ -33,7 +32,6 @@ export const AlbumActionsSidebar = ({
   onOpenLog,
 }: AlbumActionsSidebarProps) => {
   const album = detail.album;
-  const ratingLabel = formatRatingOutOfFiveLabel(currentRatingOutOfFive) ?? "No rating yet";
 
   return (
     <aside>
@@ -171,7 +169,7 @@ export const AlbumActionsSidebar = ({
           </p>
           {isAuthenticated ? (
             <SpaceRatingInput
-              value={currentRatingOutOfFive}
+              value={currentRating}
               onChange={onRatingChange}
               disabled={isRatingSaving}
             />
@@ -185,12 +183,6 @@ export const AlbumActionsSidebar = ({
               Sign in to rate
             </Link>
           )}
-          <p
-            className="mt-2 font-mono text-[10px]"
-            style={{ color: MUSIC_MODULE_STYLES.muted }}
-          >
-            {isRatingSaving ? "Saving..." : ratingLabel}
-          </p>
         </div>
       </div>
     </aside>

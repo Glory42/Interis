@@ -26,7 +26,7 @@ export type MusicArchiveItem = {
   firstReleaseYear: number | null;
   genres: AlbumGenreTag[];
   logCount: number;
-  avgRatingOutOfFive: number | null;
+  avgRating: number | null;
   viewerHasLogged: boolean;
   viewerWantToListen: boolean;
 };
@@ -63,16 +63,14 @@ export type MusicLogItem = {
 export type MusicInteraction = {
   liked: boolean;
   wantToListen: boolean;
-  ratingOutOfTen: number | null;
-  ratingOutOfFive: number | null;
+  rating: number | null;
 };
 
 export type MusicDetailUserLog = {
   diaryEntryId: string | null;
   listenedDate: string | null;
   relisten: boolean;
-  ratingOutOfTen: number | null;
-  ratingOutOfFive: number | null;
+  rating: number | null;
 };
 
 export type MusicDetailReviewItem = {
@@ -82,8 +80,7 @@ export type MusicDetailReviewItem = {
   createdAt: Date;
   updatedAt: Date;
   listenedDate: string | null;
-  ratingOutOfTen: number | null;
-  ratingOutOfFive: number | null;
+  rating: number | null;
   likeCount: number;
   viewerHasLiked: boolean;
   author: {

@@ -27,7 +27,7 @@ export type BooksArchiveItem = {
   language: string | null;
   categories: string[];
   logCount: number;
-  avgRatingOutOfFive: number | null;
+  avgRating: number | null;
   viewerHasLogged: boolean;
   viewerWantToRead: boolean;
 };
@@ -66,16 +66,14 @@ export type BookLogItem = {
 export type BookInteraction = {
   liked: boolean;
   wantToRead: boolean;
-  ratingOutOfTen: number | null;
-  ratingOutOfFive: number | null;
+  rating: number | null;
 };
 
 export type BookDetailUserLog = {
   diaryEntryId: string | null;
   readDate: string | null;
   reread: boolean;
-  ratingOutOfTen: number | null;
-  ratingOutOfFive: number | null;
+  rating: number | null;
 };
 
 export type BookDetailReviewItem = {
@@ -85,8 +83,7 @@ export type BookDetailReviewItem = {
   createdAt: Date;
   updatedAt: Date;
   readDate: string | null;
-  ratingOutOfTen: number | null;
-  ratingOutOfFive: number | null;
+  rating: number | null;
   likeCount: number;
   viewerHasLiked: boolean;
   author: {

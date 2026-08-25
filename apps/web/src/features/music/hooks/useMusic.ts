@@ -74,7 +74,7 @@ export const useUpdateMusicInteraction = (mbid: string) => {
           ...previousState,
           ...(input.liked !== undefined ? { liked: input.liked } : {}),
           ...(input.wantToListen !== undefined ? { wantToListen: input.wantToListen } : {}),
-          ...(input.ratingOutOfFive !== undefined ? { ratingOutOfFive: input.ratingOutOfFive } : {}),
+          ...(input.rating !== undefined ? { rating: input.rating } : {}),
         });
       }
       return { previousState };

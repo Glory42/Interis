@@ -66,7 +66,7 @@ export const GridAlbumCard = ({ album }: GridAlbumCardProps) => {
           </div>
         ) : null}
 
-        {album.avgRatingOutOfFive !== null ? (
+        {album.avgRating !== null ? (
           <div className="absolute bottom-2 right-2">
             <span
               className="border px-2 py-0.5 font-mono text-[9px]"
@@ -76,7 +76,7 @@ export const GridAlbumCard = ({ album }: GridAlbumCardProps) => {
                 background: MUSIC_MODULE_STYLES.badge,
               }}
             >
-              {album.avgRatingOutOfFive.toFixed(1)}
+              {album.avgRating.toFixed(1)}
             </span>
           </div>
         ) : null}

@@ -85,8 +85,7 @@ export class MusicDetailService {
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
       listenedDate: null,
-      ratingOutOfTen: null,
-      ratingOutOfFive: null,
+      rating: null,
       likeCount: likeCountMap.get(r.id) ?? 0,
       viewerHasLiked: viewerLikedSet.has(r.id),
       author: {
@@ -107,8 +106,7 @@ export class MusicDetailService {
           diaryEntryId: viewerLogRow.id,
           listenedDate: viewerLogRow.listenedDate,
           relisten: viewerLogRow.relisten,
-          ratingOutOfTen: viewerLogRow.rating,
-          ratingOutOfFive: viewerLogRow.rating !== null ? viewerLogRow.rating / 2 : null,
+          rating: viewerLogRow.rating,
         }
       : null;
 
@@ -116,9 +114,7 @@ export class MusicDetailService {
       ? {
           liked: viewerInteractionRow.liked,
           wantToListen: viewerInteractionRow.wantToListen,
-          ratingOutOfTen: viewerInteractionRow.rating,
-          ratingOutOfFive:
-            viewerInteractionRow.rating !== null ? viewerInteractionRow.rating / 2 : null,
+          rating: viewerInteractionRow.rating,
         }
       : null;
 

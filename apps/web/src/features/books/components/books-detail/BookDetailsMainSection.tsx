@@ -18,8 +18,8 @@ export const BookDetailsMainSection = ({ detail }: BookDetailsMainSectionProps) 
   const book = detail.book;
 
   const communityRatingLabel =
-    detail.userLog?.ratingOutOfFive !== null && detail.userLog?.ratingOutOfFive !== undefined
-      ? detail.userLog.ratingOutOfFive.toFixed(1)
+    detail.userLog?.rating !== null && detail.userLog?.rating !== undefined
+      ? detail.userLog.rating.toFixed(1)
       : "--";
 
   const authorsLine = book.authors.join(", ");

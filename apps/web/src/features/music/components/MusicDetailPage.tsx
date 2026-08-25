@@ -76,9 +76,8 @@ export const MusicDetailPage = ({ mbid }: MusicDetailPageProps) => {
 
   const wantToListen = interactionQuery.data?.wantToListen ?? false;
   const liked = interactionQuery.data?.liked ?? false;
-  const interactionRatingOutOfFive = interactionQuery.data?.ratingOutOfFive ?? null;
-  const currentRatingOutOfFive =
-    interactionRatingOutOfFive ?? detail.userLog?.ratingOutOfFive ?? null;
+  const interactionRating = interactionQuery.data?.rating ?? null;
+  const currentRating = interactionRating ?? detail.userLog?.rating ?? null;
   const isInteractionBusy =
     interactionQuery.isPending || updateInteractionMutation.isPending;
 
@@ -90,11 +89,11 @@ export const MusicDetailPage = ({ mbid }: MusicDetailPageProps) => {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-[220px_1fr]">
           <AlbumActionsSidebar
             detail={detail}
-            currentRatingOutOfFive={currentRatingOutOfFive}
+            currentRating={currentRating}
             isRatingSaving={updateInteractionMutation.isPending}
             onRatingChange={(nextRating) => {
-              if (!user || nextRating === currentRatingOutOfFive) return;
-              void updateInteractionMutation.mutateAsync({ ratingOutOfFive: nextRating });
+              if (!user || nextRating === currentRating) return;
+              void updateInteractionMutation.mutateAsync({ rating: nextRating });
             }}
             isAuthenticated={Boolean(user)}
             wantToListen={wantToListen}

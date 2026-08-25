@@ -20,7 +20,7 @@ export const AlbumReviewCard = ({ review }: AlbumReviewCardProps) => {
         <span className="font-mono text-[10px]" style={{ color: MUSIC_MODULE_STYLES.accent }}>
           {authorName}
         </span>
-        {review.ratingOutOfFive !== null ? (
+        {review.rating !== null ? (
           <span
             className="border px-2 py-0.5 font-mono text-[9px]"
             style={{
@@ -28,7 +28,7 @@ export const AlbumReviewCard = ({ review }: AlbumReviewCardProps) => {
               color: MUSIC_MODULE_STYLES.faint,
             }}
           >
-            {review.ratingOutOfFive.toFixed(1)} / 5
+            {review.rating.toFixed(1)} / 10
           </span>
         ) : null}
         {review.containsSpoilers ? (

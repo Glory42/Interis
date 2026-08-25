@@ -67,7 +67,7 @@ export const GridBookCard = ({ book }: GridBookCardProps) => {
           </div>
         ) : null}
 
-        {book.avgRatingOutOfFive !== null ? (
+        {book.avgRating !== null ? (
           <div className="absolute bottom-2 right-2">
             <span
               className="border px-2 py-0.5 font-mono text-[9px]"
@@ -77,7 +77,7 @@ export const GridBookCard = ({ book }: GridBookCardProps) => {
                 background: BOOK_MODULE_STYLES.badge,
               }}
             >
-              {book.avgRatingOutOfFive.toFixed(1)}
+              {book.avgRating.toFixed(1)}
             </span>
           </div>
         ) : null}

@@ -8,6 +8,7 @@ import {
   jsonb,
   uuid,
   unique,
+  real,
 } from "drizzle-orm/pg-core";
 import { user } from "../../infrastructure/database/auth.entity";
 
@@ -38,7 +39,7 @@ export const musicDiaryEntries = pgTable("music_diary_entry", {
     .notNull()
     .references(() => albums.id, { onDelete: "cascade" }),
   listenedDate: text("listened_date").notNull(),
-  rating: integer("rating"),
+  rating: real("rating"),
   relisten: boolean("relisten").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
@@ -58,7 +59,7 @@ export const musicInteractions = pgTable(
       .references(() => albums.id, { onDelete: "cascade" }),
     liked: boolean("liked").default(false).notNull(),
     wantToListen: boolean("want_to_listen").default(false).notNull(),
-    rating: integer("rating"),
+    rating: real("rating"),
     updatedAt: timestamp("updated_at")
       .defaultNow()
       .$onUpdate(() => new Date())

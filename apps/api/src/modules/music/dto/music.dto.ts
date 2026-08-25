@@ -64,20 +64,20 @@ export const MusicArchiveQuerySchema = z.object({
 
 export const CreateMusicLogSchema = z.object({
   listenedDate: isoDateSchema,
-  ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).optional(),
+  rating: z.number().min(0.5).max(10).multipleOf(0.5).optional(),
   relisten: z.boolean().optional(),
 });
 
 export const UpdateMusicLogSchema = z.object({
   listenedDate: isoDateSchema.optional(),
-  ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+  rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
   relisten: z.boolean().optional(),
 });
 
 export const UpdateMusicInteractionSchema = z.object({
   liked: z.boolean().optional(),
   wantToListen: z.boolean().optional(),
-  ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+  rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
 });
 
 export type CreateMusicLogDto = z.infer<typeof CreateMusicLogSchema>;
