@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useGlobalSearchDialog } from "@/features/search/components/useGlobalSearchDialog";
@@ -30,17 +30,7 @@ export const useAppNavbarController = () => {
 
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
-  const visiblePrimaryNavItems = useMemo(
-    () =>
-      primaryNavItems.filter((item) => {
-        if (!item.adminOnly) {
-          return true;
-        }
-
-        return Boolean(user?.isAdmin);
-      }),
-    [user?.isAdmin],
-  );
+  const visiblePrimaryNavItems = primaryNavItems;
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -137,7 +127,7 @@ export const useAppNavbarController = () => {
     }
   };
 
-  const profileImageUrl = user?.avatarUrl ?? user?.image ?? null;
+  const profileImageUrl = user?.avatarUrl ?? null;
   const profileInitial = user?.username.slice(0, 1).toUpperCase() ?? "U";
 
   return {
@@ -148,6 +138,7 @@ export const useAppNavbarController = () => {
     isMobileMenuOpen,
     isProfileMenuOpen,
     visiblePrimaryNavItems,
+    pathname,
     profileMenuRef,
     profileImageUrl,
     profileInitial,

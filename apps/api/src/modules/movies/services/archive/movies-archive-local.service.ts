@@ -52,15 +52,13 @@ export const getArchiveFromLocalCatalog = async (
     isActivityWindowPeriod(effectivePeriod) &&
     (input.sortBy === "logs_desc" || input.sortBy === "rating_user_desc");
 
-  const rows =
+  const rows = await MoviesRepository.getLocalArchiveRows(
     shouldFilterByActivityWindow &&
     periodWindow.releaseDateGte !== null &&
     periodWindow.releaseDateLte !== null
-      ? await MoviesRepository.getLocalArchiveRowsByWatchedDateRange({
-          watchedDateGte: periodWindow.releaseDateGte,
-          watchedDateLte: periodWindow.releaseDateLte,
-        })
-      : await MoviesRepository.getLocalArchiveRows();
+      ? { watchedDateGte: periodWindow.releaseDateGte, watchedDateLte: periodWindow.releaseDateLte }
+      : undefined,
+  );
 
   const directorByTmdbId = new Map<number, string | null>(
     rows.map((row) => [row.tmdbId, row.director]),
@@ -98,6 +96,7 @@ export const getArchiveFromLocalCatalog = async (
       logCount: row.logCount,
       avgRatingOutOfTen: row.avgRatingOutOfTen,
       tmdbRatingOutOfTen: null,
+      tmdbVoteCount: null,
       ratedLogCount: row.ratedLogCount,
       viewerHasLogged: false,
       viewerWatchlisted: false,
@@ -114,6 +113,7 @@ export const getArchiveFromLocalCatalog = async (
         {
           languageCode: string | null;
           tmdbRatingOutOfTen: number | null;
+          tmdbVoteCount: number | null;
         }
       >();
 
@@ -125,6 +125,7 @@ export const getArchiveFromLocalCatalog = async (
           ...item,
           languageCode: tmdbSignal?.languageCode ?? null,
           tmdbRatingOutOfTen: tmdbSignal?.tmdbRatingOutOfTen ?? null,
+          tmdbVoteCount: tmdbSignal?.tmdbVoteCount ?? null,
         };
       })
     : allItems;

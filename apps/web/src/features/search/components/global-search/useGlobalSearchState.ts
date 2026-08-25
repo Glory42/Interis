@@ -9,12 +9,20 @@ import { useBookSearch } from "@/features/books/hooks/useBooks";
 import { useMovieSearch } from "@/features/films/hooks/useMovies";
 import { useMusicSearch } from "@/features/music/hooks/useMusic";
 import { useUserSearch } from "@/features/profile/hooks/useProfile";
+import { useTitleSearch } from "@/features/search/hooks/useSearch";
 import { useSerialSearch } from "@/features/serials/hooks/useSerials";
 import {
   MAX_RESULTS_PER_SECTION,
   MIN_QUERY_LENGTH,
 } from "./constants";
-import { toBookEntry, toCinemaEntry, toMusicEntry, toSerialEntry, toUserEntry } from "./mappers";
+import {
+  toBookEntry,
+  toCinemaEntry,
+  toMusicEntry,
+  toSerialEntry,
+  toTitleEntry,
+  toUserEntry,
+} from "./mappers";
 import type {
   ScopedTarget,
   SearchMode,
@@ -62,12 +70,14 @@ export const useGlobalSearchState = (): GlobalSearchState => {
     shouldRunSearch && (!isScopedMode || scopedTarget === "users")
       ? deferredQuery
       : "";
+  // Cinema/serials queries only run in scoped (single-type drill-down) mode —
+  // the unscoped home view uses the merged titlesQuery below instead.
   const cinemaQueryValue =
-    shouldRunSearch && (!isScopedMode || scopedTarget === "cinema")
+    shouldRunSearch && isScopedMode && scopedTarget === "cinema"
       ? deferredQuery
       : "";
   const serialsQueryValue =
-    shouldRunSearch && (!isScopedMode || scopedTarget === "serials")
+    shouldRunSearch && isScopedMode && scopedTarget === "serials"
       ? deferredQuery
       : "";
   const musicQueryValue =
@@ -78,12 +88,15 @@ export const useGlobalSearchState = (): GlobalSearchState => {
     shouldRunSearch && (!isScopedMode || scopedTarget === "books")
       ? deferredQuery
       : "";
+  const titlesQueryValue =
+    shouldRunSearch && !isScopedMode ? deferredQuery : "";
 
   const usersQuery = useUserSearch(usersQueryValue, MAX_RESULTS_PER_SECTION);
   const cinemaQuery = useMovieSearch(cinemaQueryValue);
   const serialsQuery = useSerialSearch(serialsQueryValue);
   const musicQuery = useMusicSearch(musicQueryValue);
   const booksQuery = useBookSearch(booksQueryValue);
+  const titlesQuery = useTitleSearch(titlesQueryValue);
 
   const userEntries = useMemo(() => {
     return (usersQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toUserEntry);
@@ -104,6 +117,10 @@ export const useGlobalSearchState = (): GlobalSearchState => {
   const bookEntries = useMemo(() => {
     return (booksQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toBookEntry);
   }, [booksQuery.data]);
+
+  const titleEntries = useMemo(() => {
+    return (titlesQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toTitleEntry);
+  }, [titlesQuery.data]);
 
   const sections = useMemo<SearchSection[]>(() => {
     if (!shouldRunSearch) {
@@ -179,18 +196,11 @@ export const useGlobalSearchState = (): GlobalSearchState => {
         isError: usersQuery.isError,
       },
       {
-        target: "cinema",
-        label: "Cinema",
-        items: cinemaEntries,
-        isLoading: cinemaQuery.isFetching,
-        isError: cinemaQuery.isError,
-      },
-      {
-        target: "serials",
-        label: "Serials",
-        items: serialEntries,
-        isLoading: serialsQuery.isFetching,
-        isError: serialsQuery.isError,
+        target: "titles",
+        label: "Titles",
+        items: titleEntries,
+        isLoading: titlesQuery.isFetching,
+        isError: titlesQuery.isError,
       },
       {
         target: "music",
@@ -216,6 +226,7 @@ export const useGlobalSearchState = (): GlobalSearchState => {
     serialEntries,
     musicEntries,
     bookEntries,
+    titleEntries,
     usersQuery.isFetching,
     usersQuery.isError,
     cinemaQuery.isFetching,
@@ -226,6 +237,8 @@ export const useGlobalSearchState = (): GlobalSearchState => {
     musicQuery.isError,
     booksQuery.isFetching,
     booksQuery.isError,
+    titlesQuery.isFetching,
+    titlesQuery.isError,
   ]);
 
   const sectionOffsets = useMemo(() => {

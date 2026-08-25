@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { X, CheckCircle, ArrowRight, XCircle } from "lucide-react";
+import { ModalShell } from "@/components/ui/ModalShell";
 import type { ImportStreamState, TerminalLine } from "../hooks/useImportStream";
 
 type ImportDialogProps = {
@@ -47,8 +48,12 @@ export const ImportDialog = ({
   const summary = state.phase === "done" ? state.summary : null;
 
   return (
-    <div className="theme-modal-overlay fixed inset-0 z-140 bg-background/70 backdrop-blur-sm">
-      <div className="flex h-full items-center justify-center p-4">
+    <ModalShell
+      onClose={onClose}
+      containerClassName="max-w-2xl"
+      closeOnBackdropClick={false}
+      closeOnEscape={false}
+    >
         <section className="theme-modal-panel relative w-full max-w-2xl overflow-hidden border border-border/80 bg-card/95 animate-fade-up">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
@@ -70,6 +75,7 @@ export const ImportDialog = ({
               <button
                 type="button"
                 onClick={onClose}
+                aria-label="Close import dialog"
                 className="text-muted-foreground/60 hover:text-muted-foreground"
               >
                 <X className="h-4 w-4" />
@@ -81,7 +87,7 @@ export const ImportDialog = ({
           {isRunning && total > 0 && (
             <div className="h-px bg-border/40">
               <div
-                className="h-full bg-primary/50 transition-all duration-300"
+                className="h-full bg-primary/50 transition-[width] duration-300"
                 style={{ width: `${Math.round((processed / total) * 100)}%` }}
               />
             </div>
@@ -160,7 +166,7 @@ export const ImportDialog = ({
               <button
                 type="button"
                 onClick={onBackground}
-                className="border border-border/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground"
+                className="rounded-full border border-border/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground"
               >
                 Work in background
               </button>
@@ -169,15 +175,14 @@ export const ImportDialog = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="border border-border/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground"
+                className="rounded-full border border-border/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground"
               >
                 Close
               </button>
             )}
           </div>
         </section>
-      </div>
-    </div>
+    </ModalShell>
   );
 };
 

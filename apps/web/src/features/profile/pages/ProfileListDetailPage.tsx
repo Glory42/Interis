@@ -83,7 +83,7 @@ export const ProfileListDetailPage = ({
 
   if (detailQuery.isError || !list) {
     return (
-      <div className="border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+      <div className="rounded-xl border border-border/60 bg-card/30 p-4 text-sm text-destructive">
         This list could not be loaded.
       </div>
     );
@@ -128,12 +128,12 @@ export const ProfileListDetailPage = ({
                 items
               </span>
               {derivedTypeLabel ? (
-                <span className="border border-border/60 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+                <span className="rounded-full border border-border/60 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
                   {derivedTypeLabel}
                 </span>
               ) : null}
               {list.isRanked ? (
-                <span className="border border-border/60 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+                <span className="rounded-full border border-border/60 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
                   RANKED
                 </span>
               ) : null}
@@ -155,8 +155,10 @@ export const ProfileListDetailPage = ({
                 type="button"
                 onClick={handleLikeToggle}
                 disabled={likeLoading}
+                aria-label={isLiked ? "Unlike this list" : "Like this list"}
+                aria-pressed={isLiked}
                 className={cn(
-                  "inline-flex items-center gap-1.5 border px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+                  "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors disabled:cursor-not-allowed disabled:opacity-50",
                   isLiked
                     ? "border-rose-500/50 text-rose-500 hover:border-rose-500"
                     : "border-border/70 text-muted-foreground hover:border-rose-500/50 hover:text-rose-400",
@@ -182,7 +184,7 @@ export const ProfileListDetailPage = ({
                       params: { username, listId },
                     });
                   }}
-                  className="inline-flex items-center gap-1.5 border border-border/70 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border/70 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground"
                 >
                   <Pencil className="h-3 w-3" />
                   Edit
@@ -191,7 +193,7 @@ export const ProfileListDetailPage = ({
                   type="button"
                   onClick={() => { void handleDelete(); }}
                   disabled={deletePending}
-                  className="inline-flex items-center gap-1.5 border border-destructive/40 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-destructive/70 transition-colors hover:border-destructive hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-destructive/40 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-destructive/70 transition-colors hover:border-destructive hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {deletePending ? (
                     <Spinner className="h-3 w-3" />
@@ -207,7 +209,7 @@ export const ProfileListDetailPage = ({
       </div>
 
       {list.items.length === 0 ? (
-        <div className="border border-dashed border-border/50 py-12 text-center">
+        <div className="rounded-xl border border-dashed border-border/50 py-12 text-center">
           <p className="font-mono text-sm text-muted-foreground">
             {isOwnProfile
               ? "Edit this list to add films and series."
@@ -228,12 +230,12 @@ export const ProfileListDetailPage = ({
               className="group block"
               viewTransition
             >
-              <div className="relative mb-1.5 aspect-2/3 overflow-hidden border border-border/70 bg-card/25">
+              <div className="relative mb-1.5 aspect-2/3 overflow-hidden rounded-lg border border-border/70 bg-card/25">
                 {item.posterPath ? (
                   <img
                     src={getPosterUrl(item.posterPath)}
                     alt={item.title ?? ""}
-                    className="h-full w-full object-cover opacity-90 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+                    className="h-full w-full object-cover opacity-90 transition-[transform,opacity] duration-500 group-hover:scale-105 group-hover:opacity-100"
                     loading="lazy"
                   />
                 ) : null}

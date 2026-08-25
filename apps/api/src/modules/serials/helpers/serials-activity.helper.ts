@@ -1,50 +1,29 @@
-import { DIARY_REVIEW_EXCERPT_LENGTH } from "../../diary/constants/diary.constants";
+import { truncateExcerpt } from "../../../commons/helpers/text.helper";
 
-export const buildSerialDiaryEntryActivityMetadata = (input: {
-  series: {
-    id: number;
-    tmdbId: number;
-    title: string;
-    posterPath: string | null;
-    firstAirYear: number | null;
-  };
+// Metadata fields that vary by *content*, not by which part of a series the
+// activity targets (series/season/episode - that's SerialsActivityRecorder's
+// job). Kept separate since a diary entry and a review carry genuinely
+// different extra fields, not just a different target shape.
+
+export const buildDiaryEntryExtraMetadata = (input: {
   rating: number | null;
   rewatch: boolean;
-  review:
-    | {
-        id: string;
-        content: string;
-        containsSpoilers: boolean;
-      }
-    | null;
+  review: { id: string; content: string; containsSpoilers: boolean } | null;
 }) => ({
-  seriesId: input.series.id,
-  tmdbId: input.series.tmdbId,
-  title: input.series.title,
-  posterPath: input.series.posterPath,
-  releaseYear: input.series.firstAirYear,
   rating: input.rating,
   rewatch: input.rewatch,
-  mediaType: "tv",
   hasReview: Boolean(input.review),
   reviewId: input.review?.id ?? null,
   containsSpoilers: input.review?.containsSpoilers ?? null,
-  excerpt: input.review?.content.slice(0, DIARY_REVIEW_EXCERPT_LENGTH) ?? null,
+  excerpt: input.review ? truncateExcerpt(input.review.content) : null,
 });
 
-export const buildSerialInteractionActivityMetadata = (input: {
-  series: {
-    id: number;
-    tmdbId: number;
-    title: string;
-    posterPath: string | null;
-    firstAirYear: number | null;
-  };
+export const buildReviewExtraMetadata = (review: {
+  id: string;
+  content: string;
+  containsSpoilers: boolean;
 }) => ({
-  seriesId: input.series.id,
-  tmdbId: input.series.tmdbId,
-  title: input.series.title,
-  posterPath: input.series.posterPath,
-  releaseYear: input.series.firstAirYear,
-  mediaType: "tv",
+  reviewId: review.id,
+  excerpt: truncateExcerpt(review.content),
+  containsSpoilers: review.containsSpoilers,
 });

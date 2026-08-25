@@ -9,7 +9,7 @@ export const ProfileReviewDetailPending = () => {
 export const ProfileReviewDetailError = () => {
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-10">
-      <div className="border border-destructive/45 bg-destructive/10 p-5 text-sm text-destructive">
+      <div className="rounded-lg border border-destructive/45 bg-destructive/10 p-5 text-sm text-destructive">
         Could not load this review.
       </div>
     </div>

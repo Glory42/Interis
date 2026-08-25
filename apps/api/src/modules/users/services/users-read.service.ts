@@ -1,7 +1,7 @@
 import { dedupeRecentPosters } from "../helpers/users-summary.helper";
 import { UsersMediaInteractionsRepository } from "../repositories/users-media-interactions.repository";
 import { UsersProfileRepository } from "../repositories/users-profile.repository";
-import { UsersReviewsRepository } from "../repositories/users-reviews.repository";
+import { UsersReviewsListRepository, UsersReviewsRepository } from "../repositories/users-reviews.repository";
 import { UsersStatsRepository } from "../repositories/users-stats.repository";
 import { UsersProfileService } from "./users-profile.service";
 
@@ -18,8 +18,8 @@ export class UsersReadService {
     return UsersProfileRepository.searchProfilesByUsername(query, limit);
   }
 
-  static async getReviewsWithMovies(userId: string) {
-    return UsersReviewsRepository.getReviewsWithMovies(userId);
+  static async getReviewsWithMovies(userId: string, limit?: number, offset?: number) {
+    return UsersReviewsListRepository.getReviewsWithMovies(userId, limit, offset);
   }
 
   static async getReviewDetailByUsername(
@@ -30,32 +30,41 @@ export class UsersReadService {
     return UsersReviewsRepository.getReviewDetailByUsername(username, reviewId, viewerUserId);
   }
 
-  static async getLikedFilms(userId: string) {
-    return UsersMediaInteractionsRepository.getLikedFilms(userId);
+  static async getWatchedFilms(userId: string, limit?: number, offset?: number) {
+    return UsersMediaInteractionsRepository.getWatchedFilms(userId, limit, offset);
   }
 
-  static async getWatchlistedFilms(userId: string) {
-    return UsersMediaInteractionsRepository.getWatchlistedFilms(userId);
+  static async getLikedFilms(userId: string, limit?: number, offset?: number) {
+    return UsersMediaInteractionsRepository.getFilmsByFlag(userId, "liked", limit, offset);
+  }
+
+  static async getWatchlistedFilms(userId: string, limit?: number, offset?: number) {
+    return UsersMediaInteractionsRepository.getFilmsByFlag(userId, "watchlisted", limit, offset);
   }
 
   static async getStats(userId: string) {
     return UsersStatsRepository.getStatsCounts(userId);
   }
 
+  static async getDetailedStats(userId: string) {
+    return UsersStatsRepository.getDetailedStats(userId);
+  }
+
   static async getMeSummary(userId: string) {
-    const profile = await UsersProfileService.findById(userId);
+    const [profile, summaryData] = await Promise.all([
+      UsersProfileService.findById(userId),
+      UsersStatsRepository.getMeSummaryData(userId),
+    ]);
     if (!profile) {
       return null;
     }
 
-    const summaryData = await UsersStatsRepository.getMeSummaryData(userId);
     const recentPosters = dedupeRecentPosters(summaryData.recentRows, 5);
 
     return {
       id: profile.id,
       username: profile.username,
       displayUsername: profile.displayUsername,
-      image: profile.image,
       avatarUrl: profile.avatarUrl,
       counts: {
         logs: summaryData.logs,

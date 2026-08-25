@@ -1,4 +1,5 @@
 import { useState, type CSSProperties } from "react";
+import { cn } from "@/lib/utils";
 
 type FeedActorAvatarProps = {
   avatarUrl: string | null;
@@ -6,6 +7,7 @@ type FeedActorAvatarProps = {
   initial: string;
   className?: string;
   style?: CSSProperties;
+  shape?: "square" | "circle";
 };
 
 export const FeedActorAvatar = ({
@@ -14,15 +16,17 @@ export const FeedActorAvatar = ({
   initial,
   className,
   style,
+  shape = "circle",
 }: FeedActorAvatarProps) => {
   const [isFailed, setIsFailed] = useState(false);
   const shouldShowImage = Boolean(avatarUrl && !isFailed);
 
+  const baseClassName =
+    className ?? "flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden border";
+
   return (
     <div
-      className={
-        className ?? "flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden border"
-      }
+      className={cn(baseClassName, shape === "circle" && "rounded-full")}
       style={style}
     >
       {shouldShowImage ? (
@@ -35,7 +39,12 @@ export const FeedActorAvatar = ({
           }}
         />
       ) : (
-        <span className="font-mono text-xs font-bold">{initial}</span>
+        <span
+          className="text-xs font-bold"
+          style={{ fontFamily: "var(--theme-display-font)" }}
+        >
+          {initial}
+        </span>
       )}
     </div>
   );

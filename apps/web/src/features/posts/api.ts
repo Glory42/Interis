@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { apiRequest } from "@/lib/api-client";
+import { mediaTypeSchema, userSummarySchema } from "@/types/api";
 
-const postMediaTypeSchema = z.enum(["movie", "tv"]);
+const postMediaTypeSchema = mediaTypeSchema;
 
 const createPostInputSchema = z
   .object({
@@ -38,14 +39,7 @@ const postBaseSchema = z.object({
 const postDetailSchema = postBaseSchema
   .extend({
     likeCount: z.number().int().nonnegative().default(0),
-    author: z
-      .object({
-        username: z.string(),
-        displayUsername: z.string().nullable(),
-        avatarUrl: z.string().nullable(),
-      })
-      .nullable()
-      .optional(),
+    author: userSummarySchema.omit({ id: true }).nullable().optional(),
   })
   .passthrough();
 
@@ -164,6 +158,29 @@ export const addPostComment = async (
   );
 
   return postCommentSchema.parse(response);
+};
+
+export const updatePostComment = async (
+  commentId: string,
+  payload: PostCommentInput,
+): Promise<PostComment> => {
+  const normalizedPayload = postCommentInputSchema.parse(payload);
+
+  const response = await apiRequest<unknown, PostCommentInput>(
+    `/api/posts/comments/${encodeURIComponent(commentId)}`,
+    {
+      method: "PUT",
+      body: normalizedPayload,
+    },
+  );
+
+  return postCommentSchema.parse(response);
+};
+
+export const deletePostComment = async (commentId: string): Promise<void> => {
+  await apiRequest<unknown>(`/api/posts/comments/${encodeURIComponent(commentId)}`, {
+    method: "DELETE",
+  });
 };
 
 export const likePost = async (postId: string) => {

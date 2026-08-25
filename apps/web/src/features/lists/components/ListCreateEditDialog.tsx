@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { useState } from "react";
+import { ModalHeader } from "@/components/ui/ModalHeader";
+import { ModalShell } from "@/components/ui/ModalShell";
 import { Spinner } from "@/components/ui/spinner";
 import { useCreateList, useUpdateList } from "@/features/lists/hooks/useLists";
 import type { ListSummary } from "@/features/lists/api";
+import { runDialogSubmit } from "@/lib/fire-and-forget";
 
 type CreateMode = {
   mode: "create";
@@ -21,7 +23,18 @@ type ListCreateEditDialogProps = (CreateMode | EditMode) & {
 };
 
 export const ListCreateEditDialog = (props: ListCreateEditDialogProps) => {
-  const { isOpen, onClose } = props;
+  if (!props.isOpen) {
+    return null;
+  }
+
+  // Keying by the list id (or "create") remounts the dialog fresh each
+  // time it opens, so form state naturally resets without an effect.
+  const key = props.mode === "edit" ? props.list.id : "create";
+  return <ListCreateEditDialogContent key={key} {...props} />;
+};
+
+const ListCreateEditDialogContent = (props: ListCreateEditDialogProps) => {
+  const { onClose } = props;
 
   const initialTitle = props.mode === "edit" ? props.list.title : "";
   const initialDesc =
@@ -34,25 +47,6 @@ export const ListCreateEditDialog = (props: ListCreateEditDialogProps) => {
   const [isPublic, setIsPublic] = useState(initialPublic);
   const [isRanked, setIsRanked] = useState(initialRanked);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    setTitle(props.mode === "edit" ? props.list.title : "");
-    setDescription(
-      props.mode === "edit" ? (props.list.description ?? "") : "",
-    );
-    setIsPublic(props.mode === "edit" ? props.list.isPublic : true);
-    setIsRanked(props.mode === "edit" ? props.list.isRanked : false);
-  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isOpen, onClose]);
-
   const createMutation = useCreateList(props.ownerUsername);
   const editListId = props.mode === "edit" ? props.list.id : "";
   const updateMutation = useUpdateList(editListId, props.ownerUsername);
@@ -60,53 +54,43 @@ export const ListCreateEditDialog = (props: ListCreateEditDialogProps) => {
   const isPending = createMutation.isPending || updateMutation.isPending;
   const canSubmit = title.trim().length > 0 && !isPending;
 
-  const handleSubmit = async () => {
-    if (!canSubmit) return;
+  // This dialog has no visible error UI for a failed create/update (unlike
+  // ReportContentDialog) - that's a separate, pre-existing gap left as-is
+  // here; createMutation/updateMutation.isError is still available for a
+  // future error-UI addition. runDialogSubmit only guards the
+  // fire-and-forget `void handleSubmit()` call site.
+  const handleSubmit = () =>
+    runDialogSubmit(async () => {
+      if (!canSubmit) return;
 
-    if (props.mode === "create") {
-      await createMutation.mutateAsync({
-        title: title.trim(),
-        description: description.trim() || undefined,
-        isPublic,
-        isRanked,
-      });
-    } else {
-      await updateMutation.mutateAsync({
-        title: title.trim(),
-        description: description.trim() || null,
-        isPublic,
-        isRanked,
-      });
-    }
-    onClose();
-  };
-
-  if (!isOpen) return null;
+      if (props.mode === "create") {
+        await createMutation.mutateAsync({
+          title: title.trim(),
+          description: description.trim() || undefined,
+          isPublic,
+          isRanked,
+        });
+      } else {
+        await updateMutation.mutateAsync({
+          title: title.trim(),
+          description: description.trim() || null,
+          isPublic,
+          isRanked,
+        });
+      }
+      onClose();
+    });
 
   return (
-    <div className="theme-modal-overlay fixed inset-0 z-140 bg-background/70 backdrop-blur-sm">
-      <button
-        type="button"
-        aria-label="Close dialog"
-        className="absolute inset-0"
-        onClick={onClose}
-      />
-      <div className="relative mx-auto flex h-full w-full max-w-md items-start px-4 pt-16 sm:pt-20">
-        <section className="theme-modal-panel relative w-full overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
-          <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
-            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-              {props.mode === "create" ? "New List" : "Edit List"}
-            </p>
-            <button
-              type="button"
-              onClick={onClose}
-              className="inline-flex h-7 w-7 items-center justify-center border border-border/70 text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+    <ModalShell onClose={onClose} containerClassName="max-w-md">
+      <section className="theme-modal-panel relative w-full overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
+        <ModalHeader
+          title={props.mode === "create" ? "New List" : "Edit List"}
+          onClose={onClose}
+          closeAriaLabel={props.mode === "create" ? "Close new list dialog" : "Close edit list dialog"}
+        />
 
-          <div className="space-y-4 px-4 py-4">
+        <div className="space-y-4 px-4 py-4">
             <div>
               <label className="mb-1.5 block font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                 Title
@@ -211,7 +195,7 @@ export const ListCreateEditDialog = (props: ListCreateEditDialogProps) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground hover:text-foreground"
+                className="rounded-full border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground hover:text-foreground"
               >
                 Cancel
               </button>
@@ -219,7 +203,7 @@ export const ListCreateEditDialog = (props: ListCreateEditDialogProps) => {
                 type="button"
                 onClick={() => { void handleSubmit(); }}
                 disabled={!canSubmit}
-                className="border border-primary/45 bg-primary/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-full border border-primary/45 bg-primary/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-primary disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isPending ? (
                   <span className="inline-flex items-center gap-1.5">
@@ -232,9 +216,8 @@ export const ListCreateEditDialog = (props: ListCreateEditDialogProps) => {
                 )}
               </button>
             </div>
-          </div>
-        </section>
-      </div>
-    </div>
+        </div>
+      </section>
+    </ModalShell>
   );
 };

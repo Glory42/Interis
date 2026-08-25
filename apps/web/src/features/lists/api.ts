@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { apiRequest } from "@/lib/api-client";
+import { apiRequest, type QueryRequestOptions } from "@/lib/api-client";
 
 const coverImageSchema = z.object({
   itemType: z.string(),
@@ -71,10 +71,6 @@ export type ListSummary = z.infer<typeof listSummarySchema>;
 export type ListDetail = z.infer<typeof listDetailSchema>;
 export type ListItem = z.infer<typeof listItemSchema>;
 export type ListBase = z.infer<typeof listBaseSchema>;
-
-type QueryRequestOptions = {
-  signal?: AbortSignal;
-};
 
 export const getUserLists = async (
   username: string,

@@ -6,6 +6,7 @@ import { SerialDetailsMainSection } from "@/features/serials/components/serial-d
 import { SerialDetailTopBar } from "@/features/serials/components/serial-detail/SerialDetailTopBar";
 import { SerialReviewsSection } from "@/features/serials/components/serial-detail/SerialReviewsSection";
 import { SerialSeasonsSection } from "@/features/serials/components/serial-detail/SerialSeasonsSection";
+import { SerialSimilarSection } from "@/features/serials/components/serial-detail/SerialSimilarSection";
 import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
 import {
   useSeriesDetailView,
@@ -89,11 +90,14 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
 
   const watchlisted = interactionQuery.data?.watchlisted ?? false;
   const liked = interactionQuery.data?.liked ?? false;
-  const interactionRatingOutOfFive = interactionQuery.data?.ratingOutOfFive ?? null;
-  const currentRatingOutOfFive =
-    interactionRatingOutOfFive ?? detail.userRating?.ratingOutOfFive ?? null;
-  const isInteractionBusy =
-    interactionQuery.isPending || updateInteractionMutation.isPending;
+  const watched = interactionQuery.data?.watched ?? false;
+  const interactionRating = interactionQuery.data?.rating ?? null;
+  const currentRating =
+    interactionRating ?? detail.userRating?.rating ?? null;
+  // Only gate on the initial load - once loaded, toggles apply optimistically
+  // and shouldn't visually lock while the (TMDB-backed, sometimes
+  // multi-second) cascade request is still in flight in the background.
+  const isInteractionBusy = interactionQuery.isPending;
 
   const handleToggleWatchlist = () => {
     void updateInteractionMutation.mutateAsync({ watchlisted: !watchlisted });
@@ -103,13 +107,17 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
     void updateInteractionMutation.mutateAsync({ liked: !liked });
   };
 
-  const handleRatingChange = (nextRatingOutOfFive: number | null) => {
-    if (!user || nextRatingOutOfFive === currentRatingOutOfFive) {
+  const handleToggleWatched = () => {
+    void updateInteractionMutation.mutateAsync({ watched: !watched });
+  };
+
+  const handleRatingChange = (nextRating: number | null) => {
+    if (!user || nextRating === currentRating) {
       return;
     }
 
     void updateInteractionMutation.mutateAsync({
-      ratingOutOfFive: nextRatingOutOfFive,
+      rating: nextRating,
     });
   };
 
@@ -136,15 +144,17 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-[220px_1fr]">
           <SerialActionsSidebar
             detail={detail}
-            currentRatingOutOfFive={currentRatingOutOfFive}
+            currentRating={currentRating}
             isRatingSaving={updateInteractionMutation.isPending}
             onRatingChange={handleRatingChange}
             isAuthenticated={Boolean(user)}
             watchlisted={watchlisted}
             liked={liked}
+            watched={watched}
             isInteractionBusy={isInteractionBusy}
             onToggleWatchlist={handleToggleWatchlist}
             onToggleLike={handleToggleLike}
+            onToggleWatched={handleToggleWatched}
           />
 
           <SerialDetailsMainSection detail={detail} />
@@ -162,6 +172,8 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
           resolvedOpenSeasonNumber={resolvedOpenSeasonNumber}
           onToggleSeason={handleToggleSeason}
         />
+
+        <SerialSimilarSection similar={detail.similar} />
       </main>
     </div>
   );

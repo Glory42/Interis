@@ -1,23 +1,29 @@
 import type { Request, Response } from "express";
 import { PublicService } from "./public.service";
+import { sendBadRequest, sendNotFound } from "../../commons/http/validation-response.helper";
 import {
   normalizePublicActivityLimit,
   normalizePublicCollectionLimit,
+  normalizePublicCurrentlyWatchingLimit,
+  normalizePublicDiaryOffset,
   normalizePublicRecentLimit,
 } from "./helpers/public-query-normalizer.helper";
 import type {
   PublicActivityQueryDto,
   PublicCollectionQueryDto,
+  PublicCurrentlyWatchingQueryDto,
+  PublicDiaryQueryDto,
   PublicRecentQueryDto,
 } from "./dto/public.dto";
 
 export class PublicController {
   private static sendUserNotFound(res: Response): void {
-    res.status(404).json({ error: "User not found" });
+    sendNotFound(res, "User not found");
   }
 
   private static sendPublicResponse(res: Response, payload: unknown): void {
-    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
+    res.setHeader("Vary", "Accept-Encoding");
     res.status(200).json(payload);
   }
 
@@ -103,6 +109,38 @@ export class PublicController {
     PublicController.sendPublicResponse(res, data);
   }
 
+  // GET /api/public/:username/movies/watched?limit=50
+  static async getWatchedFilms(
+    req: Request<{ username: string }, unknown, unknown, PublicCollectionQueryDto>,
+    res: Response,
+  ): Promise<void> {
+    const limit = normalizePublicCollectionLimit(req.query.limit);
+    const data = await PublicService.getWatchedFilms(req.params.username, limit);
+
+    if (!data) {
+      PublicController.sendUserNotFound(res);
+      return;
+    }
+
+    PublicController.sendPublicResponse(res, data);
+  }
+
+  // GET /api/public/:username/serials/watched?limit=50
+  static async getSerialsWatched(
+    req: Request<{ username: string }, unknown, unknown, PublicCollectionQueryDto>,
+    res: Response,
+  ): Promise<void> {
+    const limit = normalizePublicCollectionLimit(req.query.limit);
+    const data = await PublicService.getSerialsWatched(req.params.username, limit);
+
+    if (!data) {
+      PublicController.sendUserNotFound(res);
+      return;
+    }
+
+    PublicController.sendPublicResponse(res, data);
+  }
+
   // GET /api/public/:username/likes?limit=50
   static async getLikes(
     req: Request<{ username: string }, unknown, unknown, PublicCollectionQueryDto>,
@@ -135,13 +173,14 @@ export class PublicController {
     PublicController.sendPublicResponse(res, data);
   }
 
-  // GET /api/public/:username/diary?limit=50
+  // GET /api/public/:username/diary?limit=50&offset=0
   static async getDiary(
-    req: Request<{ username: string }, unknown, unknown, PublicCollectionQueryDto>,
+    req: Request<{ username: string }, unknown, unknown, PublicDiaryQueryDto>,
     res: Response,
   ): Promise<void> {
     const limit = normalizePublicCollectionLimit(req.query.limit);
-    const data = await PublicService.getDiary(req.params.username, limit);
+    const offset = normalizePublicDiaryOffset(req.query.offset);
+    const data = await PublicService.getDiary(req.params.username, limit, offset);
 
     if (!data) {
       PublicController.sendUserNotFound(res);
@@ -157,6 +196,43 @@ export class PublicController {
     res: Response,
   ): Promise<void> {
     const data = await PublicService.getTop4(req.params.username);
+
+    if (!data) {
+      PublicController.sendUserNotFound(res);
+      return;
+    }
+
+    PublicController.sendPublicResponse(res, data);
+  }
+
+  // GET /api/public/:username/serials/currently-watching?limit=10
+  static async getSerialsCurrentlyWatching(
+    req: Request<{ username: string }, unknown, unknown, PublicCurrentlyWatchingQueryDto>,
+    res: Response,
+  ): Promise<void> {
+    const limit = normalizePublicCurrentlyWatchingLimit(req.query.limit);
+    const data = await PublicService.getSerialsCurrentlyWatching(req.params.username, limit);
+
+    if (!data) {
+      PublicController.sendUserNotFound(res);
+      return;
+    }
+
+    PublicController.sendPublicResponse(res, data);
+  }
+
+  // GET /api/public/:username/serials/:tmdbId
+  static async getSerialProgress(
+    req: Request<{ username: string; tmdbId: string }>,
+    res: Response,
+  ): Promise<void> {
+    const tmdbId = Number.parseInt(req.params.tmdbId, 10);
+    if (Number.isNaN(tmdbId)) {
+      sendBadRequest(res, "Invalid tmdbId");
+      return;
+    }
+
+    const data = await PublicService.getSerialProgress(req.params.username, tmdbId);
 
     if (!data) {
       PublicController.sendUserNotFound(res);

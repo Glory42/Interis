@@ -14,7 +14,7 @@ export const PersonDetailHeader = ({ person, styles }: PersonDetailHeaderProps) 
         {person.roleHints.map((roleHint) => (
           <span
             key={`${person.tmdbPersonId}-${roleHint}`}
-            className="border px-2 py-0.5 font-mono text-[9px] uppercase"
+            className="rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase"
             style={{
               borderColor: styles.border,
               color: styles.muted,

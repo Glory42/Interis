@@ -22,7 +22,7 @@ export const DiaryRow = ({ row, username }: DiaryRowProps) => {
       <div className="hidden md:flex">
         {row.showMonthCell ? (
           <div
-            className="flex h-14 w-16 flex-col items-center justify-center border"
+            className="flex h-14 w-16 flex-col items-center justify-center rounded-lg border"
             style={{
               borderColor: "var(--profile-shell-border)",
               background:
@@ -55,7 +55,7 @@ export const DiaryRow = ({ row, username }: DiaryRowProps) => {
             {row.dateParts.month} {row.dateParts.day}
           </span>
           <span
-            className="border px-1.5 py-0.5 font-mono text-[9px]"
+            className="rounded-full border px-1.5 py-0.5 font-mono text-[9px]"
             style={{
               color: channelMeta.color,
               borderColor: `color-mix(in srgb, ${channelMeta.color} 38%, transparent)`,
@@ -70,7 +70,7 @@ export const DiaryRow = ({ row, username }: DiaryRowProps) => {
         </DiaryMediaLink>
 
         <div className="mt-1 flex items-center gap-3 md:hidden">
-          <DiaryRatingStars ratingOutOfFive={row.ratingOutOfFive} color={channelMeta.color} />
+          <DiaryRatingStars rating={row.rating} color={channelMeta.color} />
           <span className="font-mono text-[9px] profile-shell-muted">{row.releaseYear ?? "----"}</span>
           {row.reviewId ? (
             <Link
@@ -91,7 +91,7 @@ export const DiaryRow = ({ row, username }: DiaryRowProps) => {
       </div>
 
       <div className="hidden items-center md:flex">
-        <DiaryRatingStars ratingOutOfFive={row.ratingOutOfFive} color={channelMeta.color} />
+        <DiaryRatingStars rating={row.rating} color={channelMeta.color} />
       </div>
 
       <div className="hidden justify-center md:flex">

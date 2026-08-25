@@ -1,5 +1,22 @@
 import { z } from "zod";
 
+// The one source of truth for which media types this app knows about.
+// Every other mediaType schema/type in the codebase aliases or derives
+// from this - adding a new media type means changing MEDIA_TYPES here,
+// and the compiler flags every branch that needs to handle it.
+export const MEDIA_TYPES = ["movie", "tv", "album", "book"] as const;
+export const mediaTypeSchema = z.enum(MEDIA_TYPES);
+export type MediaType = z.infer<typeof mediaTypeSchema>;
+
+export const successResponseSchema = z.object({ success: z.boolean() });
+
+export const userSummarySchema = z.object({
+  id: z.string(),
+  username: z.string(),
+  displayUsername: z.string().nullable(),
+  avatarUrl: z.string().nullable(),
+});
+
 export const tmdbSearchMovieSchema = z.object({
   id: z.number().int(),
   title: z.string(),
@@ -61,7 +78,7 @@ export const createdDiaryEntrySchema = z
     userId: z.string(),
     movieId: z.number().int(),
     watchedDate: z.string(),
-    rating: z.number().int().nullable(),
+    rating: z.number().nullable(),
     rewatch: z.boolean(),
     createdAt: z.string(),
     updatedAt: z.string(),
@@ -72,7 +89,7 @@ export const diaryEntrySchema = z
   .object({
     id: z.string(),
     watchedDate: z.string(),
-    rating: z.number().int().nullable(),
+    rating: z.number().nullable(),
     rewatch: z.boolean(),
     movieId: z.number().int(),
     createdAt: z.string(),
@@ -92,7 +109,7 @@ export const movieLogSchema = z
   .object({
     diaryEntryId: z.string(),
     watchedDate: z.string(),
-    rating: z.number().int().nullable(),
+    rating: z.number().nullable(),
     rewatch: z.boolean(),
     createdAt: z.string(),
     username: z.string(),
@@ -104,16 +121,16 @@ export const movieLogSchema = z
   })
   .passthrough();
 
-const ratingOutOfFiveInputSchema = z
+const ratingInputSchema = z
   .number()
   .min(0.5)
-  .max(5)
+  .max(10)
   .multipleOf(0.5);
 
 export const createDiaryEntryInputSchema = z.object({
   tmdbId: z.number().int().positive(),
   watchedDate: z.string(),
-  ratingOutOfFive: ratingOutOfFiveInputSchema.optional(),
+  rating: ratingInputSchema.optional(),
   rewatch: z.boolean().optional(),
   review: z.string().max(5000).optional(),
   containsSpoilers: z.boolean().optional(),
@@ -159,7 +176,7 @@ export const topPickCategoryKeySchema = z.enum([
   "books",
 ]);
 
-export const topPickMediaTypeSchema = z.enum(["movie", "tv", "album", "book"]);
+export const topPickMediaTypeSchema = mediaTypeSchema;
 
 export const topPickItemSchema = z.object({
   slot: z.number().int().min(1).max(4),
@@ -231,7 +248,6 @@ export const publicProfileSchema = z
     id: z.string(),
     name: z.string().nullish(),
     displayUsername: z.string().nullish(),
-    image: z.string().nullish(),
     username: z.string(),
     bio: z.string().nullish(),
     location: z.string().nullish(),
@@ -248,8 +264,7 @@ export const meProfileSchema = z
   .object({
     id: z.string(),
     name: z.string().nullish(),
-    email: z.string().email(),
-    image: z.string().nullish(),
+    email: z.email(),
     username: z.string(),
     bio: z.string().nullish(),
     location: z.string().nullish(),
@@ -258,15 +273,16 @@ export const meProfileSchema = z
     themeId: z.string().optional(),
     isAdmin: z.boolean(),
     createdAt: z.string().optional(),
+    hasSecurityQuestion: z.boolean(),
   })
   .passthrough();
 
 export const updateProfileInputSchema = z.object({
   bio: z.string().max(300).optional(),
   location: z.string().max(100).optional(),
-  avatarUrl: z.string().url().optional().or(z.literal("")),
+  avatarUrl: z.url().optional().or(z.literal("")),
   topPicks: z.array(updateTopPickCategoryInputSchema).max(4).optional(),
-  favoriteGenres: z.array(favoriteGenreSchema).max(8).optional(),
+  favoriteGenres: z.array(favoriteGenreSchema).max(4).optional(),
 });
 
 export const profileUpdateResponseSchema = z
@@ -283,13 +299,13 @@ export const profileUpdateResponseSchema = z
   .passthrough();
 
 export const loginInputSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8),
 });
 
 export const registerInputSchema = z.object({
   username: z.string().min(3).max(20).regex(/^[a-z0-9_]+$/),
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8).max(128),
 });
 

@@ -1,9 +1,6 @@
 import type { Request, Response } from "express";
 import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
-import {
-  sendBadRequest,
-  sendValidationError,
-} from "../../commons/http/validation-response.helper";
+import { sendBadRequest, sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
 import { parseTmdbIdParam } from "../../commons/validation/params.helper";
 import { SerialsService } from "./serials.service";
 import type {
@@ -17,6 +14,7 @@ import {
   CreateSerialLogSchema,
   normalizeSerialArchiveQuery,
   normalizeSerialDetailQuery,
+  normalizeSerialLogsQuery,
   SearchSerialsQuerySchema,
   SerialSeasonParamsSchema,
   UpdateSerialInteractionSchema,
@@ -51,7 +49,7 @@ export class SerialsController {
 
     const series = await SerialsService.findOrCreate(tmdbId);
     if (!series) {
-      res.status(404).json({ error: "Series not found" });
+      sendNotFound(res, "Series not found");
       return;
     }
 
@@ -77,7 +75,7 @@ export class SerialsController {
     });
 
     if (!detail) {
-      res.status(404).json({ error: "Series not found" });
+      sendNotFound(res, "Series not found");
       return;
     }
 
@@ -97,7 +95,7 @@ export class SerialsController {
 
     const state = await SerialsService.getInteraction(req.user.id, tmdbId);
     if (!state) {
-      res.status(404).json({ error: "Series not found" });
+      sendNotFound(res, "Series not found");
       return;
     }
 
@@ -127,7 +125,7 @@ export class SerialsController {
     );
 
     if (!result) {
-      res.status(404).json({ error: "Series not found" });
+      sendNotFound(res, "Series not found");
       return;
     }
 
@@ -152,7 +150,7 @@ export class SerialsController {
 
     const created = await SerialsService.createLog(req.user.id, tmdbId, parsed.data);
     if (!created) {
-      res.status(404).json({ error: "Series not found" });
+      sendNotFound(res, "Series not found");
       return;
     }
 
@@ -175,13 +173,16 @@ export class SerialsController {
       return;
     }
 
+    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
+
     const seasonDetail = await SerialsService.getSeasonDetail({
       tmdbId,
       seasonNumber: seasonParams.data.seasonNumber,
+      viewerUserId,
     });
 
     if (!seasonDetail) {
-      res.status(404).json({ error: "Season not found" });
+      sendNotFound(res, "Season not found");
       return;
     }
 
@@ -226,9 +227,10 @@ export class SerialsController {
       return;
     }
 
-    const logs = await SerialsService.getLogs(tmdbId);
+    const { limit, offset } = normalizeSerialLogsQuery(req.query);
+    const logs = await SerialsService.getLogs(tmdbId, limit, offset);
     if (logs === null) {
-      res.status(404).json({ error: "Series not found" });
+      sendNotFound(res, "Series not found");
       return;
     }
 
@@ -236,7 +238,8 @@ export class SerialsController {
   }
 
   static async getMyLogs(req: Request, res: Response): Promise<void> {
-    const logs = await SerialsService.getMyLogs(req.user.id);
+    const { limit, offset } = normalizeSerialLogsQuery(req.query);
+    const logs = await SerialsService.getMyLogs(req.user.id, limit, offset);
     res.status(200).json(logs);
   }
 
@@ -252,7 +255,7 @@ export class SerialsController {
 
     const updated = await SerialsService.updateLog(req.params.id, req.user.id, parsed.data);
     if (!updated) {
-      res.status(404).json({ error: "Serial log not found" });
+      sendNotFound(res, "Serial log not found");
       return;
     }
 
@@ -265,7 +268,7 @@ export class SerialsController {
   ): Promise<void> {
     const deleted = await SerialsService.deleteLog(req.params.id, req.user.id);
     if (!deleted) {
-      res.status(404).json({ error: "Serial log not found" });
+      sendNotFound(res, "Serial log not found");
       return;
     }
 

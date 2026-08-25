@@ -1,28 +1,18 @@
 import type { UserRecentActivity } from "@/features/profile/api";
+import { formatRatingLabel } from "@/lib/rating";
+import type { MediaType } from "@/types/api";
 
 export type ProfileRecentActivityItem = {
   id: string;
   tmdbId: number;
-  mediaType: "movie" | "tv";
+  mediaType: MediaType;
   mediaTitle: string;
+  posterPath: string | null;
   actionLabel: string;
   ratingLabel: string | null;
   createdAt: string;
 };
 
-const toFivePointRating = (ratingOutOfTen: number): number => {
-  const normalized = Math.max(0, Math.min(10, ratingOutOfTen));
-  return normalized / 2;
-};
-
-const formatRatingOutOfFiveLabel = (value: number): string => {
-  const rounded = Math.round(value * 10) / 10;
-  if (Number.isInteger(rounded)) {
-    return `${rounded.toFixed(0)}/5`;
-  }
-
-  return `${rounded.toFixed(1)}/5`;
-};
 
 const getTimestamp = (value: string): number => {
   const parsed = new Date(value).getTime();
@@ -56,6 +46,7 @@ export const buildRecentActivityItems = (
         tmdbId,
         mediaType: media.mediaType,
         mediaTitle: media.title,
+        posterPath: media.posterPath,
         actionLabel: "Logged",
         ratingLabel: null,
         createdAt: activity.createdAt,
@@ -67,6 +58,7 @@ export const buildRecentActivityItems = (
           tmdbId,
           mediaType: media.mediaType,
           mediaTitle: media.title,
+          posterPath: media.posterPath,
           actionLabel: "Reviewed",
           ratingLabel: null,
           createdAt: activity.createdAt,
@@ -79,10 +71,9 @@ export const buildRecentActivityItems = (
           tmdbId,
           mediaType: media.mediaType,
           mediaTitle: media.title,
+          posterPath: media.posterPath,
           actionLabel: "Rated",
-          ratingLabel: formatRatingOutOfFiveLabel(
-            toFivePointRating(activity.metadata.rating),
-          ),
+          ratingLabel: formatRatingLabel(activity.metadata.rating),
           createdAt: activity.createdAt,
         });
       }
@@ -95,6 +86,7 @@ export const buildRecentActivityItems = (
       tmdbId: media.tmdbId,
       mediaType: media.mediaType,
       mediaTitle: media.title,
+      posterPath: media.posterPath,
       actionLabel:
         activity.kind === "review"
           ? "Reviewed"

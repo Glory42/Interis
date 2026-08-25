@@ -4,179 +4,50 @@ import {
   FeedActivityList,
   type FeedFilter,
 } from "@/features/feed/components/FeedActivityList";
-import { MyProfileSummaryRail } from "@/features/feed/components/MyProfileSummaryRail";
+import { FeedFilterTabs } from "@/features/feed/components/FeedFilterTabs";
 import { QuickLogComposer } from "@/features/feed/components/QuickLogComposer";
+import { TrendingAmongUsersRail } from "@/features/feed/components/TrendingAmongUsersRail";
 import { TrendingNowRail } from "@/features/feed/components/TrendingNowRail";
-import {
-  useFollowingFeed,
-  useMyFeedSummary,
-  useNetworkStats,
-  useTrendingNow,
-} from "@/features/feed/hooks/useFeed";
+import { useFollowingFeed, useTrendingNow } from "@/features/feed/hooks/useFeed";
 import { useTrendingSeries } from "@/features/serials/hooks/useSerials";
 
-const filterTabs: Array<{ id: FeedFilter; label: string }> = [
-  { id: "all", label: "ALL" },
-  { id: "cinema", label: "CINEMA" },
-  { id: "serial", label: "SERIAL" },
-];
-
 export const HomePage = () => {
-  const { user } = useAuth();
+  const { user, isUserLoading } = useAuth();
   const [activeFilter, setActiveFilter] = useState<FeedFilter>("all");
-  const [feedLimit, setFeedLimit] = useState(15);
 
   const isFollowingEnabled = Boolean(user);
-  const followingFeedQuery = useFollowingFeed(isFollowingEnabled, feedLimit);
+  // Always kept alongside the (possibly filtered) main query below - when
+  // activeFilter is "all" these share the same query key/cache entry, so
+  // this costs nothing extra; when a filter is active, the sidebar's
+  // "trending among users" rail still reflects the full feed instead of
+  // narrowing along with the main list.
+  const allFeedQuery = useFollowingFeed("all", isFollowingEnabled);
+  const followingFeedQuery = useFollowingFeed(activeFilter, isFollowingEnabled);
   const cinemaTrendingQuery = useTrendingNow();
   const serialTrendingQuery = useTrendingSeries();
-  const mySummaryQuery = useMyFeedSummary(Boolean(user));
-  const networkStatsQuery = useNetworkStats();
 
   const feedItems = useMemo(
-    () => followingFeedQuery.data ?? [],
+    () => followingFeedQuery.data?.pages.flatMap((page) => page.items) ?? [],
     [followingFeedQuery.data],
   );
-  const isFeedLoading = isFollowingEnabled
-    ? followingFeedQuery.isPending
-    : false;
+  const allFeedItems = useMemo(
+    () => allFeedQuery.data?.pages.flatMap((page) => page.items) ?? [],
+    [allFeedQuery.data],
+  );
+  const isFeedLoading = isUserLoading || (isFollowingEnabled && followingFeedQuery.isPending);
   const isFeedError = isFollowingEnabled ? followingFeedQuery.isError : false;
 
-  const totalUsers = networkStatsQuery.data?.totalUsers ?? null;
-  const liveReviews = networkStatsQuery.data?.liveReviews ?? null;
-  const logsToday = networkStatsQuery.data?.logsToday ?? null;
-  const isFetchingMoreFeed =
-    isFollowingEnabled &&
-    followingFeedQuery.isFetching &&
-    !followingFeedQuery.isPending;
+  const isFetchingMoreFeed = isFollowingEnabled && followingFeedQuery.isFetchingNextPage;
   const canShowMoreFeed =
     isFollowingEnabled &&
     !isFeedLoading &&
     !isFeedError &&
-    feedItems.length >= feedLimit;
+    followingFeedQuery.hasNextPage;
 
   return (
-    <section className="mx-auto w-full max-w-400 px-4 py-8">
-      <div className="mb-10 border-b border-border/60 pb-8">
-        <div className="mb-2 flex items-center gap-2">
-          <span className="font-mono text-[10px] text-muted-foreground/70">
-            root@null
-          </span>
-          <span className="font-mono text-[10px] text-muted-foreground/70">
-            :
-          </span>
-          <span className="font-mono text-[10px] text-primary">~/void</span>
-          <span className="font-mono text-[10px] text-muted-foreground/70">
-            $
-          </span>
-          <span className="font-mono text-sm text-muted-foreground">
-            {" "}
-            ./run_feed --all --live
-          </span>
-          <span className="animate-pulse font-mono text-sm text-muted-foreground">
-            _
-          </span>
-        </div>
-
-        <h1 className="font-mono text-4xl font-bold text-foreground md:text-6xl">
-          INTERIS://FEED
-        </h1>
-
-        <p className="mt-3 max-w-xl font-mono text-sm text-muted-foreground/80">
-          // Live reviews from the network. Cinema · Serial.
-          <br />
-          // Logged, not filtered. Unranked, not curated.
-        </p>
-
-        <div className="mt-6 flex flex-wrap items-center gap-6">
-          <div className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 animate-pulse  bg-(--module-cinema)" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-              LIVE_REVIEWS:
-            </span>
-            <span className="font-mono text-[11px] font-bold text-(--module-cinema)">
-              {liveReviews ?? "--"}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 animate-pulse  bg-(--module-serial)" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-              TOTAL_USERS:
-            </span>
-            <span className="font-mono text-[11px] font-bold text-(--module-serial)">
-              {totalUsers ?? "--"}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 animate-pulse  bg-(--module-neutral)" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-              LOGS_TODAY:
-            </span>
-            <span className="font-mono text-[11px] font-bold text-(--module-neutral)">
-              {logsToday ?? "--"}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-10 lg:flex-row">
-        <div className="min-w-0 flex-1">
-          <div className="mb-6 flex border-b border-border/60">
-            {filterTabs.map((tab) => {
-              const isActive = activeFilter === tab.id;
-
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  className="border-b-2 px-4 py-2.5 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] transition-all"
-                  style={{
-                    borderBottomColor: isActive
-                      ? "var(--foreground)"
-                      : "transparent",
-                    color: isActive
-                      ? "var(--foreground)"
-                      : "rgba(255,255,255,0.34)",
-                  }}
-                  onClick={() => setActiveFilter(tab.id)}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-
-          <div id="quick-log-composer" className="mb-6">
-            <QuickLogComposer user={user} />
-          </div>
-
-          <FeedActivityList
-            isAuthenticated={isFollowingEnabled}
-            isLoading={isFeedLoading}
-            isError={isFeedError}
-            items={feedItems}
-            activeFilter={activeFilter}
-          />
-
-          {canShowMoreFeed ? (
-            <div className="mt-5 flex justify-center">
-              <button
-                type="button"
-                disabled={isFetchingMoreFeed}
-                onClick={() => {
-                  setFeedLimit((currentLimit) => currentLimit + 15);
-                }}
-                className="border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isFetchingMoreFeed ? "Loading..." : "Show more"}
-              </button>
-            </div>
-          ) : null}
-        </div>
-
-        <aside className="w-full shrink-0 space-y-6 lg:w-72">
+    <section className="mx-auto w-full max-w-7xl px-4 pt-4 pb-10">
+      <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
+        <aside className="order-2 w-full shrink-0 space-y-6 lg:order-1 lg:sticky lg:top-16 lg:w-64">
           <TrendingNowRail
             cinemaIsLoading={cinemaTrendingQuery.isPending}
             cinemaIsError={cinemaTrendingQuery.isError}
@@ -185,14 +56,44 @@ export const HomePage = () => {
             serialsIsError={serialTrendingQuery.isError}
             serialsItems={serialTrendingQuery.data ?? []}
           />
+        </aside>
 
-          <MyProfileSummaryRail
-            user={user}
-            isLoading={mySummaryQuery.isPending}
-            isError={mySummaryQuery.isError}
-            summary={mySummaryQuery.data ?? null}
-            feedItems={feedItems}
-          />
+        <div className="order-1 min-w-0 flex-1 lg:order-2 lg:max-w-2xl">
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <FeedFilterTabs activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+          </div>
+
+          <div id="quick-log-composer" className="mb-4">
+            <QuickLogComposer user={user} />
+          </div>
+
+          <div className="animate-fade-up">
+            <FeedActivityList
+              isAuthenticated={isFollowingEnabled}
+              isLoading={isFeedLoading}
+              isError={isFeedError}
+              items={feedItems}
+            />
+          </div>
+
+          {canShowMoreFeed ? (
+            <div className="mt-6 flex justify-center">
+              <button
+                type="button"
+                disabled={isFetchingMoreFeed}
+                onClick={() => {
+                  void followingFeedQuery.fetchNextPage();
+                }}
+                className="theme-kicker border border-border/60 px-5 py-2 text-[10px] uppercase text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isFetchingMoreFeed ? "Loading…" : "Show more"}
+              </button>
+            </div>
+          ) : null}
+        </div>
+
+        <aside className="order-3 w-full shrink-0 space-y-6 lg:sticky lg:top-16 lg:w-72">
+          <TrendingAmongUsersRail feedItems={allFeedItems} />
         </aside>
       </div>
     </section>

@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
-import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
-import { sendValidationError } from "../../commons/http/validation-response.helper";
+import { sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
 import { ReviewsService } from "./reviews.service";
 import {
   CreateReviewSchema,
@@ -15,7 +14,7 @@ export class ReviewsController {
   ): Promise<void> {
     const review = await ReviewsService.findById(req.params.id);
     if (!review) {
-      res.status(404).json({ error: "Review not found" });
+      sendNotFound(res, "Review not found");
       return;
     }
     res.status(200).json(review);
@@ -48,7 +47,7 @@ export class ReviewsController {
       parsed.data,
     );
     if (!updated) {
-      res.status(404).json({ error: "Review not found" });
+      sendNotFound(res, "Review not found");
       return;
     }
     res.status(200).json(updated);
@@ -60,7 +59,7 @@ export class ReviewsController {
   ): Promise<void> {
     const deleted = await ReviewsService.delete(req.params.id, req.user.id);
     if (!deleted) {
-      res.status(404).json({ error: "Review not found" });
+      sendNotFound(res, "Review not found");
       return;
     }
     res.status(200).json({ success: true });
@@ -70,8 +69,7 @@ export class ReviewsController {
     req: Request<{ id: string }>,
     res: Response,
   ): Promise<void> {
-    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
-    const comments = await ReviewsService.getComments(req.params.id, viewerUserId);
+    const comments = await ReviewsService.getComments(req.params.id);
     res.status(200).json(comments);
   }
 
@@ -91,7 +89,7 @@ export class ReviewsController {
       parsed.data.content,
     );
     if (!comment) {
-      res.status(404).json({ error: "Review not found" });
+      sendNotFound(res, "Review not found");
       return;
     }
     res.status(201).json(comment);
@@ -106,10 +104,32 @@ export class ReviewsController {
       req.user.id,
     );
     if (!deleted) {
-      res.status(404).json({ error: "Comment not found" });
+      sendNotFound(res, "Comment not found");
       return;
     }
     res.status(200).json({ success: true });
+  }
+
+  static async updateComment(
+    req: Request<{ commentId: string }>,
+    res: Response,
+  ): Promise<void> {
+    const parsed = ReviewCommentSchema.safeParse(req.body);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    const updated = await ReviewsService.updateComment(
+      req.params.commentId,
+      req.user.id,
+      parsed.data.content,
+    );
+    if (!updated) {
+      sendNotFound(res, "Comment not found");
+      return;
+    }
+    res.status(200).json(updated);
   }
 
   static async likeReview(
@@ -129,7 +149,7 @@ export class ReviewsController {
       req.params.id,
     );
     if (!result) {
-      res.status(404).json({ error: "Like not found" });
+      sendNotFound(res, "Like not found");
       return;
     }
     res.status(200).json({ liked: false });

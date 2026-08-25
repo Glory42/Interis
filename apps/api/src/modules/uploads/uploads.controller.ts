@@ -1,13 +1,10 @@
 import type { Request, Response } from "express";
+import type { UploadType } from "../../infrastructure/r2/client";
 import {
-  generateUploadUrl,
-  isR2ConfigurationError,
-  isOwnedUploadPublicUrl,
-  type UploadType,
-} from "../../infrastructure/r2/client";
-import { sendValidationError } from "../../commons/http/validation-response.helper";
-import { logger } from "../../commons/utils/logger";
-import { UsersService } from "../users/users.service";
+  sendErrorForStatus,
+  sendValidationError,
+} from "../../commons/http/validation-response.helper";
+import { UploadsService } from "./uploads.service";
 import { ConfirmUploadSchema, RequestUploadSchema } from "./dto/uploads.dto";
 
 export class UploadsController {
@@ -20,39 +17,19 @@ export class UploadsController {
       return;
     }
 
-    try {
-      const { signedUrl, publicUrl } = await generateUploadUrl(
-        req.user.id,
-        parsed.data.uploadType as UploadType,
-        parsed.data.contentType,
-        parsed.data.fileSizeBytes,
-      );
+    const result = await UploadsService.requestUpload(
+      req.user.id,
+      parsed.data.uploadType as UploadType,
+      parsed.data.contentType,
+      parsed.data.fileSizeBytes,
+    );
 
-      res.status(200).json({ signedUrl, publicUrl });
-    } catch (error) {
-      if (isR2ConfigurationError(error)) {
-        logger.error(error, "R2 uploads are not configured correctly");
-        res.status(503).json({
-          error:
-            "Image uploads are temporarily unavailable. Please configure R2 storage.",
-        });
-        return;
-      }
-
-      if (error instanceof Error) {
-        if (error.message.startsWith("Unsupported file type")) {
-          res.status(400).json({ error: error.message });
-          return;
-        }
-
-        if (error.message.startsWith("File too large")) {
-          res.status(400).json({ error: error.message });
-          return;
-        }
-      }
-
-      throw error;
+    if ("error" in result) {
+      sendErrorForStatus(res, result.status, result.error);
+      return;
     }
+
+    res.status(200).json({ signedUrl: result.signedUrl, publicUrl: result.publicUrl });
   }
 
   // POST /api/uploads/confirm
@@ -65,23 +42,17 @@ export class UploadsController {
       return;
     }
 
-    if (
-      !isOwnedUploadPublicUrl(
-        req.user.id,
-        parsed.data.uploadType,
-        parsed.data.publicUrl,
-      )
-    ) {
-      res.status(400).json({
-        error: "Invalid upload URL. Please request a new signed upload URL.",
-      });
+    const result = await UploadsService.confirmUpload(
+      req.user.id,
+      parsed.data.uploadType,
+      parsed.data.publicUrl,
+    );
+
+    if ("error" in result) {
+      sendErrorForStatus(res, result.status, result.error);
       return;
     }
 
-    const updated = await UsersService.updateProfile(req.user.id, {
-      avatarUrl: parsed.data.publicUrl,
-    });
-
-    res.status(200).json(updated);
+    res.status(200).json(result.profile);
   }
 }

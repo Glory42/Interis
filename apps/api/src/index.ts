@@ -5,53 +5,43 @@ import express, {
 } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
-import rateLimit from "express-rate-limit";
 import { randomUUID } from "node:crypto";
-import { toNodeHandler } from "better-auth/node";
-import { auth } from "./infrastructure/auth/auth";
 import { logger } from "./commons/utils/logger";
+import { env } from "./infrastructure/config/env";
+import { AppError } from "./commons/errors/app-error";
 import { securityHeaders } from "./commons/middlewares/securityHeaders";
+import { helmetMiddleware } from "./commons/middlewares/helmet";
 import { requireTrustedOriginForMutations } from "./commons/middlewares/requireTrustedOriginForMutations";
+import {
+  createAuthLimiter,
+  createApiLimiter,
+  createMutationLimiter,
+} from "./commons/middlewares/rateLimiters";
 import {
   getTrustedOriginsFromEnv,
   isTrustedOrigin,
 } from "./infrastructure/config/origins";
-import listsRouter from "./modules/lists/lists.routes";
-import moviesRouter from "./modules/movies/movies.routes";
-import serialsRouter from "./modules/serials/serials.routes";
-import musicRouter from "./modules/music/music.routes";
-import booksRouter from "./modules/books/books.routes";
-import peopleRouter from "./modules/people/people.routes";
-import diaryRouter from "./modules/diary/diary.routes";
-import usersRouter from "./modules/users/users.routes";
-import reviewsRouter from "./modules/reviews/reviews.routes";
-import socialRouter from "./modules/social/social.routes";
-import interactionsRouter from "./modules/interactions/interactions.routes";
-import uploadsRouter from "./modules/uploads/uploads.routes";
-import publicRouter from "./modules/public/public.routes";
-import postsRouter from "./modules/posts/posts.routes";
-import dataTransferRouter from "./modules/data-transfer/data-transfer.routes";
+import { registerRoutes } from "./infrastructure/routing/register-routes";
 
-export const createApp = () => {
+export type RateLimiterOverrides = {
+  auth?: number;
+  api?: number;
+  mutation?: number;
+};
+
+export type CreateAppOptions = {
+  rateLimiterOverrides?: RateLimiterOverrides;
+};
+
+export const createApp = (options: CreateAppOptions = {}) => {
   const app = express();
   const trustedOrigins = getTrustedOriginsFromEnv();
-
-  const authLimiter = rateLimit({
-    windowMs: 60 * 1000,
-    max: 30,
-    standardHeaders: true,
-    legacyHeaders: false,
-  });
-
-  const apiLimiter = rateLimit({
-    windowMs: 60 * 1000,
-    max: 300,
-    standardHeaders: true,
-    legacyHeaders: false,
-    skip: (req) => req.path.startsWith("/public/"),
-  });
+  const authLimiter = createAuthLimiter(options.rateLimiterOverrides?.auth);
+  const apiLimiter = createApiLimiter(options.rateLimiterOverrides?.api);
+  const mutationLimiter = createMutationLimiter(options.rateLimiterOverrides?.mutation);
 
   app.disable("x-powered-by");
+  app.use(helmetMiddleware);
   app.use(securityHeaders);
 
   app.use(
@@ -93,6 +83,7 @@ export const createApp = () => {
         }
 
         const requestId = randomUUID();
+        req.headers["x-request-id"] = requestId;
         res.setHeader("x-request-id", requestId);
         return requestId;
       },
@@ -100,9 +91,11 @@ export const createApp = () => {
   );
 
   app.use("/api", apiLimiter);
+  app.use("/api", mutationLimiter);
   app.use(requireTrustedOriginForMutations(trustedOrigins));
   app.use("/api/auth", authLimiter);
-  app.all("/api/auth/*splat", toNodeHandler(auth));
+  // Tighter body-size limit for auth payloads than the rest of the API.
+  app.use("/api/auth", express.json({ limit: "20kb" }));
 
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ extended: true, limit: "1mb" }));
@@ -115,30 +108,41 @@ export const createApp = () => {
     res.json({ status: "ok", message: "Interis API is alive" });
   });
 
-  app.use("/api/movies", moviesRouter);
-  app.use("/api/serials", serialsRouter);
-  app.use("/api/music", musicRouter);
-  app.use("/api/books", booksRouter);
-  app.use("/api/people", peopleRouter);
-  app.use("/api/diary", diaryRouter);
-  app.use("/api/users", usersRouter);
-  app.use("/api/reviews", reviewsRouter);
-  app.use("/api/social", socialRouter);
-  app.use("/api/interactions", interactionsRouter);
-  app.use("/api/uploads", uploadsRouter);
-  app.use("/api/public", publicRouter);
-  app.use("/api/posts", postsRouter);
-  app.use("/api/lists", listsRouter);
-  app.use("/api/data", dataTransferRouter);
+  registerRoutes(app);
 
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+    if (err instanceof AppError) {
+      res
+        .status(err.statusCode)
+        .json({ error: { message: err.message, code: err.code, details: err.details } });
+      return;
+    }
+
     if (err.message === "Not allowed by CORS") {
-      res.status(403).json({ error: "Origin is not allowed" });
+      res
+        .status(403)
+        .json({ error: { message: "Origin is not allowed", code: "CORS_NOT_ALLOWED" } });
+      return;
+    }
+
+    const bodyParserError = err as Error & { type?: string; status?: number };
+    if (bodyParserError.type === "entity.too.large") {
+      res
+        .status(413)
+        .json({ error: { message: "Request body too large", code: "PAYLOAD_TOO_LARGE" } });
+      return;
+    }
+    if (bodyParserError.type?.startsWith("entity.parse")) {
+      res
+        .status(400)
+        .json({ error: { message: "Malformed request body", code: "MALFORMED_BODY" } });
       return;
     }
 
     logger.error(err);
-    res.status(500).json({ error: "Internal server error" });
+    res
+      .status(500)
+      .json({ error: { message: "Internal server error", code: "INTERNAL_SERVER_ERROR" } });
   });
 
   return app;
@@ -146,11 +150,36 @@ export const createApp = () => {
 
 export const startServer = () => {
   const app = createApp();
-  const port = Number(process.env.PORT ?? 3000);
+  const port = env.PORT;
 
-  return app.listen(port, () => {
+  const server = app.listen(port, () => {
     logger.info(`🚀 Express server running on http://localhost:${port}`);
   });
+
+  let isShuttingDown = false;
+
+  const shutdown = (signal: string) => {
+    if (isShuttingDown) {
+      return;
+    }
+    isShuttingDown = true;
+
+    logger.info(`${signal} received, shutting down gracefully`);
+    server.close((err) => {
+      if (err) {
+        logger.error(err, "Error while closing server");
+        process.exit(1);
+      }
+
+      logger.info("Server closed, exiting");
+      process.exit(0);
+    });
+  };
+
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
+
+  return server;
 };
 
 if (import.meta.main) {

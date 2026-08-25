@@ -1,27 +1,43 @@
 import { SocialRepository } from "../repositories/social.repository";
+import { ModerationRepository } from "../../moderation/repositories/moderation.repository";
+import { NotificationsService } from "../../notifications/notifications.service";
+import { SocialFeedService } from "./social-feed.service";
 
 export class SocialFollowService {
   static async follow(
     followerId: string,
     followingId: string,
     targetUsername?: string,
-  ) {
+  ): Promise<{ error: string } | { success: true }> {
     if (followerId === followingId) {
       return { error: "Cannot follow yourself" } as const;
+    }
+
+    if (await ModerationRepository.isBlocked(followerId, followingId)) {
+      return { error: "Cannot follow this user" } as const;
     }
 
     const row = await SocialRepository.insertFollow(followerId, followingId);
 
     if (row) {
-      await SocialRepository.insertActivity({
-        userId: followerId,
-        type: "followed_user",
-        entityId: followingId,
-        metadata: JSON.stringify({
-          followingId,
-          targetUsername: targetUsername ?? null,
+      await Promise.all([
+        SocialRepository.insertActivity({
+          userId: followerId,
+          type: "followed_user",
+          entityId: followingId,
+          metadata: JSON.stringify({
+            followingId,
+            targetUsername: targetUsername ?? null,
+          }),
         }),
-      });
+        NotificationsService.notify({
+          recipientId: followingId,
+          actorId: followerId,
+          type: "follow",
+          entityId: followerId,
+        }),
+      ]);
+      SocialFeedService.invalidateFollowingFeed(followerId);
     }
 
     return { success: true } as const;
@@ -29,6 +45,7 @@ export class SocialFollowService {
 
   static async unfollow(followerId: string, followingId: string) {
     await SocialRepository.deleteFollow(followerId, followingId);
+    SocialFeedService.invalidateFollowingFeed(followerId);
     return { success: true } as const;
   }
 

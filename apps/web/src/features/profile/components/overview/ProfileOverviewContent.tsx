@@ -2,11 +2,9 @@ import {
   useUserRecentActivity,
   useUserTopPicks,
 } from "@/features/profile/hooks/useProfile";
-import { ProfileTopPicksSection } from "./ProfileTopPicksSection";
+import { ProfileTopPicksRow } from "./ProfileTopPicksRow";
 import { ProfileRecentActivitySection } from "./ProfileRecentActivitySection";
-import {
-  buildRecentActivityItems,
-} from "./profileOverview.utils";
+import { buildRecentActivityItems } from "./profileOverview.utils";
 
 type ProfileOverviewContentProps = {
   username: string;
@@ -18,7 +16,7 @@ export const ProfileOverviewContent = ({ username }: ProfileOverviewContentProps
 
   if (recentActivityQuery.isError && topPicksQuery.isError) {
     return (
-      <div className=" border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+      <div className="rounded-lg border border-border/60 bg-card/30 p-4 text-sm text-destructive">
         Could not load profile overview.
       </div>
     );
@@ -26,19 +24,43 @@ export const ProfileOverviewContent = ({ username }: ProfileOverviewContentProps
 
   const recentActivity = recentActivityQuery.data ?? [];
   const topPicks = topPicksQuery.data ?? null;
+  const activities = buildRecentActivityItems({ feedItems: recentActivity, limit: 12 });
 
-  const activities = buildRecentActivityItems({
-    feedItems: recentActivity,
-    limit: 8,
-  });
+  const categoriesByKey = new Map(
+    (topPicks?.categories ?? []).map((category) => [category.key, category]),
+  );
 
   return (
-    <div className="space-y-10">
-      <ProfileTopPicksSection
-        topPicks={topPicks}
-        isTopPicksPending={topPicksQuery.isPending}
-        isTopPicksError={topPicksQuery.isError}
-      />
+    <div className="space-y-14">
+      <section>
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          <ProfileTopPicksRow
+            categoryKey="cinema"
+            category={categoriesByKey.get("cinema")}
+            isPending={topPicksQuery.isPending}
+            isError={topPicksQuery.isError}
+          />
+          <ProfileTopPicksRow
+            categoryKey="serial"
+            category={categoriesByKey.get("serial")}
+            isPending={topPicksQuery.isPending}
+            isError={topPicksQuery.isError}
+          />
+          <ProfileTopPicksRow
+            categoryKey="music"
+            category={categoriesByKey.get("music")}
+            isPending={topPicksQuery.isPending}
+            isError={topPicksQuery.isError}
+          />
+          <ProfileTopPicksRow
+            categoryKey="books"
+            category={categoriesByKey.get("books")}
+            isPending={topPicksQuery.isPending}
+            isError={topPicksQuery.isError}
+          />
+        </div>
+      </section>
+
       <ProfileRecentActivitySection
         activities={activities}
         isPending={recentActivityQuery.isPending}

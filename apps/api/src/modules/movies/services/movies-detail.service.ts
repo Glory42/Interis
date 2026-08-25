@@ -1,14 +1,13 @@
 import {
   getMovieCredits,
   getMovieDetails as tmdbGetDetails,
+  getSimilarMovies,
 } from "../../../infrastructure/tmdb/cinemas";
-import {
-  normalizeMovieGenres,
-  toRatingBreakdownBucket,
-  toRatingOutOfFive,
-} from "../helpers/movies-format.helper";
+import { normalizeMovieGenres } from "../helpers/movies-format.helper";
+import { normalizeVoteAverage } from "../../media/helpers/media-vote-average.helper";
 import { buildMediaRatingBreakdown } from "../../media/helpers/media-rating-breakdown.helper";
 import { MoviesRepository } from "../repositories/movies.repository";
+import { MoviesReviewsRepository } from "../repositories/movies-reviews.repository";
 import { MoviesCacheService } from "./movies-cache.service";
 import { PeopleCacheService } from "../../people/services/people-cache.service";
 import type { MovieDetailReviewSort } from "../dto/movies.dto";
@@ -41,11 +40,13 @@ export class MoviesDetailService {
     const reviewsSort = input.reviewsSort;
     const viewerUserId = input.viewerUserId ?? null;
 
-    const [tmdbDetail, tmdbCredits, logsCount, reviewRows] = await Promise.all([
+    const [tmdbDetail, tmdbCredits, logsCount, reviewRows, tmdbSimilar, communityRatings] = await Promise.all([
       tmdbGetDetails(input.tmdbId).catch(() => null),
       getMovieCredits(input.tmdbId).catch(() => null),
       MoviesRepository.getLogsCountByMovieId(movie.id),
-      MoviesRepository.getReviewRowsByMovieId(movie.id),
+      MoviesReviewsRepository.getReviewRowsByMovieId(movie.id),
+      getSimilarMovies(input.tmdbId).catch(() => []),
+      MoviesRepository.getCommunityRatingsByMovieId(movie.id),
     ]);
 
     const directorCredits = (tmdbCredits?.crew ?? []).filter(
@@ -71,41 +72,42 @@ export class MoviesDetailService {
       );
     }
 
-    const directors = await PeopleCacheService.ensurePersonLinks(
-      [...uniqueDirectorCredits.values()].map((directorCredit) => ({
-        tmdbPersonId: directorCredit.id,
-        name: directorCredit.name,
-        profilePath: directorCredit.profile_path,
-        knownForDepartment: directorCredit.known_for_department,
-        popularity: directorCredit.popularity,
-        routeRole: "director" as const,
-        job: directorCredit.job,
-        department: directorCredit.department,
-      })),
-    );
-
-    const cast = await PeopleCacheService.ensurePersonLinks(
-      [...(tmdbCredits?.cast ?? [])]
-        .sort((leftMember, rightMember) => leftMember.order - rightMember.order)
-        .slice(0, 20)
-        .map((castMember) => ({
-          tmdbPersonId: castMember.id,
-          name: castMember.name,
-          profilePath: castMember.profile_path,
-          knownForDepartment: castMember.known_for_department,
-          popularity: castMember.popularity,
-          routeRole: "actor" as const,
-          character: castMember.character,
-          department: castMember.known_for_department,
+    const [directors, cast] = await Promise.all([
+      PeopleCacheService.ensurePersonLinks(
+        [...uniqueDirectorCredits.values()].map((directorCredit) => ({
+          tmdbPersonId: directorCredit.id,
+          name: directorCredit.name,
+          profilePath: directorCredit.profile_path,
+          knownForDepartment: directorCredit.known_for_department,
+          popularity: directorCredit.popularity,
+          routeRole: "director" as const,
+          job: directorCredit.job,
+          department: directorCredit.department,
         })),
-    );
+      ),
+      PeopleCacheService.ensurePersonLinks(
+        [...(tmdbCredits?.cast ?? [])]
+          .sort((leftMember, rightMember) => leftMember.order - rightMember.order)
+          .slice(0, 20)
+          .map((castMember) => ({
+            tmdbPersonId: castMember.id,
+            name: castMember.name,
+            profilePath: castMember.profile_path,
+            knownForDepartment: castMember.known_for_department,
+            popularity: castMember.popularity,
+            routeRole: "actor" as const,
+            character: castMember.character,
+            department: castMember.known_for_department,
+          })),
+      ),
+    ]);
 
     const reviewIds = reviewRows.map((reviewRow) => reviewRow.id);
 
     const [likeRows, viewerLikedRows] = await Promise.all([
-      MoviesRepository.getReviewLikeCounts(reviewIds),
+      MoviesReviewsRepository.getReviewLikeCounts(reviewIds),
       viewerUserId
-        ? MoviesRepository.getViewerLikedReviewRows(viewerUserId, reviewIds)
+        ? MoviesReviewsRepository.getViewerLikedReviewRows(viewerUserId, reviewIds)
         : Promise.resolve([]),
     ]);
 
@@ -117,7 +119,7 @@ export class MoviesDetailService {
     );
 
     const reviewsWithEngagement: MovieDetailReviewItem[] = reviewRows.map((reviewRow) => {
-      const ratingOutOfTen = reviewRow.ratingOutOfTen;
+      const rating = reviewRow.rating;
 
       return {
         id: reviewRow.id,
@@ -126,15 +128,13 @@ export class MoviesDetailService {
         createdAt: reviewRow.createdAt,
         updatedAt: reviewRow.updatedAt,
         watchedDate: reviewRow.watchedDate,
-        ratingOutOfTen,
-        ratingOutOfFive: toRatingOutOfFive(ratingOutOfTen),
+        rating,
         likeCount: likeCountByReviewId.get(reviewRow.id) ?? 0,
         viewerHasLiked: viewerLikedReviewIds.has(reviewRow.id),
         author: {
           id: reviewRow.userId,
           username: reviewRow.authorUsername,
           displayUsername: reviewRow.authorDisplayUsername,
-          image: reviewRow.authorImage,
           avatarUrl: reviewRow.authorAvatarUrl,
         },
       };
@@ -156,10 +156,20 @@ export class MoviesDetailService {
       );
     }
 
-    const ratingBreakdown = buildMediaRatingBreakdown(
-      reviewsWithEngagement,
-      toRatingBreakdownBucket,
-    );
+    const ratingBreakdown = buildMediaRatingBreakdown(communityRatings);
+
+    const similar = (tmdbSimilar ?? []).slice(0, 12).map((sim) => {
+      const releaseYear = sim.release_date
+        ? Number.parseInt(sim.release_date.slice(0, 4), 10)
+        : null;
+
+      return {
+        tmdbId: sim.id,
+        title: sim.title,
+        posterPath: sim.poster_path,
+        releaseYear: Number.isNaN(releaseYear) ? null : releaseYear,
+      };
+    });
 
     const [viewerDiaryRow, viewerReviewRow] = viewerUserId
       ? await Promise.all([
@@ -171,10 +181,7 @@ export class MoviesDetailService {
     const viewerDiary = viewerDiaryRow[0] ?? null;
     const viewerReview = viewerReviewRow[0] ?? null;
 
-    const globalRatingOutOfTen =
-      tmdbDetail && Number.isFinite(tmdbDetail.vote_average)
-        ? Number(tmdbDetail.vote_average.toFixed(1))
-        : null;
+    const globalRating = normalizeVoteAverage(tmdbDetail?.vote_average);
 
     return {
       movie: {
@@ -209,8 +216,7 @@ export class MoviesDetailService {
           tmdbDetail && tmdbDetail.revenue > 0 && Number.isFinite(tmdbDetail.revenue)
             ? tmdbDetail.revenue
             : null,
-        globalRatingOutOfTen,
-        globalRatingOutOfFive: toRatingOutOfFive(globalRatingOutOfTen),
+        globalRating,
         globalRatingVoteCount:
           tmdbDetail && tmdbDetail.vote_count > 0 ? tmdbDetail.vote_count : null,
       },
@@ -222,8 +228,7 @@ export class MoviesDetailService {
             reviewId: viewerReview?.id ?? null,
             watchedDate: viewerDiary?.watchedDate ?? null,
             rewatch: viewerDiary?.rewatch ?? false,
-            ratingOutOfTen: viewerDiary?.ratingOutOfTen ?? null,
-            ratingOutOfFive: toRatingOutOfFive(viewerDiary?.ratingOutOfTen ?? null),
+            rating: viewerDiary?.rating ?? null,
             reviewContent: viewerReview?.content ?? null,
             reviewContainsSpoilers: viewerReview?.containsSpoilers ?? null,
           }
@@ -232,9 +237,10 @@ export class MoviesDetailService {
       reviews: sortedReviews,
       ratingBreakdown: {
         totalRatedReviews: ratingBreakdown.totalRatedReviews,
-        averageRatingOutOfFive: ratingBreakdown.averageRatingOutOfFive,
+        averageRating: ratingBreakdown.averageRating,
         buckets: ratingBreakdown.buckets as MovieDetailRatingBreakdownBucket[],
       },
+      similar,
     };
   }
 

@@ -11,6 +11,7 @@ Thank you for your interest in contributing to Interis. This document covers the
 - [Coding conventions](#coding-conventions)
 - [Backend conventions](#backend-conventions)
 - [Frontend conventions](#frontend-conventions)
+- [Performance conventions](#performance-conventions)
 - [Adding a new feature](#adding-a-new-feature)
 - [Testing](#testing)
 - [Quality checks](#quality-checks)
@@ -23,7 +24,7 @@ Interis is a social movie journal app inspired by Letterboxd. It is a monorepo w
 
 | Package | Purpose |
 | --- | --- |
-| `apps/api/` | Express 5 API with Drizzle ORM, Better Auth, TMDB integration |
+| `apps/api/` | Hono API (Bun.serve) with Drizzle ORM, Better Auth, TMDB integration |
 | `apps/web/` | React 19 SPA with TanStack Router + Query, Tailwind CSS |
 
 Both packages run on Bun. The frontend proxies `/api` requests to the backend during development.
@@ -38,14 +39,14 @@ Both packages run on Bun. The frontend proxies `/api` requests to the backend du
 - Public profile pages with stats, lists, likes, and watchlists
 - Public API endpoints (`/api/public/*`) for external widgets
 - Avatar uploads via Cloudflare R2
-- Theme system (rose-pine, null-log, gruvbox)
+- Theme system (rose-pine, null-log, tokyo-night, amoled)
 
 ## Architecture
 
 ### High-level data flow
 
 ```
-Browser -> Vite dev server (proxy /api) -> Express backend
+Browser -> Vite dev server (proxy /api) -> Hono backend (Bun.serve)
                                            |
                                     Better Auth (cookies)
                                            |
@@ -65,9 +66,9 @@ src/
 │   ├── auth/             # Session resolution from request headers
 │   ├── http/             # Validation response helpers
 │   ├── middlewares/      # requireAuth, requireAdmin, authCookieHeader
-│   ├── utils/            # asyncHandler wrapper, Pino logger
+│   ├── utils/            # Pino logger
 │   ├── validation/       # Shared Zod schemas (tmdbId, isoDate)
-│   └── types/            # Express Request augmentation (user, session)
+│   └── types/            # Hono context typing (user, session variables)
 ├── infrastructure/       # External system integrations
 │   ├── auth/             # Better Auth configuration + database hooks
 │   ├── database/         # Drizzle client + entity definitions
@@ -102,7 +103,7 @@ src/
 Every domain module follows the same layered structure:
 
 ```
-<module>.routes.ts       # Express Router, mounts controller methods with asyncHandler
+<module>.routes.ts       # Hono app (createHonoApp()), mounts controller methods
 <module>.controller.ts   # Static class: HTTP req/res, input validation, calls service
 <module>.service.ts      # Static facade: delegates to specialized sub-services
 <module>.entity.ts       # Drizzle pgTable schema definition
@@ -137,7 +138,29 @@ feature/
 - PostgreSQL (Neon recommended for cloud dev)
 - TMDB API access token (Bearer token)
 
-### Initial setup
+### Docker Compose (fastest path)
+
+```bash
+docker compose up
+```
+
+Spins up a local Postgres database, applies migrations automatically, and
+starts both the API and frontend with hot reload (bind-mounted source) —
+`docker compose up` alone is enough for a clean clone to run without any
+manual `.env` setup. Copy [`.env.example`](.env.example) to a root `.env` if
+you want real TMDB data (`TMDB_ACCESS_TOKEN`) or a non-default
+`BETTER_AUTH_SECRET`.
+
+`apps/api`'s database client (`@neondatabase/serverless`) only speaks Neon's
+HTTP protocol, so `docker-compose.yml` fronts the local Postgres container
+with `ghcr.io/timowilhelm/local-neon-http-proxy` — see
+`apps/api/src/infrastructure/database/local-proxy.ts` for how the app
+switches to it (`USE_LOCAL_DB_PROXY=true`, set only by Docker Compose).
+Migrations run through a separate direct-`pg` path
+(`apps/api/scripts/docker-migrate.ts`) since migrations need multi-statement
+execution, which Neon's HTTP driver can't do.
+
+### Manual per-app setup
 
 1. Clone the repository and enter the project directory.
 
@@ -214,8 +237,9 @@ Entities are exported in dependency order to satisfy foreign key references:
 1. Create `<module>.entity.ts` in the appropriate module directory.
 2. Define the table using `pgTable` from Drizzle.
 3. Add relations using `relations()` if the table has FK relationships.
-4. Export the table and relations from `src/infrastructure/database/entities.ts`.
-5. Generate and apply the migration:
+4. Add an explicit `index()` for every column that will be filtered or joined on (FK columns like `userId`/`movieId`, anything used in a `WHERE`/`JOIN` elsewhere) — the primary key alone won't cover those lookups. See `diary.entity.ts` or `social.entity.ts` for the pattern.
+5. Export the table and relations from `src/infrastructure/database/entities.ts`.
+6. Generate and apply the migration:
 
 ```bash
 bunx drizzle-kit generate
@@ -340,6 +364,7 @@ export const CreateExampleSchema = z.object({
 - Always use the TMDB client from `infrastructure/tmdb`.
 - The client handles caching, deduplication, and error handling.
 - Movie data is cached on demand, not bulk imported.
+- Wrap any new per-id TMDB read (detail, credits, similar/recommendations, etc.) with `createCachedTmdbFetcher` from `infrastructure/tmdb/tmdb-cache.helper.ts` — it gives you TTL caching and in-flight request de-duplication for free. Don't write a bespoke `Map`-based cache per endpoint.
 
 ## Frontend conventions
 
@@ -395,7 +420,8 @@ export async function fetchExamples() {
 - Live in `src/features/<feature>/hooks/`.
 - Export query key factories as `<feature>Keys`.
 - Use `useQuery` for reads, `useMutation` for writes.
-- Invalidate relevant queries after mutations.
+- Invalidate only the specific query key(s) that actually changed after a mutation — never invalidate a whole top-level key (`queryKey: feedKeys.all` / `["movies"]`) unless every query in that namespace genuinely needs to refetch. TanStack Query matches by prefix, so a broad invalidation silently refetches every unrelated cached query in that namespace.
+- Any list tied to user-generated content (feed, likes, watchlist, reviews) should use `useInfiniteQuery` with a bounded page size, not a plain `useQuery` that fetches the whole collection.
 
 ```typescript
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -455,6 +481,21 @@ Use the provided guards from `@/lib/router/auth-guards`:
 - Use `isApiError()` type guard for conditional handling.
 - Display user-friendly error messages in the UI.
 
+## Performance conventions
+
+Apply these to every new feature, not just when something is already slow:
+
+- **Query invalidation**: invalidate only the specific keys a mutation actually changes — never a bare top-level key (see [React Query hooks](#react-query-hooks) above).
+- **External API calls**: cache per-id reads from TMDB (or any third-party API) with `createCachedTmdbFetcher` (see [TMDB integration](#tmdb-integration) above) instead of hitting the network on every request.
+- **Independent async work**: run independent `await`s via `Promise.all`, not sequentially.
+- **N+1 queries**: never loop over rows firing one query per row. Batch-fetch with `inArray(...)`, build a `Map` for lookup, then assemble results in a synchronous pass.
+- **Pagination**: any list endpoint tied to user-generated content (feed, likes, watchlist, reviews, lists) must be bounded and paginated from day one, with a default limit applied server-side even when the client omits one.
+- **Indexes**: see [Adding a new table](#adding-a-new-table) above — every FK/filter column needs an explicit `index()`.
+- **Frontend state sync**: don't use `useEffect` + `setState` to copy a prop or query result into local state. Either derive the value during render or force a remount with `key={id}`.
+- **List rendering**: wrap repeated grid/list item components in `React.memo` when they render inside a page that also holds unrelated local state (menus, filters, tabs).
+
+Run the `/performance-check` skill (`.claude/skills/performance-check/`) against your diff before opening a PR — it audits for all of the above.
+
 ## Adding a new feature
 
 ### Backend
@@ -480,7 +521,7 @@ Use the provided guards from `@/lib/router/auth-guards`:
 
 ### Backend
 
-Tests use `bun:test` and run against a real Express server instance.
+Tests use `bun:test` and run against a real server instance (Hono on Bun.serve).
 
 Core directories:
 
@@ -539,12 +580,14 @@ bun run test
 
 ## Quality checks
 
-Run these before submitting a PR:
+Run these before submitting a PR (or from the repo root: `bun run typecheck && bun run lint && bun run lint:arch && bun run test`):
 
 ```bash
 # Backend
 cd apps/api
-bunx tsc --noEmit
+bun run typecheck
+bun run lint
+bun run lint:arch
 bun test
 
 # Frontend
@@ -554,6 +597,10 @@ bun run typecheck
 bun run lint
 bun run build
 ```
+
+A Husky pre-commit hook runs ESLint (`--fix`) on staged `apps/web`/`apps/api`
+files automatically — it installs itself the first time you run `bun install`
+at the repo root (`prepare` script), so no separate setup step is needed.
 
 ## Submitting changes
 
@@ -598,6 +645,7 @@ Before requesting review, verify:
 - [ ] Database migrations are included for schema changes
 - [ ] API contracts are validated with Zod on both sides
 - [ ] New routes have appropriate auth guards
+- [ ] New list endpoints are paginated/bounded, and mutations invalidate only the specific queries that changed (see [Performance conventions](#performance-conventions))
 
 ## Adding a custom theme
 

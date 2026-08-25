@@ -103,18 +103,6 @@ export const toFeaturedMovie = (
   };
 };
 
-export const toRatingOutOfFive = (ratingOutOfTen: number | null): number | null => {
-  if (ratingOutOfTen === null || !Number.isFinite(ratingOutOfTen)) {
-    return null;
-  }
-
-  return Math.max(0, Math.min(5, ratingOutOfTen / 2));
-};
-
-export const toRatingBreakdownBucket = (ratingOutOfTen: number): 1 | 2 | 3 | 4 | 5 => {
-  const normalized = Math.round(Math.max(1, Math.min(10, ratingOutOfTen)) / 2);
-  return Math.max(1, Math.min(5, normalized)) as 1 | 2 | 3 | 4 | 5;
-};
 
 export const toTmdbReleaseDate = (rawReleaseDate: string): string | null => {
   if (!rawReleaseDate || !/^\d{4}-\d{2}-\d{2}$/.test(rawReleaseDate)) {

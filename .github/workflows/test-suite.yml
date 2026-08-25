@@ -34,3 +34,154 @@ jobs:
         run: bun run lint
         working-directory: apps/web
 
+  backend:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: interis
+          POSTGRES_PASSWORD: interis
+          POSTGRES_DB: interis
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U interis -d interis"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # apps/api/src/infrastructure/database/db.ts connects tests directly to
+    # Postgres over the wire protocol (via DIRECT_DATABASE_URL) instead of
+    # through the Neon HTTP proxy local dev's docker-compose uses - measured
+    # ~7x faster for the hundreds of sequential queries an integration suite
+    # fires. DATABASE_URL is required by env validation but never actually
+    # queried in NODE_ENV=test, so it's just a valid, reachable placeholder.
+    env:
+      DATABASE_URL: postgres://interis:interis@localhost:5432/interis
+      DIRECT_DATABASE_URL: postgres://interis:interis@localhost:5432/interis
+      JWT_ACCESS_SECRET: ci-test-secret-not-for-production-needs-32-chars
+      TMDB_ACCESS_TOKEN: "Bearer ci-test-placeholder"
+      CORS_ORIGIN: http://localhost:5173
+      PORT: "5000"
+      NODE_ENV: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install backend dependencies
+        run: bun install
+        working-directory: apps/api
+
+      - name: Run backend typecheck
+        run: bun run typecheck
+        working-directory: apps/api
+
+      - name: Run backend lint
+        run: bun run lint
+        working-directory: apps/api
+
+      - name: Run backend architecture check
+        run: bun run lint:arch
+        working-directory: apps/api
+
+      - name: Run backend migrations
+        run: bun run scripts/docker-migrate.ts
+        working-directory: apps/api
+
+      - name: Run backend integration tests
+        run: bun run test:ci
+        working-directory: apps/api
+
+      - name: Run backend contract tests
+        run: bun run test:contract
+        working-directory: apps/api
+
+      - name: Run backend unit tests
+        run: bun run test:unit
+        working-directory: apps/api
+
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    # Needed to access secrets.TMDB_ACCESS_TOKEN, which is scoped to this
+    # GitHub environment (the old backend job declared this for the same
+    # reason before it dropped its secret dependencies entirely).
+    environment: a
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: interis
+          POSTGRES_PASSWORD: interis
+          POSTGRES_DB: interis
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U interis -d interis"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Playwright's webServer config spawns `bun run dev` for both apps
+    # itself (see apps/e2e/playwright.config.ts), inheriting this job's env -
+    # unlike the backend job, TMDB_ACCESS_TOKEN here is the real secret:
+    # E2E exercises the full stack including the real TMDB integration,
+    # which is the point of E2E versus the offline integration/unit suites.
+    env:
+      DATABASE_URL: postgres://interis:interis@localhost:5432/interis
+      DIRECT_DATABASE_URL: postgres://interis:interis@localhost:5432/interis
+      # Lets tests/support/promote-admin.ts get an admin session by writing
+      # profile.is_admin directly via psql - there's no self-serve API
+      # promotion path (it itself requires an existing admin). Points at
+      # the same postgres service container the spawned API server uses.
+      E2E_TEST_DATABASE_URL: postgres://interis:interis@localhost:5432/interis
+      JWT_ACCESS_SECRET: ci-test-secret-not-for-production-needs-32-chars
+      TMDB_ACCESS_TOKEN: ${{ secrets.TMDB_ACCESS_TOKEN }}
+      # Must match Playwright's baseURL exactly (127.0.0.1, not localhost) -
+      # the browser's real Origin header has to pass requireTrustedOriginForMutations.
+      CORS_ORIGIN: http://127.0.0.1:5173
+      PORT: "5000"
+      NODE_ENV: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install backend dependencies
+        run: bun install
+        working-directory: apps/api
+
+      - name: Run backend migrations
+        run: bun run scripts/docker-migrate.ts
+        working-directory: apps/api
+
+      - name: Install frontend dependencies
+        run: bun install
+        working-directory: apps/web
+
+      - name: Install e2e dependencies
+        run: bun install
+        working-directory: apps/e2e
+
+      - name: Run e2e typecheck
+        run: bun run typecheck
+        working-directory: apps/e2e
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps chromium
+        working-directory: apps/e2e
+
+      - name: Run e2e tests
+        run: bun run test
+        working-directory: apps/e2e

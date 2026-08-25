@@ -109,6 +109,40 @@ export class PeopleCacheService {
     return `${disambiguatedBaseSlug}-${Date.now().toString(36)}`;
   }
 
+  static isPersonCacheUnchanged(
+    existing: {
+      name: string;
+      knownForDepartment: string | null;
+      profilePath: string | null;
+      popularity: number | null;
+      routeRoleHints: PersonRouteRole[];
+    },
+    incoming: {
+      name: string;
+      knownForDepartment: string | null;
+      profilePath: string | null;
+      popularity: number | null;
+      routeRoleHints: PersonRouteRole[];
+    },
+  ): boolean {
+    if (
+      existing.name !== incoming.name ||
+      existing.knownForDepartment !== incoming.knownForDepartment ||
+      existing.profilePath !== incoming.profilePath ||
+      existing.popularity !== incoming.popularity ||
+      existing.routeRoleHints.length !== incoming.routeRoleHints.length
+    ) {
+      return false;
+    }
+
+    const existingRoleHints = [...existing.routeRoleHints].sort();
+    const incomingRoleHints = [...incoming.routeRoleHints].sort();
+
+    return existingRoleHints.every(
+      (roleHint, index) => roleHint === incomingRoleHints[index],
+    );
+  }
+
   static async upsertPersonCache(input: {
     tmdbPersonId: number;
     name: string;
@@ -134,6 +168,23 @@ export class PeopleCacheService {
       input.routeRoleHints,
       inferRoleHintsFromKnownForDepartment(normalizedKnownForDepartment),
     );
+
+    // Skip the slug-resolution + upsert + alias write chain entirely when
+    // this person's cached data hasn't changed - this path runs for every
+    // cast/crew member on every detail-page fetch, so a redundant write per
+    // person adds up fast (see MoviesDetailService.getDetail).
+    if (
+      existing &&
+      PeopleCacheService.isPersonCacheUnchanged(existing, {
+        name: normalizedName,
+        knownForDepartment: normalizedKnownForDepartment,
+        profilePath: input.profilePath,
+        popularity: input.popularity,
+        routeRoleHints: mergedRoleHints,
+      })
+    ) {
+      return existing;
+    }
 
     const baseSlug = slugifyPersonName(normalizedName);
     const canonicalSlug = await PeopleCacheService.resolveCanonicalSlug(

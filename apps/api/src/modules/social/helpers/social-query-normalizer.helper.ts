@@ -1,11 +1,8 @@
-export const normalizeSocialFeedLimit = (
-  limit: unknown,
-  fallback = 20,
-): number => {
-  if (typeof limit !== "string") {
-    return fallback;
-  }
+import { parseIntParam } from "../../../commons/helpers/parse-int-param.helper";
+import type { FeedMediaType } from "../types/social-feed.types";
 
-  const parsed = Number.parseInt(limit, 10);
-  return Number.isNaN(parsed) ? fallback : parsed;
-};
+export const normalizeSocialFeedLimit = (limit: unknown, fallback = 20): number =>
+  parseIntParam(limit, fallback);
+
+export const normalizeSocialFeedMediaType = (mediaType: unknown): FeedMediaType | undefined =>
+  mediaType === "movie" || mediaType === "tv" ? mediaType : undefined;

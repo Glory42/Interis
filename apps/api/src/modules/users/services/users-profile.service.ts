@@ -43,4 +43,12 @@ export class UsersProfileService {
       themeId: normalizeThemeId(updated.themeId),
     };
   }
+
+  static async setAdminStatus(userId: string, isAdmin: boolean) {
+    return UsersProfileRepository.setAdminStatus(userId, isAdmin);
+  }
+
+  static async setSuspended(userId: string, isSuspended: boolean, reason?: string) {
+    return UsersProfileRepository.setSuspended(userId, isSuspended, reason);
+  }
 }

@@ -14,7 +14,7 @@ export const DiaryPosterCell = ({ title, posterPath }: DiaryPosterCellProps) => 
 
   return (
     <div
-      className="flex h-14 w-10 shrink-0 items-center justify-center overflow-hidden border"
+      className="flex h-14 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border"
       style={{
         borderColor: "var(--profile-shell-row-border)",
         background: "color-mix(in srgb, var(--profile-shell-bg) 85%, black)",

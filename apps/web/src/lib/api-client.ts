@@ -3,6 +3,13 @@ type ApiRequestOptions<TBody> = Omit<RequestInit, "body"> & {
   timeoutMs?: number;
 };
 
+// Shared shape for read-only query functions that accept an AbortSignal
+// (from React Query's queryFn context) - one definition every feature's
+// api.ts imports instead of redefining.
+export type QueryRequestOptions = {
+  signal?: AbortSignal;
+};
+
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 
 const extractErrorMessage = (
@@ -17,6 +24,14 @@ const extractErrorMessage = (
     const candidate = payload as { error?: unknown; message?: unknown };
     if (typeof candidate.error === "string" && candidate.error.trim().length > 0) {
       return candidate.error;
+    }
+
+    // Unified backend error shape: { error: { message, code, details } }.
+    if (candidate.error && typeof candidate.error === "object") {
+      const nestedMessage = (candidate.error as { message?: unknown }).message;
+      if (typeof nestedMessage === "string" && nestedMessage.trim().length > 0) {
+        return nestedMessage;
+      }
     }
 
     if (

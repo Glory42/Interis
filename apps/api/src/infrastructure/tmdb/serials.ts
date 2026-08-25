@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { fetchTMDB } from "./base-client";
+import { createCachedTmdbFetcher } from "./tmdb-cache.helper";
 import {
   TMDBSeriesAggregateCreditsSchema,
   TMDBDiscoverSeriesListSchema,
@@ -9,10 +10,8 @@ import {
   TMDBSearchSeriesSchema,
 } from "./dto/serials-response.dto";
 import type {
-  TMDBSeriesAggregateCredits,
   TMDBDiscoverSeries,
   TMDBDiscoverSeriesSortBy,
-  TMDBSeriesDetail,
   TMDBSeriesGenre,
   TMDBSeriesSeasonDetail,
   TMDBSearchSeries,
@@ -171,30 +170,46 @@ export const discoverSeries = async (input: {
   };
 };
 
-export const getSeriesDetails = async (
-  tmdbId: number,
-): Promise<TMDBSeriesDetail> => {
+export const getSeriesDetails = createCachedTmdbFetcher(async (tmdbId) => {
   const data = await fetchTMDB(`/tv/${tmdbId}?language=en-US`);
   return TMDBSeriesDetailSchema.parse(data);
-};
+});
 
-export const getSeriesSeasonDetails = async (
-  tmdbId: number,
-  seasonNumber: number,
-): Promise<TMDBSeriesSeasonDetail> => {
-  const data = await fetchTMDB(`/tv/${tmdbId}/season/${seasonNumber}?language=en-US`);
-  return TMDBSeriesSeasonDetailSchema.parse(data);
-};
+export const getSeriesSeasonDetails = createCachedTmdbFetcher(
+  async (tmdbId: number, seasonNumber: number): Promise<TMDBSeriesSeasonDetail> => {
+    const data = await fetchTMDB(`/tv/${tmdbId}/season/${seasonNumber}?language=en-US`);
+    return TMDBSeriesSeasonDetailSchema.parse(data);
+  },
+  { keyFn: (tmdbId, seasonNumber) => `${tmdbId}:${seasonNumber}` },
+);
 
-export const getSeriesAggregateCredits = async (
-  tmdbId: number,
-): Promise<TMDBSeriesAggregateCredits> => {
+export const getSeriesAggregateCredits = createCachedTmdbFetcher(async (tmdbId) => {
   const data = await fetchTMDB(`/tv/${tmdbId}/aggregate_credits?language=en-US`);
   return TMDBSeriesAggregateCreditsSchema.parse(data);
-};
+});
 
 export const getOnAirSeries = async (): Promise<TMDBSearchSeries[]> => {
   const data = await fetchTMDB("/tv/on_the_air?language=en-US&page=1");
   const results = (data as { results?: unknown }).results ?? [];
   return z.array(TMDBSearchSeriesSchema).parse(results);
 };
+
+export const getSimilarSeries = createCachedTmdbFetcher(async (tmdbId) => {
+  try {
+    const data = await fetchTMDB(`/tv/${tmdbId}/recommendations?language=en-US&page=1`);
+    const parsed = TMDBDiscoverSeriesListSchema.parse(data);
+    if (parsed.results.length > 0) {
+      return parsed.results;
+    }
+  } catch {
+    // Fail silently to try similar fallback
+  }
+
+  try {
+    const data = await fetchTMDB(`/tv/${tmdbId}/similar?language=en-US&page=1`);
+    const parsed = TMDBDiscoverSeriesListSchema.parse(data);
+    return parsed.results;
+  } catch {
+    return [];
+  }
+});

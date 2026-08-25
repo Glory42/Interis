@@ -2,14 +2,14 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { profiles } from "../../users/users.entity";
-import { postComments, postLikes, posts } from "../posts.entity";
+import { postComments, postLikes, posts, type PostMediaType } from "../posts.entity";
 
 export class PostsRepository {
   static async insertPost(input: {
     userId: string;
     content: string;
     mediaId: number | null;
-    mediaType: "movie" | "tv" | null;
+    mediaType: PostMediaType | null;
   }) {
     const [post] = await db
       .insert(posts)
@@ -28,6 +28,7 @@ export class PostsRepository {
     const [post] = await db
       .select({
         id: posts.id,
+        userId: posts.userId,
         content: posts.content,
         mediaId: posts.mediaId,
         mediaType: posts.mediaType,
@@ -72,11 +73,37 @@ export class PostsRepository {
       .orderBy(desc(posts.createdAt));
   }
 
+  static async listAllForAdmin(filters: { userId?: string }, limit: number, offset: number) {
+    return db
+      .select({
+        id: posts.id,
+        userId: posts.userId,
+        authorUsername: user.username,
+        content: posts.content,
+        mediaId: posts.mediaId,
+        mediaType: posts.mediaType,
+        createdAt: posts.createdAt,
+      })
+      .from(posts)
+      .innerJoin(user, eq(user.id, posts.userId))
+      .where(filters.userId ? eq(posts.userId, filters.userId) : undefined)
+      .orderBy(desc(posts.createdAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
   static async deleteByIdAndUser(postId: string, userId: string) {
     const [deleted] = await db
       .delete(posts)
       .where(and(eq(posts.id, postId), eq(posts.userId, userId)))
       .returning({ id: posts.id });
+
+    return deleted ?? null;
+  }
+
+  // No ownership check — admin moderation only.
+  static async deleteById(postId: string) {
+    const [deleted] = await db.delete(posts).where(eq(posts.id, postId)).returning({ id: posts.id });
 
     return deleted ?? null;
   }
@@ -138,21 +165,6 @@ export class PostsRepository {
       .orderBy(postComments.createdAt);
   }
 
-  static async findPostById(postId: string) {
-    const [post] = await db
-      .select({
-        id: posts.id,
-        content: posts.content,
-        mediaId: posts.mediaId,
-        mediaType: posts.mediaType,
-      })
-      .from(posts)
-      .where(eq(posts.id, postId))
-      .limit(1);
-
-    return post ?? null;
-  }
-
   static async insertComment(userId: string, postId: string, content: string) {
     const [comment] = await db
       .insert(postComments)
@@ -169,5 +181,15 @@ export class PostsRepository {
       .returning({ id: postComments.id });
 
     return deleted ?? null;
+  }
+
+  static async updateCommentByIdAndUser(commentId: string, userId: string, content: string) {
+    const [updated] = await db
+      .update(postComments)
+      .set({ content, updatedAt: new Date() })
+      .where(and(eq(postComments.id, commentId), eq(postComments.userId, userId)))
+      .returning();
+
+    return updated ?? null;
   }
 }

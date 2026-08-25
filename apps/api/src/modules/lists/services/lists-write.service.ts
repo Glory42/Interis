@@ -1,12 +1,14 @@
 import { MoviesCacheService } from "../../movies/services/movies-cache.service";
 import { SerialsCacheService } from "../../serials/services/serials-cache.service";
 import { SocialRepository } from "../../social/repositories/social.repository";
+import { SocialFeedService } from "../../social/services/social-feed.service";
+import { MAX_LIST_ITEMS } from "../constants/lists.constants";
 import type { CreateListDto, UpdateListDto } from "../dto/lists.dto";
 import { deriveListType } from "../helpers/derive-list-type.helper";
 import { ListsReadRepository } from "../repositories/lists-read.repository";
 import { ListsWriteRepository } from "../repositories/lists-write.repository";
 
-type ServiceError = { error: string; status: 403 | 404 };
+type ServiceError = { error: string; status: 400 | 403 | 404 };
 
 export class ListsWriteService {
   static async createList(userId: string, data: CreateListDto) {
@@ -28,6 +30,8 @@ export class ListsWriteService {
       entityId: list.id,
       metadata: JSON.stringify({ title: list.title }),
     });
+
+    SocialFeedService.invalidateFollowingFeed(userId);
 
     return list;
   }
@@ -92,18 +96,30 @@ export class ListsWriteService {
       return { error: "Forbidden", status: 403 };
     }
 
+    const currentTypes = await ListsReadRepository.getCurrentItemTypes(listId);
+    if (currentTypes.length >= MAX_LIST_ITEMS) {
+      return {
+        error: `Lists are limited to ${MAX_LIST_ITEMS} items`,
+        status: 400,
+      };
+    }
+
     let movieId: number | undefined;
     let tvSeriesId: number | undefined;
 
+    const [media, maxPosition] = await Promise.all([
+      itemType === "cinema"
+        ? MoviesCacheService.findOrCreate(tmdbId)
+        : SerialsCacheService.findOrCreate(tmdbId),
+      ListsReadRepository.getMaxPosition(listId),
+    ]);
+
     if (itemType === "cinema") {
-      const movie = await MoviesCacheService.findOrCreate(tmdbId);
-      movieId = movie.id;
+      movieId = media.id;
     } else {
-      const serial = await SerialsCacheService.findOrCreate(tmdbId);
-      tvSeriesId = serial.id;
+      tvSeriesId = media.id;
     }
 
-    const maxPosition = await ListsReadRepository.getMaxPosition(listId);
     const position = maxPosition + 1;
 
     const entry = await ListsWriteRepository.insertEntry({
@@ -118,8 +134,7 @@ export class ListsWriteService {
       throw new Error("Failed to insert list entry");
     }
 
-    const currentTypes = await ListsReadRepository.getCurrentItemTypes(listId);
-    const newDerivedType = deriveListType(currentTypes);
+    const newDerivedType = deriveListType([...currentTypes, itemType]);
 
     await ListsWriteRepository.update(listId, { derivedType: newDerivedType });
 
@@ -131,13 +146,14 @@ export class ListsWriteService {
     userId: string,
     entryId: string,
   ): Promise<{ success: true; derivedType: string | null } | ServiceError> {
-    const entry = await ListsReadRepository.findEntryById(entryId);
+    const [entry, list] = await Promise.all([
+      ListsReadRepository.findEntryById(entryId),
+      ListsReadRepository.findById(listId),
+    ]);
 
     if (!entry) {
       return { error: "Entry not found", status: 404 };
     }
-
-    const list = await ListsReadRepository.findById(listId);
 
     if (!list) {
       return { error: "List not found", status: 404 };
@@ -185,7 +201,10 @@ export class ListsWriteService {
     return { success: true };
   }
 
-  static async likeList(listId: string, userId: string) {
+  static async likeList(
+    listId: string,
+    userId: string,
+  ): Promise<ServiceError | { success: true; likeCount: number }> {
     const list = await ListsReadRepository.findById(listId);
     if (!list) return { error: "List not found", status: 404 as const };
     if (!list.isPublic && list.userId !== userId)
@@ -199,5 +218,16 @@ export class ListsWriteService {
     await ListsWriteRepository.unlikeList(userId, listId);
     const likeCount = await ListsWriteRepository.getListLikeCount(listId);
     return { success: true, likeCount };
+  }
+
+  // No ownership check — admin moderation only.
+  static async deleteForAdmin(listId: string): Promise<{ deleted: boolean }> {
+    const list = await ListsReadRepository.findById(listId);
+    if (!list) {
+      return { deleted: false };
+    }
+
+    await ListsWriteRepository.deleteById(listId);
+    return { deleted: true };
   }
 }

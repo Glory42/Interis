@@ -5,7 +5,7 @@ export const AppFooter = () => {
     <footer className="border-t border-border/70">
       <div className="mx-auto flex w-full max-w-400 flex-col items-center justify-between gap-3 px-4 py-6 sm:flex-row">
         <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-          NULL://LOG
+          INTERIS
         </div>
 
         <p className="font-mono text-[10px] text-muted-foreground">

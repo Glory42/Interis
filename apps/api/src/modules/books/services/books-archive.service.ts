@@ -13,7 +13,6 @@ export class BooksArchiveService {
       BooksArchiveRepository.getTopGenres(),
     ]);
 
-    const volumeIds = rows.map((r) => r.googleVolumeId);
     const [loggedIds, wantToReadIds] = input.viewerUserId
       ? await Promise.all([
           BooksArchiveRepository.getViewerLoggedVolumeIds(input.viewerUserId),

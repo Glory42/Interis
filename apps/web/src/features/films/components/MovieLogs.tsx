@@ -2,11 +2,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
-import {
-  formatRatingOutOfFiveLabel,
-  toFivePointFromTen,
-} from "@/features/films/components/spaceRating.utils";
+import { formatRatingLabel } from "@/lib/rating";
 import { useMovieLogs } from "@/features/films/hooks/useMovies";
+import { formatDateOnlyLabel } from "@/lib/time";
 
 type MovieLogsProps = {
   tmdbId: number;
@@ -24,6 +22,13 @@ const formatDate = (value: string | null): string => {
 
   return parsed.toLocaleDateString();
 };
+
+// watchedDate is a date-only value ("YYYY-MM-DD") with no timezone, unlike
+// createdAt above which is a full instant - formatDateOnlyLabel parses it as
+// local midnight so it doesn't shift a day for viewers west of UTC. Empty
+// options match formatDate's bare toLocaleDateString() output.
+const formatWatchedDate = (value: string | null): string =>
+  value ? formatDateOnlyLabel(value, {}) : "Unknown";
 
 export const MovieLogs = ({ tmdbId }: MovieLogsProps) => {
   const logsQuery = useMovieLogs(tmdbId, tmdbId > 0);
@@ -70,7 +75,7 @@ export const MovieLogs = ({ tmdbId }: MovieLogsProps) => {
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-foreground">@{log.username}</p>
                     <p className="text-xs text-muted-foreground">
-                      Watched {formatDate(log.watchedDate)}
+                      Watched {formatWatchedDate(log.watchedDate)}
                     </p>
                   </div>
                 </div>
@@ -79,10 +84,10 @@ export const MovieLogs = ({ tmdbId }: MovieLogsProps) => {
                   {log.rating !== null ? (
                     <span className="inline-flex items-center gap-1  border border-border/65 bg-secondary/40 px-2 py-1 text-xs text-foreground">
                       <SpaceRatingDisplay
-                        ratingOutOfFive={toFivePointFromTen(log.rating)}
+                        rating={log.rating}
                         size="sm"
                       />
-                      <span>{formatRatingOutOfFiveLabel(toFivePointFromTen(log.rating))}</span>
+                      <span>{formatRatingLabel(log.rating)}</span>
                     </span>
                   ) : null}
                   {log.rewatch ? <Badge variant="primary">Rewatch</Badge> : null}

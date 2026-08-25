@@ -42,6 +42,22 @@ Common `kind` values include:
 - `liked_post`
 - `commented_post`
 
+### Season and episode activity
+
+When a user likes or rates a TV season or episode, a `liked_movie` item is emitted. Use `metadata.seasonNumber` and `metadata.episodeNumber` to determine granularity:
+
+- Both `null` → series-level like
+- `seasonNumber` set, `episodeNumber` null → season-level like or rating
+- Both set → episode-level like or rating
+
+For likes vs. ratings on seasons/episodes: `metadata.rating` is non-null when the action was a rating; it is `null` for a pure like.
+
+### List creation activity
+
+When a user creates a list, a `created_list` item is emitted. `metadata.listId` and `metadata.listTitle` are populated with the list's id and name; all other metadata fields are `null`. Both fields are `null` for every other activity type.
+
+When a user writes a review for a season or episode, a `review` item is emitted with `metadata.seasonNumber` (and optionally `metadata.episodeNumber`) set.
+
 ## Empty state behavior
 
 Returns `[]` when the user has no feed items.

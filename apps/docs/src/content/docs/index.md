@@ -69,6 +69,10 @@ console.log(profile.username, profile.stats.reviewCount);
 | `/api/public/:username/likes` | Liked movies + series |
 | `/api/public/:username/watchlist` | Watchlisted movies + series |
 | `/api/public/:username/diary` | Movie + TV diary entries |
+| `/api/public/:username/movies/watched` | Watched movies (film-only) |
+| `/api/public/:username/serials/:tmdbId` | Watch progress for one serial |
+| `/api/public/:username/serials/currently-watching` | In-progress serials |
+| `/api/public/:username/serials/watched` | Fully watched serials |
 
 ## Query limits and normalization
 

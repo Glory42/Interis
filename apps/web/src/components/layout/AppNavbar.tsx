@@ -4,6 +4,7 @@ import {
   MobileMenu,
   MobileMenuToggle,
   NavbarBrand,
+  NotificationsBell,
   PrimaryNavLinks,
   ProfileMenu,
 } from "@/components/layout/navbar/AppNavbarParts";
@@ -18,6 +19,7 @@ export const AppNavbar = () => {
     isMobileMenuOpen,
     isProfileMenuOpen,
     visiblePrimaryNavItems,
+    pathname,
     profileMenuRef,
     profileImageUrl,
     profileInitial,
@@ -41,16 +43,16 @@ export const AppNavbar = () => {
           }}
         />
 
-        <div className="mx-auto grid h-12 w-full max-w-400 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4">
+        <div className="mx-auto grid h-14 w-full max-w-400 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4">
           <div className="col-start-1 flex min-w-0 items-center">
             <NavbarBrand />
           </div>
 
-          <nav className="col-start-2 hidden min-w-0 items-center justify-center gap-1 md:flex">
-            <PrimaryNavLinks items={visiblePrimaryNavItems} />
+          <nav className="relative col-start-2 hidden min-w-0 items-center justify-center gap-1 md:flex">
+            <PrimaryNavLinks items={visiblePrimaryNavItems} pathname={pathname} />
           </nav>
 
-          <div className="col-start-3 flex min-w-0 items-center justify-end gap-3">
+          <div className="col-start-3 flex min-w-0 items-center justify-end gap-3 self-stretch">
             <DesktopSearchButton
               isSearchDialogOpen={isSearchDialogOpen}
               onOpen={openSearchDialog}
@@ -61,6 +63,8 @@ export const AppNavbar = () => {
                 LOADING
               </span>
             ) : null}
+
+            {user ? <NotificationsBell /> : null}
 
             {user ? (
               <ProfileMenu
@@ -102,7 +106,7 @@ export const AppNavbar = () => {
         <button
           type="button"
           onClick={closeMobileMenu}
-          className="theme-navbar-overlay fixed inset-0 top-12 z-30 bg-black/45 md:hidden"
+          className="theme-navbar-overlay fixed inset-0 top-14 z-30 bg-black/45 md:hidden"
           aria-label="Close navigation overlay"
         />
       ) : null}

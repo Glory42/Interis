@@ -51,17 +51,6 @@ export const useProfileImageUpload = (
       };
     });
 
-    queryClient.setQueryData<MeProfile | null>(profileKeys.me, (current) => {
-      if (!current) {
-        return current;
-      }
-
-      return {
-        ...current,
-        avatarUrl,
-      };
-    });
-
     queryClient.setQueryData(profileKeys.detail(username), (current) => {
       if (!current || typeof current !== "object") {
         return current;
@@ -83,7 +72,6 @@ export const useProfileImageUpload = (
     const previewAvatarUrl = URL.createObjectURL(file);
 
     const previousAuthProfile = queryClient.getQueryData<MeProfile | null>(authKeys.me);
-    const previousMeProfile = queryClient.getQueryData<MeProfile | null>(profileKeys.me);
     const previousUserProfile = queryClient.getQueryData(profileKeys.detail(user.username));
 
     setCachedAvatar(user.username, previewAvatarUrl);
@@ -114,7 +102,6 @@ export const useProfileImageUpload = (
 
       void Promise.all([
         queryClient.invalidateQueries({ queryKey: authKeys.me }),
-        queryClient.invalidateQueries({ queryKey: profileKeys.me }),
         queryClient.invalidateQueries({
           queryKey: profileKeys.detail(user.username),
         }),
@@ -123,7 +110,6 @@ export const useProfileImageUpload = (
       setAvatarUploadSuccess("Avatar image uploaded.");
     } catch (error) {
       queryClient.setQueryData(authKeys.me, previousAuthProfile);
-      queryClient.setQueryData(profileKeys.me, previousMeProfile);
       queryClient.setQueryData(profileKeys.detail(user.username), previousUserProfile);
 
       const message = isApiError(error)

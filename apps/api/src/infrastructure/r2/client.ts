@@ -8,15 +8,12 @@ import { randomUUID } from "node:crypto";
 
 export type UploadType = "avatar";
 
-const REQUIRED_R2_ENV_KEYS = [
-  "R2_ACCOUNT_ID",
-  "R2_ACCESS_KEY_ID",
-  "R2_SECRET_ACCESS_KEY",
-  "R2_BUCKET_NAME",
-  "R2_PUBLIC_URL",
-] as const;
-
-type RequiredR2EnvKey = (typeof REQUIRED_R2_ENV_KEYS)[number];
+type RequiredR2EnvKey =
+  | "R2_ACCOUNT_ID"
+  | "R2_ACCESS_KEY_ID"
+  | "R2_SECRET_ACCESS_KEY"
+  | "R2_BUCKET_NAME"
+  | "R2_PUBLIC_URL";
 
 type R2Config = {
   accountId: string;

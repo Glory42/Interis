@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, count, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { listEntries, listLikes, lists } from "../lists.entity";
 
@@ -81,14 +81,16 @@ export class ListsWriteRepository {
   static async bulkUpdatePositions(
     items: Array<{ id: string; position: number }>,
   ): Promise<void> {
-    await Promise.all(
-      items.map((item) =>
-        db
-          .update(listEntries)
-          .set({ position: item.position })
-          .where(eq(listEntries.id, item.id)),
-      ),
+    if (items.length === 0) return;
+
+    const whenClauses = items.map(
+      (item) => sql`WHEN ${item.id}::uuid THEN ${item.position}::integer`,
     );
+
+    await db
+      .update(listEntries)
+      .set({ position: sql`CASE ${listEntries.id} ${sql.join(whenClauses, sql` `)} END` })
+      .where(inArray(listEntries.id, items.map((item) => item.id)));
   }
 
   static async likeList(userId: string, listId: string): Promise<void> {
@@ -111,7 +113,6 @@ export class ListsWriteRepository {
   }
 
   static async getListLikeCount(listId: string): Promise<number> {
-    const { count, sql: rawSql } = await import("drizzle-orm");
     const [row] = await db
       .select({ n: count() })
       .from(listLikes)
@@ -125,8 +126,6 @@ export class ListsWriteRepository {
     if (entryIds.length === 0) {
       return [];
     }
-
-    const { inArray } = await import("drizzle-orm");
 
     return db
       .select({

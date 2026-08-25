@@ -1,8 +1,21 @@
 import { parseMetadata, readString } from "./social-feed-metadata.helper";
-import { resolveReviewId, toFeedMetadata } from "./social-feed-resolvers.helper";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isUuid = (s: string) => UUID_RE.test(s);
+import {
+  resolveAlbumFallbackMbid,
+  resolveBookFallbackVolumeId,
+  resolveMovieFallbackId,
+  resolvePostFallbackId,
+  resolveReviewId,
+  toFeedMetadata,
+} from "./social-feed-resolvers.helper";
 import { SocialFeedRepository } from "../repositories/social-feed.repository";
+import { SocialRepository } from "../repositories/social.repository";
 import type {
   ActivityRow,
+  FeedEngagement,
+  FeedFallbackMediaContext,
   PostEngagement,
   ReviewContext,
   ReviewFeedContext,
@@ -23,7 +36,7 @@ export const buildReviewContext = async (
       reviewIds.add(reviewId);
     }
 
-    if (row.activity.type === "diary_entry") {
+    if (row.activity.type === "diary_entry" && isUuid(row.activity.entityId)) {
       diaryEntryIds.add(row.activity.entityId);
     }
   }
@@ -139,6 +152,98 @@ export const buildPostEngagementContext = async (
         commentCount: commentCountsByPostId.get(postId) ?? 0,
         viewerHasLiked: viewerId ? viewerLikedPostIds.has(postId) : null,
       },
+    ]),
+  );
+};
+
+// Batches the per-row post/movie fallback lookups (used when an activity's
+// metadata doesn't already embed the full movie/post data) into two
+// queries total instead of one query per feed row.
+export const buildFeedFallbackMediaContext = async (
+  rows: ActivityRow[],
+  reviewContext: ReviewContext,
+): Promise<FeedFallbackMediaContext> => {
+  const postIds = new Set<string>();
+  const movieIds = new Set<number>();
+  const albumMbids = new Set<string>();
+  const bookVolumeIds = new Set<string>();
+
+  for (const row of rows) {
+    const rawMetadata = parseMetadata(row.activity.metadata);
+    const metadata = toFeedMetadata(rawMetadata);
+
+    const postId = resolvePostFallbackId(rawMetadata, row.activity);
+    if (postId) {
+      postIds.add(postId);
+    }
+
+    const reviewId = resolveReviewId(row.activity, metadata);
+    const reviewDetails =
+      (reviewId ? reviewContext.byReviewId.get(reviewId) : null) ??
+      (row.activity.type === "diary_entry"
+        ? reviewContext.byDiaryEntryId.get(row.activity.entityId)
+        : null);
+
+    if (!reviewDetails?.movie) {
+      if (metadata.mediaType === "album") {
+        const mbid = resolveAlbumFallbackMbid(rawMetadata, metadata);
+        if (mbid) albumMbids.add(mbid);
+      } else if (metadata.mediaType === "book") {
+        const volumeId = resolveBookFallbackVolumeId(rawMetadata, metadata);
+        if (volumeId) bookVolumeIds.add(volumeId);
+      } else {
+        const movieId = resolveMovieFallbackId(rawMetadata, row.activity, metadata);
+        if (movieId !== null) {
+          movieIds.add(movieId);
+        }
+      }
+    }
+  }
+
+  const [postRows, movieRows, albumRows, bookRows] = await Promise.all([
+    SocialFeedRepository.getPostsByIds([...postIds]),
+    SocialFeedRepository.getMoviesByIds([...movieIds]),
+    SocialFeedRepository.getAlbumsByMbids([...albumMbids]),
+    SocialFeedRepository.getBooksByVolumeIds([...bookVolumeIds]),
+  ]);
+
+  return {
+    postsById: new Map(postRows.map((post) => [post.id, post])),
+    moviesById: new Map(movieRows.map((movie) => [movie.id, movie])),
+    albumsByMbid: new Map(albumRows.map((album) => [album.mbid, album])),
+    booksByVolumeId: new Map(bookRows.map((book) => [book.volumeId, book])),
+  };
+};
+
+const REVIEW_TYPES = new Set(["diary_entry", "review", "liked_review", "commented"]);
+const POST_TYPES = new Set(["post"]);
+
+export const buildActivityEngagementContext = async (
+  rows: ActivityRow[],
+  viewerId?: string,
+): Promise<Map<string, FeedEngagement>> => {
+  const activityIds = rows
+    .filter((r) => !REVIEW_TYPES.has(r.activity.type) && !POST_TYPES.has(r.activity.type))
+    .map((r) => r.activity.id);
+
+  if (activityIds.length === 0) return new Map();
+
+  const [likeCounts, viewerLikes] = await Promise.all([
+    SocialRepository.getActivityLikeCounts(activityIds),
+    viewerId ? SocialRepository.getViewerActivityLikes(viewerId, activityIds) : Promise.resolve([]),
+  ]);
+
+  const likeCountById = new Map(likeCounts.map((r) => [r.activityId, r.count]));
+  const viewerLikedIds = new Set(viewerLikes.map((r) => r.activityId));
+
+  return new Map(
+    activityIds.map((id) => [
+      id,
+      {
+        likeCount: likeCountById.get(id) ?? 0,
+        commentCount: 0,
+        viewerHasLiked: viewerId ? viewerLikedIds.has(id) : null,
+      } satisfies FeedEngagement,
     ]),
   );
 };

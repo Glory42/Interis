@@ -1,15 +1,15 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
+import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
-import { tvSeries } from "../../serials/serials.entity";
 import { reviews, reviewLikes } from "../../reviews/reviews.entity";
 import { lists, listLikes, listEntries } from "../../lists/lists.entity";
-import { profiles } from "../users.entity";
+import type { MediaType } from "../../media/constants/media-type.constant";
 
 export class UsersLikesRepository {
-  static async getLikedReviews(userId: string) {
-    const rows = await db
+  static async getLikedReviews(userId: string, limit?: number, offset?: number) {
+    const baseQuery = db
       .select({
         id: reviews.id,
         content: reviews.content,
@@ -32,7 +32,10 @@ export class UsersLikesRepository {
       .innerJoin(user, eq(reviews.userId, user.id))
       .leftJoin(movies, eq(reviews.movieId, movies.id))
       .where(eq(reviewLikes.userId, userId))
-      .orderBy(desc(reviewLikes.createdAt));
+      .orderBy(desc(reviewLikes.createdAt))
+      .$dynamic();
+
+    const rows = await applyOptionalPagination(baseQuery, limit, offset);
 
     return rows.map((row) => ({
       id: row.id,
@@ -40,7 +43,7 @@ export class UsersLikesRepository {
       containsSpoilers: row.containsSpoilers,
       createdAt: row.createdAt.toISOString(),
       likedAt: row.likedAt.toISOString(),
-      mediaType: row.mediaType as "movie" | "tv",
+      mediaType: row.mediaType as MediaType,
       mediaSourceId: row.mediaSourceId,
       reviewerUsername: row.reviewerUsername,
       reviewerDisplayUsername: row.reviewerDisplayUsername,
@@ -51,8 +54,8 @@ export class UsersLikesRepository {
     }));
   }
 
-  static async getLikedLists(userId: string) {
-    const likedRows = await db
+  static async getLikedLists(userId: string, limit?: number, offset?: number) {
+    const baseQuery = db
       .select({
         listId: listLikes.listId,
         likedAt: listLikes.createdAt,
@@ -71,14 +74,15 @@ export class UsersLikesRepository {
       .innerJoin(lists, eq(listLikes.listId, lists.id))
       .innerJoin(user, eq(lists.userId, user.id))
       .where(eq(listLikes.userId, userId))
-      .orderBy(desc(listLikes.createdAt));
+      .orderBy(desc(listLikes.createdAt))
+      .$dynamic();
+
+    const likedRows = await applyOptionalPagination(baseQuery, limit, offset);
 
     if (likedRows.length === 0) return [];
 
     const listIds = likedRows.map((r) => r.listId);
 
-    // Get item counts
-    const { inArray, count } = await import("drizzle-orm");
     const countRows = await db
       .select({ listId: listEntries.listId, n: count() })
       .from(listEntries)
@@ -86,30 +90,34 @@ export class UsersLikesRepository {
       .groupBy(listEntries.listId);
     const countMap = new Map(countRows.map((r) => [r.listId, Number(r.n)]));
 
-    // Get cover images (first 4 per list)
-    const coverRows = await db
-      .select({
-        listId: listEntries.listId,
-        itemType: listEntries.itemType,
-        moviePoster: movies.posterPath,
-        serialPoster: tvSeries.posterPath,
-      })
-      .from(listEntries)
-      .leftJoin(movies, eq(listEntries.movieId, movies.id))
-      .leftJoin(tvSeries, eq(listEntries.tvSeriesId, tvSeries.id))
-      .where(inArray(listEntries.listId, listIds))
-      .orderBy(listEntries.position);
+    // First 4 cover images per list via window function — avoids loading all entries
+    const coverRows = await db.execute<{
+      list_id: string;
+      item_type: string;
+      poster_path: string | null;
+    }>(sql`
+      WITH ranked AS (
+        SELECT
+          le.list_id,
+          le.item_type,
+          COALESCE(m.poster_path, ts.poster_path) AS poster_path,
+          ROW_NUMBER() OVER (PARTITION BY le.list_id ORDER BY le.position) AS rn
+        FROM list_entry le
+        LEFT JOIN movie m ON le.movie_id = m.id
+        LEFT JOIN tv_series ts ON le.tv_series_id = ts.id
+        WHERE le.list_id IN (${sql.join(
+          listIds.map((id) => sql`${id}`),
+          sql`, `,
+        )})
+      )
+      SELECT list_id, item_type, poster_path FROM ranked WHERE rn <= 4
+    `);
 
     const coversByList = new Map<string, Array<{ itemType: string; posterPath: string | null }>>();
-    for (const row of coverRows) {
-      const arr = coversByList.get(row.listId) ?? [];
-      if (arr.length < 4) {
-        arr.push({
-          itemType: row.itemType,
-          posterPath: row.moviePoster ?? row.serialPoster ?? null,
-        });
-        coversByList.set(row.listId, arr);
-      }
+    for (const row of coverRows.rows) {
+      const arr = coversByList.get(row.list_id) ?? [];
+      arr.push({ itemType: row.item_type, posterPath: row.poster_path });
+      coversByList.set(row.list_id, arr);
     }
 
     return likedRows.map((row) => ({

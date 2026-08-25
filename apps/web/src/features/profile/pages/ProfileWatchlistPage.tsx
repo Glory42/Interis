@@ -10,11 +10,10 @@ export const ProfileWatchlistPage = ({
   username,
 }: ProfileWatchlistPageProps) => {
   const watchlistQuery = useUserWatchlist(username);
-  const items = watchlistQuery.data ?? [];
+  const items = watchlistQuery.data?.pages.flat() ?? [];
 
   return (
     <ProfileMediaInteractionGridSection
-      loadingLabel="Loading watchlist..."
       errorLabel="Could not load watchlist."
       sectionTitle="Watchlist"
       interactionVerb="added"
@@ -22,10 +21,14 @@ export const ProfileWatchlistPage = ({
         icon: Bookmark,
         title: "No watchlist items yet",
         description: "This profile has not added anything to watchlist yet.",
+        cta: { label: "Browse Cinema", to: "/cinema" },
       }}
       isPending={watchlistQuery.isPending}
       isError={watchlistQuery.isError}
       items={items}
+      hasMore={Boolean(watchlistQuery.hasNextPage)}
+      isLoadingMore={watchlistQuery.isFetchingNextPage}
+      onLoadMore={() => { void watchlistQuery.fetchNextPage(); }}
     />
   );
 };

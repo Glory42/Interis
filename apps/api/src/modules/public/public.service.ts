@@ -1,67 +1,22 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
-import { db } from "../../infrastructure/database/db";
-import { user } from "../../infrastructure/database/auth.entity";
-import { listEntries, lists } from "../lists/lists.entity";
 import { UsersService } from "../users/users.service";
-import { movies } from "../movies/movies.entity";
 import { SocialFeedService } from "../social/services/social-feed.service";
+import { PublicRepository } from "./repositories/public.repository";
 import { PublicTopPicksService } from "./services/public-top-picks.service";
 import { PublicDiaryService } from "./services/public-diary.service";
-
-// Thin, read-only service for the public portfolio API
-// All responses are cached-friendly — no auth required
-
-type PublicProfileResponse = {
-  username: string;
-  displayUsername: string | null;
-  name: string;
-  image: string | null;
-  avatarUrl: string | null;
-  bio: string | null;
-  location: string | null;
-  favoriteGenres: string[];
-  themeId: string;
-  createdAt: Date;
-  stats: {
-    filmEntryCount: number;
-    serialEntryCount: number;
-    reviewCount: number;
-    filmCount: number;
-    listCount: number;
-    followerCount: number;
-    followingCount: number;
-  };
-};
-
-type PublicListEntry = {
-  position: number;
-  note: string | null;
-  tmdbId: number;
-  title: string;
-  posterPath: string | null;
-  releaseYear: number | null;
-};
-
-type PublicList = {
-  id: string;
-  title: string;
-  description: string | null;
-  isRanked: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  itemCount: number;
-  items: PublicListEntry[];
-};
+import type {
+  PublicProfileResponse,
+  PublicCurrentlyWatchingSeries,
+  PublicDiaryItem,
+  PublicList,
+  PublicListEntry,
+} from "./dto/public.dto";
+import { SerialsDetailService } from "../serials/services/serials-detail.service";
+import { SerialsCurrentlyWatchingService } from "../serials/services/serials-currently-watching.service";
+import { SerialsService } from "../serials/serials.service";
 
 export class PublicService {
-  private static async findUserIdByUsername(username: string): Promise<string | null> {
-    const [profile] = await db
-      .select({ id: user.id })
-      .from(user)
-      .where(eq(user.username, username))
-      .limit(1);
-
-    return profile?.id ?? null;
+  private static findUserIdByUsername(username: string): Promise<string | null> {
+    return PublicRepository.findUserIdByUsername(username);
   }
 
   static async getProfile(username: string): Promise<PublicProfileResponse | null> {
@@ -76,7 +31,6 @@ export class PublicService {
       username: profile.username,
       displayUsername: profile.displayUsername,
       name: profile.name,
-      image: profile.image,
       avatarUrl: profile.avatarUrl,
       bio: profile.bio,
       location: profile.location,
@@ -109,8 +63,28 @@ export class PublicService {
       return null;
     }
 
-    const reviewList = await UsersService.getReviewsWithMovies(userId);
-    return reviewList.slice(0, limit);
+    const allReviews = await UsersService.getReviewsWithMovies(userId, limit);
+    return allReviews.slice(0, limit);
+  }
+
+  static async getWatchedFilms(username: string, limit = 50) {
+    const userId = await PublicService.findUserIdByUsername(username);
+    if (!userId) {
+      return null;
+    }
+
+    const watched = await UsersService.getWatchedFilms(userId, limit);
+    return watched.slice(0, limit);
+  }
+
+  static async getSerialsWatched(username: string, limit = 50) {
+    const userId = await PublicService.findUserIdByUsername(username);
+    if (!userId) {
+      return null;
+    }
+
+    const watched = await SerialsService.getWatchedSeries(userId, limit);
+    return watched.slice(0, limit);
   }
 
   static async getLikes(username: string, limit = 50) {
@@ -119,7 +93,7 @@ export class PublicService {
       return null;
     }
 
-    const likes = await UsersService.getLikedFilms(userId);
+    const likes = await UsersService.getLikedFilms(userId, limit);
     return likes.slice(0, limit);
   }
 
@@ -129,17 +103,21 @@ export class PublicService {
       return null;
     }
 
-    const watchlist = await UsersService.getWatchlistedFilms(userId);
+    const watchlist = await UsersService.getWatchlistedFilms(userId, limit);
     return watchlist.slice(0, limit);
   }
 
-  static async getDiary(username: string, limit = 50) {
+  static async getDiary(
+    username: string,
+    limit = 50,
+    offset = 0,
+  ): Promise<PublicDiaryItem[] | null> {
     const userId = await PublicService.findUserIdByUsername(username);
     if (!userId) {
       return null;
     }
 
-    return PublicDiaryService.getDiary(userId, limit);
+    return PublicDiaryService.getDiary(userId, limit, offset);
   }
 
   static async getLists(username: string, limit = 20): Promise<PublicList[] | null> {
@@ -148,19 +126,7 @@ export class PublicService {
       return null;
     }
 
-    const listRows = await db
-      .select({
-        id: lists.id,
-        title: lists.title,
-        description: lists.description,
-        isRanked: lists.isRanked,
-        createdAt: lists.createdAt,
-        updatedAt: lists.updatedAt,
-      })
-      .from(lists)
-      .where(and(eq(lists.userId, userId), eq(lists.isPublic, true)))
-      .orderBy(desc(lists.updatedAt), desc(lists.createdAt))
-      .limit(limit);
+    const listRows = await PublicRepository.findPublicListsByUser(userId, limit);
 
     if (listRows.length === 0) {
       return [];
@@ -168,20 +134,7 @@ export class PublicService {
 
     const listIds = listRows.map((listRow) => listRow.id);
 
-    const entryRows = await db
-      .select({
-        listId: listEntries.listId,
-        position: listEntries.position,
-        note: listEntries.note,
-        tmdbId: movies.tmdbId,
-        title: movies.title,
-        posterPath: movies.posterPath,
-        releaseYear: movies.releaseYear,
-      })
-      .from(listEntries)
-      .innerJoin(movies, eq(movies.id, listEntries.movieId))
-      .where(inArray(listEntries.listId, listIds))
-      .orderBy(asc(listEntries.listId), asc(listEntries.position), asc(listEntries.createdAt));
+    const entryRows = await PublicRepository.findListEntriesByListIds(listIds);
 
     const entriesByListId = new Map<string, PublicListEntry[]>();
 
@@ -222,5 +175,46 @@ export class PublicService {
     }
 
     return PublicTopPicksService.getTop4ByUserId(userId);
+  }
+
+  static async getSerialsCurrentlyWatching(
+    username: string,
+    limit: number,
+  ): Promise<PublicCurrentlyWatchingSeries[] | null> {
+    const userId = await PublicService.findUserIdByUsername(username);
+    if (!userId) return null;
+
+    return SerialsCurrentlyWatchingService.getCurrentlyWatching(userId, limit);
+  }
+
+  static async getSerialProgress(username: string, tmdbId: number) {
+    const userId = await PublicService.findUserIdByUsername(username);
+    if (!userId) return null;
+
+    const detail = await SerialsDetailService.getDetail({
+      tmdbId,
+      viewerUserId: userId,
+      reviewsSort: "recent",
+    });
+
+    if (!detail) return null;
+
+    return {
+      series: {
+        id: detail.series.id,
+        tmdbId: detail.series.tmdbId,
+        title: detail.series.title,
+        posterPath: detail.series.posterPath,
+        numberOfSeasons: detail.series.numberOfSeasons,
+        numberOfEpisodes: detail.series.numberOfEpisodes,
+      },
+      viewerTracking: detail.viewerTracking,
+      seasons: detail.series.seasons.map((s) => ({
+        seasonNumber: s.seasonNumber,
+        name: s.name,
+        episodeCount: s.episodeCount,
+        viewerInteraction: s.viewerInteraction,
+      })),
+    };
   }
 }

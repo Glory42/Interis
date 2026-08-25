@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { mediaTypeSchema } from "@/types/api";
 
 export const feedActivityTypeSchema = z.enum([
   "diary_entry",
@@ -31,7 +32,6 @@ export const feedActorSchema = z.object({
   id: z.string(),
   username: z.string(),
   displayUsername: z.string().nullable(),
-  image: z.string().nullable(),
   avatarUrl: z.string().nullable(),
 });
 
@@ -42,7 +42,7 @@ export const feedMovieSchema = z
     posterPath: z.string().nullable(),
     coverArtUrl: z.string().nullable().optional(),
     releaseYear: z.number().int().nullable(),
-    mediaType: z.enum(["movie", "tv", "album", "book"]).default("movie"),
+    mediaType: mediaTypeSchema.default("movie"),
     mbid: z.string().nullable().optional(),
     artistName: z.string().nullable().optional(),
     volumeId: z.string().nullable().optional(),
@@ -50,7 +50,7 @@ export const feedMovieSchema = z
   })
   .nullable();
 
-export const feedPostMediaTypeSchema = z.enum(["movie", "tv", "album", "book"]);
+export const feedPostMediaTypeSchema = mediaTypeSchema;
 
 export const feedPostSchema = z
   .object({
@@ -77,7 +77,7 @@ export const feedMetadataSchema = z.object({
   rating: z.number().nullable(),
   rewatch: z.boolean().nullable(),
   hasReview: z.boolean().nullable().optional(),
-  mediaType: z.enum(["movie", "tv", "album", "book"]).nullable().optional(),
+  mediaType: mediaTypeSchema.nullable().optional(),
   containsSpoilers: z.boolean().nullable(),
   reviewId: z.string().nullable(),
   commentId: z.string().nullable(),
@@ -87,6 +87,10 @@ export const feedMetadataSchema = z.object({
   postId: z.string().nullable(),
   postMediaId: z.number().nullable(),
   postMediaType: feedPostMediaTypeSchema.nullable(),
+  seasonNumber: z.number().nullable().optional(),
+  episodeNumber: z.number().nullable().optional(),
+  listId: z.string().nullable().optional(),
+  listTitle: z.string().nullable().optional(),
 });
 
 export const feedEngagementSchema = z.object({
@@ -110,6 +114,11 @@ export const feedItemSchema = z.object({
 
 export const feedListSchema = z.array(feedItemSchema);
 
+export const feedPageSchema = z.object({
+  items: z.array(feedItemSchema),
+  nextCursor: z.string().nullable(),
+});
+
 export const trendingMovieSchema = z.object({
   tmdbId: z.number().int().positive(),
   title: z.string(),
@@ -123,7 +132,6 @@ export const meFeedSummarySchema = z.object({
   id: z.string(),
   username: z.string(),
   displayUsername: z.string().nullable(),
-  image: z.string().nullable(),
   avatarUrl: z.string().nullable(),
   counts: z.object({
     logs: z.number().int().nonnegative(),
@@ -146,6 +154,7 @@ export const networkStatsSchema = z.object({
 });
 
 export type FeedItem = z.infer<typeof feedItemSchema>;
+export type FeedPage = z.infer<typeof feedPageSchema>;
 export type FeedActivityKind = z.infer<typeof feedActivityKindSchema>;
 export type TrendingMovie = z.infer<typeof trendingMovieSchema>;
 export type MeFeedSummary = z.infer<typeof meFeedSummarySchema>;

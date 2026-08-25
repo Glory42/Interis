@@ -1,5 +1,5 @@
 import type { CreateDiaryDto, UpdateDiaryDto } from "./dto/diary.dto";
-import { DiaryReadService } from "./services/diary-read.service";
+import { DiaryRepository } from "./repositories/diary.repository";
 import { DiaryWriteService } from "./services/diary-write.service";
 
 export class DiaryService {
@@ -7,12 +7,12 @@ export class DiaryService {
     return DiaryWriteService.create(userId, input);
   }
 
-  static async findAllByUser(userId: string) {
-    return DiaryReadService.findAllByUser(userId);
+  static async findAllByUser(userId: string, limit?: number, offset?: number) {
+    return DiaryRepository.findAllByUser(userId, limit, offset);
   }
 
   static async findOne(entryId: string, userId: string) {
-    return DiaryReadService.findOne(entryId, userId);
+    return DiaryRepository.findOneByIdAndUser(entryId, userId);
   }
 
   static async update(entryId: string, userId: string, input: UpdateDiaryDto) {
@@ -21,5 +21,17 @@ export class DiaryService {
 
   static async delete(entryId: string, userId: string) {
     return DiaryWriteService.delete(entryId, userId);
+  }
+
+  static async deleteById(entryId: string) {
+    return DiaryWriteService.deleteById(entryId);
+  }
+
+  static async listAllForAdmin(
+    filters: { userId?: string; movieId?: number },
+    limit: number,
+    offset: number,
+  ) {
+    return DiaryRepository.listAllForAdmin(filters, limit, offset);
   }
 }

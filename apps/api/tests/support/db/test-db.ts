@@ -1,5 +1,5 @@
 export const isLikelyTestDatabaseUrl = (databaseUrl: string): boolean => {
-  return /(^|[_\-])test([_\-]|$)/i.test(databaseUrl);
+  return /(^|[_-])test([_-]|$)/i.test(databaseUrl);
 };
 
 export const getDatabaseUrl = (): string => {

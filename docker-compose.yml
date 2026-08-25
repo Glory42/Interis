@@ -1,0 +1,77 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: interis
+      POSTGRES_PASSWORD: interis
+      POSTGRES_DB: interis
+    ports:
+      - "5432:5432"
+    volumes:
+      - interis-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U interis -d interis"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # @neondatabase/serverless (used by apps/api's db.ts) only speaks Neon's
+  # HTTP protocol, never the Postgres wire protocol postgres:16-alpine
+  # exposes - this proxy bridges the two so local dev never needs a real
+  # Neon account. See apps/api/src/infrastructure/database/local-proxy.ts.
+  db-proxy:
+    image: ghcr.io/timowilhelm/local-neon-http-proxy:main
+    restart: unless-stopped
+    environment:
+      PG_CONNECTION_STRING: postgres://interis:interis@postgres:5432/interis
+    ports:
+      - "4444:4444"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build:
+      context: ./apps/api
+      target: dev
+    restart: unless-stopped
+    depends_on:
+      db-proxy:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://interis:interis@db-proxy:5432/interis
+      # Migrations bypass the HTTP proxy entirely (see scripts/docker-migrate.ts).
+      DIRECT_DATABASE_URL: postgres://interis:interis@postgres:5432/interis
+      USE_LOCAL_DB_PROXY: "true"
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-docker-local-dev-secret-change-me-32chars}
+      TMDB_ACCESS_TOKEN: ${TMDB_ACCESS_TOKEN:-Bearer docker-local-dev-placeholder}
+      CORS_ORIGIN: http://localhost:5173
+      PORT: "5000"
+      NODE_ENV: development
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./apps/api:/app
+      - /app/node_modules
+
+  web:
+    build:
+      context: ./apps/web
+      target: dev
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      VITE_API_PROXY_TARGET: http://api:5000
+      VITE_API_BASE_URL: ""
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+
+volumes:
+  interis-postgres-data:

@@ -71,7 +71,9 @@ Returns `FeedItem[]`.
       "movieId": 550,
       "postId": null,
       "postMediaId": null,
-      "postMediaType": null
+      "postMediaType": null,
+      "seasonNumber": null,
+      "episodeNumber": null
     },
     "engagement": {
       "likeCount": 3,

@@ -1,275 +1,274 @@
-import { and, desc, eq, sql } from "drizzle-orm";
-import { db } from "../../../infrastructure/database/db";
 import { MoviesService } from "../../movies/movies.service";
+import { MovieActivityRecorder } from "../../movies/services/movie-activity-recorder.service";
 import { SerialsService } from "../../serials/serials.service";
 import { SerialsReviewsRepository } from "../../serials/repositories/serials-reviews.repository";
+import { SerialsInteractionsRepository } from "../../serials/repositories/serials-interactions.repository";
+import { SerialsActivityRecorder } from "../../serials/services/serials-activity-recorder.service";
+import { InteractionsService } from "../../interactions/interactions.service";
+import { SocialFeedService } from "../../social/services/social-feed.service";
+import { ReviewsRepository } from "../repositories/reviews.repository";
 import { MusicCacheService } from "../../music/services/music-cache.service";
+import { AlbumActivityRecorder } from "../../music/services/album-activity-recorder.service";
 import { BooksCacheService } from "../../books/services/books-cache.service";
-import { activities } from "../../social/social.entity";
-import { reviewLikes, reviews } from "../reviews.entity";
+import { BookActivityRecorder } from "../../books/services/book-activity-recorder.service";
 import { buildReviewCreatedActivityMetadata } from "../helpers/reviews-activity.helper";
 import type { CreateReviewDto, UpdateReviewDto } from "../dto/reviews.dto";
+import { NotFoundError } from "../../../commons/errors/app-error";
+
+type Movie = Awaited<ReturnType<typeof MoviesService.findOrCreate>>;
+type Series = NonNullable<Awaited<ReturnType<typeof SerialsService.findOrCreate>>>;
+type Album = NonNullable<Awaited<ReturnType<typeof MusicCacheService.findOrCreate>>>;
+type Book = NonNullable<Awaited<ReturnType<typeof BooksCacheService.findOrCreate>>>;
+// SerialsReviewsRepository.upsertReview and DiaryRepository.upsertReview both
+// delegate to ReviewsRepository.upsertReview now (see issue #48), so movie
+// and TV reviews share one concrete row shape.
+type ReviewsTableRow = NonNullable<Awaited<ReturnType<typeof ReviewsRepository.upsertReview>>>;
+type MovieReviewRow = ReviewsTableRow;
+type SeriesReviewRow = ReviewsTableRow;
+type AlbumReviewRow = ReviewsTableRow;
+type BookReviewRow = ReviewsTableRow;
+
+type ReviewRow = { id: string; containsSpoilers: boolean };
+
+// findOrCreate and insertReview stay genuinely per-media-type - movies and
+// TV write to the shared reviews table through two different repositories
+// with different field shapes (see issue #48, not yet unified), and
+// albums/books resolve through their own cache services. Everything
+// downstream of them - marking watched, recording the activity, shaping the
+// response - is written exactly once in createWithAdapter below, driven by
+// whichever adapter gets resolved.
+type ReviewMediaAdapter<TMedia, TReview extends ReviewRow, TResult> = {
+  findOrCreateMedia: (mediaSourceId: string) => Promise<TMedia>;
+  insertReview: (media: TMedia, input: CreateReviewDto, userId: string) => Promise<TReview | null>;
+  markWatched: (userId: string, media: TMedia) => Promise<void>;
+  recordActivity: (input: {
+    userId: string;
+    media: TMedia;
+    review: TReview;
+    extraMetadata: Record<string, unknown>;
+  }) => void;
+  toResult: (review: TReview, media: TMedia) => TResult;
+};
+
+const parseTmdbId = (mediaSourceId: string, label: string): number => {
+  const tmdbId = Number.parseInt(mediaSourceId, 10);
+  if (!Number.isFinite(tmdbId)) {
+    throw new Error(`Invalid tmdbId for ${label}`);
+  }
+  return tmdbId;
+};
+
+const movieReviewAdapter: ReviewMediaAdapter<
+  Movie,
+  MovieReviewRow,
+  { review: MovieReviewRow; movie: Movie }
+> = {
+  findOrCreateMedia: (mediaSourceId) =>
+    MoviesService.findOrCreate(parseTmdbId(mediaSourceId, "movie")),
+  insertReview: (movie, input, userId) =>
+    ReviewsRepository.upsertReview({
+      userId,
+      mediaType: "movie",
+      mediaSource: "tmdb",
+      mediaSourceId: String(movie.tmdbId),
+      movieId: movie.id,
+      diaryEntryId: input.diaryEntryId ?? null,
+      content: input.content,
+      containsSpoilers: input.containsSpoilers ?? false,
+    }),
+  markWatched: (userId, movie) => InteractionsService.setWatched(userId, movie.id),
+  recordActivity: ({ userId, media, review, extraMetadata }) => {
+    MovieActivityRecorder.record({
+      userId,
+      movie: media,
+      type: "review",
+      entityId: review.id,
+      extraMetadata,
+    });
+  },
+  toResult: (review, movie) => ({ review, movie }),
+};
+
+const tvReviewAdapter: ReviewMediaAdapter<
+  Series,
+  SeriesReviewRow,
+  { review: SeriesReviewRow; series: Series }
+> = {
+  findOrCreateMedia: async (mediaSourceId) => {
+    const series = await SerialsService.findOrCreate(parseTmdbId(mediaSourceId, "tv"));
+    if (!series) throw new NotFoundError("Series not found");
+    return series;
+  },
+  insertReview: (series, input, userId) =>
+    SerialsReviewsRepository.upsertReview({
+      userId,
+      seriesTmdbId: series.tmdbId,
+      diaryEntryId: input.diaryEntryId ?? null,
+      content: input.content,
+      containsSpoilers: input.containsSpoilers ?? false,
+    }),
+  markWatched: (userId, series) => SerialsInteractionsRepository.setWatched(userId, series.id),
+  recordActivity: ({ userId, media, review, extraMetadata }) => {
+    SerialsActivityRecorder.record({
+      userId,
+      series: media,
+      target: { kind: "series" },
+      type: "review",
+      entityId: review.id,
+      extraMetadata,
+    });
+  },
+  toResult: (review, series) => ({ review, series }),
+};
+
+const albumReviewAdapter: ReviewMediaAdapter<
+  Album,
+  AlbumReviewRow,
+  { review: AlbumReviewRow; album: Album }
+> = {
+  findOrCreateMedia: async (mediaSourceId) => {
+    const album = await MusicCacheService.findOrCreate(mediaSourceId);
+    if (!album) throw new NotFoundError("Album not found");
+    return album;
+  },
+  insertReview: (album, input, userId) =>
+    ReviewsRepository.upsertReview({
+      userId,
+      mediaType: "album",
+      mediaSource: "musicbrainz",
+      mediaSourceId: album.mbid,
+      movieId: null,
+      diaryEntryId: input.diaryEntryId ?? null,
+      content: input.content,
+      containsSpoilers: input.containsSpoilers ?? false,
+    }),
+  // Albums have no "listened" flag on music_interaction to auto-set the way
+  // movies/TV have isWatched - a review alone doesn't imply one here.
+  markWatched: async () => {},
+  recordActivity: ({ userId, media, review, extraMetadata }) => {
+    AlbumActivityRecorder.record({
+      userId,
+      album: media,
+      type: "review",
+      entityId: review.id,
+      extraMetadata,
+    });
+  },
+  toResult: (review, album) => ({ review, album }),
+};
+
+const bookReviewAdapter: ReviewMediaAdapter<
+  Book,
+  BookReviewRow,
+  { review: BookReviewRow; book: Book }
+> = {
+  findOrCreateMedia: async (mediaSourceId) => {
+    const book = await BooksCacheService.findOrCreate(mediaSourceId);
+    if (!book) throw new NotFoundError("Book not found");
+    return book;
+  },
+  insertReview: (book, input, userId) =>
+    ReviewsRepository.upsertReview({
+      userId,
+      mediaType: "book",
+      mediaSource: "googlebooks",
+      mediaSourceId: book.googleVolumeId,
+      movieId: null,
+      diaryEntryId: input.diaryEntryId ?? null,
+      content: input.content,
+      containsSpoilers: input.containsSpoilers ?? false,
+    }),
+  // Books have no "read" flag on book_interaction to auto-set - see the
+  // album adapter's markWatched for the same reasoning.
+  markWatched: async () => {},
+  recordActivity: ({ userId, media, review, extraMetadata }) => {
+    BookActivityRecorder.record({
+      userId,
+      book: media,
+      type: "review",
+      entityId: review.id,
+      extraMetadata,
+    });
+  },
+  toResult: (review, book) => ({ review, book }),
+};
 
 export class ReviewsCoreService {
   static async create(userId: string, input: CreateReviewDto) {
     if (input.mediaType === "tv") {
-      const tmdbId = Number.parseInt(input.mediaSourceId, 10);
-      if (!Number.isFinite(tmdbId)) throw new Error("Invalid tmdbId for tv");
-      const series = await SerialsService.findOrCreate(tmdbId);
-      if (!series) throw new Error("Series not found");
-
-      const review = await SerialsReviewsRepository.upsertReview({
-        userId,
-        seriesTmdbId: series.tmdbId,
-        diaryEntryId: input.diaryEntryId ?? null,
-        content: input.content,
-        containsSpoilers: input.containsSpoilers ?? false,
-      });
-
-      if (!review) throw new Error("Could not create review");
-
-      await db.insert(activities).values({
-        userId,
-        type: "review",
-        entityId: review.id,
-        metadata: JSON.stringify(
-          buildReviewCreatedActivityMetadata({
-            reviewId: review.id,
-            content: input.content,
-            containsSpoilers: review.containsSpoilers,
-            media: {
-              mediaType: "tv",
-              tmdbId: series.tmdbId,
-              title: series.title,
-              posterPath: series.posterPath,
-              releaseYear: series.firstAirYear,
-            },
-          }),
-        ),
-      });
-
-      return { review, series };
+      return ReviewsCoreService.createWithAdapter(userId, input, tvReviewAdapter);
     }
-
     if (input.mediaType === "album") {
-      const album = await MusicCacheService.findOrCreate(input.mediaSourceId);
-      if (!album) throw new Error("Album not found");
-
-      const [review] = await db
-        .insert(reviews)
-        .values({
-          userId,
-          mediaType: "album",
-          mediaSource: "musicbrainz",
-          mediaSourceId: album.mbid,
-          movieId: null,
-          diaryEntryId: input.diaryEntryId ?? null,
-          content: input.content,
-          containsSpoilers: input.containsSpoilers ?? false,
-        })
-        .onConflictDoUpdate({
-          target: [reviews.userId, reviews.mediaType, reviews.mediaSource, reviews.mediaSourceId],
-          set: {
-            diaryEntryId: input.diaryEntryId ?? null,
-            content: input.content,
-            containsSpoilers: input.containsSpoilers ?? false,
-            updatedAt: new Date(),
-          },
-        })
-        .returning();
-
-      if (!review) throw new Error("Could not create review");
-
-      await db.insert(activities).values({
-        userId,
-        type: "review",
-        entityId: review.id,
-        metadata: JSON.stringify(
-          buildReviewCreatedActivityMetadata({
-            reviewId: review.id,
-            content: input.content,
-            containsSpoilers: review.containsSpoilers,
-            media: {
-              mediaType: "album",
-              mbid: album.mbid,
-              title: album.title,
-              coverArtUrl: album.coverArtUrl ?? null,
-              artistName: album.artistName,
-              releaseYear: album.firstReleaseYear ?? null,
-            },
-          }),
-        ),
-      });
-
-      return { review, album };
+      return ReviewsCoreService.createWithAdapter(userId, input, albumReviewAdapter);
     }
-
     if (input.mediaType === "book") {
-      const book = await BooksCacheService.findOrCreate(input.mediaSourceId);
-      if (!book) throw new Error("Book not found");
-
-      const [review] = await db
-        .insert(reviews)
-        .values({
-          userId,
-          mediaType: "book",
-          mediaSource: "googlebooks",
-          mediaSourceId: book.googleVolumeId,
-          movieId: null,
-          diaryEntryId: input.diaryEntryId ?? null,
-          content: input.content,
-          containsSpoilers: input.containsSpoilers ?? false,
-        })
-        .onConflictDoUpdate({
-          target: [reviews.userId, reviews.mediaType, reviews.mediaSource, reviews.mediaSourceId],
-          set: {
-            diaryEntryId: input.diaryEntryId ?? null,
-            content: input.content,
-            containsSpoilers: input.containsSpoilers ?? false,
-            updatedAt: new Date(),
-          },
-        })
-        .returning();
-
-      if (!review) throw new Error("Could not create review");
-
-      await db.insert(activities).values({
-        userId,
-        type: "review",
-        entityId: review.id,
-        metadata: JSON.stringify(
-          buildReviewCreatedActivityMetadata({
-            reviewId: review.id,
-            content: input.content,
-            containsSpoilers: review.containsSpoilers,
-            media: {
-              mediaType: "book",
-              volumeId: book.googleVolumeId,
-              title: book.title,
-              coverArtUrl: book.coverImageUrl ?? null,
-              authors: (book.authors as string[]) ?? [],
-              releaseYear: book.publishedYear ?? null,
-            },
-          }),
-        ),
-      });
-
-      return { review, book };
+      return ReviewsCoreService.createWithAdapter(userId, input, bookReviewAdapter);
     }
+    return ReviewsCoreService.createWithAdapter(userId, input, movieReviewAdapter);
+  }
 
-    // movie (default)
-    const tmdbId = Number.parseInt(input.mediaSourceId, 10);
-    if (!Number.isFinite(tmdbId)) throw new Error("Invalid tmdbId for movie");
-    const movie = await MoviesService.findOrCreate(tmdbId);
-
-    const [review] = await db
-      .insert(reviews)
-      .values({
-        userId,
-        mediaType: "movie",
-        mediaSource: "tmdb",
-        mediaSourceId: String(movie.tmdbId),
-        movieId: movie.id,
-        diaryEntryId: input.diaryEntryId ?? null,
-        content: input.content,
-        containsSpoilers: input.containsSpoilers ?? false,
-      })
-      .onConflictDoUpdate({
-        target: [
-          reviews.userId,
-          reviews.mediaType,
-          reviews.mediaSource,
-          reviews.mediaSourceId,
-        ],
-        set: {
-          movieId: movie.id,
-          diaryEntryId: input.diaryEntryId ?? null,
-          content: input.content,
-          containsSpoilers: input.containsSpoilers ?? false,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
-
+  private static async createWithAdapter<TMedia, TReview extends ReviewRow, TResult>(
+    userId: string,
+    input: CreateReviewDto,
+    adapter: ReviewMediaAdapter<TMedia, TReview, TResult>,
+  ): Promise<TResult> {
+    const media = await adapter.findOrCreateMedia(input.mediaSourceId);
+    const review = await adapter.insertReview(media, input, userId);
     if (!review) {
       throw new Error("Could not create review");
     }
 
-    await db.insert(activities).values({
+    await adapter.markWatched(userId, media);
+
+    adapter.recordActivity({
       userId,
-      type: "review",
-      entityId: review.id,
-      metadata: JSON.stringify(
-        buildReviewCreatedActivityMetadata({
-          reviewId: review.id,
-          content: input.content,
-          containsSpoilers: review.containsSpoilers,
-          media: {
-            mediaType: "movie",
-            tmdbId: movie.tmdbId,
-            title: movie.title,
-            posterPath: movie.posterPath,
-            releaseYear: movie.releaseYear,
-          },
-        }),
-      ),
+      media,
+      review,
+      extraMetadata: buildReviewCreatedActivityMetadata({
+        reviewId: review.id,
+        content: input.content,
+        containsSpoilers: review.containsSpoilers,
+      }),
     });
 
-    return { review, movie };
+    return adapter.toResult(review, media);
   }
 
   static async findById(reviewId: string) {
-    const [review] = await db
-      .select({
-        review: reviews,
-        likeCount: sql<number>`count(${reviewLikes.reviewId})`.as("like_count"),
-      })
-      .from(reviews)
-      .leftJoin(reviewLikes, eq(reviewLikes.reviewId, reviews.id))
-      .where(eq(reviews.id, reviewId))
-      .groupBy(reviews.id)
-      .limit(1);
-
-    return review ?? null;
+    return ReviewsRepository.findByIdWithLikeCount(reviewId);
   }
 
   static async findByMovie(movieId: number) {
-    return db
-      .select()
-      .from(reviews)
-      .where(and(eq(reviews.movieId, movieId), eq(reviews.mediaType, "movie")))
-      .orderBy(desc(reviews.createdAt));
+    return ReviewsRepository.findByMovieId(movieId);
   }
 
   static async findByUser(userId: string) {
-    return db
-      .select()
-      .from(reviews)
-      .where(eq(reviews.userId, userId))
-      .orderBy(desc(reviews.createdAt));
+    return ReviewsRepository.findByUserId(userId);
   }
 
   static async update(reviewId: string, userId: string, input: UpdateReviewDto) {
-    const [updated] = await db
-      .update(reviews)
-      .set({
-        ...(input.content !== undefined && { content: input.content }),
-        ...(input.containsSpoilers !== undefined && {
-          containsSpoilers: input.containsSpoilers,
-        }),
-      })
-      .where(and(eq(reviews.id, reviewId), eq(reviews.userId, userId)))
-      .returning();
-
-    return updated ?? null;
+    const updated = await ReviewsRepository.updateByIdAndUser(reviewId, userId, input);
+    SocialFeedService.invalidateFollowingFeed(userId);
+    return updated;
   }
 
   static async delete(reviewId: string, userId: string) {
-    const [deleted] = await db
-      .delete(reviews)
-      .where(and(eq(reviews.id, reviewId), eq(reviews.userId, userId)))
-      .returning({ id: reviews.id });
+    const deleted = await ReviewsRepository.deleteByIdAndUser(reviewId, userId);
+    SocialFeedService.invalidateFollowingFeed(userId);
+    return deleted;
+  }
 
-    return deleted ?? null;
+  // No ownership check — admin moderation only.
+  static async deleteById(reviewId: string) {
+    return ReviewsRepository.deleteById(reviewId);
+  }
+
+  // Movie reviews only — TV reviews live in the serials module's own table.
+  static async listAllForAdmin(
+    filters: { userId?: string; movieId?: number },
+    limit: number,
+    offset: number,
+  ) {
+    return ReviewsRepository.listAllForAdmin(filters, limit, offset);
   }
 }

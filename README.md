@@ -14,10 +14,10 @@ A social movie journal app inspired by Letterboxd + timeline-style social apps.
 | Layer | Tech |
 | --- | --- |
 | Runtime | Bun |
-| Backend | Express 5 + TypeScript |
+| Backend | Express 5 (Bun.serve) + TypeScript |
 | Database | Neon (PostgreSQL) |
 | ORM | Drizzle ORM |
-| Auth | Better Auth |
+| Auth | In-house (JWT access + rotating refresh tokens, argon2id via `Bun.password`) |
 | Frontend | React 19 + Vite |
 | Routing | TanStack Router (file-based) |
 | Data | TanStack Query |
@@ -29,15 +29,34 @@ A social movie journal app inspired by Letterboxd + timeline-style social apps.
 
 ```text
 .
-├── apps/api/          # Express API, domain modules, Drizzle schema/migrations
+├── apps/api/          # Express API (Bun.serve), domain modules, Drizzle schema/migrations
 ├── apps/docs/             # Astro + Starlight docs site for public API
 ├── apps/web/         # React app (TanStack Router + Query)
 ├── apps/e2e/              # Playwright smoke and end-to-end tests
 ├── CONTRIBUTING.md   # Guidelines for contributors
+├── DEPLOYMENT.md      # Render deploy setup for apps/api
 └── README.md
 ```
 
 ## Quick start
+
+### Option A: Docker Compose (fastest, zero manual setup)
+
+Prerequisites: Docker + Docker Compose.
+
+```bash
+docker compose up
+```
+
+This starts a local Postgres database, migrates it automatically, and boots
+both the API (`http://localhost:5000`) and the frontend
+(`http://localhost:5173`). No `.env` files are required — copy
+[`.env.example`](.env.example) to `.env` at the repo root first if you want
+real TMDB data (otherwise TMDB-backed endpoints return errors, everything
+else works). See [`docker-compose.yml`](docker-compose.yml) for the exact
+service topology.
+
+### Option B: Manual (per-app)
 
 Prerequisites:
 - Bun 1.3+
@@ -48,8 +67,7 @@ Prerequisites:
 
 ```env
 DATABASE_URL=
-BETTER_AUTH_URL=http://localhost:5000
-BETTER_AUTH_SECRET=
+JWT_ACCESS_SECRET=
 TMDB_ACCESS_TOKEN=
 CORS_ORIGIN=http://localhost:5173
 PORT=5000
@@ -85,6 +103,12 @@ bun run dev
 
 Frontend runs on `http://localhost:5173` and proxies `/api` to backend on port `5000`.
 
+Alternatively, run both from the repo root after installing each app's own
+dependencies once (`bun run install:all`): `bun run dev` starts both
+concurrently, or `bun run dev:api` / `bun run dev:web` individually. See the
+root [`package.json`](package.json) for the full list of orchestration
+scripts (`build`, `test`, `lint`, `typecheck`, `lint:arch`).
+
 ## Documentation site
 
 This repository now includes a dedicated docs project in `docs/` for the Interis
@@ -114,7 +138,7 @@ bun run build
 
 | Prefix | Purpose |
 | --- | --- |
-| `POST /api/auth/*` | Better Auth endpoints (session, sign-in, sign-up, update-user) |
+| `POST /api/auth/*` | In-house auth (sign-up, sign-in, sign-out, update-user, password reset) |
 | `GET /api/movies/*` | Search, detail, logs, archive, trending |
 | `GET /api/serials/*` | TV series search, detail, archive |
 | `GET /api/people/*` | Director/actor pages |
@@ -155,7 +179,21 @@ bun install
 bun run test:smoke
 ```
 
-CI note: backend integration tests in GitHub Actions run only when `DATABASE_URL_TEST` repository secret is configured.
+CI note: GitHub Actions runs backend typecheck/lint/architecture checks and
+the full integration suite on every PR, using the `DEVDATABASE_URL` secret
+from the repo's `a` [environment](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment) (a dedicated Neon database, kept separate from
+the main `DATABASE_URL`/dev database since the suite performs real writes).
+
+A pre-commit hook (Husky + lint-staged) runs ESLint on staged `apps/web` and
+`apps/api` files automatically — installed via `bun install` at the repo
+root (`prepare` script).
+
+## Deployment
+
+`apps/api` deploys to Render on push to `master` via Render's GitHub
+integration (no CI/CD workflow file involved). `apps/web` and `apps/docs`
+deploy to Cloudflare Pages the same way. See [DEPLOYMENT.md](DEPLOYMENT.md)
+for environment variable setup and first-time configuration.
 
 ## Architecture notes
 
@@ -167,6 +205,7 @@ CI note: backend integration tests in GitHub Actions run only when `DATABASE_URL
 - **API decomposition**: Film/serial frontend APIs are split into `api/{schemas,types,mappers,requests}` submodules behind stable feature barrels.
 - **DTO normalization**: Backend query parsing is schema-first with explicit default/clamp normalization.
 - **Architecture enforcement**: Frontend lint rules and backend `bun run lint:arch` checks prevent large monolith files, cross-layer imports, and reintroduction of removed transitional wrappers.
+- **Performance-first**: scoped cache invalidation, paginated list endpoints, batched queries (no N+1), and cached external API reads are enforced conventions — see CONTRIBUTING.md's [Performance conventions](CONTRIBUTING.md#performance-conventions) and the `/performance-check` skill.
 
 ## Contributing
 

@@ -20,7 +20,13 @@ const changePasswordInputSchema = z.object({
 });
 
 const changeEmailInputSchema = z.object({
-  newEmail: z.string().email(),
+  newEmail: z.email(),
+  answer: z.string().min(1).max(200),
+});
+
+const securityQuestionInputSchema = z.object({
+  question: z.string().min(4).max(200),
+  answer: z.string().min(1).max(200),
 });
 
 type UpdateIdentityInput = {
@@ -77,8 +83,6 @@ export const registerWithEmail = async (
 
   const authPayload = {
     username: normalizedUsername,
-    displayUsername: normalizedUsername,
-    name: normalizedUsername,
     email: payload.email,
     password: payload.password,
   };
@@ -111,8 +115,6 @@ export const updateCurrentUserIdentity = async (
       method: "POST",
       body: {
         username: normalizedUsername,
-        displayUsername: normalizedUsername,
-        name: normalizedUsername,
       },
     },
   );
@@ -154,11 +156,75 @@ export const changeCurrentUserPassword = async (input: {
 
 export const changeCurrentUserEmail = async (input: {
   newEmail: string;
+  answer: string;
 }): Promise<void> => {
   const payload = changeEmailInputSchema.parse(input);
 
   const response = await apiRequest<unknown, typeof payload>(
     "/api/auth/change-email",
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
+
+  unknownAuthResponseSchema.parse(response);
+};
+
+export const setCurrentUserSecurityQuestion = async (input: {
+  question: string;
+  answer: string;
+}): Promise<void> => {
+  const payload = securityQuestionInputSchema.parse(input);
+
+  const response = await apiRequest<unknown, typeof payload>(
+    "/api/auth/security-question",
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
+
+  unknownAuthResponseSchema.parse(response);
+};
+
+const forgotPasswordInputSchema = z.object({
+  email: z.email(),
+});
+
+const forgotPasswordResponseSchema = z.object({
+  question: z.string(),
+});
+
+const resetPasswordInputSchema = z.object({
+  email: z.email(),
+  answer: z.string().min(1).max(200),
+  newPassword: z.string().min(8).max(128),
+});
+
+export const requestPasswordReset = async (input: { email: string }): Promise<string> => {
+  const payload = forgotPasswordInputSchema.parse(input);
+
+  const response = await apiRequest<unknown, typeof payload>(
+    "/api/auth/forgot-password",
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
+
+  return forgotPasswordResponseSchema.parse(response).question;
+};
+
+export const resetPasswordWithSecurityAnswer = async (input: {
+  email: string;
+  answer: string;
+  newPassword: string;
+}): Promise<void> => {
+  const payload = resetPasswordInputSchema.parse(input);
+
+  const response = await apiRequest<unknown, typeof payload>(
+    "/api/auth/reset-password",
     {
       method: "POST",
       body: payload,

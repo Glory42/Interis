@@ -3,9 +3,12 @@ import { user } from "../../../infrastructure/database/auth.entity";
 import { db } from "../../../infrastructure/database/db";
 import { diaryEntries } from "../../diary/diary.entity";
 import { movies } from "../../movies/movies.entity";
+import { albums } from "../../music/music.entity";
+import { books } from "../../books/books.entity";
 import { postComments, postLikes, posts } from "../../posts/posts.entity";
 import { comments, reviewLikes, reviews } from "../../reviews/reviews.entity";
 import { serialDiaryEntries, tvSeries } from "../../serials/serials.entity";
+import { SocialFeedSerialReviewRepository } from "./social-feed-serial-review.repository";
 
 export class SocialFeedRepository {
   static async getReviewRowsByReviewOrDiaryIds(
@@ -23,7 +26,7 @@ export class SocialFeedRepository {
           ? inArray(reviews.id, reviewIds)
           : inArray(reviews.diaryEntryId, diaryEntryIds);
 
-    const [movieRows, tvReviewRows] = await Promise.all([
+    const [movieRows, tvReviewRows, seasonEpisodeTvRows] = await Promise.all([
       db
         .select({
           id: reviews.id,
@@ -56,6 +59,9 @@ export class SocialFeedRepository {
         .innerJoin(user, eq(reviews.userId, user.id))
         .leftJoin(serialDiaryEntries, eq(reviews.diaryEntryId, serialDiaryEntries.id))
         .where(and(eq(reviews.mediaType, "tv"), whereClause)),
+      // Season/episode reviews are only ever looked up by review id (they're
+      // never linked to a diary entry, so diaryEntryIds can't match them).
+      SocialFeedSerialReviewRepository.getSeasonEpisodeReviewRows(reviewIds),
     ]);
 
     const tvTmdbIds = tvReviewRows
@@ -101,7 +107,13 @@ export class SocialFeedRepository {
 
     return [
       ...movieRows.map((row) => ({ ...row, mediaType: "movie" as const })),
+      // Season/episode reviews are represented in FeedItem the same way a
+      // series review is - movie.mediaType "tv" for the series, with
+      // seasonNumber/episodeNumber carried separately via activity metadata
+      // (see SerialsActivityRecorder) - so they use the same "tv" tag here
+      // rather than "tv_season"/"tv_episode".
       ...tvRows.map((row) => ({ ...row, mediaType: "tv" as const })),
+      ...seasonEpisodeTvRows.map((row) => ({ ...row, mediaType: "tv" as const })),
     ];
   }
 
@@ -189,8 +201,9 @@ export class SocialFeedRepository {
       .where(and(eq(postLikes.userId, viewerId), inArray(postLikes.postId, postIds)));
   }
 
-  static async getPostById(postId: string) {
-    const [post] = await db
+  static async getPostsByIds(postIds: string[]) {
+    if (postIds.length === 0) return [];
+    return db
       .select({
         id: posts.id,
         content: posts.content,
@@ -198,24 +211,48 @@ export class SocialFeedRepository {
         mediaType: posts.mediaType,
       })
       .from(posts)
-      .where(eq(posts.id, postId))
-      .limit(1);
-
-    return post ?? null;
+      .where(inArray(posts.id, postIds));
   }
 
-  static async getMovieById(movieId: number) {
-    const [movie] = await db
+  static async getMoviesByIds(movieIds: number[]) {
+    if (movieIds.length === 0) return [];
+    return db
       .select({
+        id: movies.id,
         tmdbId: movies.tmdbId,
         title: movies.title,
         posterPath: movies.posterPath,
         releaseYear: movies.releaseYear,
       })
       .from(movies)
-      .where(eq(movies.id, movieId))
-      .limit(1);
+      .where(inArray(movies.id, movieIds));
+  }
 
-    return movie ?? null;
+  static async getAlbumsByMbids(mbids: string[]) {
+    if (mbids.length === 0) return [];
+    return db
+      .select({
+        mbid: albums.mbid,
+        title: albums.title,
+        coverArtUrl: albums.coverArtUrl,
+        artistName: albums.artistName,
+        releaseYear: albums.firstReleaseYear,
+      })
+      .from(albums)
+      .where(inArray(albums.mbid, mbids));
+  }
+
+  static async getBooksByVolumeIds(volumeIds: string[]) {
+    if (volumeIds.length === 0) return [];
+    return db
+      .select({
+        volumeId: books.googleVolumeId,
+        title: books.title,
+        coverArtUrl: books.coverImageUrl,
+        authors: books.authors,
+        releaseYear: books.publishedYear,
+      })
+      .from(books)
+      .where(inArray(books.googleVolumeId, volumeIds));
   }
 }

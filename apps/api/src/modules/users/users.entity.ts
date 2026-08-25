@@ -22,6 +22,9 @@ export const profiles = pgTable("profile", {
   favoriteGenres: jsonb("favorite_genres").$type<string[]>().default([]).notNull(),
   themeId: text("theme").default(DEFAULT_THEME_ID).notNull(),
   isAdmin: boolean("is_admin").default(false).notNull(),
+  isSuspended: boolean("is_suspended").default(false).notNull(),
+  suspendedAt: timestamp("suspended_at"),
+  suspendedReason: text("suspended_reason"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

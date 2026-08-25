@@ -4,8 +4,6 @@ import { sendBadRequest, sendValidationError } from "../../commons/http/validati
 import { BooksService } from "./books.service";
 import {
   SearchBooksQuerySchema,
-  BooksArchiveQuerySchema,
-  BookDetailQuerySchema,
   CreateBookLogSchema,
   UpdateBookLogSchema,
   UpdateBookInteractionSchema,

@@ -1,80 +1,88 @@
-import type { CSSProperties } from "react";
+import { memo } from "react";
 import { Link } from "@tanstack/react-router";
-import { CornerDownRight, Heart, MessageSquare } from "lucide-react";
 import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
+import { FeedCardHeader } from "@/features/feed/components/FeedCardHeader";
+import { FeedMoviePreviewCard } from "@/features/feed/components/FeedMoviePreviewCard";
 import { PostActivityCard } from "@/features/feed/components/PostActivityCard";
 import { ReviewActivityCard } from "@/features/feed/components/ReviewActivityCard";
 import {
   feedChannelMeta,
-  getRatingOutOfFive,
-  getRelativeTime,
   inferFeedChannel,
+  resolveFeedMovieLink,
+  toSeasonEpisodeLabel,
 } from "@/features/feed/components/feed-row.utils";
-import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
 import type { FeedItem } from "@/features/feed/types";
 
 type FeedActivityCardProps = {
   item: FeedItem;
 };
 
-const getActivityCopy = (item: FeedItem): string => {
+// Tier C copy: short verb only — the attached media/list card (below)
+// carries the actual title, so this never repeats it.
+const getTimelineVerb = (item: FeedItem): string => {
+  const seLabel = toSeasonEpisodeLabel(item);
   switch (item.kind) {
     case "diary_entry":
-      return "logged a watch entry";
-    case "review":
-      return "published a review";
-    case "commented":
-      return "commented on a review";
-    case "liked_review":
-      return "liked a review";
-    case "liked_comment":
-      return "liked a comment";
-    case "liked_post":
-      return "liked a post";
-    case "commented_post":
-      return "commented on a post";
+      return "Logged a watch";
     case "liked_movie":
-      return "liked a title";
+      if (seLabel && item.metadata.rating !== null) return `Rated ${seLabel}`;
+      return seLabel ? `Liked ${seLabel}` : "Liked a title";
     case "watchlisted_movie":
-      return "updated watchlist";
+      return "Added to their watchlist";
     case "followed_user":
       return item.metadata.targetUsername
-        ? `followed @${item.metadata.targetUsername}`
-        : "followed someone";
+        ? `Started following @${item.metadata.targetUsername}`
+        : "Followed someone";
     case "created_list":
-      return "created a list";
+      return "Created a new list";
+    case "liked_comment":
+      return "Liked a comment";
     default:
-      return "updated activity";
+      return "Updated their activity";
   }
 };
 
-const renderAttachedTitle = (item: FeedItem) => {
-  if (!item.movie) {
-    return <span className="font-mono text-xs font-bold text-foreground">{getActivityCopy(item)}</span>;
-  }
-
-  const to = item.movie.mediaType === "tv" ? "/serials/$tmdbId" : "/cinema/$tmdbId";
-
-  return (
-    <>
+const AttachedMediaCard = ({ item }: { item: FeedItem }) => {
+  if (item.kind === "created_list" && item.metadata.listId) {
+    return (
       <Link
-        to={to}
-        params={{ tmdbId: String(item.movie.tmdbId) }}
-        className="line-clamp-1 font-mono text-xs font-bold text-foreground hover:text-primary"
+        to="/profile/$username/lists/$listId"
+        params={{ username: item.actor.username, listId: item.metadata.listId }}
+        className="mt-2 inline-flex max-w-xs items-center rounded-lg border border-border/50 px-3 py-2.5 transition-colors hover:bg-secondary/15"
         viewTransition
       >
-        {item.movie.title}
-      </Link>
-      {item.movie.releaseYear ? (
-        <span className="font-mono text-[10px] text-muted-foreground">
-          {item.movie.releaseYear}
+        <span className="truncate text-sm font-semibold text-foreground">
+          {item.metadata.listTitle ?? "a list"}
         </span>
-      ) : null}
-    </>
+      </Link>
+    );
+  }
+
+  if (!item.movie) {
+    return null;
+  }
+
+  const link = resolveFeedMovieLink(item.movie);
+  if (!link) {
+    return null;
+  }
+
+  const channel = inferFeedChannel(item);
+  const accentColor = channel ? feedChannelMeta[channel].color : "var(--module-neutral)";
+
+  return (
+    <FeedMoviePreviewCard
+      link={link}
+      title={item.movie.title}
+      releaseYear={item.movie.releaseYear}
+      posterPath={item.movie.posterPath}
+      coverArtUrl={item.movie.coverArtUrl}
+      accentColor={accentColor}
+    />
   );
 };
 
-export const FeedActivityCard = ({ item }: FeedActivityCardProps) => {
+export const FeedActivityCard = memo(function FeedActivityCard({ item }: FeedActivityCardProps) {
   if (item.kind === "post" || item.kind === "liked_post" || item.kind === "commented_post") {
     return <PostActivityCard item={item} />;
   }
@@ -88,74 +96,37 @@ export const FeedActivityCard = ({ item }: FeedActivityCardProps) => {
     return <ReviewActivityCard item={item} />;
   }
 
-  const channel = inferFeedChannel(item);
-  const channelLabel = channel ? feedChannelMeta[channel].label : "FEED";
-  const channelColor = channel ? feedChannelMeta[channel].color : "var(--module-neutral)";
-  const channelTint = channel ? feedChannelMeta[channel].tint : "rgba(156, 163, 175, 0.08)";
+  // Tier C: a Twitter-shaped timeline entry — avatar, name + time header, a
+  // plain verb line, an optional attached-media card. No like/comment here —
+  // those are reserved for posts and reviews, the only kinds that carry
+  // actual authored content.
   const actorName = item.actor.displayUsername ?? item.actor.username;
   const actorInitial = item.actor.username.slice(0, 1).toUpperCase();
-  const actorAvatar = item.actor.avatarUrl ?? item.actor.image ?? null;
-  const ratingOutOfFive = getRatingOutOfFive(item.metadata.rating);
-
-  const channelStyle = {
-    borderColor: `color-mix(in srgb, ${channelColor} 36%, transparent)`,
-    background: channelTint,
-    color: channelColor,
-  } satisfies CSSProperties;
+  const actorAvatar = item.actor.avatarUrl ?? null;
 
   return (
-    <article className="group border-b border-border/60 py-6">
-      <div className="flex items-center gap-3">
-        <FeedActorAvatar
-          avatarUrl={actorAvatar}
+    <article className="-mx-2 flex gap-3 rounded-xl px-3 py-3.5 transition-colors hover:bg-foreground/[0.025]">
+      <FeedActorAvatar
+        avatarUrl={actorAvatar}
+        username={item.actor.username}
+        initial={actorInitial}
+        className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden text-sm font-bold text-foreground"
+        style={{ background: "linear-gradient(135deg, var(--primary), var(--accent))" }}
+      />
+
+      <div className="min-w-0 flex-1">
+        <FeedCardHeader
           username={item.actor.username}
-          initial={actorInitial}
-          style={channelStyle}
+          displayName={actorName}
+          createdAt={item.createdAt}
         />
-        <div className="flex min-w-0 flex-1 items-baseline gap-2">
-          <Link
-            to="/profile/$username"
-            params={{ username: item.actor.username }}
-            className="truncate font-mono text-xs font-bold text-foreground hover:text-primary"
-            viewTransition
-          >
-            {actorName}
-          </Link>
-          <span className="truncate font-mono text-[10px] text-muted-foreground/80">
-            @{item.actor.username}
-          </span>
-          <span className="ml-auto shrink-0 font-mono text-[10px] text-muted-foreground">
-            {getRelativeTime(item.createdAt)}
-          </span>
-        </div>
-      </div>
 
-      <div className="mt-3 ml-10 flex flex-wrap items-center gap-3">
-        <div className="flex min-w-0 items-center gap-2 border px-2.5 py-1" style={channelStyle}>
-          <span className="font-mono text-[9px] uppercase tracking-[0.14em]">{channelLabel}</span>
-          <CornerDownRight className="h-3 w-3" />
-          {renderAttachedTitle(item)}
-        </div>
+        <p className="mt-0.5 text-[15px] leading-snug text-foreground/90">
+          {getTimelineVerb(item)}
+        </p>
 
-        {ratingOutOfFive !== null ? (
-          <SpaceRatingDisplay ratingOutOfFive={ratingOutOfFive} size="sm" />
-        ) : null}
-      </div>
-
-      <p className="mt-3 ml-10 whitespace-pre-wrap font-mono text-sm leading-relaxed text-foreground/80">
-        {item.metadata.excerpt ?? getActivityCopy(item)}
-      </p>
-
-      <div className="mt-3 ml-10 flex items-center gap-5">
-        <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
-          <Heart className="h-3.5 w-3.5" />
-          {item.engagement.likeCount}
-        </span>
-        <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
-          <MessageSquare className="h-3.5 w-3.5" />
-          {item.engagement.commentCount}
-        </span>
+        <AttachedMediaCard item={item} />
       </div>
     </article>
   );
-};
+});

@@ -1,20 +1,43 @@
-import { resolveRatingOutOfTen } from "../../diary/helpers/diary-rating.helper";
-import { SocialRepository } from "../../social/repositories/social.repository";
 import type {
   CreateSerialLogDto,
   UpdateSerialInteractionDto,
   UpdateSerialLogDto,
 } from "../dto/serials.dto";
-import {
-  buildSerialDiaryEntryActivityMetadata,
-  buildSerialInteractionActivityMetadata,
-} from "../helpers/serials-activity.helper";
-import { toRatingOutOfFive } from "../helpers/serials-normalization.helper";
+import { buildDiaryEntryExtraMetadata } from "../helpers/serials-activity.helper";
+import { SerialsActivityRecorder } from "./serials-activity-recorder.service";
 import { SerialsInteractionsRepository } from "../repositories/serials-interactions.repository";
 import { SerialsReviewsRepository } from "../repositories/serials-reviews.repository";
 import { SerialsCacheService } from "./serials-cache.service";
+import { SerialsEpisodeInteractionsRepository } from "../repositories/serials-episode-interactions.repository";
+import { SerialsTrackingService } from "./serials-tracking.service";
+import { filterWatchedNonSpecialEpisodes } from "../helpers/serials-episode-filter.helper";
 
 export class SerialsActivityService {
+  // Shared by updateInteraction (the sidebar "Watch" toggle) and createLog
+  // (the "Log" modal) - both are ways for the user to say "I watched this
+  // series," so both must cascade the same watched state down to every
+  // season/episode instead of only flipping the series-level flag.
+  private static async cascadeSeasonsWatched(
+    userId: string,
+    tmdbId: number,
+    numberOfSeasons: number | null,
+    watched: boolean,
+  ): Promise<void> {
+    if (!numberOfSeasons || numberOfSeasons <= 0) {
+      return;
+    }
+
+    const promises: Promise<unknown>[] = [];
+    for (let seasonNum = 1; seasonNum <= numberOfSeasons; seasonNum++) {
+      promises.push(
+        SerialsTrackingService.updateSeasonInteraction(userId, tmdbId, seasonNum, {
+          watched,
+        }),
+      );
+    }
+    await Promise.all(promises);
+  }
+
   static async getInteraction(userId: string, tmdbId: number) {
     const series = await SerialsCacheService.findOrCreate(tmdbId);
     if (!series) {
@@ -22,11 +45,21 @@ export class SerialsActivityService {
     }
 
     const row = await SerialsInteractionsRepository.getInteractionRow(userId, series.id);
+    const userEpisodeInteractions =
+      await SerialsEpisodeInteractionsRepository.getAllViewerEpisodeInteractions(
+        userId,
+        series.id,
+        series.tmdbId,
+      );
+    const watchedEpisodesCount = filterWatchedNonSpecialEpisodes(userEpisodeInteractions).length;
+    const allEpisodesWatched =
+      watchedEpisodesCount === series.numberOfEpisodes && series.numberOfEpisodes > 0;
 
     return {
       liked: row?.liked ?? false,
       watchlisted: row?.watchlisted ?? false,
-      ratingOutOfFive: toRatingOutOfFive(row?.rating ?? null),
+      rating: row?.rating ?? null,
+      watched: allEpisodesWatched || (row?.isWatched === true),
     };
   }
 
@@ -43,74 +76,80 @@ export class SerialsActivityService {
     const previousRow = await SerialsInteractionsRepository.getInteractionRow(userId, series.id);
     const previousLiked = previousRow?.liked ?? false;
     const previousWatchlisted = previousRow?.watchlisted ?? false;
+    const previousIsWatched = previousRow?.isWatched ?? false;
 
-    const ratingOutOfTen = resolveRatingOutOfTen(input.ratingOutOfFive);
+    const isImplicitlyWatched =
+      input.liked === true ||
+      (input.rating !== undefined && input.rating !== null);
+
+    const resolvedIsWatched = input.watched ?? (isImplicitlyWatched ? true : undefined);
+
+    // Cascade whenever the user explicitly toggles "watched" (even to the
+    // same value - matches the existing sidebar toggle behavior), or when
+    // liking/rating implicitly flips it to watched for the first time. Once
+    // previousIsWatched is already true, re-rating doesn't re-cascade -
+    // otherwise every rating tweak on an already-watched series would
+    // needlessly re-run the season/episode cascade.
+    const shouldCascadeSeasons =
+      input.watched !== undefined || (resolvedIsWatched === true && !previousIsWatched);
+
+    if (shouldCascadeSeasons) {
+      await SerialsActivityService.cascadeSeasonsWatched(
+        userId,
+        tmdbId,
+        series.numberOfSeasons,
+        resolvedIsWatched ?? false,
+      );
+    }
 
     const row = await SerialsInteractionsRepository.upsertInteraction({
       userId,
       seriesId: series.id,
       liked: input.liked,
       watchlisted: input.watchlisted,
-      rating:
-        input.ratingOutOfFive === undefined ? undefined : (ratingOutOfTen ?? null),
+      rating: input.rating,
+      isWatched: resolvedIsWatched,
     });
 
     const resolvedLiked = row?.liked ?? input.liked ?? previousLiked;
     const resolvedWatchlisted =
       row?.watchlisted ?? input.watchlisted ?? previousWatchlisted;
 
-    const metadata = JSON.stringify(
-      buildSerialInteractionActivityMetadata({
-        series: {
-          id: series.id,
-          tmdbId: series.tmdbId,
-          title: series.title,
-          posterPath: series.posterPath,
-          firstAirYear: series.firstAirYear,
-        },
-      }),
-    );
-
-    const activityTasks: Promise<unknown>[] = [];
-
     if (input.liked === true && !previousLiked && resolvedLiked) {
-      activityTasks.push(
-        SocialRepository.insertActivity({
-          userId,
-          type: "liked_movie",
-          entityId: String(series.id),
-          metadata,
-        }),
-      );
+      SerialsActivityRecorder.record({
+        userId,
+        series,
+        target: { kind: "series" },
+        type: "liked_movie",
+        entityId: String(series.id),
+      });
     }
 
     if (input.watchlisted === true && !previousWatchlisted && resolvedWatchlisted) {
-      activityTasks.push(
-        SocialRepository.insertActivity({
-          userId,
-          type: "watchlisted_movie",
-          entityId: String(series.id),
-          metadata,
-        }),
+      SerialsActivityRecorder.record({
+        userId,
+        series,
+        target: { kind: "series" },
+        type: "watchlisted_movie",
+        entityId: String(series.id),
+      });
+    }
+
+    const userEpisodeInteractions =
+      await SerialsEpisodeInteractionsRepository.getAllViewerEpisodeInteractions(
+        userId,
+        series.id,
+        series.tmdbId,
       );
-    }
-
-    if (activityTasks.length > 0) {
-      await Promise.all(activityTasks);
-    }
-
-    if (!row) {
-      return {
-        liked: resolvedLiked,
-        watchlisted: resolvedWatchlisted,
-        ratingOutOfFive: toRatingOutOfFive(ratingOutOfTen ?? null),
-      };
-    }
+    const watchedEpisodesCount = filterWatchedNonSpecialEpisodes(userEpisodeInteractions).length;
+    const allEpisodesWatched =
+      watchedEpisodesCount === series.numberOfEpisodes && series.numberOfEpisodes > 0;
 
     return {
-      liked: row.liked,
-      watchlisted: row.watchlisted,
-      ratingOutOfFive: toRatingOutOfFive(row.rating),
+      liked: resolvedLiked,
+      watchlisted: resolvedWatchlisted,
+      rating: row?.rating ?? null,
+      watched: allEpisodesWatched || (row?.isWatched === true),
     };
   }
 
@@ -120,14 +159,14 @@ export class SerialsActivityService {
       return null;
     }
 
-    const ratingOutOfTen = resolveRatingOutOfTen(input.ratingOutOfFive) ?? null;
+    const rating = input.rating ?? null;
     const rewatch = input.rewatch ?? false;
 
     const entry = await SerialsInteractionsRepository.insertDiaryEntry({
       userId,
       seriesId: series.id,
       watchedDate: input.watchedDate,
-      rating: ratingOutOfTen,
+      rating: rating,
       rewatch,
     });
 
@@ -155,42 +194,36 @@ export class SerialsActivityService {
       });
     }
 
-    await SocialRepository.insertActivity({
+    SerialsActivityRecorder.record({
       userId,
+      series,
+      target: { kind: "series" },
       type: "diary_entry",
       entityId: entry.id,
-      metadata: JSON.stringify(
-        buildSerialDiaryEntryActivityMetadata({
-          series: {
-            id: series.id,
-            tmdbId: series.tmdbId,
-            title: series.title,
-            posterPath: series.posterPath,
-            firstAirYear: series.firstAirYear,
-          },
-          rating: ratingOutOfTen,
-          rewatch,
-          review,
-        }),
-      ),
+      extraMetadata: buildDiaryEntryExtraMetadata({ rating, rewatch, review }),
     });
+
+    await Promise.all([
+      SerialsInteractionsRepository.setWatched(userId, series.id),
+      SerialsActivityService.cascadeSeasonsWatched(
+        userId,
+        tmdbId,
+        series.numberOfSeasons,
+        true,
+      ),
+    ]);
 
     return { entry, series, review };
   }
 
-  static async getMyLogs(userId: string) {
-    return SerialsInteractionsRepository.findAllDiaryByUser(userId);
+  static async getMyLogs(userId: string, limit?: number, offset?: number) {
+    return SerialsInteractionsRepository.findAllDiaryByUser(userId, limit, offset);
   }
 
   static async updateLog(entryId: string, userId: string, input: UpdateSerialLogDto) {
-    const ratingOutOfTen =
-      input.ratingOutOfFive !== undefined
-        ? (resolveRatingOutOfTen(input.ratingOutOfFive) ?? null)
-        : undefined;
-
     return SerialsInteractionsRepository.updateDiaryEntry(entryId, userId, {
       watchedDate: input.watchedDate,
-      ratingOutOfTen,
+      rating: input.rating,
       rewatch: input.rewatch,
     });
   }
@@ -199,7 +232,7 @@ export class SerialsActivityService {
     return SerialsInteractionsRepository.deleteDiaryEntry(entryId, userId);
   }
 
-  static async getLogs(seriesId: number) {
-    return SerialsInteractionsRepository.getLogsBySeriesId(seriesId);
+  static async getLogs(seriesId: number, limit?: number, offset?: number) {
+    return SerialsInteractionsRepository.getLogsBySeriesId(seriesId, limit, offset);
   }
 }

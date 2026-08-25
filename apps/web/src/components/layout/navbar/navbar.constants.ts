@@ -3,17 +3,15 @@ import {
   Film,
   Music,
   Rss,
-  Shield,
   Tv,
   type LucideIcon,
 } from "lucide-react";
 
 export type PrimaryNavItem = {
-  to: "/" | "/cinema" | "/serials" | "/music" | "/books" | "/admin";
+  to: "/" | "/cinema" | "/serials" | "/music" | "/books";
   label: string;
   icon: LucideIcon;
   exact?: boolean;
-  adminOnly?: boolean;
   activeColor?: string;
 };
 
@@ -49,17 +47,10 @@ export const primaryNavItems: PrimaryNavItem[] = [
     icon: BookOpen,
     activeColor: "var(--module-book)",
   },
-  {
-    to: "/admin",
-    label: "ADMIN",
-    icon: Shield,
-    adminOnly: true,
-    activeColor: "var(--primary)",
-  },
 ];
 
 export const navLinkClass =
-  "inline-flex items-center gap-1.5 border border-transparent px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground transition-all duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60";
+  "inline-flex items-center gap-1.5 rounded-full border border-transparent px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground transition-all duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60";
 
 export const navLinkActiveClass = "border";
 
@@ -78,4 +69,4 @@ export const navLinkActiveOptions = {
 } as const;
 
 export const dropdownItemClass =
-  "flex w-full items-center px-2.5 py-2 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:bg-secondary/65 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60";
+  "flex w-full items-center rounded-lg px-2.5 py-2 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:bg-secondary/65 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60";

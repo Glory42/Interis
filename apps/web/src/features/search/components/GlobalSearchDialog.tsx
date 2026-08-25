@@ -1,12 +1,13 @@
-import { useEffect, useId, useRef, type KeyboardEvent } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { ModalShell } from "@/components/ui/ModalShell";
 import { scopedPlaceholder } from "@/features/search/components/global-search/constants";
 import { GlobalSearchResults } from "@/features/search/components/global-search/GlobalSearchResults";
 import { openSearchEntry } from "@/features/search/components/global-search/navigation";
 import { useGlobalSearchState } from "@/features/search/components/global-search/useGlobalSearchState";
+import { cn } from "@/lib/utils";
 import { navigateWithViewTransitionFallback } from "@/lib/view-transition";
 
 type GlobalSearchDialogProps = {
@@ -21,6 +22,7 @@ export const GlobalSearchDialog = ({
   const navigate = useNavigate();
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   const state = useGlobalSearchState();
 
@@ -138,13 +140,18 @@ export const GlobalSearchDialog = ({
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    const frame = window.requestAnimationFrame(() => {
+    const showFrame = window.requestAnimationFrame(() => {
+      setIsVisible(true);
+    });
+    const focusFrame = window.requestAnimationFrame(() => {
       inputRef.current?.focus();
     });
 
     return () => {
       document.body.style.overflow = previousOverflow;
-      window.cancelAnimationFrame(frame);
+      window.cancelAnimationFrame(showFrame);
+      window.cancelAnimationFrame(focusFrame);
+      setIsVisible(false);
     };
   }, [isOpen]);
 
@@ -198,21 +205,21 @@ export const GlobalSearchDialog = ({
       ? scopedPlaceholder[state.scopedTarget]
       : "Search users, cinema, serials, music, books...";
 
-  return createPortal(
-    <div className="theme-modal-overlay fixed inset-0 z-120 bg-background/75 backdrop-blur-sm">
-      <button
-        type="button"
-        onClick={closeDialog}
-        className="absolute inset-0"
-        aria-label="Close search"
-      />
-
-      <div className="relative mx-auto flex h-full w-full max-w-2xl items-start px-4 pt-16 sm:pt-20">
+  return (
+    <ModalShell
+      onClose={closeDialog}
+      overlayClassName="z-120 bg-background/75"
+      containerClassName="max-w-2xl items-start px-4 pt-16 sm:pt-20"
+      ariaCloseLabel="Close search"
+    >
         <section
           role="dialog"
           aria-modal="true"
           aria-labelledby={inputId}
-          className="theme-modal-panel w-full overflow-hidden border border-border/80 bg-card/95 shadow-2xl shadow-background/45 animate-fade-up"
+          className={cn(
+            "theme-modal-panel w-full overflow-hidden border border-border/80 bg-card/95 shadow-2xl shadow-background/45 transition-[opacity,transform] duration-200 ease-(--ease-out)",
+            isVisible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
+          )}
         >
           <div
             className="h-px w-full"
@@ -231,7 +238,7 @@ export const GlobalSearchDialog = ({
                     state.returnToHomeMode();
                     focusInput();
                   }}
-                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:bg-secondary/45 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary/45 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                   aria-label="Back to global search"
                 >
                   <ArrowLeft className="h-4 w-4" />
@@ -267,7 +274,7 @@ export const GlobalSearchDialog = ({
                 <button
                   type="button"
                   onClick={closeDialog}
-                  className="p-0.5 text-muted-foreground/60 transition-colors hover:text-foreground"
+                  className="rounded-full p-0.5 text-muted-foreground/60 transition-colors hover:text-foreground"
                   aria-label="Close search"
                 >
                   <X className="h-3.5 w-3.5" />
@@ -308,8 +315,6 @@ export const GlobalSearchDialog = ({
             <span className="font-mono text-[9px] text-muted-foreground/45">esc to close</span>
           </div>
         </section>
-      </div>
-    </div>,
-    document.body,
+    </ModalShell>
   );
 };

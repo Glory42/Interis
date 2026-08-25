@@ -1,10 +1,6 @@
-import { eq } from "drizzle-orm";
-import { db } from "../../../infrastructure/database/db";
-import { albums } from "../../music/music.entity";
-import { books } from "../../books/books.entity";
 import { readBoolean, readNumber, readPostMediaType, readString } from "./social-feed-metadata.helper";
-import { SocialFeedRepository } from "../repositories/social-feed.repository";
 import type {
+  FeedFallbackMediaContext,
   FeedMetadata,
   FeedMediaType,
   FeedMovie,
@@ -41,6 +37,10 @@ export const toFeedMetadata = (rawMetadata: FeedRawMetadata): FeedMetadata => {
     postId: readString(rawMetadata, "postId"),
     postMediaId: readNumber(rawMetadata, "mediaId"),
     postMediaType: readPostMediaType(rawMetadata, "mediaType"),
+    seasonNumber: readNumber(rawMetadata, "seasonNumber"),
+    episodeNumber: readNumber(rawMetadata, "episodeNumber"),
+    listId: null,
+    listTitle: readString(rawMetadata, "title"),
   };
 };
 
@@ -55,17 +55,31 @@ export const resolveReviewId = (
   return metadata.reviewId;
 };
 
-export const resolvePost = async (
+// The id of the post to fetch as a fallback when metadata doesn't already
+// embed the post's content - null when no DB lookup is needed at all.
+export const resolvePostFallbackId = (
   rawMetadata: FeedRawMetadata,
   activity: SocialActivity,
-): Promise<FeedPost | null> => {
+): string | null => {
   const postIdFromMetadata = readString(rawMetadata, "postId");
   if (activity.type !== "post" && !postIdFromMetadata) {
     return null;
   }
 
-  const postId = postIdFromMetadata ?? activity.entityId;
-  const post = await SocialFeedRepository.getPostById(postId);
+  return postIdFromMetadata ?? activity.entityId;
+};
+
+export const resolvePost = (
+  rawMetadata: FeedRawMetadata,
+  activity: SocialActivity,
+  fallbackMedia: FeedFallbackMediaContext,
+): FeedPost | null => {
+  const postId = resolvePostFallbackId(rawMetadata, activity);
+  if (!postId) {
+    return null;
+  }
+
+  const post = fallbackMedia.postsById.get(postId);
 
   if (post) {
     return {
@@ -93,89 +107,170 @@ export const resolvePost = async (
   return null;
 };
 
-export const resolveMovie = async (
+// The internal movie id to fetch as a fallback when metadata doesn't
+// already embed the movie's tmdbId+title - null when no DB lookup is
+// needed at all (either embedded data suffices, or there's no movie).
+export const resolveMovieFallbackId = (
   rawMetadata: FeedRawMetadata,
   activity: SocialActivity,
   metadata: FeedMetadata,
-): Promise<FeedMovie | null> => {
-  const mediaType = toFeedMediaType(readPostMediaType(rawMetadata, "mediaType"));
+): number | null => {
+  const tmdbId = readNumber(rawMetadata, "tmdbId");
   const title = readString(rawMetadata, "title");
 
-  // Album
-  if (mediaType === "album") {
-    const mbid = readString(rawMetadata, "mbid") ?? metadata.mbid;
-    if (mbid && title) {
-      return {
-        tmdbId: null,
-        title,
-        posterPath: null,
-        coverArtUrl: readString(rawMetadata, "coverArtUrl"),
-        releaseYear: readNumber(rawMetadata, "releaseYear"),
-        mediaType: "album",
-        mbid,
-        artistName: readString(rawMetadata, "artistName"),
-      };
-    }
-    if (mbid) {
-      const [album] = await db
-        .select({ title: albums.title, coverArtUrl: albums.coverArtUrl, firstReleaseYear: albums.firstReleaseYear, artistName: albums.artistName })
-        .from(albums)
-        .where(eq(albums.mbid, mbid))
-        .limit(1);
-      if (album) {
-        return {
-          tmdbId: null,
-          title: album.title,
-          posterPath: null,
-          coverArtUrl: album.coverArtUrl ?? null,
-          releaseYear: album.firstReleaseYear ?? null,
-          mediaType: "album",
-          mbid,
-          artistName: album.artistName,
-        };
-      }
-    }
+  if (tmdbId !== null && title) {
     return null;
   }
 
-  // Book
-  if (mediaType === "book") {
-    const volumeId = readString(rawMetadata, "volumeId") ?? metadata.volumeId;
-    if (volumeId && title) {
-      return {
-        tmdbId: null,
-        title,
-        posterPath: null,
-        coverArtUrl: readString(rawMetadata, "coverArtUrl"),
-        releaseYear: readNumber(rawMetadata, "releaseYear"),
-        mediaType: "book",
-        volumeId,
-        authors: (rawMetadata.authors as string[] | null) ?? null,
-      };
-    }
-    if (volumeId) {
-      const [book] = await db
-        .select({ title: books.title, coverImageUrl: books.coverImageUrl, publishedYear: books.publishedYear, authors: books.authors })
-        .from(books)
-        .where(eq(books.googleVolumeId, volumeId))
-        .limit(1);
-      if (book) {
-        return {
-          tmdbId: null,
-          title: book.title,
-          posterPath: null,
-          coverArtUrl: book.coverImageUrl ?? null,
-          releaseYear: book.publishedYear ?? null,
-          mediaType: "book",
-          volumeId,
-          authors: (book.authors as string[]) ?? null,
-        };
-      }
-    }
+  const fallbackMovieId =
+    metadata.movieId ??
+    (metadata.postMediaType === "movie" ? metadata.postMediaId : null) ??
+    (activity.type === "liked_movie" || activity.type === "watchlisted_movie"
+      ? Number.parseInt(activity.entityId, 10)
+      : null);
+
+  if (!fallbackMovieId || Number.isNaN(fallbackMovieId)) {
     return null;
+  }
+
+  return fallbackMovieId;
+};
+
+// The album mbid to fetch as a fallback when metadata doesn't already embed
+// the album's title - null when no DB lookup is needed.
+export const resolveAlbumFallbackMbid = (
+  rawMetadata: FeedRawMetadata,
+  metadata: FeedMetadata,
+): string | null => {
+  const title = readString(rawMetadata, "title");
+  const mbid = readString(rawMetadata, "mbid") ?? metadata.mbid;
+
+  if (!mbid || title) {
+    return null;
+  }
+
+  return mbid;
+};
+
+// The book volumeId to fetch as a fallback when metadata doesn't already
+// embed the book's title - null when no DB lookup is needed.
+export const resolveBookFallbackVolumeId = (
+  rawMetadata: FeedRawMetadata,
+  metadata: FeedMetadata,
+): string | null => {
+  const title = readString(rawMetadata, "title");
+  const volumeId = readString(rawMetadata, "volumeId") ?? metadata.volumeId;
+
+  if (!volumeId || title) {
+    return null;
+  }
+
+  return volumeId;
+};
+
+const resolveAlbum = (
+  rawMetadata: FeedRawMetadata,
+  metadata: FeedMetadata,
+  fallbackMedia: FeedFallbackMediaContext,
+): FeedMovie | null => {
+  const title = readString(rawMetadata, "title");
+  const mbid = readString(rawMetadata, "mbid") ?? metadata.mbid;
+
+  if (mbid && title) {
+    return {
+      tmdbId: null,
+      title,
+      posterPath: null,
+      coverArtUrl: readString(rawMetadata, "coverArtUrl"),
+      releaseYear: readNumber(rawMetadata, "releaseYear"),
+      mediaType: "album",
+      mbid,
+      artistName: readString(rawMetadata, "artistName"),
+    };
+  }
+
+  if (!mbid) {
+    return null;
+  }
+
+  const album = fallbackMedia.albumsByMbid.get(mbid);
+  if (!album) {
+    return null;
+  }
+
+  return {
+    tmdbId: null,
+    title: album.title,
+    posterPath: null,
+    coverArtUrl: album.coverArtUrl,
+    releaseYear: album.releaseYear,
+    mediaType: "album",
+    mbid: album.mbid,
+    artistName: album.artistName,
+  };
+};
+
+const resolveBook = (
+  rawMetadata: FeedRawMetadata,
+  metadata: FeedMetadata,
+  fallbackMedia: FeedFallbackMediaContext,
+): FeedMovie | null => {
+  const title = readString(rawMetadata, "title");
+  const volumeId = readString(rawMetadata, "volumeId") ?? metadata.volumeId;
+
+  if (volumeId && title) {
+    return {
+      tmdbId: null,
+      title,
+      posterPath: null,
+      coverArtUrl: readString(rawMetadata, "coverArtUrl"),
+      releaseYear: readNumber(rawMetadata, "releaseYear"),
+      mediaType: "book",
+      volumeId,
+      authors: (rawMetadata.authors as string[] | null) ?? null,
+    };
+  }
+
+  if (!volumeId) {
+    return null;
+  }
+
+  const book = fallbackMedia.booksByVolumeId.get(volumeId);
+  if (!book) {
+    return null;
+  }
+
+  return {
+    tmdbId: null,
+    title: book.title,
+    posterPath: null,
+    coverArtUrl: book.coverArtUrl,
+    releaseYear: book.releaseYear,
+    mediaType: "book",
+    volumeId: book.volumeId,
+    authors: book.authors,
+  };
+};
+
+export const resolveMovie = (
+  rawMetadata: FeedRawMetadata,
+  activity: SocialActivity,
+  metadata: FeedMetadata,
+  fallbackMedia: FeedFallbackMediaContext,
+): FeedMovie | null => {
+  const mediaType = toFeedMediaType(readPostMediaType(rawMetadata, "mediaType"));
+
+  if (mediaType === "album") {
+    return resolveAlbum(rawMetadata, metadata, fallbackMedia);
+  }
+
+  if (mediaType === "book") {
+    return resolveBook(rawMetadata, metadata, fallbackMedia);
   }
 
   const tmdbId = readNumber(rawMetadata, "tmdbId");
+  const title = readString(rawMetadata, "title");
+
   if (tmdbId !== null && title) {
     return {
       tmdbId,
@@ -186,20 +281,20 @@ export const resolveMovie = async (
     };
   }
 
-  const fallbackMovieId =
-    metadata.movieId ??
-    (metadata.postMediaType === "movie"
-      ? metadata.postMediaId
-      : null) ??
-    (activity.type === "liked_movie" || activity.type === "watchlisted_movie"
-      ? Number.parseInt(activity.entityId, 10)
-      : null);
-
-  if (!fallbackMovieId || Number.isNaN(fallbackMovieId)) {
+  const fallbackMovieId = resolveMovieFallbackId(rawMetadata, activity, metadata);
+  if (fallbackMovieId === null) {
     return null;
   }
 
-  const movie = await SocialFeedRepository.getMovieById(fallbackMovieId);
+  const movie = fallbackMedia.moviesById.get(fallbackMovieId);
 
-  return movie ? { ...movie, mediaType: "movie" } : null;
+  return movie
+    ? {
+        tmdbId: movie.tmdbId,
+        title: movie.title,
+        posterPath: movie.posterPath,
+        releaseYear: movie.releaseYear,
+        mediaType: "movie",
+      }
+    : null;
 };

@@ -1,11 +1,38 @@
-import { and, asc, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, inArray, isNotNull, lte, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { diaryEntries } from "../../diary/diary.entity";
 import { movieInteractions } from "../../interactions/interactions.entity";
 import { profiles } from "../../users/users.entity";
-import { reviewLikes, reviews } from "../../reviews/reviews.entity";
+import { reviews } from "../../reviews/reviews.entity";
+import {
+  buildCommunityRatingAggregateSql,
+  mergeCommunityRatings,
+} from "../../media/helpers/media-community-rating.helper";
 import { movies } from "../movies.entity";
+import type { CommunityRatingAggregateSource } from "../../media/helpers/media-community-rating.helper";
+
+const MOVIE_COMMUNITY_RATING_SOURCE: CommunityRatingAggregateSource = {
+  diaryTableName: "diary_entry",
+  diaryEntityIdColumn: diaryEntries.movieId,
+  diaryRatingColumn: diaryEntries.rating,
+  diaryUserIdColumn: diaryEntries.userId,
+  interactionTableName: "movie_interaction",
+  interactionEntityIdColumn: movieInteractions.movieId,
+  interactionRatingColumn: movieInteractions.rating,
+  interactionUserIdColumn: movieInteractions.userId,
+};
+
+export type AdminUpdateMovieFields = Partial<{
+  title: string;
+  originalTitle: string | null;
+  overview: string | null;
+  tagline: string | null;
+  director: string | null;
+  posterPath: string | null;
+  backdropPath: string | null;
+  releaseYear: number | null;
+}>;
 
 export class MoviesRepository {
   static async findByTmdbId(tmdbId: number) {
@@ -80,59 +107,20 @@ export class MoviesRepository {
     return row?.count ?? 0;
   }
 
-  static async getReviewRowsByMovieId(movieId: number) {
-    return db
-      .select({
-        id: reviews.id,
-        userId: reviews.userId,
-        content: reviews.content,
-        containsSpoilers: reviews.containsSpoilers,
-        createdAt: reviews.createdAt,
-        updatedAt: reviews.updatedAt,
-        watchedDate: diaryEntries.watchedDate,
-        ratingOutOfTen: diaryEntries.rating,
-        authorUsername: user.username,
-        authorDisplayUsername: user.displayUsername,
-        authorImage: user.image,
-        authorAvatarUrl: profiles.avatarUrl,
-      })
-      .from(reviews)
-      .innerJoin(user, eq(user.id, reviews.userId))
-      .leftJoin(profiles, eq(profiles.userId, reviews.userId))
-      .leftJoin(diaryEntries, eq(diaryEntries.id, reviews.diaryEntryId))
-      .where(and(eq(reviews.movieId, movieId), eq(reviews.mediaType, "movie")))
-      .orderBy(desc(reviews.createdAt));
-  }
+  // See mergeCommunityRatings for the diary-vs-interaction precedence rule.
+  static async getCommunityRatingsByMovieId(movieId: number): Promise<{ rating: number }[]> {
+    const [diaryRatingRows, interactionRatingRows] = await Promise.all([
+      db
+        .select({ userId: diaryEntries.userId, rating: diaryEntries.rating })
+        .from(diaryEntries)
+        .where(and(eq(diaryEntries.movieId, movieId), isNotNull(diaryEntries.rating))),
+      db
+        .select({ userId: movieInteractions.userId, rating: movieInteractions.rating })
+        .from(movieInteractions)
+        .where(and(eq(movieInteractions.movieId, movieId), isNotNull(movieInteractions.rating))),
+    ]);
 
-  static async getReviewLikeCounts(reviewIds: string[]) {
-    if (reviewIds.length === 0) {
-      return [];
-    }
-
-    return db
-      .select({
-        reviewId: reviewLikes.reviewId,
-        likeCount: sql<number>`count(*)::int`.as("likeCount"),
-      })
-      .from(reviewLikes)
-      .where(inArray(reviewLikes.reviewId, reviewIds))
-      .groupBy(reviewLikes.reviewId);
-  }
-
-  static async getViewerLikedReviewRows(viewerUserId: string, reviewIds: string[]) {
-    if (reviewIds.length === 0) {
-      return [];
-    }
-
-    return db
-      .select({ reviewId: reviewLikes.reviewId })
-      .from(reviewLikes)
-      .where(
-        and(
-          eq(reviewLikes.userId, viewerUserId),
-          inArray(reviewLikes.reviewId, reviewIds),
-        ),
-      );
+    return mergeCommunityRatings(diaryRatingRows, interactionRatingRows);
   }
 
   static async getViewerDiaryRows(viewerUserId: string, movieId: number) {
@@ -141,7 +129,7 @@ export class MoviesRepository {
         id: diaryEntries.id,
         watchedDate: diaryEntries.watchedDate,
         rewatch: diaryEntries.rewatch,
-        ratingOutOfTen: diaryEntries.rating,
+        rating: diaryEntries.rating,
       })
       .from(diaryEntries)
       .where(
@@ -235,6 +223,11 @@ export class MoviesRepository {
       return [];
     }
 
+    const communityRating = buildCommunityRatingAggregateSql(
+      MOVIE_COMMUNITY_RATING_SOURCE,
+      movies.id,
+    );
+
     return db
       .select({
         tmdbId: movies.tmdbId,
@@ -243,12 +236,8 @@ export class MoviesRepository {
         director: movies.director,
         genres: movies.genres,
         logCount: sql<number>`count(${diaryEntries.id})::int`.as("logCount"),
-        avgRatingOutOfTen:
-          sql<number | null>`avg(${diaryEntries.rating})::double precision`.as(
-            "avgRatingOutOfTen",
-          ),
-        ratedLogCount:
-          sql<number>`count(${diaryEntries.rating})::int`.as("ratedLogCount"),
+        avgRatingOutOfTen: communityRating.avgRatingOutOfTen.as("avgRatingOutOfTen"),
+        ratedLogCount: communityRating.ratedLogCount.as("ratedLogCount"),
       })
       .from(movies)
       .leftJoin(diaryEntries, eq(diaryEntries.movieId, movies.id))
@@ -256,7 +245,12 @@ export class MoviesRepository {
       .groupBy(movies.id);
   }
 
-  static async getLocalArchiveRows() {
+  static async getLocalArchiveRows(dateRange?: { watchedDateGte: string; watchedDateLte: string }) {
+    const communityRating = buildCommunityRatingAggregateSql(
+      MOVIE_COMMUNITY_RATING_SOURCE,
+      movies.id,
+    );
+
     return db
       .select({
         tmdbId: movies.tmdbId,
@@ -268,48 +262,18 @@ export class MoviesRepository {
         director: movies.director,
         genres: movies.genres,
         logCount: sql<number>`count(${diaryEntries.id})::int`.as("logCount"),
-        avgRatingOutOfTen:
-          sql<number | null>`avg(${diaryEntries.rating})::double precision`.as(
-            "avgRatingOutOfTen",
-          ),
-        ratedLogCount:
-          sql<number>`count(${diaryEntries.rating})::int`.as("ratedLogCount"),
+        avgRatingOutOfTen: communityRating.avgRatingOutOfTen.as("avgRatingOutOfTen"),
+        ratedLogCount: communityRating.ratedLogCount.as("ratedLogCount"),
       })
       .from(movies)
       .leftJoin(diaryEntries, eq(diaryEntries.movieId, movies.id))
-      .groupBy(movies.id)
-      .orderBy(asc(movies.title));
-  }
-
-  static async getLocalArchiveRowsByWatchedDateRange(input: {
-    watchedDateGte: string;
-    watchedDateLte: string;
-  }) {
-    return db
-      .select({
-        tmdbId: movies.tmdbId,
-        title: movies.title,
-        posterPath: movies.posterPath,
-        backdropPath: movies.backdropPath,
-        releaseDate: movies.releaseDate,
-        releaseYear: movies.releaseYear,
-        director: movies.director,
-        genres: movies.genres,
-        logCount: sql<number>`count(${diaryEntries.id})::int`.as("logCount"),
-        avgRatingOutOfTen:
-          sql<number | null>`avg(${diaryEntries.rating})::double precision`.as(
-            "avgRatingOutOfTen",
-          ),
-        ratedLogCount:
-          sql<number>`count(${diaryEntries.rating})::int`.as("ratedLogCount"),
-      })
-      .from(movies)
-      .innerJoin(diaryEntries, eq(diaryEntries.movieId, movies.id))
       .where(
-        and(
-          gte(diaryEntries.watchedDate, input.watchedDateGte),
-          lte(diaryEntries.watchedDate, input.watchedDateLte),
-        ),
+        dateRange
+          ? and(
+              gte(diaryEntries.watchedDate, dateRange.watchedDateGte),
+              lte(diaryEntries.watchedDate, dateRange.watchedDateLte),
+            )
+          : undefined,
       )
       .groupBy(movies.id)
       .orderBy(asc(movies.title));
@@ -320,6 +284,42 @@ export class MoviesRepository {
       .update(movies)
       .set({ director })
       .where(eq(movies.tmdbId, tmdbId));
+  }
+
+  static async findById(id: number) {
+    const [existing] = await db.select().from(movies).where(eq(movies.id, id)).limit(1);
+    return existing ?? null;
+  }
+
+  static async listAllForAdmin(query: string | undefined, limit: number, offset: number) {
+    return db
+      .select({
+        id: movies.id,
+        tmdbId: movies.tmdbId,
+        title: movies.title,
+        originalTitle: movies.originalTitle,
+        posterPath: movies.posterPath,
+        releaseYear: movies.releaseYear,
+        director: movies.director,
+        cachedAt: movies.cachedAt,
+      })
+      .from(movies)
+      .where(query ? ilike(movies.title, `%${query}%`) : undefined)
+      .orderBy(desc(movies.cachedAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  static async updateById(id: number, fields: AdminUpdateMovieFields) {
+    const [updated] = await db.update(movies).set(fields).where(eq(movies.id, id)).returning();
+    return updated ?? null;
+  }
+
+  // Cascades to every diary entry/review/interaction/list entry across all
+  // users that references this movie — admin moderation only.
+  static async deleteById(id: number) {
+    const [deleted] = await db.delete(movies).where(eq(movies.id, id)).returning({ id: movies.id });
+    return deleted ?? null;
   }
 
   static async getLogsByMovieId(movieId: number) {

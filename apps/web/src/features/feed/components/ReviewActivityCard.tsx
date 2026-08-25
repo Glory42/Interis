@@ -1,46 +1,51 @@
-import { useState, type CSSProperties, type MouseEvent } from "react";
+import { memo, useState, type MouseEvent } from "react";
 import { Link } from "@tanstack/react-router";
-import {
-  CornerDownRight,
-  Heart,
-  Loader2,
-  MessageSquare,
-  PenSquare,
-  TriangleAlert,
-} from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
-import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
-import { FeedReviewEditDialog } from "@/features/feed/components/FeedReviewEditDialog";
 import {
-  feedChannelMeta,
-  getRelativeTime,
-} from "@/features/feed/components/feed-row.utils";
+  CommentButton,
+  EditButton,
+  EngagementActionBar,
+  LikeButton,
+} from "@/features/feed/components/EngagementActionBar";
+import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
+import { FeedCardHeader } from "@/features/feed/components/FeedCardHeader";
+import { FeedReviewEditDialog } from "@/features/feed/components/FeedReviewEditDialog";
+import { ReviewActivityDialog } from "@/features/feed/components/ReviewActivityDialog";
+import { toSeasonEpisodeLabel, truncateQuote } from "@/features/feed/components/feed-row.utils";
+import { getPosterUrl } from "@/features/films/components/utils";
 import type { FeedItem } from "@/features/feed/types";
-import { cn } from "@/lib/utils";
 import { useReviewActivityCard } from "./review-activity-card/useReviewActivityCard";
 
 type ReviewActivityCardProps = {
   item: FeedItem;
 };
 
-const getReviewActionLabel = (item: FeedItem): string => {
+const AVATAR_GRADIENT = "linear-gradient(135deg, var(--primary), var(--accent))";
+
+// Verb only — the movie title is always rendered separately, as a real
+// inline link, right after this. Kinds that reference someone else's
+// review ("of") vs. ones that act on the title directly.
+const getReviewVerbPrefix = (item: FeedItem): string => {
   switch (item.kind) {
     case "review":
-      return "published a review";
+      return "Reviewed";
     case "diary_entry":
-      return "logged with a review";
+      return "Logged";
     case "liked_review":
       return item.metadata.targetUsername
-        ? `liked @${item.metadata.targetUsername}'s review`
-        : "liked a review";
+        ? `Liked @${item.metadata.targetUsername}'s review`
+        : "Liked a review";
     case "commented":
       return item.metadata.targetUsername
-        ? `commented on @${item.metadata.targetUsername}'s review`
-        : "commented on a review";
+        ? `Commented on @${item.metadata.targetUsername}'s review`
+        : "Commented on a review";
     default:
-      return "updated a review";
+      return "Updated a review";
   }
 };
+
+const NEEDS_OF_PREPOSITION_KINDS: FeedItem["kind"][] = ["liked_review", "commented"];
 
 const getReviewBodyFallback = (item: FeedItem): string => {
   if (item.kind === "commented") {
@@ -54,7 +59,9 @@ const getReviewBodyFallback = (item: FeedItem): string => {
   return "Shared a review.";
 };
 
-export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
+export const ReviewActivityCard = memo(function ReviewActivityCard({
+  item,
+}: ReviewActivityCardProps) {
   const {
     user,
     actorName,
@@ -64,35 +71,31 @@ export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
     reviewContent,
     reviewContainsSpoilers,
     movie,
-    ratingOutOfFive,
+    rating,
     isSpoilerRevealed,
     commentCount,
     likeCount,
     viewerHasLiked,
     isLikePending,
     hasReviewId,
+    reviewOwnerUsername,
     openReview,
-    openReviewFromAction,
     revealSpoilers,
     toggleLike,
   } = useReviewActivityCard(item);
 
-  const channel = movie?.mediaType === "tv" ? "serial" : "cinema";
-  const channelMeta = feedChannelMeta[channel];
-  const ratingValue =
-    ratingOutOfFive === null ? null : Number.parseFloat(ratingOutOfFive);
+  const seLabel = toSeasonEpisodeLabel(item);
+  const ratingValue = rating === null ? null : Number.parseFloat(rating);
   const reviewId = item.review?.id ?? item.metadata.reviewId ?? null;
-  const isOwnReview = Boolean(user && reviewId && user.id === item.actor.id);
-  const actionLabel = getReviewActionLabel(item);
+  const verbPrefix = getReviewVerbPrefix(item);
+  const needsOf = NEEDS_OF_PREPOSITION_KINDS.includes(item.kind);
   const showRating = item.kind === "review" || item.kind === "diary_entry";
+  const isOwnReview = Boolean(showRating && user && reviewId && user.id === item.actor.id);
+  const showPoster = showRating && movie?.posterPath;
+  const quotedOriginal = item.kind === "commented" ? item.review?.content : null;
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-
-  const channelStyle = {
-    borderColor: `color-mix(in srgb, ${channelMeta.color} 36%, transparent)`,
-    background: channelMeta.tint,
-    color: channelMeta.color,
-  } satisfies CSSProperties;
+  const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
 
   const handleRowClick = (event: MouseEvent<HTMLElement>) => {
     const target = event.target as HTMLElement;
@@ -106,71 +109,60 @@ export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
   return (
     <>
       <article
-        className="group cursor-pointer border-b border-border/60 py-6"
+        className="group -mx-2 flex cursor-pointer gap-3 rounded-xl px-3 py-4 transition-colors hover:bg-foreground/[0.025]"
         onClick={handleRowClick}
       >
-        <div className="flex items-center gap-3">
-          <FeedActorAvatar
-            avatarUrl={actorAvatar}
+        <FeedActorAvatar
+          avatarUrl={actorAvatar}
+          username={item.actor.username}
+          initial={actorInitial}
+          className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden text-base font-bold text-foreground"
+          style={{ background: AVATAR_GRADIENT }}
+        />
+
+        <div className="min-w-0 flex-1">
+          <FeedCardHeader
             username={item.actor.username}
-            initial={actorInitial}
-            style={channelStyle}
+            displayName={actorName}
+            createdAt={createdAt}
           />
-          <div className="flex min-w-0 flex-1 items-baseline gap-2">
-            <Link
-              to="/profile/$username"
-              params={{ username: item.actor.username }}
-              className="truncate font-mono text-xs font-bold text-foreground hover:text-primary"
-              viewTransition
-            >
-              {actorName}
-            </Link>
-            <span className="truncate font-mono text-[10px] text-muted-foreground/80">
-              @{item.actor.username}
-            </span>
-            <span className="ml-auto shrink-0 font-mono text-[10px] text-muted-foreground">
-              {getRelativeTime(createdAt)}
-            </span>
-          </div>
-        </div>
 
-        <p className="mt-2 ml-10 font-mono text-[10px] text-muted-foreground/85">
-          {actionLabel}
-        </p>
-
-        <div className="mt-3 ml-10 flex flex-wrap items-center gap-3">
-          <div className="flex min-w-0 items-center gap-2 border px-2.5 py-1" style={channelStyle}>
-            <span className="font-mono text-[9px] uppercase tracking-[0.14em]">
-              {channelMeta.label}
-            </span>
-            <CornerDownRight className="h-3 w-3" />
+          <p className="mt-0.5 text-[15px] leading-snug text-foreground/90">
+            {verbPrefix}
             {movie ? (
-              <Link
-                to={movie.mediaType === "tv" ? "/serials/$tmdbId" : "/cinema/$tmdbId"}
-                params={{ tmdbId: String(movie.tmdbId) }}
-                className="line-clamp-1 font-mono text-xs font-bold text-foreground hover:text-primary"
-                viewTransition
-              >
-                {movie.title}
-              </Link>
-            ) : (
-              <span className="font-mono text-xs font-bold text-foreground">Review entry</span>
-            )}
-            {movie?.releaseYear ? (
-              <span className="font-mono text-[10px] text-muted-foreground">{movie.releaseYear}</span>
+              <>
+                {needsOf ? " of " : " "}
+                <Link
+                  to={movie.mediaType === "tv" ? "/serials/$tmdbId" : "/cinema/$tmdbId"}
+                  params={{ tmdbId: String(movie.tmdbId) }}
+                  className="font-bold text-foreground hover:text-primary"
+                  style={{ fontFamily: "var(--theme-display-font)" }}
+                  viewTransition
+                >
+                  {movie.title}
+                </Link>
+              </>
             ) : null}
-          </div>
+            {seLabel ? <span className="text-muted-foreground"> · {seLabel}</span> : null}
+            {item.metadata.rewatch ? (
+              <span className="text-muted-foreground"> · rewatch</span>
+            ) : null}
+          </p>
 
-          {showRating ? (
-            <SpaceRatingDisplay ratingOutOfFive={ratingValue} size="sm" />
+          {showRating && rating !== null ? (
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-sm font-bold text-foreground">
+                {rating}
+                <span className="text-xs font-normal text-muted-foreground">/10</span>
+              </span>
+              <SpaceRatingDisplay rating={ratingValue} size="sm" />
+            </div>
           ) : null}
-        </div>
 
-        {reviewContainsSpoilers && !isSpoilerRevealed ? (
-          <div className="mt-3 ml-10">
+          {reviewContainsSpoilers && !isSpoilerRevealed ? (
             <button
               type="button"
-              className="inline-flex items-center gap-2 border border-amber-500/40 bg-amber-500/12 px-2.5 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-200 transition-colors hover:bg-amber-500/18"
+              className="mt-2 inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-200 transition-colors hover:bg-amber-500/15"
               onClick={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -178,58 +170,72 @@ export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
               }}
             >
               <TriangleAlert className="h-3.5 w-3.5" />
-              spoiler warning - reveal
+              Contains spoilers — reveal
             </button>
-          </div>
-        ) : (
-          <p className="mt-3 ml-10 w-full pr-3 font-mono text-sm leading-relaxed text-foreground/80 transition-colors group-hover:text-foreground">
-            {reviewContent || getReviewBodyFallback(item)}
-          </p>
-        )}
+          ) : (
+            <p className="mt-2 line-clamp-4 text-[15px] leading-relaxed text-foreground/90 transition-colors group-hover:text-foreground">
+              {reviewContent || getReviewBodyFallback(item)}
+            </p>
+          )}
 
-        <div className="mt-3 ml-10 flex items-center gap-5">
-          <button
-            type="button"
-            onClick={() => {
-              void openReviewFromAction();
-            }}
-            disabled={!hasReviewId}
-            className="inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <MessageSquare className="h-3.5 w-3.5" />
-            {commentCount}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              void toggleLike();
-            }}
-            disabled={!hasReviewId || isLikePending}
-            className={cn(
-              "inline-flex items-center gap-1.5 font-mono text-[11px] transition-colors",
-              viewerHasLiked ? "text-primary" : "text-muted-foreground hover:text-foreground",
-              !hasReviewId || isLikePending ? "cursor-not-allowed opacity-50" : "",
-            )}
-          >
-            {isLikePending ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Heart className={cn("h-3.5 w-3.5", viewerHasLiked ? "fill-current" : "")} />
-            )}
-            {likeCount}
-          </button>
+          {quotedOriginal ? (
+            <div className="mt-2 border-l-2 border-border/50 pl-3">
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                {item.metadata.targetUsername ? (
+                  <>
+                    <span className="font-semibold text-foreground/80">
+                      @{item.metadata.targetUsername}
+                    </span>
+                    {movie ? (
+                      <>
+                        {" "}
+                        on <span className="font-medium text-foreground/80">{movie.title}</span>
+                      </>
+                    ) : null}
+                    {" — "}
+                  </>
+                ) : null}
+                "{truncateQuote(quotedOriginal, 140)}"
+              </p>
+            </div>
+          ) : null}
 
-          {isOwnReview && reviewId ? (
-            <button
-              type="button"
-              onClick={() => {
-                setIsEditDialogOpen(true);
-              }}
-              className="inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <PenSquare className="h-3.5 w-3.5" />
-              EDIT
-            </button>
+          {showPoster && movie?.posterPath ? (
+            <img
+              src={getPosterUrl(movie.posterPath)}
+              alt={`${movie.title} poster`}
+              loading="lazy"
+              className="mt-3 h-32 w-[88px] rounded-lg object-cover"
+            />
+          ) : null}
+
+          {showRating ? (
+            <EngagementActionBar className="mt-3">
+              <CommentButton
+                count={commentCount}
+                disabled={!hasReviewId}
+                onClick={() => {
+                  setIsCommentDialogOpen(true);
+                }}
+              />
+              <LikeButton
+                count={likeCount}
+                isLiked={viewerHasLiked}
+                isPending={isLikePending}
+                disabled={!hasReviewId}
+                onToggle={() => {
+                  void toggleLike();
+                }}
+              />
+
+              {isOwnReview && reviewId ? (
+                <EditButton
+                  onClick={() => {
+                    setIsEditDialogOpen(true);
+                  }}
+                />
+              ) : null}
+            </EngagementActionBar>
           ) : null}
         </div>
       </article>
@@ -245,6 +251,17 @@ export const ReviewActivityCard = ({ item }: ReviewActivityCardProps) => {
           containsSpoilers={reviewContainsSpoilers}
         />
       ) : null}
+
+      {isCommentDialogOpen && reviewId ? (
+        <ReviewActivityDialog
+          reviewId={reviewId}
+          reviewOwnerUsername={reviewOwnerUsername}
+          isOpen={isCommentDialogOpen}
+          onClose={() => {
+            setIsCommentDialogOpen(false);
+          }}
+        />
+      ) : null}
     </>
   );
-};
+});

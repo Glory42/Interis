@@ -37,6 +37,3 @@ export const GetUserListsQuerySchema = z.object({
 
 export type CreateListDto = z.infer<typeof CreateListSchema>;
 export type UpdateListDto = z.infer<typeof UpdateListSchema>;
-export type AddListItemDto = z.infer<typeof AddListItemSchema>;
-export type ReorderListItemsDto = z.infer<typeof ReorderListItemsSchema>;
-export type GetUserListsQueryDto = z.infer<typeof GetUserListsQuerySchema>;

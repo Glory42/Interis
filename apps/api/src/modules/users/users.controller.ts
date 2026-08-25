@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
 import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
-import { sendValidationError } from "../../commons/http/validation-response.helper";
+import {
+  resolveOrNotFound,
+  sendNotFound,
+  sendValidationError,
+} from "../../commons/http/validation-response.helper";
 import { ListsService } from "../lists/lists.service";
 import { GetUserListsQuerySchema } from "../lists/dto/lists.dto";
 import { UsersService } from "./users.service";
@@ -8,8 +12,10 @@ import {
   SearchUsersQuerySchema,
   UpdateProfileSchema,
   UpdateThemeSchema,
+  type ProfileListQueryDto,
   type SearchUsersQueryDto,
 } from "./dto/users.dto";
+import { parseProfileListPagination } from "./helpers/users-pagination.helper";
 
 export class UsersController {
   static async getNetworkStats(_req: Request, res: Response): Promise<void> {
@@ -35,26 +41,41 @@ export class UsersController {
     req: Request<{ username: string }>,
     res: Response,
   ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+    const profile = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.getPublicProfileWithStats(req.params.username),
+    );
     if (!profile) {
-      res.status(404).json({ error: "User not found" });
       return;
     }
-    const stats = await UsersService.getStats(profile.id);
-    const { email, ...publicProfile } = profile;
-    res.status(200).json({ ...publicProfile, stats });
+    res.status(200).json(profile);
   }
 
-  static async getUserReviews(
+  static async getDetailedStats(
     req: Request<{ username: string }>,
     res: Response,
   ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+    const profile = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!profile) {
-      res.status(404).json({ error: "User not found" });
       return;
     }
-    const userReviews = await UsersService.getReviewsWithMovies(profile.id);
+    const stats = await UsersService.getDetailedStats(profile.id);
+    res.status(200).json(stats);
+  }
+
+  static async getUserReviews(
+    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
+    res: Response,
+  ): Promise<void> {
+    const profile = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
+    if (!profile) {
+      return;
+    }
+    const { limit, offset } = parseProfileListPagination(req.query);
+    const userReviews = await UsersService.getReviewsWithMovies(profile.id, limit, offset);
     res.status(200).json(userReviews);
   }
 
@@ -62,9 +83,10 @@ export class UsersController {
     req: Request<{ username: string; reviewId: string }>,
     res: Response,
   ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+    const profile = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!profile) {
-      res.status(404).json({ error: "User not found" });
       return;
     }
 
@@ -76,7 +98,7 @@ export class UsersController {
     );
 
     if (!review) {
-      res.status(404).json({ error: "Review not found" });
+      sendNotFound(res, "Review not found");
       return;
     }
 
@@ -84,62 +106,70 @@ export class UsersController {
   }
 
   static async getUserLikes(
-    req: Request<{ username: string }>,
+    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
     res: Response,
   ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+    const profile = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!profile) {
-      res.status(404).json({ error: "User not found" });
       return;
     }
-    const liked = await UsersService.getLikedFilms(profile.id);
+    const { limit, offset } = parseProfileListPagination(req.query);
+    const liked = await UsersService.getLikedFilms(profile.id, limit, offset);
     res.status(200).json(liked);
   }
 
   static async getUserLikedReviews(
-    req: Request<{ username: string }>,
+    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
     res: Response,
   ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+    const profile = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!profile) {
-      res.status(404).json({ error: "User not found" });
       return;
     }
-    const liked = await UsersService.getLikedReviews(profile.id);
+    const { limit, offset } = parseProfileListPagination(req.query);
+    const liked = await UsersService.getLikedReviews(profile.id, limit, offset);
     res.status(200).json(liked);
   }
 
   static async getUserLikedLists(
-    req: Request<{ username: string }>,
+    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
     res: Response,
   ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+    const profile = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!profile) {
-      res.status(404).json({ error: "User not found" });
       return;
     }
-    const liked = await UsersService.getLikedLists(profile.id);
+    const { limit, offset } = parseProfileListPagination(req.query);
+    const liked = await UsersService.getLikedLists(profile.id, limit, offset);
     res.status(200).json(liked);
   }
 
   static async getUserWatchlist(
-    req: Request<{ username: string }>,
+    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
     res: Response,
   ): Promise<void> {
-    const profile = await UsersService.findByUsername(req.params.username);
+    const profile = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!profile) {
-      res.status(404).json({ error: "User not found" });
       return;
     }
 
-    const watchlist = await UsersService.getWatchlistedFilms(profile.id);
+    const { limit, offset } = parseProfileListPagination(req.query);
+    const watchlist = await UsersService.getWatchlistedFilms(profile.id, limit, offset);
     res.status(200).json(watchlist);
   }
 
   static async getMe(req: Request, res: Response): Promise<void> {
     const profile = await UsersService.findById(req.user.id);
     if (!profile) {
-      res.status(404).json({ error: "Profile not found" });
+      sendNotFound(res, "Profile not found");
       return;
     }
     res.status(200).json(profile);
@@ -148,7 +178,7 @@ export class UsersController {
   static async getMeSummary(req: Request, res: Response): Promise<void> {
     const summary = await UsersService.getMeSummary(req.user.id);
     if (!summary) {
-      res.status(404).json({ error: "Profile not found" });
+      sendNotFound(res, "Profile not found");
       return;
     }
 
@@ -178,7 +208,7 @@ export class UsersController {
     );
 
     if (!updated) {
-      res.status(404).json({ error: "User not found" });
+      sendNotFound(res, "User not found");
       return;
     }
 
@@ -195,20 +225,23 @@ export class UsersController {
       return;
     }
 
-    const profile = await UsersService.findByUsername(req.params.username);
+    const profile = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!profile) {
-      res.status(404).json({ error: "User not found" });
       return;
     }
 
     const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
-    const publicOnly = viewerUserId !== profile.id;
+    const { limit, offset } = parseProfileListPagination(req.query);
 
     const lists = await ListsService.getUserLists(
       profile.id,
-      publicOnly,
+      viewerUserId,
       parsed.data.tmdbId,
       parsed.data.itemType,
+      limit,
+      offset,
     );
 
     res.status(200).json(lists);

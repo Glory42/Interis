@@ -1,6 +1,7 @@
 import type { GoogleBooksVolume } from "@/features/books/api";
 import type { MbSearchResult } from "@/features/music/api";
 import type { UserSearchResult } from "@/features/profile/api";
+import type { UnifiedSearchResult } from "@/features/search/api";
 import type { TmdbSearchSeries } from "@/features/serials/api";
 import type { TmdbSearchMovie } from "@/types/api";
 import type {
@@ -19,7 +20,7 @@ export const toUserEntry = (profile: UserSearchResult): UserResultEntry => {
     id: `users-${profile.id}`,
     username: profile.username,
     displayName: profileName,
-    avatarUrl: profile.avatarUrl ?? profile.image ?? null,
+    avatarUrl: profile.avatarUrl ?? null,
   };
 };
 
@@ -66,6 +67,30 @@ export const toBookEntry = (volume: GoogleBooksVolume): BookResultEntry => ({
   coverImageUrl: volume.volumeInfo.imageLinks?.thumbnail ?? null,
   publishedDate: volume.volumeInfo.publishedDate ?? null,
 });
+
+export const toTitleEntry = (
+  result: UnifiedSearchResult,
+): CinemaResultEntry | SerialResultEntry => {
+  if (result.mediaType === "movie") {
+    return {
+      kind: "cinema",
+      id: `cinema-${result.tmdbId}`,
+      tmdbId: result.tmdbId,
+      title: result.title,
+      posterPath: result.posterPath,
+      releaseDate: result.releaseDate ?? "",
+    };
+  }
+
+  return {
+    kind: "serials",
+    id: `serials-${result.tmdbId}`,
+    tmdbId: result.tmdbId,
+    title: result.title,
+    posterPath: result.posterPath,
+    firstAirDate: result.releaseDate ?? "",
+  };
+};
 
 export const toYear = (value: string | null | undefined): string | null => {
   if (!value || value.length < 4) {

@@ -64,10 +64,34 @@ curl "$BASE_URL/api/public/$USERNAME/watchlist?limit=20"
 curl "$BASE_URL/api/public/$USERNAME/diary?limit=20"
 ```
 
+## Movies watched
+
+```bash
+curl "$BASE_URL/api/public/$USERNAME/movies/watched?limit=20"
+```
+
+## Serial progress
+
+```bash
+curl "$BASE_URL/api/public/$USERNAME/serials/1396"
+```
+
+## Serials currently watching
+
+```bash
+curl "$BASE_URL/api/public/$USERNAME/serials/currently-watching?limit=5"
+```
+
+## Serials watched
+
+```bash
+curl "$BASE_URL/api/public/$USERNAME/serials/watched?limit=20"
+```
+
 ## Check headers (rate-limit visibility)
 
 ```bash
 curl -i "$BASE_URL/api/public/$USERNAME/profile"
 ```
 
-You should see standard rate limit headers from `express-rate-limit` and `Cache-Control: no-store`.
+You should see standard rate limit headers from `express-rate-limit` and `Cache-Control: public, max-age=60, stale-while-revalidate=120`.

@@ -13,7 +13,7 @@ export const ArchiveViewModeToggle = ({
 }: ArchiveViewModeToggleProps) => {
   return (
     <div
-      className="ml-auto inline-flex items-center border p-1"
+      className="ml-auto inline-flex items-center rounded-full border p-1"
       style={{
         borderColor: SERIAL_MODULE_STYLES.border,
         background: SERIAL_MODULE_STYLES.panel,
@@ -21,7 +21,7 @@ export const ArchiveViewModeToggle = ({
     >
       <button
         type="button"
-        className="inline-flex items-center justify-center p-1.5"
+        className="inline-flex items-center justify-center rounded-full p-1.5"
         style={{
           color:
             viewMode === "grid"
@@ -39,7 +39,7 @@ export const ArchiveViewModeToggle = ({
       </button>
       <button
         type="button"
-        className="inline-flex items-center justify-center p-1.5"
+        className="inline-flex items-center justify-center rounded-full p-1.5"
         style={{
           color:
             viewMode === "list"

@@ -25,9 +25,13 @@ export type SerialArchiveItem = {
   logCount: number;
   avgRatingOutOfTen: number | null;
   tmdbRatingOutOfTen: number | null;
+  tmdbVoteCount: number | null;
   ratedLogCount: number;
+  numberOfEpisodes: number | null;
   viewerHasLogged: boolean;
   viewerWatchlisted: boolean;
+  viewerFullyWatched: boolean;
+  viewerHasProgress: boolean;
 };
 
 export type SerialArchiveFeaturedItem = {
@@ -70,6 +74,12 @@ export type SerialDetailSeason = {
   episodeCount: number | null;
   airDate: string | null;
   posterPath: string | null;
+  viewerInteraction: {
+    watched: boolean;
+    liked: boolean;
+    rating: number | null;
+    hasReview: boolean;
+  } | null;
 };
 
 export type SerialDetailEpisode = {
@@ -82,6 +92,12 @@ export type SerialDetailEpisode = {
   stillPath: string | null;
   runtimeMinutes: number | null;
   runtimeLabel: string | null;
+  viewerInteraction: {
+    watched: boolean;
+    liked: boolean;
+    rating: number | null;
+    hasReview: boolean;
+  } | null;
 };
 
 export type SerialSeasonDetailResponse = {
@@ -99,7 +115,7 @@ export type SerialSeasonDetailResponse = {
 };
 
 export type SerialDetailRatingBreakdownBucket = {
-  ratingValueOutOfFive: 1 | 2 | 3 | 4 | 5;
+  ratingValue: number;
   count: number;
   percentage: number;
 };
@@ -111,17 +127,21 @@ export type SerialDetailReviewItem = {
   createdAt: Date;
   updatedAt: Date;
   watchedDate: string | null;
-  ratingOutOfTen: number | null;
-  ratingOutOfFive: number | null;
+  rating: number | null;
   likeCount: number;
   viewerHasLiked: boolean;
   author: {
     id: string;
     username: string;
     displayUsername: string | null;
-    image: string | null;
     avatarUrl: string | null;
   };
+  // Present for season/episode-scoped reviews, null for a whole-series review.
+  context: {
+    seasonNumber: number;
+    episodeNumber: number | null;
+    episodeName: string | null;
+  } | null;
 };
 
 export type SerialDetailUserRating = {
@@ -129,8 +149,7 @@ export type SerialDetailUserRating = {
   reviewId: string | null;
   watchedDate: string | null;
   rewatch: boolean;
-  ratingOutOfTen: number | null;
-  ratingOutOfFive: number | null;
+  rating: number | null;
   reviewContent: string | null;
   reviewContainsSpoilers: boolean | null;
 };
@@ -159,8 +178,7 @@ export type SerialDetailResponse = {
     tagline: string | null;
     languageCode: string | null;
     genres: SerialGenre[];
-    globalRatingOutOfTen: number | null;
-    globalRatingOutOfFive: number | null;
+    globalRating: number | null;
     globalRatingVoteCount: number | null;
     inProduction: boolean | null;
     seasons: SerialDetailSeason[];
@@ -172,7 +190,25 @@ export type SerialDetailResponse = {
   reviews: SerialDetailReviewItem[];
   ratingBreakdown: {
     totalRatedReviews: number;
-    averageRatingOutOfFive: number | null;
+    averageRating: number | null;
     buckets: SerialDetailRatingBreakdownBucket[];
   };
+  similar: SimilarSerialItem[];
+  viewerTracking: SerialDetailViewerTracking | null;
+};
+
+export type SerialDetailViewerTracking = {
+  watchedEpisodesCount: number;
+  watchedEpisodes: { seasonNumber: number; episodeNumber: number }[];
+  currentEpisode: { seasonNumber: number; episodeNumber: number; name: string } | null;
+  ratingsCount: number;
+  likesCount: number;
+  reviewsCount: number;
+};
+
+export type SimilarSerialItem = {
+  tmdbId: number;
+  title: string;
+  posterPath: string | null;
+  firstAirYear: number | null;
 };

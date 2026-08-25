@@ -33,7 +33,6 @@ export class BooksDetailService {
         updatedAt: reviews.updatedAt,
         authorUsername: user.username,
         authorDisplayUsername: user.displayUsername,
-        authorImage: user.image,
         authorAvatarUrl: profiles.avatarUrl,
       })
       .from(reviews)
@@ -94,7 +93,6 @@ export class BooksDetailService {
         id: r.userId,
         username: r.authorUsername,
         displayUsername: r.authorDisplayUsername ?? null,
-        image: r.authorImage ?? null,
         avatarUrl: r.authorAvatarUrl ?? null,
       },
     }));

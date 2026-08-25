@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { LogIn, LogOut, Search, Settings, User, UserRound } from "lucide-react";
+import { LogIn, LogOut, Search, Settings, Shield, User, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PrimaryNavLinks } from "@/components/layout/navbar/parts/PrimaryNavLinks";
 import type { NavbarUser } from "@/components/layout/navbar/parts/types";
@@ -74,6 +74,24 @@ export const MobileMenu = ({
               <User className="h-3.5 w-3.5 shrink-0" />
               <span>PROFILE</span>
             </Link>
+            {user.isAdmin ? (
+              <Link
+                to="/admin"
+                className={cn(navLinkClass, "w-full justify-start px-2 py-2 text-[11px]")}
+                activeProps={{
+                  className: cn(
+                    navLinkClass,
+                    navLinkActiveClass,
+                    "w-full justify-start px-2 py-2 text-[11px]",
+                  ),
+                }}
+                onClick={onClose}
+                viewTransition
+              >
+                <Shield className="h-3.5 w-3.5 shrink-0" />
+                <span>ADMIN</span>
+              </Link>
+            ) : null}
             <Link
               to="/settings"
               className={cn(navLinkClass, "w-full justify-start px-2 py-2 text-[11px]")}

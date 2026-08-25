@@ -1,4 +1,5 @@
 import { activities } from "../social.entity";
+import type { MediaType } from "../../media/constants/media-type.constant";
 
 export type ActivityType = typeof activities.$inferSelect["type"];
 
@@ -9,7 +10,6 @@ export type ActivityRow = {
   actorId: string;
   actorUsername: string;
   actorDisplayUsername: string | null;
-  actorImage: string | null;
   actorAvatarUrl: string | null;
 };
 
@@ -21,7 +21,7 @@ export type FeedActivityKind =
   | "liked_post"
   | "commented_post";
 
-export type FeedMediaType = "movie" | "tv" | "album" | "book";
+export type FeedMediaType = MediaType;
 
 export type FeedMovie = {
   tmdbId: number | null;
@@ -36,7 +36,7 @@ export type FeedMovie = {
   authors?: string[] | null;
 };
 
-export type FeedPostMediaType = "movie" | "tv" | "album" | "book";
+export type FeedPostMediaType = MediaType;
 
 export type FeedPost = {
   id: string;
@@ -69,6 +69,10 @@ export type FeedMetadata = {
   postId: string | null;
   postMediaId: number | null;
   postMediaType: FeedPostMediaType | null;
+  seasonNumber: number | null;
+  episodeNumber: number | null;
+  listId: string | null;
+  listTitle: string | null;
 };
 
 export type FeedEngagement = {
@@ -86,7 +90,6 @@ export type FeedItem = {
     id: string;
     username: string;
     displayUsername: string | null;
-    image: string | null;
     avatarUrl: string | null;
   };
   movie: FeedMovie | null;
@@ -118,4 +121,42 @@ export type PostEngagement = {
   likeCount: number;
   commentCount: number;
   viewerHasLiked: boolean | null;
+};
+
+export type FeedFallbackPostRow = {
+  id: string;
+  content: string;
+  mediaId: number | null;
+  mediaType: FeedPostMediaType | null;
+};
+
+export type FeedFallbackMovieRow = {
+  id: number;
+  tmdbId: number;
+  title: string;
+  posterPath: string | null;
+  releaseYear: number | null;
+};
+
+export type FeedFallbackAlbumRow = {
+  mbid: string;
+  title: string;
+  coverArtUrl: string | null;
+  artistName: string;
+  releaseYear: number | null;
+};
+
+export type FeedFallbackBookRow = {
+  volumeId: string;
+  title: string;
+  coverArtUrl: string | null;
+  authors: string[];
+  releaseYear: number | null;
+};
+
+export type FeedFallbackMediaContext = {
+  postsById: Map<string, FeedFallbackPostRow>;
+  moviesById: Map<number, FeedFallbackMovieRow>;
+  albumsByMbid: Map<string, FeedFallbackAlbumRow>;
+  booksByVolumeId: Map<string, FeedFallbackBookRow>;
 };

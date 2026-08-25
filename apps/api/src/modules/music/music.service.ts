@@ -3,7 +3,6 @@ import type { IReleaseGroup } from "../../infrastructure/musicbrainz/albums";
 import { db } from "../../infrastructure/database/db";
 import { activities } from "../social/social.entity";
 import type {
-  MusicArchiveSort,
   MusicDetailReviewSort,
   UpdateMusicInteractionDto,
   UpdateMusicLogDto,

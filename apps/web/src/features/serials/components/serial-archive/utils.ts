@@ -26,33 +26,33 @@ export const getCreatorYearLine = (series: SerialArchiveItem): string => {
   return `${creator} · ${getFirstAirYearLabel(series)}`;
 };
 
-export const getRatingOutOfFive = (
+export const getRating = (
   series: SerialArchiveItem,
   ratingSource: ArchiveRatingSource,
 ): number | null => {
   const ratingOutOfTen =
     ratingSource === "tmdb" ? series.tmdbRatingOutOfTen : series.avgRatingOutOfTen;
 
-  if (ratingOutOfTen === null) {
-    return null;
-  }
-
-  return ratingOutOfTen / 2;
+  return ratingOutOfTen;
 };
 
-export const getRoundedStars = (ratingOutOfFive: number | null): number => {
-  if (ratingOutOfFive === null) {
+export const getRoundedStars = (rating: number | null): number => {
+  if (rating === null) {
     return 0;
   }
 
-  return Math.max(0, Math.min(5, Math.round(ratingOutOfFive)));
+  return Math.max(0, Math.min(10, Math.round(rating)));
 };
 
 export const getSeriesStateLabel = (
   series: SerialArchiveItem,
-): "Watched" | "Queued" | null => {
-  if (series.viewerHasLogged) {
+): "Watched" | "Watching" | "Queued" | null => {
+  if (series.viewerFullyWatched) {
     return "Watched";
+  }
+
+  if (series.viewerHasProgress) {
+    return "Watching";
   }
 
   if (series.viewerWatchlisted) {

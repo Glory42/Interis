@@ -44,7 +44,7 @@ export const PostActivityDialogContentEditor = ({
             <button
               type="button"
               onClick={onCancelEditing}
-              className="border border-border/70 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground"
+              className="rounded-full border border-border/70 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground"
             >
               cancel
             </button>
@@ -52,7 +52,7 @@ export const PostActivityDialogContentEditor = ({
               type="button"
               onClick={onSaveEditing}
               disabled={!canSaveEdit}
-              className="border border-primary/45 bg-primary/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-primary disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-full border border-primary/45 bg-primary/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-primary transition-colors hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSaving ? (
                 <span className="inline-flex items-center gap-1">
@@ -72,7 +72,7 @@ export const PostActivityDialogContentEditor = ({
     <button
       type="button"
       onClick={onEnableEditing}
-      className="w-full text-left whitespace-pre-wrap font-mono text-sm leading-relaxed text-foreground/85"
+      className="w-full text-left whitespace-pre-wrap font-mono text-sm leading-relaxed text-foreground/85 transition-colors hover:text-foreground"
     >
       {content}
     </button>

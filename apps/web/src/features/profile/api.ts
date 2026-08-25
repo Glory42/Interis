@@ -1,32 +1,45 @@
 import { z } from "zod";
-import { apiRequest } from "@/lib/api-client";
+import { apiRequest, type QueryRequestOptions } from "@/lib/api-client";
 import { feedListSchema, type FeedItem } from "@/features/feed/types";
 import {
-  meProfileSchema,
+  mediaTypeSchema,
   movieGenreSchema,
   publicTop4ResponseSchema,
   profileUpdateResponseSchema,
   publicProfileSchema,
-  type MeProfile,
+  userSummarySchema,
   type PublicTop4Response,
   type ProfileUpdateResponse,
   type PublicProfile,
   type UpdateProfileInput,
 } from "@/types/api";
+import {
+  diaryItemListSchema,
+  currentlyWatchingListSchema,
+  type DiaryItem,
+  type CurrentlyWatchingSeries,
+} from "@/features/profile/api/schemas";
+
+export type { DiaryItem, CurrentlyWatchingSeries };
 
 const userReviewSchema = z
   .object({
     id: z.string(),
     content: z.string(),
     containsSpoilers: z.boolean(),
-    ratingOutOfFive: z.number().nullable().optional(),
+    rating: z.number().nullable().optional(),
     createdAt: z.string(),
     updatedAt: z.string(),
-    tmdbId: z.number().int(),
+    tmdbId: z.number().int().nullable().optional(),
+    mbid: z.string().nullable().optional(),
+    volumeId: z.string().nullable().optional(),
     title: z.string(),
-    posterPath: z.string().nullable(),
+    posterPath: z.string().nullable().optional(),
+    coverArtUrl: z.string().nullable().optional(),
+    artistName: z.string().nullable().optional(),
+    authors: z.array(z.string()).nullable().optional(),
     releaseYear: z.number().int().nullable(),
-    mediaType: z.enum(["movie", "tv"]).default("movie"),
+    mediaType: mediaTypeSchema.default("movie"),
   })
   .passthrough();
 
@@ -44,7 +57,7 @@ const userInteractionMovieSchema = z
     releaseYear: z.number().int().nullable(),
     runtime: z.number().int().nullable().optional(),
     genres: z.array(movieGenreSchema).nullish(),
-    mediaType: z.enum(["movie", "tv", "album", "book"]).default("movie"),
+    mediaType: mediaTypeSchema.default("movie"),
     artistName: z.string().nullable().optional(),
     authors: z.array(z.string()).nullable().optional(),
     lastInteractionAt: z.string(),
@@ -53,26 +66,16 @@ const userInteractionMovieSchema = z
 
 const userInteractionMovieListSchema = z.array(userInteractionMovieSchema);
 
-const userSearchResultSchema = z.object({
-  id: z.string(),
-  username: z.string(),
-  displayUsername: z.string().nullable(),
-  image: z.string().nullable(),
-  avatarUrl: z.string().nullable(),
-});
+const userSearchResultSchema = userSummarySchema;
 
 const userSearchResultListSchema = z.array(userSearchResultSchema);
 
-type QueryRequestOptions = {
-  signal?: AbortSignal;
-};
-
-const normalizeRecentLimit = (limit: number, fallback: number): number => {
+const normalizeRecentLimit = (limit: number, fallback: number, max = 300): number => {
   if (!Number.isFinite(limit)) {
     return fallback;
   }
 
-  return Math.max(1, Math.min(Math.floor(limit), 300));
+  return Math.max(1, Math.min(Math.floor(limit), max));
 };
 
 const encodePathSegment = (value: string): string => {
@@ -102,12 +105,17 @@ export const getUserProfile = async (
   return publicProfileSchema.parse(response);
 };
 
+const toPaginationParams = (limit: number, offset: number): string =>
+  new URLSearchParams({ limit: String(limit), offset: String(offset) }).toString();
+
 export const getUserReviews = async (
   username: string,
+  limit: number,
+  offset: number,
   options: QueryRequestOptions = {},
 ): Promise<UserReview[]> => {
   const response = await apiRequest<unknown>(
-    `/api/users/${encodePathSegment(username)}/reviews`,
+    `/api/users/${encodePathSegment(username)}/reviews?${toPaginationParams(limit, offset)}`,
     {
       method: "GET",
       signal: options.signal,
@@ -119,10 +127,12 @@ export const getUserReviews = async (
 
 export const getUserLikedFilms = async (
   username: string,
+  limit: number,
+  offset: number,
   options: QueryRequestOptions = {},
 ): Promise<UserInteractionMovie[]> => {
   const response = await apiRequest<unknown>(
-    `/api/users/${encodePathSegment(username)}/likes`,
+    `/api/users/${encodePathSegment(username)}/likes?${toPaginationParams(limit, offset)}`,
     {
       method: "GET",
       signal: options.signal,
@@ -138,7 +148,7 @@ const likedReviewSchema = z.object({
   containsSpoilers: z.boolean(),
   createdAt: z.string(),
   likedAt: z.string(),
-  mediaType: z.enum(["movie", "tv", "album", "book"]),
+  mediaType: mediaTypeSchema,
   reviewerUsername: z.string(),
   reviewerDisplayUsername: z.string().nullable().optional(),
   mediaTitle: z.string().nullable(),
@@ -169,10 +179,12 @@ export type LikedList = z.infer<typeof likedListSchema>;
 
 export const getUserLikedReviews = async (
   username: string,
+  limit: number,
+  offset: number,
   options: QueryRequestOptions = {},
 ): Promise<LikedReview[]> => {
   const response = await apiRequest<unknown>(
-    `/api/users/${encodePathSegment(username)}/liked-reviews`,
+    `/api/users/${encodePathSegment(username)}/liked-reviews?${toPaginationParams(limit, offset)}`,
     { method: "GET", signal: options.signal },
   );
   return z.array(likedReviewSchema).parse(response);
@@ -180,10 +192,12 @@ export const getUserLikedReviews = async (
 
 export const getUserLikedLists = async (
   username: string,
+  limit: number,
+  offset: number,
   options: QueryRequestOptions = {},
 ): Promise<LikedList[]> => {
   const response = await apiRequest<unknown>(
-    `/api/users/${encodePathSegment(username)}/liked-lists`,
+    `/api/users/${encodePathSegment(username)}/liked-lists?${toPaginationParams(limit, offset)}`,
     { method: "GET", signal: options.signal },
   );
   return z.array(likedListSchema).parse(response);
@@ -191,10 +205,12 @@ export const getUserLikedLists = async (
 
 export const getUserWatchlist = async (
   username: string,
+  limit: number,
+  offset: number,
   options: QueryRequestOptions = {},
 ): Promise<UserInteractionMovie[]> => {
   const response = await apiRequest<unknown>(
-    `/api/users/${encodePathSegment(username)}/watchlist`,
+    `/api/users/${encodePathSegment(username)}/watchlist?${toPaginationParams(limit, offset)}`,
     {
       method: "GET",
       signal: options.signal,
@@ -202,6 +218,41 @@ export const getUserWatchlist = async (
   );
 
   return userInteractionMovieListSchema.parse(response);
+};
+
+export const getUserDiary = async (
+  username: string,
+  limit: number,
+  offset: number,
+  options: QueryRequestOptions = {},
+): Promise<DiaryItem[]> => {
+  const response = await apiRequest<unknown>(
+    `/api/public/${encodePathSegment(username)}/diary?${toPaginationParams(limit, offset)}`,
+    {
+      method: "GET",
+      cache: "no-store",
+      signal: options.signal,
+    },
+  );
+
+  return diaryItemListSchema.parse(response);
+};
+
+export const getUserCurrentlyWatching = async (
+  username: string,
+  limit = 10,
+  options: QueryRequestOptions = {},
+): Promise<CurrentlyWatchingSeries[]> => {
+  const response = await apiRequest<unknown>(
+    `/api/public/${encodePathSegment(username)}/serials/currently-watching?limit=${normalizeRecentLimit(limit, 10, 30)}`,
+    {
+      method: "GET",
+      cache: "no-store",
+      signal: options.signal,
+    },
+  );
+
+  return currentlyWatchingListSchema.parse(response);
 };
 
 export const getUserTopPicks = async (
@@ -264,17 +315,6 @@ export const searchUsers = async (
   });
 
   return userSearchResultListSchema.parse(response);
-};
-
-export const getMyProfile = async (
-  options: QueryRequestOptions = {},
-): Promise<MeProfile> => {
-  const response = await apiRequest<unknown>("/api/users/me", {
-    method: "GET",
-    signal: options.signal,
-  });
-
-  return meProfileSchema.parse(response);
 };
 
 export const updateMyProfile = async (

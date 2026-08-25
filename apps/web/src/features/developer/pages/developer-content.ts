@@ -11,6 +11,7 @@ export type UseCase = {
 };
 
 export type PublicEndpoint = {
+  method: "GET";
   path: string;
   description: string;
 };
@@ -53,18 +54,39 @@ export const useCases: readonly UseCase[] = [
 ] as const;
 
 export const publicSurface: readonly PublicEndpoint[] = [
-  { path: "/api/public/:username/profile", description: "Public profile summary and core counts." },
-  { path: "/api/public/:username/top4", description: "Featured top cinema and serial picks." },
-  { path: "/api/public/:username/recent", description: "Short recent public activity stream." },
-  { path: "/api/public/:username/reviews", description: "Public reviews with media context." },
-  { path: "/api/public/:username/lists", description: "Public lists and list entries." },
-  { path: "/api/public/:username/likes", description: "Public liked cinema and serial media." },
-  { path: "/api/public/:username/watchlist", description: "Public watchlist items." },
+  { method: "GET", path: "/api/public/:username/profile", description: "Public profile summary and core counts." },
+  { method: "GET", path: "/api/public/:username/top4", description: "Featured top cinema and serial picks." },
+  { method: "GET", path: "/api/public/:username/recent", description: "Short recent public activity stream." },
+  { method: "GET", path: "/api/public/:username/reviews", description: "Public reviews with media context." },
+  { method: "GET", path: "/api/public/:username/lists", description: "Public lists and list entries." },
+  { method: "GET", path: "/api/public/:username/likes", description: "Public liked cinema and serial media." },
+  { method: "GET", path: "/api/public/:username/watchlist", description: "Public watchlist items." },
   {
+    method: "GET",
     path: "/api/public/:username/diary",
     description: "Public diary/log history for movie and serial entries.",
   },
-  { path: "/api/public/:username/activity", description: "Broader public activity timeline." },
+  { method: "GET", path: "/api/public/:username/activity", description: "Broader public activity timeline." },
+  {
+    method: "GET",
+    path: "/api/public/:username/movies/watched",
+    description: "Watched movies (film-only).",
+  },
+  {
+    method: "GET",
+    path: "/api/public/:username/serials/:tmdbId",
+    description: "Watch progress and stats for a specific serial.",
+  },
+  {
+    method: "GET",
+    path: "/api/public/:username/serials/currently-watching",
+    description: "Serials started but not finished, most recently watched first.",
+  },
+  {
+    method: "GET",
+    path: "/api/public/:username/serials/watched",
+    description: "Fully watched serials (series-only).",
+  },
 ] as const;
 
 export const codeExamples: readonly CodeExample[] = [
@@ -85,7 +107,7 @@ console.log(profile.displayUsername, profile.stats.reviewCount);`,
   {
     title: "Fetch top picks (curl)",
     language: "curl",
-    code: `curl "https://your-interis-domain.com/api/public/your_username/top4"`,
+    code: `curl "https://api.interis.gorkemkaryol.dev/api/public/your_username/top4"`,
   },
   {
     title: "Tiny recent widget (React)",
@@ -114,12 +136,3 @@ export const toneToColor: Record<UseCaseTone, string> = {
   serial: "var(--module-serial)",
   destructive: "var(--destructive)",
 };
-
-export const uiColors = {
-  border: "color-mix(in srgb, var(--primary) 22%, var(--border) 78%)",
-  rowBorder: "color-mix(in srgb, var(--primary) 12%, var(--border) 88%)",
-  shellBackground: "color-mix(in srgb, var(--background) 88%, black)",
-  panelBackground: "color-mix(in srgb, var(--card) 76%, var(--background) 24%)",
-  mutedText: "color-mix(in srgb, var(--foreground) 58%, transparent)",
-  dimText: "color-mix(in srgb, var(--foreground) 34%, transparent)",
-} as const;

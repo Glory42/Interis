@@ -1,8 +1,16 @@
 import type { Request, Response } from "express";
 import { SocialService } from "./social.service";
 import { UsersService } from "../users/users.service";
-import { normalizeSocialFeedLimit } from "./helpers/social-query-normalizer.helper";
+import {
+  normalizeSocialFeedLimit,
+  normalizeSocialFeedMediaType,
+} from "./helpers/social-query-normalizer.helper";
 import type { FeedQueryDto, UsernameParamsDto } from "./dto/social.dto";
+import {
+  resolveOrNotFound,
+  sendBadRequest,
+  sendNotFound,
+} from "../../commons/http/validation-response.helper";
 
 export class SocialController {
   static async getFeed(
@@ -10,7 +18,7 @@ export class SocialController {
     res: Response,
   ): Promise<void> {
     const limit = normalizeSocialFeedLimit(req.query.limit, 20);
-    const feed = await SocialService.getFeed(req.user.id, undefined, limit);
+    const feed = await SocialService.getFeed(req.user.id, req.query.cursor, limit);
     res.status(200).json(feed);
   }
 
@@ -19,7 +27,13 @@ export class SocialController {
     res: Response,
   ): Promise<void> {
     const limit = normalizeSocialFeedLimit(req.query.limit, 20);
-    const feed = await SocialService.getFollowingFeed(req.user.id, limit);
+    const mediaType = normalizeSocialFeedMediaType(req.query.mediaType);
+    const feed = await SocialService.getFollowingFeed(
+      req.user.id,
+      limit,
+      req.query.cursor,
+      mediaType,
+    );
     res.status(200).json(feed);
   }
 
@@ -27,9 +41,10 @@ export class SocialController {
     req: Request<UsernameParamsDto>,
     res: Response,
   ): Promise<void> {
-    const target = await UsersService.findByUsername(req.params.username);
+    const target = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!target) {
-      res.status(404).json({ error: "User not found" });
       return;
     }
 
@@ -39,7 +54,7 @@ export class SocialController {
       target.username,
     );
     if ("error" in result) {
-      res.status(400).json({ error: result.error });
+      sendBadRequest(res, result.error);
       return;
     }
     res.status(200).json(result);
@@ -49,9 +64,10 @@ export class SocialController {
     req: Request<UsernameParamsDto>,
     res: Response,
   ): Promise<void> {
-    const target = await UsersService.findByUsername(req.params.username);
+    const target = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!target) {
-      res.status(404).json({ error: "User not found" });
       return;
     }
 
@@ -63,9 +79,10 @@ export class SocialController {
     req: Request<UsernameParamsDto>,
     res: Response,
   ): Promise<void> {
-    const target = await UsersService.findByUsername(req.params.username);
+    const target = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!target) {
-      res.status(404).json({ error: "User not found" });
       return;
     }
 
@@ -77,9 +94,10 @@ export class SocialController {
     req: Request<UsernameParamsDto>,
     res: Response,
   ): Promise<void> {
-    const target = await UsersService.findByUsername(req.params.username);
+    const target = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!target) {
-      res.status(404).json({ error: "User not found" });
       return;
     }
 
@@ -91,9 +109,10 @@ export class SocialController {
     req: Request<UsernameParamsDto>,
     res: Response,
   ): Promise<void> {
-    const target = await UsersService.findByUsername(req.params.username);
+    const target = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!target) {
-      res.status(404).json({ error: "User not found" });
       return;
     }
 
@@ -105,13 +124,34 @@ export class SocialController {
     req: Request<UsernameParamsDto>,
     res: Response,
   ): Promise<void> {
-    const follower = await UsersService.findByUsername(req.params.username);
+    const follower = await resolveOrNotFound(res, "User not found", () =>
+      UsersService.findByUsername(req.params.username),
+    );
     if (!follower) {
-      res.status(404).json({ error: "User not found" });
       return;
     }
 
     await SocialService.removeFollower(req.user.id, follower.id);
+    res.status(200).json({ success: true });
+  }
+
+  static async likeActivity(
+    req: Request<{ activityId: string }>,
+    res: Response,
+  ): Promise<void> {
+    const result = await SocialService.likeActivity(req.user.id, req.params.activityId);
+    if ("error" in result) {
+      sendNotFound(res, result.error);
+      return;
+    }
+    res.status(200).json(result);
+  }
+
+  static async unlikeActivity(
+    req: Request<{ activityId: string }>,
+    res: Response,
+  ): Promise<void> {
+    await SocialService.unlikeActivity(req.user.id, req.params.activityId);
     res.status(200).json({ success: true });
   }
 }

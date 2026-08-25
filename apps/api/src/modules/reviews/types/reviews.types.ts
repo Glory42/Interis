@@ -1,4 +1,6 @@
-export type ReviewMediaType = "movie" | "tv" | "album" | "book";
+import type { MediaType } from "../../media/constants/media-type.constant";
+
+export type ReviewMediaType = MediaType;
 
 export type ReviewMediaMetadata = {
   mediaType: ReviewMediaType;

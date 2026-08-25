@@ -45,12 +45,12 @@ export const SearchResultRow = ({
             <img
               src={entry.avatarUrl}
               alt={`${entry.username} avatar`}
-              className="h-9 w-9 shrink-0 border border-border/70 object-cover"
+              className="h-9 w-9 shrink-0 rounded-full border border-border/70 object-cover"
               loading="lazy"
             />
           ) : (
             <span
-              className="inline-flex h-9 w-9 shrink-0 items-center justify-center border font-mono text-xs"
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border font-mono text-xs"
               style={{
                 borderColor: "color-mix(in srgb, var(--module-serial) 40%, transparent)",
                 color: "var(--module-serial)",
@@ -179,7 +179,7 @@ export const SearchResultRow = ({
         <img
           src={getPosterUrl(entry.posterPath)}
           alt={`${entry.title} poster`}
-          className="h-11 w-8 shrink-0 border border-border/70 object-cover"
+          className="h-11 w-8 shrink-0 rounded-md border border-border/70 object-cover"
           loading="lazy"
         />
 

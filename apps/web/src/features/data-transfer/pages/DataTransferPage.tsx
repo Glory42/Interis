@@ -40,14 +40,12 @@ export const DataTransferPage = () => {
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Export */}
-        <div className="border space-y-4 p-6 settings-shell-border settings-shell-panel">
+        <div className="border space-y-4 p-5 settings-shell-border settings-shell-panel">
           <div>
-            <h2 className="font-mono text-sm font-semibold text-foreground">
-              Export diary
-            </h2>
-            <p className="mt-1 font-mono text-xs settings-shell-muted">
+            <h2 className="text-base font-bold text-foreground">Export diary</h2>
+            <p className="mt-1 text-sm settings-shell-muted">
               Download your full watch history as a CSV file. Includes dates,
               ratings, rewatches, and reviews.
             </p>
@@ -57,7 +55,7 @@ export const DataTransferPage = () => {
             type="button"
             onClick={() => exportMutation.mutate()}
             disabled={exportMutation.isPending}
-            className="flex items-center gap-2 border px-4 py-2 font-mono text-xs uppercase tracking-[0.12em] transition-colors settings-shell-border settings-shell-muted hover:settings-shell-accent disabled:opacity-50"
+            className="flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors settings-shell-border settings-shell-muted hover:text-foreground disabled:opacity-50"
           >
             {exportMutation.isPending ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -68,19 +66,15 @@ export const DataTransferPage = () => {
           </button>
 
           {exportMutation.isError && (
-            <p className="font-mono text-xs text-destructive">
-              Export failed. Please try again.
-            </p>
+            <p className="text-sm text-destructive">Export failed. Please try again.</p>
           )}
         </div>
 
         {/* Import */}
-        <div className="border space-y-4 p-6 settings-shell-border settings-shell-panel">
+        <div className="border space-y-4 p-5 settings-shell-border settings-shell-panel">
           <div>
-            <h2 className="font-mono text-sm font-semibold text-foreground">
-              Import diary
-            </h2>
-            <p className="mt-1 font-mono text-xs settings-shell-muted">
+            <h2 className="text-base font-bold text-foreground">Import diary</h2>
+            <p className="mt-1 text-sm settings-shell-muted">
               Import from a Letterboxd export —{" "}
               <span className="settings-shell-accent">diary.csv</span>,{" "}
               <span className="settings-shell-accent">reviews.csv</span>,{" "}
@@ -94,7 +88,7 @@ export const DataTransferPage = () => {
           {/* Running in background banner */}
           {isImportRunning && !dialogOpen && (
             <div className="flex items-center justify-between border px-3 py-2 settings-shell-border settings-shell-active-pill">
-              <div className="flex items-center gap-2 font-mono text-xs settings-shell-accent">
+              <div className="flex items-center gap-2 text-sm settings-shell-accent">
                 <Loader2 className="h-3 w-3 animate-spin" />
                 <span>
                   Import running — {importState.processed} / {importState.total} processed
@@ -103,7 +97,7 @@ export const DataTransferPage = () => {
               <button
                 type="button"
                 onClick={handleReopen}
-                className="font-mono text-[10px] uppercase tracking-[0.12em] settings-shell-accent underline-offset-2 hover:underline"
+                className="text-xs font-medium settings-shell-accent underline-offset-2 hover:underline"
               >
                 View
               </button>
@@ -112,8 +106,8 @@ export const DataTransferPage = () => {
 
           {/* Done in background banner */}
           {isImportDone && !dialogOpen && (
-            <div className="flex items-center justify-between border px-3 py-2 settings-shell-border">
-              <span className="font-mono text-xs settings-shell-muted">
+            <div className="flex items-center justify-between rounded-lg border px-3 py-2 settings-shell-border">
+              <span className="text-sm settings-shell-muted">
                 Last import: {importState.summary.imported} imported ·{" "}
                 {importState.summary.skipped} skipped ·{" "}
                 {importState.summary.failed} failed
@@ -121,7 +115,7 @@ export const DataTransferPage = () => {
               <button
                 type="button"
                 onClick={handleReopen}
-                className="font-mono text-[10px] uppercase tracking-[0.12em] settings-shell-muted hover:settings-shell-accent"
+                className="text-xs font-medium settings-shell-muted hover:text-foreground"
               >
                 View log
               </button>
@@ -130,18 +124,18 @@ export const DataTransferPage = () => {
 
           <div className="space-y-3">
             <div
-              className="flex cursor-pointer flex-col items-center justify-center gap-2 border border-dashed px-6 py-8 transition-colors settings-shell-border hover:settings-shell-accent"
+              className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-6 py-8 transition-colors settings-shell-border hover:border-[color:var(--settings-shell-accent)]"
               onClick={() => fileInputRef.current?.click()}
               onKeyDown={(e) => e.key === "Enter" && fileInputRef.current?.click()}
               role="button"
               tabIndex={0}
             >
               <Upload className="h-5 w-5 settings-shell-muted" />
-              <p className="font-mono text-xs settings-shell-muted">
+              <p className="text-sm settings-shell-muted">
                 {selectedFile ? selectedFile.name : "Click to select a CSV file"}
               </p>
               {selectedFile && (
-                <p className="font-mono text-[10px] settings-shell-muted">
+                <p className="text-xs settings-shell-muted">
                   {(selectedFile.size / 1024).toFixed(1)} KB
                 </p>
               )}
@@ -159,7 +153,8 @@ export const DataTransferPage = () => {
               type="button"
               onClick={handleImport}
               disabled={!selectedFile || isImportRunning}
-              className="flex items-center gap-2 border px-4 py-2 font-mono text-xs uppercase tracking-[0.12em] transition-colors settings-shell-border settings-shell-muted hover:settings-shell-accent disabled:opacity-50"
+              className="flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              style={{ background: "var(--settings-shell-accent)", color: "var(--primary-foreground)" }}
             >
               <Upload className="h-3.5 w-3.5" />
               Import

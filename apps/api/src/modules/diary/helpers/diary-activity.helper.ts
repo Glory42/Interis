@@ -1,26 +1,16 @@
-import { DIARY_REVIEW_EXCERPT_LENGTH } from "../constants/diary.constants";
+import { toMediaFields } from "../../../commons/helpers/media-activity-fields.helper";
+import { truncateExcerpt } from "../../../commons/helpers/text.helper";
 
+// Extra fields only - MovieActivityRecorder already supplies movieId,
+// mediaType, and the base media fields for every movie activity.
 export const buildDiaryEntryActivityMetadata = (input: {
-  movie: {
-    id: number;
-    tmdbId: number;
-    title: string;
-    posterPath: string | null;
-    releaseYear: number | null;
-  };
   rating: number | null;
   rewatch: boolean;
   hasReview: boolean;
   reviewId: string | null;
 }) => ({
-  movieId: input.movie.id,
-  tmdbId: input.movie.tmdbId,
-  title: input.movie.title,
-  posterPath: input.movie.posterPath,
-  releaseYear: input.movie.releaseYear,
   rating: input.rating,
   rewatch: input.rewatch,
-  mediaType: "movie",
   hasReview: input.hasReview,
   reviewId: input.reviewId,
 });
@@ -42,11 +32,8 @@ export const buildDiaryReviewActivityMetadata = (input: {
 }) => ({
   reviewId: input.review.id,
   movieId: input.movie.id,
-  tmdbId: input.movie.tmdbId,
-  title: input.movie.title,
-  posterPath: input.movie.posterPath,
-  releaseYear: input.movie.releaseYear,
+  ...toMediaFields(input.movie),
   rating: input.rating,
   containsSpoilers: input.review.containsSpoilers,
-  excerpt: input.review.content.slice(0, DIARY_REVIEW_EXCERPT_LENGTH),
+  excerpt: truncateExcerpt(input.review.content),
 });

@@ -1,16 +1,19 @@
 import { z } from "zod";
 import { personLinkSchema } from "@/features/people/shared";
-import { movieLogSchema, movieSchema, tmdbSearchMovieSchema } from "@/types/api";
+import {
+  movieLogSchema,
+  movieGenreSchema,
+  movieSchema,
+  tmdbSearchMovieSchema,
+  userSummarySchema,
+} from "@/types/api";
 
 export { movieLogSchema, movieSchema, tmdbSearchMovieSchema };
 
 export const movieSearchResponseSchema = z.array(tmdbSearchMovieSchema);
 export const movieLogsResponseSchema = z.array(movieLogSchema);
 
-const archiveGenreSchema = z.object({
-  id: z.number().int(),
-  name: z.string(),
-});
+const archiveGenreSchema = movieGenreSchema;
 
 const archiveMovieSchema = z.object({
   tmdbId: z.number().int(),
@@ -87,8 +90,7 @@ const movieDetailMovieSchema = z.object({
   productionCountries: z.array(z.string()),
   budget: z.number().nullable(),
   revenue: z.number().nullable(),
-  globalRatingOutOfTen: z.number().nullable(),
-  globalRatingOutOfFive: z.number().nullable(),
+  globalRating: z.number().nullable(),
   globalRatingVoteCount: z.number().int().nullable(),
 });
 
@@ -98,8 +100,7 @@ const movieDetailUserRatingSchema = z
     reviewId: z.string().nullable(),
     watchedDate: z.string().nullable(),
     rewatch: z.boolean(),
-    ratingOutOfTen: z.number().nullable(),
-    ratingOutOfFive: z.number().nullable(),
+    rating: z.number().nullable(),
     reviewContent: z.string().nullable(),
     reviewContainsSpoilers: z.boolean().nullable(),
   })
@@ -112,23 +113,23 @@ const movieDetailReviewSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   watchedDate: z.string().nullable(),
-  ratingOutOfTen: z.number().nullable(),
-  ratingOutOfFive: z.number().nullable(),
+  rating: z.number().nullable(),
   likeCount: z.number().int().nonnegative(),
   viewerHasLiked: z.boolean(),
-  author: z.object({
-    id: z.string(),
-    username: z.string(),
-    displayUsername: z.string().nullable(),
-    image: z.string().nullable(),
-    avatarUrl: z.string().nullable(),
-  }),
+  author: userSummarySchema,
 });
 
 const movieDetailRatingBreakdownBucketSchema = z.object({
-  ratingValueOutOfFive: z.number().int().min(1).max(5),
+  ratingValue: z.number().int().min(1).max(10),
   count: z.number().int().nonnegative(),
   percentage: z.number().int().min(0).max(100),
+});
+
+const similarMovieItemSchema = z.object({
+  tmdbId: z.number().int(),
+  title: z.string(),
+  posterPath: z.string().nullable(),
+  releaseYear: z.number().int().nullable(),
 });
 
 export const movieDetailResponseSchema = z.object({
@@ -140,9 +141,10 @@ export const movieDetailResponseSchema = z.object({
   reviews: z.array(movieDetailReviewSchema),
   ratingBreakdown: z.object({
     totalRatedReviews: z.number().int().nonnegative(),
-    averageRatingOutOfFive: z.number().nullable(),
+    averageRating: z.number().nullable(),
     buckets: z.array(movieDetailRatingBreakdownBucketSchema),
   }),
+  similar: z.array(similarMovieItemSchema),
 });
 
 export const movieArchiveResponseSchema = z.object({

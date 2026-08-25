@@ -7,19 +7,23 @@ import {
   sortOptions,
 } from "@/features/serials/components/serial-archive/constants";
 import { ArchiveLoadingMoreRow } from "@/features/serials/components/serial-archive/ArchiveLoadingMoreRow";
-import { ArchiveSkeletonGrid } from "@/features/serials/components/serial-archive/ArchiveSkeletonGrid";
-import { GridSeriesCard } from "@/features/serials/components/serial-archive/GridSeriesCard";
-import { SerialArchiveControls } from "@/features/serials/components/serial-archive/SerialArchiveControls";
+import { getPosterUrl } from "@/features/serials/components/utils";
 import {
-  type ArchiveRatingSource,
-  type OpenMenu,
-} from "@/features/serials/components/serial-archive/types";
-import { formatArchiveCount } from "@/features/serials/components/serial-archive/utils";
+  getCreatorYearLine,
+  getRating,
+  getSeriesStateLabel,
+  formatArchiveCount,
+} from "@/features/serials/components/serial-archive/utils";
+import { type ArchiveRatingSource } from "@/features/serials/components/serial-archive/types";
 import {
   type SerialArchivePeriod,
   type SerialArchiveSort,
 } from "@/features/serials/api";
 import { useSeriesArchive } from "@/features/serials/hooks/useSerials";
+import { ArchiveFilterControls } from "@/features/media-archive/components/ArchiveFilterControls";
+import { ArchiveMediaCard } from "@/features/media-archive/components/ArchiveMediaCard";
+import { ArchiveSkeletonGrid } from "@/features/media-archive/components/ArchiveSkeletonGrid";
+import type { ArchiveMenuKey } from "@/features/media-archive/types";
 
 export const SerialsArchivePage = () => {
   const [selectedGenre, setSelectedGenre] = useState("all");
@@ -28,9 +32,10 @@ export const SerialsArchivePage = () => {
     useState<SerialArchiveSort>("trending");
   const [selectedPeriod, setSelectedPeriod] =
     useState<SerialArchivePeriod>("this_year");
-  const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
+  const [openMenu, setOpenMenu] = useState<ArchiveMenuKey | null>(null);
 
   const controlsRef = useRef<HTMLDivElement | null>(null);
+  const [hasStaggeredInitialLoad, setHasStaggeredInitialLoad] = useState(false);
 
   const effectivePeriod = selectedSort === "trending" ? "all_time" : selectedPeriod;
   const isPeriodDisabled = selectedSort === "trending";
@@ -51,6 +56,26 @@ export const SerialsArchivePage = () => {
     () => (archivePages ? archivePages.flatMap((page) => page.items) : []),
     [archivePages],
   );
+
+  // Latches one frame after the first non-empty result set has painted, so
+  // that initial paint still renders with the stagger classes present; only
+  // "load more"/filter-change renders after this effect fires get skipped.
+  // Deferred via rAF (not set synchronously during render or in the effect
+  // body) — setting it synchronously would flip the flag before the very
+  // commit it's supposed to gate ever reaches the screen.
+  useEffect(() => {
+    if (hasStaggeredInitialLoad || archiveItems.length === 0) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      setHasStaggeredInitialLoad(true);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, [hasStaggeredInitialLoad, archiveItems.length]);
 
   const selectedSortLabel = useMemo(() => {
     return (
@@ -138,7 +163,7 @@ export const SerialsArchivePage = () => {
           </p>
         </div>
 
-        <SerialArchiveControls
+        <ArchiveFilterControls
           controlsRef={controlsRef}
           openMenu={openMenu}
           onBlurCapture={(event) => {
@@ -172,17 +197,21 @@ export const SerialsArchivePage = () => {
           isPeriodDisabled={isPeriodDisabled}
           availableGenres={firstPage?.availableGenres}
           archiveCountLabel={archiveCountLabel}
+          sortOptions={sortOptions}
+          periodOptions={periodOptions}
+          languageOptions={languageOptions}
           onSelectGenre={setSelectedGenre}
           onSelectSort={setSelectedSort}
           onSelectLanguage={setSelectedLanguage}
           onSelectPeriod={setSelectedPeriod}
+          moduleStyles={SERIAL_MODULE_STYLES}
         />
 
-        {archiveQuery.isPending ? <ArchiveSkeletonGrid /> : null}
+        {archiveQuery.isPending ? <ArchiveSkeletonGrid moduleStyles={SERIAL_MODULE_STYLES} /> : null}
 
         {archiveQuery.isError ? (
           <div
-            className="border p-4 font-mono text-xs"
+            className="rounded-xl border p-4 font-mono text-xs"
             style={{
               borderColor: SERIAL_MODULE_STYLES.border,
               color: SERIAL_MODULE_STYLES.muted,
@@ -197,7 +226,7 @@ export const SerialsArchivePage = () => {
         !archiveQuery.isError &&
         archiveItems.length === 0 ? (
           <div
-            className="border p-8 text-center font-mono text-xs"
+            className="rounded-xl border p-8 text-center font-mono text-xs"
             style={{
               borderColor: SERIAL_MODULE_STYLES.border,
               color: SERIAL_MODULE_STYLES.muted,
@@ -213,11 +242,25 @@ export const SerialsArchivePage = () => {
         archiveItems.length > 0 ? (
           <>
             <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-              {archiveItems.map((series) => (
-                <GridSeriesCard
+              {archiveItems.map((series, index) => (
+                <ArchiveMediaCard
                   key={`serial-archive-grid-${series.tmdbId}`}
-                  series={series}
+                  kind="serial"
+                  tmdbId={series.tmdbId}
+                  title={series.title}
+                  posterPath={series.posterPath}
+                  getPosterUrl={getPosterUrl}
+                  stateLabel={getSeriesStateLabel(series)}
+                  rating={getRating(series, archiveRatingSource)}
                   ratingSource={archiveRatingSource}
+                  moduleStyles={SERIAL_MODULE_STYLES}
+                  subtitlePrimary={getCreatorYearLine(series)}
+                  className={hasStaggeredInitialLoad ? undefined : "animate-fade-up"}
+                  style={
+                    hasStaggeredInitialLoad
+                      ? undefined
+                      : { animationDelay: `${Math.min(index * 40, 400)}ms` }
+                  }
                 />
               ))}
             </div>
@@ -227,7 +270,7 @@ export const SerialsArchivePage = () => {
                 <button
                   type="button"
                   disabled={isFetchingNextPage}
-                  className="border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-full border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                   style={{
                     borderColor: SERIAL_MODULE_STYLES.border,
                     color: SERIAL_MODULE_STYLES.muted,

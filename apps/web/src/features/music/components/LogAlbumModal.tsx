@@ -4,7 +4,7 @@ import { CalendarDays, Music, Rocket, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
-import { formatRatingOutOfFiveLabel } from "@/features/films/components/spaceRating.utils";
+import { formatRatingOutOfFiveLabel } from "@/lib/rating-five-point";
 import { isApiError } from "@/lib/api-client";
 import { useCreateMusicLog } from "@/features/music/hooks/useMusic";
 import { MUSIC_MODULE_STYLES } from "./music-detail/styles";
@@ -35,12 +35,21 @@ export const LogAlbumModal = ({
   const [relisten, setRelisten] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
+  // Reset the form fields whenever the modal transitions to open - adjusted
+  // during render (rather than in an effect) to avoid an extra commit.
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    if (isOpen) {
+      setListenedDate(todayAsDateInput());
+      setRatingOutOfFive(null);
+      setRelisten(false);
+      setFormError(null);
+    }
+  }
+
   useEffect(() => {
     if (!isOpen) return;
-    setListenedDate(todayAsDateInput());
-    setRatingOutOfFive(null);
-    setRelisten(false);
-    setFormError(null);
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";

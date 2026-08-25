@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { BookOpen, Check, Heart, Plus } from "lucide-react";
 import type { BookDetailResponse } from "@/features/books/api";
 import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
-import { formatRatingOutOfFiveLabel } from "@/features/films/components/spaceRating.utils";
+import { formatRatingOutOfFiveLabel } from "@/lib/rating-five-point";
 import { BOOK_MODULE_STYLES } from "@/features/books/components/books-detail/styles";
 
 type BookActionsSidebarProps = {

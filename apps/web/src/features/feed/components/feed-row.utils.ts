@@ -50,23 +50,50 @@ export const feedChannelMeta: Record<
   },
 };
 
+export type FeedMovieLink =
+  | { to: "/cinema/$tmdbId"; params: { tmdbId: string } }
+  | { to: "/serials/$tmdbId"; params: { tmdbId: string } }
+  | { to: "/music/$mbid"; params: { mbid: string } }
+  | { to: "/books/$volumeId"; params: { volumeId: string } };
+
+// Resolves the detail-page route/params for a FeedItem's attached media -
+// null when the media can't be linked to (e.g. missing id for its type).
+export const resolveFeedMovieLink = (
+  movie: NonNullable<FeedItem["movie"]>,
+): FeedMovieLink | null => {
+  if (movie.mediaType === "movie" && movie.tmdbId != null) {
+    return { to: "/cinema/$tmdbId", params: { tmdbId: String(movie.tmdbId) } };
+  }
+  if (movie.mediaType === "tv" && movie.tmdbId != null) {
+    return { to: "/serials/$tmdbId", params: { tmdbId: String(movie.tmdbId) } };
+  }
+  if (movie.mediaType === "album" && movie.mbid) {
+    return { to: "/music/$mbid", params: { mbid: movie.mbid } };
+  }
+  if (movie.mediaType === "book" && movie.volumeId) {
+    return { to: "/books/$volumeId", params: { volumeId: movie.volumeId } };
+  }
+  return null;
+};
+
 export const getRelativeTime = (value: string): string => {
   return formatRelativeTime(value);
 };
 
-export const getRatingOutOfFive = (ratingOutOfTen: number | null): number | null => {
-  if (ratingOutOfTen === null || Number.isNaN(ratingOutOfTen)) {
-    return null;
+// "S1E4" for an episode-scoped activity, "Season 1" for a season-scoped
+// one, or null for a plain series/movie-level activity.
+export const toSeasonEpisodeLabel = (item: FeedItem): string | null => {
+  const { seasonNumber, episodeNumber } = item.metadata;
+  if (episodeNumber != null && seasonNumber != null) {
+    return `S${seasonNumber}E${episodeNumber}`;
   }
-
-  const normalized = Math.max(0, Math.min(10, ratingOutOfTen));
-  return normalized / 2;
+  if (seasonNumber != null) {
+    return `Season ${seasonNumber}`;
+  }
+  return null;
 };
 
-export const getRoundedStars = (ratingOutOfFive: number | null): number => {
-  if (ratingOutOfFive === null) {
-    return 0;
-  }
-
-  return Math.max(0, Math.min(5, Math.round(ratingOutOfFive)));
-};
+// Used for quoted "replying to" snippets (the original review/post text),
+// which are shown truncated rather than in full.
+export const truncateQuote = (text: string, maxLength: number): string =>
+  text.length > maxLength ? `${text.slice(0, maxLength - 1).trimEnd()}…` : text;

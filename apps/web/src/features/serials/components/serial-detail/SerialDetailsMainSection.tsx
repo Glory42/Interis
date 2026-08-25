@@ -27,13 +27,13 @@ export const SerialDetailsMainSection = ({
   const lastAirDateLabel = toDateLabel(series.lastAirDate);
 
   const communityRatingLabel =
-    detail.ratingBreakdown.averageRatingOutOfFive !== null
-      ? detail.ratingBreakdown.averageRatingOutOfFive.toFixed(1)
+    detail.ratingBreakdown.averageRating !== null
+      ? detail.ratingBreakdown.averageRating.toFixed(1)
       : "--";
 
   const tmdbRatingLabel =
-    series.globalRatingOutOfTen !== null
-      ? series.globalRatingOutOfTen.toFixed(1)
+    series.globalRating !== null
+      ? series.globalRating.toFixed(1)
       : "--";
 
   const factRows = buildSerialFactRows(
@@ -57,7 +57,7 @@ export const SerialDetailsMainSection = ({
         {series.genres.slice(0, 3).map((genre) => (
           <span
             key={`serial-detail-genre-${genre.id}`}
-            className="border px-2 py-0.5 font-mono text-[9px]"
+            className="rounded-full border px-2 py-0.5 font-mono text-[9px]"
             style={{
               borderColor: SERIAL_MODULE_STYLES.border,
               color: SERIAL_MODULE_STYLES.muted,
@@ -173,7 +173,7 @@ export const SerialDetailsMainSection = ({
                 <PersonRouteLink
                   key={`series-cast-${castMember.tmdbPersonId}-${castMember.character ?? "cast"}`}
                   person={castMember}
-                  className="border px-2 py-1 font-mono text-[10px]"
+                  className="rounded-full border px-2 py-1 font-mono text-[10px]"
                   style={{
                     borderColor: SERIAL_MODULE_STYLES.border,
                     color: SERIAL_MODULE_STYLES.muted,
@@ -190,7 +190,7 @@ export const SerialDetailsMainSection = ({
             {series.cast.length > 5 ? (
               <button
                 type="button"
-                className="border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors"
+                className="rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors"
                 style={{
                   borderColor: SERIAL_MODULE_STYLES.border,
                   color: SERIAL_MODULE_STYLES.muted,

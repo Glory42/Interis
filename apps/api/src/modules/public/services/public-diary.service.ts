@@ -1,46 +1,6 @@
-import { and, desc, eq } from "drizzle-orm";
-import { db } from "../../../infrastructure/database/db";
 import { DiaryRepository } from "../../diary/repositories/diary.repository";
-import { reviews } from "../../reviews/reviews.entity";
-import { serialDiaryEntries, tvSeries } from "../../serials/serials.entity";
-import { musicDiaryEntries, albums } from "../../music/music.entity";
-import { bookDiaryEntries, books } from "../../books/books.entity";
-
-export type PublicDiaryItem = {
-  id: string;
-  mediaType: "movie" | "tv" | "album" | "book";
-  watchedDate: string;
-  ratingOutOfTen: number | null;
-  ratingOutOfFive: number | null;
-  rewatch: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  media: {
-    tmdbId?: number;
-    mbid?: string;
-    volumeId?: string;
-    title: string;
-    posterPath?: string | null;
-    coverArtUrl?: string | null;
-    releaseYear: number | null;
-    artistName?: string | null;
-    authors?: string[] | null;
-  };
-  review: {
-    id: string;
-    content: string;
-    containsSpoilers: boolean;
-    createdAt: Date;
-  } | null;
-};
-
-const toRatingOutOfFive = (ratingOutOfTen: number | null): number | null => {
-  if (ratingOutOfTen === null || !Number.isFinite(ratingOutOfTen)) {
-    return null;
-  }
-
-  return Number((ratingOutOfTen / 2).toFixed(1));
-};
+import { PublicRepository } from "../repositories/public.repository";
+import type { PublicDiaryItem } from "../dto/public.dto";
 
 const toTimestamp = (value: string | Date): number => {
   if (value instanceof Date) return value.getTime();
@@ -48,137 +8,136 @@ const toTimestamp = (value: string | Date): number => {
 };
 
 export class PublicDiaryService {
-  static async getDiary(userId: string, limit = 50): Promise<PublicDiaryItem[]> {
-    const [movieEntries, serialEntries, musicEntries, bookEntries] = await Promise.all([
-      DiaryRepository.findAllByUser(userId),
-      db
-        .select({
-          id: serialDiaryEntries.id,
-          watchedDate: serialDiaryEntries.watchedDate,
-          rating: serialDiaryEntries.rating,
-          rewatch: serialDiaryEntries.rewatch,
-          createdAt: serialDiaryEntries.createdAt,
-          updatedAt: serialDiaryEntries.updatedAt,
-          tmdbId: tvSeries.tmdbId,
-          title: tvSeries.title,
-          posterPath: tvSeries.posterPath,
-          releaseYear: tvSeries.firstAirYear,
-          reviewId: reviews.id,
-          reviewContent: reviews.content,
-          reviewContainsSpoilers: reviews.containsSpoilers,
-          reviewCreatedAt: reviews.createdAt,
-        })
-        .from(serialDiaryEntries)
-        .innerJoin(tvSeries, eq(tvSeries.id, serialDiaryEntries.seriesId))
-        .leftJoin(reviews, and(eq(reviews.userId, serialDiaryEntries.userId), eq(reviews.diaryEntryId, serialDiaryEntries.id), eq(reviews.mediaType, "tv")))
-        .where(eq(serialDiaryEntries.userId, userId))
-        .orderBy(desc(serialDiaryEntries.watchedDate), desc(serialDiaryEntries.createdAt)),
-      db
-        .select({
-          id: musicDiaryEntries.id,
-          listenedDate: musicDiaryEntries.listenedDate,
-          rating: musicDiaryEntries.rating,
-          relisten: musicDiaryEntries.relisten,
-          createdAt: musicDiaryEntries.createdAt,
-          updatedAt: musicDiaryEntries.updatedAt,
-          mbid: albums.mbid,
-          title: albums.title,
-          coverArtUrl: albums.coverArtUrl,
-          releaseYear: albums.firstReleaseYear,
-          artistName: albums.artistName,
-          reviewId: reviews.id,
-          reviewContent: reviews.content,
-          reviewContainsSpoilers: reviews.containsSpoilers,
-          reviewCreatedAt: reviews.createdAt,
-        })
-        .from(musicDiaryEntries)
-        .innerJoin(albums, eq(albums.id, musicDiaryEntries.albumId))
-        .leftJoin(reviews, and(eq(reviews.userId, musicDiaryEntries.userId), eq(reviews.diaryEntryId, musicDiaryEntries.id), eq(reviews.mediaType, "album")))
-        .where(eq(musicDiaryEntries.userId, userId))
-        .orderBy(desc(musicDiaryEntries.listenedDate), desc(musicDiaryEntries.createdAt)),
-      db
-        .select({
-          id: bookDiaryEntries.id,
-          readDate: bookDiaryEntries.readDate,
-          rating: bookDiaryEntries.rating,
-          reread: bookDiaryEntries.reread,
-          createdAt: bookDiaryEntries.createdAt,
-          updatedAt: bookDiaryEntries.updatedAt,
-          volumeId: books.googleVolumeId,
-          title: books.title,
-          coverImageUrl: books.coverImageUrl,
-          releaseYear: books.publishedYear,
-          authors: books.authors,
-          reviewId: reviews.id,
-          reviewContent: reviews.content,
-          reviewContainsSpoilers: reviews.containsSpoilers,
-          reviewCreatedAt: reviews.createdAt,
-        })
-        .from(bookDiaryEntries)
-        .innerJoin(books, eq(books.id, bookDiaryEntries.bookId))
-        .leftJoin(reviews, and(eq(reviews.userId, bookDiaryEntries.userId), eq(reviews.diaryEntryId, bookDiaryEntries.id), eq(reviews.mediaType, "book")))
-        .where(eq(bookDiaryEntries.userId, userId))
-        .orderBy(desc(bookDiaryEntries.readDate), desc(bookDiaryEntries.createdAt)),
+  static async getDiary(userId: string, limit = 50, offset = 0): Promise<PublicDiaryItem[]> {
+    // Fetch enough of each source to cover through offset+limit, then merge,
+    // sort, and slice the exact page - matches the pattern used for
+    // reviews/likes/watchlist (see UsersReviewsRepository.getReviewsWithMovies)
+    // since a global offset can't be pushed down independently to four
+    // separately-paginated tables ahead of the merge.
+    const fetchCap = limit + offset;
+
+    const [movieEntries, serialEntries, albumEntries, bookEntries] = await Promise.all([
+      DiaryRepository.findAllByUser(userId, fetchCap),
+      PublicRepository.findSerialDiaryEntriesByUser(userId, fetchCap),
+      PublicRepository.findAlbumDiaryEntriesByUser(userId, fetchCap),
+      PublicRepository.findBookDiaryEntriesByUser(userId, fetchCap),
     ]);
 
-    const normalizedMovies: PublicDiaryItem[] = movieEntries.map((e) => ({
-      id: e.id,
-      mediaType: "movie" as const,
-      watchedDate: e.watchedDate,
-      ratingOutOfTen: e.rating,
-      ratingOutOfFive: toRatingOutOfFive(e.rating),
-      rewatch: e.rewatch,
-      createdAt: e.createdAt,
-      updatedAt: e.updatedAt,
-      media: { tmdbId: e.movieTmdbId, title: e.movieTitle, posterPath: e.moviePosterPath, releaseYear: e.movieReleaseYear },
-      review: e.reviewId ? { id: e.reviewId, content: e.reviewContent ?? "", containsSpoilers: e.reviewContainsSpoilers ?? false, createdAt: e.reviewCreatedAt ?? e.createdAt } : null,
+    const normalizedMovieEntries: PublicDiaryItem[] = movieEntries.map((entry) => ({
+      id: entry.id,
+      mediaType: "movie",
+      watchedDate: entry.watchedDate,
+      rating: entry.rating,
+      rewatch: entry.rewatch,
+      createdAt: entry.createdAt,
+      updatedAt: entry.updatedAt,
+      media: {
+        tmdbId: entry.movieTmdbId,
+        title: entry.movieTitle,
+        posterPath: entry.moviePosterPath,
+        releaseYear: entry.movieReleaseYear,
+      },
+      review: entry.reviewId
+        ? {
+            id: entry.reviewId,
+            content: entry.reviewContent ?? "",
+            containsSpoilers: entry.reviewContainsSpoilers ?? false,
+            createdAt: entry.reviewCreatedAt ?? entry.createdAt,
+          }
+        : null,
     }));
 
-    const normalizedSerials: PublicDiaryItem[] = serialEntries.map((e) => ({
-      id: e.id,
-      mediaType: "tv" as const,
-      watchedDate: e.watchedDate,
-      ratingOutOfTen: e.rating,
-      ratingOutOfFive: toRatingOutOfFive(e.rating),
-      rewatch: e.rewatch,
-      createdAt: e.createdAt,
-      updatedAt: e.updatedAt,
-      media: { tmdbId: e.tmdbId, title: e.title, posterPath: e.posterPath, releaseYear: e.releaseYear },
-      review: e.reviewId ? { id: e.reviewId, content: e.reviewContent ?? "", containsSpoilers: e.reviewContainsSpoilers ?? false, createdAt: e.reviewCreatedAt ?? e.createdAt } : null,
+    const normalizedSerialEntries: PublicDiaryItem[] = serialEntries.map((entry) => ({
+      id: entry.id,
+      mediaType: "tv",
+      watchedDate: entry.watchedDate,
+      rating: entry.rating,
+      rewatch: entry.rewatch,
+      createdAt: entry.createdAt,
+      updatedAt: entry.updatedAt,
+      media: {
+        tmdbId: entry.tmdbId,
+        title: entry.title,
+        posterPath: entry.posterPath,
+        releaseYear: entry.releaseYear,
+      },
+      review: entry.reviewId
+        ? {
+            id: entry.reviewId,
+            content: entry.reviewContent ?? "",
+            containsSpoilers: entry.reviewContainsSpoilers ?? false,
+            createdAt: entry.reviewCreatedAt ?? entry.createdAt,
+          }
+        : null,
     }));
 
-    const normalizedMusic: PublicDiaryItem[] = musicEntries.map((e) => ({
-      id: e.id,
-      mediaType: "album" as const,
-      watchedDate: e.listenedDate,
-      ratingOutOfTen: e.rating,
-      ratingOutOfFive: toRatingOutOfFive(e.rating),
-      rewatch: e.relisten,
-      createdAt: e.createdAt,
-      updatedAt: e.updatedAt,
-      media: { mbid: e.mbid, title: e.title, coverArtUrl: e.coverArtUrl ?? null, releaseYear: e.releaseYear ?? null, artistName: e.artistName },
-      review: e.reviewId ? { id: e.reviewId, content: e.reviewContent ?? "", containsSpoilers: e.reviewContainsSpoilers ?? false, createdAt: e.reviewCreatedAt ?? e.createdAt } : null,
+    const normalizedAlbumEntries: PublicDiaryItem[] = albumEntries.map((entry) => ({
+      id: entry.id,
+      mediaType: "album",
+      watchedDate: entry.watchedDate,
+      rating: entry.rating,
+      rewatch: entry.rewatch,
+      createdAt: entry.createdAt,
+      updatedAt: entry.updatedAt,
+      media: {
+        tmdbId: null,
+        mbid: entry.mbid,
+        title: entry.title,
+        coverArtUrl: entry.coverArtUrl,
+        artistName: entry.artistName,
+        releaseYear: entry.releaseYear,
+      },
+      review: entry.reviewId
+        ? {
+            id: entry.reviewId,
+            content: entry.reviewContent ?? "",
+            containsSpoilers: entry.reviewContainsSpoilers ?? false,
+            createdAt: entry.reviewCreatedAt ?? entry.createdAt,
+          }
+        : null,
     }));
 
-    const normalizedBooks: PublicDiaryItem[] = bookEntries.map((e) => ({
-      id: e.id,
-      mediaType: "book" as const,
-      watchedDate: e.readDate,
-      ratingOutOfTen: e.rating,
-      ratingOutOfFive: toRatingOutOfFive(e.rating),
-      rewatch: e.reread,
-      createdAt: e.createdAt,
-      updatedAt: e.updatedAt,
-      media: { volumeId: e.volumeId, title: e.title, coverArtUrl: e.coverImageUrl ?? null, releaseYear: e.releaseYear ?? null, authors: (e.authors as string[] | null) ?? null },
-      review: e.reviewId ? { id: e.reviewId, content: e.reviewContent ?? "", containsSpoilers: e.reviewContainsSpoilers ?? false, createdAt: e.reviewCreatedAt ?? e.createdAt } : null,
+    const normalizedBookEntries: PublicDiaryItem[] = bookEntries.map((entry) => ({
+      id: entry.id,
+      mediaType: "book",
+      watchedDate: entry.watchedDate,
+      rating: entry.rating,
+      rewatch: entry.rewatch,
+      createdAt: entry.createdAt,
+      updatedAt: entry.updatedAt,
+      media: {
+        tmdbId: null,
+        volumeId: entry.volumeId,
+        title: entry.title,
+        coverArtUrl: entry.coverArtUrl,
+        authors: (entry.authors as string[] | null) ?? null,
+        releaseYear: entry.releaseYear,
+      },
+      review: entry.reviewId
+        ? {
+            id: entry.reviewId,
+            content: entry.reviewContent ?? "",
+            containsSpoilers: entry.reviewContainsSpoilers ?? false,
+            createdAt: entry.reviewCreatedAt ?? entry.createdAt,
+          }
+        : null,
     }));
 
-    return [...normalizedMovies, ...normalizedSerials, ...normalizedMusic, ...normalizedBooks]
-      .sort((a, b) => {
-        const delta = toTimestamp(b.watchedDate) - toTimestamp(a.watchedDate);
-        if (delta !== 0) return delta;
-        return toTimestamp(b.createdAt) - toTimestamp(a.createdAt);
+    return [
+      ...normalizedMovieEntries,
+      ...normalizedSerialEntries,
+      ...normalizedAlbumEntries,
+      ...normalizedBookEntries,
+    ]
+      .sort((left, right) => {
+        const watchedDateDelta = toTimestamp(right.watchedDate) - toTimestamp(left.watchedDate);
+
+        if (watchedDateDelta !== 0) {
+          return watchedDateDelta;
+        }
+
+        return toTimestamp(right.createdAt) - toTimestamp(left.createdAt);
       })
-      .slice(0, limit);
+      .slice(offset, offset + limit);
   }
 }

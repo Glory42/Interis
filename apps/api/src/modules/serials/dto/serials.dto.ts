@@ -7,7 +7,7 @@ import {
   DEFAULT_ARCHIVE_SORT,
   DEFAULT_DETAIL_REVIEWS_SORT,
   MAX_ARCHIVE_LIMIT,
-} from "../constants/serials.constants";
+} from "../../../commons/constants/archive.constants";
 
 export const SearchSerialsQuerySchema = z.object({
   query: z.string().trim().min(1),
@@ -28,7 +28,7 @@ export const SerialSeasonParamsSchema = z.object({
 
 export type SerialSeasonParams = z.input<typeof SerialSeasonParamsSchema>;
 
-export const serialArchiveSortValues = [
+const serialArchiveSortValues = [
   "trending",
   "first_air_desc",
   "first_air_asc",
@@ -40,7 +40,7 @@ export const serialArchiveSortValues = [
 
 export type SerialArchiveSort = (typeof serialArchiveSortValues)[number];
 
-export const serialArchivePeriodValues = [
+const serialArchivePeriodValues = [
   "all_time",
   "this_year",
   "last_10_years",
@@ -50,7 +50,7 @@ export const serialArchivePeriodValues = [
 
 export type SerialArchivePeriod = (typeof serialArchivePeriodValues)[number];
 
-export const serialDetailReviewSortValues = ["popular", "recent"] as const;
+const serialDetailReviewSortValues = ["popular", "recent"] as const;
 
 export type SerialDetailReviewSort = (typeof serialDetailReviewSortValues)[number];
 
@@ -202,23 +202,25 @@ export const UpdateSerialInteractionSchema = z
   .object({
     liked: z.boolean().optional(),
     watchlisted: z.boolean().optional(),
-    ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+    rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
+    watched: z.boolean().optional(),
   })
   .refine(
     (payload) =>
       payload.liked !== undefined ||
       payload.watchlisted !== undefined ||
-      payload.ratingOutOfFive !== undefined,
+      payload.rating !== undefined ||
+      payload.watched !== undefined,
     {
-      message: "At least one of liked, watchlisted, or ratingOutOfFive must be provided",
+      message: "At least one of liked, watchlisted, rating, or watched must be provided",
     },
   );
 
-const ratingOutOfFiveSchema = z.number().min(0.5).max(5).multipleOf(0.5);
+const ratingSchema = z.number().min(0.5).max(10).multipleOf(0.5);
 
 export const CreateSerialLogSchema = z.object({
   watchedDate: isoDateSchema,
-  ratingOutOfFive: ratingOutOfFiveSchema.optional(),
+  rating: ratingSchema.optional(),
   rewatch: z.boolean().optional(),
   review: z.string().max(5000).optional(),
   containsSpoilers: z.boolean().optional(),
@@ -226,10 +228,59 @@ export const CreateSerialLogSchema = z.object({
 
 export const UpdateSerialLogSchema = z.object({
   watchedDate: isoDateSchema.optional(),
-  ratingOutOfFive: z.number().min(0.5).max(5).multipleOf(0.5).nullable().optional(),
+  rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
   rewatch: z.boolean().optional(),
 });
 
 export type UpdateSerialInteractionDto = z.infer<typeof UpdateSerialInteractionSchema>;
 export type CreateSerialLogDto = z.infer<typeof CreateSerialLogSchema>;
 export type UpdateSerialLogDto = z.infer<typeof UpdateSerialLogSchema>;
+
+const DEFAULT_LOGS_LIMIT = 50;
+
+export const SerialLogsQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+});
+
+export type SerialLogsQuery = z.input<typeof SerialLogsQuerySchema>;
+
+// Always returns a bounded limit/offset (even with no query params) so the
+// serials logs endpoints (a viewer's own diary, and everyone's logs for a
+// given series) never fetch an entire unbounded collection in one request.
+export const normalizeSerialLogsQuery = (
+  input: unknown,
+): { limit: number; offset: number } => {
+  const parsed = SerialLogsQuerySchema.safeParse(input);
+  if (!parsed.success) {
+    return { limit: DEFAULT_LOGS_LIMIT, offset: 0 };
+  }
+
+  return {
+    limit: parsed.data.limit ?? DEFAULT_LOGS_LIMIT,
+    offset: parsed.data.offset ?? 0,
+  };
+};
+
+export const SerialEpisodeParamsSchema = z.object({
+  tmdbId: z.string(),
+  seasonNumber: z.coerce.number().int().min(0),
+  episodeNumber: z.coerce.number().int().min(1),
+});
+
+export type SerialEpisodeParams = z.input<typeof SerialEpisodeParamsSchema>;
+
+export const UpdateSeasonInteractionSchema = z.object({
+  watched: z.boolean().optional(),
+  liked: z.boolean().optional(),
+  rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
+});
+
+export type UpdateSeasonInteractionDto = z.infer<typeof UpdateSeasonInteractionSchema>;
+
+export const SeasonReviewInputSchema = z.object({
+  content: z.string().min(1).max(10000),
+  containsSpoilers: z.boolean().optional(),
+});
+
+export type SeasonReviewInputDto = z.infer<typeof SeasonReviewInputSchema>;

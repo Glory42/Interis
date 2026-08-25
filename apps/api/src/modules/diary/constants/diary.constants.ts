@@ -1,1 +1,0 @@
-export const DIARY_REVIEW_EXCERPT_LENGTH = 120;

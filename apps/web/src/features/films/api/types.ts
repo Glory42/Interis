@@ -19,9 +19,7 @@ export type ArchiveMovie = z.infer<typeof archiveMovieSchema>;
 export type MovieArchiveResponse = z.infer<typeof movieArchiveResponseSchema>;
 export type MovieDetailResponse = z.infer<typeof movieDetailResponseSchema>;
 
-export type QueryRequestOptions = {
-  signal?: AbortSignal;
-};
+export type { QueryRequestOptions } from "@/lib/api-client";
 
 export type MovieArchiveInput = {
   genre?: string;

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { asyncHandler } from "../../commons/utils/asyncHandler";
 import { requireAuth } from "../../commons/middlewares/requireAuth";
 import { SerialsController } from "./serials.controller";
+import { SerialsTrackingController } from "./serials-tracking.controller";
 
 const router = Router();
 
@@ -17,6 +18,46 @@ router.get("/:tmdbId/logs", asyncHandler(SerialsController.getLogsByTmdbId));
 router.get(
   "/:tmdbId/seasons/:seasonNumber",
   asyncHandler(SerialsController.getSeasonByTmdbId),
+);
+router.put(
+  "/:tmdbId/seasons/:seasonNumber/interaction",
+  requireAuth,
+  asyncHandler(SerialsTrackingController.updateSeasonInteraction),
+);
+router.put(
+  "/:tmdbId/seasons/:seasonNumber/episodes/:episodeNumber/interaction",
+  requireAuth,
+  asyncHandler(SerialsTrackingController.updateEpisodeInteraction),
+);
+router.get(
+  "/:tmdbId/seasons/:seasonNumber/review",
+  requireAuth,
+  asyncHandler(SerialsTrackingController.getSeasonReview),
+);
+router.post(
+  "/:tmdbId/seasons/:seasonNumber/review",
+  requireAuth,
+  asyncHandler(SerialsTrackingController.upsertSeasonReview),
+);
+router.delete(
+  "/:tmdbId/seasons/:seasonNumber/review",
+  requireAuth,
+  asyncHandler(SerialsTrackingController.deleteSeasonReview),
+);
+router.get(
+  "/:tmdbId/seasons/:seasonNumber/episodes/:episodeNumber/review",
+  requireAuth,
+  asyncHandler(SerialsTrackingController.getEpisodeReview),
+);
+router.post(
+  "/:tmdbId/seasons/:seasonNumber/episodes/:episodeNumber/review",
+  requireAuth,
+  asyncHandler(SerialsTrackingController.upsertEpisodeReview),
+);
+router.delete(
+  "/:tmdbId/seasons/:seasonNumber/episodes/:episodeNumber/review",
+  requireAuth,
+  asyncHandler(SerialsTrackingController.deleteEpisodeReview),
 );
 router.get(
   "/:tmdbId/interaction",

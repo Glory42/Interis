@@ -41,9 +41,7 @@ describe("auth session lifecycle", () => {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        name: "anonymous",
         username: "anonymous",
-        displayUsername: "anonymous",
         email: `reserved-${Date.now()}@example.com`,
         password: "password1234",
       }),
@@ -52,7 +50,7 @@ describe("auth session lifecycle", () => {
     expect(response.status).toBe(400);
   });
 
-  it("keeps auth valid with duplicate session_token cookies and clears on sign-out", async () => {
+  it("keeps auth valid with duplicate access-token cookies and clears on sign-out", async () => {
     const credentials = buildAuthCredentials("auth");
     const jar = createCookieJar();
 
@@ -67,6 +65,15 @@ describe("auth session lifecycle", () => {
       jar,
     );
     expect(signUpResponse.ok).toBe(true);
+
+    const initialMeResponse = await apiRequest(getServer().baseUrl, "/api/users/me", {}, jar);
+    expect(initialMeResponse.status).toBe(200);
+
+    const accessCookieName = "interis_access_token";
+    const staleToken = jar.get(accessCookieName);
+    if (!staleToken) {
+      throw new Error("Access token cookie not found");
+    }
 
     const signInResponse = await apiRequest(
       getServer().baseUrl,
@@ -83,50 +90,15 @@ describe("auth session lifecycle", () => {
     );
     expect(signInResponse.ok).toBe(true);
 
-    const initialMeResponse = await apiRequest(getServer().baseUrl, "/api/users/me", {}, jar);
-    expect(initialMeResponse.status).toBe(200);
-
-    const sessionCookieName = [...jar.keys()].find((cookieName) =>
-      cookieName.endsWith("session_token"),
-    );
-    if (!sessionCookieName) {
-      throw new Error("Session token cookie not found");
-    }
-
-    const staleToken = jar.get(sessionCookieName);
-    if (!staleToken) {
-      throw new Error("Signed stale token not found");
-    }
-
-    const firstSignOut = await apiRequest(
-      getServer().baseUrl,
-      "/api/auth/sign-out",
-      { method: "POST" },
-      jar,
-    );
-    expect(firstSignOut.ok).toBe(true);
-
-    const secondSignIn = await apiRequest(
-      getServer().baseUrl,
-      "/api/auth/sign-in/email",
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          email: credentials.email,
-          password: credentials.password,
-        }),
-      },
-      jar,
-    );
-    expect(secondSignIn.ok).toBe(true);
-
-    const freshToken = jar.get(sessionCookieName);
+    const freshToken = jar.get(accessCookieName);
     if (!freshToken) {
-      throw new Error("Signed fresh token not found");
+      throw new Error("Fresh access token cookie not found");
     }
+    expect(freshToken).not.toBe(staleToken);
 
-    const duplicateCookieHeader = `${sessionCookieName}=${staleToken}; ${sessionCookieName}=${freshToken}`;
+    // A duplicate Cookie header (same name twice) should resolve to the last
+    // occurrence — matches parseCookie's precedence.
+    const duplicateCookieHeader = `${accessCookieName}=garbage; ${accessCookieName}=${freshToken}`;
     const duplicateCookieResponse = await apiRequest(getServer().baseUrl, "/api/users/me", {
       headers: {
         cookie: duplicateCookieHeader,

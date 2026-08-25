@@ -20,6 +20,7 @@ export const PostActivityDialogHeader = ({
       <button
         type="button"
         onClick={onClose}
+        aria-label="Close post dialog"
         className="inline-flex h-7 w-7 items-center justify-center border border-border/70 text-muted-foreground transition-colors hover:text-foreground"
       >
         <X className="h-4 w-4" />

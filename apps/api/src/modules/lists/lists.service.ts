@@ -5,11 +5,21 @@ import { ListsWriteService } from "./services/lists-write.service";
 export class ListsService {
   static async getUserLists(
     userId: string,
-    publicOnly: boolean,
+    viewerUserId: string | null | undefined,
     checkTmdbId?: number,
     checkItemType?: string,
+    limit?: number,
+    offset?: number,
   ) {
-    return ListsReadService.getUserLists(userId, publicOnly, checkTmdbId, checkItemType);
+    const publicOnly = viewerUserId !== userId;
+    return ListsReadService.getUserLists(
+      userId,
+      publicOnly,
+      checkTmdbId,
+      checkItemType,
+      limit,
+      offset,
+    );
   }
 
   static async getListDetail(listId: string, viewerUserId: string | null) {
@@ -55,5 +65,13 @@ export class ListsService {
 
   static async unlikeList(listId: string, userId: string) {
     return ListsWriteService.unlikeList(listId, userId);
+  }
+
+  static async listAllForAdmin(filters: { userId?: string }, limit: number, offset: number) {
+    return ListsReadService.listAllForAdmin(filters, limit, offset);
+  }
+
+  static async deleteForAdmin(listId: string) {
+    return ListsWriteService.deleteForAdmin(listId);
   }
 }

@@ -4,7 +4,7 @@ Express 5 + TypeScript API for Interis.
 
 ## What this service does
 
-- Authentication/session handling with Better Auth
+- Authentication/session handling (in-house: JWT access + rotating refresh tokens, argon2id via `Bun.password`)
 - Movie, TV series, and people data orchestration (TMDB + local cache)
 - Diary logging, reviews, comments, likes, follows
 - Social feed and profile APIs
@@ -19,7 +19,7 @@ Express 5 + TypeScript API for Interis.
 | Framework | Express 5 |
 | Database | PostgreSQL (Neon) |
 | ORM | Drizzle ORM |
-| Auth | Better Auth |
+| Auth | In-house (JWT + `Bun.password`) |
 | Validation | Zod |
 | Logging | Pino |
 | Storage | Cloudflare R2 (S3-compatible) |
@@ -41,8 +41,7 @@ Create `backend/.env`:
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `DATABASE_URL` | yes | PostgreSQL connection string |
-| `BETTER_AUTH_URL` | yes | Backend public base URL (ex: `http://localhost:5000`) |
-| `BETTER_AUTH_SECRET` | yes | Better Auth signing/encryption secret |
+| `JWT_ACCESS_SECRET` | yes | 32+ chars, signs/verifies access tokens |
 | `TMDB_ACCESS_TOKEN` | yes | TMDB Bearer token |
 | `CORS_ORIGIN` | yes | Frontend origin (ex: `http://localhost:5173`) |
 | `PORT` | no | Express port (default `5000`) |
@@ -99,7 +98,6 @@ backend/
     │   ├── validation/             # shared Zod schemas (tmdbId, isoDate)
     │   └── types/                  # Express Request augmentation
     ├── infrastructure/
-    │   ├── auth/                   # Better Auth config + database hooks
     │   ├── database/               # db client + entity definitions
     │   ├── r2/                     # upload signing/deletion helpers
     │   └── tmdb/                   # TMDB client + DTO parsers
@@ -122,7 +120,7 @@ backend/
 
 | Prefix | Auth | Purpose |
 | --- | --- | --- |
-| `/api/auth/*` | mixed | Better Auth endpoints |
+| `/api/auth/*` | mixed | In-house auth: signup/login/logout, password reset, security question |
 | `/api/movies/*` | public | Search, detail, archive, logs, trending |
 | `/api/serials/*` | public | TV series search, detail, archive |
 | `/api/people/*` | public | Director/actor pages |
@@ -165,7 +163,7 @@ constants/               -> Magic values, defaults, enums
 - **Zod validation + normalization**: DTO/query schemas validate and normalize request input (defaulting/clamping in DTO layer)
 - **Async handler wrapper**: All route handlers wrapped with `asyncHandler()` for error propagation
 - **Viewer-aware responses**: Optional `resolveViewerUserIdFromHeaders` for personalizing public responses
-- **In-memory caching**: TMDB client uses Map-based caches with TTL and in-flight request deduplication
+- **In-memory caching**: TMDB client uses Map-based caches with TTL and in-flight request deduplication via the shared `createCachedTmdbFetcher` helper (`infrastructure/tmdb/tmdb-cache.helper.ts`) — wrap any new per-id TMDB read with it rather than writing a bespoke cache
 - **Factory pattern**: `createApp()` for testable server creation
 - **FK order in schema**: `entities.ts` exports in dependency order to satisfy FK references
 - **Architecture guardrails**: `lint:arch` blocks cross-layer imports (controller->repository, dto->service/repository, etc.) and oversized module files
@@ -184,4 +182,4 @@ Tests use `bun:test` and spin up a real Express server on a random port for inte
 - Session-based auth relies on cookies; frontend requests must use `credentials: include`.
 - Public endpoints are intentionally rate-limited to protect backend resources.
 - Username policy enforces 3-20 chars, lowercase alphanumeric + underscore, with a reserved list.
-- Supported themes: rose-pine, null-log, gruvbox.
+- Supported themes: rose-pine, null-log, tokyo-night, amoled.

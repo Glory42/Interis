@@ -1,14 +1,15 @@
-import { apiRequest } from "@/lib/api-client";
+import { apiRequest, type QueryRequestOptions } from "@/lib/api-client";
 import {
-  feedListSchema,
+  feedPageSchema,
   meFeedSummarySchema,
   networkStatsSchema,
   trendingMovieListSchema,
-  type FeedItem,
+  type FeedPage,
   type MeFeedSummary,
   type NetworkStats,
   type TrendingMovie,
 } from "@/features/feed/types";
+import type { MediaType } from "@/types/api";
 
 const normalizeLimit = (limit: number, fallback: number): number => {
   if (!Number.isFinite(limit)) {
@@ -18,34 +19,42 @@ const normalizeLimit = (limit: number, fallback: number): number => {
   return Math.max(1, Math.min(Math.floor(limit), 300));
 };
 
-type QueryRequestOptions = {
-  signal?: AbortSignal;
-};
+export type FeedMediaTypeFilter = MediaType;
 
 export const getFollowingFeed = async (
   limit = 20,
+  cursor?: string,
+  mediaType?: FeedMediaTypeFilter,
   options: QueryRequestOptions = {},
-): Promise<FeedItem[]> => {
+): Promise<FeedPage> => {
+  const params = new URLSearchParams({ limit: String(normalizeLimit(limit, 20)) });
+  if (cursor) {
+    params.set("cursor", cursor);
+  }
+  if (mediaType) {
+    params.set("mediaType", mediaType);
+  }
+
   const response = await apiRequest<unknown>(
-    `/api/social/feed/following?limit=${normalizeLimit(limit, 20)}`,
+    `/api/social/feed/following?${params.toString()}`,
     {
       method: "GET",
       signal: options.signal,
     },
   );
 
-  return feedListSchema.parse(response);
+  return feedPageSchema.parse(response);
 };
 
 export const getTrendingMovies = async (
-  options: QueryRequestOptions = {},
+  options: QueryRequestOptions & { limit?: number } = {},
 ): Promise<TrendingMovie[]> => {
   const response = await apiRequest<unknown>("/api/movies/trending", {
     method: "GET",
     signal: options.signal,
   });
 
-  return trendingMovieListSchema.parse(response).slice(0, 3);
+  return trendingMovieListSchema.parse(response).slice(0, options.limit ?? 3);
 };
 
 export const getMyFeedSummary = async (

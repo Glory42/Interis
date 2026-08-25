@@ -6,6 +6,7 @@ import { CinemaDetailsMainSection } from "@/features/films/components/cinema-det
 import { CinemaDetailStatusPanel } from "@/features/films/components/cinema-detail/CinemaDetailStatusPanel";
 import { CinemaDetailTopBar } from "@/features/films/components/cinema-detail/CinemaDetailTopBar";
 import { CinemaReviewsSection } from "@/features/films/components/cinema-detail/CinemaReviewsSection";
+import { CinemaSimilarSection } from "@/features/films/components/cinema-detail/CinemaSimilarSection";
 import { useMovieDetailView } from "@/features/films/hooks/useMovies";
 import {
   useMovieInteraction,
@@ -47,9 +48,11 @@ export function CinemaDetailPage({ tmdbId }: CinemaDetailPageProps) {
 
   const watchlisted = interactionQuery.data?.watchlisted ?? false;
   const liked = interactionQuery.data?.liked ?? false;
-  const interactionRatingOutOfFive = interactionQuery.data?.ratingOutOfFive ?? null;
-  const currentRatingOutOfFive =
-    interactionRatingOutOfFive ?? detail.userRating?.ratingOutOfFive ?? null;
+  const watched = interactionQuery.data?.watched ?? false;
+  const interactionRating = interactionQuery.data?.rating ?? null;
+  const currentRating =
+    interactionRating ?? detail.userRating?.rating ?? null;
+  const isInteractionLoading = Boolean(user) && interactionQuery.isLoading;
   const isInteractionBusy =
     interactionQuery.isPending || updateInteractionMutation.isPending;
 
@@ -61,13 +64,17 @@ export function CinemaDetailPage({ tmdbId }: CinemaDetailPageProps) {
     void updateInteractionMutation.mutateAsync({ liked: !liked });
   };
 
-  const handleRatingChange = (nextRatingOutOfFive: number | null) => {
-    if (!user || nextRatingOutOfFive === currentRatingOutOfFive) {
+  const handleToggleWatched = () => {
+    void updateInteractionMutation.mutateAsync({ watched: !watched });
+  };
+
+  const handleRatingChange = (nextRating: number | null) => {
+    if (!user || nextRating === currentRating) {
       return;
     }
 
     void updateInteractionMutation.mutateAsync({
-      ratingOutOfFive: nextRatingOutOfFive,
+      rating: nextRating,
     });
   };
 
@@ -79,15 +86,18 @@ export function CinemaDetailPage({ tmdbId }: CinemaDetailPageProps) {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-[220px_1fr]">
           <CinemaActionsSidebar
             detail={detail}
-            currentRatingOutOfFive={currentRatingOutOfFive}
+            currentRating={currentRating}
             isRatingSaving={updateInteractionMutation.isPending}
             onRatingChange={handleRatingChange}
             isAuthenticated={Boolean(user)}
             watchlisted={watchlisted}
             liked={liked}
+            watched={watched}
             isInteractionBusy={isInteractionBusy}
+            isInteractionLoading={isInteractionLoading}
             onToggleWatchlist={handleToggleWatchlist}
             onToggleLike={handleToggleLike}
+            onToggleWatched={handleToggleWatched}
           />
 
           <CinemaDetailsMainSection detail={detail} />
@@ -98,6 +108,8 @@ export function CinemaDetailPage({ tmdbId }: CinemaDetailPageProps) {
           onSortChange={setReviewsSort}
           reviews={detail.reviews}
         />
+
+        <CinemaSimilarSection similar={detail.similar} />
       </main>
     </div>
   );

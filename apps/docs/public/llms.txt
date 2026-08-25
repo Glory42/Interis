@@ -1,0 +1,52 @@
+# Interis Public API
+
+> A small, read-only, username-based public API for pulling a user's public Interis data (a Letterboxd-style movie/TV journal app) into portfolio widgets, favorites sections, review panels, and diary/watchlist embeds.
+
+Base URL: `https://api.interis.gorkemkaryol.dev/api/public`
+
+There is no auth token flow. Every request is shaped as `GET /api/public/:username/<endpoint>`. All endpoints are `GET` only.
+
+## Getting started
+
+- [Getting Started](https://docs.interis.gorkemkaryol.dev/): first request walkthrough, endpoint map, auth model, CORS notes
+- [API Overview](https://docs.interis.gorkemkaryol.dev/api/overview/): full endpoint table with default/max limits, response conventions, rate limiting summary, data visibility notes
+
+## Endpoints
+
+- [Profile](https://docs.interis.gorkemkaryol.dev/api/endpoints/profile/): `GET /:username/profile` — profile summary + stats. No limit param.
+- [Top 4](https://docs.interis.gorkemkaryol.dev/api/endpoints/top4/): `GET /:username/top4` — top picks grouped by `cinema`/`serial` category.
+- [Recent](https://docs.interis.gorkemkaryol.dev/api/endpoints/recent/): `GET /:username/recent?limit=10` (max 20) — compact activity feed.
+- [Activity](https://docs.interis.gorkemkaryol.dev/api/endpoints/activity/): `GET /:username/activity?limit=30` (max 100) — same `FeedItem[]` shape as recent, larger default/max.
+- [Reviews](https://docs.interis.gorkemkaryol.dev/api/endpoints/reviews/): `GET /:username/reviews?limit=50` (max 200) — movie + TV reviews.
+- [Lists](https://docs.interis.gorkemkaryol.dev/api/endpoints/lists/): `GET /:username/lists?limit=50` (max 200) — public (`isPublic=true`) lists only, with ordered items.
+- [Likes](https://docs.interis.gorkemkaryol.dev/api/endpoints/likes/): `GET /:username/likes?limit=50` (max 200) — liked movie + TV media.
+- [Watchlist](https://docs.interis.gorkemkaryol.dev/api/endpoints/watchlist/): `GET /:username/watchlist?limit=50` (max 200) — watchlisted movie + TV media.
+- [Diary](https://docs.interis.gorkemkaryol.dev/api/endpoints/diary/): `GET /:username/diary?limit=50` (max 200) — movie + TV diary log entries, merged and sorted by watched date.
+- [Movies Watched](https://docs.interis.gorkemkaryol.dev/api/endpoints/movies-watched/): `GET /:username/movies/watched?limit=50` (max 200) — watched movies, film-only (unlike likes/watchlist, does not mix in TV).
+- [Serials Progress](https://docs.interis.gorkemkaryol.dev/api/endpoints/serials-progress/): `GET /:username/serials/:tmdbId` — full watch progress for one specific TV series (season-by-season interaction, ratings/likes/review counts, "up next" episode).
+- [Serials Currently Watching](https://docs.interis.gorkemkaryol.dev/api/endpoints/serials-currently-watching/): `GET /:username/serials/currently-watching?limit=10` (max 30) — series started but not finished, most recently watched first, with `progressPercent` and the "up next" episode. Excludes series explicitly marked fully watched.
+- [Serials Watched](https://docs.interis.gorkemkaryol.dev/api/endpoints/serials-watched/): `GET /:username/serials/watched?limit=50` (max 200) — fully watched series, series-only. Reflects the explicit series-level "watched" flag, not derived from per-episode completion.
+
+## Reference
+
+- [Data Shapes](https://docs.interis.gorkemkaryol.dev/reference/data-shapes/): shared field-level shape notes for every endpoint's response.
+- [Errors & Empty States](https://docs.interis.gorkemkaryol.dev/reference/errors-and-empty-states/): status code table (200/404/429/500) and per-endpoint empty-state behavior (`[]` for list endpoints).
+- [Rate Limits](https://docs.interis.gorkemkaryol.dev/reference/rate-limits/): 60 requests/min per IP across all public endpoints combined. `Cache-Control: public, max-age=60, stale-while-revalidate=120` on every successful response.
+- [FAQ](https://docs.interis.gorkemkaryol.dev/reference/faq/): common questions — no auth tokens, CORS allow-list behavior, recent vs. activity, movie+TV mixing in likes/watchlist, no pagination beyond `limit`.
+- [Future Notes](https://docs.interis.gorkemkaryol.dev/reference/future-notes/): current boundaries (no cursor pagination yet, no auth tokens) and unshipped ideas — not currently available.
+
+## Examples
+
+- [cURL](https://docs.interis.gorkemkaryol.dev/examples/curl/): copy-paste curl command per endpoint.
+- [JavaScript / fetch](https://docs.interis.gorkemkaryol.dev/examples/javascript-fetch/): reusable fetch helper + usage patterns.
+- [Portfolio Widget](https://docs.interis.gorkemkaryol.dev/examples/portfolio-widget/): profile + top4 combined into one widget.
+- [Recent Reviews Panel](https://docs.interis.gorkemkaryol.dev/examples/recent-reviews-panel/): combining recent + reviews for a review-focused sidebar.
+- [Top 4 Favorites](https://docs.interis.gorkemkaryol.dev/examples/top4-favorites/): rendering top4 into separate film/series sections.
+
+## Notes for AI/agent consumers
+
+- Query limits are normalized, not rejected: missing/invalid/non-positive `limit` falls back to the endpoint default; values are floored and clamped to the endpoint max. There is no error response for a bad `limit`.
+- List-shaped endpoints (`recent`, `activity`, `reviews`, `lists`, `likes`, `watchlist`, `diary`, `movies/watched`, `serials/currently-watching`, `serials/watched`) return `[]` when empty, not `404` or `null`.
+- `profile` and `top4` are the only endpoints without a `limit` param.
+- `likes`/`watchlist`/`diary`/`reviews` mix movie + TV rows together. `movies/watched` and `serials/watched` are each restricted to one media type.
+- No cursor/offset pagination exists on any public endpoint yet — `limit` only.

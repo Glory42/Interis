@@ -3,6 +3,7 @@ import {
   getOriginFromReferer,
   isTrustedOrigin,
 } from "../../infrastructure/config/origins";
+import { sendForbidden } from "../http/validation-response.helper";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
@@ -36,7 +37,7 @@ export const requireTrustedOriginForMutations = (
     }
 
     if (!isTrustedOrigin(origin, trustedOrigins)) {
-      res.status(403).json({ error: "Invalid origin" });
+      sendForbidden(res, "Invalid origin");
       return;
     }
 

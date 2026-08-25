@@ -1,6 +1,21 @@
 import { asc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
-import { serialDiaryEntries, tvSeries } from "../serials.entity";
+import { serialDiaryEntries, serialInteractions, tvSeries } from "../serials.entity";
+import {
+  buildCommunityRatingAggregateSql,
+  type CommunityRatingAggregateSource,
+} from "../../media/helpers/media-community-rating.helper";
+
+const SERIAL_COMMUNITY_RATING_SOURCE: CommunityRatingAggregateSource = {
+  diaryTableName: "serial_diary_entry",
+  diaryEntityIdColumn: serialDiaryEntries.seriesId,
+  diaryRatingColumn: serialDiaryEntries.rating,
+  diaryUserIdColumn: serialDiaryEntries.userId,
+  interactionTableName: "serial_interaction",
+  interactionEntityIdColumn: serialInteractions.seriesId,
+  interactionRatingColumn: serialInteractions.rating,
+  interactionUserIdColumn: serialInteractions.userId,
+};
 
 export class SerialsArchiveRepository {
   static async getLocalArchiveAggregateRowsByTmdbIds(tmdbIds: number[]) {
@@ -8,6 +23,11 @@ export class SerialsArchiveRepository {
     if (uniqueTmdbIds.length === 0) {
       return [];
     }
+
+    const communityRating = buildCommunityRatingAggregateSql(
+      SERIAL_COMMUNITY_RATING_SOURCE,
+      tvSeries.id,
+    );
 
     return db
       .select({
@@ -18,13 +38,10 @@ export class SerialsArchiveRepository {
         network: tvSeries.network,
         languageCode: tvSeries.languageCode,
         genres: tvSeries.genres,
+        numberOfEpisodes: tvSeries.numberOfEpisodes,
         logCount: sql<number>`count(${serialDiaryEntries.id})::int`.as("logCount"),
-        avgRatingOutOfTen:
-          sql<number | null>`avg(${serialDiaryEntries.rating})::double precision`.as(
-            "avgRatingOutOfTen",
-          ),
-        ratedLogCount:
-          sql<number>`count(${serialDiaryEntries.rating})::int`.as("ratedLogCount"),
+        avgRatingOutOfTen: communityRating.avgRatingOutOfTen.as("avgRatingOutOfTen"),
+        ratedLogCount: communityRating.ratedLogCount.as("ratedLogCount"),
       })
       .from(tvSeries)
       .leftJoin(serialDiaryEntries, eq(serialDiaryEntries.seriesId, tvSeries.id))
@@ -33,6 +50,11 @@ export class SerialsArchiveRepository {
   }
 
   static async getLocalArchiveRows() {
+    const communityRating = buildCommunityRatingAggregateSql(
+      SERIAL_COMMUNITY_RATING_SOURCE,
+      tvSeries.id,
+    );
+
     return db
       .select({
         tmdbId: tvSeries.tmdbId,
@@ -45,13 +67,10 @@ export class SerialsArchiveRepository {
         network: tvSeries.network,
         languageCode: tvSeries.languageCode,
         genres: tvSeries.genres,
+        numberOfEpisodes: tvSeries.numberOfEpisodes,
         logCount: sql<number>`count(${serialDiaryEntries.id})::int`.as("logCount"),
-        avgRatingOutOfTen:
-          sql<number | null>`avg(${serialDiaryEntries.rating})::double precision`.as(
-            "avgRatingOutOfTen",
-          ),
-        ratedLogCount:
-          sql<number>`count(${serialDiaryEntries.rating})::int`.as("ratedLogCount"),
+        avgRatingOutOfTen: communityRating.avgRatingOutOfTen.as("avgRatingOutOfTen"),
+        ratedLogCount: communityRating.ratedLogCount.as("ratedLogCount"),
       })
       .from(tvSeries)
       .leftJoin(serialDiaryEntries, eq(serialDiaryEntries.seriesId, tvSeries.id))
@@ -59,7 +78,4 @@ export class SerialsArchiveRepository {
       .orderBy(asc(tvSeries.title));
   }
 
-  static async getCachedArchiveRows() {
-    return SerialsArchiveRepository.getLocalArchiveRows();
-  }
 }

@@ -1,6 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { getPosterUrl } from "@/features/films/components/utils";
+import { formatDateOnlyLabel } from "@/lib/time";
+import { formatRatingLabel } from "@/lib/rating";
 import type { DiaryEntry } from "@/types/api";
 
 type DiaryEntryProps = {
@@ -16,9 +18,12 @@ const formatDate = (value: string): string => {
   return parsed.toLocaleDateString();
 };
 
-const toOutOfFiveLabel = (ratingOutOfTen: number): string => {
-  return `${(ratingOutOfTen / 2).toFixed(1)}/5`;
-};
+// watchedDate is a date-only value ("YYYY-MM-DD") with no timezone, unlike
+// createdAt/reviewCreatedAt above which are full instants - formatDateOnlyLabel
+// parses it as local midnight so it doesn't shift a day for viewers west of
+// UTC. Empty options match formatDate's bare toLocaleDateString() output.
+const formatWatchedDate = (value: string): string => formatDateOnlyLabel(value, {});
+
 
 export const DiaryEntryItem = ({ entry }: DiaryEntryProps) => {
   return (
@@ -27,7 +32,7 @@ export const DiaryEntryItem = ({ entry }: DiaryEntryProps) => {
         <img
           src={getPosterUrl(entry.moviePosterPath)}
           alt={`${entry.movieTitle} poster`}
-          className="h-31.5 w-21  border border-border/70 object-cover"
+          className="h-31.5 w-21 rounded-lg border border-border/70 object-cover"
           loading="lazy"
         />
 
@@ -42,7 +47,7 @@ export const DiaryEntryItem = ({ entry }: DiaryEntryProps) => {
               ) : null}
             </h3>
             <p className="text-xs text-muted-foreground">
-              Watched {formatDate(entry.watchedDate)} • Logged{" "}
+              Watched {formatWatchedDate(entry.watchedDate)} • Logged{" "}
               {formatDate(entry.createdAt)}
             </p>
           </div>
@@ -50,14 +55,14 @@ export const DiaryEntryItem = ({ entry }: DiaryEntryProps) => {
           <div className="flex flex-wrap items-center gap-2">
             {entry.rating !== null ? (
               <Badge variant="accent">
-                Score: {toOutOfFiveLabel(entry.rating)}
+                Score: {formatRatingLabel(entry.rating) ?? ""}
               </Badge>
             ) : null}
             {entry.rewatch ? <Badge variant="primary">Rewatch</Badge> : null}
           </div>
 
           {entry.reviewContent ? (
-            <div className="space-y-1  border border-border/60 bg-secondary/20 p-3">
+            <div className="space-y-1 rounded-lg border border-border/60 bg-secondary/20 p-3">
               {entry.reviewContainsSpoilers ? <Badge>Spoilers</Badge> : null}
               <p className="text-sm text-foreground">{entry.reviewContent}</p>
               {entry.reviewCreatedAt ? (

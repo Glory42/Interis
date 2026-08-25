@@ -3,16 +3,19 @@ import { resolveMovie, resolvePost, resolveReviewId, toFeedMetadata } from "./so
 import type {
   ActivityRow,
   FeedEngagement,
+  FeedFallbackMediaContext,
   FeedItem,
   PostEngagement,
   ReviewContext,
 } from "../types/social-feed.types";
 
-export const toFeedItem = async (
+export const toFeedItem = (
   row: ActivityRow,
   reviewContext: ReviewContext,
   postEngagementByPostId: Map<string, PostEngagement>,
-): Promise<FeedItem> => {
+  activityEngagementById: Map<string, FeedEngagement>,
+  fallbackMedia: FeedFallbackMediaContext,
+): FeedItem => {
   const rawMetadata = parseMetadata(row.activity.metadata);
   const metadata = toFeedMetadata(rawMetadata);
   const kind = resolveActivityKind(row.activity.type, metadata.action);
@@ -25,9 +28,10 @@ export const toFeedItem = async (
       : null;
   const reviewDetails = reviewById ?? reviewByDiaryEntry;
 
-  const movie = reviewDetails?.movie ?? (await resolveMovie(rawMetadata, row.activity, metadata));
+  const movie =
+    reviewDetails?.movie ?? resolveMovie(rawMetadata, row.activity, metadata, fallbackMedia);
 
-  const post = await resolvePost(rawMetadata, row.activity);
+  const post = resolvePost(rawMetadata, row.activity, fallbackMedia);
 
   const review = reviewDetails
     ? {
@@ -49,6 +53,7 @@ export const toFeedItem = async (
     ...metadata,
     targetUsername:
       metadata.targetUsername ?? reviewDetails?.reviewAuthorUsername ?? null,
+    listId: row.activity.type === "created_list" ? row.activity.entityId : null,
   };
 
   const postId = post?.id ?? metadata.postId ?? (kind === "post" ? row.activity.entityId : null);
@@ -67,11 +72,17 @@ export const toFeedItem = async (
         commentCount: reviewDetails.commentCount,
         viewerHasLiked: reviewDetails.viewerHasLiked,
       }
-    : {
-        likeCount: postEngagement.likeCount,
-        commentCount: postEngagement.commentCount,
-        viewerHasLiked: postEngagement.viewerHasLiked,
-      };
+    : postId
+      ? {
+          likeCount: postEngagement.likeCount,
+          commentCount: postEngagement.commentCount,
+          viewerHasLiked: postEngagement.viewerHasLiked,
+        }
+      : activityEngagementById.get(row.activity.id) ?? {
+          likeCount: 0,
+          commentCount: 0,
+          viewerHasLiked: null,
+        };
 
   return {
     id: row.activity.id,
@@ -82,7 +93,6 @@ export const toFeedItem = async (
       id: row.actorId,
       username: row.actorUsername,
       displayUsername: row.actorDisplayUsername,
-      image: row.actorImage,
       avatarUrl: row.actorAvatarUrl,
     },
     movie,

@@ -1,8 +1,10 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
+import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
 import { reviews } from "../../reviews/reviews.entity";
-import { activities } from "../../social/social.entity";
+import { ReviewsRepository } from "../../reviews/repositories/reviews.repository";
+import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
 import { diaryEntries } from "../diary.entity";
 
 export class DiaryRepository {
@@ -35,58 +37,20 @@ export class DiaryRepository {
     content: string;
     containsSpoilers: boolean;
   }) {
-    const [review] = await db
-      .insert(reviews)
-      .values({
-        userId: input.userId,
-        mediaType: "movie",
-        mediaSource: "tmdb",
-        mediaSourceId: String(input.movieTmdbId),
-        movieId: input.movieId,
-        diaryEntryId: input.diaryEntryId,
-        content: input.content,
-        containsSpoilers: input.containsSpoilers,
-      })
-      .onConflictDoUpdate({
-        target: [
-          reviews.userId,
-          reviews.mediaType,
-          reviews.mediaSource,
-          reviews.mediaSourceId,
-        ],
-        set: {
-          diaryEntryId: input.diaryEntryId,
-          movieId: input.movieId,
-          content: input.content,
-          containsSpoilers: input.containsSpoilers,
-          updatedAt: new Date(),
-        },
-      })
-      .returning({
-        id: reviews.id,
-        content: reviews.content,
-        containsSpoilers: reviews.containsSpoilers,
-      });
-
-    return review ?? null;
-  }
-
-  static async insertActivity(input: {
-    userId: string;
-    type: "diary_entry" | "review";
-    entityId: string;
-    metadata: string;
-  }) {
-    await db.insert(activities).values({
+    return ReviewsRepository.upsertReview({
       userId: input.userId,
-      type: input.type,
-      entityId: input.entityId,
-      metadata: input.metadata,
+      mediaType: "movie",
+      mediaSource: "tmdb",
+      mediaSourceId: String(input.movieTmdbId),
+      movieId: input.movieId,
+      diaryEntryId: input.diaryEntryId,
+      content: input.content,
+      containsSpoilers: input.containsSpoilers,
     });
   }
 
-  static async findAllByUser(userId: string) {
-    return db
+  static async findAllByUser(userId: string, limit?: number, offset?: number) {
+    const query = db
       .select({
         id: diaryEntries.id,
         watchedDate: diaryEntries.watchedDate,
@@ -115,7 +79,10 @@ export class DiaryRepository {
         ),
       )
       .where(eq(diaryEntries.userId, userId))
-      .orderBy(desc(diaryEntries.watchedDate), desc(diaryEntries.createdAt));
+      .orderBy(desc(diaryEntries.watchedDate), desc(diaryEntries.createdAt))
+      .$dynamic();
+
+    return applyOptionalPagination(query, limit, offset);
   }
 
   static async findOneByIdAndUser(entryId: string, userId: string) {
@@ -208,5 +175,45 @@ export class DiaryRepository {
       .returning({ id: diaryEntries.id });
 
     return deleted ?? null;
+  }
+
+  // No ownership check — admin moderation only.
+  static async deleteById(entryId: string) {
+    const [deleted] = await db
+      .delete(diaryEntries)
+      .where(eq(diaryEntries.id, entryId))
+      .returning({ id: diaryEntries.id });
+
+    return deleted ?? null;
+  }
+
+  static async listAllForAdmin(
+    filters: { userId?: string; movieId?: number },
+    limit: number,
+    offset: number,
+  ) {
+    const conditions = [];
+    if (filters.userId) conditions.push(eq(diaryEntries.userId, filters.userId));
+    if (filters.movieId) conditions.push(eq(diaryEntries.movieId, filters.movieId));
+
+    return db
+      .select({
+        id: diaryEntries.id,
+        userId: diaryEntries.userId,
+        authorUsername: user.username,
+        watchedDate: diaryEntries.watchedDate,
+        rating: diaryEntries.rating,
+        rewatch: diaryEntries.rewatch,
+        movieId: diaryEntries.movieId,
+        movieTitle: movies.title,
+        createdAt: diaryEntries.createdAt,
+      })
+      .from(diaryEntries)
+      .innerJoin(movies, eq(movies.id, diaryEntries.movieId))
+      .innerJoin(user, eq(user.id, diaryEntries.userId))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(diaryEntries.createdAt))
+      .limit(limit)
+      .offset(offset);
   }
 }

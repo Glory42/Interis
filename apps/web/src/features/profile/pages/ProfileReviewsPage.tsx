@@ -3,14 +3,15 @@ import { Link } from "@tanstack/react-router";
 import { Star, TriangleAlert } from "lucide-react";
 import { getPosterUrl } from "@/features/films/components/utils";
 import type { UserReview } from "@/features/profile/api";
+import type { FeedMovieLink } from "@/features/feed/components/feed-row.utils";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
+import { ReviewCardSkeleton } from "@/features/profile/components/ReviewCardSkeleton";
+import { DiaryRatingStars } from "@/features/profile/components/diary/DiaryRatingStars";
 import { useUserReviews } from "@/features/profile/hooks/useProfile";
 
 type ProfileReviewsPageProps = {
   username: string;
 };
-
-type RatingToken = "full" | "half" | "empty";
 
 const mediaMetaByType: Record<
   UserReview["mediaType"],
@@ -27,6 +28,30 @@ const mediaMetaByType: Record<
     label: "Serial",
     color: "var(--module-serial)",
   },
+  album: {
+    label: "Music",
+    color: "var(--module-music)",
+  },
+  book: {
+    label: "Books",
+    color: "var(--module-book)",
+  },
+};
+
+const resolveReviewMediaLink = (entry: UserReview): FeedMovieLink | null => {
+  if (entry.mediaType === "movie" && entry.tmdbId != null) {
+    return { to: "/cinema/$tmdbId", params: { tmdbId: String(entry.tmdbId) } };
+  }
+  if (entry.mediaType === "tv" && entry.tmdbId != null) {
+    return { to: "/serials/$tmdbId", params: { tmdbId: String(entry.tmdbId) } };
+  }
+  if (entry.mediaType === "album" && entry.mbid) {
+    return { to: "/music/$mbid", params: { mbid: entry.mbid } };
+  }
+  if (entry.mediaType === "book" && entry.volumeId) {
+    return { to: "/books/$volumeId", params: { volumeId: entry.volumeId } };
+  }
+  return null;
 };
 
 const formatDate = (value: string | null): string => {
@@ -42,85 +67,9 @@ const formatDate = (value: string | null): string => {
   return date.toLocaleDateString("en-US");
 };
 
-const toRatingTokens = (ratingOutOfFive: number | null | undefined): RatingToken[] => {
-  if (
-    ratingOutOfFive === null ||
-    ratingOutOfFive === undefined ||
-    Number.isNaN(ratingOutOfFive)
-  ) {
-    return ["empty", "empty", "empty", "empty", "empty"];
-  }
-
-  const normalized = Math.max(0, Math.min(5, ratingOutOfFive));
-
-  return Array.from({ length: 5 }, (_, index) => {
-    const delta = normalized - index;
-    if (delta >= 1) {
-      return "full";
-    }
-
-    if (delta >= 0.5) {
-      return "half";
-    }
-
-    return "empty";
-  });
-};
-
-const ReviewStars = ({
-  ratingOutOfFive,
-}: {
-  ratingOutOfFive: number | null | undefined;
-}) => {
-  const tokens = toRatingTokens(ratingOutOfFive);
-  const label =
-    ratingOutOfFive === null || ratingOutOfFive === undefined
-      ? "Unrated"
-      : Number.isInteger(ratingOutOfFive)
-        ? `${ratingOutOfFive.toFixed(0)} stars`
-        : `${ratingOutOfFive.toFixed(1)} stars`;
-
-  return (
-    <span className="flex items-center gap-0.5" aria-label={label}>
-      {tokens.map((token, index) => {
-        if (token === "full") {
-          return (
-            <span
-              key={`review-rating-full-${index}`}
-              style={{ color: "var(--module-cinema)", fontSize: 11 }}
-            >
-              ★
-            </span>
-          );
-        }
-
-        if (token === "half") {
-          return (
-            <span
-              key={`review-rating-half-${index}`}
-              style={{ color: "var(--module-cinema)", fontSize: 11 }}
-            >
-              ½
-            </span>
-          );
-        }
-
-        return (
-          <span
-            key={`review-rating-empty-${index}`}
-            style={{ color: "var(--profile-shell-muted)", fontSize: 11 }}
-          >
-            ★
-          </span>
-        );
-      })}
-    </span>
-  );
-};
-
 export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
   const reviewsQuery = useUserReviews(username);
-  const reviews = reviewsQuery.data ?? [];
+  const reviews = reviewsQuery.data?.pages.flat() ?? [];
   const [revealedSpoilersById, setRevealedSpoilersById] = useState<
     Record<string, boolean>
   >({});
@@ -128,13 +77,15 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
   return (
     <>
       {reviewsQuery.isPending ? (
-        <div className=" border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
-          Loading reviews...
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <ReviewCardSkeleton key={`review-skeleton-${index}`} />
+          ))}
         </div>
       ) : null}
 
       {reviewsQuery.isError ? (
-        <div className=" border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+        <div className="rounded-xl border border-border/60 bg-card/30 p-4 text-sm text-destructive">
           Could not load reviews.
         </div>
       ) : null}
@@ -144,6 +95,7 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
           icon={Star}
           title="No written reviews yet"
           description="This profile has not published any reviews yet."
+          cta={{ label: "Browse Cinema", to: "/cinema" }}
         />
       ) : null}
 
@@ -155,64 +107,49 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
           </p>
         </div>
 
-        {reviews.map((entry) => (
+        {reviews.map((entry) => {
+          const mediaLink = resolveReviewMediaLink(entry);
+          const imageUrl = entry.posterPath
+            ? getPosterUrl(entry.posterPath)
+            : (entry.coverArtUrl ?? null);
+
+          const poster = (
+            <div
+              className="overflow-hidden rounded-lg border"
+              style={{
+                width: 68,
+                height: 102,
+                borderColor: "var(--profile-shell-row-border)",
+                background: "color-mix(in srgb, var(--profile-shell-bg) 85%, black)",
+              }}
+            >
+              {imageUrl ? (
+                <img
+                  src={imageUrl}
+                  alt={`${entry.title} cover`}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              ) : null}
+            </div>
+          );
+
+          return (
           <article
             key={entry.id}
-            className="group border transition-colors hover:border-primary/30"
+            className="group rounded-xl border transition-colors hover:border-primary/30"
             style={{
               borderColor: "var(--profile-shell-border)",
               background: "var(--profile-shell-panel)",
             }}
           >
             <div className="grid gap-3 p-3 sm:p-4" style={{ gridTemplateColumns: "68px 1fr" }}>
-              {entry.mediaType === "tv" ? (
-                <Link
-                  to="/serials/$tmdbId"
-                  params={{ tmdbId: String(entry.tmdbId) }}
-                  className="shrink-0"
-                  viewTransition
-                >
-                  <div
-                    className="overflow-hidden border"
-                    style={{
-                      width: 68,
-                      height: 102,
-                      borderColor: "var(--profile-shell-row-border)",
-                      background: "color-mix(in srgb, var(--profile-shell-bg) 85%, black)",
-                    }}
-                  >
-                    <img
-                      src={getPosterUrl(entry.posterPath)}
-                      alt={`${entry.title} poster`}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
+              {mediaLink ? (
+                <Link {...mediaLink} className="shrink-0" viewTransition>
+                  {poster}
                 </Link>
               ) : (
-                <Link
-                  to="/cinema/$tmdbId"
-                  params={{ tmdbId: String(entry.tmdbId) }}
-                  className="shrink-0"
-                  viewTransition
-                >
-                  <div
-                    className="overflow-hidden border"
-                    style={{
-                      width: 68,
-                      height: 102,
-                      borderColor: "var(--profile-shell-row-border)",
-                      background: "color-mix(in srgb, var(--profile-shell-bg) 85%, black)",
-                    }}
-                  >
-                    <img
-                      src={getPosterUrl(entry.posterPath)}
-                      alt={`${entry.title} poster`}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-                </Link>
+                <div className="shrink-0">{poster}</div>
               )}
 
               <div className="min-w-0 space-y-1.5">
@@ -231,7 +168,7 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
                   </Link>
 
                   <span
-                    className="mt-0.5 shrink-0 border px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-widest"
+                    className="mt-0.5 shrink-0 rounded-full border px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-widest"
                     style={{
                       borderColor: `color-mix(in srgb, ${mediaMetaByType[entry.mediaType].color} 25%, transparent)`,
                       color: mediaMetaByType[entry.mediaType].color,
@@ -242,7 +179,10 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <ReviewStars ratingOutOfFive={entry.ratingOutOfFive} />
+                  <DiaryRatingStars
+                    rating={entry.rating ?? null}
+                    color={mediaMetaByType[entry.mediaType].color}
+                  />
                   <span className="font-mono text-[9px] profile-shell-muted">
                     Reviewed on {formatDate(entry.createdAt)}
                   </span>
@@ -251,7 +191,7 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
                 {entry.containsSpoilers && !revealedSpoilersById[entry.id] ? (
                   <button
                     type="button"
-                    className="inline-flex items-center gap-2 border border-amber-500/40 bg-amber-500/12 px-2.5 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-200 transition-colors hover:bg-amber-500/18"
+                    className="inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/12 px-2.5 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-200 transition-colors hover:bg-amber-500/18"
                     onClick={(event) => {
                       event.preventDefault();
                       event.stopPropagation();
@@ -278,8 +218,22 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
               </div>
             </div>
           </article>
-        ))}
+          );
+        })}
       </div>
+
+      {reviewsQuery.hasNextPage ? (
+        <div className="mt-5 flex justify-center">
+          <button
+            type="button"
+            disabled={reviewsQuery.isFetchingNextPage}
+            onClick={() => { void reviewsQuery.fetchNextPage(); }}
+            className="rounded-full border border-border/70 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {reviewsQuery.isFetchingNextPage ? "Loading..." : "Load more"}
+          </button>
+        </div>
+      ) : null}
     </>
   );
 };

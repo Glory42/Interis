@@ -5,6 +5,7 @@ import {
   type MovieInteraction,
   type UpdateMovieInteractionInput,
 } from "@/features/interactions/api";
+import { movieKeys } from "@/features/films/hooks/useMovies";
 
 export const interactionKeys = {
   detail: (tmdbId: number) => ["interactions", "movie", tmdbId] as const,
@@ -29,15 +30,22 @@ export const useUpdateMovieInteraction = (tmdbId: number) => {
 
       const previousState = queryClient.getQueryData<MovieInteraction>(queryKey);
       if (previousState) {
+        // Any rating/like interaction implicitly watched: true
+        const isImplicitlyWatched =
+          input.liked === true ||
+          (input.rating !== undefined && input.rating !== null);
+
         queryClient.setQueryData<MovieInteraction>(queryKey, {
           ...previousState,
           ...(input.liked !== undefined ? { liked: input.liked } : {}),
           ...(input.watchlisted !== undefined
             ? { watchlisted: input.watchlisted }
             : {}),
-          ...(input.ratingOutOfFive !== undefined
-            ? { ratingOutOfFive: input.ratingOutOfFive }
+          ...(input.rating !== undefined
+            ? { rating: input.rating }
             : {}),
+          ...(input.watched !== undefined ? { watched: input.watched } : {}),
+          ...(isImplicitlyWatched ? { watched: true } : {}),
         });
       }
 
@@ -54,9 +62,21 @@ export const useUpdateMovieInteraction = (tmdbId: number) => {
       );
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: interactionKeys.detail(tmdbId),
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: interactionKeys.detail(tmdbId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: movieKeys.detail(tmdbId),
+        }),
+        // Prefix-matches every reviewsSort variant for this movie only.
+        queryClient.invalidateQueries({
+          queryKey: movieKeys.detailViewRoot(tmdbId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: movieKeys.logs(tmdbId),
+        }),
+      ]);
     },
   });
 };

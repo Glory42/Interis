@@ -58,7 +58,11 @@ Both endpoints return `FeedItem[]`.
     "movieId": null,
     "postId": null,
     "postMediaId": null,
-    "postMediaType": null
+    "postMediaType": null,
+    "seasonNumber": null,
+    "episodeNumber": null,
+    "listId": null,
+    "listTitle": null
   },
   "engagement": {
     "likeCount": 0,
@@ -73,6 +77,9 @@ Both endpoints return `FeedItem[]`.
 - `viewerHasLiked` is currently `null` in public feed responses (no viewer context is passed).
 - Depending on activity type, `movie`, `post`, or `review` can be `null`.
 - `kind` may be a derived value (for example `liked_comment`, `liked_post`, `commented_post`).
+- `seasonNumber` and `episodeNumber` are populated for season/episode interactions (`liked_movie`, `review`). Both are `null` for movie/series-level activities.
+- For `liked_movie` activities on seasons/episodes, `metadata.rating` will be non-null when the action was a rating (not a like); `metadata.rating` is `null` for pure like actions.
+- `listId` and `listTitle` are populated for `created_list` activities; both are `null` for all other activity types.
 
 ## Review row (`/reviews`)
 
@@ -80,7 +87,7 @@ Key fields:
 
 - `id`, `content`, `containsSpoilers`, `createdAt`, `updatedAt`
 - media fields: `tmdbId`, `title`, `posterPath`, `releaseYear`, `mediaType`
-- score field: `ratingOutOfFive`
+- score field: `rating` (0.5–10, or `null`)
 
 ## Interaction rows (`/likes`, `/watchlist`)
 
@@ -89,6 +96,8 @@ Key fields:
 - `tmdbId`, `title`, `posterPath`, `releaseYear`
 - `runtime`, `genres`, `mediaType`
 - `lastInteractionAt`
+
+Note: `/likes` and `/watchlist` mix both `movie` and `tv` rows. `/movies/watched` uses this exact same row shape but is film-only. `/serials/watched` has a different, series-specific shape — see the Watched Serials payload section below.
 
 ## List row (`/lists`)
 
@@ -102,6 +111,42 @@ Key fields:
 Key fields:
 
 - diary fields: `id`, `mediaType`, `watchedDate`, `rewatch`, `createdAt`, `updatedAt`
-- ratings: `ratingOutOfTen`, `ratingOutOfFive`
+- rating: `rating` (0.5–10, or `null`)
 - `media` object (`tmdbId`, `title`, `posterPath`, `releaseYear`)
 - optional `review` object (`id`, `content`, `containsSpoilers`, `createdAt`) or `null`
+
+## Serials Progress payload (`/serials/:tmdbId`)
+
+Key fields:
+
+- `series` basic info: `id`, `tmdbId`, `title`, `posterPath`, `numberOfSeasons`, `numberOfEpisodes`
+  - `numberOfEpisodes` excludes season 0 (Specials) — only regular aired seasons are counted.
+- `viewerTracking` progress:
+  - `watchedEpisodesCount`: total count of watched episodes.
+  - `watchedEpisodes[]` list: `{ seasonNumber, episodeNumber }` mappings.
+  - `currentEpisode` (Up Next): `{ seasonNumber, episodeNumber, name }` or `null` if series completed.
+  - interaction aggregations: `ratingsCount`, `likesCount`, `reviewsCount`.
+- `seasons[]` array list: `seasonNumber`, `name`, `episodeCount`, and season-level `viewerInteraction` object (`watched`, `liked`, `rating`, `hasReview`).
+
+## Currently Watching payload (`/serials/currently-watching`)
+
+An array of in-progress series, most recently watched first. Key fields per item:
+
+- series info: `tmdbId`, `title`, `posterPath`, `backdropPath`, `firstAirYear`, `numberOfSeasons`, `numberOfEpisodes`
+  - `numberOfEpisodes` excludes season 0 (Specials).
+- progress: `watchedEpisodesCount`, `progressPercent` (0–100, rounded)
+- `lastWatchedAt`: timestamp of the most recently watched episode.
+- `currentEpisode` (Up Next): `{ seasonNumber, episodeNumber, name }`, or `null` if the cached episode total is behind TMDB's true count.
+
+## Watched Movies payload (`/movies/watched`)
+
+Same row shape as [Interaction rows](#interaction-rows-likes-watchlist) above, but film-only (`mediaType` is always `"movie"`) and filtered to the movie interaction's `isWatched` flag rather than `liked`/`watchlisted`.
+
+## Watched Serials payload (`/serials/watched`)
+
+An array of fully watched series (`mediaType` always `"tv"`). Key fields per item:
+
+- series info: `tmdbId`, `title`, `posterPath`, `backdropPath`, `firstAirYear`, `numberOfSeasons`, `numberOfEpisodes`
+- `lastInteractionAt`: when the series was marked watched (or last touched since).
+
+No episode-level progress fields — this reflects the series-level `isWatched` flag only, not derived from per-episode completion. For per-episode detail on one series, use [Serials Progress](/api/endpoints/serials-progress/).

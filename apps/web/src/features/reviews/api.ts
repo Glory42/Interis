@@ -1,7 +1,8 @@
 import { z } from "zod";
-import { apiRequest } from "@/lib/api-client";
+import { apiRequest, type QueryRequestOptions } from "@/lib/api-client";
+import { mediaTypeSchema, userSummarySchema } from "@/types/api";
 
-const reviewMediaTypeSchema = z.enum(["movie", "tv"]);
+const reviewMediaTypeSchema = mediaTypeSchema;
 
 const reviewCommentSchema = z
   .object({
@@ -14,7 +15,6 @@ const reviewCommentSchema = z
     authorUsername: z.string(),
     authorDisplayUsername: z.string().nullable(),
     authorAvatarUrl: z.string().nullable(),
-    authorImage: z.string().nullable(),
   })
   .passthrough();
 
@@ -52,15 +52,8 @@ const reviewDetailSchema = z.object({
   containsSpoilers: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
-  ratingOutOfTen: z.number().nullable(),
-  ratingOutOfFive: z.number().nullable(),
-  author: z.object({
-    id: z.string(),
-    username: z.string(),
-    displayUsername: z.string().nullable(),
-    image: z.string().nullable(),
-    avatarUrl: z.string().nullable(),
-  }),
+  rating: z.number().nullable(),
+  author: userSummarySchema,
   media: z.object({
     tmdbId: z.number().int().positive(),
     title: z.string(),
@@ -100,9 +93,6 @@ export type ReviewDetail = z.infer<typeof reviewDetailSchema>;
 
 type AddReviewCommentInput = z.infer<typeof addReviewCommentInputSchema>;
 type UpdateReviewInput = z.infer<typeof updateReviewInputSchema>;
-type QueryRequestOptions = {
-  signal?: AbortSignal;
-};
 
 export type UpdatedReview = z.infer<typeof updatedReviewSchema>;
 
@@ -152,6 +142,29 @@ export const addReviewComment = async (
   );
 
   return reviewCommentSchema.parse(response);
+};
+
+export const updateReviewComment = async (
+  commentId: string,
+  input: AddReviewCommentInput,
+): Promise<ReviewComment> => {
+  const payload = addReviewCommentInputSchema.parse(input);
+
+  const response = await apiRequest<unknown, AddReviewCommentInput>(
+    `/api/reviews/comments/${encodeURIComponent(commentId)}`,
+    {
+      method: "PUT",
+      body: payload,
+    },
+  );
+
+  return reviewCommentSchema.parse(response);
+};
+
+export const deleteReviewComment = async (commentId: string): Promise<void> => {
+  await apiRequest<unknown>(`/api/reviews/comments/${encodeURIComponent(commentId)}`, {
+    method: "DELETE",
+  });
 };
 
 export const likeReview = async (reviewId: string) => {

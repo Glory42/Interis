@@ -50,7 +50,7 @@ export const ProfileReviewDetailHero = ({
           <div className="-mb-4 hidden shrink-0 sm:block">
             {detail.mediaType === "tv" ? (
               <Link to="/serials/$tmdbId" params={{ tmdbId: String(detail.media.tmdbId) }}>
-                <div className="h-40 w-28 overflow-hidden border border-border/60 shadow-2xl">
+                <div className="h-40 w-28 overflow-hidden rounded-xl border border-border/60 shadow-2xl">
                   <img
                     src={getPosterUrl(detail.media.posterPath)}
                     alt={`${detail.media.title} poster`}
@@ -60,7 +60,7 @@ export const ProfileReviewDetailHero = ({
               </Link>
             ) : (
               <Link to="/cinema/$tmdbId" params={{ tmdbId: String(detail.media.tmdbId) }}>
-                <div className="h-40 w-28 overflow-hidden border border-border/60 shadow-2xl">
+                <div className="h-40 w-28 overflow-hidden rounded-xl border border-border/60 shadow-2xl">
                   <img
                     src={getPosterUrl(detail.media.posterPath)}
                     alt={`${detail.media.title} poster`}
@@ -82,12 +82,12 @@ export const ProfileReviewDetailHero = ({
                 {detail.mediaType === "tv" ? "Series Review" : "Film Review"}
               </span>
               {detail.containsSpoilers ? (
-                <span className="border border-amber-500/35 bg-amber-500/10 px-2 py-0.5 text-amber-200">
+                <span className="rounded-full border border-amber-500/35 bg-amber-500/10 px-2 py-0.5 text-amber-200">
                   Spoilers
                 </span>
               ) : null}
               {detail.media.genres.length > 0 ? (
-                <span className="bg-secondary/75 px-2 py-0.5 text-muted-foreground">
+                <span className="rounded-full bg-secondary/75 px-2 py-0.5 text-muted-foreground">
                   {detail.media.genres
                     .slice(0, 2)
                     .map((genre) => genre.name)
@@ -112,10 +112,10 @@ export const ProfileReviewDetailHero = ({
                   <img
                     src={authorAvatar}
                     alt={`${detail.author.username} avatar`}
-                    className="h-8 w-8 border border-border/70 object-cover"
+                    className="h-8 w-8 rounded-full border border-border/70 object-cover"
                   />
                 ) : (
-                  <span className="inline-flex h-8 w-8 items-center justify-center border border-border/70 bg-secondary text-[10px] font-semibold text-secondary-foreground">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-secondary text-[10px] font-semibold text-secondary-foreground">
                     {detail.author.username.slice(0, 1).toUpperCase()}
                   </span>
                 )}
@@ -134,8 +134,8 @@ export const ProfileReviewDetailHero = ({
                 </p>
               </div>
 
-              <div className="inline-flex items-center gap-1.5 border border-border/70 bg-secondary/40 px-2.5 py-1 text-xs font-semibold text-foreground">
-                <SpaceRatingDisplay ratingOutOfFive={detail.ratingOutOfFive} size="sm" />
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-secondary/40 px-2.5 py-1 text-xs font-semibold text-foreground">
+                <SpaceRatingDisplay rating={detail.rating} size="sm" />
                 <span>{ratingLabel ?? "Unrated"}</span>
               </div>
             </div>

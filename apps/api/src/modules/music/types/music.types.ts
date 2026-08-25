@@ -90,7 +90,6 @@ export type MusicDetailReviewItem = {
     id: string;
     username: string;
     displayUsername: string | null;
-    image: string | null;
     avatarUrl: string | null;
   };
 };

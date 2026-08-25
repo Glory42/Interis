@@ -28,8 +28,20 @@ export class ReviewsService {
     return ReviewsCoreService.delete(reviewId, userId);
   }
 
-  static async getComments(reviewId: string, viewerUserId?: string | null) {
-    return ReviewsCommentsService.getComments(reviewId, viewerUserId);
+  static async deleteById(reviewId: string) {
+    return ReviewsCoreService.deleteById(reviewId);
+  }
+
+  static async listAllForAdmin(
+    filters: { userId?: string; movieId?: number },
+    limit: number,
+    offset: number,
+  ) {
+    return ReviewsCoreService.listAllForAdmin(filters, limit, offset);
+  }
+
+  static async getComments(reviewId: string) {
+    return ReviewsCommentsService.getComments(reviewId);
   }
 
   static async addComment(
@@ -42,6 +54,10 @@ export class ReviewsService {
 
   static async deleteComment(commentId: string, userId: string) {
     return ReviewsCommentsService.deleteComment(commentId, userId);
+  }
+
+  static async updateComment(commentId: string, userId: string, content: string) {
+    return ReviewsCommentsService.updateComment(commentId, userId, content);
   }
 
   static async likeReview(userId: string, reviewId: string) {

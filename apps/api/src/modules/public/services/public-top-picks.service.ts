@@ -1,9 +1,3 @@
-import { asc, eq, inArray } from "drizzle-orm";
-import { db } from "../../../infrastructure/database/db";
-import { movies } from "../../movies/movies.entity";
-import { tvSeries } from "../../serials/serials.entity";
-import { albums } from "../../music/music.entity";
-import { books } from "../../books/books.entity";
 import {
   TOP_PICK_CATEGORY_IDS,
   TOP_PICK_CATEGORY_KEYS,
@@ -11,7 +5,7 @@ import {
   type TopPickCategoryId,
   type TopPickCategoryKey,
 } from "../../users/constants/top-picks.constants";
-import { profileTopPicks } from "../../users/users.entity";
+import { PublicTopPicksRepository } from "../repositories/public-top-picks.repository";
 
 type PublicTopPickItem = {
   slot: number;
@@ -41,20 +35,7 @@ type PublicTopPicksResponse = {
 
 export class PublicTopPicksService {
   static async getTop4ByUserId(userId: string): Promise<PublicTopPicksResponse> {
-    const topPickRows = await db
-      .select({
-        categoryId: profileTopPicks.categoryId,
-        slot: profileTopPicks.slot,
-        mediaType: profileTopPicks.mediaType,
-        mediaSource: profileTopPicks.mediaSource,
-        mediaSourceId: profileTopPicks.mediaSourceId,
-        title: profileTopPicks.title,
-        posterPath: profileTopPicks.posterPath,
-        releaseYear: profileTopPicks.releaseYear,
-      })
-      .from(profileTopPicks)
-      .where(eq(profileTopPicks.userId, userId))
-      .orderBy(asc(profileTopPicks.categoryId), asc(profileTopPicks.slot));
+    const topPickRows = await PublicTopPicksRepository.getTopPicksByUserId(userId);
 
     const cinemaTmdbIds = topPickRows
       .filter((row) => row.categoryId === 1 && row.mediaSource === "tmdb" && Number.isInteger(Number(row.mediaSourceId)))
@@ -73,18 +54,10 @@ export class PublicTopPicksService {
       .map((row) => row.mediaSourceId);
 
     const [movieRows, serialRows, albumRows, bookRows] = await Promise.all([
-      cinemaTmdbIds.length > 0
-        ? db.select({ id: movies.id, tmdbId: movies.tmdbId, title: movies.title, posterPath: movies.posterPath, releaseYear: movies.releaseYear }).from(movies).where(inArray(movies.tmdbId, [...new Set(cinemaTmdbIds)]))
-        : Promise.resolve([]),
-      serialTmdbIds.length > 0
-        ? db.select({ id: tvSeries.id, tmdbId: tvSeries.tmdbId, title: tvSeries.title, posterPath: tvSeries.posterPath, releaseYear: tvSeries.firstAirYear }).from(tvSeries).where(inArray(tvSeries.tmdbId, [...new Set(serialTmdbIds)]))
-        : Promise.resolve([]),
-      musicMbids.length > 0
-        ? db.select({ id: albums.id, mbid: albums.mbid, title: albums.title, coverArtUrl: albums.coverArtUrl, firstReleaseYear: albums.firstReleaseYear, artistName: albums.artistName }).from(albums).where(inArray(albums.mbid, [...new Set(musicMbids)]))
-        : Promise.resolve([]),
-      bookVolumeIds.length > 0
-        ? db.select({ id: books.id, googleVolumeId: books.googleVolumeId, title: books.title, coverImageUrl: books.coverImageUrl, publishedYear: books.publishedYear, authors: books.authors }).from(books).where(inArray(books.googleVolumeId, [...new Set(bookVolumeIds)]))
-        : Promise.resolve([]),
+      PublicTopPicksRepository.getMoviesByTmdbIds([...new Set(cinemaTmdbIds)]),
+      PublicTopPicksRepository.getSeriesByTmdbIds([...new Set(serialTmdbIds)]),
+      PublicTopPicksRepository.getAlbumsByMbids([...new Set(musicMbids)]),
+      PublicTopPicksRepository.getBooksByVolumeIds([...new Set(bookVolumeIds)]),
     ]);
 
     const movieByTmdbId = new Map(movieRows.map((row) => [row.tmdbId, row]));

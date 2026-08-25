@@ -30,7 +30,7 @@ export const PersonDetailPage = ({ role, slug }: PersonDetailPageProps) => {
     return (
       <main className="mx-auto w-full max-w-5xl px-4 py-10">
         <div
-          className="border p-5 font-mono text-xs"
+          className="rounded-xl border p-5 font-mono text-xs"
           style={{
             borderColor: styles.border,
             background: styles.panel,
@@ -47,7 +47,7 @@ export const PersonDetailPage = ({ role, slug }: PersonDetailPageProps) => {
     return (
       <main className="mx-auto w-full max-w-5xl px-4 py-10">
         <div
-          className="h-64 animate-pulse border"
+          className="h-64 animate-pulse rounded-xl border"
           style={{ borderColor: styles.border, background: styles.panel }}
         />
       </main>
@@ -58,7 +58,7 @@ export const PersonDetailPage = ({ role, slug }: PersonDetailPageProps) => {
     return (
       <main className="mx-auto w-full max-w-5xl px-4 py-10">
         <div
-          className="border p-5 font-mono text-xs"
+          className="rounded-xl border p-5 font-mono text-xs"
           style={{
             borderColor: styles.border,
             background: styles.panel,

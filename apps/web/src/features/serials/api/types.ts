@@ -28,6 +28,7 @@ export type SerialDetailReviewSort = z.infer<typeof serialDetailReviewSortSchema
 export type SerialArchiveItem = z.infer<typeof serialArchiveItemSchema>;
 export type SerialArchiveResponse = z.infer<typeof serialArchiveResponseSchema>;
 export type SerialDetailResponse = z.infer<typeof serialDetailResponseSchema>;
+export type SerialDetailViewerTracking = NonNullable<SerialDetailResponse["viewerTracking"]>;
 export type SerialSeasonDetailResponse = z.infer<typeof serialSeasonDetailSchema>;
 export type CachedSeries = z.infer<typeof cachedSeriesSchema>;
 export type TrendingSeries = z.infer<typeof trendingSeriesSchema>;
@@ -38,9 +39,7 @@ export type UpdateSerialInteractionInput = z.infer<
 export type CreateSeriesLogInput = z.infer<typeof createSeriesLogInputSchema>;
 export type CreateSeriesLogResponse = z.infer<typeof createSeriesLogResponseSchema>;
 
-export type QueryRequestOptions = {
-  signal?: AbortSignal;
-};
+export type { QueryRequestOptions } from "@/lib/api-client";
 
 export type SerialArchiveInput = {
   genre?: string;

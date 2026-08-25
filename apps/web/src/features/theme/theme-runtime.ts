@@ -9,6 +9,10 @@ export const THEME_STORAGE_KEY = "tic-theme-id";
 const hasDom = (): boolean =>
   typeof window !== "undefined" && typeof document !== "undefined";
 
+const canUseViewTransition = (): boolean =>
+  typeof document.startViewTransition === "function" &&
+  !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 export const readStoredThemeId = (): string | null => {
   if (!hasDom()) {
     return null;
@@ -33,10 +37,18 @@ export const applyThemeToDom = (rawThemeId: unknown): string => {
   }
 
   const root = document.documentElement;
-  for (const [token, value] of Object.entries(theme.tokens)) {
-    root.style.setProperty(token, value);
+  const applyTokens = (): void => {
+    for (const [token, value] of Object.entries(theme.tokens)) {
+      root.style.setProperty(token, value);
+    }
+    root.dataset.themeId = theme.id;
+  };
+
+  if (canUseViewTransition()) {
+    document.startViewTransition(applyTokens);
+  } else {
+    applyTokens();
   }
-  root.dataset.themeId = theme.id;
 
   return theme.id;
 };

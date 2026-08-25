@@ -1,5 +1,5 @@
 {
-  "id": "368812f1-2dff-426e-91a1-57619c6248fb",
+  "id": "6a210713-ceda-4edd-b162-9f0ddac359a5",
   "prevId": "863488f0-51ac-407d-a07a-7ca3619d2c9e",
   "version": "7",
   "dialect": "postgresql",
@@ -575,6 +575,108 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.serial_episode_interaction": {
+      "name": "serial_episode_interaction",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "series_id": {
+          "name": "series_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "season_number": {
+          "name": "season_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "episode_number": {
+          "name": "episode_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "watched": {
+          "name": "watched",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "liked": {
+          "name": "liked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "rating": {
+          "name": "rating",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "serial_episode_interaction_user_id_user_id_fk": {
+          "name": "serial_episode_interaction_user_id_user_id_fk",
+          "tableFrom": "serial_episode_interaction",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "serial_episode_interaction_series_id_tv_series_id_fk": {
+          "name": "serial_episode_interaction_series_id_tv_series_id_fk",
+          "tableFrom": "serial_episode_interaction",
+          "tableTo": "tv_series",
+          "columnsFrom": [
+            "series_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "serial_episode_interactions_unique": {
+          "name": "serial_episode_interactions_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_id",
+            "series_id",
+            "season_number",
+            "episode_number"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.serial_interaction": {
       "name": "serial_interaction",
       "schema": "",
@@ -656,6 +758,101 @@
           "columns": [
             "user_id",
             "series_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.serial_season_interaction": {
+      "name": "serial_season_interaction",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "series_id": {
+          "name": "series_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "season_number": {
+          "name": "season_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "watched": {
+          "name": "watched",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "liked": {
+          "name": "liked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "rating": {
+          "name": "rating",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "serial_season_interaction_user_id_user_id_fk": {
+          "name": "serial_season_interaction_user_id_user_id_fk",
+          "tableFrom": "serial_season_interaction",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "serial_season_interaction_series_id_tv_series_id_fk": {
+          "name": "serial_season_interaction_series_id_tv_series_id_fk",
+          "tableFrom": "serial_season_interaction",
+          "tableTo": "tv_series",
+          "columnsFrom": [
+            "series_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "serial_season_interactions_unique": {
+          "name": "serial_season_interactions_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_id",
+            "series_id",
+            "season_number"
           ]
         }
       },
@@ -798,582 +995,6 @@
           "nullsNotDistinct": false,
           "columns": [
             "tmdb_id"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.album": {
-      "name": "album",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "mbid": {
-          "name": "mbid",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "title": {
-          "name": "title",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "artist_name": {
-          "name": "artist_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "artist_mbid": {
-          "name": "artist_mbid",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "cover_art_url": {
-          "name": "cover_art_url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "primary_type": {
-          "name": "primary_type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "secondary_types": {
-          "name": "secondary_types",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "first_release_date": {
-          "name": "first_release_date",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "first_release_year": {
-          "name": "first_release_year",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "genres": {
-          "name": "genres",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "disambiguation": {
-          "name": "disambiguation",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "cached_at": {
-          "name": "cached_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "album_mbid_unique": {
-          "name": "album_mbid_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "mbid"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.music_diary_entry": {
-      "name": "music_diary_entry",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "album_id": {
-          "name": "album_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "listened_date": {
-          "name": "listened_date",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "rating": {
-          "name": "rating",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "relisten": {
-          "name": "relisten",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "music_diary_entry_user_id_user_id_fk": {
-          "name": "music_diary_entry_user_id_user_id_fk",
-          "tableFrom": "music_diary_entry",
-          "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "music_diary_entry_album_id_album_id_fk": {
-          "name": "music_diary_entry_album_id_album_id_fk",
-          "tableFrom": "music_diary_entry",
-          "tableTo": "album",
-          "columnsFrom": [
-            "album_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.music_interaction": {
-      "name": "music_interaction",
-      "schema": "",
-      "columns": {
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "album_id": {
-          "name": "album_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "liked": {
-          "name": "liked",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "want_to_listen": {
-          "name": "want_to_listen",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "rating": {
-          "name": "rating",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "music_interaction_user_id_user_id_fk": {
-          "name": "music_interaction_user_id_user_id_fk",
-          "tableFrom": "music_interaction",
-          "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "music_interaction_album_id_album_id_fk": {
-          "name": "music_interaction_album_id_album_id_fk",
-          "tableFrom": "music_interaction",
-          "tableTo": "album",
-          "columnsFrom": [
-            "album_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "music_interactions_unique": {
-          "name": "music_interactions_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "user_id",
-            "album_id"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.book_diary_entry": {
-      "name": "book_diary_entry",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "book_id": {
-          "name": "book_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "read_date": {
-          "name": "read_date",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "rating": {
-          "name": "rating",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "reread": {
-          "name": "reread",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "book_diary_entry_user_id_user_id_fk": {
-          "name": "book_diary_entry_user_id_user_id_fk",
-          "tableFrom": "book_diary_entry",
-          "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "book_diary_entry_book_id_book_id_fk": {
-          "name": "book_diary_entry_book_id_book_id_fk",
-          "tableFrom": "book_diary_entry",
-          "tableTo": "book",
-          "columnsFrom": [
-            "book_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.book_interaction": {
-      "name": "book_interaction",
-      "schema": "",
-      "columns": {
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "book_id": {
-          "name": "book_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "liked": {
-          "name": "liked",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "want_to_read": {
-          "name": "want_to_read",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "rating": {
-          "name": "rating",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "book_interaction_user_id_user_id_fk": {
-          "name": "book_interaction_user_id_user_id_fk",
-          "tableFrom": "book_interaction",
-          "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "book_interaction_book_id_book_id_fk": {
-          "name": "book_interaction_book_id_book_id_fk",
-          "tableFrom": "book_interaction",
-          "tableTo": "book",
-          "columnsFrom": [
-            "book_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "book_interactions_unique": {
-          "name": "book_interactions_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "user_id",
-            "book_id"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.book": {
-      "name": "book",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "google_volume_id": {
-          "name": "google_volume_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "title": {
-          "name": "title",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "subtitle": {
-          "name": "subtitle",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "authors": {
-          "name": "authors",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "publisher": {
-          "name": "publisher",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "published_date": {
-          "name": "published_date",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "published_year": {
-          "name": "published_year",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "page_count": {
-          "name": "page_count",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "language": {
-          "name": "language",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "categories": {
-          "name": "categories",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "cover_image_url": {
-          "name": "cover_image_url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "isbn_13": {
-          "name": "isbn_13",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "google_books_url": {
-          "name": "google_books_url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "cached_at": {
-          "name": "cached_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "book_google_volume_id_unique": {
-          "name": "book_google_volume_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "google_volume_id"
           ]
         }
       },

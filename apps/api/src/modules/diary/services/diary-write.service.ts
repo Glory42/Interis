@@ -1,24 +1,26 @@
+import { InteractionsService } from "../../interactions/interactions.service";
 import { MoviesService } from "../../movies/movies.service";
+import { MovieActivityRecorder } from "../../movies/services/movie-activity-recorder.service";
 import { buildDiaryEntryActivityMetadata } from "../helpers/diary-activity.helper";
-import { resolveRatingOutOfTen } from "../helpers/diary-rating.helper";
 import { DiaryRepository } from "../repositories/diary.repository";
 import type { CreateDiaryDto, UpdateDiaryDto } from "../dto/diary.dto";
+import { NotFoundError } from "../../../commons/errors/app-error";
 
 export class DiaryWriteService {
   static async create(userId: string, input: CreateDiaryDto) {
     const movie = await MoviesService.findOrCreate(input.tmdbId);
     if (!movie || !movie.id) {
-      throw new Error("Movie not found");
+      throw new NotFoundError("Movie not found");
     }
 
-    const ratingOutOfTen = resolveRatingOutOfTen(input.ratingOutOfFive) ?? null;
+    const rating = input.rating ?? null;
     const rewatch = input.rewatch ?? false;
 
     const entry = await DiaryRepository.insertEntry({
       userId,
       movieId: movie.id,
       watchedDate: input.watchedDate,
-      rating: ratingOutOfTen,
+      rating,
       rewatch,
     });
 
@@ -46,43 +48,40 @@ export class DiaryWriteService {
       });
     }
 
-    await DiaryRepository.insertActivity({
+    await InteractionsService.setWatched(userId, movie.id);
+
+    MovieActivityRecorder.record({
       userId,
+      movie,
       type: "diary_entry",
       entityId: entry.id,
-      metadata: JSON.stringify(
-        buildDiaryEntryActivityMetadata({
-          movie: {
-            id: movie.id,
-            tmdbId: movie.tmdbId,
-            title: movie.title,
-            posterPath: movie.posterPath,
-            releaseYear: movie.releaseYear,
-          },
-          rating: ratingOutOfTen,
-          rewatch,
-          hasReview: Boolean(review),
-          reviewId: review?.id ?? null,
-        }),
-      ),
+      extraMetadata: buildDiaryEntryActivityMetadata({
+        rating,
+        rewatch,
+        hasReview: Boolean(review),
+        reviewId: review?.id ?? null,
+      }),
     });
 
     return { entry, movie, review };
   }
 
   static async update(entryId: string, userId: string, input: UpdateDiaryDto) {
-    const ratingOutOfTen = resolveRatingOutOfTen(input.ratingOutOfFive);
-
     return DiaryRepository.updateByIdAndUser({
       entryId,
       userId,
       watchedDate: input.watchedDate,
-      rating: ratingOutOfTen,
+      rating: input.rating,
       rewatch: input.rewatch,
     });
   }
 
   static async delete(entryId: string, userId: string) {
     return DiaryRepository.deleteByIdAndUser(entryId, userId);
+  }
+
+  // No ownership check — admin moderation only.
+  static async deleteById(entryId: string) {
+    return DiaryRepository.deleteById(entryId);
   }
 }

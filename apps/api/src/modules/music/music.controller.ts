@@ -4,8 +4,6 @@ import { sendBadRequest, sendValidationError } from "../../commons/http/validati
 import { MusicService } from "./music.service";
 import {
   SearchMusicQuerySchema,
-  MusicArchiveQuerySchema,
-  MusicDetailQuerySchema,
   CreateMusicLogSchema,
   UpdateMusicLogSchema,
   UpdateMusicInteractionSchema,

@@ -1,0 +1,1 @@
+ALTER TABLE "serial_interaction" ADD COLUMN "is_watched" boolean DEFAULT false NOT NULL;

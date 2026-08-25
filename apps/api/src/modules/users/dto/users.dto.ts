@@ -4,7 +4,6 @@ import {
   MAX_FAVORITE_GENRES,
 } from "../constants/favorite-genres.constants";
 import {
-  TOP_PICK_CATEGORY_IDS,
   MAX_TOP_PICK_ITEMS_PER_CATEGORY,
   TOP_PICK_CATEGORY_ID_SET,
   TOP_PICK_DEFAULT_MEDIA_TYPE,
@@ -124,7 +123,16 @@ export const SearchUsersQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(20).optional(),
 });
 
+// Bounds unpaginated profile-list endpoints (likes, watchlist, reviews,
+// liked-reviews, liked-lists) so a large collection can't be fetched in
+// one unbounded request.
+export const ProfileListQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+});
+
 export type UpdateProfileDto = z.infer<typeof UpdateProfileSchema>;
-export type UpdateThemeDto = z.infer<typeof UpdateThemeSchema>;
+
 export type SearchUsersQueryDto = z.infer<typeof SearchUsersQuerySchema>;
 export type UpdateTopPicksInput = z.infer<typeof TopPicksSchema>;
+export type ProfileListQueryDto = z.infer<typeof ProfileListQuerySchema>;

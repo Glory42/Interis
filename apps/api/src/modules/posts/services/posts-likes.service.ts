@@ -1,7 +1,8 @@
-import { db } from "../../../infrastructure/database/db";
-import { activities } from "../../social/social.entity";
+import { SocialRepository } from "../../social/repositories/social.repository";
+import { SocialFeedService } from "../../social/services/social-feed.service";
 import { buildPostLikedActivityMetadata } from "../helpers/posts-activity.helper";
 import { PostsRepository } from "../repositories/posts.repository";
+import { NotificationsService } from "../../notifications/notifications.service";
 
 export class PostsLikesService {
   static async like(userId: string, postId: string) {
@@ -11,16 +12,26 @@ export class PostsLikesService {
       const postMetadata = await PostsRepository.getPostFeedMetadata(postId);
 
       if (postMetadata) {
-        await db.insert(activities).values({
-          userId,
-          type: "commented",
-          entityId: postId,
-          metadata: JSON.stringify(
-            buildPostLikedActivityMetadata({
-              post: postMetadata,
-            }),
-          ),
-        });
+        await Promise.all([
+          SocialRepository.insertActivity({
+            userId,
+            type: "commented",
+            entityId: postId,
+            metadata: JSON.stringify(
+              buildPostLikedActivityMetadata({
+                post: postMetadata,
+              }),
+            ),
+          }),
+          NotificationsService.notify({
+            recipientId: postMetadata.userId,
+            actorId: userId,
+            type: "like_post",
+            entityId: postId,
+          }),
+        ]);
+
+        SocialFeedService.invalidateFollowingFeed(userId);
       }
     }
 
@@ -28,7 +39,9 @@ export class PostsLikesService {
   }
 
   static async unlike(userId: string, postId: string) {
-    return PostsRepository.deleteLikeByUserAndPost(userId, postId);
+    const result = await PostsRepository.deleteLikeByUserAndPost(userId, postId);
+    SocialFeedService.invalidateFollowingFeed(userId);
+    return result;
   }
 
   static async isLiked(userId: string, postId: string) {

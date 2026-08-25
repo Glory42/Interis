@@ -9,9 +9,13 @@ import {
   loginWithEmail,
   logoutCurrentUser,
   registerWithEmail,
+  requestPasswordReset,
+  resetPasswordWithSecurityAnswer,
+  setCurrentUserSecurityQuestion,
   updateCurrentUserIdentity,
 } from "@/features/auth/api";
 import type { LoginInput, RegisterInput } from "@/types/api";
+import { profileKeys } from "@/features/profile/hooks/useProfile";
 
 export const authKeys = {
   me: ["auth", "me"] as const,
@@ -20,6 +24,8 @@ export const authKeys = {
 export const authQueryOptions = queryOptions({
   queryKey: authKeys.me,
   queryFn: getCurrentUser,
+  retry: false,
+  staleTime: 60_000,
 });
 
 export const useAuth = () => {
@@ -55,7 +61,7 @@ export const useAuth = () => {
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: authKeys.me }),
-        queryClient.invalidateQueries({ queryKey: ["profile"] }),
+        queryClient.invalidateQueries({ queryKey: profileKeys.all }),
       ]);
     },
   });
@@ -74,4 +80,29 @@ export const useAuth = () => {
     isUpdateIdentityPending: updateIdentityMutation.isPending,
     isLogoutPending: logoutMutation.isPending,
   };
+};
+
+export const useRequestPasswordReset = () => {
+  return useMutation({
+    mutationFn: (input: { email: string }) => requestPasswordReset(input),
+  });
+};
+
+export const useResetPassword = () => {
+  return useMutation({
+    mutationFn: (input: { email: string; answer: string; newPassword: string }) =>
+      resetPasswordWithSecurityAnswer(input),
+  });
+};
+
+export const useSetSecurityQuestion = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: { question: string; answer: string }) =>
+      setCurrentUserSecurityQuestion(input),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: authKeys.me });
+    },
+  });
 };

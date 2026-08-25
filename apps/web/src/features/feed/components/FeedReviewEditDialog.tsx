@@ -1,7 +1,10 @@
-import { useEffect, useState } from "react";
-import { Loader2, X } from "lucide-react";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
+import { ModalHeader } from "@/components/ui/ModalHeader";
+import { ModalShell } from "@/components/ui/ModalShell";
 import { Textarea } from "@/components/ui/textarea";
 import { useUpdateReview } from "@/features/reviews/hooks/useReviews";
+import { runDialogSubmit } from "@/lib/fire-and-forget";
 
 type FeedReviewEditDialogProps = {
   isOpen: boolean;
@@ -11,82 +14,49 @@ type FeedReviewEditDialogProps = {
   containsSpoilers: boolean;
 };
 
-export const FeedReviewEditDialog = ({
-  isOpen,
+export const FeedReviewEditDialog = ({ isOpen, ...rest }: FeedReviewEditDialogProps) => {
+  // Keying by reviewId remounts the dialog fresh each time it opens (or
+  // when it opens for a different review), so draft state naturally
+  // resets without an effect syncing it from props.
+  return isOpen ? <FeedReviewEditDialogContent key={rest.reviewId} {...rest} /> : null;
+};
+
+type FeedReviewEditDialogContentProps = Omit<FeedReviewEditDialogProps, "isOpen">;
+
+const FeedReviewEditDialogContent = ({
   onClose,
   reviewId,
   initialContent,
   containsSpoilers,
-}: FeedReviewEditDialogProps) => {
-  const updateReviewMutation = useUpdateReview(reviewId);
-
+}: FeedReviewEditDialogContentProps) => {
   const [draftContent, setDraftContent] = useState(initialContent);
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [isOpen, onClose]);
+  const updateReviewMutation = useUpdateReview(reviewId);
 
   const canSave =
     draftContent.trim().length > 0 &&
     draftContent.trim().length <= 10_000 &&
+    draftContent !== initialContent &&
     !updateReviewMutation.isPending;
 
-  const handleSave = async () => {
-    if (!canSave) {
-      return;
-    }
+  const handleSave = () =>
+    runDialogSubmit(async () => {
+      if (!canSave) {
+        return;
+      }
 
-    await updateReviewMutation.mutateAsync({
-      content: draftContent.trim(),
-      containsSpoilers,
+      await updateReviewMutation.mutateAsync({
+        content: draftContent.trim(),
+        containsSpoilers,
+      });
+      onClose();
     });
-    onClose();
-  };
-
-  if (!isOpen) {
-    return null;
-  }
 
   return (
-    <div className="theme-modal-overlay fixed inset-0 z-140 bg-background/70 backdrop-blur-sm">
-      <button
-        type="button"
-        aria-label="Close review edit dialog"
-        className="absolute inset-0"
-        onClick={onClose}
-      />
+    <ModalShell onClose={onClose} containerClassName="max-w-2xl" ariaCloseLabel="Close review edit dialog">
+      <section className="theme-modal-panel relative w-full overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
+        <ModalHeader title="EDIT REVIEW" onClose={onClose} closeAriaLabel="Close edit review dialog" align="start" />
 
-      <div className="relative mx-auto flex h-full w-full max-w-2xl items-start px-4 pt-16 sm:pt-20">
-        <section className="theme-modal-panel relative w-full overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
-          <div className="flex items-start justify-between border-b border-border/70 px-4 py-3">
-            <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                EDIT REVIEW
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="inline-flex h-7 w-7 items-center justify-center border border-border/70 text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div className="space-y-3 px-4 py-4">
+        <div className="space-y-3 px-4 py-4">
             <Textarea
               value={draftContent}
               onChange={(event) => {
@@ -105,7 +75,7 @@ export const FeedReviewEditDialog = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="border border-border/70 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground"
+                  className="rounded-full border border-border/70 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground"
                 >
                   cancel
                 </button>
@@ -115,7 +85,7 @@ export const FeedReviewEditDialog = ({
                     void handleSave();
                   }}
                   disabled={!canSave}
-                  className="border border-primary/45 bg-primary/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-full border border-primary/45 bg-primary/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-primary disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {updateReviewMutation.isPending ? (
                     <span className="inline-flex items-center gap-1">
@@ -135,9 +105,8 @@ export const FeedReviewEditDialog = ({
                   : "Could not update review."}
               </p>
             ) : null}
-          </div>
-        </section>
-      </div>
-    </div>
+        </div>
+      </section>
+    </ModalShell>
   );
 };

@@ -1,9 +1,5 @@
-import { POST_ACTIVITY_EXCERPT_LENGTH } from "../constants/posts.constants";
+import { truncateExcerpt as toExcerpt } from "../../../commons/helpers/text.helper";
 import type { PostFeedMetadata } from "../types/posts.types";
-
-const toExcerpt = (content: string): string => {
-  return content.slice(0, POST_ACTIVITY_EXCERPT_LENGTH);
-};
 
 export const buildPostCreatedActivityMetadata = (input: {
   post: PostFeedMetadata;

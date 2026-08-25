@@ -1,53 +1,29 @@
 import { getMovieDetails as tmdbGetDetails } from "../../../../infrastructure/tmdb/cinemas";
+import { createCachedTmdbFetcher } from "../../../../infrastructure/tmdb/tmdb-cache.helper";
+import { normalizeVoteAverage } from "../../../media/helpers/media-vote-average.helper";
 
 type TmdbSignal = {
   languageCode: string | null;
   tmdbRatingOutOfTen: number | null;
+  tmdbVoteCount: number | null;
 };
 
-const tmdbSignalByTmdbId = new Map<number, TmdbSignal>();
-const tmdbSignalInFlight = new Map<number, Promise<TmdbSignal>>();
+const getTmdbSignalByTmdbId = createCachedTmdbFetcher(async (tmdbId: number): Promise<TmdbSignal> => {
+  const detail = await tmdbGetDetails(tmdbId).catch(() => null);
 
-const getTmdbSignalByTmdbId = async (tmdbId: number): Promise<TmdbSignal> => {
-  const cached = tmdbSignalByTmdbId.get(tmdbId);
-  if (cached) {
-    return cached;
-  }
+  const languageCode =
+    detail && detail.original_language.trim().length > 0
+      ? detail.original_language.toLowerCase()
+      : null;
+  const tmdbRatingOutOfTen = normalizeVoteAverage(detail?.vote_average);
+  const tmdbVoteCount = detail ? detail.vote_count : null;
 
-  const inFlight = tmdbSignalInFlight.get(tmdbId);
-  if (inFlight) {
-    return inFlight;
-  }
-
-  const request = (async () => {
-    const detail = await tmdbGetDetails(tmdbId).catch(() => null);
-
-    const languageCode =
-      detail && detail.original_language.trim().length > 0
-        ? detail.original_language.toLowerCase()
-        : null;
-    const tmdbRatingOutOfTen =
-      detail && detail.vote_count > 0 && Number.isFinite(detail.vote_average)
-        ? Number(detail.vote_average.toFixed(1))
-        : null;
-
-    const signal = {
-      languageCode,
-      tmdbRatingOutOfTen,
-    };
-
-    tmdbSignalByTmdbId.set(tmdbId, signal);
-    return signal;
-  })();
-
-  tmdbSignalInFlight.set(tmdbId, request);
-
-  try {
-    return await request;
-  } finally {
-    tmdbSignalInFlight.delete(tmdbId);
-  }
-};
+  return {
+    languageCode,
+    tmdbRatingOutOfTen,
+    tmdbVoteCount,
+  };
+});
 
 export const getTmdbSignalsByTmdbIds = async (
   tmdbIds: number[],

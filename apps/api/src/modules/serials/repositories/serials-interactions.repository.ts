@@ -1,9 +1,14 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { profiles } from "../../users/users.entity";
 import { reviews } from "../../reviews/reviews.entity";
+import { mergeCommunityRatings } from "../../media/helpers/media-community-rating.helper";
+import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
+import { MediaInteractions } from "../../media-interactions/media-interactions.repository";
 import { serialDiaryEntries, serialInteractions, tvSeries } from "../serials.entity";
+
+const seriesInteractionStore = MediaInteractions.forSeries();
 
 export class SerialsInteractionsRepository {
   static async getViewerDiaryRows(viewerUserId: string, seriesId: number) {
@@ -12,7 +17,7 @@ export class SerialsInteractionsRepository {
         id: serialDiaryEntries.id,
         watchedDate: serialDiaryEntries.watchedDate,
         rewatch: serialDiaryEntries.rewatch,
-        ratingOutOfTen: serialDiaryEntries.rating,
+        rating: serialDiaryEntries.rating,
       })
       .from(serialDiaryEntries)
       .where(
@@ -25,42 +30,31 @@ export class SerialsInteractionsRepository {
       .limit(1);
   }
 
-  static async getViewerLoggedTmdbIds(viewerUserId: string, tmdbIds: number[]) {
-    const uniqueTmdbIds = [...new Set(tmdbIds)];
-    if (uniqueTmdbIds.length === 0) {
-      return [];
-    }
-
-    const [loggedRows, ratedRows] = await Promise.all([
+  // See mergeCommunityRatings for the diary-vs-interaction precedence rule.
+  static async getCommunityRatingsBySeriesId(seriesId: number): Promise<{ rating: number }[]> {
+    const [diaryRatingRows, interactionRatingRows] = await Promise.all([
       db
-        .select({ tmdbId: tvSeries.tmdbId })
+        .select({ userId: serialDiaryEntries.userId, rating: serialDiaryEntries.rating })
         .from(serialDiaryEntries)
-        .innerJoin(tvSeries, eq(serialDiaryEntries.seriesId, tvSeries.id))
         .where(
-          and(
-            eq(serialDiaryEntries.userId, viewerUserId),
-            inArray(tvSeries.tmdbId, uniqueTmdbIds),
-          ),
-        )
-        .groupBy(tvSeries.tmdbId),
+          and(eq(serialDiaryEntries.seriesId, seriesId), isNotNull(serialDiaryEntries.rating)),
+        ),
       db
-        .select({ tmdbId: tvSeries.tmdbId })
+        .select({ userId: serialInteractions.userId, rating: serialInteractions.rating })
         .from(serialInteractions)
-        .innerJoin(tvSeries, eq(serialInteractions.seriesId, tvSeries.id))
         .where(
-          and(
-            eq(serialInteractions.userId, viewerUserId),
-            inArray(tvSeries.tmdbId, uniqueTmdbIds),
-            sql`${serialInteractions.rating} is not null`,
-          ),
-        )
-        .groupBy(tvSeries.tmdbId),
+          and(eq(serialInteractions.seriesId, seriesId), isNotNull(serialInteractions.rating)),
+        ),
     ]);
 
-    return [...new Set([...loggedRows, ...ratedRows].map((row) => row.tmdbId))];
+    return mergeCommunityRatings(diaryRatingRows, interactionRatingRows);
   }
 
-  static async getViewerWatchlistedTmdbIds(viewerUserId: string, tmdbIds: number[]) {
+  // Diary-entry half of "logged" - the other half (rated without a diary
+  // entry) comes from getViewerSeriesInteractionStateByTmdbIds, which shares
+  // one query with the watchlisted/fully-watched archive-grid lookups
+  // instead of each re-querying serialInteractions separately.
+  static async getViewerDiaryLoggedTmdbIds(viewerUserId: string, tmdbIds: number[]) {
     const uniqueTmdbIds = [...new Set(tmdbIds)];
     if (uniqueTmdbIds.length === 0) {
       return [];
@@ -68,12 +62,11 @@ export class SerialsInteractionsRepository {
 
     const rows = await db
       .select({ tmdbId: tvSeries.tmdbId })
-      .from(serialInteractions)
-      .innerJoin(tvSeries, eq(serialInteractions.seriesId, tvSeries.id))
+      .from(serialDiaryEntries)
+      .innerJoin(tvSeries, eq(serialDiaryEntries.seriesId, tvSeries.id))
       .where(
         and(
-          eq(serialInteractions.userId, viewerUserId),
-          eq(serialInteractions.watchlisted, true),
+          eq(serialDiaryEntries.userId, viewerUserId),
           inArray(tvSeries.tmdbId, uniqueTmdbIds),
         ),
       )
@@ -82,19 +75,37 @@ export class SerialsInteractionsRepository {
     return rows.map((row) => row.tmdbId);
   }
 
-  static async getInteractionRow(userId: string, seriesId: number) {
-    const [row] = await db
-      .select()
+  // Single batched read of everything the archive grid needs from
+  // serialInteractions (watchlisted, explicitly-fully-watched, rated) for a
+  // page of tmdbIds, instead of one query per flag.
+  static async getViewerSeriesInteractionStateByTmdbIds(
+    viewerUserId: string,
+    tmdbIds: number[],
+  ) {
+    const uniqueTmdbIds = [...new Set(tmdbIds)];
+    if (uniqueTmdbIds.length === 0) {
+      return [];
+    }
+
+    return db
+      .select({
+        tmdbId: tvSeries.tmdbId,
+        watchlisted: serialInteractions.watchlisted,
+        isWatched: serialInteractions.isWatched,
+        rating: serialInteractions.rating,
+      })
       .from(serialInteractions)
+      .innerJoin(tvSeries, eq(serialInteractions.seriesId, tvSeries.id))
       .where(
         and(
-          eq(serialInteractions.userId, userId),
-          eq(serialInteractions.seriesId, seriesId),
+          eq(serialInteractions.userId, viewerUserId),
+          inArray(tvSeries.tmdbId, uniqueTmdbIds),
         ),
-      )
-      .limit(1);
+      );
+  }
 
-    return row ?? null;
+  static async getInteractionRow(userId: string, seriesId: number) {
+    return seriesInteractionStore.find(userId, seriesId);
   }
 
   static async upsertInteraction(input: {
@@ -102,32 +113,45 @@ export class SerialsInteractionsRepository {
     seriesId: number;
     liked?: boolean;
     watchlisted?: boolean;
+    isWatched?: boolean;
     rating?: number | null;
   }) {
-    const [upserted] = await db
-      .insert(serialInteractions)
-      .values({
-        userId: input.userId,
-        seriesId: input.seriesId,
-        liked: input.liked ?? false,
-        watchlisted: input.watchlisted ?? false,
-        rating: input.rating ?? null,
-      })
-      .onConflictDoUpdate({
-        target: [serialInteractions.userId, serialInteractions.seriesId],
-        set: {
-          ...(input.liked !== undefined && { liked: input.liked }),
-          ...(input.watchlisted !== undefined && {
-            watchlisted: input.watchlisted,
-          }),
-          ...(input.rating !== undefined && {
-            rating: input.rating,
-          }),
-        },
-      })
-      .returning();
+    return seriesInteractionStore.upsertState(input.userId, input.seriesId, {
+      liked: input.liked,
+      watchlisted: input.watchlisted,
+      rating: input.rating,
+      watched: input.isWatched,
+    });
+  }
 
-    return upserted ?? null;
+  // Fully watched series, most recently marked watched first. isWatched is
+  // a series-level flag that can be set independently of any per-episode
+  // rows (see setWatched below), so this queries serialInteractions
+  // directly rather than deriving completion from episode counts.
+  static async getWatchedSeriesForUser(userId: string, limit?: number, offset?: number) {
+    const baseQuery = db
+      .select({
+        tmdbId: tvSeries.tmdbId,
+        title: tvSeries.title,
+        posterPath: tvSeries.posterPath,
+        backdropPath: tvSeries.backdropPath,
+        firstAirYear: tvSeries.firstAirYear,
+        numberOfSeasons: tvSeries.numberOfSeasons,
+        numberOfEpisodes: tvSeries.numberOfEpisodes,
+        mediaType: sql<"tv">`'tv'`,
+        lastInteractionAt: serialInteractions.updatedAt,
+      })
+      .from(serialInteractions)
+      .innerJoin(tvSeries, eq(serialInteractions.seriesId, tvSeries.id))
+      .where(and(eq(serialInteractions.userId, userId), eq(serialInteractions.isWatched, true)))
+      .orderBy(desc(serialInteractions.updatedAt))
+      .$dynamic();
+
+    return applyOptionalPagination(baseQuery, limit, offset);
+  }
+
+  static async setWatched(userId: string, seriesId: number): Promise<void> {
+    await seriesInteractionStore.markWatched(userId, seriesId);
   }
 
   static async insertDiaryEntry(input: {
@@ -175,51 +199,20 @@ export class SerialsInteractionsRepository {
     return Boolean(row);
   }
 
-  static async insertSerialDiaryEntry(input: {
-    userId: string;
-    seriesId: number;
-    watchedDate: string;
-    rating: number | null;
-    rewatch: boolean;
-  }): Promise<{ id: string } | null> {
-    const [entry] = await db
-      .insert(serialDiaryEntries)
-      .values(input)
-      .returning({ id: serialDiaryEntries.id });
-    return entry ?? null;
-  }
-
   static async setWatchlisted(userId: string, seriesId: number): Promise<void> {
-    await db
-      .insert(serialInteractions)
-      .values({ userId, seriesId, liked: false, watchlisted: true })
-      .onConflictDoUpdate({
-        target: [serialInteractions.userId, serialInteractions.seriesId],
-        set: { watchlisted: true },
-      });
+    await seriesInteractionStore.setWatchlisted(userId, seriesId);
   }
 
   static async setRating(userId: string, seriesId: number, ratingOutOfTen: number): Promise<void> {
-    await db
-      .insert(serialInteractions)
-      .values({ userId, seriesId, liked: false, watchlisted: false, rating: ratingOutOfTen })
-      .onConflictDoUpdate({
-        target: [serialInteractions.userId, serialInteractions.seriesId],
-        set: { rating: ratingOutOfTen },
-      });
+    await seriesInteractionStore.setRating(userId, seriesId, ratingOutOfTen);
   }
 
   static async hasRating(userId: string, seriesId: number): Promise<boolean> {
-    const [row] = await db
-      .select({ rating: serialInteractions.rating })
-      .from(serialInteractions)
-      .where(and(eq(serialInteractions.userId, userId), eq(serialInteractions.seriesId, seriesId)))
-      .limit(1);
-    return row?.rating !== null && row?.rating !== undefined;
+    return seriesInteractionStore.hasRating(userId, seriesId);
   }
 
-  static async findAllDiaryByUser(userId: string) {
-    return db
+  static async findAllDiaryByUser(userId: string, limit?: number, offset?: number) {
+    const query = db
       .select({
         id: serialDiaryEntries.id,
         watchedDate: serialDiaryEntries.watchedDate,
@@ -248,19 +241,22 @@ export class SerialsInteractionsRepository {
         ),
       )
       .where(eq(serialDiaryEntries.userId, userId))
-      .orderBy(desc(serialDiaryEntries.watchedDate), desc(serialDiaryEntries.createdAt));
+      .orderBy(desc(serialDiaryEntries.watchedDate), desc(serialDiaryEntries.createdAt))
+      .$dynamic();
+
+    return applyOptionalPagination(query, limit, offset);
   }
 
   static async updateDiaryEntry(
     entryId: string,
     userId: string,
-    input: { watchedDate?: string; ratingOutOfTen?: number | null; rewatch?: boolean },
+    input: { watchedDate?: string; rating?: number | null; rewatch?: boolean },
   ) {
     const [updated] = await db
       .update(serialDiaryEntries)
       .set({
         ...(input.watchedDate !== undefined && { watchedDate: input.watchedDate }),
-        ...(input.ratingOutOfTen !== undefined && { rating: input.ratingOutOfTen }),
+        ...(input.rating !== undefined && { rating: input.rating }),
         ...(input.rewatch !== undefined && { rewatch: input.rewatch }),
       })
       .where(and(eq(serialDiaryEntries.id, entryId), eq(serialDiaryEntries.userId, userId)))
@@ -278,8 +274,8 @@ export class SerialsInteractionsRepository {
     return deleted ?? null;
   }
 
-  static async getLogsBySeriesId(seriesId: number) {
-    return db
+  static async getLogsBySeriesId(seriesId: number, limit?: number, offset?: number) {
+    const query = db
       .select({
         diaryEntryId: serialDiaryEntries.id,
         watchedDate: serialDiaryEntries.watchedDate,
@@ -305,6 +301,9 @@ export class SerialsInteractionsRepository {
         ),
       )
       .where(eq(serialDiaryEntries.seriesId, seriesId))
-      .orderBy(desc(serialDiaryEntries.createdAt));
+      .orderBy(desc(serialDiaryEntries.createdAt))
+      .$dynamic();
+
+    return applyOptionalPagination(query, limit, offset);
   }
 }

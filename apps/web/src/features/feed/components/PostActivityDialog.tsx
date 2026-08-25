@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
+import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { ModalShell } from "@/components/ui/ModalShell";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { PostActivityDialogActions } from "@/features/feed/components/post-activity-dialog/PostActivityDialogActions";
 import { PostActivityDialogAuthorRow } from "@/features/feed/components/post-activity-dialog/PostActivityDialogAuthorRow";
@@ -17,6 +17,7 @@ import {
   useUnlikePost,
   useUpdatePost,
 } from "@/features/posts/hooks/usePosts";
+import { runDialogSubmit } from "@/lib/fire-and-forget";
 
 type PostActivityDialogProps = {
   item: FeedItem;
@@ -52,24 +53,7 @@ export const PostActivityDialog = ({
   const content = postDetailQuery.data?.content ?? item.post?.content ?? item.metadata.excerpt ?? "";
   const currentEditDraft = editDraft ?? content;
 
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [isOpen, onClose]);
-
-  const actorAvatar = item.actor.avatarUrl ?? item.actor.image ?? null;
+  const actorAvatar = item.actor.avatarUrl ?? null;
   const actorInitial = item.actor.username.slice(0, 1).toUpperCase();
   const actorName = item.actor.displayUsername ?? item.actor.username;
   const likeCount = postDetailQuery.data?.likeCount ?? item.engagement.likeCount;
@@ -102,60 +86,60 @@ export const PostActivityDialog = ({
     await navigate({ to: "/login", search: { redirect: redirectPath } });
   };
 
-  const handleToggleLike = async () => {
-    if (!postId || isLikePending) {
-      return;
-    }
+  const handleToggleLike = () =>
+    runDialogSubmit(async () => {
+      if (!postId || isLikePending) {
+        return;
+      }
 
-    if (!user) {
-      await goToLogin();
-      return;
-    }
+      if (!user) {
+        await goToLogin();
+        return;
+      }
 
-    if (viewerHasLiked) {
-      await unlikePostMutation.mutateAsync();
-      return;
-    }
+      if (viewerHasLiked) {
+        await unlikePostMutation.mutateAsync();
+        return;
+      }
 
-    await likePostMutation.mutateAsync();
-  };
+      await likePostMutation.mutateAsync();
+    });
 
-  const handleSubmitComment = async () => {
-    if (!postId || !canSubmitComment) {
-      return;
-    }
+  const handleSubmitComment = () =>
+    runDialogSubmit(async () => {
+      if (!postId || !canSubmitComment) {
+        return;
+      }
 
-    if (!user) {
-      await goToLogin();
-      return;
-    }
+      if (!user) {
+        await goToLogin();
+        return;
+      }
 
-    await addCommentMutation.mutateAsync({ content: commentDraft.trim() });
-    setCommentDraft("");
-  };
+      await addCommentMutation.mutateAsync({ content: commentDraft.trim() });
+      setCommentDraft("");
+    });
 
-  const handleSaveEdit = async () => {
-    if (!postId || !canSaveEdit) {
-      return;
-    }
+  const handleSaveEdit = () =>
+    runDialogSubmit(async () => {
+      if (!postId || !canSaveEdit) {
+        return;
+      }
 
-    await updatePostMutation.mutateAsync({ content: currentEditDraft.trim() });
-    setIsEditing(false);
-  };
+      await updatePostMutation.mutateAsync({ content: currentEditDraft.trim() });
+      setIsEditing(false);
+    });
 
   if (!isOpen || !postId) {
     return null;
   }
 
-  return createPortal(
-    <div className="theme-modal-overlay fixed inset-0 z-140 flex items-center justify-center bg-background/70 px-4 py-6 backdrop-blur-sm sm:py-10">
-      <button
-        type="button"
-        aria-label="Close post dialog"
-        className="absolute inset-0"
-        onClick={onClose}
-      />
-
+  return (
+    <ModalShell
+      onClose={onClose}
+      containerClassName="max-w-2xl px-4 py-6 sm:py-10"
+      ariaCloseLabel="Close post dialog"
+    >
       <section className="theme-modal-panel relative z-10 flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
         <PostActivityDialogHeader dialogTitle={dialogTitle} onClose={onClose} />
 
@@ -205,6 +189,7 @@ export const PostActivityDialog = ({
           />
 
           <PostActivityDialogCommentsList
+            postId={postId}
             comments={comments}
             isPending={postCommentsQuery.isPending}
             isError={postCommentsQuery.isError}
@@ -222,7 +207,6 @@ export const PostActivityDialog = ({
           />
         </div>
       </section>
-    </div>,
-    document.body,
+    </ModalShell>
   );
 };

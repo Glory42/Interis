@@ -8,6 +8,11 @@ import { SerialsArchiveService } from "./services/serials-archive.service";
 import { SerialsActivityService } from "./services/serials-activity.service";
 import { SerialsCacheService } from "./services/serials-cache.service";
 import { SerialsDetailService } from "./services/serials-detail.service";
+import { SerialsInteractionsRepository } from "./repositories/serials-interactions.repository";
+import {
+  SerialsCacheRepository,
+  type AdminUpdateSeriesFields,
+} from "./repositories/serials-cache.repository";
 import type {
   NormalizedSerialArchiveQuery,
   CreateSerialLogDto,
@@ -24,7 +29,7 @@ export class SerialsService {
   static async getTrending() {
     const trendingSeries = await tmdbTrending("week");
 
-    return trendingSeries.slice(0, 4).map((series) => {
+    return trendingSeries.slice(0, 9).map((series) => {
       const firstAirYear = series.first_air_date
         ? Number.parseInt(series.first_air_date.slice(0, 4), 10)
         : Number.NaN;
@@ -62,7 +67,11 @@ export class SerialsService {
     return SerialsDetailService.getDetail(input);
   }
 
-  static async getSeasonDetail(input: { tmdbId: number; seasonNumber: number }) {
+  static async getSeasonDetail(input: {
+    tmdbId: number;
+    seasonNumber: number;
+    viewerUserId?: string | null;
+  }) {
     return SerialsDetailService.getSeasonDetail(input);
   }
 
@@ -82,8 +91,8 @@ export class SerialsService {
     return SerialsActivityService.createLog(userId, tmdbId, input);
   }
 
-  static async getMyLogs(userId: string) {
-    return SerialsActivityService.getMyLogs(userId);
+  static async getMyLogs(userId: string, limit?: number, offset?: number) {
+    return SerialsActivityService.getMyLogs(userId, limit, offset);
   }
 
   static async updateLog(entryId: string, userId: string, input: UpdateSerialLogDto) {
@@ -94,13 +103,35 @@ export class SerialsService {
     return SerialsActivityService.deleteLog(entryId, userId);
   }
 
-  static async getLogs(tmdbId: number) {
+  static async getLogs(tmdbId: number, limit?: number, offset?: number) {
     const series = await SerialsCacheService.findOrCreate(tmdbId);
     if (!series) return null;
-    return SerialsActivityService.getLogs(series.id);
+    return SerialsActivityService.getLogs(series.id, limit, offset);
   }
 
   static async getRecent(): Promise<TMDBSearchSeries[]> {
     return tmdbOnAir();
+  }
+
+  static async getWatchedSeries(userId: string, limit?: number, offset?: number) {
+    return SerialsInteractionsRepository.getWatchedSeriesForUser(userId, limit, offset);
+  }
+
+  static async listAllForAdmin(query: string | undefined, limit: number, offset: number) {
+    return SerialsCacheRepository.listAllForAdmin(query, limit, offset);
+  }
+
+  static async updateForAdmin(id: number, fields: AdminUpdateSeriesFields) {
+    return SerialsCacheRepository.updateById(id, fields);
+  }
+
+  static async refreshForAdmin(id: number) {
+    const existing = await SerialsCacheRepository.findById(id);
+    if (!existing) return null;
+    return SerialsCacheService.refreshForAdmin(existing.tmdbId);
+  }
+
+  static async deleteForAdmin(id: number) {
+    return SerialsCacheRepository.deleteById(id);
   }
 }

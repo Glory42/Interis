@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Link } from "@tanstack/react-router";
 import { formatRelativeTime } from "@/lib/time";
 import type { ListSummary } from "@/features/lists/api";
@@ -14,7 +15,7 @@ type ListCardProps = {
   username: string;
 };
 
-export const ListCard = ({ list, username }: ListCardProps) => {
+export const ListCard = memo(function ListCard({ list, username }: ListCardProps) {
   const covers = list.coverImages.slice(0, 4);
   const coverCount = covers.filter((c) => c.posterPath).length;
 
@@ -50,7 +51,7 @@ export const ListCard = ({ list, username }: ListCardProps) => {
           return (
             <div
               key={i}
-              className="absolute top-0 overflow-hidden border border-border/40 bg-muted/20"
+              className="absolute top-0 overflow-hidden rounded-md border border-border/40 bg-muted/20"
               style={{
                 left: `${i * OFFSET}px`,
                 width: `${POSTER_W}px`,
@@ -122,16 +123,16 @@ export const ListCard = ({ list, username }: ListCardProps) => {
 
       <div className="flex shrink-0 flex-col items-end gap-1.5 pt-0.5">
         {derivedTypeLabel ? (
-          <span className="border border-border/60 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+          <span className="rounded-full border border-border/60 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
             {derivedTypeLabel}
           </span>
         ) : null}
         {list.isRanked ? (
-          <span className="border border-border/60 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+          <span className="rounded-full border border-border/60 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
             RANKED
           </span>
         ) : null}
       </div>
     </Link>
   );
-};
+});

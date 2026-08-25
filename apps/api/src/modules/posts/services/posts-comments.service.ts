@@ -1,7 +1,8 @@
-import { db } from "../../../infrastructure/database/db";
-import { activities } from "../../social/social.entity";
+import { SocialRepository } from "../../social/repositories/social.repository";
+import { SocialFeedService } from "../../social/services/social-feed.service";
 import { buildPostCommentedActivityMetadata } from "../helpers/posts-activity.helper";
 import { PostsRepository } from "../repositories/posts.repository";
+import { NotificationsService } from "../../notifications/notifications.service";
 
 export class PostsCommentsService {
   static async getComments(postId: string) {
@@ -9,7 +10,7 @@ export class PostsCommentsService {
   }
 
   static async addComment(userId: string, postId: string, content: string) {
-    const post = await PostsRepository.findPostById(postId);
+    const post = await PostsRepository.getPostFeedMetadata(postId);
     if (!post) {
       return null;
     }
@@ -17,18 +18,28 @@ export class PostsCommentsService {
     const comment = await PostsRepository.insertComment(userId, postId, content);
 
     if (comment) {
-      await db.insert(activities).values({
-        userId,
-        type: "commented",
-        entityId: comment.id,
-        metadata: JSON.stringify(
-          buildPostCommentedActivityMetadata({
-            post,
-            commentId: comment.id,
-            commentContent: content,
-          }),
-        ),
-      });
+      await Promise.all([
+        SocialRepository.insertActivity({
+          userId,
+          type: "commented",
+          entityId: comment.id,
+          metadata: JSON.stringify(
+            buildPostCommentedActivityMetadata({
+              post,
+              commentId: comment.id,
+              commentContent: content,
+            }),
+          ),
+        }),
+        NotificationsService.notify({
+          recipientId: post.userId,
+          actorId: userId,
+          type: "comment_post",
+          entityId: postId,
+        }),
+      ]);
+
+      SocialFeedService.invalidateFollowingFeed(userId);
     }
 
     return comment;
@@ -36,5 +47,9 @@ export class PostsCommentsService {
 
   static async deleteComment(commentId: string, userId: string) {
     return PostsRepository.deleteCommentByIdAndUser(commentId, userId);
+  }
+
+  static async updateComment(commentId: string, userId: string, content: string) {
+    return PostsRepository.updateCommentByIdAndUser(commentId, userId, content);
   }
 }

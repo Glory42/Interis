@@ -35,6 +35,18 @@ router.get(
   asyncHandler(SocialController.checkIsFollowing),
 );
 
+// Activity likes
+router.post(
+  "/activities/:activityId/like",
+  requireAuth,
+  asyncHandler(SocialController.likeActivity),
+);
+router.delete(
+  "/activities/:activityId/like",
+  requireAuth,
+  asyncHandler(SocialController.unlikeActivity),
+);
+
 // Public
 router.get("/followers/:username", asyncHandler(SocialController.getFollowers));
 router.get("/following/:username", asyncHandler(SocialController.getFollowing));

@@ -1,9 +1,6 @@
 import type { Request, Response } from "express";
 import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
-import {
-  sendBadRequest,
-  sendValidationError,
-} from "../../commons/http/validation-response.helper";
+import { sendBadRequest, sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
 import { parseTmdbIdParam } from "../../commons/validation/params.helper";
 import { MoviesService } from "./movies.service";
 import type {
@@ -45,7 +42,7 @@ export class MoviesController {
 
     const movie = await MoviesService.findOrCreate(tmdbId);
     if (!movie) {
-      res.status(404).json({ error: "Movie not found" });
+      sendNotFound(res, "Movie not found");
       return;
     }
 
@@ -71,7 +68,7 @@ export class MoviesController {
     });
 
     if (!detail) {
-      res.status(404).json({ error: "Movie not found" });
+      sendNotFound(res, "Movie not found");
       return;
     }
 

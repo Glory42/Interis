@@ -2,6 +2,7 @@ import type {
   TMDBSeriesDetail,
   TMDBSeriesSeasonDetail,
 } from "../../../infrastructure/tmdb/serials";
+import { normalizeVoteAverage } from "../../media/helpers/media-vote-average.helper";
 import type {
   SerialDetailEpisode,
   SerialDetailSeason,
@@ -29,8 +30,10 @@ const toYear = (isoDate: string | null): number | null => {
   const parsedYear = Number.parseInt(isoDate.slice(0, 4), 10);
   return Number.isNaN(parsedYear) ? null : parsedYear;
 };
-
-const toNullableTrimmedText = (value: string): string | null => {
+export const toNullableTrimmedText = (value: string | null | undefined): string | null => {
+  if (!value) {
+    return null;
+  }
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
 };
@@ -126,7 +129,10 @@ export const normalizeTmdbSeriesDetail = (detail: TMDBSeriesDetail) => {
     network: toPrimaryName(detail.networks),
     episodeRuntime: toPrimaryEpisodeRuntime(detail.episode_run_time),
     numberOfSeasons: toNonNegativeIntegerOrNull(detail.number_of_seasons),
-    numberOfEpisodes: toNonNegativeIntegerOrNull(detail.number_of_episodes),
+    numberOfEpisodes:
+      detail.seasons
+        .filter((s) => s.season_number > 0)
+        .reduce((sum, s) => sum + (s.episode_count ?? 0), 0) || null,
     status: toNullableTrimmedText(detail.status),
     overview: toNullableTrimmedText(detail.overview),
     tagline: toNullableTrimmedText(detail.tagline),
@@ -146,33 +152,19 @@ export const toNormalizedSeasonItems = (
       episodeCount: toNonNegativeIntegerOrNull(season.episode_count),
       airDate: toIsoDate(season.air_date),
       posterPath: season.poster_path,
+      viewerInteraction: null,
     }))
     .sort((leftSeason, rightSeason) => leftSeason.seasonNumber - rightSeason.seasonNumber);
-};
-
-export const toRatingOutOfFive = (ratingOutOfTen: number | null): number | null => {
-  if (ratingOutOfTen === null || !Number.isFinite(ratingOutOfTen)) {
-    return null;
-  }
-
-  return Math.max(0, Math.min(5, ratingOutOfTen / 2));
 };
 
 export const toTmdbRatingOutOfTen = (input: {
   voteAverage: number;
   voteCount: number;
 }): number | null => {
-  if (input.voteCount <= 0 || !Number.isFinite(input.voteAverage)) {
-    return null;
-  }
-
-  return Number(input.voteAverage.toFixed(1));
+  if (input.voteCount <= 0) return null;
+  return normalizeVoteAverage(input.voteAverage);
 };
 
-export const toRatingBreakdownBucket = (ratingOutOfTen: number): 1 | 2 | 3 | 4 | 5 => {
-  const normalized = Math.round(Math.max(1, Math.min(10, ratingOutOfTen)) / 2);
-  return Math.max(1, Math.min(5, normalized)) as 1 | 2 | 3 | 4 | 5;
-};
 
 const toEpisodeRuntimeLabel = (runtimeMinutes: number | null | undefined): string | null => {
   if (
@@ -201,6 +193,7 @@ export const toNormalizedSeasonEpisodeItems = (
       stillPath: episode.still_path,
       runtimeMinutes: toNonNegativeIntegerOrNull(episode.runtime ?? null),
       runtimeLabel: toEpisodeRuntimeLabel(episode.runtime),
+      viewerInteraction: null,
     }))
     .sort((leftEpisode, rightEpisode) => leftEpisode.episodeNumber - rightEpisode.episodeNumber);
 };
@@ -222,4 +215,21 @@ export const toNormalizedSeasonDetail = (
     },
     episodes: toNormalizedSeasonEpisodeItems(seasonDetail),
   };
+};
+
+
+
+export const toDistinctValues = (values: Array<string | null | undefined>): string[] => {
+  const seen = new Set<string>();
+
+  for (const value of values) {
+    const normalized = toNullableTrimmedText(value);
+    if (!normalized) {
+      continue;
+    }
+
+    seen.add(normalized);
+  }
+
+  return [...seen];
 };

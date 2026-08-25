@@ -3,54 +3,55 @@ import { Award, Check, Heart, Plus } from "lucide-react";
 import { LogFilmModal } from "@/features/diary/components/LogFilmModal";
 import type { MovieDetailResponse } from "@/features/films/api";
 import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
-import { formatRatingOutOfFiveLabel } from "@/features/films/components/spaceRating.utils";
 import { CINEMA_MODULE_STYLES } from "@/features/films/components/cinema-detail/styles";
 import { getPosterUrl } from "@/features/films/components/utils";
 import { AddToListDialog } from "@/features/lists/components/AddToListDialog";
 
 type CinemaActionsSidebarProps = {
   detail: MovieDetailResponse;
-  currentRatingOutOfFive: number | null;
+  currentRating: number | null;
   isRatingSaving: boolean;
-  onRatingChange: (ratingOutOfFive: number | null) => void;
+  onRatingChange: (rating: number | null) => void;
   isAuthenticated: boolean;
   watchlisted: boolean;
   liked: boolean;
+  watched: boolean;
   isInteractionBusy: boolean;
+  isInteractionLoading: boolean;
   onToggleWatchlist: () => void;
   onToggleLike: () => void;
+  onToggleWatched: () => void;
 };
 
 export const CinemaActionsSidebar = ({
   detail,
-  currentRatingOutOfFive,
+  currentRating,
   isRatingSaving,
   onRatingChange,
   isAuthenticated,
   watchlisted,
   liked,
+  watched,
   isInteractionBusy,
+  isInteractionLoading,
   onToggleWatchlist,
   onToggleLike,
+  onToggleWatched,
 }: CinemaActionsSidebarProps) => {
   const movie = detail.movie;
 
   const modalInitialState = {
     watchedDate: detail.userRating?.watchedDate ?? null,
-    ratingOutOfFive: currentRatingOutOfFive,
+    rating: currentRating,
     rewatch: detail.userRating?.rewatch ?? false,
     reviewContent: detail.userRating?.reviewContent ?? null,
     containsSpoilers: detail.userRating?.reviewContainsSpoilers ?? null,
   };
 
-  const resolvedUserRatingLabel =
-    formatRatingOutOfFiveLabel(currentRatingOutOfFive) ??
-    "No rating yet";
-
   return (
     <aside>
       <div
-        className="mb-4 aspect-2/3 overflow-hidden border"
+        className="mb-4 aspect-2/3 overflow-hidden rounded-xl border"
         style={{ borderColor: CINEMA_MODULE_STYLES.border }}
       >
         {movie.posterPath ? (
@@ -84,7 +85,7 @@ export const CinemaActionsSidebar = ({
       </div>
 
       <div className="space-y-2">
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <LogFilmModal
             tmdbId={movie.tmdbId}
             movieTitle={movie.title}
@@ -93,7 +94,7 @@ export const CinemaActionsSidebar = ({
             initialState={modalInitialState}
             triggerVariant="outline"
             triggerLabel="Log"
-            triggerClassName="h-auto flex-1 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
+            triggerClassName="h-auto flex-1 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
             triggerContent={
               <>
                 <Check className="h-3 w-3" />
@@ -106,29 +107,29 @@ export const CinemaActionsSidebar = ({
             <button
               type="button"
               disabled={isInteractionBusy}
-              className="flex flex-1 items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
               style={{
-                borderColor: watchlisted
+                borderColor: !isInteractionLoading && watchlisted
                   ? CINEMA_MODULE_STYLES.accent
                   : CINEMA_MODULE_STYLES.border,
-                color: watchlisted
+                color: !isInteractionLoading && watchlisted
                   ? CINEMA_MODULE_STYLES.accent
                   : CINEMA_MODULE_STYLES.muted,
                 background: "transparent",
               }}
               onClick={onToggleWatchlist}
             >
-              {watchlisted ? (
+              {!isInteractionLoading && watchlisted ? (
                 <Check className="h-3 w-3" />
               ) : (
                 <Plus className="h-3 w-3" />
               )}
-              <span>{watchlisted ? "watchlisted" : "watchlist"}</span>
+              <span>{!isInteractionLoading && watchlisted ? "watchlisted" : "watchlist"}</span>
             </button>
           ) : (
             <Link
               to="/login"
-              className="flex flex-1 items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
               style={{
                 borderColor: CINEMA_MODULE_STYLES.border,
                 color: CINEMA_MODULE_STYLES.muted,
@@ -141,45 +142,81 @@ export const CinemaActionsSidebar = ({
           )}
         </div>
 
-        {isAuthenticated ? (
-          <button
-            type="button"
-            disabled={isInteractionBusy}
-            className="flex w-full items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all disabled:cursor-not-allowed disabled:opacity-60"
-            style={{
-              borderColor: liked
-                ? CINEMA_MODULE_STYLES.accent
-                : CINEMA_MODULE_STYLES.border,
-              color: liked
-                ? CINEMA_MODULE_STYLES.accent
-                : CINEMA_MODULE_STYLES.muted,
-              background: "transparent",
-            }}
-            onClick={onToggleLike}
-          >
-            <Heart className="h-3 w-3" />
-            <span>{liked ? "Liked" : "Like"}</span>
-          </button>
-        ) : (
-          <Link
-            to="/login"
-            className="flex w-full items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
-            style={{
-              borderColor: CINEMA_MODULE_STYLES.border,
-              color: CINEMA_MODULE_STYLES.muted,
-            }}
-            viewTransition
-          >
-            <Heart className="h-3 w-3" />
-            <span>Like</span>
-          </Link>
-        )}
+        <div className="grid grid-cols-2 gap-2">
+          {isAuthenticated ? (
+            <button
+              type="button"
+              disabled={isInteractionBusy}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+              style={{
+                borderColor: !isInteractionLoading && watched
+                  ? CINEMA_MODULE_STYLES.accent
+                  : CINEMA_MODULE_STYLES.border,
+                color: !isInteractionLoading && watched
+                  ? CINEMA_MODULE_STYLES.accent
+                  : CINEMA_MODULE_STYLES.muted,
+                background: "transparent",
+              }}
+              onClick={onToggleWatched}
+            >
+              <Check className="h-3 w-3" />
+              <span>{!isInteractionLoading && watched ? "Watched" : "Watch"}</span>
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
+              style={{
+                borderColor: CINEMA_MODULE_STYLES.border,
+                color: CINEMA_MODULE_STYLES.muted,
+              }}
+              viewTransition
+            >
+              <Check className="h-3 w-3" />
+              <span>Watch</span>
+            </Link>
+          )}
+
+          {isAuthenticated ? (
+            <button
+              type="button"
+              disabled={isInteractionBusy}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+              style={{
+                borderColor: !isInteractionLoading && liked
+                  ? CINEMA_MODULE_STYLES.accent
+                  : CINEMA_MODULE_STYLES.border,
+                color: !isInteractionLoading && liked
+                  ? CINEMA_MODULE_STYLES.accent
+                  : CINEMA_MODULE_STYLES.muted,
+                background: "transparent",
+              }}
+              onClick={onToggleLike}
+            >
+              <Heart className="h-3 w-3" />
+              <span>{!isInteractionLoading && liked ? "Liked" : "Like"}</span>
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
+              style={{
+                borderColor: CINEMA_MODULE_STYLES.border,
+                color: CINEMA_MODULE_STYLES.muted,
+              }}
+              viewTransition
+            >
+              <Heart className="h-3 w-3" />
+              <span>Like</span>
+            </Link>
+          )}
+        </div>
 
         {isAuthenticated ? (
           <AddToListDialog
             tmdbId={movie.tmdbId}
             itemType="cinema"
-            triggerClassName="flex w-full items-center justify-center gap-1.5 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all"
+            triggerClassName="flex w-full items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors"
             triggerStyle={{
               borderColor: CINEMA_MODULE_STYLES.border,
               color: CINEMA_MODULE_STYLES.muted,
@@ -188,7 +225,7 @@ export const CinemaActionsSidebar = ({
         ) : null}
 
         <div
-          className="border p-3"
+          className="rounded-xl border p-3"
           style={{
             borderColor: CINEMA_MODULE_STYLES.border,
             background: CINEMA_MODULE_STYLES.panelElevated,
@@ -203,7 +240,7 @@ export const CinemaActionsSidebar = ({
           <div className="flex items-center gap-3">
             {isAuthenticated ? (
               <SpaceRatingInput
-                value={currentRatingOutOfFive}
+                value={currentRating}
                 onChange={onRatingChange}
                 disabled={isRatingSaving}
               />
@@ -218,12 +255,6 @@ export const CinemaActionsSidebar = ({
               </Link>
             )}
           </div>
-          <p
-            className="mt-2 font-mono text-[10px]"
-            style={{ color: CINEMA_MODULE_STYLES.muted }}
-          >
-            {isRatingSaving ? "Saving..." : resolvedUserRatingLabel}
-          </p>
         </div>
       </div>
     </aside>

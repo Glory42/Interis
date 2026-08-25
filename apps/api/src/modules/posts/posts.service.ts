@@ -24,6 +24,14 @@ export class PostsService {
     return PostsCoreService.delete(postId, userId);
   }
 
+  static async deleteById(postId: string) {
+    return PostsCoreService.deleteById(postId);
+  }
+
+  static async listAllForAdmin(filters: { userId?: string }, limit: number, offset: number) {
+    return PostsCoreService.listAllForAdmin(filters, limit, offset);
+  }
+
   static async like(userId: string, postId: string) {
     return PostsLikesService.like(userId, postId);
   }
@@ -46,5 +54,9 @@ export class PostsService {
 
   static async deleteComment(commentId: string, userId: string) {
     return PostsCommentsService.deleteComment(commentId, userId);
+  }
+
+  static async updateComment(commentId: string, userId: string, content: string) {
+    return PostsCommentsService.updateComment(commentId, userId, content);
   }
 }

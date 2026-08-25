@@ -1,8 +1,11 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, lt, or, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { profiles } from "../../users/users.entity";
-import { activities, follows } from "../social.entity";
+import { activities, activityLikes, activityTypeEnum, follows } from "../social.entity";
+
+export type ActivityType = (typeof activityTypeEnum.enumValues)[number];
+import type { FeedCursor } from "../helpers/social-feed-cursor.helper";
 
 export class SocialRepository {
   static async insertFollow(followerId: string, followingId: string) {
@@ -56,7 +59,6 @@ export class SocialRepository {
         id: user.id,
         username: user.username,
         displayUsername: user.displayUsername,
-        image: user.image,
         avatarUrl: profiles.avatarUrl,
       })
       .from(follows)
@@ -71,7 +73,6 @@ export class SocialRepository {
         id: user.id,
         username: user.username,
         displayUsername: user.displayUsername,
-        image: user.image,
         avatarUrl: profiles.avatarUrl,
       })
       .from(follows)
@@ -97,21 +98,113 @@ export class SocialRepository {
       .where(eq(follows.followerId, followerId));
   }
 
-  static async getFeedActivityRows(userIds: string[], limit: number) {
+  static async getFeedActivityRows(
+    userIds: string[],
+    limit: number,
+    before?: FeedCursor,
+  ) {
+    const whereCondition = before
+      ? and(
+          inArray(activities.userId, userIds),
+          or(
+            lt(activities.createdAt, before.createdAt),
+            and(eq(activities.createdAt, before.createdAt), lt(activities.id, before.id)),
+          ),
+        )
+      : inArray(activities.userId, userIds);
+
     return db
       .select({
         activity: activities,
         actorId: user.id,
         actorUsername: user.username,
         actorDisplayUsername: user.displayUsername,
-        actorImage: user.image,
         actorAvatarUrl: profiles.avatarUrl,
       })
       .from(activities)
       .innerJoin(user, eq(activities.userId, user.id))
       .leftJoin(profiles, eq(activities.userId, profiles.userId))
-      .where(inArray(activities.userId, userIds))
-      .orderBy(desc(activities.createdAt))
+      .where(whereCondition)
+      // Secondary sort by id keeps keyset pagination deterministic when
+      // multiple activities share the same createdAt timestamp.
+      .orderBy(desc(activities.createdAt), desc(activities.id))
       .limit(limit);
+  }
+
+  static async likeActivity(userId: string, activityId: string) {
+    await db
+      .insert(activityLikes)
+      .values({ userId, activityId })
+      .onConflictDoNothing();
+  }
+
+  static async unlikeActivity(userId: string, activityId: string) {
+    await db
+      .delete(activityLikes)
+      .where(and(eq(activityLikes.userId, userId), eq(activityLikes.activityId, activityId)));
+  }
+
+  static async getActivityLikeCounts(activityIds: string[]) {
+    if (activityIds.length === 0) return [];
+    return db
+      .select({
+        activityId: activityLikes.activityId,
+        count: sql<number>`count(*)::int`.as("count"),
+      })
+      .from(activityLikes)
+      .where(inArray(activityLikes.activityId, activityIds))
+      .groupBy(activityLikes.activityId);
+  }
+
+  static async getViewerActivityLikes(userId: string, activityIds: string[]) {
+    if (activityIds.length === 0) return [];
+    return db
+      .select({ activityId: activityLikes.activityId })
+      .from(activityLikes)
+      .where(and(eq(activityLikes.userId, userId), inArray(activityLikes.activityId, activityIds)));
+  }
+
+  static async findActivityById(activityId: string) {
+    const [row] = await db
+      .select()
+      .from(activities)
+      .where(eq(activities.id, activityId))
+      .limit(1);
+    return row ?? null;
+  }
+
+  static async listAllForAdmin(
+    filters: { userId?: string; type?: ActivityType },
+    limit: number,
+    offset: number,
+  ) {
+    const conditions = [];
+    if (filters.userId) conditions.push(eq(activities.userId, filters.userId));
+    if (filters.type) conditions.push(eq(activities.type, filters.type));
+
+    return db
+      .select({
+        id: activities.id,
+        userId: activities.userId,
+        authorUsername: user.username,
+        type: activities.type,
+        entityId: activities.entityId,
+        createdAt: activities.createdAt,
+      })
+      .from(activities)
+      .innerJoin(user, eq(user.id, activities.userId))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(activities.createdAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  // No ownership check — admin moderation only.
+  static async deleteById(activityId: string) {
+    const [deleted] = await db
+      .delete(activities)
+      .where(eq(activities.id, activityId))
+      .returning({ id: activities.id });
+    return deleted ?? null;
   }
 }

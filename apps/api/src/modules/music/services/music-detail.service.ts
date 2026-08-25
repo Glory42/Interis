@@ -3,7 +3,7 @@ import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { profiles } from "../../users/users.entity";
 import { reviews, reviewLikes } from "../../reviews/reviews.entity";
-import { albums, musicDiaryEntries } from "../music.entity";
+import { albums } from "../music.entity";
 import { MusicCacheService } from "./music-cache.service";
 import { MusicInteractionsRepository } from "../repositories/music-interactions.repository";
 import type { MusicDetailReviewSort } from "../dto/music.dto";
@@ -33,7 +33,6 @@ export class MusicDetailService {
         updatedAt: reviews.updatedAt,
         authorUsername: user.username,
         authorDisplayUsername: user.displayUsername,
-        authorImage: user.image,
         authorAvatarUrl: profiles.avatarUrl,
       })
       .from(reviews)
@@ -94,7 +93,6 @@ export class MusicDetailService {
         id: r.userId,
         username: r.authorUsername,
         displayUsername: r.authorDisplayUsername ?? null,
-        image: r.authorImage ?? null,
         avatarUrl: r.authorAvatarUrl ?? null,
       },
     }));

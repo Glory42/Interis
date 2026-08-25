@@ -7,6 +7,7 @@ import {
   uuid,
   uniqueIndex,
   unique,
+  index,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { user } from "../../infrastructure/database/auth.entity";
@@ -30,7 +31,11 @@ export const lists = pgTable("list", {
     .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
-});
+}, (table) => [
+  index("list_user_id_idx").on(table.userId),
+  // Backs the profile lists page query: WHERE user_id = X ORDER BY updated_at DESC
+  index("list_user_updated_idx").on(table.userId, table.updatedAt),
+]);
 
 export const listEntries = pgTable(
   "list_entry",

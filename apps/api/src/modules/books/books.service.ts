@@ -3,7 +3,6 @@ import type { GoogleBooksVolume } from "../../infrastructure/googlebooks/books";
 import { db } from "../../infrastructure/database/db";
 import { activities } from "../social/social.entity";
 import type {
-  BooksArchiveSort,
   BookDetailReviewSort,
   UpdateBookInteractionDto,
   UpdateBookLogDto,

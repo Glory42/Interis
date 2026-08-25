@@ -13,7 +13,7 @@ Intended deployment target:
 ## Local development
 
 ```bash
-cd docs
+cd apps/docs
 bun install
 bun run dev
 ```
@@ -21,7 +21,7 @@ bun run dev
 ## Build
 
 ```bash
-cd docs
+cd apps/docs
 bun run build
 ```
 

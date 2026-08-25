@@ -13,7 +13,7 @@ export const CinemaDetailStatusPanel = ({
     <main className="mx-auto w-full max-w-5xl px-4 py-10">
       {loading ? (
         <div
-          className="h-64 animate-pulse border"
+          className="h-64 animate-pulse rounded-xl border"
           style={{
             borderColor: CINEMA_MODULE_STYLES.border,
             background: CINEMA_MODULE_STYLES.panel,
@@ -21,7 +21,7 @@ export const CinemaDetailStatusPanel = ({
         />
       ) : (
         <div
-          className="border p-5 font-mono text-xs"
+          className="rounded-xl border p-5 font-mono text-xs"
           style={{
             borderColor: CINEMA_MODULE_STYLES.border,
             background: CINEMA_MODULE_STYLES.panel,

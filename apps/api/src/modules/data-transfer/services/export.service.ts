@@ -1,9 +1,6 @@
-import { eq, desc } from "drizzle-orm";
-import { db } from "../../../infrastructure/database/db";
 import { DiaryRepository } from "../../diary/repositories/diary.repository";
-import { reviews } from "../../reviews/reviews.entity";
-import { serialDiaryEntries, tvSeries } from "../../serials/serials.entity";
 import { buildCsv } from "../helpers/csv-builder";
+import { ExportRepository } from "../repositories/export.repository";
 
 export const EXPORT_HEADERS = [
   "WatchedDate",
@@ -17,30 +14,14 @@ export const EXPORT_HEADERS = [
   "Spoilers",
 ] as const;
 
+const toExportRatingString = (r: number | null): string =>
+  r !== null ? String(r / 2) : "";
+
 export class DataExportService {
   static async exportDiary(userId: string): Promise<string> {
     const [movieEntries, serialEntries] = await Promise.all([
       DiaryRepository.findAllByUser(userId),
-      db
-        .select({
-          id: serialDiaryEntries.id,
-          watchedDate: serialDiaryEntries.watchedDate,
-          rating: serialDiaryEntries.rating,
-          rewatch: serialDiaryEntries.rewatch,
-          tmdbId: tvSeries.tmdbId,
-          title: tvSeries.title,
-          firstAirYear: tvSeries.firstAirYear,
-          reviewContent: reviews.content,
-          reviewContainsSpoilers: reviews.containsSpoilers,
-        })
-        .from(serialDiaryEntries)
-        .innerJoin(tvSeries, eq(tvSeries.id, serialDiaryEntries.seriesId))
-        .leftJoin(
-          reviews,
-          eq(reviews.diaryEntryId, serialDiaryEntries.id),
-        )
-        .where(eq(serialDiaryEntries.userId, userId))
-        .orderBy(desc(serialDiaryEntries.watchedDate)),
+      ExportRepository.findAllSerialDiaryEntriesByUser(userId),
     ]);
 
     type Row = Record<(typeof EXPORT_HEADERS)[number], string>;
@@ -51,7 +32,7 @@ export class DataExportService {
       Title: entry.movieTitle,
       Year: String(entry.movieReleaseYear ?? ""),
       TmdbId: String(entry.movieTmdbId),
-      Rating: entry.rating !== null ? String(entry.rating / 2) : "",
+      Rating: toExportRatingString(entry.rating),
       Rewatch: entry.rewatch ? "true" : "false",
       Review: entry.reviewContent ?? "",
       Spoilers: entry.reviewContent
@@ -67,7 +48,7 @@ export class DataExportService {
       Title: entry.title,
       Year: String(entry.firstAirYear ?? ""),
       TmdbId: String(entry.tmdbId),
-      Rating: entry.rating !== null ? String(entry.rating / 2) : "",
+      Rating: toExportRatingString(entry.rating),
       Rewatch: entry.rewatch ? "true" : "false",
       Review: entry.reviewContent ?? "",
       Spoilers: entry.reviewContent

@@ -1,21 +1,21 @@
-import { eq, and } from "drizzle-orm";
-import { db } from "../../infrastructure/database/db";
-import { movieInteractions } from "./interactions.entity";
-import { activities } from "../social/social.entity";
+import { MediaInteractions } from "../media-interactions/media-interactions.repository";
+import { MovieActivityRecorder } from "../movies/services/movie-activity-recorder.service";
 import { MoviesService } from "../movies/movies.service";
-import { toRatingOutOfFive } from "../movies/helpers/movies-format.helper";
-import { resolveRatingOutOfTen } from "../diary/helpers/diary-rating.helper";
 import type { UpdateInteractionDto } from "./dto/interactions.dto";
+
+const movieInteractionStore = MediaInteractions.forMovie();
 
 const toInteractionResponse = (row: {
   liked: boolean;
   watchlisted: boolean;
   rating: number | null;
+  isWatched: boolean;
 }) => {
   return {
     liked: row.liked,
     watchlisted: row.watchlisted,
-    ratingOutOfFive: toRatingOutOfFive(row.rating),
+    rating: row.rating,
+    watched: row.isWatched,
   };
 };
 
@@ -23,23 +23,14 @@ export class InteractionsService {
   // GET current state — null means no row yet (both false)
   static async get(userId: string, tmdbId: number) {
     const movie = await MoviesService.findOrCreate(tmdbId);
-
-    const [row] = await db
-      .select()
-      .from(movieInteractions)
-      .where(
-        and(
-          eq(movieInteractions.userId, userId),
-          eq(movieInteractions.movieId, movie.id),
-        ),
-      )
-      .limit(1);
+    const row = await movieInteractionStore.find(userId, movie.id);
 
     return toInteractionResponse(
       row ?? {
         liked: false,
         watchlisted: false,
         rating: null,
+        isWatched: false,
       },
     );
   }
@@ -51,60 +42,30 @@ export class InteractionsService {
     input: UpdateInteractionDto,
   ) {
     const movie = await MoviesService.findOrCreate(tmdbId);
-    const ratingOutOfTen = resolveRatingOutOfTen(input.ratingOutOfFive);
 
-    const [upserted] = await db
-      .insert(movieInteractions)
-      .values({
-        userId,
-        movieId: movie.id,
-        liked: input.liked ?? false,
-        watchlisted: input.watchlisted ?? false,
-        rating: ratingOutOfTen ?? null,
-      })
-      .onConflictDoUpdate({
-        target: [movieInteractions.userId, movieInteractions.movieId],
-        set: {
-          ...(input.liked !== undefined && { liked: input.liked }),
-          ...(input.watchlisted !== undefined && {
-            watchlisted: input.watchlisted,
-          }),
-          ...(input.ratingOutOfFive !== undefined && {
-            rating: ratingOutOfTen ?? null,
-          }),
-        },
-      })
-      .returning();
+    const upserted = await movieInteractionStore.upsertState(userId, movie.id, {
+      liked: input.liked,
+      watchlisted: input.watchlisted,
+      rating: input.rating,
+      watched: input.watched,
+    });
 
     // Write activity only for meaningful state changes
     if (input.liked === true) {
-      await db
-        .insert(activities)
-        .values({
-          userId,
-          type: "liked_movie",
-          entityId: String(movie.id),
-          metadata: JSON.stringify({
-            movieId: movie.id,
-            tmdbId: movie.tmdbId,
-            title: movie.title,
-            posterPath: movie.posterPath,
-          }),
-        })
-        .onConflictDoNothing(); // activities table has no unique — this is just defensive
+      MovieActivityRecorder.record({
+        userId,
+        movie,
+        type: "liked_movie",
+        entityId: String(movie.id),
+      });
     }
 
     if (input.watchlisted === true) {
-      await db.insert(activities).values({
+      MovieActivityRecorder.record({
         userId,
+        movie,
         type: "watchlisted_movie",
         entityId: String(movie.id),
-        metadata: JSON.stringify({
-          movieId: movie.id,
-          tmdbId: movie.tmdbId,
-          title: movie.title,
-          posterPath: movie.posterPath,
-        }),
       });
     }
 
@@ -112,37 +73,25 @@ export class InteractionsService {
       upserted ?? {
         liked: input.liked ?? false,
         watchlisted: input.watchlisted ?? false,
-        rating: ratingOutOfTen ?? null,
+        rating: input.rating ?? null,
+        isWatched: input.watched ?? false,
       },
     );
   }
 
+  static async setWatched(userId: string, movieId: number): Promise<void> {
+    await movieInteractionStore.markWatched(userId, movieId);
+  }
+
   static async setWatchlisted(userId: string, movieId: number): Promise<void> {
-    await db
-      .insert(movieInteractions)
-      .values({ userId, movieId, liked: false, watchlisted: true })
-      .onConflictDoUpdate({
-        target: [movieInteractions.userId, movieInteractions.movieId],
-        set: { watchlisted: true },
-      });
+    await movieInteractionStore.setWatchlisted(userId, movieId);
   }
 
   static async setRating(userId: string, movieId: number, ratingOutOfTen: number): Promise<void> {
-    await db
-      .insert(movieInteractions)
-      .values({ userId, movieId, liked: false, watchlisted: false, rating: ratingOutOfTen })
-      .onConflictDoUpdate({
-        target: [movieInteractions.userId, movieInteractions.movieId],
-        set: { rating: ratingOutOfTen },
-      });
+    await movieInteractionStore.setRating(userId, movieId, ratingOutOfTen);
   }
 
   static async hasRating(userId: string, movieId: number): Promise<boolean> {
-    const [row] = await db
-      .select({ rating: movieInteractions.rating })
-      .from(movieInteractions)
-      .where(and(eq(movieInteractions.userId, userId), eq(movieInteractions.movieId, movieId)))
-      .limit(1);
-    return row?.rating !== null && row?.rating !== undefined;
+    return movieInteractionStore.hasRating(userId, movieId);
   }
 }

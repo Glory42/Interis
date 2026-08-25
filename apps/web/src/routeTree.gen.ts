@@ -9,9 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as RegisterRouteImport } from './routes/register'
-import { Route as LoginRouteImport } from './routes/login'
+import { Route as SetupSecurityQuestionRouteImport } from './routes/setup-security-question'
 import { Route as DeveloperRouteImport } from './routes/developer'
+import { Route as AuthLayoutRouteImport } from './routes/_authLayout'
 import { Route as SettingsRouteRouteImport } from './routes/settings/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
@@ -26,6 +26,7 @@ import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
 import { Route as SettingsGenresRouteImport } from './routes/settings/genres'
 import { Route as SettingsFavoritesRouteImport } from './routes/settings/favorites'
 import { Route as SettingsDataRouteImport } from './routes/settings/data'
+import { Route as SettingsBlockedRouteImport } from './routes/settings/blocked'
 import { Route as SettingsAuthRouteImport } from './routes/settings/auth'
 import { Route as SerialsTmdbIdRouteImport } from './routes/serials/$tmdbId'
 import { Route as MusicMbidRouteImport } from './routes/music/$mbid'
@@ -34,10 +35,15 @@ import { Route as DirectorSlugRouteImport } from './routes/director/$slug'
 import { Route as CinemaTmdbIdRouteImport } from './routes/cinema/$tmdbId'
 import { Route as BooksVolumeIdRouteImport } from './routes/books/$volumeId'
 import { Route as ActorSlugRouteImport } from './routes/actor/$slug'
+import { Route as AuthLayoutRegisterRouteImport } from './routes/_authLayout/register'
+import { Route as AuthLayoutLoginRouteImport } from './routes/_authLayout/login'
+import { Route as AuthLayoutForgotPasswordRouteImport } from './routes/_authLayout/forgot-password'
 import { Route as ProfileUsernameRouteRouteImport } from './routes/profile/$username/route'
 import { Route as ProfileUsernameIndexRouteImport } from './routes/profile/$username/index'
 import { Route as ReviewsUsernameReviewIdRouteImport } from './routes/reviews/$username/$reviewId'
 import { Route as ProfileUsernameWatchlistRouteImport } from './routes/profile/$username/watchlist'
+import { Route as ProfileUsernameWatchingRouteImport } from './routes/profile/$username/watching'
+import { Route as ProfileUsernameStatsRouteImport } from './routes/profile/$username/stats'
 import { Route as ProfileUsernameReviewsRouteImport } from './routes/profile/$username/reviews'
 import { Route as ProfileUsernameLikedRouteImport } from './routes/profile/$username/liked'
 import { Route as ProfileUsernameFilmsRouteImport } from './routes/profile/$username/films'
@@ -48,19 +54,18 @@ import { Route as ProfileUsernameListsNewRouteImport } from './routes/profile/$u
 import { Route as ProfileUsernameListsListIdIndexRouteImport } from './routes/profile/$username/lists/$listId/index'
 import { Route as ProfileUsernameListsListIdEditRouteImport } from './routes/profile/$username/lists/$listId/edit'
 
-const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const SetupSecurityQuestionRoute = SetupSecurityQuestionRouteImport.update({
+  id: '/setup-security-question',
+  path: '/setup-security-question',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeveloperRoute = DeveloperRouteImport.update({
   id: '/developer',
   path: '/developer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLayoutRoute = AuthLayoutRouteImport.update({
+  id: '/_authLayout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRouteRoute = SettingsRouteRouteImport.update({
@@ -133,6 +138,11 @@ const SettingsDataRoute = SettingsDataRouteImport.update({
   path: '/data',
   getParentRoute: () => SettingsRouteRoute,
 } as any)
+const SettingsBlockedRoute = SettingsBlockedRouteImport.update({
+  id: '/blocked',
+  path: '/blocked',
+  getParentRoute: () => SettingsRouteRoute,
+} as any)
 const SettingsAuthRoute = SettingsAuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -173,6 +183,22 @@ const ActorSlugRoute = ActorSlugRouteImport.update({
   path: '/actor/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthLayoutRegisterRoute = AuthLayoutRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => AuthLayoutRoute,
+} as any)
+const AuthLayoutLoginRoute = AuthLayoutLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AuthLayoutRoute,
+} as any)
+const AuthLayoutForgotPasswordRoute =
+  AuthLayoutForgotPasswordRouteImport.update({
+    id: '/forgot-password',
+    path: '/forgot-password',
+    getParentRoute: () => AuthLayoutRoute,
+  } as any)
 const ProfileUsernameRouteRoute = ProfileUsernameRouteRouteImport.update({
   id: '/profile/$username',
   path: '/profile/$username',
@@ -194,6 +220,16 @@ const ProfileUsernameWatchlistRoute =
     path: '/watchlist',
     getParentRoute: () => ProfileUsernameRouteRoute,
   } as any)
+const ProfileUsernameWatchingRoute = ProfileUsernameWatchingRouteImport.update({
+  id: '/watching',
+  path: '/watching',
+  getParentRoute: () => ProfileUsernameRouteRoute,
+} as any)
+const ProfileUsernameStatsRoute = ProfileUsernameStatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
+  getParentRoute: () => ProfileUsernameRouteRoute,
+} as any)
 const ProfileUsernameReviewsRoute = ProfileUsernameReviewsRouteImport.update({
   id: '/reviews',
   path: '/reviews',
@@ -247,9 +283,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRouteRouteWithChildren
   '/developer': typeof DeveloperRoute
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
+  '/setup-security-question': typeof SetupSecurityQuestionRoute
   '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
+  '/forgot-password': typeof AuthLayoutForgotPasswordRoute
+  '/login': typeof AuthLayoutLoginRoute
+  '/register': typeof AuthLayoutRegisterRoute
   '/actor/$slug': typeof ActorSlugRoute
   '/books/$volumeId': typeof BooksVolumeIdRoute
   '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
@@ -258,6 +296,7 @@ export interface FileRoutesByFullPath {
   '/music/$mbid': typeof MusicMbidRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
+  '/settings/blocked': typeof SettingsBlockedRoute
   '/settings/data': typeof SettingsDataRoute
   '/settings/favorites': typeof SettingsFavoritesRoute
   '/settings/genres': typeof SettingsGenresRoute
@@ -275,6 +314,8 @@ export interface FileRoutesByFullPath {
   '/profile/$username/films': typeof ProfileUsernameFilmsRoute
   '/profile/$username/liked': typeof ProfileUsernameLikedRoute
   '/profile/$username/reviews': typeof ProfileUsernameReviewsRoute
+  '/profile/$username/stats': typeof ProfileUsernameStatsRoute
+  '/profile/$username/watching': typeof ProfileUsernameWatchingRoute
   '/profile/$username/watchlist': typeof ProfileUsernameWatchlistRoute
   '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
   '/profile/$username/': typeof ProfileUsernameIndexRoute
@@ -286,8 +327,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/developer': typeof DeveloperRoute
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
+  '/setup-security-question': typeof SetupSecurityQuestionRoute
+  '/forgot-password': typeof AuthLayoutForgotPasswordRoute
+  '/login': typeof AuthLayoutLoginRoute
+  '/register': typeof AuthLayoutRegisterRoute
   '/actor/$slug': typeof ActorSlugRoute
   '/books/$volumeId': typeof BooksVolumeIdRoute
   '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
@@ -296,6 +339,7 @@ export interface FileRoutesByTo {
   '/music/$mbid': typeof MusicMbidRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
+  '/settings/blocked': typeof SettingsBlockedRoute
   '/settings/data': typeof SettingsDataRoute
   '/settings/favorites': typeof SettingsFavoritesRoute
   '/settings/genres': typeof SettingsGenresRoute
@@ -313,6 +357,8 @@ export interface FileRoutesByTo {
   '/profile/$username/films': typeof ProfileUsernameFilmsRoute
   '/profile/$username/liked': typeof ProfileUsernameLikedRoute
   '/profile/$username/reviews': typeof ProfileUsernameReviewsRoute
+  '/profile/$username/stats': typeof ProfileUsernameStatsRoute
+  '/profile/$username/watching': typeof ProfileUsernameWatchingRoute
   '/profile/$username/watchlist': typeof ProfileUsernameWatchlistRoute
   '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
   '/profile/$username': typeof ProfileUsernameIndexRoute
@@ -325,10 +371,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/settings': typeof SettingsRouteRouteWithChildren
+  '/_authLayout': typeof AuthLayoutRouteWithChildren
   '/developer': typeof DeveloperRoute
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
+  '/setup-security-question': typeof SetupSecurityQuestionRoute
   '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
+  '/_authLayout/forgot-password': typeof AuthLayoutForgotPasswordRoute
+  '/_authLayout/login': typeof AuthLayoutLoginRoute
+  '/_authLayout/register': typeof AuthLayoutRegisterRoute
   '/actor/$slug': typeof ActorSlugRoute
   '/books/$volumeId': typeof BooksVolumeIdRoute
   '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
@@ -337,6 +386,7 @@ export interface FileRoutesById {
   '/music/$mbid': typeof MusicMbidRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
+  '/settings/blocked': typeof SettingsBlockedRoute
   '/settings/data': typeof SettingsDataRoute
   '/settings/favorites': typeof SettingsFavoritesRoute
   '/settings/genres': typeof SettingsGenresRoute
@@ -354,6 +404,8 @@ export interface FileRoutesById {
   '/profile/$username/films': typeof ProfileUsernameFilmsRoute
   '/profile/$username/liked': typeof ProfileUsernameLikedRoute
   '/profile/$username/reviews': typeof ProfileUsernameReviewsRoute
+  '/profile/$username/stats': typeof ProfileUsernameStatsRoute
+  '/profile/$username/watching': typeof ProfileUsernameWatchingRoute
   '/profile/$username/watchlist': typeof ProfileUsernameWatchlistRoute
   '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
   '/profile/$username/': typeof ProfileUsernameIndexRoute
@@ -368,9 +420,11 @@ export interface FileRouteTypes {
     | '/'
     | '/settings'
     | '/developer'
+    | '/setup-security-question'
+    | '/profile/$username'
+    | '/forgot-password'
     | '/login'
     | '/register'
-    | '/profile/$username'
     | '/actor/$slug'
     | '/books/$volumeId'
     | '/cinema/$tmdbId'
@@ -379,6 +433,7 @@ export interface FileRouteTypes {
     | '/music/$mbid'
     | '/serials/$tmdbId'
     | '/settings/auth'
+    | '/settings/blocked'
     | '/settings/data'
     | '/settings/favorites'
     | '/settings/genres'
@@ -396,6 +451,8 @@ export interface FileRouteTypes {
     | '/profile/$username/films'
     | '/profile/$username/liked'
     | '/profile/$username/reviews'
+    | '/profile/$username/stats'
+    | '/profile/$username/watching'
     | '/profile/$username/watchlist'
     | '/reviews/$username/$reviewId'
     | '/profile/$username/'
@@ -407,6 +464,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/developer'
+    | '/setup-security-question'
+    | '/forgot-password'
     | '/login'
     | '/register'
     | '/actor/$slug'
@@ -417,6 +476,7 @@ export interface FileRouteTypes {
     | '/music/$mbid'
     | '/serials/$tmdbId'
     | '/settings/auth'
+    | '/settings/blocked'
     | '/settings/data'
     | '/settings/favorites'
     | '/settings/genres'
@@ -434,6 +494,8 @@ export interface FileRouteTypes {
     | '/profile/$username/films'
     | '/profile/$username/liked'
     | '/profile/$username/reviews'
+    | '/profile/$username/stats'
+    | '/profile/$username/watching'
     | '/profile/$username/watchlist'
     | '/reviews/$username/$reviewId'
     | '/profile/$username'
@@ -445,10 +507,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/settings'
+    | '/_authLayout'
     | '/developer'
-    | '/login'
-    | '/register'
+    | '/setup-security-question'
     | '/profile/$username'
+    | '/_authLayout/forgot-password'
+    | '/_authLayout/login'
+    | '/_authLayout/register'
     | '/actor/$slug'
     | '/books/$volumeId'
     | '/cinema/$tmdbId'
@@ -457,6 +522,7 @@ export interface FileRouteTypes {
     | '/music/$mbid'
     | '/serials/$tmdbId'
     | '/settings/auth'
+    | '/settings/blocked'
     | '/settings/data'
     | '/settings/favorites'
     | '/settings/genres'
@@ -474,6 +540,8 @@ export interface FileRouteTypes {
     | '/profile/$username/films'
     | '/profile/$username/liked'
     | '/profile/$username/reviews'
+    | '/profile/$username/stats'
+    | '/profile/$username/watching'
     | '/profile/$username/watchlist'
     | '/reviews/$username/$reviewId'
     | '/profile/$username/'
@@ -486,9 +554,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SettingsRouteRoute: typeof SettingsRouteRouteWithChildren
+  AuthLayoutRoute: typeof AuthLayoutRouteWithChildren
   DeveloperRoute: typeof DeveloperRoute
-  LoginRoute: typeof LoginRoute
-  RegisterRoute: typeof RegisterRoute
+  SetupSecurityQuestionRoute: typeof SetupSecurityQuestionRoute
   ProfileUsernameRouteRoute: typeof ProfileUsernameRouteRouteWithChildren
   ActorSlugRoute: typeof ActorSlugRoute
   BooksVolumeIdRoute: typeof BooksVolumeIdRoute
@@ -508,18 +576,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/setup-security-question': {
+      id: '/setup-security-question'
+      path: '/setup-security-question'
+      fullPath: '/setup-security-question'
+      preLoaderRoute: typeof SetupSecurityQuestionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/developer': {
@@ -527,6 +588,13 @@ declare module '@tanstack/react-router' {
       path: '/developer'
       fullPath: '/developer'
       preLoaderRoute: typeof DeveloperRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authLayout': {
+      id: '/_authLayout'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthLayoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -627,6 +695,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsDataRouteImport
       parentRoute: typeof SettingsRouteRoute
     }
+    '/settings/blocked': {
+      id: '/settings/blocked'
+      path: '/blocked'
+      fullPath: '/settings/blocked'
+      preLoaderRoute: typeof SettingsBlockedRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
     '/settings/auth': {
       id: '/settings/auth'
       path: '/auth'
@@ -683,6 +758,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ActorSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authLayout/register': {
+      id: '/_authLayout/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof AuthLayoutRegisterRouteImport
+      parentRoute: typeof AuthLayoutRoute
+    }
+    '/_authLayout/login': {
+      id: '/_authLayout/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof AuthLayoutLoginRouteImport
+      parentRoute: typeof AuthLayoutRoute
+    }
+    '/_authLayout/forgot-password': {
+      id: '/_authLayout/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof AuthLayoutForgotPasswordRouteImport
+      parentRoute: typeof AuthLayoutRoute
+    }
     '/profile/$username': {
       id: '/profile/$username'
       path: '/profile/$username'
@@ -709,6 +805,20 @@ declare module '@tanstack/react-router' {
       path: '/watchlist'
       fullPath: '/profile/$username/watchlist'
       preLoaderRoute: typeof ProfileUsernameWatchlistRouteImport
+      parentRoute: typeof ProfileUsernameRouteRoute
+    }
+    '/profile/$username/watching': {
+      id: '/profile/$username/watching'
+      path: '/watching'
+      fullPath: '/profile/$username/watching'
+      preLoaderRoute: typeof ProfileUsernameWatchingRouteImport
+      parentRoute: typeof ProfileUsernameRouteRoute
+    }
+    '/profile/$username/stats': {
+      id: '/profile/$username/stats'
+      path: '/stats'
+      fullPath: '/profile/$username/stats'
+      preLoaderRoute: typeof ProfileUsernameStatsRouteImport
       parentRoute: typeof ProfileUsernameRouteRoute
     }
     '/profile/$username/reviews': {
@@ -779,6 +889,7 @@ declare module '@tanstack/react-router' {
 
 interface SettingsRouteRouteChildren {
   SettingsAuthRoute: typeof SettingsAuthRoute
+  SettingsBlockedRoute: typeof SettingsBlockedRoute
   SettingsDataRoute: typeof SettingsDataRoute
   SettingsFavoritesRoute: typeof SettingsFavoritesRoute
   SettingsGenresRoute: typeof SettingsGenresRoute
@@ -789,6 +900,7 @@ interface SettingsRouteRouteChildren {
 
 const SettingsRouteRouteChildren: SettingsRouteRouteChildren = {
   SettingsAuthRoute: SettingsAuthRoute,
+  SettingsBlockedRoute: SettingsBlockedRoute,
   SettingsDataRoute: SettingsDataRoute,
   SettingsFavoritesRoute: SettingsFavoritesRoute,
   SettingsGenresRoute: SettingsGenresRoute,
@@ -801,12 +913,30 @@ const SettingsRouteRouteWithChildren = SettingsRouteRoute._addFileChildren(
   SettingsRouteRouteChildren,
 )
 
+interface AuthLayoutRouteChildren {
+  AuthLayoutForgotPasswordRoute: typeof AuthLayoutForgotPasswordRoute
+  AuthLayoutLoginRoute: typeof AuthLayoutLoginRoute
+  AuthLayoutRegisterRoute: typeof AuthLayoutRegisterRoute
+}
+
+const AuthLayoutRouteChildren: AuthLayoutRouteChildren = {
+  AuthLayoutForgotPasswordRoute: AuthLayoutForgotPasswordRoute,
+  AuthLayoutLoginRoute: AuthLayoutLoginRoute,
+  AuthLayoutRegisterRoute: AuthLayoutRegisterRoute,
+}
+
+const AuthLayoutRouteWithChildren = AuthLayoutRoute._addFileChildren(
+  AuthLayoutRouteChildren,
+)
+
 interface ProfileUsernameRouteRouteChildren {
   ProfileUsernameCinemaRoute: typeof ProfileUsernameCinemaRoute
   ProfileUsernameDiaryRoute: typeof ProfileUsernameDiaryRoute
   ProfileUsernameFilmsRoute: typeof ProfileUsernameFilmsRoute
   ProfileUsernameLikedRoute: typeof ProfileUsernameLikedRoute
   ProfileUsernameReviewsRoute: typeof ProfileUsernameReviewsRoute
+  ProfileUsernameStatsRoute: typeof ProfileUsernameStatsRoute
+  ProfileUsernameWatchingRoute: typeof ProfileUsernameWatchingRoute
   ProfileUsernameWatchlistRoute: typeof ProfileUsernameWatchlistRoute
   ProfileUsernameIndexRoute: typeof ProfileUsernameIndexRoute
   ProfileUsernameListsNewRoute: typeof ProfileUsernameListsNewRoute
@@ -821,6 +951,8 @@ const ProfileUsernameRouteRouteChildren: ProfileUsernameRouteRouteChildren = {
   ProfileUsernameFilmsRoute: ProfileUsernameFilmsRoute,
   ProfileUsernameLikedRoute: ProfileUsernameLikedRoute,
   ProfileUsernameReviewsRoute: ProfileUsernameReviewsRoute,
+  ProfileUsernameStatsRoute: ProfileUsernameStatsRoute,
+  ProfileUsernameWatchingRoute: ProfileUsernameWatchingRoute,
   ProfileUsernameWatchlistRoute: ProfileUsernameWatchlistRoute,
   ProfileUsernameIndexRoute: ProfileUsernameIndexRoute,
   ProfileUsernameListsNewRoute: ProfileUsernameListsNewRoute,
@@ -835,9 +967,9 @@ const ProfileUsernameRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SettingsRouteRoute: SettingsRouteRouteWithChildren,
+  AuthLayoutRoute: AuthLayoutRouteWithChildren,
   DeveloperRoute: DeveloperRoute,
-  LoginRoute: LoginRoute,
-  RegisterRoute: RegisterRoute,
+  SetupSecurityQuestionRoute: SetupSecurityQuestionRoute,
   ProfileUsernameRouteRoute: ProfileUsernameRouteRouteWithChildren,
   ActorSlugRoute: ActorSlugRoute,
   BooksVolumeIdRoute: BooksVolumeIdRoute,

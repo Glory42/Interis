@@ -32,7 +32,7 @@ export const ProfileListsPage = ({ username }: ProfileListsPageProps) => {
     Boolean(user) && user?.username.toLowerCase() === username.toLowerCase();
 
   const listsQuery = useUserLists(username);
-  const lists = listsQuery.data ?? [];
+  const lists = useMemo(() => listsQuery.data ?? [], [listsQuery.data]);
 
   const [activeFilter, setActiveFilter] = useState<ListFilter>("all");
 
@@ -59,7 +59,7 @@ export const ProfileListsPage = ({ username }: ProfileListsPageProps) => {
                 <button
                   key={tab.key}
                   type="button"
-                  className="border px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest transition-colors"
+                  className="rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest transition-colors"
                   style={
                     isActive
                       ? {
@@ -95,7 +95,7 @@ export const ProfileListsPage = ({ username }: ProfileListsPageProps) => {
                 params: { username },
               });
             }}
-            className="flex items-center gap-2 border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+            className="flex items-center gap-2 rounded-full border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
           >
             <Layers3 className="h-3 w-3" />
             New List
@@ -115,7 +115,7 @@ export const ProfileListsPage = ({ username }: ProfileListsPageProps) => {
           ))}
         </div>
       ) : listsQuery.isError ? (
-        <div className="border border-border/60 bg-card/30 p-4 text-sm text-destructive">
+        <div className="rounded-lg border border-border/60 bg-card/30 p-4 text-sm text-destructive">
           Could not load lists.
         </div>
       ) : lists.length === 0 ? (
@@ -127,9 +127,14 @@ export const ProfileListsPage = ({ username }: ProfileListsPageProps) => {
               ? "Create your first list to organize films and series."
               : "This profile has not created any public lists yet."
           }
+          cta={
+            isOwnProfile
+              ? { label: "Create a List", to: "/profile/$username/lists/new", params: { username } }
+              : undefined
+          }
         />
       ) : filteredLists.length === 0 ? (
-        <div className="border border-border/60 bg-card/30 px-4 py-3 font-mono text-[11px] text-muted-foreground">
+        <div className="rounded-lg border border-border/60 bg-card/30 px-4 py-3 font-mono text-[11px] text-muted-foreground">
           No {activeFilter} lists yet.
         </div>
       ) : (

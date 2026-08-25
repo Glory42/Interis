@@ -5,6 +5,8 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { feedKeys } from "@/features/feed/hooks/useFeed";
+import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
+import { profileKeys } from "@/features/profile/hooks/useProfile";
 import {
   followUser,
   getFollowers,
@@ -30,7 +32,7 @@ const invalidateSocialDependents = async (
   queryClient: QueryClient,
 ): Promise<void> => {
   await Promise.all([
-    queryClient.invalidateQueries({ queryKey: feedKeys.following }),
+    invalidateFollowingFeed(queryClient),
     queryClient.invalidateQueries({ queryKey: feedKeys.meSummary }),
   ]);
 };
@@ -135,7 +137,7 @@ export const useUnfollowFromList = (profileUsername: string) => {
     onSuccess: async (_, targetUsername) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: socialKeys.followState(targetUsername) }),
-        queryClient.invalidateQueries({ queryKey: ["profile", "detail", profileUsername] }),
+        queryClient.invalidateQueries({ queryKey: profileKeys.detail(profileUsername) }),
         invalidateSocialDependents(queryClient),
       ]);
     },
@@ -166,7 +168,7 @@ export const useRemoveFollowerFromList = (profileUsername: string) => {
       }
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["profile", "detail", profileUsername] });
+      await queryClient.invalidateQueries({ queryKey: profileKeys.detail(profileUsername) });
     },
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: followersKey });

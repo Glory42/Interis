@@ -1,12 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { BookText, ChevronRight, Star } from "lucide-react";
+import { BookText, ChevronRight, Rocket } from "lucide-react";
 import type { SerialArchiveItem } from "@/features/serials/api";
 import { getPosterUrl } from "@/features/serials/components/utils";
 import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-archive/constants";
 import type { ArchiveRatingSource } from "@/features/serials/components/serial-archive/types";
 import {
   getCreatorYearLine,
-  getRatingOutOfFive,
+  getRating,
   getRoundedStars,
 } from "@/features/serials/components/serial-archive/utils";
 import { cn } from "@/lib/utils";
@@ -22,14 +22,14 @@ export const ListSeriesRow = ({
   rank,
   ratingSource,
 }: ListSeriesRowProps) => {
-  const ratingOutOfFive = getRatingOutOfFive(series, ratingSource);
-  const roundedStars = getRoundedStars(ratingOutOfFive);
+  const rating = getRating(series, ratingSource);
+  const roundedStars = getRoundedStars(rating);
 
   return (
     <Link
       to="/serials/$tmdbId"
       params={{ tmdbId: String(series.tmdbId) }}
-      className="group flex items-center gap-3 border px-3 py-3 transition-colors"
+      className="group flex items-center gap-3 rounded-xl border px-3 py-3 transition-colors"
       style={{
         borderColor: SERIAL_MODULE_STYLES.border,
         background: SERIAL_MODULE_STYLES.panel,
@@ -46,7 +46,7 @@ export const ListSeriesRow = ({
       <img
         src={getPosterUrl(series.posterPath)}
         alt={`${series.title} poster`}
-        className="h-14 w-10 shrink-0 object-cover"
+        className="h-14 w-10 shrink-0 rounded-md object-cover"
         loading="lazy"
       />
 
@@ -70,8 +70,8 @@ export const ListSeriesRow = ({
           className="inline-flex items-center gap-0.5"
           style={{ color: SERIAL_MODULE_STYLES.accent }}
         >
-          {Array.from({ length: 5 }).map((_, index) => (
-            <Star
+          {Array.from({ length: 10 }).map((_, index) => (
+            <Rocket
               key={`serial-archive-list-star-${series.tmdbId}-${index}`}
               className={cn(
                 "h-2.5 w-2.5",
@@ -81,10 +81,10 @@ export const ListSeriesRow = ({
           ))}
         </span>
         <span className="font-mono text-[10px]" style={{ color: SERIAL_MODULE_STYLES.faint }}>
-          {ratingOutOfFive !== null
+          {rating !== null
             ? ratingSource === "tmdb"
-              ? `TMDB ${ratingOutOfFive.toFixed(1)}`
-              : ratingOutOfFive.toFixed(1)
+              ? `TMDB ${rating.toFixed(1)}`
+              : rating.toFixed(1)
             : "No rating"}
         </span>
       </div>

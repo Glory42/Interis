@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Check, Heart, Music, Plus } from "lucide-react";
 import type { MusicDetailResponse } from "@/features/music/api";
 import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
-import { formatRatingOutOfFiveLabel } from "@/features/films/components/spaceRating.utils";
+import { formatRatingOutOfFiveLabel } from "@/lib/rating-five-point";
 import { MUSIC_MODULE_STYLES } from "@/features/music/components/music-detail/styles";
 
 type AlbumActionsSidebarProps = {

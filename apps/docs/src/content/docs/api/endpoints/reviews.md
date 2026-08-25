@@ -37,7 +37,7 @@ Returns a time-descending array.
     "title": "Fight Club",
     "posterPath": "/a.jpg",
     "releaseYear": 1999,
-    "ratingOutOfFive": 4,
+    "rating": 4,
     "mediaType": "movie"
   }
 ]
@@ -46,7 +46,7 @@ Returns a time-descending array.
 ### Notes
 
 - Includes both `movie` and `tv` rows.
-- `ratingOutOfFive` can be `null`.
+- `rating` is 0.5–10 or `null`.
 - Results are fetched, then sliced to `limit`.
 
 ## Empty state behavior
