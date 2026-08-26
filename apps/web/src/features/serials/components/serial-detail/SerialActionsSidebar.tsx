@@ -1,11 +1,12 @@
-import { Link } from "@tanstack/react-router";
-import { Check, Heart, Plus } from "lucide-react";
+import { Check, Heart, Plus, Tv } from "lucide-react";
 import type { SerialDetailResponse } from "@/features/serials/api";
 import { LogSeriesModal } from "@/features/serials/components/LogSeriesModal";
 import { getPosterUrl } from "@/features/serials/components/utils";
-import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
 import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
 import { AddToListDialog } from "@/features/lists/components/AddToListDialog";
+import { MediaActionButton } from "@/features/media/components/MediaActionButton";
+import { MediaCoverImage } from "@/features/media/components/MediaCoverImage";
+import { MediaRatingPanel } from "@/features/media/components/MediaRatingPanel";
 
 type SerialActionsSidebarProps = {
   detail: SerialDetailResponse;
@@ -48,16 +49,17 @@ export const SerialActionsSidebar = ({
 
   return (
     <aside>
-      <div
-        className="mb-4 aspect-2/3 overflow-hidden rounded-xl border"
-        style={{ borderColor: SERIAL_MODULE_STYLES.border }}
-      >
-        <img
-          src={getPosterUrl(series.posterPath)}
-          alt={`${series.title} poster`}
-          className="h-full w-full object-cover"
-        />
-      </div>
+      <MediaCoverImage
+        src={getPosterUrl(series.posterPath)}
+        alt={`${series.title} poster`}
+        fallbackIcon={Tv}
+        fallbackLabel="No Art"
+        accentColor={SERIAL_MODULE_STYLES.accent}
+        panelColor={SERIAL_MODULE_STYLES.panelSoft}
+        panelStrongColor={SERIAL_MODULE_STYLES.panelStrong}
+        faintColor={SERIAL_MODULE_STYLES.faint}
+        borderColor={SERIAL_MODULE_STYLES.border}
+      />
 
       <div className="space-y-2">
         <div className="grid grid-cols-2 gap-2">
@@ -78,113 +80,48 @@ export const SerialActionsSidebar = ({
             }
           />
 
-          {isAuthenticated ? (
-            <button
-              type="button"
-              disabled={isInteractionBusy}
-              className="flex items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-              style={{
-                borderColor: watchlisted
-                  ? SERIAL_MODULE_STYLES.accent
-                  : SERIAL_MODULE_STYLES.border,
-                color: watchlisted
-                  ? SERIAL_MODULE_STYLES.accent
-                  : SERIAL_MODULE_STYLES.muted,
-                background: "transparent",
-              }}
-              onClick={onToggleWatchlist}
-            >
-              {watchlisted ? (
-                <Check className="h-3 w-3" />
-              ) : (
-                <Plus className="h-3 w-3" />
-              )}
-              <span>{watchlisted ? "watchlisted" : "watchlist"}</span>
-            </button>
-          ) : (
-            <Link
-              to="/login"
-              className="flex items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
-              style={{
-                borderColor: SERIAL_MODULE_STYLES.border,
-                color: SERIAL_MODULE_STYLES.muted,
-              }}
-              viewTransition
-            >
-              <Plus className="h-3 w-3" />
-              <span>Queue</span>
-            </Link>
-          )}
+          <MediaActionButton
+            icon={Plus}
+            activeIcon={Check}
+            label="Queue"
+            activeLabel="Queued"
+            isAuthenticated={isAuthenticated}
+            isActive={watchlisted}
+            disabled={isInteractionBusy}
+            onClick={onToggleWatchlist}
+            accentColor={SERIAL_MODULE_STYLES.accent}
+            mutedColor={SERIAL_MODULE_STYLES.muted}
+            borderColor={SERIAL_MODULE_STYLES.border}
+            className="flex items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+          />
         </div>
 
         <div className="flex gap-2">
-          {isAuthenticated ? (
-            <button
-              type="button"
-              disabled={isInteractionBusy}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-              style={{
-                borderColor: watched
-                  ? SERIAL_MODULE_STYLES.accent
-                  : SERIAL_MODULE_STYLES.border,
-                color: watched
-                  ? SERIAL_MODULE_STYLES.accent
-                  : SERIAL_MODULE_STYLES.muted,
-                background: "transparent",
-              }}
-              onClick={onToggleWatched}
-            >
-              <Check className="h-3 w-3" />
-              <span>{watched ? "Watched" : "Watch"}</span>
-            </button>
-          ) : (
-            <Link
-              to="/login"
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
-              style={{
-                borderColor: SERIAL_MODULE_STYLES.border,
-                color: SERIAL_MODULE_STYLES.muted,
-              }}
-              viewTransition
-            >
-              <Check className="h-3 w-3" />
-              <span>Watch</span>
-            </Link>
-          )}
+          <MediaActionButton
+            icon={Check}
+            label="Watch"
+            activeLabel="Watched"
+            isAuthenticated={isAuthenticated}
+            isActive={watched}
+            disabled={isInteractionBusy}
+            onClick={onToggleWatched}
+            accentColor={SERIAL_MODULE_STYLES.accent}
+            mutedColor={SERIAL_MODULE_STYLES.muted}
+            borderColor={SERIAL_MODULE_STYLES.border}
+          />
 
-          {isAuthenticated ? (
-            <button
-              type="button"
-              disabled={isInteractionBusy}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-              style={{
-                borderColor: liked
-                  ? SERIAL_MODULE_STYLES.accent
-                  : SERIAL_MODULE_STYLES.border,
-                color: liked
-                  ? SERIAL_MODULE_STYLES.accent
-                  : SERIAL_MODULE_STYLES.muted,
-                background: "transparent",
-              }}
-              onClick={onToggleLike}
-            >
-              <Heart className="h-3 w-3" />
-              <span>{liked ? "Liked" : "Like"}</span>
-            </button>
-          ) : (
-            <Link
-              to="/login"
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
-              style={{
-                borderColor: SERIAL_MODULE_STYLES.border,
-                color: SERIAL_MODULE_STYLES.muted,
-              }}
-              viewTransition
-            >
-              <Heart className="h-3 w-3" />
-              <span>Like</span>
-            </Link>
-          )}
+          <MediaActionButton
+            icon={Heart}
+            label="Like"
+            activeLabel="Liked"
+            isAuthenticated={isAuthenticated}
+            isActive={liked}
+            disabled={isInteractionBusy}
+            onClick={onToggleLike}
+            accentColor={SERIAL_MODULE_STYLES.accent}
+            mutedColor={SERIAL_MODULE_STYLES.muted}
+            borderColor={SERIAL_MODULE_STYLES.border}
+          />
         </div>
 
         {isAuthenticated ? (
@@ -199,36 +136,17 @@ export const SerialActionsSidebar = ({
           />
         ) : null}
 
-        <div
-          className="rounded-xl border p-3"
-          style={{
-            borderColor: SERIAL_MODULE_STYLES.border,
-            background: SERIAL_MODULE_STYLES.panelElevated,
-          }}
-        >
-          <p
-            className="mb-2 font-mono text-[9px] uppercase tracking-[0.22em]"
-            style={{ color: SERIAL_MODULE_STYLES.faint }}
-          >
-            Your Rating
-          </p>
-          {isAuthenticated ? (
-            <SpaceRatingInput
-              value={currentRating}
-              onChange={onRatingChange}
-              disabled={isRatingSaving}
-            />
-          ) : (
-            <Link
-              to="/login"
-              className="font-mono text-[10px]"
-              style={{ color: SERIAL_MODULE_STYLES.muted }}
-              viewTransition
-            >
-              Sign in to rate
-            </Link>
-          )}
-        </div>
+        <MediaRatingPanel
+          isAuthenticated={isAuthenticated}
+          value={currentRating}
+          onChange={onRatingChange}
+          disabled={isRatingSaving}
+          accentColor={SERIAL_MODULE_STYLES.accent}
+          mutedColor={SERIAL_MODULE_STYLES.muted}
+          borderColor={SERIAL_MODULE_STYLES.border}
+          panelColor={SERIAL_MODULE_STYLES.panelElevated}
+          faintColor={SERIAL_MODULE_STYLES.faint}
+        />
 
         {isAuthenticated && detail.viewerTracking && (
           <div
