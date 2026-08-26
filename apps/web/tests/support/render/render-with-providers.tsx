@@ -24,7 +24,7 @@ const createTestQueryClient = (): QueryClient => {
   });
 };
 
-export const renderWithProviders = (
+export const renderWithProviders = async (
   ui: ReactElement,
   options: {
     routePath?: string;
@@ -50,13 +50,26 @@ export const renderWithProviders = (
     component: () => ui,
   });
 
-  const routeTree = rootRoute.addChildren([testRoute]);
+  // A bare login route so components under test that render <Link to="/login">
+  // (e.g. auth-gated actions) resolve to a real route instead of erroring.
+  const loginRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/login",
+    component: () => null,
+  });
+
+  const routeTree = rootRoute.addChildren([testRoute, loginRoute]);
   const history = createMemoryHistory({ initialEntries: [initialPath] });
   const router = createRouter({
     routeTree,
     history,
   });
 
+  // RouterProvider resolves its initial route match asynchronously (even for
+  // a route with no loader) - awaiting router.load() before returning means
+  // callers get a component tree that's actually finished rendering, instead
+  // of needing act()-wrapped queries or findBy* everywhere.
+  await router.load();
   const result = render(<RouterProvider router={router} />);
 
   return {
