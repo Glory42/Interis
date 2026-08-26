@@ -9,6 +9,7 @@ import {
   uuid,
   unique,
   real,
+  index,
 } from "drizzle-orm/pg-core";
 import { user } from "../../infrastructure/database/auth.entity";
 
@@ -28,25 +29,32 @@ export const albums = pgTable("album", {
   cachedAt: timestamp("cached_at").defaultNow().notNull(),
 });
 
-export const musicDiaryEntries = pgTable("music_diary_entry", {
-  id: uuid("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  albumId: integer("album_id")
-    .notNull()
-    .references(() => albums.id, { onDelete: "cascade" }),
-  listenedDate: text("listened_date").notNull(),
-  rating: real("rating"),
-  relisten: boolean("relisten").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at")
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
-});
+export const musicDiaryEntries = pgTable(
+  "music_diary_entry",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    albumId: integer("album_id")
+      .notNull()
+      .references(() => albums.id, { onDelete: "cascade" }),
+    listenedDate: text("listened_date").notNull(),
+    rating: real("rating"),
+    relisten: boolean("relisten").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("music_diary_entry_user_id_idx").on(table.userId),
+    index("music_diary_entry_album_id_idx").on(table.albumId),
+  ],
+);
 
 export const musicInteractions = pgTable(
   "music_interaction",
@@ -65,5 +73,8 @@ export const musicInteractions = pgTable(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (table) => [unique("music_interactions_unique").on(table.userId, table.albumId)],
+  (table) => [
+    unique("music_interactions_unique").on(table.userId, table.albumId),
+    index("music_interaction_album_id_idx").on(table.albumId),
+  ],
 );

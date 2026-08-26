@@ -9,6 +9,7 @@ import {
   uuid,
   unique,
   real,
+  index,
 } from "drizzle-orm/pg-core";
 import { user } from "../../infrastructure/database/auth.entity";
 
@@ -31,25 +32,32 @@ export const books = pgTable("book", {
   cachedAt: timestamp("cached_at").defaultNow().notNull(),
 });
 
-export const bookDiaryEntries = pgTable("book_diary_entry", {
-  id: uuid("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  bookId: integer("book_id")
-    .notNull()
-    .references(() => books.id, { onDelete: "cascade" }),
-  readDate: text("read_date").notNull(),
-  rating: real("rating"),
-  reread: boolean("reread").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at")
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
-});
+export const bookDiaryEntries = pgTable(
+  "book_diary_entry",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    bookId: integer("book_id")
+      .notNull()
+      .references(() => books.id, { onDelete: "cascade" }),
+    readDate: text("read_date").notNull(),
+    rating: real("rating"),
+    reread: boolean("reread").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("book_diary_entry_user_id_idx").on(table.userId),
+    index("book_diary_entry_book_id_idx").on(table.bookId),
+  ],
+);
 
 export const bookInteractions = pgTable(
   "book_interaction",
@@ -68,5 +76,8 @@ export const bookInteractions = pgTable(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (table) => [unique("book_interactions_unique").on(table.userId, table.bookId)],
+  (table) => [
+    unique("book_interactions_unique").on(table.userId, table.bookId),
+    index("book_interaction_book_id_idx").on(table.bookId),
+  ],
 );
