@@ -35,7 +35,7 @@ describe("reviews comments", () => {
       {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ tmdbId, content }),
+        body: JSON.stringify({ mediaSourceId: String(tmdbId), content }),
       },
       jar,
     );

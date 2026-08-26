@@ -119,7 +119,7 @@ describe("users profile-list endpoints", () => {
       {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ tmdbId: movie.tmdbId, content: "Profile review content" }),
+        body: JSON.stringify({ mediaSourceId: String(movie.tmdbId), content: "Profile review content" }),
       },
       jar,
     );
@@ -156,7 +156,7 @@ describe("users profile-list endpoints", () => {
       {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ tmdbId: movie.tmdbId, content: "Likeable review" }),
+        body: JSON.stringify({ mediaSourceId: String(movie.tmdbId), content: "Likeable review" }),
       },
       author.jar,
     );
