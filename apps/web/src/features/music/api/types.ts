@@ -34,6 +34,7 @@ export type EditionTrackItem = z.infer<typeof editionTrackItemSchema>;
 export type EditionTracklistResponse = z.infer<typeof editionTracklistResponseSchema>;
 
 export type MusicArchiveSort =
+  | "popular_lastfm"
   | "logs_desc"
   | "release_desc"
   | "release_asc"

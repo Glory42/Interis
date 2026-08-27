@@ -17,6 +17,7 @@ export const MUSIC_MODULE_STYLES = {
 } as const;
 
 export const sortOptions: Array<{ value: MusicArchiveSort; label: string }> = [
+  { value: "popular_lastfm", label: "Popular (Last.fm)" },
   { value: "logs_desc", label: "Most listened" },
   { value: "release_desc", label: "Newest release" },
   { value: "release_asc", label: "Oldest release" },

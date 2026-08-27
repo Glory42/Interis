@@ -96,19 +96,35 @@ export const AlbumDetailsMainSection = ({ detail }: AlbumDetailsMainSectionProps
         </div>
       ) : null}
 
-      {album.firstReleaseDate ? (
-        <div className="mb-8">
-          <p
-            className="mb-1 font-mono text-[9px] uppercase tracking-[0.22em]"
-            style={{ color: MUSIC_MODULE_STYLES.faint }}
-          >
-            First released
-          </p>
-          <p className="font-mono text-sm" style={{ color: MUSIC_MODULE_STYLES.muted }}>
-            {album.firstReleaseDate}
-          </p>
-        </div>
-      ) : null}
+      <div className="mb-8 flex flex-wrap gap-8">
+        {album.firstReleaseDate ? (
+          <div>
+            <p
+              className="mb-1 font-mono text-[9px] uppercase tracking-[0.22em]"
+              style={{ color: MUSIC_MODULE_STYLES.faint }}
+            >
+              First released
+            </p>
+            <p className="font-mono text-sm" style={{ color: MUSIC_MODULE_STYLES.muted }}>
+              {album.firstReleaseDate}
+            </p>
+          </div>
+        ) : null}
+
+        {album.lastfmListeners ? (
+          <div>
+            <p
+              className="mb-1 font-mono text-[9px] uppercase tracking-[0.22em]"
+              style={{ color: MUSIC_MODULE_STYLES.faint }}
+            >
+              Last.fm Listeners
+            </p>
+            <p className="font-mono text-sm" style={{ color: MUSIC_MODULE_STYLES.muted }}>
+              {album.lastfmListeners.toLocaleString()}
+            </p>
+          </div>
+        ) : null}
+      </div>
 
       <AlbumEditionsSection mbid={album.mbid} />
     </section>

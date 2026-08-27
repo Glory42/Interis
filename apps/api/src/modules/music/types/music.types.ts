@@ -15,6 +15,8 @@ export type AlbumDetail = {
   firstReleaseYear: number | null;
   genres: AlbumGenreTag[];
   disambiguation: string | null;
+  lastfmListeners: number | null;
+  lastfmPlaycount: number | null;
 };
 
 export type MusicArchiveItem = {

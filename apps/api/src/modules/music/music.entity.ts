@@ -27,6 +27,12 @@ export const albums = pgTable("album", {
   genres: jsonb("genres").$type<{ name: string; count: number }[]>(),
   disambiguation: text("disambiguation"),
   cachedAt: timestamp("cached_at").defaultNow().notNull(),
+  // Last.fm popularity enrichment - MusicBrainz has no listen/popularity
+  // signal of its own. Lazily refreshed (see MusicCacheService), never
+  // blocking the base album fetch on it.
+  lastfmListeners: integer("lastfm_listeners"),
+  lastfmPlaycount: integer("lastfm_playcount"),
+  lastfmFetchedAt: timestamp("lastfm_fetched_at"),
 });
 
 export const musicDiaryEntries = pgTable(

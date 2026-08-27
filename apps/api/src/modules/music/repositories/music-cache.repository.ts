@@ -56,4 +56,20 @@ export class MusicCacheRepository {
 
     return inserted ?? null;
   }
+
+  static async updateLastfmStats(
+    albumId: number,
+    input: { listeners: number; playcount: number },
+  ) {
+    const [row] = await db
+      .update(albums)
+      .set({
+        lastfmListeners: input.listeners,
+        lastfmPlaycount: input.playcount,
+        lastfmFetchedAt: new Date(),
+      })
+      .where(eq(albums.id, albumId))
+      .returning();
+    return row ?? null;
+  }
 }

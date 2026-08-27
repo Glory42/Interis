@@ -8,6 +8,7 @@ import {
 } from "../constants/music.constants";
 
 export const musicArchiveSortValues = [
+  "popular_lastfm",
   "logs_desc",
   "release_desc",
   "release_asc",

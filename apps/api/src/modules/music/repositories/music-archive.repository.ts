@@ -13,6 +13,7 @@ export class MusicArchiveRepository {
     viewerUserId?: string | null;
   }) {
     const orderBy = {
+      popular_lastfm: sql`${albums.lastfmListeners} desc nulls last`,
       logs_desc: desc(sql<number>`count(${musicDiaryEntries.id})`),
       release_desc: desc(albums.firstReleaseYear),
       release_asc: asc(albums.firstReleaseYear),

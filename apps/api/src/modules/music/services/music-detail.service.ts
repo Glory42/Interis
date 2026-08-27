@@ -132,6 +132,8 @@ export class MusicDetailService {
         firstReleaseYear: album.firstReleaseYear,
         genres: (album.genres ?? []) as { name: string; count: number }[],
         disambiguation: album.disambiguation,
+        lastfmListeners: album.lastfmListeners,
+        lastfmPlaycount: album.lastfmPlaycount,
       },
       logsCount,
       reviewCount: reviewRows.length,

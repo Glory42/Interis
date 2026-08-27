@@ -13,6 +13,8 @@ export const albumSchema = z.object({
   firstReleaseYear: z.number().int().nullable(),
   genres: z.array(z.object({ name: z.string(), count: z.number().int() })).optional().default([]),
   disambiguation: z.string().nullable(),
+  lastfmListeners: z.number().int().nullable().optional(),
+  lastfmPlaycount: z.number().int().nullable().optional(),
 });
 
 export const mbSearchResultSchema = z.object({
