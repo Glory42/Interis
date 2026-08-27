@@ -1,7 +1,14 @@
 import type { Request, Response } from "express";
+import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
 import { sendBadRequest, sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
 import { parseMbidParam } from "./dto/music.dto";
-import { CreateTrackLogSchema, UpdateTrackInteractionSchema, UpdateTrackLogSchema } from "./dto/tracks.dto";
+import {
+  CreateTrackLogSchema,
+  UpdateTrackInteractionSchema,
+  UpdateTrackLogSchema,
+  normalizeTrackDetailQuery,
+  type TrackDetailQuery,
+} from "./dto/tracks.dto";
 import { TracksService } from "./services/tracks.service";
 
 export class TracksController {
@@ -17,6 +24,29 @@ export class TracksController {
       return;
     }
     res.status(200).json(track);
+  }
+
+  static async getDetailByMbid(
+    req: Request<{ mbid: string }, {}, {}, TrackDetailQuery>,
+    res: Response,
+  ): Promise<void> {
+    const mbid = parseMbidParam(req.params.mbid);
+    if (!mbid) {
+      sendBadRequest(res, "Invalid track ID");
+      return;
+    }
+    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
+    const detail = await TracksService.getDetail({
+      mbid,
+      viewerUserId,
+      reviewsSort: normalizeTrackDetailQuery(req.query).reviewsSort,
+    });
+    if (!detail) {
+      sendNotFound(res, "Track not found");
+      return;
+    }
+    res.setHeader("Cache-Control", "no-store");
+    res.status(200).json(detail);
   }
 
   static async getLogsByMbid(req: Request<{ mbid: string }>, res: Response): Promise<void> {

@@ -49,6 +49,7 @@ import { Route as ProfileUsernameLikedRouteImport } from './routes/profile/$user
 import { Route as ProfileUsernameFilmsRouteImport } from './routes/profile/$username/films'
 import { Route as ProfileUsernameDiaryRouteImport } from './routes/profile/$username/diary'
 import { Route as ProfileUsernameCinemaRouteImport } from './routes/profile/$username/cinema'
+import { Route as MusicTracksMbidRouteImport } from './routes/music/tracks/$mbid'
 import { Route as ProfileUsernameListsIndexRouteImport } from './routes/profile/$username/lists/index'
 import { Route as ProfileUsernameListsNewRouteImport } from './routes/profile/$username/lists/new'
 import { Route as ProfileUsernameListsListIdIndexRouteImport } from './routes/profile/$username/lists/$listId/index'
@@ -255,6 +256,11 @@ const ProfileUsernameCinemaRoute = ProfileUsernameCinemaRouteImport.update({
   path: '/cinema',
   getParentRoute: () => ProfileUsernameRouteRoute,
 } as any)
+const MusicTracksMbidRoute = MusicTracksMbidRouteImport.update({
+  id: '/music/tracks/$mbid',
+  path: '/music/tracks/$mbid',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileUsernameListsIndexRoute =
   ProfileUsernameListsIndexRouteImport.update({
     id: '/lists/',
@@ -309,6 +315,7 @@ export interface FileRoutesByFullPath {
   '/music/': typeof MusicIndexRoute
   '/serials/': typeof SerialsIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/music/tracks/$mbid': typeof MusicTracksMbidRoute
   '/profile/$username/cinema': typeof ProfileUsernameCinemaRoute
   '/profile/$username/diary': typeof ProfileUsernameDiaryRoute
   '/profile/$username/films': typeof ProfileUsernameFilmsRoute
@@ -352,6 +359,7 @@ export interface FileRoutesByTo {
   '/music': typeof MusicIndexRoute
   '/serials': typeof SerialsIndexRoute
   '/settings': typeof SettingsIndexRoute
+  '/music/tracks/$mbid': typeof MusicTracksMbidRoute
   '/profile/$username/cinema': typeof ProfileUsernameCinemaRoute
   '/profile/$username/diary': typeof ProfileUsernameDiaryRoute
   '/profile/$username/films': typeof ProfileUsernameFilmsRoute
@@ -399,6 +407,7 @@ export interface FileRoutesById {
   '/music/': typeof MusicIndexRoute
   '/serials/': typeof SerialsIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/music/tracks/$mbid': typeof MusicTracksMbidRoute
   '/profile/$username/cinema': typeof ProfileUsernameCinemaRoute
   '/profile/$username/diary': typeof ProfileUsernameDiaryRoute
   '/profile/$username/films': typeof ProfileUsernameFilmsRoute
@@ -446,6 +455,7 @@ export interface FileRouteTypes {
     | '/music/'
     | '/serials/'
     | '/settings/'
+    | '/music/tracks/$mbid'
     | '/profile/$username/cinema'
     | '/profile/$username/diary'
     | '/profile/$username/films'
@@ -489,6 +499,7 @@ export interface FileRouteTypes {
     | '/music'
     | '/serials'
     | '/settings'
+    | '/music/tracks/$mbid'
     | '/profile/$username/cinema'
     | '/profile/$username/diary'
     | '/profile/$username/films'
@@ -535,6 +546,7 @@ export interface FileRouteTypes {
     | '/music/'
     | '/serials/'
     | '/settings/'
+    | '/music/tracks/$mbid'
     | '/profile/$username/cinema'
     | '/profile/$username/diary'
     | '/profile/$username/films'
@@ -571,6 +583,7 @@ export interface RootRouteChildren {
   FilmsIndexRoute: typeof FilmsIndexRoute
   MusicIndexRoute: typeof MusicIndexRoute
   SerialsIndexRoute: typeof SerialsIndexRoute
+  MusicTracksMbidRoute: typeof MusicTracksMbidRoute
   ReviewsUsernameReviewIdRoute: typeof ReviewsUsernameReviewIdRoute
 }
 
@@ -856,6 +869,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileUsernameCinemaRouteImport
       parentRoute: typeof ProfileUsernameRouteRoute
     }
+    '/music/tracks/$mbid': {
+      id: '/music/tracks/$mbid'
+      path: '/music/tracks/$mbid'
+      fullPath: '/music/tracks/$mbid'
+      preLoaderRoute: typeof MusicTracksMbidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile/$username/lists/': {
       id: '/profile/$username/lists/'
       path: '/lists'
@@ -984,6 +1004,7 @@ const rootRouteChildren: RootRouteChildren = {
   FilmsIndexRoute: FilmsIndexRoute,
   MusicIndexRoute: MusicIndexRoute,
   SerialsIndexRoute: SerialsIndexRoute,
+  MusicTracksMbidRoute: MusicTracksMbidRoute,
   ReviewsUsernameReviewIdRoute: ReviewsUsernameReviewIdRoute,
 }
 export const routeTree = rootRouteImport

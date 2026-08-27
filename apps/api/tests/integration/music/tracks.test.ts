@@ -144,5 +144,39 @@ describe("music tracks", () => {
       const body = (await response.json()) as { review: { content: string } };
       expect(body.review.content).toBe("A great track.");
     });
+
+    it("shows up on the track's own detail endpoint afterwards", async () => {
+      const { jar } = await signUpTestUser(getServer().baseUrl, "trackreview2");
+      const track = await seedTestTrack();
+
+      await apiRequest(
+        getServer().baseUrl,
+        "/api/reviews",
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            mediaSourceId: track.mbid,
+            mediaType: "track",
+            content: "A great track.",
+          }),
+        },
+        jar,
+      );
+
+      const detailResponse = await apiRequest(
+        getServer().baseUrl,
+        `/api/music/tracks/${track.mbid}/detail`,
+      );
+      expect(detailResponse.status).toBe(200);
+      const detail = (await detailResponse.json()) as {
+        track: { mbid: string };
+        reviewCount: number;
+        reviews: Array<{ content: string }>;
+      };
+      expect(detail.track.mbid).toBe(track.mbid);
+      expect(detail.reviewCount).toBe(1);
+      expect(detail.reviews[0]?.content).toBe("A great track.");
+    });
   });
 });

@@ -1,9 +1,11 @@
 import { db } from "../../../infrastructure/database/db";
 import { activities } from "../../social/social.entity";
 import { TracksCacheService } from "./tracks-cache.service";
+import { TrackDetailService } from "./track-detail.service";
 import { TrackInteractionsRepository } from "../repositories/track-interactions.repository";
 import type {
   CreateTrackLogDto,
+  TrackDetailReviewSort,
   UpdateTrackInteractionDto,
   UpdateTrackLogDto,
 } from "../dto/tracks.dto";
@@ -11,6 +13,14 @@ import type {
 export class TracksService {
   static async findOrCreate(mbid: string) {
     return TracksCacheService.findOrCreate(mbid);
+  }
+
+  static async getDetail(input: {
+    mbid: string;
+    viewerUserId?: string | null;
+    reviewsSort: TrackDetailReviewSort;
+  }) {
+    return TrackDetailService.getDetail(input);
   }
 
   static async getLogsByMbid(mbid: string) {

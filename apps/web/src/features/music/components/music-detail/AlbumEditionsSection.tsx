@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Disc3 } from "lucide-react";
 import { useAlbumEditions, useEditionTracklist } from "@/features/music/hooks/useMusic";
 import { MUSIC_MODULE_STYLES } from "@/features/music/components/music-detail/styles";
@@ -44,7 +45,14 @@ const EditionTracklist = ({ editionMbid }: { editionMbid: string }) => {
         >
           <span className="truncate">
             <span style={{ color: MUSIC_MODULE_STYLES.faint }}>{track.position}.</span>{" "}
-            {track.title}
+            <Link
+              to="/music/tracks/$mbid"
+              params={{ mbid: track.mbid }}
+              className="hover:underline"
+              viewTransition
+            >
+              {track.title}
+            </Link>
           </span>
           <span className="shrink-0" style={{ color: MUSIC_MODULE_STYLES.faint }}>
             {formatDurationLabel(track.length)}

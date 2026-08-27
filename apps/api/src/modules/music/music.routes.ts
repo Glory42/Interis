@@ -20,6 +20,7 @@ router.get("/tracks/logs", requireAuth, asyncHandler(TracksController.getMyLogs)
 router.put("/tracks/logs/:id", requireAuth, asyncHandler(TracksController.updateLog));
 router.delete("/tracks/logs/:id", requireAuth, asyncHandler(TracksController.deleteLog));
 router.get("/tracks/:mbid/logs", asyncHandler(TracksController.getLogsByMbid));
+router.get("/tracks/:mbid/detail", asyncHandler(TracksController.getDetailByMbid));
 router.get("/tracks/:mbid/interaction", requireAuth, asyncHandler(TracksController.getInteraction));
 router.put("/tracks/:mbid/interaction", requireAuth, asyncHandler(TracksController.updateInteraction));
 router.post("/tracks/:mbid/log", requireAuth, asyncHandler(TracksController.createLog));

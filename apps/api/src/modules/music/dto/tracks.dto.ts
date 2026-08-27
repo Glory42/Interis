@@ -21,3 +21,17 @@ export const UpdateTrackInteractionSchema = z.object({
 export type CreateTrackLogDto = z.infer<typeof CreateTrackLogSchema>;
 export type UpdateTrackLogDto = z.infer<typeof UpdateTrackLogSchema>;
 export type UpdateTrackInteractionDto = z.infer<typeof UpdateTrackInteractionSchema>;
+
+export const trackDetailReviewSortValues = ["popular", "recent"] as const;
+export type TrackDetailReviewSort = (typeof trackDetailReviewSortValues)[number];
+
+export const TrackDetailQuerySchema = z.object({
+  reviewsSort: z.enum(trackDetailReviewSortValues).optional(),
+});
+export type TrackDetailQuery = z.input<typeof TrackDetailQuerySchema>;
+
+export const normalizeTrackDetailQuery = (
+  query: TrackDetailQuery,
+): { reviewsSort: TrackDetailReviewSort } => ({
+  reviewsSort: query.reviewsSort ?? "popular",
+});
