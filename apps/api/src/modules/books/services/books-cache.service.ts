@@ -7,6 +7,7 @@ import {
   stripHtml,
   type GoogleBooksVolume,
 } from "../../../infrastructure/googlebooks/books";
+import { findCoverUrl as findOpenLibraryCoverUrl } from "../../../infrastructure/openlibrary/covers";
 import { BooksCacheRepository } from "../repositories/books-cache.repository";
 
 export class BooksCacheService {
@@ -41,6 +42,12 @@ export class BooksCacheService {
 
   private static async upsertFromVolume(volume: GoogleBooksVolume) {
     const vi = volume.volumeInfo;
+    const isbn13 = extractIsbn13(vi);
+
+    let coverImageUrl = parseCoverUrl(vi);
+    if (!coverImageUrl && isbn13) {
+      coverImageUrl = await findOpenLibraryCoverUrl(isbn13).catch(() => null);
+    }
 
     return BooksCacheRepository.upsert({
       googleVolumeId: volume.id,
@@ -54,8 +61,8 @@ export class BooksCacheService {
       language: vi.language ?? null,
       categories: vi.categories ?? [],
       description: vi.description ? stripHtml(vi.description) : null,
-      coverImageUrl: parseCoverUrl(vi),
-      isbn13: extractIsbn13(vi),
+      coverImageUrl,
+      isbn13,
       googleBooksUrl: vi.infoLink ?? vi.canonicalVolumeLink ?? null,
     });
   }
