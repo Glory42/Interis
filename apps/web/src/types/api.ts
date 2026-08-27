@@ -4,7 +4,7 @@ import { z } from "zod";
 // Every other mediaType schema/type in the codebase aliases or derives
 // from this - adding a new media type means changing MEDIA_TYPES here,
 // and the compiler flags every branch that needs to handle it.
-export const MEDIA_TYPES = ["movie", "tv", "album", "book"] as const;
+export const MEDIA_TYPES = ["movie", "tv", "album", "book", "track"] as const;
 export const mediaTypeSchema = z.enum(MEDIA_TYPES);
 export type MediaType = z.infer<typeof mediaTypeSchema>;
 

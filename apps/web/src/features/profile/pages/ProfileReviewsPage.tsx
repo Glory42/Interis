@@ -36,6 +36,10 @@ const mediaMetaByType: Record<
     label: "Books",
     color: "var(--module-book)",
   },
+  track: {
+    label: "Music",
+    color: "var(--module-music)",
+  },
 };
 
 const resolveReviewMediaLink = (entry: UserReview): FeedMovieLink | null => {
@@ -50,6 +54,9 @@ const resolveReviewMediaLink = (entry: UserReview): FeedMovieLink | null => {
   }
   if (entry.mediaType === "book" && entry.volumeId) {
     return { to: "/books/$volumeId", params: { volumeId: entry.volumeId } };
+  }
+  if (entry.mediaType === "track" && entry.mbid) {
+    return { to: "/music/tracks/$mbid", params: { mbid: entry.mbid } };
   }
   return null;
 };

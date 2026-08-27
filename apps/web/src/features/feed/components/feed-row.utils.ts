@@ -10,12 +10,14 @@ export const inferFeedChannel = (item: FeedItem): FeedChannel | null => {
   if (mediaType === "tv") return "serial";
   if (mediaType === "album") return "music";
   if (mediaType === "book") return "books";
+  if (mediaType === "track") return "music";
 
   const attachedMediaType = item.post?.mediaType ?? item.metadata.postMediaType;
   if (attachedMediaType === "movie") return "cinema";
   if (attachedMediaType === "tv") return "serial";
   if (attachedMediaType === "album") return "music";
   if (attachedMediaType === "book") return "books";
+  if (attachedMediaType === "track") return "music";
 
   return null;
 };
@@ -54,7 +56,8 @@ export type FeedMovieLink =
   | { to: "/cinema/$tmdbId"; params: { tmdbId: string } }
   | { to: "/serials/$tmdbId"; params: { tmdbId: string } }
   | { to: "/music/$mbid"; params: { mbid: string } }
-  | { to: "/books/$volumeId"; params: { volumeId: string } };
+  | { to: "/books/$volumeId"; params: { volumeId: string } }
+  | { to: "/music/tracks/$mbid"; params: { mbid: string } };
 
 // Resolves the detail-page route/params for a FeedItem's attached media -
 // null when the media can't be linked to (e.g. missing id for its type).
@@ -72,6 +75,9 @@ export const resolveFeedMovieLink = (
   }
   if (movie.mediaType === "book" && movie.volumeId) {
     return { to: "/books/$volumeId", params: { volumeId: movie.volumeId } };
+  }
+  if (movie.mediaType === "track" && movie.mbid) {
+    return { to: "/music/tracks/$mbid", params: { mbid: movie.mbid } };
   }
   return null;
 };

@@ -68,6 +68,9 @@ const channelByMediaType: Record<DiaryItem["mediaType"], FeedChannel> = {
   tv: "serial",
   album: "music",
   book: "books",
+  // Tracks belong to the music module for feed/channel routing, the same
+  // way Season/Episode reuse "serial" rather than a channel of their own.
+  track: "music",
 };
 
 export const toRatingTokens = (rating: number | null): RatingToken[] => {
