@@ -72,4 +72,13 @@ export class MusicCacheRepository {
       .returning();
     return row ?? null;
   }
+
+  static async updateCoverArtUrl(albumId: number, coverArtUrl: string) {
+    const [row] = await db
+      .update(albums)
+      .set({ coverArtUrl })
+      .where(eq(albums.id, albumId))
+      .returning();
+    return row ?? null;
+  }
 }

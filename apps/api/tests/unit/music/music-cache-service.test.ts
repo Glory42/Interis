@@ -10,6 +10,7 @@ const getAlbumStatsMock = mock(() => Promise.resolve<unknown>(null));
 const findByMbidMock = mock(() => Promise.resolve<unknown>(null));
 const upsertMock = mock(() => Promise.resolve<unknown>(null));
 const updateLastfmStatsMock = mock(() => Promise.resolve<unknown>(null));
+const updateCoverArtUrlMock = mock(() => Promise.resolve<unknown>(null));
 
 mock.module("../../../src/infrastructure/musicbrainz/albums", () => ({
   ...RealMbAlbums,
@@ -29,6 +30,7 @@ mock.module("../../../src/modules/music/repositories/music-cache.repository", ()
     findByMbid: findByMbidMock,
     upsert: upsertMock,
     updateLastfmStats: updateLastfmStatsMock,
+    updateCoverArtUrl: updateCoverArtUrlMock,
   },
 }));
 
@@ -66,10 +68,14 @@ describe("MusicCacheService.findOrCreate Last.fm enrichment (unit)", () => {
     findByMbidMock.mockReset();
     upsertMock.mockReset();
     updateLastfmStatsMock.mockReset();
+    updateCoverArtUrlMock.mockReset();
   });
 
   it("does not refresh Last.fm stats when they were fetched recently", async () => {
-    const freshRow = buildAlbumRow({ lastfmFetchedAt: new Date() });
+    const freshRow = buildAlbumRow({
+      lastfmFetchedAt: new Date(),
+      coverArtUrl: "https://example.com/cover.jpg",
+    });
     findByMbidMock.mockResolvedValueOnce(freshRow);
 
     await MusicCacheService.findOrCreate("album-mbid");
@@ -81,6 +87,7 @@ describe("MusicCacheService.findOrCreate Last.fm enrichment (unit)", () => {
   it("refreshes Last.fm stats in the background when they are stale, without blocking the response", async () => {
     const staleRow = buildAlbumRow({
       lastfmFetchedAt: new Date(Date.now() - 48 * 60 * 60 * 1000),
+      coverArtUrl: "https://example.com/cover.jpg",
     });
     findByMbidMock.mockResolvedValueOnce(staleRow);
     getAlbumStatsMock.mockResolvedValueOnce({ listeners: 100, playcount: 200 });
@@ -115,5 +122,31 @@ describe("MusicCacheService.findOrCreate Last.fm enrichment (unit)", () => {
 
     expect(getAlbumStatsMock).toHaveBeenCalledWith("Radiohead", "OK Computer");
     expect(updateLastfmStatsMock).toHaveBeenCalledWith(1, { listeners: 50, playcount: 75 });
+  });
+
+  it("does not re-fetch cover art for an album that already has one", async () => {
+    const withArtRow = buildAlbumRow({
+      coverArtUrl: "https://example.com/cover.jpg",
+      lastfmFetchedAt: new Date(),
+    });
+    findByMbidMock.mockResolvedValueOnce(withArtRow);
+
+    await MusicCacheService.findOrCreate("album-mbid");
+    await flushMicrotasks();
+
+    expect(getCoverArtUrlMock).not.toHaveBeenCalled();
+  });
+
+  it("backfills cover art in the background for an already-cached album still missing it", async () => {
+    const noArtRow = buildAlbumRow({ coverArtUrl: null, lastfmFetchedAt: new Date() });
+    findByMbidMock.mockResolvedValueOnce(noArtRow);
+    getCoverArtUrlMock.mockResolvedValueOnce("https://example.com/backfilled-cover.jpg");
+
+    const result = await MusicCacheService.findOrCreate("album-mbid");
+
+    expect(result).toBe(noArtRow);
+    await flushMicrotasks();
+    expect(getCoverArtUrlMock).toHaveBeenCalledWith("album-mbid");
+    expect(updateCoverArtUrlMock).toHaveBeenCalledWith(1, "https://example.com/backfilled-cover.jpg");
   });
 });

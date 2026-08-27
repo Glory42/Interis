@@ -19,6 +19,7 @@ export class MusicCacheService {
     const existing = await MusicCacheRepository.findByMbid(mbid);
     if (existing) {
       this.maybeRefreshLastfmStats(existing);
+      this.maybeRefreshCoverArt(existing);
       return existing;
     }
 
@@ -62,6 +63,30 @@ export class MusicCacheService {
       .then((stats) => {
         if (stats) {
           return MusicCacheRepository.updateLastfmStats(album.id, stats);
+        }
+      })
+      .catch(() => undefined);
+  }
+
+  // coverArtUrl is only ever fetched once, at creation - an album cached
+  // before Cover Art Archive had its art (or hit a transient failure) would
+  // otherwise show "no art" forever. No TTL/cooldown here unlike Last.fm's
+  // stats or the Track preview retry: Cover Art Archive is unauthenticated
+  // and rate-limit-free, so it's cheap to just retry every time someone
+  // revisits an album that's still missing art.
+  private static maybeRefreshCoverArt(album: {
+    id: number;
+    mbid: string;
+    coverArtUrl: string | null;
+  }): void {
+    if (album.coverArtUrl) {
+      return;
+    }
+
+    getCoverArtUrl(album.mbid)
+      .then((coverArtUrl) => {
+        if (coverArtUrl) {
+          return MusicCacheRepository.updateCoverArtUrl(album.id, coverArtUrl);
         }
       })
       .catch(() => undefined);
