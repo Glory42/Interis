@@ -9,6 +9,15 @@ export class TracksRepository {
     return row ?? null;
   }
 
+  static async updatePreview(trackId: number, previewUrl: string | null) {
+    const [row] = await db
+      .update(tracks)
+      .set({ previewUrl, previewFetchedAt: new Date() })
+      .where(eq(tracks.id, trackId))
+      .returning();
+    return row ?? null;
+  }
+
   // Returns recordingMbid -> track.id so the caller can build edition_track
   // join rows without a second round-trip lookup per track.
   static async upsertMany(trackStubs: MBTrackStub[]): Promise<Map<string, number>> {

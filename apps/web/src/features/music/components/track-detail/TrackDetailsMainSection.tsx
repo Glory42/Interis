@@ -57,6 +57,21 @@ export const TrackDetailsMainSection = ({ detail }: TrackDetailsMainSectionProps
         faintColor={MUSIC_MODULE_STYLES.faint}
         borderColor={MUSIC_MODULE_STYLES.borderSoft}
       />
+
+      {track.previewUrl ? (
+        <div
+          className="mt-6 border p-3"
+          style={{ borderColor: MUSIC_MODULE_STYLES.borderSoft, background: MUSIC_MODULE_STYLES.panelSoft }}
+        >
+          <p
+            className="mb-2 font-mono text-[10px] uppercase tracking-wide"
+            style={{ color: MUSIC_MODULE_STYLES.faint }}
+          >
+            30-second preview
+          </p>
+          <audio controls src={track.previewUrl} className="h-9 w-full max-w-sm" />
+        </div>
+      ) : null}
     </section>
   );
 };

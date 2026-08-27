@@ -124,6 +124,7 @@ export class TrackDetailService {
         artistName: track.artistName,
         length: track.length,
         disambiguation: track.disambiguation,
+        previewUrl: track.previewUrl,
       },
       logsCount,
       reviewCount: reviewRows.length,

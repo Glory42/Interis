@@ -7,6 +7,7 @@ export const trackSchema = z.object({
   artistName: z.string(),
   length: z.number().int().nullable(),
   disambiguation: z.string().nullable(),
+  previewUrl: z.string().nullable(),
 });
 
 export const trackDetailReviewItemSchema = z.object({

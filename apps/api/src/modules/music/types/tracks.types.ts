@@ -7,6 +7,7 @@ export type TrackDetail = {
   artistName: string;
   length: number | null;
   disambiguation: string | null;
+  previewUrl: string | null;
 };
 
 export type TrackInteraction = {

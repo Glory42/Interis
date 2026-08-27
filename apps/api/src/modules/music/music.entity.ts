@@ -119,6 +119,12 @@ export const tracks = pgTable("track", {
   artistName: text("artist_name").notNull(),
   length: integer("length"),
   disambiguation: text("disambiguation"),
+  // 30-second preview clip resolved from iTunes Search (no auth required).
+  // Not present on MusicBrainz/Last.fm, so this is the one field we sourced
+  // from a third catalog. previewFetchedAt tracks whether we've ever tried,
+  // independent of whether iTunes actually had a match.
+  previewUrl: text("preview_url"),
+  previewFetchedAt: timestamp("preview_fetched_at"),
   cachedAt: timestamp("cached_at").defaultNow().notNull(),
 });
 
