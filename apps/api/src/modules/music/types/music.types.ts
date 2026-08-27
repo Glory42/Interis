@@ -101,6 +101,29 @@ export type MusicDetailResponse = {
   reviews: MusicDetailReviewItem[];
 };
 
+export type EditionListItem = {
+  mbid: string;
+  title: string;
+  status: string | null;
+  packaging: string | null;
+  country: string | null;
+  releaseDate: string | null;
+  releaseYear: number | null;
+  format: string | null;
+  trackCount: number | null;
+  disambiguation: string | null;
+};
+
+export type EditionTrackItem = {
+  mbid: string;
+  title: string;
+  artistName: string;
+  length: number | null;
+  disambiguation: string | null;
+  discNumber: number;
+  position: number;
+};
+
 export type MyMusicLogEntry = {
   id: string;
   listenedDate: string;

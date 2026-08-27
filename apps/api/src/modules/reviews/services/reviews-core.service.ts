@@ -9,6 +9,8 @@ import { SocialFeedService } from "../../social/services/social-feed.service";
 import { ReviewsRepository } from "../repositories/reviews.repository";
 import { MusicCacheService } from "../../music/services/music-cache.service";
 import { AlbumActivityRecorder } from "../../music/services/album-activity-recorder.service";
+import { TracksCacheService } from "../../music/services/tracks-cache.service";
+import { TrackActivityRecorder } from "../../music/services/track-activity-recorder.service";
 import { BooksCacheService } from "../../books/services/books-cache.service";
 import { BookActivityRecorder } from "../../books/services/book-activity-recorder.service";
 import { buildReviewCreatedActivityMetadata } from "../helpers/reviews-activity.helper";
@@ -19,6 +21,7 @@ type Movie = Awaited<ReturnType<typeof MoviesService.findOrCreate>>;
 type Series = NonNullable<Awaited<ReturnType<typeof SerialsService.findOrCreate>>>;
 type Album = NonNullable<Awaited<ReturnType<typeof MusicCacheService.findOrCreate>>>;
 type Book = NonNullable<Awaited<ReturnType<typeof BooksCacheService.findOrCreate>>>;
+type Track = NonNullable<Awaited<ReturnType<typeof TracksCacheService.findOrCreate>>>;
 // SerialsReviewsRepository.upsertReview and DiaryRepository.upsertReview both
 // delegate to ReviewsRepository.upsertReview now (see issue #48), so movie
 // and TV reviews share one concrete row shape.
@@ -27,6 +30,7 @@ type MovieReviewRow = ReviewsTableRow;
 type SeriesReviewRow = ReviewsTableRow;
 type AlbumReviewRow = ReviewsTableRow;
 type BookReviewRow = ReviewsTableRow;
+type TrackReviewRow = ReviewsTableRow;
 
 type ReviewRow = { id: string; containsSpoilers: boolean };
 
@@ -193,6 +197,42 @@ const bookReviewAdapter: ReviewMediaAdapter<
   toResult: (review, book) => ({ review, book }),
 };
 
+const trackReviewAdapter: ReviewMediaAdapter<
+  Track,
+  TrackReviewRow,
+  { review: TrackReviewRow; track: Track }
+> = {
+  findOrCreateMedia: async (mediaSourceId) => {
+    const track = await TracksCacheService.findOrCreate(mediaSourceId);
+    if (!track) throw new NotFoundError("Track not found");
+    return track;
+  },
+  insertReview: (track, input, userId) =>
+    ReviewsRepository.upsertReview({
+      userId,
+      mediaType: "track",
+      mediaSource: "musicbrainz",
+      mediaSourceId: track.mbid,
+      movieId: null,
+      diaryEntryId: input.diaryEntryId ?? null,
+      content: input.content,
+      containsSpoilers: input.containsSpoilers ?? false,
+    }),
+  // Tracks have no "listened" flag on track_interaction to auto-set - see
+  // the album adapter's markWatched for the same reasoning.
+  markWatched: async () => {},
+  recordActivity: ({ userId, media, review, extraMetadata }) => {
+    TrackActivityRecorder.record({
+      userId,
+      track: media,
+      type: "review",
+      entityId: review.id,
+      extraMetadata,
+    });
+  },
+  toResult: (review, track) => ({ review, track }),
+};
+
 export class ReviewsCoreService {
   static async create(userId: string, input: CreateReviewDto) {
     if (input.mediaType === "tv") {
@@ -203,6 +243,9 @@ export class ReviewsCoreService {
     }
     if (input.mediaType === "book") {
       return ReviewsCoreService.createWithAdapter(userId, input, bookReviewAdapter);
+    }
+    if (input.mediaType === "track") {
+      return ReviewsCoreService.createWithAdapter(userId, input, trackReviewAdapter);
     }
     return ReviewsCoreService.createWithAdapter(userId, input, movieReviewAdapter);
   }
