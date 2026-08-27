@@ -4,16 +4,22 @@ import { TracksRepository } from "../repositories/tracks.repository";
 
 // A resolved preview URL is effectively permanent, so once we have one we
 // never look again. A "not found" result is retried after this cooldown in
-// case iTunes' catalog has since caught up - same "never block the base
-// fetch on it" background-refresh rule as Last.fm/NYT (see docs/adr/0003).
+// case iTunes' catalog has since caught up.
 const PREVIEW_RETRY_MS = 30 * 24 * 60 * 60 * 1000;
+
+type TrackRow = {
+  id: number;
+  title: string;
+  artistName: string;
+  previewUrl: string | null;
+  previewFetchedAt: Date | null;
+};
 
 export class TracksCacheService {
   static async findOrCreate(mbid: string) {
     const existing = await TracksRepository.findByMbid(mbid);
     if (existing) {
-      this.maybeRefreshPreview(existing);
-      return existing;
+      return this.ensurePreview(existing);
     }
 
     const recording = await getRecordingDetail(mbid);
@@ -27,31 +33,33 @@ export class TracksCacheService {
       position: 1,
     });
 
-    if (track) {
-      this.maybeRefreshPreview(track);
+    return track ? this.ensurePreview(track) : track;
+  }
+
+  // The track's first-ever preview lookup blocks so the response the
+  // viewer actually sees already has it - the same "block on creation"
+  // rule coverArtUrl follows for a new Album. Only a *retry* of an
+  // already-checked-and-not-found preview stays background/fire-and-forget
+  // (see docs/adr/0003) - a missing preview on a well-established track is
+  // low-stakes enough not to hold up every future request for it.
+  private static async ensurePreview<T extends TrackRow>(track: T): Promise<T> {
+    if (track.previewUrl) {
+      return track;
+    }
+
+    if (!track.previewFetchedAt) {
+      const preview = await findTrackPreview(track.artistName, track.title).catch(() => null);
+      const updated = await TracksRepository.updatePreview(track.id, preview?.previewUrl ?? null);
+      return (updated as T | null) ?? track;
+    }
+
+    const isStale = Date.now() - track.previewFetchedAt.getTime() > PREVIEW_RETRY_MS;
+    if (isStale) {
+      findTrackPreview(track.artistName, track.title)
+        .then((preview) => TracksRepository.updatePreview(track.id, preview?.previewUrl ?? null))
+        .catch(() => undefined);
     }
 
     return track;
-  }
-
-  private static maybeRefreshPreview(track: {
-    id: number;
-    title: string;
-    artistName: string;
-    previewUrl: string | null;
-    previewFetchedAt: Date | null;
-  }): void {
-    if (track.previewUrl) {
-      return;
-    }
-    const isStale =
-      !track.previewFetchedAt || Date.now() - track.previewFetchedAt.getTime() > PREVIEW_RETRY_MS;
-    if (!isStale) {
-      return;
-    }
-
-    findTrackPreview(track.artistName, track.title)
-      .then((preview) => TracksRepository.updatePreview(track.id, preview?.previewUrl ?? null))
-      .catch(() => undefined);
   }
 }

@@ -71,19 +71,23 @@ describe("TracksCacheService.findOrCreate iTunes preview enrichment (unit)", () 
     expect(findTrackPreviewMock).not.toHaveBeenCalled();
   });
 
-  it("resolves a preview in the background for a track that has never been checked, without blocking the response", async () => {
+  it("blocks on the first-ever preview check for a track, so the response already has it", async () => {
     const uncheckedRow = buildTrackRow({ previewUrl: null, previewFetchedAt: null });
     findByMbidMock.mockResolvedValueOnce(uncheckedRow);
     findTrackPreviewMock.mockResolvedValueOnce({
       previewUrl: "https://example.com/preview.m4a",
     });
+    const updatedRow = buildTrackRow({
+      previewUrl: "https://example.com/preview.m4a",
+      previewFetchedAt: new Date(),
+    });
+    updatePreviewMock.mockResolvedValueOnce(updatedRow);
 
     const result = await TracksCacheService.findOrCreate("track-mbid");
 
-    expect(result).toBe(uncheckedRow);
-    await flushMicrotasks();
     expect(findTrackPreviewMock).toHaveBeenCalledWith("Radiohead", "Karma Police");
     expect(updatePreviewMock).toHaveBeenCalledWith(1, "https://example.com/preview.m4a");
+    expect(result).toBe(updatedRow);
   });
 
   it("retries a stale not-found preview after the retry cooldown has elapsed", async () => {
@@ -101,7 +105,7 @@ describe("TracksCacheService.findOrCreate iTunes preview enrichment (unit)", () 
     expect(updatePreviewMock).toHaveBeenCalledWith(1, null);
   });
 
-  it("resolves a preview for a newly-cached track with no prior fetch attempt", async () => {
+  it("blocks on resolving a preview for a newly-cached track, so its first-ever response already has it", async () => {
     findByMbidMock.mockResolvedValueOnce(null);
     getRecordingDetailMock.mockResolvedValueOnce({
       mbid: "track-mbid",
@@ -115,11 +119,16 @@ describe("TracksCacheService.findOrCreate iTunes preview enrichment (unit)", () 
     findTrackPreviewMock.mockResolvedValueOnce({
       previewUrl: "https://example.com/preview.m4a",
     });
+    const updatedRow = buildTrackRow({
+      previewUrl: "https://example.com/preview.m4a",
+      previewFetchedAt: new Date(),
+    });
+    updatePreviewMock.mockResolvedValueOnce(updatedRow);
 
-    await TracksCacheService.findOrCreate("track-mbid");
-    await flushMicrotasks();
+    const result = await TracksCacheService.findOrCreate("track-mbid");
 
     expect(findTrackPreviewMock).toHaveBeenCalledWith("Radiohead", "Karma Police");
     expect(updatePreviewMock).toHaveBeenCalledWith(1, "https://example.com/preview.m4a");
+    expect(result).toBe(updatedRow);
   });
 });
