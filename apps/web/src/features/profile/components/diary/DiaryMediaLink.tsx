@@ -35,5 +35,39 @@ export const DiaryMediaLink = ({ row, className, children }: DiaryMediaLinkProps
     );
   }
 
+  if (row.mediaType === "album" && row.mbid !== null) {
+    return (
+      <Link to="/music/$mbid" params={{ mbid: row.mbid }} className={className} viewTransition>
+        {children}
+      </Link>
+    );
+  }
+
+  if (row.mediaType === "track" && row.mbid !== null) {
+    return (
+      <Link
+        to="/music/tracks/$mbid"
+        params={{ mbid: row.mbid }}
+        className={className}
+        viewTransition
+      >
+        {children}
+      </Link>
+    );
+  }
+
+  if (row.mediaType === "book" && row.volumeId !== null) {
+    return (
+      <Link
+        to="/books/$volumeId"
+        params={{ volumeId: row.volumeId }}
+        className={className}
+        viewTransition
+      >
+        {children}
+      </Link>
+    );
+  }
+
   return <span className={className}>{children}</span>;
 };

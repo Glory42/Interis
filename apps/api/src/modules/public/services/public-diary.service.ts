@@ -16,12 +16,14 @@ export class PublicDiaryService {
     // separately-paginated tables ahead of the merge.
     const fetchCap = limit + offset;
 
-    const [movieEntries, serialEntries, albumEntries, bookEntries] = await Promise.all([
-      DiaryRepository.findAllByUser(userId, fetchCap),
-      PublicRepository.findSerialDiaryEntriesByUser(userId, fetchCap),
-      PublicRepository.findAlbumDiaryEntriesByUser(userId, fetchCap),
-      PublicRepository.findBookDiaryEntriesByUser(userId, fetchCap),
-    ]);
+    const [movieEntries, serialEntries, albumEntries, bookEntries, trackEntries] =
+      await Promise.all([
+        DiaryRepository.findAllByUser(userId, fetchCap),
+        PublicRepository.findSerialDiaryEntriesByUser(userId, fetchCap),
+        PublicRepository.findAlbumDiaryEntriesByUser(userId, fetchCap),
+        PublicRepository.findBookDiaryEntriesByUser(userId, fetchCap),
+        PublicRepository.findTrackDiaryEntriesByUser(userId, fetchCap),
+      ]);
 
     const normalizedMovieEntries: PublicDiaryItem[] = movieEntries.map((entry) => ({
       id: entry.id,
@@ -123,11 +125,37 @@ export class PublicDiaryService {
         : null,
     }));
 
+    const normalizedTrackEntries: PublicDiaryItem[] = trackEntries.map((entry) => ({
+      id: entry.id,
+      mediaType: "track",
+      watchedDate: entry.watchedDate,
+      rating: entry.rating,
+      rewatch: entry.rewatch,
+      createdAt: entry.createdAt,
+      updatedAt: entry.updatedAt,
+      media: {
+        tmdbId: null,
+        mbid: entry.mbid,
+        title: entry.title,
+        artistName: entry.artistName,
+        releaseYear: null,
+      },
+      review: entry.reviewId
+        ? {
+            id: entry.reviewId,
+            content: entry.reviewContent ?? "",
+            containsSpoilers: entry.reviewContainsSpoilers ?? false,
+            createdAt: entry.reviewCreatedAt ?? entry.createdAt,
+          }
+        : null,
+    }));
+
     return [
       ...normalizedMovieEntries,
       ...normalizedSerialEntries,
       ...normalizedAlbumEntries,
       ...normalizedBookEntries,
+      ...normalizedTrackEntries,
     ]
       .sort((left, right) => {
         const watchedDateDelta = toTimestamp(right.watchedDate) - toTimestamp(left.watchedDate);

@@ -5,7 +5,7 @@ import { listEntries, lists } from "../../lists/lists.entity";
 import { movies } from "../../movies/movies.entity";
 import { reviews } from "../../reviews/reviews.entity";
 import { serialDiaryEntries, tvSeries } from "../../serials/serials.entity";
-import { albums, musicDiaryEntries } from "../../music/music.entity";
+import { albums, musicDiaryEntries, trackDiaryEntries, tracks } from "../../music/music.entity";
 import { bookDiaryEntries, books } from "../../books/books.entity";
 
 export class PublicRepository {
@@ -117,6 +117,38 @@ export class PublicRepository {
       )
       .where(eq(bookDiaryEntries.userId, userId))
       .orderBy(desc(bookDiaryEntries.readDate), desc(bookDiaryEntries.createdAt))
+      .limit(fetchCap);
+  }
+
+  static async findTrackDiaryEntriesByUser(userId: string, fetchCap: number) {
+    return db
+      .select({
+        id: trackDiaryEntries.id,
+        watchedDate: trackDiaryEntries.listenedDate,
+        rating: trackDiaryEntries.rating,
+        rewatch: trackDiaryEntries.relisten,
+        createdAt: trackDiaryEntries.createdAt,
+        updatedAt: trackDiaryEntries.updatedAt,
+        mbid: tracks.mbid,
+        title: tracks.title,
+        artistName: tracks.artistName,
+        reviewId: reviews.id,
+        reviewContent: reviews.content,
+        reviewContainsSpoilers: reviews.containsSpoilers,
+        reviewCreatedAt: reviews.createdAt,
+      })
+      .from(trackDiaryEntries)
+      .innerJoin(tracks, eq(tracks.id, trackDiaryEntries.trackId))
+      .leftJoin(
+        reviews,
+        and(
+          eq(reviews.userId, trackDiaryEntries.userId),
+          eq(reviews.diaryEntryId, trackDiaryEntries.id),
+          eq(reviews.mediaType, "track"),
+        ),
+      )
+      .where(eq(trackDiaryEntries.userId, userId))
+      .orderBy(desc(trackDiaryEntries.listenedDate), desc(trackDiaryEntries.createdAt))
       .limit(fetchCap);
   }
 

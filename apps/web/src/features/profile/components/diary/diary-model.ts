@@ -7,6 +7,7 @@ export type RatingToken = "full" | "half" | "empty";
 export type DiaryRow = {
   id: string;
   channel: FeedChannel;
+  mediaType: DiaryItem["mediaType"];
   title: string;
   posterPath: string | null;
   coverArtUrl: string | null;
@@ -112,6 +113,7 @@ export const toDiaryRows = (
     return {
       id: item.id,
       channel,
+      mediaType: item.mediaType,
       title: item.media.title,
       posterPath: item.media.posterPath ?? null,
       coverArtUrl: item.media.coverArtUrl ?? null,

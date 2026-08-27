@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
-import { seedTestMovie, seedTestSerial } from "../../support/factories/media.factory";
+import { seedTestMovie, seedTestSerial, seedTestTrack } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -155,6 +155,37 @@ describe("public widget API (/api/public/*)", () => {
     expect(watchedResponse.status).toBe(200);
     const watchedBody = (await watchedResponse.json()) as Array<{ tmdbId: number }>;
     expect(watchedBody.some((w) => w.tmdbId === movie.tmdbId)).toBe(true);
+  });
+
+  it("includes a track diary entry alongside movie/tv entries in the unified diary", async () => {
+    const { jar, username } = await signUpTestUser(getServer().baseUrl, "ptrackdiary");
+    const track = await seedTestTrack("Public Diary Track");
+
+    const createResponse = await apiRequest(
+      getServer().baseUrl,
+      `/api/music/tracks/${track.mbid}/log`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ listenedDate: "2026-01-06", rating: 7 }),
+      },
+      jar,
+    );
+    expect(createResponse.status).toBe(201);
+
+    const diaryResponse = await apiRequest(getServer().baseUrl, `/api/public/${username}/diary`);
+    expect(diaryResponse.status).toBe(200);
+    const diaryEntries = (await diaryResponse.json()) as Array<{
+      mediaType: string;
+      media: { mbid?: string | null; title: string; artistName?: string | null };
+      rating: number | null;
+    }>;
+
+    const entry = diaryEntries.find((e) => e.media.mbid === track.mbid);
+    expect(entry?.mediaType).toBe("track");
+    expect(entry?.media.title).toBe("Public Diary Track");
+    expect(entry?.media.artistName).toBe("Test Artist");
+    expect(entry?.rating).toBe(7);
   });
 
   it("paginates diary with limit/offset across mixed movie+serial entries", async () => {
