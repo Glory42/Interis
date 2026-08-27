@@ -1,4 +1,4 @@
-import { SQL, asc, desc, eq, ilike, sql } from "drizzle-orm";
+import { SQL, asc, desc, eq, ilike, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { books, bookDiaryEntries, bookInteractions } from "../books.entity";
 import type { BooksArchiveSort } from "../dto/books.dto";
@@ -12,6 +12,10 @@ export class BooksArchiveRepository {
     limit: number;
   }) {
     const orderBy = {
+      // trending never reaches this query (BooksArchiveService branches to
+      // NYT-backed data before calling here) - mapped only so this object
+      // stays exhaustive over BooksArchiveSort.
+      trending: desc(sql<number>`count(${bookDiaryEntries.id})`),
       logs_desc: desc(sql<number>`count(${bookDiaryEntries.id})`),
       published_desc: desc(books.publishedYear),
       published_asc: asc(books.publishedYear),
@@ -61,6 +65,32 @@ export class BooksArchiveRepository {
       .orderBy(orderBy)
       .limit(input.limit)
       .offset(offset);
+
+    return rows;
+  }
+
+  // Same aggregate shape as getArchiveRows, but for an explicit, ad-hoc set
+  // of books (e.g. an NYT bestseller list) rather than the whole catalog -
+  // one batched query instead of looping per book.
+  static async getArchiveRowsByVolumeIds(volumeIds: string[]) {
+    if (volumeIds.length === 0) return [];
+
+    const rows = await db
+      .select({
+        googleVolumeId: books.googleVolumeId,
+        title: books.title,
+        authors: books.authors,
+        coverImageUrl: books.coverImageUrl,
+        publishedYear: books.publishedYear,
+        language: books.language,
+        categories: books.categories,
+        logCount: sql<number>`count(${bookDiaryEntries.id})::int`.as("logCount"),
+        avgRatingOutOfTen: sql<number | null>`avg(${bookDiaryEntries.rating})::double precision`.as("avgRatingOutOfTen"),
+      })
+      .from(books)
+      .leftJoin(bookDiaryEntries, eq(bookDiaryEntries.bookId, books.id))
+      .where(inArray(books.googleVolumeId, volumeIds))
+      .groupBy(books.id);
 
     return rows;
   }

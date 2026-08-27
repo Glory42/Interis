@@ -26,6 +26,7 @@ export type CreateBookLogInput = z.infer<typeof createBookLogInputSchema>;
 export type UpdateBookInteractionInput = z.infer<typeof updateBookInteractionInputSchema>;
 
 export type BooksArchiveSort =
+  | "trending"
   | "logs_desc"
   | "published_desc"
   | "published_asc"

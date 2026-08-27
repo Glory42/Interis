@@ -17,6 +17,7 @@ export const BOOK_MODULE_STYLES = {
 } as const;
 
 export const sortOptions: Array<{ value: BooksArchiveSort; label: string }> = [
+  { value: "trending", label: "Trending (NYT)" },
   { value: "logs_desc", label: "Most read" },
   { value: "published_desc", label: "Newest published" },
   { value: "published_asc", label: "Oldest published" },

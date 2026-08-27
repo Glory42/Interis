@@ -8,6 +8,11 @@ export class BooksCacheRepository {
     return row ?? null;
   }
 
+  static async findByIsbn13(isbn13: string) {
+    const [row] = await db.select().from(books).where(eq(books.isbn13, isbn13)).limit(1);
+    return row ?? null;
+  }
+
   static async upsert(input: {
     googleVolumeId: string;
     title: string;

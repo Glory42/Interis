@@ -59,6 +59,19 @@ export const bookDiaryEntries = pgTable(
   ],
 );
 
+// One row per NYT bestseller list, holding the ranked ISBN list as of the
+// last successful fetch. TTL-cached with lazy background refresh rather
+// than live-fetched per request (see docs/adr/0003) - NYT caps free-tier
+// usage at 1000 requests/day.
+export const nytBestsellerCache = pgTable("nyt_bestseller_cache", {
+  id: serial("id").primaryKey(),
+  listName: text("list_name").notNull().unique(),
+  items: jsonb("items")
+    .$type<Array<{ rank: number; isbn13: string; title: string; author: string }>>()
+    .notNull(),
+  fetchedAt: timestamp("fetched_at").defaultNow().notNull(),
+});
+
 export const bookInteractions = pgTable(
   "book_interaction",
   {

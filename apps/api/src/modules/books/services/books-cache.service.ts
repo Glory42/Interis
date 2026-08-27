@@ -1,9 +1,11 @@
 import {
   getBookDetail,
+  searchBooks,
   extractIsbn13,
   parseCoverUrl,
   parsePublishedYear,
   stripHtml,
+  type GoogleBooksVolume,
 } from "../../../infrastructure/googlebooks/books";
 import { BooksCacheRepository } from "../repositories/books-cache.repository";
 
@@ -15,6 +17,29 @@ export class BooksCacheService {
     }
 
     const volume = await getBookDetail(googleVolumeId);
+    return this.upsertFromVolume(volume);
+  }
+
+  // Resolves an ISBN-13 (e.g. from an NYT bestseller entry) to a cached Book
+  // row via Google Books' isbn: search, creating it on first lookup - the
+  // same on-demand caching every other media type uses, just keyed off ISBN
+  // instead of a known Google volume id.
+  static async findOrCreateByIsbn(isbn13: string) {
+    const existing = await BooksCacheRepository.findByIsbn13(isbn13);
+    if (existing) {
+      return existing;
+    }
+
+    const results = await searchBooks(`isbn:${isbn13}`);
+    const volume = results[0];
+    if (!volume) {
+      return null;
+    }
+
+    return this.upsertFromVolume(volume);
+  }
+
+  private static async upsertFromVolume(volume: GoogleBooksVolume) {
     const vi = volume.volumeInfo;
 
     return BooksCacheRepository.upsert({

@@ -8,6 +8,7 @@ import {
 } from "../constants/books.constants";
 
 export const booksArchiveSortValues = [
+  "trending",
   "logs_desc",
   "published_desc",
   "published_asc",
