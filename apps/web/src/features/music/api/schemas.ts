@@ -154,3 +154,34 @@ export const updateMusicInteractionInputSchema = z.object({
   wantToListen: z.boolean().optional(),
   rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
 });
+
+export const editionListItemSchema = z.object({
+  mbid: z.string(),
+  title: z.string(),
+  status: z.string().nullable(),
+  packaging: z.string().nullable(),
+  country: z.string().nullable(),
+  releaseDate: z.string().nullable(),
+  releaseYear: z.number().int().nullable(),
+  format: z.string().nullable(),
+  trackCount: z.number().int().nullable(),
+  disambiguation: z.string().nullable(),
+});
+
+export const editionsResponseSchema = z.object({
+  editions: z.array(editionListItemSchema),
+});
+
+export const editionTrackItemSchema = z.object({
+  mbid: z.string(),
+  title: z.string(),
+  artistName: z.string(),
+  length: z.number().int().nullable(),
+  disambiguation: z.string().nullable(),
+  discNumber: z.number().int(),
+  position: z.number().int(),
+});
+
+export const editionTracklistResponseSchema = z.object({
+  tracks: z.array(editionTrackItemSchema),
+});

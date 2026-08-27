@@ -10,10 +10,14 @@ import {
   updateMusicInteractionInputSchema,
   updateMusicLogInputSchema,
   createMusicLogInputSchema,
+  editionsResponseSchema,
+  editionTracklistResponseSchema,
 } from "./schemas";
 import type {
   Album,
   CreateMusicLogInput,
+  EditionsResponse,
+  EditionTracklistResponse,
   MbSearchResult,
   MusicArchiveInput,
   MusicArchiveResponse,
@@ -152,4 +156,26 @@ export const updateMusicLog = async (
 
 export const deleteMusicLog = async (entryId: string): Promise<void> => {
   await apiRequest<unknown>(`/api/music/logs/${entryId}`, { method: "DELETE" });
+};
+
+export const getAlbumEditions = async (
+  mbid: string,
+  options: QueryRequestOptions = {},
+): Promise<EditionsResponse> => {
+  const response = await apiRequest<unknown>(`/api/music/${mbid}/editions`, {
+    method: "GET",
+    signal: options.signal,
+  });
+  return editionsResponseSchema.parse(response);
+};
+
+export const getEditionTracklist = async (
+  editionMbid: string,
+  options: QueryRequestOptions = {},
+): Promise<EditionTracklistResponse> => {
+  const response = await apiRequest<unknown>(`/api/music/editions/${editionMbid}/tracks`, {
+    method: "GET",
+    signal: options.signal,
+  });
+  return editionTracklistResponseSchema.parse(response);
 };

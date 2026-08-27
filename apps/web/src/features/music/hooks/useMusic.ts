@@ -7,6 +7,8 @@ import {
 import {
   createMusicLog,
   deleteMusicLog,
+  getAlbumEditions,
+  getEditionTracklist,
   getMusicArchive,
   getMusicDetail,
   getMusicInteraction,
@@ -32,6 +34,9 @@ export const musicKeys = {
   myLogs: ["music", "my-logs"] as const,
   archive: (genre: string, type: string, sort: MusicArchiveSort, limit: number) =>
     ["music", "archive", genre, type, sort, limit] as const,
+  editions: (mbid: string) => ["music", "editions", mbid] as const,
+  editionTracklist: (editionMbid: string) =>
+    ["music", "edition-tracklist", editionMbid] as const,
 };
 
 export const useMusicSearch = (query: string) =>
@@ -147,4 +152,21 @@ export const useMusicArchive = (
       return getMusicArchive({ genre, type, sort, page, limit }, { signal });
     },
     getNextPageParam: (lastPage) => lastPage.nextPage ?? undefined,
+  });
+
+// Only fetched on demand (the caller passes enabled=true once the user
+// opens the editions browser) - a cache-miss here triggers a live
+// MusicBrainz lookup, so this shouldn't fire on every album page view.
+export const useAlbumEditions = (mbid: string, enabled: boolean) =>
+  useQuery({
+    queryKey: musicKeys.editions(mbid),
+    queryFn: ({ signal }) => getAlbumEditions(mbid, { signal }),
+    enabled: enabled && mbid.length > 0,
+  });
+
+export const useEditionTracklist = (editionMbid: string, enabled: boolean) =>
+  useQuery({
+    queryKey: musicKeys.editionTracklist(editionMbid),
+    queryFn: ({ signal }) => getEditionTracklist(editionMbid, { signal }),
+    enabled: enabled && editionMbid.length > 0,
   });

@@ -1,4 +1,5 @@
 import type { MusicDetailResponse } from "@/features/music/api";
+import { AlbumEditionsSection } from "@/features/music/components/music-detail/AlbumEditionsSection";
 import { MUSIC_MODULE_STYLES } from "@/features/music/components/music-detail/styles";
 import { MediaStatsRow } from "@/features/media/components/MediaStatsRow";
 
@@ -108,6 +109,8 @@ export const AlbumDetailsMainSection = ({ detail }: AlbumDetailsMainSectionProps
           </p>
         </div>
       ) : null}
+
+      <AlbumEditionsSection mbid={album.mbid} />
     </section>
   );
 };

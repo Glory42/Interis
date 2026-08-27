@@ -10,6 +10,8 @@ export {
   getMyMusicLogs,
   updateMusicLog,
   deleteMusicLog,
+  getAlbumEditions,
+  getEditionTracklist,
 } from "./api/requests";
 
 export type {
@@ -29,4 +31,8 @@ export type {
   QueryRequestOptions,
   MusicArchiveInput,
   MusicDetailInput,
+  EditionListItem,
+  EditionsResponse,
+  EditionTrackItem,
+  EditionTracklistResponse,
 } from "./api/types";
