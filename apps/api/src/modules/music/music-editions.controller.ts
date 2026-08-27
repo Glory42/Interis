@@ -3,7 +3,7 @@ import { sendBadRequest, sendNotFound } from "../../commons/http/validation-resp
 import { parseMbidParam } from "./dto/music.dto";
 import { MusicCacheService } from "./services/music-cache.service";
 import { EditionsCacheService } from "./services/editions-cache.service";
-import type { EditionListItem, EditionTrackItem } from "./types/music.types";
+import type { AlbumTrackItem, EditionListItem, EditionTrackItem } from "./types/music.types";
 
 export class MusicEditionsController {
   static async getEditions(req: Request<{ mbid: string }>, res: Response): Promise<void> {
@@ -34,6 +34,31 @@ export class MusicEditionsController {
     }));
 
     res.status(200).json({ editions });
+  }
+
+  static async getAlbumTracks(req: Request<{ mbid: string }>, res: Response): Promise<void> {
+    const mbid = parseMbidParam(req.params.mbid);
+    if (!mbid) {
+      sendBadRequest(res, "Invalid album ID");
+      return;
+    }
+
+    const album = await MusicCacheService.findOrCreate(mbid);
+    if (!album) {
+      sendNotFound(res, "Album not found");
+      return;
+    }
+
+    const rows = await EditionsCacheService.findOrCreateTrackUnionForAlbum(album.id, album.mbid);
+    const tracks: AlbumTrackItem[] = rows.map((row) => ({
+      mbid: row.mbid,
+      title: row.title,
+      artistName: row.artistName,
+      length: row.length,
+      disambiguation: row.disambiguation,
+    }));
+
+    res.status(200).json({ tracks });
   }
 
   static async getEditionTracklist(

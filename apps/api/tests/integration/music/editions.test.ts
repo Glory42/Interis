@@ -126,4 +126,46 @@ describe("music editions", () => {
       expect(body.tracks.map((t) => t.title)).toEqual(["Airbag", "Paranoid Android"]);
     });
   });
+
+  describe("GET /api/music/:mbid/tracks", () => {
+    it("returns 400 for a malformed album id", async () => {
+      const response = await apiRequest(getServer().baseUrl, "/api/music/not-a-uuid/tracks");
+      expect(response.status).toBe(400);
+    });
+
+    it("returns the deduplicated union of tracks already cached across the album's editions", async () => {
+      const album = await seedTestAlbum();
+      const [editionOne, editionTwo] = await db
+        .insert(editions)
+        .values([
+          { albumId: album.id, mbid: crypto.randomUUID(), title: "Edition One" },
+          { albumId: album.id, mbid: crypto.randomUUID(), title: "Edition Two" },
+        ])
+        .returning();
+
+      const [shared, bonusTrack] = await db
+        .insert(tracks)
+        .values([
+          { mbid: crypto.randomUUID(), title: "Airbag", artistName: "Radiohead" },
+          { mbid: crypto.randomUUID(), title: "Meeting in the Aisle", artistName: "Radiohead" },
+        ])
+        .returning();
+
+      await db.insert(editionTracks).values([
+        { editionId: editionOne!.id, trackId: shared!.id, discNumber: 1, position: 1 },
+        { editionId: editionTwo!.id, trackId: shared!.id, discNumber: 1, position: 1 },
+        { editionId: editionTwo!.id, trackId: bonusTrack!.id, discNumber: 1, position: 2 },
+      ]);
+
+      const response = await apiRequest(getServer().baseUrl, `/api/music/${album.mbid}/tracks`);
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as { tracks: Array<{ title: string }> };
+
+      expect(body.tracks).toHaveLength(2);
+      expect(body.tracks.map((t) => t.title).sort()).toEqual([
+        "Airbag",
+        "Meeting in the Aisle",
+      ]);
+    });
+  });
 });

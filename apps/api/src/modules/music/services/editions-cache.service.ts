@@ -17,6 +17,30 @@ export class EditionsCacheService {
     return EditionsRepository.findByAlbumId(albumId);
   }
 
+  // The Album's Track list per ADR-0002: the union of every distinct Track
+  // across all of its Editions. Eagerly fetching every edition's tracklist
+  // to build a complete union would mean dozens of MusicBrainz calls for a
+  // single album view, which the "never bulk imported" caching rule rules
+  // out - so on a cold union (nothing cached from any edition yet) this
+  // seeds it from just the single best-ranked edition (same official-first-
+  // then-earliest-date ordering used for the Editions list) rather than all
+  // of them. The union then grows incrementally as users open more editions.
+  static async findOrCreateTrackUnionForAlbum(albumId: number, albumMbid: string) {
+    const existingUnion = await TracksRepository.findUnionByAlbumId(albumId);
+    if (existingUnion.length > 0) {
+      return existingUnion;
+    }
+
+    const editions = await this.findOrCreateEditionsForAlbum(albumId, albumMbid);
+    const bestEdition = editions[0];
+    if (!bestEdition) {
+      return [];
+    }
+
+    await this.findOrCreateTracklistForEdition(bestEdition.id, bestEdition.mbid);
+    return TracksRepository.findUnionByAlbumId(albumId);
+  }
+
   static async findOrCreateTracklistByEditionMbid(editionMbid: string) {
     const edition = await EditionsRepository.findByMbid(editionMbid);
     if (!edition) {

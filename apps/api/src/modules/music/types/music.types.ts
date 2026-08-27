@@ -124,6 +124,14 @@ export type EditionTrackItem = {
   position: number;
 };
 
+export type AlbumTrackItem = {
+  mbid: string;
+  title: string;
+  artistName: string;
+  length: number | null;
+  disambiguation: string | null;
+};
+
 export type MyMusicLogEntry = {
   id: string;
   listenedDate: string;

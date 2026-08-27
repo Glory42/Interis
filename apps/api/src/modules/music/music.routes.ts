@@ -31,6 +31,7 @@ router.get("/:mbid/interaction", requireAuth, asyncHandler(MusicController.getIn
 router.put("/:mbid/interaction", requireAuth, asyncHandler(MusicController.updateInteraction));
 router.post("/:mbid/log", requireAuth, asyncHandler(MusicController.createLog));
 router.get("/:mbid/editions", asyncHandler(MusicEditionsController.getEditions));
+router.get("/:mbid/tracks", asyncHandler(MusicEditionsController.getAlbumTracks));
 router.get("/:mbid", asyncHandler(MusicController.getByMbid));
 
 export default router;
