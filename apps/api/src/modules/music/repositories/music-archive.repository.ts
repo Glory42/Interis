@@ -1,4 +1,4 @@
-import { SQL, asc, desc, eq, ilike, sql } from "drizzle-orm";
+import { SQL, asc, desc, eq, ilike, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { albums, musicDiaryEntries, musicInteractions } from "../music.entity";
 import type { MusicArchiveSort } from "../dto/music.dto";
@@ -19,6 +19,9 @@ export class MusicArchiveRepository {
       release_asc: asc(albums.firstReleaseYear),
       rating_desc: desc(sql<number>`avg(${musicDiaryEntries.rating})`),
       title_asc: asc(albums.title),
+      // Never reached - MusicArchiveService.getArchive short-circuits to
+      // getTrendingArchive before this repository method is called.
+      trending: undefined,
     }[input.sort] ?? desc(sql<number>`count(${musicDiaryEntries.id})`);
 
     const conditions: SQL[] = [];
@@ -63,6 +66,29 @@ export class MusicArchiveRepository {
       .orderBy(orderBy)
       .limit(input.limit)
       .offset(offset);
+
+    return rows;
+  }
+
+  static async getArchiveRowsByMbids(mbids: string[]) {
+    if (mbids.length === 0) return [];
+
+    const rows = await db
+      .select({
+        mbid: albums.mbid,
+        title: albums.title,
+        artistName: albums.artistName,
+        coverArtUrl: albums.coverArtUrl,
+        primaryType: albums.primaryType,
+        firstReleaseYear: albums.firstReleaseYear,
+        genres: albums.genres,
+        logCount: sql<number>`count(${musicDiaryEntries.id})::int`.as("logCount"),
+        avgRatingOutOfTen: sql<number | null>`avg(${musicDiaryEntries.rating})::double precision`.as("avgRatingOutOfTen"),
+      })
+      .from(albums)
+      .leftJoin(musicDiaryEntries, eq(musicDiaryEntries.albumId, albums.id))
+      .where(inArray(albums.mbid, mbids))
+      .groupBy(albums.id);
 
     return rows;
   }

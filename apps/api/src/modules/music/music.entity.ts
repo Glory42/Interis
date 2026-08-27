@@ -35,6 +35,19 @@ export const albums = pgTable("album", {
   lastfmFetchedAt: timestamp("lastfm_fetched_at"),
 });
 
+// TTL-cached "Trending" chart for the Music archive - Last.fm has no direct
+// top-albums endpoint, so this stores the already-resolved (top artist's top
+// album -> MusicBrainz release-group mbid) list, mirroring the NYT
+// bestseller cache's role for Books. See LastfmTrendingCacheService.
+export const lastfmTrendingCache = pgTable("lastfm_trending_cache", {
+  id: serial("id").primaryKey(),
+  chartKey: text("chart_key").notNull().unique(),
+  items: jsonb("items")
+    .$type<Array<{ artistName: string; albumTitle: string; mbid: string }>>()
+    .notNull(),
+  fetchedAt: timestamp("fetched_at").defaultNow().notNull(),
+});
+
 export const musicDiaryEntries = pgTable(
   "music_diary_entry",
   {

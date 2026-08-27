@@ -14,6 +14,7 @@ export const musicArchiveSortValues = [
   "release_asc",
   "rating_desc",
   "title_asc",
+  "trending",
 ] as const;
 export type MusicArchiveSort = (typeof musicArchiveSortValues)[number];
 

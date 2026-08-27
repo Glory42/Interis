@@ -41,7 +41,8 @@ export type MusicArchiveSort =
   | "release_desc"
   | "release_asc"
   | "rating_desc"
-  | "title_asc";
+  | "title_asc"
+  | "trending";
 
 export type MusicDetailReviewSort = "popular" | "recent";
 
