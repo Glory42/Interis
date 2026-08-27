@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Award } from "lucide-react";
 import {
   ARCHIVE_PAGE_SIZE,
   CINEMA_MODULE_STYLES,
@@ -233,10 +234,11 @@ export const CinemaArchivePage = () => {
                 <ArchiveMediaCard
                   key={`cinema-archive-item-${movie.tmdbId}`}
                   kind="cinema"
-                  tmdbId={movie.tmdbId}
+                  id={String(movie.tmdbId)}
                   title={movie.title}
-                  posterPath={movie.posterPath}
-                  getPosterUrl={getPosterUrl}
+                  imageUrl={movie.posterPath ? getPosterUrl(movie.posterPath) : null}
+                  fallbackIcon={Award}
+                  fallbackLabel="No Art"
                   stateLabel={getMovieStateLabel(movie)}
                   rating={getRating(movie, archiveRatingSource)}
                   ratingSource={archiveRatingSource}

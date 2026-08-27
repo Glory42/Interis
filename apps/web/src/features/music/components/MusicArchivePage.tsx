@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Music } from "lucide-react";
 import { ARCHIVE_PAGE_SIZE, MUSIC_MODULE_STYLES, sortOptions, typeOptions } from "@/features/music/components/music-archive/constants";
-import { ArchiveSkeletonGrid } from "@/features/music/components/music-archive/ArchiveSkeletonGrid";
-import { GridAlbumCard } from "@/features/music/components/music-archive/GridAlbumCard";
 import { MusicArchiveControls } from "@/features/music/components/music-archive/MusicArchiveControls";
-import type { OpenMenu } from "@/features/music/components/music-archive/types";
 import type { MusicArchiveSort } from "@/features/music/api";
 import { useMusicArchive } from "@/features/music/hooks/useMusic";
+import { ArchiveMediaCard } from "@/features/media-archive/components/ArchiveMediaCard";
+import { ArchiveSkeletonGrid } from "@/features/media-archive/components/ArchiveSkeletonGrid";
+import type { ArchiveMenuKey } from "@/features/media-archive/types";
 
 function formatArchiveCount(count: number): string {
   if (count === 0) return "No albums";
@@ -17,7 +18,7 @@ export const MusicArchivePage = () => {
   const [selectedSort, setSelectedSort] = useState<MusicArchiveSort>("logs_desc");
   const [selectedGenre, setSelectedGenre] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
-  const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
+  const [openMenu, setOpenMenu] = useState<ArchiveMenuKey | null>(null);
 
   const controlsRef = useRef<HTMLDivElement | null>(null);
 
@@ -117,7 +118,9 @@ export const MusicArchivePage = () => {
           onSelectType={setSelectedType}
         />
 
-        {archiveQuery.isPending ? <ArchiveSkeletonGrid /> : null}
+        {archiveQuery.isPending ? (
+          <ArchiveSkeletonGrid moduleStyles={MUSIC_MODULE_STYLES} aspectClassName="aspect-square" />
+        ) : null}
 
         {archiveQuery.isError ? (
           <div
@@ -149,7 +152,24 @@ export const MusicArchivePage = () => {
           <>
             <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
               {archiveItems.map((album) => (
-                <GridAlbumCard key={`music-archive-item-${album.mbid}`} album={album} />
+                <ArchiveMediaCard
+                  key={`music-archive-item-${album.mbid}`}
+                  kind="album"
+                  id={album.mbid}
+                  title={album.title}
+                  imageUrl={album.coverArtUrl}
+                  fallbackIcon={Music}
+                  fallbackLabel="No Art"
+                  aspectClassName="aspect-square"
+                  stateLabel={
+                    album.viewerHasLogged ? "Listened" : album.viewerWantToListen ? "Queue" : null
+                  }
+                  rating={album.avgRating}
+                  ratingSource="user"
+                  subtitlePrimary={album.artistName}
+                  subtitleSecondary={album.firstReleaseYear ? String(album.firstReleaseYear) : null}
+                  moduleStyles={MUSIC_MODULE_STYLES}
+                />
               ))}
             </div>
 

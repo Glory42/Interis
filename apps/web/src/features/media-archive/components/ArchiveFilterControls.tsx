@@ -9,7 +9,7 @@ type ArchiveFilterOption<TValue extends string> = {
   label: string;
 };
 
-type ArchiveFilterControlsProps<TSort extends string, TPeriod extends string> = {
+type ArchiveFilterControlsProps<TSort extends string, TPeriod extends string = string> = {
   controlsRef: RefObject<HTMLDivElement | null>;
   openMenu: ArchiveMenuKey | null;
   onBlurCapture: FocusEventHandler<HTMLDivElement>;
@@ -18,24 +18,26 @@ type ArchiveFilterControlsProps<TSort extends string, TPeriod extends string> = 
   selectedGenre: string;
   selectedLanguage: string;
   selectedSort: TSort;
-  selectedPeriod: TPeriod;
   selectedSortLabel: string;
   selectedLanguageLabel: string;
-  selectedPeriodLabel: string;
-  isPeriodDisabled: boolean;
   archiveCountLabel: string;
   availableGenres?: ReadonlyArray<{ name: string; count?: number | null }>;
   sortOptions: ReadonlyArray<ArchiveFilterOption<TSort>>;
-  periodOptions: ReadonlyArray<ArchiveFilterOption<TPeriod>>;
   languageOptions: ReadonlyArray<ArchiveFilterOption<string>>;
   onSelectGenre: (genre: string) => void;
   onSelectSort: (sort: TSort) => void;
   onSelectLanguage: (language: string) => void;
-  onSelectPeriod: (period: TPeriod) => void;
   moduleStyles: ArchiveCardModuleStyles;
+  // Not every archive supports a trending-window filter (books/albums don't).
+  // Omit all five together to render without the period trigger.
+  selectedPeriod?: TPeriod;
+  selectedPeriodLabel?: string;
+  isPeriodDisabled?: boolean;
+  periodOptions?: ReadonlyArray<ArchiveFilterOption<TPeriod>>;
+  onSelectPeriod?: (period: TPeriod) => void;
 };
 
-export const ArchiveFilterControls = <TSort extends string, TPeriod extends string>({
+export const ArchiveFilterControls = <TSort extends string, TPeriod extends string = string>({
   controlsRef,
   openMenu,
   onBlurCapture,
@@ -48,7 +50,7 @@ export const ArchiveFilterControls = <TSort extends string, TPeriod extends stri
   selectedSortLabel,
   selectedLanguageLabel,
   selectedPeriodLabel,
-  isPeriodDisabled,
+  isPeriodDisabled = false,
   archiveCountLabel,
   availableGenres,
   sortOptions,
@@ -60,6 +62,7 @@ export const ArchiveFilterControls = <TSort extends string, TPeriod extends stri
   onSelectPeriod,
   moduleStyles,
 }: ArchiveFilterControlsProps<TSort, TPeriod>) => {
+  const hasPeriodFilter = periodOptions !== undefined && onSelectPeriod !== undefined;
   return (
     <div
       ref={controlsRef}
@@ -164,32 +167,34 @@ export const ArchiveFilterControls = <TSort extends string, TPeriod extends stri
           </div>
         </ArchiveMenuTrigger>
 
-        <ArchiveMenuTrigger
-          menu="period"
-          openMenu={openMenu}
-          onToggleMenu={onToggleMenu}
-          disabled={isPeriodDisabled}
-          icon={<CalendarDays className="h-3 w-3" />}
-          label={`Time: ${selectedPeriodLabel}`}
-          menuClassName="min-w-40"
-          moduleStyles={moduleStyles}
-        >
-          {periodOptions.map((option) => (
-            <ArchiveMenuRadioOption
-              key={`period-option-${option.value}`}
-              isSelected={selectedPeriod === option.value}
-              onSelect={() => {
-                onSelectPeriod(option.value);
-                onCloseMenu();
-              }}
-              moduleStyles={moduleStyles}
-            >
-              {option.label}
-            </ArchiveMenuRadioOption>
-          ))}
-        </ArchiveMenuTrigger>
+        {hasPeriodFilter ? (
+          <ArchiveMenuTrigger
+            menu="period"
+            openMenu={openMenu}
+            onToggleMenu={onToggleMenu}
+            disabled={isPeriodDisabled}
+            icon={<CalendarDays className="h-3 w-3" />}
+            label={`Time: ${selectedPeriodLabel}`}
+            menuClassName="min-w-40"
+            moduleStyles={moduleStyles}
+          >
+            {periodOptions.map((option) => (
+              <ArchiveMenuRadioOption
+                key={`period-option-${option.value}`}
+                isSelected={selectedPeriod === option.value}
+                onSelect={() => {
+                  onSelectPeriod(option.value);
+                  onCloseMenu();
+                }}
+                moduleStyles={moduleStyles}
+              >
+                {option.label}
+              </ArchiveMenuRadioOption>
+            ))}
+          </ArchiveMenuTrigger>
+        ) : null}
 
-        {isPeriodDisabled ? (
+        {hasPeriodFilter && isPeriodDisabled ? (
           <p
             className="font-mono text-[9px] uppercase tracking-[0.12em]"
             style={{ color: moduleStyles.faint }}

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { BookOpen } from "lucide-react";
 import { ARCHIVE_PAGE_SIZE, BOOK_MODULE_STYLES, languageOptions, sortOptions } from "@/features/books/components/books-archive/constants";
-import { ArchiveSkeletonGrid } from "@/features/books/components/books-archive/ArchiveSkeletonGrid";
-import { GridBookCard } from "@/features/books/components/books-archive/GridBookCard";
-import { BooksArchiveControls } from "@/features/books/components/books-archive/BooksArchiveControls";
-import type { OpenMenu } from "@/features/books/components/books-archive/types";
 import type { BooksArchiveSort } from "@/features/books/api";
 import { useBooksArchive } from "@/features/books/hooks/useBooks";
+import { ArchiveFilterControls } from "@/features/media-archive/components/ArchiveFilterControls";
+import { ArchiveMediaCard } from "@/features/media-archive/components/ArchiveMediaCard";
+import { ArchiveSkeletonGrid } from "@/features/media-archive/components/ArchiveSkeletonGrid";
+import type { ArchiveMenuKey } from "@/features/media-archive/types";
 
 function formatArchiveCount(count: number): string {
   if (count === 0) return "No books";
@@ -17,7 +18,7 @@ export const BooksArchivePage = () => {
   const [selectedSort, setSelectedSort] = useState<BooksArchiveSort>("logs_desc");
   const [selectedGenre, setSelectedGenre] = useState("all");
   const [selectedLanguage, setSelectedLanguage] = useState("all");
-  const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
+  const [openMenu, setOpenMenu] = useState<ArchiveMenuKey | null>(null);
 
   const controlsRef = useRef<HTMLDivElement | null>(null);
 
@@ -93,7 +94,7 @@ export const BooksArchivePage = () => {
           </p>
         </div>
 
-        <BooksArchiveControls
+        <ArchiveFilterControls
           controlsRef={controlsRef}
           openMenu={openMenu}
           onBlurCapture={(event) => {
@@ -112,12 +113,15 @@ export const BooksArchivePage = () => {
           selectedLanguageLabel={selectedLanguageLabel}
           availableGenres={firstPage?.availableGenres}
           archiveCountLabel={archiveCountLabel}
+          sortOptions={sortOptions}
+          languageOptions={languageOptions}
           onSelectGenre={setSelectedGenre}
           onSelectSort={setSelectedSort}
           onSelectLanguage={setSelectedLanguage}
+          moduleStyles={BOOK_MODULE_STYLES}
         />
 
-        {archiveQuery.isPending ? <ArchiveSkeletonGrid /> : null}
+        {archiveQuery.isPending ? <ArchiveSkeletonGrid moduleStyles={BOOK_MODULE_STYLES} /> : null}
 
         {archiveQuery.isError ? (
           <div
@@ -149,7 +153,23 @@ export const BooksArchivePage = () => {
           <>
             <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
               {archiveItems.map((book) => (
-                <GridBookCard key={`books-archive-item-${book.googleVolumeId}`} book={book} />
+                <ArchiveMediaCard
+                  key={`books-archive-item-${book.googleVolumeId}`}
+                  kind="book"
+                  id={book.googleVolumeId}
+                  title={book.title}
+                  imageUrl={book.coverImageUrl}
+                  fallbackIcon={BookOpen}
+                  fallbackLabel="No Cover"
+                  stateLabel={
+                    book.viewerHasLogged ? "Read" : book.viewerWantToRead ? "Queue" : null
+                  }
+                  rating={book.avgRating}
+                  ratingSource="user"
+                  subtitlePrimary={book.authors.slice(0, 2).join(", ") || "Unknown author"}
+                  subtitleSecondary={book.publishedYear ? String(book.publishedYear) : null}
+                  moduleStyles={BOOK_MODULE_STYLES}
+                />
               ))}
             </div>
 

@@ -1,20 +1,20 @@
 import { Award, Funnel, Tag } from "lucide-react";
 import type { FocusEventHandler, RefObject } from "react";
 import type { MusicArchiveResponse, MusicArchiveSort } from "@/features/music/api";
-import { ArchiveMenuRadioOption } from "@/features/music/components/music-archive/ArchiveMenuRadioOption";
-import { ArchiveMenuTrigger } from "@/features/music/components/music-archive/ArchiveMenuTrigger";
 import {
   MUSIC_MODULE_STYLES,
   sortOptions,
   typeOptions,
 } from "@/features/music/components/music-archive/constants";
-import type { OpenMenu } from "@/features/music/components/music-archive/types";
+import { ArchiveMenuRadioOption } from "@/features/media-archive/components/ArchiveMenuRadioOption";
+import { ArchiveMenuTrigger } from "@/features/media-archive/components/ArchiveMenuTrigger";
+import type { ArchiveMenuKey } from "@/features/media-archive/types";
 
 type MusicArchiveControlsProps = {
   controlsRef: RefObject<HTMLDivElement | null>;
-  openMenu: OpenMenu;
+  openMenu: ArchiveMenuKey | null;
   onBlurCapture: FocusEventHandler<HTMLDivElement>;
-  onToggleMenu: (menu: Exclude<OpenMenu, null>) => void;
+  onToggleMenu: (menu: ArchiveMenuKey) => void;
   onCloseMenu: () => void;
   selectedGenre: string;
   selectedType: string;
@@ -67,11 +67,13 @@ export const MusicArchiveControls = ({
           icon={<Funnel className="h-3 w-3" />}
           label={selectedGenre === "all" ? "All Genres" : selectedGenre}
           menuClassName="min-w-42.5"
+          moduleStyles={MUSIC_MODULE_STYLES}
         >
           <div className="max-h-36 overflow-y-auto sm:max-h-48">
             <ArchiveMenuRadioOption
               isSelected={selectedGenre === "all"}
               onSelect={() => { onSelectGenre("all"); onCloseMenu(); }}
+              moduleStyles={MUSIC_MODULE_STYLES}
             >
               All Genres
             </ArchiveMenuRadioOption>
@@ -80,6 +82,7 @@ export const MusicArchiveControls = ({
                 key={`music-genre-option-${genre.name}`}
                 isSelected={selectedGenre === genre.name}
                 onSelect={() => { onSelectGenre(genre.name); onCloseMenu(); }}
+                moduleStyles={MUSIC_MODULE_STYLES}
               >
                 {typeof genre.count === "number" ? `${genre.name} (${genre.count})` : genre.name}
               </ArchiveMenuRadioOption>
@@ -94,12 +97,14 @@ export const MusicArchiveControls = ({
           icon={<Tag className="h-3 w-3" />}
           label={`Type: ${selectedTypeLabel}`}
           menuClassName="min-w-38"
+          moduleStyles={MUSIC_MODULE_STYLES}
         >
           {typeOptions.map((option) => (
             <ArchiveMenuRadioOption
               key={`music-type-option-${option.value}`}
               isSelected={selectedType === option.value}
               onSelect={() => { onSelectType(option.value); onCloseMenu(); }}
+              moduleStyles={MUSIC_MODULE_STYLES}
             >
               {option.label}
             </ArchiveMenuRadioOption>
@@ -113,12 +118,14 @@ export const MusicArchiveControls = ({
           icon={<Award className="h-3 w-3" />}
           label={`Sort: ${selectedSortLabel}`}
           menuClassName="min-w-45"
+          moduleStyles={MUSIC_MODULE_STYLES}
         >
           {sortOptions.map((option) => (
             <ArchiveMenuRadioOption
               key={`music-sort-option-${option.value}`}
               isSelected={selectedSort === option.value}
               onSelect={() => { onSelectSort(option.value); onCloseMenu(); }}
+              moduleStyles={MUSIC_MODULE_STYLES}
             >
               {option.label}
             </ArchiveMenuRadioOption>
