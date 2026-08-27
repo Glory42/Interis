@@ -112,6 +112,7 @@ export class TrackDetailService {
     const interaction: TrackInteraction | null = viewerInteractionRow
       ? {
           liked: viewerInteractionRow.liked,
+          wantToListen: viewerInteractionRow.wantToListen,
           rating: viewerInteractionRow.rating,
         }
       : null;

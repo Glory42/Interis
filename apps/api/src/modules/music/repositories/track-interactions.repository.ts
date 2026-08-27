@@ -18,7 +18,7 @@ export class TrackInteractionsRepository {
   static async upsertInteraction(
     userId: string,
     trackId: number,
-    input: { liked?: boolean; rating?: number | null },
+    input: { liked?: boolean; wantToListen?: boolean; rating?: number | null },
   ) {
     const [row] = await db
       .insert(trackInteractions)
@@ -26,12 +26,14 @@ export class TrackInteractionsRepository {
         userId,
         trackId,
         liked: input.liked ?? false,
+        wantToListen: input.wantToListen ?? false,
         rating: input.rating ?? null,
       })
       .onConflictDoUpdate({
         target: [trackInteractions.userId, trackInteractions.trackId],
         set: {
           ...(input.liked !== undefined && { liked: input.liked }),
+          ...(input.wantToListen !== undefined && { wantToListen: input.wantToListen }),
           ...(input.rating !== undefined && { rating: input.rating }),
           updatedAt: new Date(),
         },

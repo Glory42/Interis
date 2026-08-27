@@ -15,6 +15,7 @@ export const UpdateTrackLogSchema = z.object({
 
 export const UpdateTrackInteractionSchema = z.object({
   liked: z.boolean().optional(),
+  wantToListen: z.boolean().optional(),
   rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
 });
 

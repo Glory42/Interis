@@ -12,6 +12,7 @@ export type TrackDetail = {
 
 export type TrackInteraction = {
   liked: boolean;
+  wantToListen: boolean;
   rating: number | null;
 };
 

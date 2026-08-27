@@ -74,6 +74,7 @@ export const TrackDetailPage = ({ mbid }: TrackDetailPageProps) => {
   const detail = detailQuery.data;
   const track = detail.track;
 
+  const wantToListen = interactionQuery.data?.wantToListen ?? false;
   const liked = interactionQuery.data?.liked ?? false;
   const interactionRating = interactionQuery.data?.rating ?? null;
   const currentRating = interactionRating ?? detail.userLog?.rating ?? null;
@@ -94,8 +95,12 @@ export const TrackDetailPage = ({ mbid }: TrackDetailPageProps) => {
               void updateInteractionMutation.mutateAsync({ rating: nextRating });
             }}
             isAuthenticated={Boolean(user)}
+            wantToListen={wantToListen}
             liked={liked}
             isInteractionBusy={isInteractionBusy}
+            onToggleWantToListen={() => {
+              void updateInteractionMutation.mutateAsync({ wantToListen: !wantToListen });
+            }}
             onToggleLike={() => {
               void updateInteractionMutation.mutateAsync({ liked: !liked });
             }}

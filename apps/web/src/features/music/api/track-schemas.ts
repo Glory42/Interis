@@ -40,6 +40,7 @@ export const trackDetailResponseSchema = z.object({
   }).nullable(),
   interaction: z.object({
     liked: z.boolean(),
+    wantToListen: z.boolean(),
     rating: z.number().nullable(),
   }).nullable(),
   reviewsSort: z.string(),
@@ -48,6 +49,7 @@ export const trackDetailResponseSchema = z.object({
 
 export const trackInteractionSchema = z.object({
   liked: z.boolean(),
+  wantToListen: z.boolean(),
   rating: z.number().nullable(),
 });
 
@@ -88,5 +90,6 @@ export const createTrackLogResultSchema = z
 
 export const updateTrackInteractionInputSchema = z.object({
   liked: z.boolean().optional(),
+  wantToListen: z.boolean().optional(),
   rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
 });

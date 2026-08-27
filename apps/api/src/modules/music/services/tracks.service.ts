@@ -33,8 +33,8 @@ export class TracksService {
     const track = await TracksCacheService.findOrCreate(mbid);
     if (!track) return null;
     const row = await TrackInteractionsRepository.getInteraction(userId, track.id);
-    if (!row) return { liked: false, rating: null };
-    return { liked: row.liked, rating: row.rating };
+    if (!row) return { liked: false, wantToListen: false, rating: null };
+    return { liked: row.liked, wantToListen: row.wantToListen, rating: row.rating };
   }
 
   static async updateInteraction(userId: string, mbid: string, input: UpdateTrackInteractionDto) {
@@ -42,6 +42,7 @@ export class TracksService {
     if (!track) return null;
     return TrackInteractionsRepository.upsertInteraction(userId, track.id, {
       liked: input.liked,
+      wantToListen: input.wantToListen,
       rating: input.rating,
     });
   }

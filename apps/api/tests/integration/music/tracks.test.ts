@@ -78,6 +78,32 @@ describe("music tracks", () => {
       expect(body.liked).toBe(true);
       expect(body.rating).toBe(8.5);
     });
+
+    it("queues a track with wantToListen, then reflects that on GET", async () => {
+      const { jar } = await signUpTestUser(getServer().baseUrl, "trackqueue1");
+      const track = await seedTestTrack();
+
+      const putResponse = await apiRequest(
+        getServer().baseUrl,
+        `/api/music/tracks/${track.mbid}/interaction`,
+        {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ wantToListen: true }),
+        },
+        jar,
+      );
+      expect(putResponse.status).toBe(200);
+
+      const getResponse = await apiRequest(
+        getServer().baseUrl,
+        `/api/music/tracks/${track.mbid}/interaction`,
+        {},
+        jar,
+      );
+      const body = (await getResponse.json()) as { wantToListen: boolean };
+      expect(body.wantToListen).toBe(true);
+    });
   });
 
   describe("track diary log", () => {

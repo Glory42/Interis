@@ -192,6 +192,7 @@ export const trackInteractions = pgTable(
       .notNull()
       .references(() => tracks.id, { onDelete: "cascade" }),
     liked: boolean("liked").default(false).notNull(),
+    wantToListen: boolean("want_to_listen").default(false).notNull(),
     rating: real("rating"),
     updatedAt: timestamp("updated_at")
       .defaultNow()
