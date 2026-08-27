@@ -6,6 +6,7 @@ import {
   myTrackLogSchema,
   updateTrackLogInputSchema,
   createTrackLogInputSchema,
+  createTrackLogResultSchema,
   updateTrackInteractionInputSchema,
 } from "./track-schemas";
 
@@ -15,6 +16,7 @@ export type TrackInteraction = z.infer<typeof trackInteractionSchema>;
 export type MyTrackLog = z.infer<typeof myTrackLogSchema>;
 export type UpdateTrackLogInput = z.infer<typeof updateTrackLogInputSchema>;
 export type CreateTrackLogInput = z.infer<typeof createTrackLogInputSchema>;
+export type CreateTrackLogResult = z.infer<typeof createTrackLogResultSchema>;
 export type UpdateTrackInteractionInput = z.infer<typeof updateTrackInteractionInputSchema>;
 
 export type TrackDetailReviewSort = "popular" | "recent";

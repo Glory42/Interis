@@ -10,6 +10,7 @@ import {
   myMusicLogSchema,
   updateMusicLogInputSchema,
   createMusicLogInputSchema,
+  createMusicLogResultSchema,
   updateMusicInteractionInputSchema,
   editionListItemSchema,
   editionsResponseSchema,
@@ -27,6 +28,7 @@ export type MusicLogItem = z.infer<typeof musicLogItemSchema>;
 export type MyMusicLog = z.infer<typeof myMusicLogSchema>;
 export type UpdateMusicLogInput = z.infer<typeof updateMusicLogInputSchema>;
 export type CreateMusicLogInput = z.infer<typeof createMusicLogInputSchema>;
+export type CreateMusicLogResult = z.infer<typeof createMusicLogResultSchema>;
 export type UpdateMusicInteractionInput = z.infer<typeof updateMusicInteractionInputSchema>;
 export type EditionListItem = z.infer<typeof editionListItemSchema>;
 export type EditionsResponse = z.infer<typeof editionsResponseSchema>;

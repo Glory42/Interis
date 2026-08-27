@@ -10,12 +10,14 @@ import {
   updateMusicInteractionInputSchema,
   updateMusicLogInputSchema,
   createMusicLogInputSchema,
+  createMusicLogResultSchema,
   editionsResponseSchema,
   editionTracklistResponseSchema,
 } from "./schemas";
 import type {
   Album,
   CreateMusicLogInput,
+  CreateMusicLogResult,
   EditionsResponse,
   EditionTracklistResponse,
   MbSearchResult,
@@ -129,12 +131,13 @@ export const updateMusicInteraction = async (
 export const createMusicLog = async (
   mbid: string,
   input: CreateMusicLogInput,
-): Promise<unknown> => {
+): Promise<CreateMusicLogResult> => {
   const payload = createMusicLogInputSchema.parse(input);
-  return apiRequest<unknown, CreateMusicLogInput>(`/api/music/${mbid}/log`, {
+  const response = await apiRequest<unknown, CreateMusicLogInput>(`/api/music/${mbid}/log`, {
     method: "POST",
     body: payload,
   });
+  return createMusicLogResultSchema.parse(response);
 };
 
 export const getMyMusicLogs = async (): Promise<MyMusicLog[]> => {

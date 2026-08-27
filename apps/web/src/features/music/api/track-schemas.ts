@@ -79,6 +79,12 @@ export const createTrackLogInputSchema = z.object({
   relisten: z.boolean().optional(),
 });
 
+export const createTrackLogResultSchema = z
+  .object({
+    entry: z.object({ id: z.string() }).passthrough(),
+  })
+  .passthrough();
+
 export const updateTrackInteractionInputSchema = z.object({
   liked: z.boolean().optional(),
   rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),

@@ -16,6 +16,7 @@ export type {
   MyTrackLog,
   UpdateTrackLogInput,
   CreateTrackLogInput,
+  CreateTrackLogResult,
   UpdateTrackInteractionInput,
   TrackDetailReviewSort,
   TrackDetailInput,

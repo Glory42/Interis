@@ -25,6 +25,7 @@ export type {
   MyMusicLog,
   UpdateMusicLogInput,
   CreateMusicLogInput,
+  CreateMusicLogResult,
   UpdateMusicInteractionInput,
   MusicArchiveSort,
   MusicDetailReviewSort,

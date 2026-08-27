@@ -183,6 +183,39 @@ export const unlikeReview = async (reviewId: string) => {
   return unlikeReviewResponseSchema.parse(response);
 };
 
+const createReviewInputSchema = z.object({
+  mediaSourceId: z.string().min(1).max(200),
+  mediaType: reviewMediaTypeSchema,
+  content: z.string().trim().min(1).max(10000),
+  containsSpoilers: z.boolean().optional(),
+  diaryEntryId: z.string().optional(),
+});
+export type CreateReviewInput = z.infer<typeof createReviewInputSchema>;
+
+const createdReviewSchema = z
+  .object({
+    review: z
+      .object({
+        id: z.string(),
+        content: z.string(),
+        containsSpoilers: z.boolean(),
+      })
+      .passthrough(),
+  })
+  .passthrough();
+export type CreatedReview = z.infer<typeof createdReviewSchema>["review"];
+
+export const createReview = async (input: CreateReviewInput): Promise<CreatedReview> => {
+  const payload = createReviewInputSchema.parse(input);
+
+  const response = await apiRequest<unknown, CreateReviewInput>("/api/reviews", {
+    method: "POST",
+    body: payload,
+  });
+
+  return createdReviewSchema.parse(response).review;
+};
+
 export const updateReview = async (
   reviewId: string,
   input: UpdateReviewInput,

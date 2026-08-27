@@ -160,6 +160,12 @@ export const createBookLogInputSchema = z.object({
   reread: z.boolean().optional(),
 });
 
+export const createBookLogResultSchema = z
+  .object({
+    entry: z.object({ id: z.string() }).passthrough(),
+  })
+  .passthrough();
+
 export const updateBookInteractionInputSchema = z.object({
   liked: z.boolean().optional(),
   wantToRead: z.boolean().optional(),

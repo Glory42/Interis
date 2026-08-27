@@ -151,6 +151,12 @@ export const createMusicLogInputSchema = z.object({
   relisten: z.boolean().optional(),
 });
 
+export const createMusicLogResultSchema = z
+  .object({
+    entry: z.object({ id: z.string() }).passthrough(),
+  })
+  .passthrough();
+
 export const updateMusicInteractionInputSchema = z.object({
   liked: z.boolean().optional(),
   wantToListen: z.boolean().optional(),

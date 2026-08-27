@@ -7,11 +7,13 @@ import {
   updateTrackInteractionInputSchema,
   updateTrackLogInputSchema,
   createTrackLogInputSchema,
+  createTrackLogResultSchema,
 } from "./track-schemas";
 import type { QueryRequestOptions } from "./types";
 import type {
   Track,
   CreateTrackLogInput,
+  CreateTrackLogResult,
   MyTrackLog,
   TrackDetailInput,
   TrackDetailResponse,
@@ -72,12 +74,13 @@ export const updateTrackInteraction = async (
 export const createTrackLog = async (
   mbid: string,
   input: CreateTrackLogInput,
-): Promise<unknown> => {
+): Promise<CreateTrackLogResult> => {
   const payload = createTrackLogInputSchema.parse(input);
-  return apiRequest<unknown, CreateTrackLogInput>(`/api/music/tracks/${mbid}/log`, {
-    method: "POST",
-    body: payload,
-  });
+  const response = await apiRequest<unknown, CreateTrackLogInput>(
+    `/api/music/tracks/${mbid}/log`,
+    { method: "POST", body: payload },
+  );
+  return createTrackLogResultSchema.parse(response);
 };
 
 export const getMyTrackLogs = async (): Promise<MyTrackLog[]> => {

@@ -1,12 +1,16 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { BookOpen, CalendarDays, Rocket, X } from "lucide-react";
+import { AlertTriangle, BookOpen, CalendarDays, MessageSquare, Rocket, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
 import { isApiError } from "@/lib/api-client";
 import { useCreateBookLog } from "@/features/books/hooks/useBooks";
+import { useCreateReview } from "@/features/reviews/hooks/useReviews";
 import { BOOK_MODULE_STYLES } from "./books-detail/styles";
+
+const REVIEW_MAX_LENGTH = 5000;
 
 const todayAsDateInput = (): string => new Date().toISOString().slice(0, 10);
 
@@ -28,10 +32,13 @@ export const LogBookModal = ({
   onClose,
 }: LogBookModalProps) => {
   const createLogMutation = useCreateBookLog(volumeId);
+  const createReviewMutation = useCreateReview();
 
   const [readDate, setReadDate] = useState(todayAsDateInput);
   const [rating, setRating] = useState<number | null>(null);
   const [reread, setReread] = useState(false);
+  const [review, setReview] = useState("");
+  const [containsSpoilers, setContainsSpoilers] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   // Reset the form fields whenever the modal transitions to open - adjusted
@@ -43,6 +50,8 @@ export const LogBookModal = ({
       setReadDate(todayAsDateInput());
       setRating(null);
       setReread(false);
+      setReview("");
+      setContainsSpoilers(false);
       setFormError(null);
     }
   }
@@ -60,12 +69,24 @@ export const LogBookModal = ({
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError(null);
+    const normalizedReview = review.trim();
     try {
-      await createLogMutation.mutateAsync({
+      const result = await createLogMutation.mutateAsync({
         readDate,
         ...(rating !== null ? { rating } : {}),
         reread,
       });
+
+      if (normalizedReview.length > 0) {
+        await createReviewMutation.mutateAsync({
+          mediaSourceId: volumeId,
+          mediaType: "book",
+          content: normalizedReview,
+          containsSpoilers,
+          diaryEntryId: result.entry.id,
+        });
+      }
+
       onClose();
     } catch (error) {
       setFormError(isApiError(error) ? error.message : "Could not save this log right now.");
@@ -159,6 +180,35 @@ export const LogBookModal = ({
                   <span className="text-sm font-medium text-foreground">I've read this before</span>
                 </label>
 
+                <section className="space-y-2">
+                  <label className="block text-sm font-semibold text-foreground">
+                    <span className="flex items-center gap-2">
+                      <MessageSquare className="h-3.5 w-3.5" />
+                      <span>Review (optional)</span>
+                    </span>
+                  </label>
+                  <Textarea
+                    maxLength={REVIEW_MAX_LENGTH}
+                    value={review}
+                    onChange={(e) => setReview(e.target.value)}
+                    placeholder="Share your thoughts about this book..."
+                    className="border-border/70 bg-background/45"
+                  />
+                </section>
+
+                {review.trim().length > 0 ? (
+                  <label className="flex cursor-pointer items-center gap-2.5 border border-destructive/35 bg-destructive/10 px-3 py-2.5 transition-colors hover:border-destructive/50">
+                    <input
+                      type="checkbox"
+                      checked={containsSpoilers}
+                      onChange={(e) => setContainsSpoilers(e.target.checked)}
+                      className="h-4 w-4 shrink-0 border-border bg-input accent-primary"
+                    />
+                    <AlertTriangle className="h-4 w-4 shrink-0 text-destructive" />
+                    <span className="text-sm font-medium text-foreground">Review contains spoilers</span>
+                  </label>
+                ) : null}
+
                 {formError ? (
                   <p className="border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                     {formError}
@@ -176,10 +226,12 @@ export const LogBookModal = ({
               <Button
                 type="submit"
                 className="h-9 flex-1 sm:h-10"
-                disabled={createLogMutation.isPending}
+                disabled={createLogMutation.isPending || createReviewMutation.isPending}
                 style={{ background: BOOK_MODULE_STYLES.accent, borderColor: BOOK_MODULE_STYLES.accent }}
               >
-                {createLogMutation.isPending ? "Saving..." : "Log Read"}
+                {createLogMutation.isPending || createReviewMutation.isPending
+                  ? "Saving..."
+                  : "Log Read"}
               </Button>
             </div>
           </div>

@@ -9,6 +9,7 @@ import {
   myBookLogSchema,
   updateBookLogInputSchema,
   createBookLogInputSchema,
+  createBookLogResultSchema,
   updateBookInteractionInputSchema,
   googleBooksVolumeSchema,
 } from "./schemas";
@@ -23,6 +24,7 @@ export type BookLogItem = z.infer<typeof bookLogItemSchema>;
 export type MyBookLog = z.infer<typeof myBookLogSchema>;
 export type UpdateBookLogInput = z.infer<typeof updateBookLogInputSchema>;
 export type CreateBookLogInput = z.infer<typeof createBookLogInputSchema>;
+export type CreateBookLogResult = z.infer<typeof createBookLogResultSchema>;
 export type UpdateBookInteractionInput = z.infer<typeof updateBookInteractionInputSchema>;
 
 export type BooksArchiveSort =

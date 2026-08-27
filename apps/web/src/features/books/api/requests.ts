@@ -10,6 +10,7 @@ import {
   updateBookInteractionInputSchema,
   updateBookLogInputSchema,
   createBookLogInputSchema,
+  createBookLogResultSchema,
 } from "./schemas";
 import type {
   BookDetail,
@@ -20,6 +21,7 @@ import type {
   BooksArchiveInput,
   BooksArchiveResponse,
   CreateBookLogInput,
+  CreateBookLogResult,
   GoogleBooksVolume,
   MyBookLog,
   QueryRequestOptions,
@@ -130,12 +132,13 @@ export const updateBookInteraction = async (
 export const createBookLog = async (
   volumeId: string,
   input: CreateBookLogInput,
-): Promise<unknown> => {
+): Promise<CreateBookLogResult> => {
   const payload = createBookLogInputSchema.parse(input);
-  return apiRequest<unknown, CreateBookLogInput>(`/api/books/${volumeId}/log`, {
+  const response = await apiRequest<unknown, CreateBookLogInput>(`/api/books/${volumeId}/log`, {
     method: "POST",
     body: payload,
   });
+  return createBookLogResultSchema.parse(response);
 };
 
 export const getMyBookLogs = async (): Promise<MyBookLog[]> => {

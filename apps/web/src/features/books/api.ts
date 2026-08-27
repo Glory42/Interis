@@ -23,6 +23,7 @@ export type {
   MyBookLog,
   UpdateBookLogInput,
   CreateBookLogInput,
+  CreateBookLogResult,
   UpdateBookInteractionInput,
   BooksArchiveSort,
   BookDetailReviewSort,
