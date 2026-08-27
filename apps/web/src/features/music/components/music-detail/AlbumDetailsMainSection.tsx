@@ -1,5 +1,6 @@
 import type { MusicDetailResponse } from "@/features/music/api";
 import { MUSIC_MODULE_STYLES } from "@/features/music/components/music-detail/styles";
+import { MediaStatsRow } from "@/features/media/components/MediaStatsRow";
 
 type AlbumDetailsMainSectionProps = {
   detail: MusicDetailResponse;
@@ -57,48 +58,16 @@ export const AlbumDetailsMainSection = ({ detail }: AlbumDetailsMainSectionProps
         <span style={{ color: MUSIC_MODULE_STYLES.accent }}>{album.artistName}</span>
       </p>
 
-      <div
-        className="mb-8 flex flex-wrap items-center gap-8 border-b pb-8"
-        style={{ borderColor: MUSIC_MODULE_STYLES.borderSoft }}
-      >
-        <div>
-          <p
-            className="mb-1 font-mono text-[9px] uppercase tracking-[0.22em]"
-            style={{ color: MUSIC_MODULE_STYLES.faint }}
-          >
-            Community
-          </p>
-          <div className="flex items-baseline gap-2">
-            <span
-              className="font-mono text-2xl font-bold"
-              style={{ color: MUSIC_MODULE_STYLES.accent }}
-            >
-              {communityRatingLabel}
-            </span>
-            <span
-              className="font-mono text-[10px]"
-              style={{ color: MUSIC_MODULE_STYLES.faint }}
-            >
-              {detail.logsCount.toLocaleString()} logs
-            </span>
-          </div>
-        </div>
-
-        <div>
-          <p
-            className="mb-1 font-mono text-[9px] uppercase tracking-[0.22em]"
-            style={{ color: MUSIC_MODULE_STYLES.faint }}
-          >
-            Reviews
-          </p>
-          <span
-            className="font-mono text-2xl font-bold"
-            style={{ color: MUSIC_MODULE_STYLES.muted }}
-          >
-            {detail.reviewCount}
-          </span>
-        </div>
-      </div>
+      <MediaStatsRow
+        primaryValue={communityRatingLabel}
+        primaryCountLabel={`${detail.logsCount.toLocaleString()} logs`}
+        secondaryLabel="Reviews"
+        secondaryValue={String(detail.reviewCount)}
+        accentColor={MUSIC_MODULE_STYLES.accent}
+        mutedColor={MUSIC_MODULE_STYLES.muted}
+        faintColor={MUSIC_MODULE_STYLES.faint}
+        borderColor={MUSIC_MODULE_STYLES.borderSoft}
+      />
 
       {allGenres.length > 0 ? (
         <div className="mb-8">

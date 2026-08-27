@@ -15,6 +15,7 @@ import {
   toLanguageLabel,
 } from "@/features/films/components/cinema-detail/utils";
 import { formatRuntimeLabel } from "@/features/films/components/utils";
+import { MediaStatsRow } from "@/features/media/components/MediaStatsRow";
 
 type CinemaDetailsMainSectionProps = {
   detail: MovieDetailResponse;
@@ -152,48 +153,16 @@ export const CinemaDetailsMainSection = ({
         )}
       </p>
 
-      <div
-        className="mb-8 flex flex-wrap items-center gap-8 border-b pb-8"
-        style={{ borderColor: CINEMA_MODULE_STYLES.borderSoft }}
-      >
-        <div>
-          <p
-            className="mb-1 font-mono text-[9px] uppercase tracking-[0.22em]"
-            style={{ color: CINEMA_MODULE_STYLES.faint }}
-          >
-            Community
-          </p>
-          <div className="flex items-baseline gap-2">
-            <span
-              className="font-mono text-2xl font-bold"
-              style={{ color: CINEMA_MODULE_STYLES.accent }}
-            >
-              {communityRatingLabel}
-            </span>
-            <span
-              className="font-mono text-[10px]"
-              style={{ color: CINEMA_MODULE_STYLES.faint }}
-            >
-              {detail.logsCount.toLocaleString()} logs
-            </span>
-          </div>
-        </div>
-
-        <div>
-          <p
-            className="mb-1 font-mono text-[9px] uppercase tracking-[0.22em]"
-            style={{ color: CINEMA_MODULE_STYLES.faint }}
-          >
-            TMDB
-          </p>
-          <span
-            className="font-mono text-2xl font-bold"
-            style={{ color: CINEMA_MODULE_STYLES.muted }}
-          >
-            {tmdbRatingLabel}
-          </span>
-        </div>
-      </div>
+      <MediaStatsRow
+        primaryValue={communityRatingLabel}
+        primaryCountLabel={`${detail.logsCount.toLocaleString()} logs`}
+        secondaryLabel="TMDB"
+        secondaryValue={tmdbRatingLabel}
+        accentColor={CINEMA_MODULE_STYLES.accent}
+        mutedColor={CINEMA_MODULE_STYLES.muted}
+        faintColor={CINEMA_MODULE_STYLES.faint}
+        borderColor={CINEMA_MODULE_STYLES.borderSoft}
+      />
 
       <p className="mb-8 text-sm leading-relaxed">
         {movie.overview || "No synopsis is available for this title."}

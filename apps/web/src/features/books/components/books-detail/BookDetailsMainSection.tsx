@@ -1,5 +1,6 @@
 import type { BookDetailResponse } from "@/features/books/api";
 import { BOOK_MODULE_STYLES } from "@/features/books/components/books-detail/styles";
+import { MediaStatsRow } from "@/features/media/components/MediaStatsRow";
 
 type BookDetailsMainSectionProps = {
   detail: BookDetailResponse;
@@ -64,48 +65,16 @@ export const BookDetailsMainSection = ({ detail }: BookDetailsMainSectionProps) 
         <span style={{ color: BOOK_MODULE_STYLES.accent }}>{authorsLine || "Unknown author"}</span>
       </p>
 
-      <div
-        className="mb-8 flex flex-wrap items-center gap-8 border-b pb-8"
-        style={{ borderColor: BOOK_MODULE_STYLES.borderSoft }}
-      >
-        <div>
-          <p
-            className="mb-1 font-mono text-[9px] uppercase tracking-[0.22em]"
-            style={{ color: BOOK_MODULE_STYLES.faint }}
-          >
-            Community
-          </p>
-          <div className="flex items-baseline gap-2">
-            <span
-              className="font-mono text-2xl font-bold"
-              style={{ color: BOOK_MODULE_STYLES.accent }}
-            >
-              {communityRatingLabel}
-            </span>
-            <span
-              className="font-mono text-[10px]"
-              style={{ color: BOOK_MODULE_STYLES.faint }}
-            >
-              {detail.logsCount.toLocaleString()} reads
-            </span>
-          </div>
-        </div>
-
-        <div>
-          <p
-            className="mb-1 font-mono text-[9px] uppercase tracking-[0.22em]"
-            style={{ color: BOOK_MODULE_STYLES.faint }}
-          >
-            Reviews
-          </p>
-          <span
-            className="font-mono text-2xl font-bold"
-            style={{ color: BOOK_MODULE_STYLES.muted }}
-          >
-            {detail.reviewCount}
-          </span>
-        </div>
-      </div>
+      <MediaStatsRow
+        primaryValue={communityRatingLabel}
+        primaryCountLabel={`${detail.logsCount.toLocaleString()} reads`}
+        secondaryLabel="Reviews"
+        secondaryValue={String(detail.reviewCount)}
+        accentColor={BOOK_MODULE_STYLES.accent}
+        mutedColor={BOOK_MODULE_STYLES.muted}
+        faintColor={BOOK_MODULE_STYLES.faint}
+        borderColor={BOOK_MODULE_STYLES.borderSoft}
+      />
 
       {book.description ? (
         <p className="mb-8 text-sm leading-relaxed">
