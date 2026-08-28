@@ -189,3 +189,11 @@ jobs:
       - name: Run e2e tests
         run: bun run test
         working-directory: apps/e2e
+
+      - name: Upload e2e failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: apps/e2e/test-results/
+          retention-days: 7

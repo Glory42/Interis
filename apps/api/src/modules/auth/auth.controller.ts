@@ -150,14 +150,9 @@ export class AuthController {
   // account and everything FK-cascaded from it (diary, reviews, follows,
   // lists, etc.), then clears their session.
   static async deleteAccount(req: Request, res: Response): Promise<void> {
-    // TEMPORARY diagnostic logging - see the matching comment in
-    // src/index.ts. Remove once diagnosed.
-    process.stdout.write(`[diag] deleteAccount handler entered for user ${req.user.id} at ${new Date().toISOString()}\n`);
     await AuthService.deleteAccount(req.user.id);
-    process.stdout.write(`[diag] AuthService.deleteAccount resolved at ${new Date().toISOString()}\n`);
     clearAuthCookies(res);
     res.status(200).json({ success: true });
-    process.stdout.write(`[diag] response sent at ${new Date().toISOString()}\n`);
   }
 
   // POST /api/auth/security-question

@@ -41,21 +41,6 @@ export const createApp = (options: CreateAppOptions = {}) => {
   const mutationLimiter = createMutationLimiter(options.rateLimiterOverrides?.mutation);
 
   app.disable("x-powered-by");
-
-  // TEMPORARY: diagnosing an intermittent CI-only hang on
-  // DELETE /api/auth/account (E2E times out waiting for a response, but
-  // nothing about the backend process itself is visible in CI's job log).
-  // Placed before every other middleware, including helmet/CORS, so it
-  // fires even if something *later* in the chain is what's actually
-  // stalling - confirms whether the request reaches the process at all.
-  // Remove once diagnosed.
-  app.use((req, _res, next) => {
-    if (req.method === "DELETE" && req.path === "/api/auth/account") {
-      process.stdout.write(`[diag] DELETE /api/auth/account received at ${new Date().toISOString()}\n`);
-    }
-    next();
-  });
-
   app.use(helmetMiddleware);
   app.use(securityHeaders);
 
