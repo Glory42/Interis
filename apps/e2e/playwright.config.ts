@@ -13,21 +13,17 @@ const apiPort = new URL(apiBaseURL).port || "5000";
 
 export default defineConfig({
   testDir: "./tests",
-  timeout: 60_000,
+  // CI's Postgres service container periodically stalls for 30-40s on its
+  // own WAL checkpoint writes (confirmed via the container's own logs -
+  // "checkpoint complete: ... write=41.295 s ..." - a GitHub Actions runner
+  // disk I/O characteristic, nothing to do with the app or this suite).
+  // A journey whose account-deletion teardown happens to land during one
+  // of those stalls would blow a 60s test budget through no fault of its
+  // own, on a different spec each run. 120s leaves comfortable headroom
+  // above the observed stall length for CI; local runs never see this
+  // (no shared-runner I/O contention), so they keep the tighter default.
+  timeout: process.env.CI ? 120_000 : 60_000,
   fullyParallel: true,
-  // CI's webServer spawns one single-threaded `bun run dev` backend and one
-  // shared Postgres container for the whole run - full worker parallelism
-  // there means N journeys firing concurrent requests at that one process,
-  // which was intermittently starving unrelated in-flight requests (most
-  // visibly DELETE /api/auth/account, timing out past 60s on a different
-  // spec each run - never a real bug in any of them, just whichever
-  // request lost the race for the event loop). Serializing in CI trades
-  // some wall-clock time for not needing per-request request queueing/
-  // pooling tuned well enough to survive full parallelism against a single
-  // dev-mode server. Local runs keep full parallelism (fine there: no CI
-  // resource contention, and reuseExistingServer means CI's Postgres/
-  // server bottleneck doesn't apply the same way against a dev machine).
-  workers: process.env.CI ? 1 : undefined,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
