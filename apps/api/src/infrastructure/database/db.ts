@@ -22,9 +22,18 @@ const directDatabaseUrl = process.env.DIRECT_DATABASE_URL;
 
 const createDb = () => {
   if (env.NODE_ENV === "test" && directDatabaseUrl) {
-    return drizzleNodePostgres(new Pool({ connectionString: directDatabaseUrl }), {
-      schema,
-    }) as unknown as ReturnType<typeof drizzleNeonHttp<typeof schema>>;
+    // pg's default pool max is 10, shared by the whole process. Playwright's
+    // fullyParallel E2E run fires many concurrent requests at this one
+    // backend, and Postgres (the CI job's own throwaway container) allows
+    // 100 connections by default - plenty of headroom, so raise the app's
+    // ceiling rather than leave requests queueing for a free connection
+    // long enough to blow a test's timeout (this was the actual cause of
+    // an intermittent DELETE /api/auth/account timeout in CI - not a slow
+    // query, but the connection never being acquired in time under load).
+    return drizzleNodePostgres(
+      new Pool({ connectionString: directDatabaseUrl, max: 30 }),
+      { schema },
+    ) as unknown as ReturnType<typeof drizzleNeonHttp<typeof schema>>;
   }
 
   if (env.USE_LOCAL_DB_PROXY) {
