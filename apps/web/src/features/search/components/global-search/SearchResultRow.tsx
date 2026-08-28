@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, BookOpen, Music } from "lucide-react";
 import { getPosterUrl } from "@/features/films/components/utils";
 import { cn } from "@/lib/utils";
 import { toYear } from "./mappers";
@@ -12,6 +12,14 @@ type SearchResultRowProps = {
   onHover: (index: number) => void;
   onSelect: (entry: SearchResultEntry) => void;
 };
+
+const rowButtonClass = (isHighlighted: boolean) =>
+  cn(
+    "group flex w-full items-center gap-3 border px-3 py-2 text-left transition-all",
+    isHighlighted
+      ? "border-primary/45 bg-primary/10"
+      : "border-border/70 bg-background/40 hover:bg-secondary/35",
+  );
 
 export const SearchResultRow = ({
   inputId,
@@ -29,12 +37,7 @@ export const SearchResultRow = ({
           type="button"
           role="option"
           aria-selected={isHighlighted}
-          className={cn(
-            "group flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
-            isHighlighted
-              ? "border-primary/45 bg-primary/10"
-              : "border-border/70 bg-background/40 hover:bg-secondary/35",
-          )}
+          className={rowButtonClass(isHighlighted)}
           onMouseEnter={() => onHover(index)}
           onClick={() => onSelect(entry)}
         >
@@ -73,6 +76,92 @@ export const SearchResultRow = ({
     );
   }
 
+  if (entry.kind === "music") {
+    return (
+      <li>
+        <button
+          id={`${inputId}-result-${index}`}
+          type="button"
+          role="option"
+          aria-selected={isHighlighted}
+          className={rowButtonClass(isHighlighted)}
+          onMouseEnter={() => onHover(index)}
+          onClick={() => onSelect(entry)}
+        >
+          <span
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center border"
+            style={{
+              borderColor: "color-mix(in srgb, var(--module-music) 35%, transparent)",
+              background: "color-mix(in srgb, var(--module-music) 10%, transparent)",
+            }}
+          >
+            <Music className="h-4 w-4" style={{ color: "var(--module-music)" }} />
+          </span>
+
+          <span className="min-w-0 flex-1">
+            <span className="line-clamp-1 block font-mono text-[11px] font-semibold text-foreground">
+              {entry.title}
+            </span>
+            <span className="block font-mono text-[10px] text-muted-foreground/85">
+              {entry.artistName}
+              {entry.primaryType ? ` · ${entry.primaryType}` : ""}
+              {toYear(entry.firstReleaseDate) ? ` · ${toYear(entry.firstReleaseDate)}` : ""}
+            </span>
+          </span>
+
+          <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/45 transition-transform group-hover:translate-x-0.5" />
+        </button>
+      </li>
+    );
+  }
+
+  if (entry.kind === "books") {
+    return (
+      <li>
+        <button
+          id={`${inputId}-result-${index}`}
+          type="button"
+          role="option"
+          aria-selected={isHighlighted}
+          className={rowButtonClass(isHighlighted)}
+          onMouseEnter={() => onHover(index)}
+          onClick={() => onSelect(entry)}
+        >
+          {entry.coverImageUrl ? (
+            <img
+              src={entry.coverImageUrl}
+              alt={`${entry.title} cover`}
+              className="h-11 w-8 shrink-0 border border-border/70 object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <span
+              className="inline-flex h-11 w-8 shrink-0 items-center justify-center border"
+              style={{
+                borderColor: "color-mix(in srgb, var(--module-book) 35%, transparent)",
+                background: "color-mix(in srgb, var(--module-book) 10%, transparent)",
+              }}
+            >
+              <BookOpen className="h-4 w-4" style={{ color: "var(--module-book)" }} />
+            </span>
+          )}
+
+          <span className="min-w-0 flex-1">
+            <span className="line-clamp-1 block font-mono text-[11px] font-semibold text-foreground">
+              {entry.title}
+            </span>
+            <span className="block font-mono text-[10px] text-muted-foreground/85">
+              {entry.authors.length > 0 ? entry.authors[0] : "Unknown Author"}
+              {toYear(entry.publishedDate) ? ` · ${toYear(entry.publishedDate)}` : ""}
+            </span>
+          </span>
+
+          <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/45 transition-transform group-hover:translate-x-0.5" />
+        </button>
+      </li>
+    );
+  }
+
   const isCinema = entry.kind === "cinema";
   const year = isCinema ? toYear(entry.releaseDate) : toYear(entry.firstAirDate);
 
@@ -83,12 +172,7 @@ export const SearchResultRow = ({
         type="button"
         role="option"
         aria-selected={isHighlighted}
-        className={cn(
-          "group flex w-full items-center gap-3 border px-3 py-2 text-left transition-colors",
-          isHighlighted
-            ? "border-primary/45 bg-primary/10"
-            : "border-border/70 bg-background/40 hover:bg-secondary/35",
-        )}
+        className={rowButtonClass(isHighlighted)}
         onMouseEnter={() => onHover(index)}
         onClick={() => onSelect(entry)}
       >

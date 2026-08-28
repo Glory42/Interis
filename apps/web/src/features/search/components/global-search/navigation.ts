@@ -4,6 +4,8 @@ type NavigationHandlers = {
   openCinema: (tmdbId: number) => void;
   openSerial: (tmdbId: number) => void;
   openUser: (username: string) => void;
+  openMusic: (mbid: string) => void;
+  openBook: (volumeId: string) => void;
 };
 
 export const openSearchEntry = (
@@ -20,5 +22,15 @@ export const openSearchEntry = (
     return;
   }
 
-  handlers.openSerial(entry.tmdbId);
+  if (entry.kind === "serials") {
+    handlers.openSerial(entry.tmdbId);
+    return;
+  }
+
+  if (entry.kind === "music") {
+    handlers.openMusic(entry.mbid);
+    return;
+  }
+
+  handlers.openBook(entry.volumeId);
 };

@@ -4,6 +4,6 @@
 // a new media type means changing MEDIA_TYPES here and letting the compiler
 // point at every switch/branch that needs to handle it, instead of hunting
 // down independently-typed duplicates by hand.
-export const MEDIA_TYPES = ["movie", "tv"] as const;
+export const MEDIA_TYPES = ["movie", "tv", "album", "book", "track"] as const;
 
 export type MediaType = (typeof MEDIA_TYPES)[number];

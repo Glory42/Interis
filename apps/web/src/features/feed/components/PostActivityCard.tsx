@@ -59,11 +59,14 @@ export const PostActivityCard = memo(function PostActivityCard({ item }: PostAct
   const [dialogMode, setDialogMode] = useState<"view" | "edit">("view");
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
 
-  const to = item.movie
-    ? item.movie.mediaType === "tv"
-      ? "/serials/$tmdbId"
-      : "/cinema/$tmdbId"
-    : null;
+  // Posts can only attach a movie/tv reference (see post_media_type enum),
+  // so this never needs to handle album/book routes.
+  const to =
+    item.movie && item.movie.tmdbId != null
+      ? item.movie.mediaType === "tv"
+        ? "/serials/$tmdbId"
+        : "/cinema/$tmdbId"
+      : null;
 
   const openDialog = (mode: "view" | "edit") => {
     setDialogMode(mode);
@@ -149,10 +152,9 @@ export const PostActivityCard = memo(function PostActivityCard({ item }: PostAct
             </div>
           ) : null}
 
-          {to && item.movie ? (
+          {to && item.movie && item.movie.tmdbId != null ? (
             <FeedMoviePreviewCard
-              to={to}
-              tmdbId={item.movie.tmdbId}
+              link={{ to, params: { tmdbId: String(item.movie.tmdbId) } }}
               title={item.movie.title}
               releaseYear={item.movie.releaseYear}
               posterPath={item.movie.posterPath}

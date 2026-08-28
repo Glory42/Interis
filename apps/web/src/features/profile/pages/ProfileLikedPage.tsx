@@ -24,6 +24,8 @@ const mediaSubFilters: Array<{ key: MediaFilter; label: string }> = [
   { key: "all", label: "All" },
   { key: "cinema", label: "Cinema" },
   { key: "serial", label: "Serial" },
+  { key: "music", label: "Music" },
+  { key: "books", label: "Books" },
 ];
 
 const listSubFilters: Array<{ key: ListFilter; label: string }> = [
@@ -73,7 +75,10 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
   const filteredReviews = useMemo(() => {
     if (reviewFilter === "all") return reviewItems;
     if (reviewFilter === "cinema") return reviewItems.filter((r) => r.mediaType === "movie");
-    return reviewItems.filter((r) => r.mediaType === "tv");
+    if (reviewFilter === "serial") return reviewItems.filter((r) => r.mediaType === "tv");
+    if (reviewFilter === "music") return reviewItems.filter((r) => r.mediaType === "album");
+    if (reviewFilter === "books") return reviewItems.filter((r) => r.mediaType === "book");
+    return reviewItems;
   }, [reviewItems, reviewFilter]);
 
   const filteredLists = useMemo(() => {

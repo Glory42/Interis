@@ -9,14 +9,18 @@ export const LikedReviewCard = memo(function LikedReviewCard({
 }: {
   review: LikedReview;
 }) {
-  const route = review.mediaType === "movie" ? "/cinema/$tmdbId" : "/serials/$tmdbId";
-  const tmdbId = review.mediaTmdbId;
+  const mediaLink =
+    review.mediaType === "movie" && review.mediaTmdbId
+      ? { to: "/cinema/$tmdbId" as const, tmdbId: review.mediaTmdbId }
+      : review.mediaType === "tv" && review.mediaTmdbId
+        ? { to: "/serials/$tmdbId" as const, tmdbId: review.mediaTmdbId }
+        : null;
 
   return (
     <div className="border-b border-border/50 py-4 last:border-0">
       <div className="flex gap-3">
-        {tmdbId ? (
-          <Link to={route} params={{ tmdbId: String(tmdbId) }} className="shrink-0">
+        {mediaLink ? (
+          <Link to={mediaLink.to} params={{ tmdbId: String(mediaLink.tmdbId) }} className="shrink-0">
             <div className="h-16 w-11 overflow-hidden rounded-md border border-border/50 bg-card/30">
               {review.mediaPosterPath ? (
                 <img
@@ -33,10 +37,10 @@ export const LikedReviewCard = memo(function LikedReviewCard({
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
             {review.mediaTitle ? (
-              tmdbId ? (
+              mediaLink ? (
                 <Link
-                  to={route}
-                  params={{ tmdbId: String(tmdbId) }}
+                  to={mediaLink.to}
+                  params={{ tmdbId: String(mediaLink.tmdbId) }}
                   className="font-mono text-xs font-semibold text-foreground/90 hover:text-foreground"
                 >
                   {review.mediaTitle}

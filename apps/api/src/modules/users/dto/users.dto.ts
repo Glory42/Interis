@@ -4,7 +4,6 @@ import {
   MAX_FAVORITE_GENRES,
 } from "../constants/favorite-genres.constants";
 import {
-  TOP_PICK_CATEGORY_IDS,
   MAX_TOP_PICK_ITEMS_PER_CATEGORY,
   TOP_PICK_CATEGORY_ID_SET,
   TOP_PICK_DEFAULT_MEDIA_TYPE,
@@ -21,18 +20,14 @@ const TopPickCategoryIdSchema = z
   .int()
   .refine(
     (value): value is TopPickCategoryId => TOP_PICK_CATEGORY_ID_SET.has(value),
-    {
-      message: "Invalid top pick category",
-    },
+    { message: "Invalid top pick category" },
   );
 
 const TopPickMediaTypeSchema = z
   .string()
   .refine(
     (value): value is TopPickMediaType => TOP_PICK_MEDIA_TYPE_SET.has(value),
-    {
-      message: "Invalid top pick media type",
-    },
+    { message: "Invalid top pick media type" },
   );
 
 const TopPickItemSchema = z.object({
@@ -51,7 +46,7 @@ const TopPickCategorySchema = z
     items: z.array(TopPickItemSchema).max(MAX_TOP_PICK_ITEMS_PER_CATEGORY),
   })
   .superRefine((category, ctx) => {
-    const expectedMediaType = TOP_PICK_DEFAULT_MEDIA_TYPE[category.categoryId];
+    const expectedMediaType = TOP_PICK_DEFAULT_MEDIA_TYPE[category.categoryId as TopPickCategoryId];
 
     const seenSlots = new Set<number>();
     const seenMediaSources = new Set<string>();
@@ -85,7 +80,7 @@ const TopPickCategorySchema = z
 
 const TopPicksSchema = z
   .array(TopPickCategorySchema)
-  .max(TOP_PICK_CATEGORY_IDS.length)
+  .max(4)
   .superRefine((categories, ctx) => {
     const seenCategoryIds = new Set<number>();
 

@@ -8,6 +8,7 @@ import { ReviewActivityCard } from "@/features/feed/components/ReviewActivityCar
 import {
   feedChannelMeta,
   inferFeedChannel,
+  resolveFeedMovieLink,
   toSeasonEpisodeLabel,
 } from "@/features/feed/components/feed-row.utils";
 import type { FeedItem } from "@/features/feed/types";
@@ -61,17 +62,21 @@ const AttachedMediaCard = ({ item }: { item: FeedItem }) => {
     return null;
   }
 
+  const link = resolveFeedMovieLink(item.movie);
+  if (!link) {
+    return null;
+  }
+
   const channel = inferFeedChannel(item);
   const accentColor = channel ? feedChannelMeta[channel].color : "var(--module-neutral)";
-  const to = item.movie.mediaType === "tv" ? "/serials/$tmdbId" : "/cinema/$tmdbId";
 
   return (
     <FeedMoviePreviewCard
-      to={to}
-      tmdbId={item.movie.tmdbId}
+      link={link}
       title={item.movie.title}
       releaseYear={item.movie.releaseYear}
       posterPath={item.movie.posterPath}
+      coverArtUrl={item.movie.coverArtUrl}
       accentColor={accentColor}
     />
   );

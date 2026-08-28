@@ -5,6 +5,8 @@ import { mergeSortedPaginated } from "../../../commons/helpers/merge-sorted-pagi
 import { movieInteractions } from "../../interactions/interactions.entity";
 import { movies } from "../../movies/movies.entity";
 import { serialInteractions, tvSeries } from "../../serials/serials.entity";
+import { musicInteractions, albums } from "../../music/music.entity";
+import { bookInteractions, books } from "../../books/books.entity";
 
 export type MediaInteractionFlag = "liked" | "watchlisted";
 
@@ -85,13 +87,55 @@ export class UsersMediaInteractionsRepository {
         ),
       );
 
-    const [movieRows, serialRows] = await Promise.all([
+    const albumQ = db
+      .select({
+        mbid: albums.mbid,
+        title: albums.title,
+        coverArtUrl: albums.coverArtUrl,
+        artistName: albums.artistName,
+        releaseYear: albums.firstReleaseYear,
+        mediaType: sql<"album">`'album'`,
+        lastInteractionAt: musicInteractions.updatedAt,
+      })
+      .from(musicInteractions)
+      .innerJoin(albums, eq(musicInteractions.albumId, albums.id))
+      .where(
+        and(
+          eq(musicInteractions.userId, userId),
+          flag === "liked"
+            ? eq(musicInteractions.liked, true)
+            : eq(musicInteractions.wantToListen, true),
+        ),
+      );
+
+    const bookQ = db
+      .select({
+        volumeId: books.googleVolumeId,
+        title: books.title,
+        coverArtUrl: books.coverImageUrl,
+        authors: books.authors,
+        releaseYear: books.publishedYear,
+        mediaType: sql<"book">`'book'`,
+        lastInteractionAt: bookInteractions.updatedAt,
+      })
+      .from(bookInteractions)
+      .innerJoin(books, eq(bookInteractions.bookId, books.id))
+      .where(
+        and(
+          eq(bookInteractions.userId, userId),
+          flag === "liked" ? eq(bookInteractions.liked, true) : eq(bookInteractions.wantToRead, true),
+        ),
+      );
+
+    const [movieRows, serialRows, albumRows, bookRows] = await Promise.all([
       fetchCap ? movieQ.limit(fetchCap) : movieQ,
       fetchCap ? serialQ.limit(fetchCap) : serialQ,
+      fetchCap ? albumQ.limit(fetchCap) : albumQ,
+      fetchCap ? bookQ.limit(fetchCap) : bookQ,
     ]);
 
     return mergeSortedPaginated(
-      [...movieRows, ...serialRows],
+      [...movieRows, ...serialRows, ...albumRows, ...bookRows],
       limit,
       offset,
       (row) => row.lastInteractionAt.getTime(),

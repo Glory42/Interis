@@ -7,9 +7,13 @@ export type RatingToken = "full" | "half" | "empty";
 export type DiaryRow = {
   id: string;
   channel: FeedChannel;
+  mediaType: DiaryItem["mediaType"];
   title: string;
   posterPath: string | null;
+  coverArtUrl: string | null;
   tmdbId: number | null;
+  mbid: string | null;
+  volumeId: string | null;
   releaseYear: number | null;
   createdAt: string;
   rating: number | null;
@@ -29,6 +33,8 @@ export type DiaryRow = {
 export const channelDisplayLabel: Record<FeedChannel, string> = {
   cinema: "Cinema",
   serial: "Serial",
+  music: "Music",
+  books: "Books",
 };
 
 export const toDateParts = (value: string): {
@@ -61,6 +67,11 @@ export const toDateParts = (value: string): {
 const channelByMediaType: Record<DiaryItem["mediaType"], FeedChannel> = {
   movie: "cinema",
   tv: "serial",
+  album: "music",
+  book: "books",
+  // Tracks belong to the music module for feed/channel routing, the same
+  // way Season/Episode reuse "serial" rather than a channel of their own.
+  track: "music",
 };
 
 export const toRatingTokens = (rating: number | null): RatingToken[] => {
@@ -102,9 +113,13 @@ export const toDiaryRows = (
     return {
       id: item.id,
       channel,
+      mediaType: item.mediaType,
       title: item.media.title,
-      posterPath: item.media.posterPath,
+      posterPath: item.media.posterPath ?? null,
+      coverArtUrl: item.media.coverArtUrl ?? null,
       tmdbId,
+      mbid: item.media.mbid ?? null,
+      volumeId: item.media.volumeId ?? null,
       releaseYear: item.media.releaseYear,
       createdAt: item.watchedDate,
       rating: item.rating,

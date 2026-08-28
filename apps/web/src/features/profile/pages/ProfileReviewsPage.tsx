@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Star, TriangleAlert } from "lucide-react";
 import { getPosterUrl } from "@/features/films/components/utils";
 import type { UserReview } from "@/features/profile/api";
+import type { FeedMovieLink } from "@/features/feed/components/feed-row.utils";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import { ReviewCardSkeleton } from "@/features/profile/components/ReviewCardSkeleton";
 import { DiaryRatingStars } from "@/features/profile/components/diary/DiaryRatingStars";
@@ -27,6 +28,37 @@ const mediaMetaByType: Record<
     label: "Serial",
     color: "var(--module-serial)",
   },
+  album: {
+    label: "Music",
+    color: "var(--module-music)",
+  },
+  book: {
+    label: "Books",
+    color: "var(--module-book)",
+  },
+  track: {
+    label: "Music",
+    color: "var(--module-music)",
+  },
+};
+
+const resolveReviewMediaLink = (entry: UserReview): FeedMovieLink | null => {
+  if (entry.mediaType === "movie" && entry.tmdbId != null) {
+    return { to: "/cinema/$tmdbId", params: { tmdbId: String(entry.tmdbId) } };
+  }
+  if (entry.mediaType === "tv" && entry.tmdbId != null) {
+    return { to: "/serials/$tmdbId", params: { tmdbId: String(entry.tmdbId) } };
+  }
+  if (entry.mediaType === "album" && entry.mbid) {
+    return { to: "/music/$mbid", params: { mbid: entry.mbid } };
+  }
+  if (entry.mediaType === "book" && entry.volumeId) {
+    return { to: "/books/$volumeId", params: { volumeId: entry.volumeId } };
+  }
+  if (entry.mediaType === "track" && entry.mbid) {
+    return { to: "/music/tracks/$mbid", params: { mbid: entry.mbid } };
+  }
+  return null;
 };
 
 const formatDate = (value: string | null): string => {
@@ -82,7 +114,34 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
           </p>
         </div>
 
-        {reviews.map((entry) => (
+        {reviews.map((entry) => {
+          const mediaLink = resolveReviewMediaLink(entry);
+          const imageUrl = entry.posterPath
+            ? getPosterUrl(entry.posterPath)
+            : (entry.coverArtUrl ?? null);
+
+          const poster = (
+            <div
+              className="overflow-hidden rounded-lg border"
+              style={{
+                width: 68,
+                height: 102,
+                borderColor: "var(--profile-shell-row-border)",
+                background: "color-mix(in srgb, var(--profile-shell-bg) 85%, black)",
+              }}
+            >
+              {imageUrl ? (
+                <img
+                  src={imageUrl}
+                  alt={`${entry.title} cover`}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              ) : null}
+            </div>
+          );
+
+          return (
           <article
             key={entry.id}
             className="group rounded-xl border transition-colors hover:border-primary/30"
@@ -92,54 +151,12 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
             }}
           >
             <div className="grid gap-3 p-3 sm:p-4" style={{ gridTemplateColumns: "68px 1fr" }}>
-              {entry.mediaType === "tv" ? (
-                <Link
-                  to="/serials/$tmdbId"
-                  params={{ tmdbId: String(entry.tmdbId) }}
-                  className="shrink-0"
-                  viewTransition
-                >
-                  <div
-                    className="overflow-hidden rounded-lg border"
-                    style={{
-                      width: 68,
-                      height: 102,
-                      borderColor: "var(--profile-shell-row-border)",
-                      background: "color-mix(in srgb, var(--profile-shell-bg) 85%, black)",
-                    }}
-                  >
-                    <img
-                      src={getPosterUrl(entry.posterPath)}
-                      alt={`${entry.title} poster`}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
+              {mediaLink ? (
+                <Link {...mediaLink} className="shrink-0" viewTransition>
+                  {poster}
                 </Link>
               ) : (
-                <Link
-                  to="/cinema/$tmdbId"
-                  params={{ tmdbId: String(entry.tmdbId) }}
-                  className="shrink-0"
-                  viewTransition
-                >
-                  <div
-                    className="overflow-hidden rounded-lg border"
-                    style={{
-                      width: 68,
-                      height: 102,
-                      borderColor: "var(--profile-shell-row-border)",
-                      background: "color-mix(in srgb, var(--profile-shell-bg) 85%, black)",
-                    }}
-                  >
-                    <img
-                      src={getPosterUrl(entry.posterPath)}
-                      alt={`${entry.title} poster`}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-                </Link>
+                <div className="shrink-0">{poster}</div>
               )}
 
               <div className="min-w-0 space-y-1.5">
@@ -208,7 +225,8 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
               </div>
             </div>
           </article>
-        ))}
+          );
+        })}
       </div>
 
       {reviewsQuery.hasNextPage ? (

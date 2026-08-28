@@ -46,6 +46,18 @@ export const ProfileOverviewContent = ({ username }: ProfileOverviewContentProps
             isPending={topPicksQuery.isPending}
             isError={topPicksQuery.isError}
           />
+          <ProfileTopPicksRow
+            categoryKey="music"
+            category={categoriesByKey.get("music")}
+            isPending={topPicksQuery.isPending}
+            isError={topPicksQuery.isError}
+          />
+          <ProfileTopPicksRow
+            categoryKey="books"
+            category={categoriesByKey.get("books")}
+            isPending={topPicksQuery.isPending}
+            isError={topPicksQuery.isError}
+          />
         </div>
       </section>
 

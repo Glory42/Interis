@@ -1,8 +1,8 @@
-import type { MediaType } from "../../media/constants/media-type.constant";
+import type { PostMediaType } from "../posts.entity";
 
 export type PostFeedMetadata = {
   id: string;
   content: string;
   mediaId: number | null;
-  mediaType: MediaType | null;
+  mediaType: PostMediaType | null;
 };

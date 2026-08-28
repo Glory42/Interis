@@ -94,6 +94,44 @@ export const GlobalSearchDialog = ({
     );
   };
 
+  const openMusic = (mbid: string) => {
+    closeDialog();
+
+    void navigateWithViewTransitionFallback(
+      () =>
+        navigate({
+          to: "/music/$mbid",
+          params: { mbid },
+          viewTransition: true,
+          startTransition: true,
+        }),
+      () =>
+        navigate({
+          to: "/music/$mbid",
+          params: { mbid },
+        }),
+    );
+  };
+
+  const openBook = (volumeId: string) => {
+    closeDialog();
+
+    void navigateWithViewTransitionFallback(
+      () =>
+        navigate({
+          to: "/books/$volumeId",
+          params: { volumeId },
+          viewTransition: true,
+          startTransition: true,
+        }),
+      () =>
+        navigate({
+          to: "/books/$volumeId",
+          params: { volumeId },
+        }),
+    );
+  };
+
   useEffect(() => {
     if (!isOpen) {
       return;
@@ -154,7 +192,7 @@ export const GlobalSearchDialog = ({
         return;
       }
 
-      openSearchEntry(selectedEntry, { openCinema, openSerial, openUser });
+      openSearchEntry(selectedEntry, { openCinema, openSerial, openUser, openMusic, openBook });
     }
   };
 
@@ -165,7 +203,7 @@ export const GlobalSearchDialog = ({
   const currentPlaceholder =
     state.isScopedMode && state.scopedTarget
       ? scopedPlaceholder[state.scopedTarget]
-      : "Search users, cinema, serials...";
+      : "Search users, cinema, serials, music, books...";
 
   return (
     <ModalShell
@@ -261,7 +299,7 @@ export const GlobalSearchDialog = ({
               effectiveHighlightedIndex={state.effectiveHighlightedIndex}
               onHoverIndex={state.setHighlightedIndex}
               onSelectEntry={(entry) => {
-                openSearchEntry(entry, { openCinema, openSerial, openUser });
+                openSearchEntry(entry, { openCinema, openSerial, openUser, openMusic, openBook });
               }}
               onEnterScope={(target) => {
                 state.enterScopedMode(target);

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Award } from "lucide-react";
 import {
   ARCHIVE_PAGE_SIZE,
   languageOptions,
@@ -246,10 +247,11 @@ export const SerialsArchivePage = () => {
                 <ArchiveMediaCard
                   key={`serial-archive-grid-${series.tmdbId}`}
                   kind="serial"
-                  tmdbId={series.tmdbId}
+                  id={String(series.tmdbId)}
                   title={series.title}
-                  posterPath={series.posterPath}
-                  getPosterUrl={getPosterUrl}
+                  imageUrl={series.posterPath ? getPosterUrl(series.posterPath) : null}
+                  fallbackIcon={Award}
+                  fallbackLabel="No Art"
                   stateLabel={getSeriesStateLabel(series)}
                   rating={getRating(series, archiveRatingSource)}
                   ratingSource={archiveRatingSource}

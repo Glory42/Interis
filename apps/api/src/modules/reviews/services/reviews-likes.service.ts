@@ -3,6 +3,7 @@ import { ReviewsRepository } from "../repositories/reviews.repository";
 import { SocialRepository } from "../../social/repositories/social.repository";
 import { SocialFeedService } from "../../social/services/social-feed.service";
 import { NotificationsService } from "../../notifications/notifications.service";
+import { toReviewMediaType } from "../helpers/review-media-type.helper";
 
 export class ReviewsLikesService {
   static async likeReview(userId: string, reviewId: string) {
@@ -15,10 +16,7 @@ export class ReviewsLikesService {
     await ReviewsRepository.insertLike(userId, reviewId);
 
     const review = await ReviewsRepository.getReviewWithMedia(reviewId);
-    const activityMediaType =
-      review?.mediaType === "movie" || review?.mediaType === "tv"
-        ? review.mediaType
-        : null;
+    const mediaType = review ? toReviewMediaType(review.mediaType) : null;
 
     await Promise.all([
       SocialRepository.insertActivity({
@@ -28,12 +26,17 @@ export class ReviewsLikesService {
         metadata: JSON.stringify(
           buildReviewLikedActivityMetadata({
             reviewId,
-            mediaMetadata: review && activityMediaType
+            mediaMetadata: review && mediaType
               ? {
-                  mediaType: activityMediaType,
+                  mediaType,
                   tmdbId: review.tmdbId,
+                  mbid: review.mbid,
+                  volumeId: review.volumeId,
                   title: review.title,
                   posterPath: review.posterPath,
+                  coverArtUrl: review.coverArtUrl,
+                  artistName: review.artistName,
+                  authors: review.authors,
                   releaseYear: review.releaseYear,
                 }
               : null,

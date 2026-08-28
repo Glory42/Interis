@@ -25,6 +25,14 @@ const buildTopLoggedThings = (items: FeedItem[]): LoggedThing[] => {
       continue;
     }
 
+    if (item.movie.mediaType !== "movie" && item.movie.mediaType !== "tv") {
+      continue;
+    }
+
+    if (item.movie.tmdbId == null) {
+      continue;
+    }
+
     const key = `${item.movie.mediaType}:${item.movie.tmdbId}`;
     const existing = counts.get(key);
     if (existing) {

@@ -154,7 +154,8 @@ export class SerialsReviewsRepository {
     return ReviewsRepository.upsertReview({
       userId: input.userId,
       mediaType: "tv",
-      tmdbId: input.seriesTmdbId,
+      mediaSource: "tmdb",
+      mediaSourceId: String(input.seriesTmdbId),
       movieId: null,
       diaryEntryId: input.diaryEntryId,
       content: input.content,

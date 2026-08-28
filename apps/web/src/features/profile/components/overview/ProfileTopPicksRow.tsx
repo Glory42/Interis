@@ -1,11 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { Film, Tv, type LucideIcon } from "lucide-react";
+import { BookOpen, Film, Music, Tv, type LucideIcon } from "lucide-react";
 import { useState, type CSSProperties } from "react";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { getPosterUrl } from "@/features/films/components/utils";
 import type { UserTopPickCategory, UserTopPickItem } from "@/features/profile/api";
 
-export type TopPickCategoryKey = "cinema" | "serial";
+export type TopPickCategoryKey = "cinema" | "serial" | "music" | "books";
 
 const topPickCategoryMeta: Record<
   TopPickCategoryKey,
@@ -21,6 +21,18 @@ const topPickCategoryMeta: Record<
     label: "Favorite Serials",
     color: "var(--module-serial)",
     icon: Tv,
+    defaultSupported: true,
+  },
+  music: {
+    label: "Favorite Music",
+    color: "var(--module-music)",
+    icon: Music,
+    defaultSupported: true,
+  },
+  books: {
+    label: "Favorite Books",
+    color: "var(--module-book)",
+    icon: BookOpen,
     defaultSupported: true,
   },
 };
@@ -41,6 +53,21 @@ const resolveTmdbId = (item: UserTopPickItem | null): number | null => {
   }
 
   return null;
+};
+
+const resolveCoverUrl = (
+  categoryKey: TopPickCategoryKey,
+  item: UserTopPickItem | null,
+): string | null => {
+  if (!item) {
+    return null;
+  }
+
+  if (categoryKey === "music" || categoryKey === "books") {
+    return item.coverArtUrl ?? null;
+  }
+
+  return item.posterPath ? getPosterUrl(item.posterPath) : null;
 };
 
 const toSlotItems = (
@@ -76,7 +103,7 @@ const TopPickSlot = ({
   const tmdbId = resolveTmdbId(item);
   const title =
     item?.title?.trim() || (isCategorySupported ? "Not set" : "Not supported");
-  const posterUrl = item?.posterPath ? getPosterUrl(item.posterPath) : null;
+  const posterUrl = resolveCoverUrl(categoryKey, item);
   const showPoster = Boolean(posterUrl && !didPosterFail);
 
   const body = (
@@ -130,6 +157,34 @@ const TopPickSlot = ({
       <Link
         to="/serials/$tmdbId"
         params={{ tmdbId: String(tmdbId) }}
+        className={linkClassName}
+        style={style}
+        viewTransition
+      >
+        {body}
+      </Link>
+    );
+  }
+
+  if (categoryKey === "music" && item?.mediaSourceId) {
+    return (
+      <Link
+        to="/music/$mbid"
+        params={{ mbid: item.mediaSourceId }}
+        className={linkClassName}
+        style={style}
+        viewTransition
+      >
+        {body}
+      </Link>
+    );
+  }
+
+  if (categoryKey === "books" && item?.mediaSourceId) {
+    return (
+      <Link
+        to="/books/$volumeId"
+        params={{ volumeId: item.mediaSourceId }}
         className={linkClassName}
         style={style}
         viewTransition

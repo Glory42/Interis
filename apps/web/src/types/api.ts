@@ -4,7 +4,7 @@ import { z } from "zod";
 // Every other mediaType schema/type in the codebase aliases or derives
 // from this - adding a new media type means changing MEDIA_TYPES here,
 // and the compiler flags every branch that needs to handle it.
-export const MEDIA_TYPES = ["movie", "tv"] as const;
+export const MEDIA_TYPES = ["movie", "tv", "album", "book", "track"] as const;
 export const mediaTypeSchema = z.enum(MEDIA_TYPES);
 export type MediaType = z.infer<typeof mediaTypeSchema>;
 
@@ -165,11 +165,15 @@ export const userStatsSchema = z.object({
 export const topPickCategoryIdSchema = z.union([
   z.literal(1),
   z.literal(2),
+  z.literal(3),
+  z.literal(4),
 ]);
 
 export const topPickCategoryKeySchema = z.enum([
   "cinema",
   "serial",
+  "music",
+  "books",
 ]);
 
 export const topPickMediaTypeSchema = mediaTypeSchema;
@@ -183,7 +187,10 @@ export const topPickItemSchema = z.object({
   tmdbId: z.number().int().nullable(),
   title: z.string().nullable(),
   posterPath: z.string().nullable(),
+  coverArtUrl: z.string().nullable().optional(),
   releaseYear: z.number().int().nullable(),
+  artistName: z.string().nullable().optional(),
+  authors: z.array(z.string()).nullable().optional(),
 });
 
 export const topPickCategorySchema = z.object({
@@ -194,7 +201,7 @@ export const topPickCategorySchema = z.object({
 });
 
 export const publicTop4ResponseSchema = z.object({
-  categories: z.array(topPickCategorySchema).length(2),
+  categories: z.array(topPickCategorySchema).min(2),
 });
 
 export const updateTopPickItemInputSchema = z.object({
@@ -210,6 +217,30 @@ export const updateTopPickItemInputSchema = z.object({
 export const updateTopPickCategoryInputSchema = z.object({
   categoryId: topPickCategoryIdSchema,
   items: z.array(updateTopPickItemInputSchema).max(4),
+});
+
+export const updateTopPickItemInputMusicSchema = z.object({
+  slot: z.number().int().min(1).max(4),
+  mediaType: z.literal("album"),
+  mediaSource: z.literal("musicbrainz"),
+  mediaSourceId: z.string().trim().min(1).max(128),
+  title: z.string().trim().max(200).optional(),
+  posterPath: z.string().trim().max(500).nullable().optional(),
+  coverArtUrl: z.string().trim().max(500).nullable().optional(),
+  releaseYear: z.number().int().min(1800).max(2200).nullable().optional(),
+  artistName: z.string().trim().max(200).nullable().optional(),
+});
+
+export const updateTopPickItemInputBooksSchema = z.object({
+  slot: z.number().int().min(1).max(4),
+  mediaType: z.literal("book"),
+  mediaSource: z.literal("googlebooks"),
+  mediaSourceId: z.string().trim().min(1).max(128),
+  title: z.string().trim().max(200).optional(),
+  posterPath: z.string().trim().max(500).nullable().optional(),
+  coverArtUrl: z.string().trim().max(500).nullable().optional(),
+  releaseYear: z.number().int().min(1800).max(2200).nullable().optional(),
+  authors: z.array(z.string()).nullable().optional(),
 });
 
 export const publicProfileSchema = z
@@ -250,7 +281,7 @@ export const updateProfileInputSchema = z.object({
   bio: z.string().max(300).optional(),
   location: z.string().max(100).optional(),
   avatarUrl: z.url().optional().or(z.literal("")),
-  topPicks: z.array(updateTopPickCategoryInputSchema).max(2).optional(),
+  topPicks: z.array(updateTopPickCategoryInputSchema).max(4).optional(),
   favoriteGenres: z.array(favoriteGenreSchema).max(4).optional(),
 });
 

@@ -1,12 +1,14 @@
 import {
+  BookOpen,
   Film,
+  Music,
   Rss,
   Tv,
   type LucideIcon,
 } from "lucide-react";
 
 export type PrimaryNavItem = {
-  to: "/" | "/cinema" | "/serials";
+  to: "/" | "/cinema" | "/serials" | "/music" | "/books";
   label: string;
   icon: LucideIcon;
   exact?: boolean;
@@ -32,6 +34,18 @@ export const primaryNavItems: PrimaryNavItem[] = [
     label: "SERIAL",
     icon: Tv,
     activeColor: "var(--module-serial)",
+  },
+  {
+    to: "/music",
+    label: "MUSIC",
+    icon: Music,
+    activeColor: "var(--module-music)",
+  },
+  {
+    to: "/books",
+    label: "BOOKS",
+    icon: BookOpen,
+    activeColor: "var(--module-book)",
   },
 ];
 

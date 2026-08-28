@@ -3,6 +3,8 @@ import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
 import { tvSeries } from "../../serials/serials.entity";
+import { albums } from "../../music/music.entity";
+import { books } from "../../books/books.entity";
 import { profiles } from "../../users/users.entity";
 import { comments, reviewLikes, reviews } from "../reviews.entity";
 import type { UpdateReviewDto } from "../dto/reviews.dto";
@@ -70,7 +72,8 @@ export class ReviewsRepository {
   static async upsertReview(input: {
     userId: string;
     mediaType: MediaType;
-    tmdbId: number;
+    mediaSource: string;
+    mediaSourceId: string;
     movieId: number | null;
     diaryEntryId: string | null;
     content: string;
@@ -81,8 +84,8 @@ export class ReviewsRepository {
       .values({
         userId: input.userId,
         mediaType: input.mediaType,
-        mediaSource: "tmdb",
-        mediaSourceId: String(input.tmdbId),
+        mediaSource: input.mediaSource,
+        mediaSourceId: input.mediaSourceId,
         movieId: input.movieId,
         diaryEntryId: input.diaryEntryId,
         content: input.content,
@@ -252,9 +255,68 @@ export class ReviewsRepository {
       return {
         ...reviewRow,
         tmdbId: movieRow?.tmdbId ?? Number(reviewRow.mediaSourceId),
+        mbid: null,
+        volumeId: null,
         title: movieRow?.title ?? null,
         posterPath: movieRow?.posterPath ?? null,
+        coverArtUrl: null,
+        artistName: null,
+        authors: null,
         releaseYear: movieRow?.releaseYear ?? null,
+      };
+    }
+
+    if (reviewRow.mediaType === "album") {
+      const [albumRow] = await db
+        .select({
+          mbid: albums.mbid,
+          title: albums.title,
+          coverArtUrl: albums.coverArtUrl,
+          artistName: albums.artistName,
+          firstReleaseYear: albums.firstReleaseYear,
+        })
+        .from(albums)
+        .where(eq(albums.mbid, reviewRow.mediaSourceId))
+        .limit(1);
+
+      return {
+        ...reviewRow,
+        tmdbId: null,
+        mbid: albumRow?.mbid ?? reviewRow.mediaSourceId,
+        volumeId: null,
+        title: albumRow?.title ?? null,
+        posterPath: null,
+        coverArtUrl: albumRow?.coverArtUrl ?? null,
+        artistName: albumRow?.artistName ?? null,
+        authors: null,
+        releaseYear: albumRow?.firstReleaseYear ?? null,
+      };
+    }
+
+    if (reviewRow.mediaType === "book") {
+      const [bookRow] = await db
+        .select({
+          googleVolumeId: books.googleVolumeId,
+          title: books.title,
+          coverImageUrl: books.coverImageUrl,
+          authors: books.authors,
+          publishedYear: books.publishedYear,
+        })
+        .from(books)
+        .where(eq(books.googleVolumeId, reviewRow.mediaSourceId))
+        .limit(1);
+
+      return {
+        ...reviewRow,
+        tmdbId: null,
+        mbid: null,
+        volumeId: bookRow?.googleVolumeId ?? reviewRow.mediaSourceId,
+        title: bookRow?.title ?? null,
+        posterPath: null,
+        coverArtUrl: bookRow?.coverImageUrl ?? null,
+        artistName: null,
+        authors: (bookRow?.authors as string[] | undefined) ?? null,
+        releaseYear: bookRow?.publishedYear ?? null,
       };
     }
 
@@ -276,8 +338,13 @@ export class ReviewsRepository {
       return {
         ...reviewRow,
         tmdbId: seriesRow?.tmdbId ?? (Number.isNaN(tmdbId) ? null : tmdbId),
+        mbid: null,
+        volumeId: null,
         title: seriesRow?.title ?? null,
         posterPath: seriesRow?.posterPath ?? null,
+        coverArtUrl: null,
+        artistName: null,
+        authors: null,
         releaseYear: seriesRow?.releaseYear ?? null,
       };
     }
@@ -285,8 +352,13 @@ export class ReviewsRepository {
     return {
       ...reviewRow,
       tmdbId: null,
+      mbid: null,
+      volumeId: null,
       title: null,
       posterPath: null,
+      coverArtUrl: null,
+      artistName: null,
+      authors: null,
       releaseYear: null,
     };
   }

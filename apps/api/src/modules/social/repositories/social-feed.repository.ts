@@ -3,6 +3,8 @@ import { user } from "../../../infrastructure/database/auth.entity";
 import { db } from "../../../infrastructure/database/db";
 import { diaryEntries } from "../../diary/diary.entity";
 import { movies } from "../../movies/movies.entity";
+import { albums } from "../../music/music.entity";
+import { books } from "../../books/books.entity";
 import { postComments, postLikes, posts } from "../../posts/posts.entity";
 import { comments, reviewLikes, reviews } from "../../reviews/reviews.entity";
 import { serialDiaryEntries, tvSeries } from "../../serials/serials.entity";
@@ -224,5 +226,33 @@ export class SocialFeedRepository {
       })
       .from(movies)
       .where(inArray(movies.id, movieIds));
+  }
+
+  static async getAlbumsByMbids(mbids: string[]) {
+    if (mbids.length === 0) return [];
+    return db
+      .select({
+        mbid: albums.mbid,
+        title: albums.title,
+        coverArtUrl: albums.coverArtUrl,
+        artistName: albums.artistName,
+        releaseYear: albums.firstReleaseYear,
+      })
+      .from(albums)
+      .where(inArray(albums.mbid, mbids));
+  }
+
+  static async getBooksByVolumeIds(volumeIds: string[]) {
+    if (volumeIds.length === 0) return [];
+    return db
+      .select({
+        volumeId: books.googleVolumeId,
+        title: books.title,
+        coverArtUrl: books.coverImageUrl,
+        authors: books.authors,
+        releaseYear: books.publishedYear,
+      })
+      .from(books)
+      .where(inArray(books.googleVolumeId, volumeIds));
   }
 }

@@ -1,15 +1,19 @@
 import { memo, type CSSProperties } from "react";
 import { Link } from "@tanstack/react-router";
-import { Award } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { ArchiveCardModuleStyles, ArchiveRatingSource } from "@/features/media-archive/types";
 import { cn } from "@/lib/utils";
 
+type ArchiveMediaCardKind = "cinema" | "serial" | "book" | "album";
+
 type ArchiveMediaCardProps = {
-  kind: "cinema" | "serial";
-  tmdbId: number;
+  kind: ArchiveMediaCardKind;
+  id: string;
   title: string;
-  posterPath: string | null;
-  getPosterUrl: (posterPath: string | null | undefined) => string;
+  imageUrl: string | null;
+  fallbackIcon: LucideIcon;
+  fallbackLabel: string;
+  aspectClassName?: string;
   stateLabel: string | null;
   rating: number | null;
   ratingSource: ArchiveRatingSource;
@@ -22,16 +26,59 @@ type ArchiveMediaCardProps = {
   style?: CSSProperties;
 };
 
+const ArchiveCardLink = ({
+  kind,
+  id,
+  className,
+  style,
+  children,
+}: {
+  kind: ArchiveMediaCardKind;
+  id: string;
+  className?: string;
+  style?: CSSProperties;
+  children: React.ReactNode;
+}) => {
+  switch (kind) {
+    case "cinema":
+      return (
+        <Link to="/cinema/$tmdbId" params={{ tmdbId: id }} className={className} style={style} viewTransition>
+          {children}
+        </Link>
+      );
+    case "serial":
+      return (
+        <Link to="/serials/$tmdbId" params={{ tmdbId: id }} className={className} style={style} viewTransition>
+          {children}
+        </Link>
+      );
+    case "book":
+      return (
+        <Link to="/books/$volumeId" params={{ volumeId: id }} className={className} style={style} viewTransition>
+          {children}
+        </Link>
+      );
+    case "album":
+      return (
+        <Link to="/music/$mbid" params={{ mbid: id }} className={className} style={style} viewTransition>
+          {children}
+        </Link>
+      );
+  }
+};
+
 // Memoized because the archive grid re-renders on unrelated local state
 // (e.g. a filter dropdown opening) - this skips re-rendering every card
 // in a potentially large grid when only `openMenu` etc. changed. Props are
 // kept as primitives (not JSX) so this comparison stays meaningful.
 export const ArchiveMediaCard = memo(function ArchiveMediaCard({
   kind,
-  tmdbId,
+  id,
   title,
-  posterPath,
-  getPosterUrl,
+  imageUrl,
+  fallbackIcon: FallbackIcon,
+  fallbackLabel,
+  aspectClassName = "aspect-2/3",
   stateLabel,
   rating,
   ratingSource,
@@ -41,27 +88,19 @@ export const ArchiveMediaCard = memo(function ArchiveMediaCard({
   className,
   style,
 }: ArchiveMediaCardProps) {
-  const to = kind === "cinema" ? "/cinema/$tmdbId" : "/serials/$tmdbId";
-
   return (
-    <Link
-      to={to}
-      params={{ tmdbId: String(tmdbId) }}
-      className={cn("block w-full text-left", className)}
-      style={style}
-      viewTransition
-    >
+    <ArchiveCardLink kind={kind} id={id} className={cn("block w-full text-left", className)} style={style}>
       <div
-        className="relative mb-3 aspect-2/3 overflow-hidden rounded-lg border transition-colors"
+        className={cn("relative mb-3 overflow-hidden rounded-lg border transition-colors", aspectClassName)}
         style={{
           borderColor: moduleStyles.border,
           background: moduleStyles.panel,
         }}
       >
-        {posterPath ? (
+        {imageUrl ? (
           <img
-            src={getPosterUrl(posterPath)}
-            alt={`${title} poster`}
+            src={imageUrl}
+            alt={`${title} cover`}
             className="h-full w-full object-cover"
             loading="lazy"
           />
@@ -74,13 +113,13 @@ export const ArchiveMediaCard = memo(function ArchiveMediaCard({
               className="flex h-8 w-8 items-center justify-center"
               style={{ background: moduleStyles.panelStrong }}
             >
-              <Award className="h-4 w-4" style={{ color: moduleStyles.accent }} />
+              <FallbackIcon className="h-4 w-4" style={{ color: moduleStyles.accent }} />
             </div>
             <span
               className="font-mono text-[8px] uppercase tracking-[0.22em]"
               style={{ color: moduleStyles.faint }}
             >
-              No Art
+              {fallbackLabel}
             </span>
           </div>
         )}
@@ -133,6 +172,6 @@ export const ArchiveMediaCard = memo(function ArchiveMediaCard({
           <span style={{ color: moduleStyles.faint }}> · {subtitleSecondary}</span>
         ) : null}
       </p>
-    </Link>
+    </ArchiveCardLink>
   );
 });

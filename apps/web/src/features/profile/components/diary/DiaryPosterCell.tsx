@@ -5,11 +5,12 @@ import { toPosterFallbackLabel } from "./diary-model";
 type DiaryPosterCellProps = {
   title: string;
   posterPath: string | null;
+  coverArtUrl?: string | null;
 };
 
-export const DiaryPosterCell = ({ title, posterPath }: DiaryPosterCellProps) => {
+export const DiaryPosterCell = ({ title, posterPath, coverArtUrl = null }: DiaryPosterCellProps) => {
   const [didPosterFail, setDidPosterFail] = useState(false);
-  const posterUrl = posterPath ? getPosterUrl(posterPath) : null;
+  const posterUrl = posterPath ? getPosterUrl(posterPath) : coverArtUrl;
   const shouldShowPoster = Boolean(posterUrl && !didPosterFail);
 
   return (

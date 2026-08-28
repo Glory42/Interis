@@ -21,8 +21,8 @@ export const ProfileDiaryPage = ({ username }: ProfileDiaryPageProps) => {
     // liked collection just to compute this lookup set.
     return new Set(
       (likedQuery.data?.pages.flat() ?? [])
-        .filter((item) => item.mediaType === "movie")
-        .map((movie) => movie.tmdbId),
+        .filter((item) => item.mediaType === "movie" && typeof item.tmdbId === "number")
+        .map((movie) => movie.tmdbId as number),
     );
   }, [likedQuery.data]);
 

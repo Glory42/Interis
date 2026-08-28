@@ -1,9 +1,8 @@
-import { DiaryRepository } from "../diary/repositories/diary.repository";
 import { UsersService } from "../users/users.service";
 import { SocialFeedService } from "../social/services/social-feed.service";
 import { PublicRepository } from "./repositories/public.repository";
 import { PublicTopPicksService } from "./services/public-top-picks.service";
-
+import { PublicDiaryService } from "./services/public-diary.service";
 import type {
   PublicProfileResponse,
   PublicCurrentlyWatchingSeries,
@@ -14,14 +13,6 @@ import type {
 import { SerialsDetailService } from "../serials/services/serials-detail.service";
 import { SerialsCurrentlyWatchingService } from "../serials/services/serials-currently-watching.service";
 import { SerialsService } from "../serials/serials.service";
-
-const toTimestamp = (value: string | Date): number => {
-  if (value instanceof Date) {
-    return value.getTime();
-  }
-
-  return Date.parse(value);
-};
 
 export class PublicService {
   private static findUserIdByUsername(username: string): Promise<string | null> {
@@ -126,80 +117,7 @@ export class PublicService {
       return null;
     }
 
-    // Fetch enough of each source to cover through offset+limit, then merge,
-    // sort, and slice the exact page - matches the pattern used for
-    // reviews/likes/watchlist (see UsersReviewsRepository.getReviewsWithMovies)
-    // since a global offset can't be pushed down independently to two
-    // separately-paginated tables ahead of the merge.
-    const fetchCap = limit + offset;
-
-    const [movieEntries, serialEntries] = await Promise.all([
-      DiaryRepository.findAllByUser(userId, fetchCap),
-      PublicRepository.findSerialDiaryEntriesByUser(userId, fetchCap),
-    ]);
-
-    const normalizedMovieEntries: PublicDiaryItem[] = movieEntries.map((entry) => ({
-      id: entry.id,
-      mediaType: "movie",
-      watchedDate: entry.watchedDate,
-      rating: entry.rating,
-      rewatch: entry.rewatch,
-      createdAt: entry.createdAt,
-      updatedAt: entry.updatedAt,
-      media: {
-        tmdbId: entry.movieTmdbId,
-        title: entry.movieTitle,
-        posterPath: entry.moviePosterPath,
-        releaseYear: entry.movieReleaseYear,
-      },
-      review: entry.reviewId
-        ? {
-            id: entry.reviewId,
-            content: entry.reviewContent ?? "",
-            containsSpoilers: entry.reviewContainsSpoilers ?? false,
-            createdAt: entry.reviewCreatedAt ?? entry.createdAt,
-          }
-        : null,
-    }));
-
-    const normalizedSerialEntries: PublicDiaryItem[] = serialEntries.map((entry) => ({
-      id: entry.id,
-      mediaType: "tv",
-      watchedDate: entry.watchedDate,
-      rating: entry.rating,
-      rewatch: entry.rewatch,
-      createdAt: entry.createdAt,
-      updatedAt: entry.updatedAt,
-      media: {
-        tmdbId: entry.tmdbId,
-        title: entry.title,
-        posterPath: entry.posterPath,
-        releaseYear: entry.releaseYear,
-      },
-      review: entry.reviewId
-        ? {
-            id: entry.reviewId,
-            content: entry.reviewContent ?? "",
-            containsSpoilers: entry.reviewContainsSpoilers ?? false,
-            createdAt: entry.reviewCreatedAt ?? entry.createdAt,
-          }
-        : null,
-    }));
-
-    const combined = [...normalizedMovieEntries, ...normalizedSerialEntries]
-      .sort((left, right) => {
-        const watchedDateDelta =
-          toTimestamp(right.watchedDate) - toTimestamp(left.watchedDate);
-
-        if (watchedDateDelta !== 0) {
-          return watchedDateDelta;
-        }
-
-        return toTimestamp(right.createdAt) - toTimestamp(left.createdAt);
-      })
-      .slice(offset, offset + limit);
-
-    return combined;
+    return PublicDiaryService.getDiary(userId, limit, offset);
   }
 
   static async getLists(username: string, limit = 20): Promise<PublicList[] | null> {

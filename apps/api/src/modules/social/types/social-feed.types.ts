@@ -24,11 +24,16 @@ export type FeedActivityKind =
 export type FeedMediaType = MediaType;
 
 export type FeedMovie = {
-  tmdbId: number;
+  tmdbId: number | null;
   title: string;
   posterPath: string | null;
+  coverArtUrl?: string | null;
   releaseYear: number | null;
   mediaType: FeedMediaType;
+  mbid?: string | null;
+  artistName?: string | null;
+  volumeId?: string | null;
+  authors?: string[] | null;
 };
 
 export type FeedPostMediaType = MediaType;
@@ -59,6 +64,8 @@ export type FeedMetadata = {
   reviewId: string | null;
   commentId: string | null;
   movieId: number | null;
+  mbid: string | null;
+  volumeId: string | null;
   postId: string | null;
   postMediaId: number | null;
   postMediaType: FeedPostMediaType | null;
@@ -131,7 +138,25 @@ export type FeedFallbackMovieRow = {
   releaseYear: number | null;
 };
 
+export type FeedFallbackAlbumRow = {
+  mbid: string;
+  title: string;
+  coverArtUrl: string | null;
+  artistName: string;
+  releaseYear: number | null;
+};
+
+export type FeedFallbackBookRow = {
+  volumeId: string;
+  title: string;
+  coverArtUrl: string | null;
+  authors: string[];
+  releaseYear: number | null;
+};
+
 export type FeedFallbackMediaContext = {
   postsById: Map<string, FeedFallbackPostRow>;
   moviesById: Map<number, FeedFallbackMovieRow>;
+  albumsByMbid: Map<string, FeedFallbackAlbumRow>;
+  booksByVolumeId: Map<string, FeedFallbackBookRow>;
 };

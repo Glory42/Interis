@@ -1,9 +1,10 @@
 import { useMemo } from "react";
 import type { UserInteractionMovie } from "@/features/profile/api";
 import { MediaPosterGridItem } from "@/features/profile/components/MediaPosterGridItem";
+import { getMediaItemKey } from "@/features/profile/utils/media-item-key";
 import { PROFILE_MEDIA_GRID_CLASSES } from "@/features/profile/components/ProfileMediaGridSkeleton";
 
-export type MediaFilter = "all" | "cinema" | "serial";
+export type MediaFilter = "all" | "cinema" | "serial" | "music" | "books";
 
 export const LikedMediaGrid = ({
   items,
@@ -15,7 +16,9 @@ export const LikedMediaGrid = ({
   const filtered = useMemo(() => {
     if (filter === "all") return items;
     if (filter === "cinema") return items.filter((i) => i.mediaType === "movie");
-    return items.filter((i) => i.mediaType === "tv");
+    if (filter === "serial") return items.filter((i) => i.mediaType === "tv");
+    if (filter === "music") return items.filter((i) => i.mediaType === "album");
+    return items.filter((i) => i.mediaType === "book");
   }, [items, filter]);
 
   if (filtered.length === 0) {
@@ -30,7 +33,7 @@ export const LikedMediaGrid = ({
     <div className={PROFILE_MEDIA_GRID_CLASSES}>
       {filtered.map((item) => (
         <MediaPosterGridItem
-          key={`media-${item.mediaType}-${item.tmdbId}`}
+          key={getMediaItemKey(item, "media")}
           item={item}
           interactionVerb="liked"
         />

@@ -10,9 +10,14 @@ export const diaryItemSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   media: z.object({
-    tmdbId: z.number().int(),
+    tmdbId: z.number().int().nullable(),
+    mbid: z.string().nullable().optional(),
+    volumeId: z.string().nullable().optional(),
     title: z.string(),
-    posterPath: z.string().nullable(),
+    posterPath: z.string().nullable().optional(),
+    coverArtUrl: z.string().nullable().optional(),
+    artistName: z.string().nullable().optional(),
+    authors: z.array(z.string()).nullable().optional(),
     releaseYear: z.number().int().nullable(),
   }),
   review: z

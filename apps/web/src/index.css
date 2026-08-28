@@ -146,6 +146,8 @@
 
   --module-cinema: #00ff88;
   --module-serial: #00cfff;
+  --module-music: #c084fc;
+  --module-book: #fb923c;
   --module-neutral: #9ca3af;
 
   --profile-shell-bg: color-mix(in srgb, var(--background) 88%, black);
@@ -296,6 +298,8 @@
 
   --module-cinema: #00ff88;
   --module-serial: #00cfff;
+  --module-music: #c084fc;
+  --module-book: #fb923c;
   --module-neutral: #9ca3af;
 }
 
@@ -419,6 +423,8 @@
 
   --module-cinema: #7aa2f7;
   --module-serial: #bb9af7;
+  --module-music: #9ece6a;
+  --module-book: #e0af68;
   --module-neutral: #565f89;
 }
 
@@ -526,6 +532,8 @@
 
   --module-cinema: #a855f7;
   --module-serial: #818cf8;
+  --module-music: #f472b6;
+  --module-book: #fbbf24;
   --module-neutral: #888888;
 }
 

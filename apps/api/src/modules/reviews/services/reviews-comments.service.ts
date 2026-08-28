@@ -3,6 +3,7 @@ import { ReviewsRepository } from "../repositories/reviews.repository";
 import { SocialRepository } from "../../social/repositories/social.repository";
 import { SocialFeedService } from "../../social/services/social-feed.service";
 import { NotificationsService } from "../../notifications/notifications.service";
+import { toReviewMediaType } from "../helpers/review-media-type.helper";
 
 export class ReviewsCommentsService {
   static async getComments(reviewId: string) {
@@ -21,10 +22,7 @@ export class ReviewsCommentsService {
       throw new Error("Could not create comment");
     }
 
-    const activityMediaType =
-      review.mediaType === "movie" || review.mediaType === "tv"
-        ? review.mediaType
-        : null;
+    const mediaType = toReviewMediaType(review.mediaType);
 
     const [, commentWithAuthor] = await Promise.all([
       SocialRepository.insertActivity({
@@ -37,12 +35,17 @@ export class ReviewsCommentsService {
             commentId: comment.id,
             content,
             targetUsername: review.reviewAuthorUsername,
-            mediaMetadata: activityMediaType
+            mediaMetadata: mediaType
               ? {
-                  mediaType: activityMediaType,
+                  mediaType,
                   tmdbId: review.tmdbId,
+                  mbid: review.mbid,
+                  volumeId: review.volumeId,
                   title: review.title,
                   posterPath: review.posterPath,
+                  coverArtUrl: review.coverArtUrl,
+                  artistName: review.artistName,
+                  authors: review.authors,
                   releaseYear: review.releaseYear,
                 }
               : null,

@@ -5,6 +5,7 @@ import { SerialFactsGrid } from "@/features/serials/components/serial-detail/Ser
 import { SerialRatingBreakdown } from "@/features/serials/components/serial-detail/SerialRatingBreakdown";
 import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
 import { toDateLabel } from "@/features/serials/components/serial-detail/utils";
+import { MediaStatsRow } from "@/features/media/components/MediaStatsRow";
 import { PersonRouteLink } from "@/features/people/components/PersonRouteLink";
 import {
   formatEpisodeRuntimeLabel,
@@ -101,48 +102,16 @@ export const SerialDetailsMainSection = ({
         )}
       </p>
 
-      <div
-        className="mb-8 flex flex-wrap items-center gap-8 border-b pb-8"
-        style={{ borderColor: SERIAL_MODULE_STYLES.borderSoft }}
-      >
-        <div>
-          <p
-            className="mb-1 font-mono text-[9px] uppercase tracking-[0.22em]"
-            style={{ color: SERIAL_MODULE_STYLES.faint }}
-          >
-            Community
-          </p>
-          <div className="flex items-baseline gap-2">
-            <span
-              className="font-mono text-2xl font-bold"
-              style={{ color: SERIAL_MODULE_STYLES.accent }}
-            >
-              {communityRatingLabel}
-            </span>
-            <span
-              className="font-mono text-[10px]"
-              style={{ color: SERIAL_MODULE_STYLES.faint }}
-            >
-              {detail.logsCount.toLocaleString()} logs
-            </span>
-          </div>
-        </div>
-
-        <div>
-          <p
-            className="mb-1 font-mono text-[9px] uppercase tracking-[0.22em]"
-            style={{ color: SERIAL_MODULE_STYLES.faint }}
-          >
-            TMDB
-          </p>
-          <span
-            className="font-mono text-2xl font-bold"
-            style={{ color: SERIAL_MODULE_STYLES.muted }}
-          >
-            {tmdbRatingLabel}
-          </span>
-        </div>
-      </div>
+      <MediaStatsRow
+        primaryValue={communityRatingLabel}
+        primaryCountLabel={`${detail.logsCount.toLocaleString()} logs`}
+        secondaryLabel="TMDB"
+        secondaryValue={tmdbRatingLabel}
+        accentColor={SERIAL_MODULE_STYLES.accent}
+        mutedColor={SERIAL_MODULE_STYLES.muted}
+        faintColor={SERIAL_MODULE_STYLES.faint}
+        borderColor={SERIAL_MODULE_STYLES.borderSoft}
+      />
 
       <p className="mb-8 text-sm leading-relaxed">
         {series.overview || "No synopsis is available for this series."}

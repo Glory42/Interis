@@ -30,9 +30,14 @@ const userReviewSchema = z
     rating: z.number().nullable().optional(),
     createdAt: z.string(),
     updatedAt: z.string(),
-    tmdbId: z.number().int(),
+    tmdbId: z.number().int().nullable().optional(),
+    mbid: z.string().nullable().optional(),
+    volumeId: z.string().nullable().optional(),
     title: z.string(),
-    posterPath: z.string().nullable(),
+    posterPath: z.string().nullable().optional(),
+    coverArtUrl: z.string().nullable().optional(),
+    artistName: z.string().nullable().optional(),
+    authors: z.array(z.string()).nullable().optional(),
     releaseYear: z.number().int().nullable(),
     mediaType: mediaTypeSchema.default("movie"),
   })
@@ -42,13 +47,19 @@ const userReviewListSchema = z.array(userReviewSchema);
 
 const userInteractionMovieSchema = z
   .object({
-    tmdbId: z.number().int(),
+    tmdbId: z.number().int().nullable().optional(),
+    mbid: z.string().nullable().optional(),
+    volumeId: z.string().nullable().optional(),
     title: z.string(),
-    posterPath: z.string().nullable(),
+    posterPath: z.string().nullable().optional(),
+    coverArtUrl: z.string().nullable().optional(),
+    coverImageUrl: z.string().nullable().optional(),
     releaseYear: z.number().int().nullable(),
-    runtime: z.number().int().nullable(),
+    runtime: z.number().int().nullable().optional(),
     genres: z.array(movieGenreSchema).nullish(),
     mediaType: mediaTypeSchema.default("movie"),
+    artistName: z.string().nullable().optional(),
+    authors: z.array(z.string()).nullable().optional(),
     lastInteractionAt: z.string(),
   })
   .passthrough();

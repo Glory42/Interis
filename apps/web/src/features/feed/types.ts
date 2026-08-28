@@ -37,11 +37,16 @@ export const feedActorSchema = z.object({
 
 export const feedMovieSchema = z
   .object({
-    tmdbId: z.number().int().positive(),
+    tmdbId: z.number().int().nullable().optional(),
     title: z.string(),
     posterPath: z.string().nullable(),
+    coverArtUrl: z.string().nullable().optional(),
     releaseYear: z.number().int().nullable(),
     mediaType: mediaTypeSchema.default("movie"),
+    mbid: z.string().nullable().optional(),
+    artistName: z.string().nullable().optional(),
+    volumeId: z.string().nullable().optional(),
+    authors: z.array(z.string()).nullable().optional(),
   })
   .nullable();
 
@@ -77,6 +82,8 @@ export const feedMetadataSchema = z.object({
   reviewId: z.string().nullable(),
   commentId: z.string().nullable(),
   movieId: z.number().nullable(),
+  mbid: z.string().nullable().optional(),
+  volumeId: z.string().nullable().optional(),
   postId: z.string().nullable(),
   postMediaId: z.number().nullable(),
   postMediaType: feedPostMediaTypeSchema.nullable(),

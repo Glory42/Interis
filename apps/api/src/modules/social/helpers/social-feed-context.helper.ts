@@ -3,6 +3,8 @@ import { parseMetadata, readString } from "./social-feed-metadata.helper";
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const isUuid = (s: string) => UUID_RE.test(s);
 import {
+  resolveAlbumFallbackMbid,
+  resolveBookFallbackVolumeId,
   resolveMovieFallbackId,
   resolvePostFallbackId,
   resolveReviewId,
@@ -163,6 +165,8 @@ export const buildFeedFallbackMediaContext = async (
 ): Promise<FeedFallbackMediaContext> => {
   const postIds = new Set<string>();
   const movieIds = new Set<number>();
+  const albumMbids = new Set<string>();
+  const bookVolumeIds = new Set<string>();
 
   for (const row of rows) {
     const rawMetadata = parseMetadata(row.activity.metadata);
@@ -181,21 +185,33 @@ export const buildFeedFallbackMediaContext = async (
         : null);
 
     if (!reviewDetails?.movie) {
-      const movieId = resolveMovieFallbackId(rawMetadata, row.activity, metadata);
-      if (movieId !== null) {
-        movieIds.add(movieId);
+      if (metadata.mediaType === "album") {
+        const mbid = resolveAlbumFallbackMbid(rawMetadata, metadata);
+        if (mbid) albumMbids.add(mbid);
+      } else if (metadata.mediaType === "book") {
+        const volumeId = resolveBookFallbackVolumeId(rawMetadata, metadata);
+        if (volumeId) bookVolumeIds.add(volumeId);
+      } else {
+        const movieId = resolveMovieFallbackId(rawMetadata, row.activity, metadata);
+        if (movieId !== null) {
+          movieIds.add(movieId);
+        }
       }
     }
   }
 
-  const [postRows, movieRows] = await Promise.all([
+  const [postRows, movieRows, albumRows, bookRows] = await Promise.all([
     SocialFeedRepository.getPostsByIds([...postIds]),
     SocialFeedRepository.getMoviesByIds([...movieIds]),
+    SocialFeedRepository.getAlbumsByMbids([...albumMbids]),
+    SocialFeedRepository.getBooksByVolumeIds([...bookVolumeIds]),
   ]);
 
   return {
     postsById: new Map(postRows.map((post) => [post.id, post])),
     moviesById: new Map(movieRows.map((movie) => [movie.id, movie])),
+    albumsByMbid: new Map(albumRows.map((album) => [album.mbid, album])),
+    booksByVolumeId: new Map(bookRows.map((book) => [book.volumeId, book])),
   };
 };
 

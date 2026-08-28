@@ -30,7 +30,7 @@ export const buildRecentActivityItems = (
 
   for (const activity of feedItems) {
     const media = activity.movie;
-    if (!media || !Number.isInteger(media.tmdbId) || media.title.trim().length === 0) {
+    if (!media || typeof media.tmdbId !== "number" || media.title.trim().length === 0) {
       continue;
     }
 
@@ -38,10 +38,12 @@ export const buildRecentActivityItems = (
       continue;
     }
 
+    const tmdbId = media.tmdbId;
+
     if (activity.kind === "diary_entry") {
       items.push({
         id: `${activity.id}-logged`,
-        tmdbId: media.tmdbId,
+        tmdbId,
         mediaType: media.mediaType,
         mediaTitle: media.title,
         posterPath: media.posterPath,
@@ -53,7 +55,7 @@ export const buildRecentActivityItems = (
       if (activity.review || activity.metadata.hasReview) {
         items.push({
           id: `${activity.id}-reviewed`,
-          tmdbId: media.tmdbId,
+          tmdbId,
           mediaType: media.mediaType,
           mediaTitle: media.title,
           posterPath: media.posterPath,
@@ -66,7 +68,7 @@ export const buildRecentActivityItems = (
       if (typeof activity.metadata.rating === "number") {
         items.push({
           id: `${activity.id}-rated`,
-          tmdbId: media.tmdbId,
+          tmdbId,
           mediaType: media.mediaType,
           mediaTitle: media.title,
           posterPath: media.posterPath,

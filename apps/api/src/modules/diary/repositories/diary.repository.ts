@@ -40,7 +40,8 @@ export class DiaryRepository {
     return ReviewsRepository.upsertReview({
       userId: input.userId,
       mediaType: "movie",
-      tmdbId: input.movieTmdbId,
+      mediaSource: "tmdb",
+      mediaSourceId: String(input.movieTmdbId),
       movieId: input.movieId,
       diaryEntryId: input.diaryEntryId,
       content: input.content,

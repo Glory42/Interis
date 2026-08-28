@@ -47,9 +47,14 @@ export type PublicDiaryItem = {
   createdAt: Date;
   updatedAt: Date;
   media: {
-    tmdbId: number;
+    tmdbId: number | null;
+    mbid?: string | null;
+    volumeId?: string | null;
     title: string;
-    posterPath: string | null;
+    posterPath?: string | null;
+    coverArtUrl?: string | null;
+    artistName?: string | null;
+    authors?: string[] | null;
     releaseYear: number | null;
   };
   review: {

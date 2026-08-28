@@ -137,7 +137,7 @@ describe("notifications", () => {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          tmdbId: movie.tmdbId,
+          mediaSourceId: String(movie.tmdbId),
           mediaType: "movie",
           content: "Loved it",
         }),

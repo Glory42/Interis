@@ -1,4 +1,4 @@
-import { Film, Tv, Users } from "lucide-react";
+import { BookOpen, Film, Music, Tv, Users } from "lucide-react";
 import type { QuickLink, ScopedTarget } from "./types";
 
 export const MIN_QUERY_LENGTH = 2;
@@ -8,12 +8,16 @@ export const scopedPlaceholder: Record<ScopedTarget, string> = {
   users: "Search among users",
   cinema: "Search among cinema",
   serials: "Search among serials",
+  music: "Search among music",
+  books: "Search among books",
 };
 
 export const scopedEmptyPrompt: Record<ScopedTarget, string> = {
   users: "Search among users",
   cinema: "Search among cinema",
   serials: "Search among serials",
+  music: "Search among music",
+  books: "Search among books",
 };
 
 export const quickLinks: QuickLink[] = [
@@ -40,5 +44,21 @@ export const quickLinks: QuickLink[] = [
     icon: Tv,
     color: "var(--module-serial)",
     tint: "rgba(0, 207, 255, 0.1)",
+  },
+  {
+    target: "music",
+    title: "Discover Music",
+    description: "Search among all albums",
+    icon: Music,
+    color: "var(--module-music)",
+    tint: "color-mix(in srgb, var(--module-music) 12%, transparent)",
+  },
+  {
+    target: "books",
+    title: "Discover Books",
+    description: "Search among all books",
+    icon: BookOpen,
+    color: "var(--module-book)",
+    tint: "color-mix(in srgb, var(--module-book) 12%, transparent)",
   },
 ];

@@ -45,7 +45,7 @@ export const DiaryRow = ({ row, username }: DiaryRowProps) => {
 
       <div className="hidden md:block">
         <DiaryMediaLink row={row} className="block">
-          <DiaryPosterCell title={row.title} posterPath={row.posterPath} />
+          <DiaryPosterCell title={row.title} posterPath={row.posterPath} coverArtUrl={row.coverArtUrl} />
         </DiaryMediaLink>
       </div>
 

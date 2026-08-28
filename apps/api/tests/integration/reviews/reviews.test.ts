@@ -40,7 +40,7 @@ describe("reviews", () => {
       {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ tmdbId, content, ...extra }),
+        body: JSON.stringify({ mediaSourceId: String(tmdbId), content, ...extra }),
       },
       jar,
     );
@@ -57,7 +57,7 @@ describe("reviews", () => {
       const response = await apiRequest(getServer().baseUrl, "/api/reviews", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ tmdbId: movie.tmdbId, content: "hi" }),
+        body: JSON.stringify({ mediaSourceId: String(movie.tmdbId), content: "hi" }),
       });
       expect(response.status).toBe(401);
     });
@@ -115,7 +115,7 @@ describe("reviews", () => {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
-            tmdbId: serial.tmdbId,
+            mediaSourceId: String(serial.tmdbId),
             mediaType: "tv",
             content: "TV take",
           }),

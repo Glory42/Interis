@@ -1,8 +1,16 @@
+import type { GoogleBooksVolume } from "@/features/books/api";
+import type { MbSearchResult } from "@/features/music/api";
 import type { UserSearchResult } from "@/features/profile/api";
 import type { UnifiedSearchResult } from "@/features/search/api";
 import type { TmdbSearchSeries } from "@/features/serials/api";
 import type { TmdbSearchMovie } from "@/types/api";
-import type { CinemaResultEntry, SerialResultEntry, UserResultEntry } from "./types";
+import type {
+  BookResultEntry,
+  CinemaResultEntry,
+  MusicResultEntry,
+  SerialResultEntry,
+  UserResultEntry,
+} from "./types";
 
 export const toUserEntry = (profile: UserSearchResult): UserResultEntry => {
   const profileName = profile.displayUsername?.trim() || profile.username;
@@ -32,6 +40,32 @@ export const toSerialEntry = (series: TmdbSearchSeries): SerialResultEntry => ({
   title: series.name,
   posterPath: series.poster_path,
   firstAirDate: series.first_air_date,
+});
+
+export const toMusicEntry = (result: MbSearchResult): MusicResultEntry => {
+  const artistName = result["artist-credit"]
+    .map((credit) => credit.name + (credit.joinphrase ?? ""))
+    .join("") || "Unknown Artist";
+
+  return {
+    kind: "music",
+    id: `music-${result.id}`,
+    mbid: result.id,
+    title: result.title,
+    artistName,
+    primaryType: result["primary-type"] ?? null,
+    firstReleaseDate: result["first-release-date"] ?? null,
+  };
+};
+
+export const toBookEntry = (volume: GoogleBooksVolume): BookResultEntry => ({
+  kind: "books",
+  id: `books-${volume.id}`,
+  volumeId: volume.id,
+  title: volume.volumeInfo.title,
+  authors: volume.volumeInfo.authors,
+  coverImageUrl: volume.volumeInfo.imageLinks?.thumbnail ?? null,
+  publishedDate: volume.volumeInfo.publishedDate ?? null,
 });
 
 export const toTitleEntry = (

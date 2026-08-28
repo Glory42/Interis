@@ -5,7 +5,9 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
+import { useBookSearch } from "@/features/books/hooks/useBooks";
 import { useMovieSearch } from "@/features/films/hooks/useMovies";
+import { useMusicSearch } from "@/features/music/hooks/useMusic";
 import { useUserSearch } from "@/features/profile/hooks/useProfile";
 import { useTitleSearch } from "@/features/search/hooks/useSearch";
 import { useSerialSearch } from "@/features/serials/hooks/useSerials";
@@ -13,7 +15,14 @@ import {
   MAX_RESULTS_PER_SECTION,
   MIN_QUERY_LENGTH,
 } from "./constants";
-import { toCinemaEntry, toSerialEntry, toTitleEntry, toUserEntry } from "./mappers";
+import {
+  toBookEntry,
+  toCinemaEntry,
+  toMusicEntry,
+  toSerialEntry,
+  toTitleEntry,
+  toUserEntry,
+} from "./mappers";
 import type {
   ScopedTarget,
   SearchMode,
@@ -71,12 +80,22 @@ export const useGlobalSearchState = (): GlobalSearchState => {
     shouldRunSearch && isScopedMode && scopedTarget === "serials"
       ? deferredQuery
       : "";
+  const musicQueryValue =
+    shouldRunSearch && (!isScopedMode || scopedTarget === "music")
+      ? deferredQuery
+      : "";
+  const booksQueryValue =
+    shouldRunSearch && (!isScopedMode || scopedTarget === "books")
+      ? deferredQuery
+      : "";
   const titlesQueryValue =
     shouldRunSearch && !isScopedMode ? deferredQuery : "";
 
   const usersQuery = useUserSearch(usersQueryValue, MAX_RESULTS_PER_SECTION);
   const cinemaQuery = useMovieSearch(cinemaQueryValue);
   const serialsQuery = useSerialSearch(serialsQueryValue);
+  const musicQuery = useMusicSearch(musicQueryValue);
+  const booksQuery = useBookSearch(booksQueryValue);
   const titlesQuery = useTitleSearch(titlesQueryValue);
 
   const userEntries = useMemo(() => {
@@ -90,6 +109,14 @@ export const useGlobalSearchState = (): GlobalSearchState => {
   const serialEntries = useMemo(() => {
     return (serialsQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toSerialEntry);
   }, [serialsQuery.data]);
+
+  const musicEntries = useMemo(() => {
+    return (musicQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toMusicEntry);
+  }, [musicQuery.data]);
+
+  const bookEntries = useMemo(() => {
+    return (booksQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toBookEntry);
+  }, [booksQuery.data]);
 
   const titleEntries = useMemo(() => {
     return (titlesQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toTitleEntry);
@@ -136,6 +163,30 @@ export const useGlobalSearchState = (): GlobalSearchState => {
       ];
     }
 
+    if (isScopedMode && scopedTarget === "music") {
+      return [
+        {
+          target: "music",
+          label: "Music",
+          items: musicEntries,
+          isLoading: musicQuery.isFetching,
+          isError: musicQuery.isError,
+        },
+      ];
+    }
+
+    if (isScopedMode && scopedTarget === "books") {
+      return [
+        {
+          target: "books",
+          label: "Books",
+          items: bookEntries,
+          isLoading: booksQuery.isFetching,
+          isError: booksQuery.isError,
+        },
+      ];
+    }
+
     return [
       {
         target: "users",
@@ -151,6 +202,20 @@ export const useGlobalSearchState = (): GlobalSearchState => {
         isLoading: titlesQuery.isFetching,
         isError: titlesQuery.isError,
       },
+      {
+        target: "music",
+        label: "Music",
+        items: musicEntries,
+        isLoading: musicQuery.isFetching,
+        isError: musicQuery.isError,
+      },
+      {
+        target: "books",
+        label: "Books",
+        items: bookEntries,
+        isLoading: booksQuery.isFetching,
+        isError: booksQuery.isError,
+      },
     ];
   }, [
     shouldRunSearch,
@@ -159,6 +224,8 @@ export const useGlobalSearchState = (): GlobalSearchState => {
     userEntries,
     cinemaEntries,
     serialEntries,
+    musicEntries,
+    bookEntries,
     titleEntries,
     usersQuery.isFetching,
     usersQuery.isError,
@@ -166,6 +233,10 @@ export const useGlobalSearchState = (): GlobalSearchState => {
     cinemaQuery.isError,
     serialsQuery.isFetching,
     serialsQuery.isError,
+    musicQuery.isFetching,
+    musicQuery.isError,
+    booksQuery.isFetching,
+    booksQuery.isError,
     titlesQuery.isFetching,
     titlesQuery.isError,
   ]);

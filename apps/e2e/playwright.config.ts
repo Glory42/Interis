@@ -13,7 +13,16 @@ const apiPort = new URL(apiBaseURL).port || "5000";
 
 export default defineConfig({
   testDir: "./tests",
-  timeout: 60_000,
+  // CI's Postgres service container periodically stalls for 30-40s on its
+  // own WAL checkpoint writes (confirmed via the container's own logs -
+  // "checkpoint complete: ... write=41.295 s ..." - a GitHub Actions runner
+  // disk I/O characteristic, nothing to do with the app or this suite).
+  // A journey whose account-deletion teardown happens to land during one
+  // of those stalls would blow a 60s test budget through no fault of its
+  // own, on a different spec each run. 120s leaves comfortable headroom
+  // above the observed stall length for CI; local runs never see this
+  // (no shared-runner I/O contention), so they keep the tighter default.
+  timeout: process.env.CI ? 120_000 : 60_000,
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
@@ -51,6 +60,13 @@ export default defineConfig({
           // documented default is "localhost", which are different
           // origins for CORS purposes).
           env: { PORT: apiPort, CORS_ORIGIN: baseURL },
+          // Temporary: piping the backend's own request logs into the CI
+          // job's output to get direct visibility into a still-unexplained
+          // intermittent DELETE /api/auth/account hang - nothing about the
+          // backend process itself was visible in CI logs before this,
+          // only the test runner's own output. Revert once diagnosed.
+          stdout: "pipe",
+          stderr: "pipe",
         },
         {
           // --port/--strictPort so a custom E2E_BASE_URL actually binds

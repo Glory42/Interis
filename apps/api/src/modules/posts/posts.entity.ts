@@ -10,10 +10,14 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "../../infrastructure/database/auth.entity";
 
+// Deliberately narrower than the app-wide MediaType union - standalone posts
+// don't support attaching an album/book (see 0027_remove_post_book_music_media_type).
 export const postMediaTypeEnum = pgEnum("post_media_type", [
   "movie",
   "tv",
 ]);
+
+export type PostMediaType = (typeof postMediaTypeEnum.enumValues)[number];
 
 export const posts = pgTable("post", {
   id: uuid("id")

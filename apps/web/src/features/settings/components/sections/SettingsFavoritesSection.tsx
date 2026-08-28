@@ -1,4 +1,4 @@
-import { Film, Tv } from "lucide-react";
+import { BookOpen, Film, Music, Tv } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { FavoritesPickerDialogs } from "./favorites/FavoritesPickerDialogs";
@@ -24,7 +24,7 @@ export const SettingsFavoritesSection = () => {
       <div className="border p-5 settings-shell-border settings-shell-panel">
         <p className="mb-1 text-base font-bold text-foreground">Top Picks</p>
         <p className="mb-5 text-sm settings-shell-muted">
-          Set up to 4 favorites for Cinema and Serial. These appear as a showcase on your public profile.
+          Set up to 4 favorites for Cinema, Serial, Music, and Books. These appear as a showcase on your public profile.
         </p>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -38,7 +38,6 @@ export const SettingsFavoritesSection = () => {
                 ({controller.selectedCinemaCount}/4)
               </span>
             </div>
-
             <FavoritesSlotList
               category="cinema"
               slots={controller.cinemaSlots}
@@ -58,10 +57,47 @@ export const SettingsFavoritesSection = () => {
                 ({controller.selectedSerialCount}/4)
               </span>
             </div>
-
             <FavoritesSlotList
               category="serial"
               slots={controller.serialSlots}
+              isBusy={controller.isBusy}
+              onOpenSlotPicker={controller.openPickerForSlot}
+              onClearSlot={controller.handleClearSlot}
+            />
+          </div>
+
+          <div>
+            <div className="mb-3 flex items-center gap-2">
+              <Music className="h-3.5 w-3.5" style={{ color: "var(--module-music)" }} />
+              <span className="text-sm font-semibold" style={{ color: "var(--module-music)" }}>
+                Music
+              </span>
+              <span className="text-xs settings-shell-muted">
+                ({controller.selectedMusicCount}/4)
+              </span>
+            </div>
+            <FavoritesSlotList
+              category="music"
+              slots={controller.musicSlots}
+              isBusy={controller.isBusy}
+              onOpenSlotPicker={controller.openPickerForSlot}
+              onClearSlot={controller.handleClearSlot}
+            />
+          </div>
+
+          <div>
+            <div className="mb-3 flex items-center gap-2">
+              <BookOpen className="h-3.5 w-3.5" style={{ color: "var(--module-book)" }} />
+              <span className="text-sm font-semibold" style={{ color: "var(--module-book)" }}>
+                Books
+              </span>
+              <span className="text-xs settings-shell-muted">
+                ({controller.selectedBooksCount}/4)
+              </span>
+            </div>
+            <FavoritesSlotList
+              category="books"
+              slots={controller.booksSlots}
               isBusy={controller.isBusy}
               onOpenSlotPicker={controller.openPickerForSlot}
               onClearSlot={controller.handleClearSlot}
@@ -95,9 +131,7 @@ export const SettingsFavoritesSection = () => {
 
         <button
           type="button"
-          onClick={() => {
-            void controller.handleSaveFavorites();
-          }}
+          onClick={() => { void controller.handleSaveFavorites(); }}
           disabled={controller.updateProfileMutation.isPending || !controller.isDirty}
           className="mt-5 px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           style={{ background: "var(--settings-shell-accent)", color: "var(--primary-foreground)" }}
@@ -111,14 +145,14 @@ export const SettingsFavoritesSection = () => {
         searchQuery={controller.searchQuery}
         isSelectingMovie={controller.isSelectingMovie}
         isSelectingSeries={controller.isSelectingSeries}
+        isSelectingAlbum={controller.isSelectingAlbum}
+        isSelectingBook={controller.isSelectingBook}
         onClose={controller.closePicker}
         onQueryChange={controller.setSearchQuery}
-        onSelectMovie={(movie) => {
-          void controller.handleSelectMovie(movie);
-        }}
-        onSelectSeries={(series) => {
-          void controller.handleSelectSeries(series);
-        }}
+        onSelectMovie={(movie) => { void controller.handleSelectMovie(movie); }}
+        onSelectSeries={(series) => { void controller.handleSelectSeries(series); }}
+        onSelectAlbum={(result) => { void controller.handleSelectAlbum(result); }}
+        onSelectBook={(volume) => { void controller.handleSelectBook(volume); }}
       />
     </div>
   );

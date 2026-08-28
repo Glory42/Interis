@@ -1,7 +1,8 @@
-import { randomInt } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import { db } from "../../../src/infrastructure/database/db";
 import { movies } from "../../../src/modules/movies/movies.entity";
 import { tvSeries } from "../../../src/modules/serials/serials.entity";
+import { albums, tracks } from "../../../src/modules/music/music.entity";
 
 // MoviesCacheService/SerialsCacheService.findOrCreate() checks the DB by
 // tmdbId before ever hitting the TMDB API — seeding rows directly here lets
@@ -36,6 +37,38 @@ export const seedTestSerial = async (
 
   if (!row) {
     throw new Error("Failed to seed test serial");
+  }
+
+  return row;
+};
+
+export const seedTestAlbum = async (
+  title = "Test Album",
+): Promise<{ id: number; mbid: string }> => {
+  const mbid = randomUUID();
+  const [row] = await db
+    .insert(albums)
+    .values({ mbid, title, artistName: "Test Artist" })
+    .returning({ id: albums.id, mbid: albums.mbid });
+
+  if (!row) {
+    throw new Error("Failed to seed test album");
+  }
+
+  return row;
+};
+
+export const seedTestTrack = async (
+  title = "Test Track",
+): Promise<{ id: number; mbid: string }> => {
+  const mbid = randomUUID();
+  const [row] = await db
+    .insert(tracks)
+    .values({ mbid, title, artistName: "Test Artist" })
+    .returning({ id: tracks.id, mbid: tracks.mbid });
+
+  if (!row) {
+    throw new Error("Failed to seed test track");
   }
 
   return row;

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { MediaPosterGridItem } from "@/features/profile/components/MediaPosterGridItem";
+import { getMediaItemKey } from "@/features/profile/utils/media-item-key";
 import {
   PROFILE_MEDIA_GRID_CLASSES,
   ProfileMediaGridSkeleton,
@@ -11,27 +12,22 @@ import {
 } from "@/features/profile/components/ProfileTabEmptyState";
 import type { UserInteractionMovie } from "@/features/profile/api";
 
-type FavoritesFilter = "all" | "cinema" | "serial";
+type FavoritesFilter = "all" | "cinema" | "serial" | "music" | "books";
 
 const filterTabs: Array<{ key: FavoritesFilter; label: string }> = [
   { key: "all", label: "All" },
   { key: "cinema", label: "Cinema" },
   { key: "serial", label: "Serial" },
+  { key: "music", label: "Music" },
+  { key: "books", label: "Books" },
 ];
 
 const filterMatches = (item: UserInteractionMovie, filter: FavoritesFilter): boolean => {
-  if (filter === "all") {
-    return true;
-  }
-
-  if (filter === "cinema") {
-    return item.mediaType === "movie";
-  }
-
-  if (filter === "serial") {
-    return item.mediaType === "tv";
-  }
-
+  if (filter === "all") return true;
+  if (filter === "cinema") return item.mediaType === "movie";
+  if (filter === "serial") return item.mediaType === "tv";
+  if (filter === "music") return item.mediaType === "album";
+  if (filter === "books") return item.mediaType === "book";
   return false;
 };
 
@@ -138,7 +134,7 @@ export const ProfileMediaInteractionGridSection = ({
             <div className={PROFILE_MEDIA_GRID_CLASSES}>
               {filteredItems.map((item) => (
                 <MediaPosterGridItem
-                  key={`${sectionTitle}-${item.mediaType}-${item.tmdbId}`}
+                  key={getMediaItemKey(item, sectionTitle)}
                   item={item}
                   interactionVerb={interactionVerb}
                 />

@@ -4,10 +4,12 @@ import { patchFeedItems, invalidateFollowingFeed } from "@/features/feed/hooks/f
 import { restoreQueries, type QuerySnapshot } from "@/lib/query-optimistic";
 import {
   addReviewComment,
+  createReview,
   deleteReviewComment,
   getProfileReviewDetail,
   getReviewComments,
   likeReview,
+  type CreateReviewInput,
   type ReviewComment,
   type ReviewDetail,
   type ReviewMediaType,
@@ -268,6 +270,17 @@ export const useUnlikeReview = (reviewId: string) => {
     onSettled: async () => {
       await invalidateFollowingFeed(queryClient);
     },
+  });
+};
+
+// No feed/cache patching here on purpose - callers (e.g. a Log*Modal
+// bundling a diary log with a review) already know which detail-view query
+// key needs invalidating for their specific media type, so that stays their
+// responsibility rather than coupling this generic hook to every media
+// type's query keys.
+export const useCreateReview = () => {
+  return useMutation({
+    mutationFn: (input: CreateReviewInput) => createReview(input),
   });
 };
 

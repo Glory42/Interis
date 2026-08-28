@@ -1,0 +1,1 @@
+ALTER TABLE "track_interaction" ADD COLUMN "want_to_listen" boolean DEFAULT false NOT NULL;

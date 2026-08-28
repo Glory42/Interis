@@ -40,12 +40,19 @@ export const FavoritesSlotList = ({
                     alt=""
                     className="h-full w-full object-cover"
                   />
+                ) : slot.coverArtUrl ? (
+                  <img
+                    src={slot.coverArtUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
                 ) : null}
               </span>
             ) : null}
 
             <span className={"text-sm " + (slot ? "text-foreground" : "settings-shell-muted")}>
-              {slot?.title ?? `${category === "cinema" ? "Cinema" : "Serial"} #${index + 1}`}
+              {slot?.title ??
+                `${category === "cinema" ? "Cinema" : category === "serial" ? "Serial" : category === "music" ? "Music" : "Books"} #${index + 1}`}
             </span>
           </button>
 
