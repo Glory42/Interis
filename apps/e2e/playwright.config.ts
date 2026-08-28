@@ -60,6 +60,13 @@ export default defineConfig({
           // documented default is "localhost", which are different
           // origins for CORS purposes).
           env: { PORT: apiPort, CORS_ORIGIN: baseURL },
+          // Temporary: piping the backend's own request logs into the CI
+          // job's output to get direct visibility into a still-unexplained
+          // intermittent DELETE /api/auth/account hang - nothing about the
+          // backend process itself was visible in CI logs before this,
+          // only the test runner's own output. Revert once diagnosed.
+          stdout: "pipe",
+          stderr: "pipe",
         },
         {
           // --port/--strictPort so a custom E2E_BASE_URL actually binds
