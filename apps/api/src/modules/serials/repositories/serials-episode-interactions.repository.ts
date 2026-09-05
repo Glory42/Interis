@@ -2,6 +2,7 @@ import { eq, and, like, or, isNull, inArray, gt, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { serialEpisodeInteractions, serialInteractions, tvSeries } from "../serials.entity";
 import { reviews } from "../../reviews/reviews.entity";
+import { TV_EPISODE_REVIEW_TYPE } from "../../reviews/constants/review-media-type.constant";
 import { SPECIALS_SEASON_NUMBER } from "../constants/serials-season.constants";
 
 export class SerialsEpisodeInteractionsRepository {
@@ -28,7 +29,7 @@ export class SerialsEpisodeInteractionsRepository {
       .where(
         and(
           eq(reviews.userId, userId),
-          eq(reviews.mediaType, "tv_episode"),
+          eq(reviews.mediaType, TV_EPISODE_REVIEW_TYPE),
           like(reviews.mediaSourceId, `${seriesTmdbId}:${seasonNumber}:%`),
         ),
       );
@@ -247,7 +248,7 @@ export class SerialsEpisodeInteractionsRepository {
       .where(
         and(
           eq(reviews.userId, userId),
-          eq(reviews.mediaType, "tv_episode"),
+          eq(reviews.mediaType, TV_EPISODE_REVIEW_TYPE),
           like(reviews.mediaSourceId, `${seriesTmdbId}:%`),
         ),
       );

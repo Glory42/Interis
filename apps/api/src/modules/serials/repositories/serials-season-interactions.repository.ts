@@ -2,6 +2,7 @@ import { eq, and, like } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { serialSeasonInteractions } from "../serials.entity";
 import { reviews } from "../../reviews/reviews.entity";
+import { TV_SEASON_REVIEW_TYPE } from "../../reviews/constants/review-media-type.constant";
 
 export class SerialsSeasonInteractionsRepository {
   static async getViewerSeasonInteractions(userId: string, seriesId: number, seriesTmdbId: number) {
@@ -21,7 +22,7 @@ export class SerialsSeasonInteractionsRepository {
       .where(
         and(
           eq(reviews.userId, userId),
-          eq(reviews.mediaType, "tv_season"),
+          eq(reviews.mediaType, TV_SEASON_REVIEW_TYPE),
           like(reviews.mediaSourceId, `${seriesTmdbId}:%`),
         ),
       );

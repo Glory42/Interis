@@ -5,6 +5,12 @@ import { profiles } from "../../users/users.entity";
 import { reviews } from "../../reviews/reviews.entity";
 import { serialEpisodeInteractions, serialSeasonInteractions } from "../serials.entity";
 import { parseEpisodeMediaSourceId, parseSeasonMediaSourceId } from "../helpers/serials-media-source.helper";
+import {
+  SEASON_EPISODE_REVIEW_MEDIA_TYPES,
+  TV_EPISODE_REVIEW_TYPE,
+  TV_SEASON_REVIEW_TYPE,
+  type SeasonEpisodeReviewMediaType,
+} from "../../reviews/constants/review-media-type.constant";
 
 export type SerialSeasonEpisodeReviewRow = {
   id: string;
@@ -49,7 +55,7 @@ export class SerialsSeasonEpisodeReviewsRepository {
       .leftJoin(profiles, eq(profiles.userId, reviews.userId))
       .where(
         and(
-          inArray(reviews.mediaType, ["tv_season", "tv_episode"]),
+          inArray(reviews.mediaType, SEASON_EPISODE_REVIEW_MEDIA_TYPES),
           // mediaSourceId is "{tmdbId}:{season}[:{episode}]" - split_part
           // avoids a LIKE '${tmdbId}:%' false-positive (e.g. tmdbId 12
           // matching a stored "123:1").
@@ -63,14 +69,14 @@ export class SerialsSeasonEpisodeReviewsRepository {
     }
 
     const seasonRows = rows
-      .filter((row) => row.mediaType === "tv_season")
+      .filter((row) => row.mediaType === TV_SEASON_REVIEW_TYPE)
       .map((row) => ({ ...row, parsed: parseSeasonMediaSourceId(row.mediaSourceId) }))
       .filter(
         (row): row is typeof row & { parsed: NonNullable<typeof row.parsed> } =>
           row.parsed !== null,
       );
     const episodeRows = rows
-      .filter((row) => row.mediaType === "tv_episode")
+      .filter((row) => row.mediaType === TV_EPISODE_REVIEW_TYPE)
       .map((row) => ({ ...row, parsed: parseEpisodeMediaSourceId(row.mediaSourceId) }))
       .filter(
         (row): row is typeof row & { parsed: NonNullable<typeof row.parsed> } =>
@@ -151,7 +157,7 @@ export class SerialsSeasonEpisodeReviewsRepository {
   // how their mediaSourceId is composed, so the CRUD itself is shared here.
   private static async getReviewByMediaSource(
     userId: string,
-    mediaType: "tv_season" | "tv_episode",
+    mediaType: SeasonEpisodeReviewMediaType,
     mediaSourceId: string,
   ) {
     const [row] = await db
@@ -171,7 +177,7 @@ export class SerialsSeasonEpisodeReviewsRepository {
 
   private static async upsertReviewByMediaSource(
     userId: string,
-    mediaType: "tv_season" | "tv_episode",
+    mediaType: SeasonEpisodeReviewMediaType,
     mediaSourceId: string,
     input: { content: string; containsSpoilers?: boolean },
   ) {
@@ -212,7 +218,7 @@ export class SerialsSeasonEpisodeReviewsRepository {
 
   private static async deleteReviewByMediaSource(
     userId: string,
-    mediaType: "tv_season" | "tv_episode",
+    mediaType: SeasonEpisodeReviewMediaType,
     mediaSourceId: string,
   ) {
     const [deleted] = await db
@@ -232,7 +238,7 @@ export class SerialsSeasonEpisodeReviewsRepository {
   static async getSeasonReview(userId: string, seriesTmdbId: number, seasonNumber: number) {
     return SerialsSeasonEpisodeReviewsRepository.getReviewByMediaSource(
       userId,
-      "tv_season",
+      TV_SEASON_REVIEW_TYPE,
       `${seriesTmdbId}:${seasonNumber}`,
     );
   }
@@ -245,7 +251,7 @@ export class SerialsSeasonEpisodeReviewsRepository {
   ) {
     return SerialsSeasonEpisodeReviewsRepository.upsertReviewByMediaSource(
       userId,
-      "tv_season",
+      TV_SEASON_REVIEW_TYPE,
       `${seriesTmdbId}:${seasonNumber}`,
       input,
     );
@@ -254,7 +260,7 @@ export class SerialsSeasonEpisodeReviewsRepository {
   static async deleteSeasonReview(userId: string, seriesTmdbId: number, seasonNumber: number) {
     return SerialsSeasonEpisodeReviewsRepository.deleteReviewByMediaSource(
       userId,
-      "tv_season",
+      TV_SEASON_REVIEW_TYPE,
       `${seriesTmdbId}:${seasonNumber}`,
     );
   }
@@ -267,7 +273,7 @@ export class SerialsSeasonEpisodeReviewsRepository {
   ) {
     return SerialsSeasonEpisodeReviewsRepository.getReviewByMediaSource(
       userId,
-      "tv_episode",
+      TV_EPISODE_REVIEW_TYPE,
       `${seriesTmdbId}:${seasonNumber}:${episodeNumber}`,
     );
   }
@@ -281,7 +287,7 @@ export class SerialsSeasonEpisodeReviewsRepository {
   ) {
     return SerialsSeasonEpisodeReviewsRepository.upsertReviewByMediaSource(
       userId,
-      "tv_episode",
+      TV_EPISODE_REVIEW_TYPE,
       `${seriesTmdbId}:${seasonNumber}:${episodeNumber}`,
       input,
     );
@@ -295,7 +301,7 @@ export class SerialsSeasonEpisodeReviewsRepository {
   ) {
     return SerialsSeasonEpisodeReviewsRepository.deleteReviewByMediaSource(
       userId,
-      "tv_episode",
+      TV_EPISODE_REVIEW_TYPE,
       `${seriesTmdbId}:${seasonNumber}:${episodeNumber}`,
     );
   }

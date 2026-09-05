@@ -7,6 +7,10 @@ import { comments, reviewLikes, reviews } from "../../reviews/reviews.entity";
 import { serialDiaryEntries, serialSeasonInteractions, serialEpisodeInteractions, tvSeries } from "../../serials/serials.entity";
 import { movies } from "../../movies/movies.entity";
 import { profiles } from "../users.entity";
+import {
+  TV_EPISODE_REVIEW_TYPE,
+  TV_SEASON_REVIEW_TYPE,
+} from "../../reviews/constants/review-media-type.constant";
 
 type ReviewAuthorRow = {
   authorId: string;
@@ -198,11 +202,11 @@ export class UsersReviewsRepository {
       };
     }
 
-    if (reviewRow.mediaType === "tv_season" || reviewRow.mediaType === "tv_episode") {
+    if (reviewRow.mediaType === TV_SEASON_REVIEW_TYPE || reviewRow.mediaType === TV_EPISODE_REVIEW_TYPE) {
       const parts = reviewRow.mediaSourceId.split(":");
       const seriesTmdbId = Number(parts[0]);
       const seasonNumber = Number(parts[1]);
-      const episodeNumber = reviewRow.mediaType === "tv_episode" ? Number(parts[2]) : null;
+      const episodeNumber = reviewRow.mediaType === TV_EPISODE_REVIEW_TYPE ? Number(parts[2]) : null;
 
       if (!Number.isInteger(seriesTmdbId) || seriesTmdbId <= 0) {
         return null;

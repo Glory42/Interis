@@ -11,6 +11,11 @@ import {
   parseEpisodeMediaSourceId,
   parseSeasonMediaSourceId,
 } from "../../serials/helpers/serials-media-source.helper";
+import {
+  SEASON_EPISODE_REVIEW_MEDIA_TYPES,
+  TV_EPISODE_REVIEW_TYPE,
+  TV_SEASON_REVIEW_TYPE,
+} from "../../reviews/constants/review-media-type.constant";
 
 export type SocialFeedSerialReviewRow = {
   id: string;
@@ -52,7 +57,7 @@ export class SocialFeedSerialReviewRepository {
       .innerJoin(user, eq(reviews.userId, user.id))
       .where(
         and(
-          inArray(reviews.mediaType, ["tv_season", "tv_episode"]),
+          inArray(reviews.mediaType, SEASON_EPISODE_REVIEW_MEDIA_TYPES),
           inArray(reviews.id, reviewIds),
         ),
       );
@@ -62,14 +67,14 @@ export class SocialFeedSerialReviewRepository {
     }
 
     const seasonRows = rows
-      .filter((row) => row.mediaType === "tv_season")
+      .filter((row) => row.mediaType === TV_SEASON_REVIEW_TYPE)
       .map((row) => ({ ...row, parsed: parseSeasonMediaSourceId(row.mediaSourceId) }))
       .filter(
         (row): row is typeof row & { parsed: NonNullable<typeof row.parsed> } =>
           row.parsed !== null,
       );
     const episodeRows = rows
-      .filter((row) => row.mediaType === "tv_episode")
+      .filter((row) => row.mediaType === TV_EPISODE_REVIEW_TYPE)
       .map((row) => ({ ...row, parsed: parseEpisodeMediaSourceId(row.mediaSourceId) }))
       .filter(
         (row): row is typeof row & { parsed: NonNullable<typeof row.parsed> } =>
