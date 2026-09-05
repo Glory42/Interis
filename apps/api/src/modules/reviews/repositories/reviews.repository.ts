@@ -65,8 +65,9 @@ export class ReviewsRepository {
 
   // The one write path for the reviews table - standalone movie reviews,
   // TV reviews (SerialsReviewsRepository.upsertReview), and diary-linked
-  // movie reviews (DiaryRepository.upsertReview) all funnel through here.
-  // movieId is null for TV reviews, which have no row in the movies table.
+  // movie reviews (DiaryWriteService, DataImportService) all funnel through
+  // here. movieId is null for TV reviews, which have no row in the movies
+  // table.
   static async upsertReview(input: {
     userId: string;
     mediaType: MediaType;

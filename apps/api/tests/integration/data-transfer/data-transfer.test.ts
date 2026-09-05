@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
-import { seedTestMovie } from "../../support/factories/media.factory";
+import { seedTestMovie, seedTestSerial } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -147,6 +147,39 @@ describe("data-transfer", () => {
       const diaryResponse = await apiRequest(getServer().baseUrl, "/api/diary", {}, jar);
       const diary = (await diaryResponse.json()) as Array<{ movieTmdbId: number }>;
       expect(diary.some((entry) => entry.movieTmdbId === movie.tmdbId)).toBe(true);
+    });
+
+    it("saves the row's review text for an imported TV series diary entry, same as for a movie", async () => {
+      const { jar } = await signUpTestUser(getServer().baseUrl, "dtimportserialreview");
+      const serial = await seedTestSerial("Import Test Serial");
+
+      const csv = [
+        "WatchedDate,MediaType,Title,Year,TmdbId,Rating,Rewatch,Review,Spoilers",
+        `2024-02-01,tv,Import Test Serial,2020,${serial.tmdbId},4,false,Great show,false`,
+        "",
+      ].join("\n");
+
+      const response = await apiRequest(
+        getServer().baseUrl,
+        "/api/data/import",
+        { method: "POST", headers: { "content-type": "text/csv" }, body: csv },
+        jar,
+      );
+      expect(response.status).toBe(200);
+
+      const events = (await response.text())
+        .trim()
+        .split("\n")
+        .map((line) => JSON.parse(line));
+      expect(events.some((e) => e.type === "row" && e.status === "imported")).toBe(true);
+
+      const logsResponse = await apiRequest(getServer().baseUrl, "/api/serials/logs", {}, jar);
+      const logs = (await logsResponse.json()) as Array<{
+        seriesTmdbId: number;
+        reviewContent: string | null;
+      }>;
+      const importedLog = logs.find((log) => log.seriesTmdbId === serial.tmdbId);
+      expect(importedLog?.reviewContent).toBe("Great show");
     });
 
     it("skips a re-import of the same diary entry instead of duplicating it", async () => {

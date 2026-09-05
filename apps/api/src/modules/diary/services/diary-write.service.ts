@@ -1,6 +1,7 @@
 import { InteractionsService } from "../../interactions/interactions.service";
 import { MoviesService } from "../../movies/movies.service";
 import { MovieActivityRecorder } from "../../movies/services/movie-activity-recorder.service";
+import { ReviewsRepository } from "../../reviews/repositories/reviews.repository";
 import { buildDiaryEntryActivityMetadata } from "../helpers/diary-activity.helper";
 import { DiaryRepository } from "../repositories/diary.repository";
 import type { CreateDiaryDto, UpdateDiaryDto } from "../dto/diary.dto";
@@ -38,10 +39,11 @@ export class DiaryWriteService {
       | null = null;
 
     if (reviewContent) {
-      review = await DiaryRepository.upsertReview({
+      review = await ReviewsRepository.upsertReview({
         userId,
+        mediaType: "movie",
+        tmdbId: movie.tmdbId,
         movieId: movie.id,
-        movieTmdbId: movie.tmdbId,
         diaryEntryId: entry.id,
         content: reviewContent,
         containsSpoilers: input.containsSpoilers ?? false,

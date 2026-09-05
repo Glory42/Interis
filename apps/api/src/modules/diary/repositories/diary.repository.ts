@@ -3,7 +3,6 @@ import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
 import { reviews } from "../../reviews/reviews.entity";
-import { ReviewsRepository } from "../../reviews/repositories/reviews.repository";
 import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
 import { diaryEntries } from "../diary.entity";
 
@@ -27,25 +26,6 @@ export class DiaryRepository {
       .returning();
 
     return entry ?? null;
-  }
-
-  static async upsertReview(input: {
-    userId: string;
-    movieId: number;
-    movieTmdbId: number;
-    diaryEntryId: string;
-    content: string;
-    containsSpoilers: boolean;
-  }) {
-    return ReviewsRepository.upsertReview({
-      userId: input.userId,
-      mediaType: "movie",
-      tmdbId: input.movieTmdbId,
-      movieId: input.movieId,
-      diaryEntryId: input.diaryEntryId,
-      content: input.content,
-      containsSpoilers: input.containsSpoilers,
-    });
   }
 
   static async findAllByUser(userId: string, limit?: number, offset?: number) {
