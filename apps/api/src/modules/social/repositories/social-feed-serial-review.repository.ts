@@ -7,15 +7,8 @@ import {
   serialSeasonInteractions,
   tvSeries,
 } from "../../serials/serials.entity";
-import {
-  parseEpisodeMediaSourceId,
-  parseSeasonMediaSourceId,
-} from "../../serials/helpers/serials-media-source.helper";
-import {
-  SEASON_EPISODE_REVIEW_MEDIA_TYPES,
-  TV_EPISODE_REVIEW_TYPE,
-  TV_SEASON_REVIEW_TYPE,
-} from "../../reviews/constants/review-media-type.constant";
+import { splitSeasonEpisodeReviewRows } from "../../serials/helpers/serials-season-episode-review-rows.helper";
+import { SEASON_EPISODE_REVIEW_MEDIA_TYPES } from "../../reviews/constants/review-media-type.constant";
 
 export type SocialFeedSerialReviewRow = {
   id: string;
@@ -66,20 +59,7 @@ export class SocialFeedSerialReviewRepository {
       return [];
     }
 
-    const seasonRows = rows
-      .filter((row) => row.mediaType === TV_SEASON_REVIEW_TYPE)
-      .map((row) => ({ ...row, parsed: parseSeasonMediaSourceId(row.mediaSourceId) }))
-      .filter(
-        (row): row is typeof row & { parsed: NonNullable<typeof row.parsed> } =>
-          row.parsed !== null,
-      );
-    const episodeRows = rows
-      .filter((row) => row.mediaType === TV_EPISODE_REVIEW_TYPE)
-      .map((row) => ({ ...row, parsed: parseEpisodeMediaSourceId(row.mediaSourceId) }))
-      .filter(
-        (row): row is typeof row & { parsed: NonNullable<typeof row.parsed> } =>
-          row.parsed !== null,
-      );
+    const { seasonRows, episodeRows } = splitSeasonEpisodeReviewRows(rows);
 
     const tmdbIds = [
       ...new Set([

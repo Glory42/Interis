@@ -4,7 +4,7 @@ import { user } from "../../../infrastructure/database/auth.entity";
 import { profiles } from "../../users/users.entity";
 import { reviews } from "../../reviews/reviews.entity";
 import { serialEpisodeInteractions, serialSeasonInteractions } from "../serials.entity";
-import { parseEpisodeMediaSourceId, parseSeasonMediaSourceId } from "../helpers/serials-media-source.helper";
+import { splitSeasonEpisodeReviewRows } from "../helpers/serials-season-episode-review-rows.helper";
 import {
   SEASON_EPISODE_REVIEW_MEDIA_TYPES,
   TV_EPISODE_REVIEW_TYPE,
@@ -68,20 +68,7 @@ export class SerialsSeasonEpisodeReviewsRepository {
       return [];
     }
 
-    const seasonRows = rows
-      .filter((row) => row.mediaType === TV_SEASON_REVIEW_TYPE)
-      .map((row) => ({ ...row, parsed: parseSeasonMediaSourceId(row.mediaSourceId) }))
-      .filter(
-        (row): row is typeof row & { parsed: NonNullable<typeof row.parsed> } =>
-          row.parsed !== null,
-      );
-    const episodeRows = rows
-      .filter((row) => row.mediaType === TV_EPISODE_REVIEW_TYPE)
-      .map((row) => ({ ...row, parsed: parseEpisodeMediaSourceId(row.mediaSourceId) }))
-      .filter(
-        (row): row is typeof row & { parsed: NonNullable<typeof row.parsed> } =>
-          row.parsed !== null,
-      );
+    const { seasonRows, episodeRows } = splitSeasonEpisodeReviewRows(rows);
 
     const [seasonRatingRows, episodeRatingRows] = await Promise.all([
       seasonRows.length > 0
