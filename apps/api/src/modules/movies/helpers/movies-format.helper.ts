@@ -3,50 +3,19 @@ import type {
   CinemaArchiveFeaturedMovie,
   CinemaArchiveItem,
 } from "../types/movies.types";
+import {
+  compareMediaTimestampsAsc,
+  normalizeGenres,
+  toMediaTimestamp,
+} from "../../media/helpers/media-format.helper";
 
 export const toReleaseTimestamp = (
   releaseDate: string | null,
   releaseYear: number | null,
-): number => {
-  if (releaseDate) {
-    const parsed = Date.parse(releaseDate);
-    if (!Number.isNaN(parsed)) {
-      return parsed;
-    }
-  }
+): number => toMediaTimestamp(releaseDate, releaseYear);
 
-  if (releaseYear !== null && Number.isFinite(releaseYear)) {
-    return Date.UTC(releaseYear, 0, 1);
-  }
-
-  return Number.NEGATIVE_INFINITY;
-};
-
-export const normalizeMovieGenres = (rawGenres: unknown): ArchiveGenre[] => {
-  if (!Array.isArray(rawGenres)) {
-    return [];
-  }
-
-  return rawGenres
-    .map((genre) => {
-      if (!genre || typeof genre !== "object") {
-        return null;
-      }
-
-      const maybeId = (genre as { id?: unknown }).id;
-      const maybeName = (genre as { name?: unknown }).name;
-
-      if (typeof maybeId !== "number" || typeof maybeName !== "string") {
-        return null;
-      }
-
-      return {
-        id: maybeId,
-        name: maybeName,
-      };
-    })
-    .filter((genre): genre is ArchiveGenre => genre !== null);
-};
+export const normalizeMovieGenres = (rawGenres: unknown): ArchiveGenre[] =>
+  normalizeGenres<ArchiveGenre>(rawGenres);
 
 export const compareByReleaseDesc = (
   left: CinemaArchiveItem,
@@ -62,25 +31,12 @@ export const compareByReleaseAsc = (
   left: CinemaArchiveItem,
   right: CinemaArchiveItem,
 ): number => {
-  const leftTimestamp = toReleaseTimestamp(left.releaseDate, left.releaseYear);
-  const rightTimestamp = toReleaseTimestamp(right.releaseDate, right.releaseYear);
-
-  const leftMissingRelease = leftTimestamp === Number.NEGATIVE_INFINITY;
-  const rightMissingRelease = rightTimestamp === Number.NEGATIVE_INFINITY;
-
-  if (leftMissingRelease && !rightMissingRelease) {
-    return 1;
-  }
-
-  if (!leftMissingRelease && rightMissingRelease) {
-    return -1;
-  }
-
-  if (leftTimestamp !== rightTimestamp) {
-    return leftTimestamp - rightTimestamp;
-  }
-
-  return left.title.localeCompare(right.title);
+  return compareMediaTimestampsAsc(
+    toReleaseTimestamp(left.releaseDate, left.releaseYear),
+    toReleaseTimestamp(right.releaseDate, right.releaseYear),
+    left.title,
+    right.title,
+  );
 };
 
 export const toFeaturedMovie = (
