@@ -6,7 +6,7 @@ import {
   markNotificationRead,
 } from "@/features/notifications/api";
 
-const UNREAD_COUNT_POLL_INTERVAL_MS = 30_000;
+const UNREAD_COUNT_POLL_INTERVAL_MS = 60_000;
 
 export const notificationKeys = {
   list: ["notifications", "list"] as const,
