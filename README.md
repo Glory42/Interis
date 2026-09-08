@@ -60,13 +60,16 @@ service topology.
 
 Prerequisites:
 - Bun 1.3+
-- PostgreSQL (Neon recommended)
+- A local PostgreSQL (use `docker compose up postgres db-proxy`) — dev and
+  tests must not run against Neon; Neon is production-only
 - TMDB API access token
 
-1) Configure backend env (`apps/api/.env`)
+1) Configure backend env (`apps/api/.env`, see [`apps/api/.env.example`](apps/api/.env.example))
 
 ```env
-DATABASE_URL=
+DATABASE_URL=postgres://interis:interis@localhost:5432/interis
+DIRECT_DATABASE_URL=postgres://interis:interis@localhost:5432/interis
+USE_LOCAL_DB_PROXY=true
 JWT_ACCESS_SECRET=
 TMDB_ACCESS_TOKEN=
 CORS_ORIGIN=http://localhost:5173
@@ -79,6 +82,9 @@ R2_SECRET_ACCESS_KEY=
 R2_BUCKET_NAME=
 R2_PUBLIC_URL=
 ```
+
+Apply the schema with `bun run scripts/docker-migrate.ts` (plain
+`drizzle-kit migrate` targets Neon).
 
 2) Configure frontend env (`apps/web/.env`)
 
@@ -180,9 +186,10 @@ bun run test:smoke
 ```
 
 CI note: GitHub Actions runs backend typecheck/lint/architecture checks and
-the full integration suite on every PR, using the `DEVDATABASE_URL` secret
-from the repo's `a` [environment](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment) (a dedicated Neon database, kept separate from
-the main `DATABASE_URL`/dev database since the suite performs real writes).
+the full integration, contract, and unit suites on every PR against a
+throwaway `postgres:16-alpine` service container (`DIRECT_DATABASE_URL` points
+at it) — no Neon database is involved. The e2e job uses the same container and
+only needs the `a` [environment](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment) for the real `TMDB_ACCESS_TOKEN` secret.
 
 A pre-commit hook (Husky + lint-staged) runs ESLint on staged `apps/web` and
 `apps/api` files automatically — installed via `bun install` at the repo

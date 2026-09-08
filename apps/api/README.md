@@ -36,11 +36,15 @@ Default server port is `5000` unless `PORT` is set.
 
 ## Environment variables
 
-Create `backend/.env`:
+Create `backend/.env` (see [`.env.example`](.env.example)). Dev and tests run
+against a **local Postgres, never Neon** — `docker compose up postgres db-proxy`
+from the repo root brings it up. Neon is production-only (Render env vars).
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `DATABASE_URL` | yes | PostgreSQL connection string |
+| `DATABASE_URL` | yes | Postgres connection string — local for dev (`postgres://interis:interis@localhost:5432/interis`) |
+| `DIRECT_DATABASE_URL` | tests | Direct wire-protocol URL for the test suite + migrations; `db.ts` throws in `NODE_ENV=test` if it's unset or a `*.neon.tech` host |
+| `USE_LOCAL_DB_PROXY` | dev | `true` routes the neon-http driver through the local proxy on `:4444` |
 | `JWT_ACCESS_SECRET` | yes | 32+ chars, signs/verifies access tokens |
 | `TMDB_ACCESS_TOKEN` | yes | TMDB Bearer token |
 | `CORS_ORIGIN` | yes | Frontend origin (ex: `http://localhost:5173`) |
@@ -58,8 +62,8 @@ Create `backend/.env`:
 bun run dev     # watch mode
 bun run start   # single run
 bun test        # test suite
-bun run test:integration  # backend integration tests
-bun run test:db:migrate   # apply migrations for test DB
+bun run test:integration  # backend integration tests (needs local Postgres)
+bun run scripts/docker-migrate.ts  # apply migrations to local Postgres
 bun run test:db:reset     # truncate tables (guarded)
 bun run typecheck  # type check
 bun run lint:arch  # architecture guard rails
@@ -74,8 +78,9 @@ bun run lint:arch  # architecture guard rails
 Common Drizzle commands:
 
 ```bash
-bunx drizzle-kit generate   # generate migration from schema changes
-bunx drizzle-kit migrate    # apply migrations
+bunx drizzle-kit generate            # generate migration from schema changes
+bun run scripts/docker-migrate.ts    # apply migrations to local Postgres (DIRECT_DATABASE_URL)
+bunx drizzle-kit migrate             # apply migrations to Neon — prod / Render pre-deploy only
 ```
 
 ## Project structure

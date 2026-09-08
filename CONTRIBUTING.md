@@ -135,7 +135,9 @@ feature/
 ### Prerequisites
 
 - Bun 1.3+
-- PostgreSQL (Neon recommended for cloud dev)
+- A local PostgreSQL (`docker compose up postgres db-proxy`) — dev and the
+  test suite must not run against Neon (it drains the Free plan's monthly
+  network-transfer quota); Neon is production-only
 - TMDB API access token (Bearer token)
 
 ### Docker Compose (fastest path)
@@ -171,12 +173,13 @@ cd apps/api
 cp .env.example .env  # if available, otherwise create manually
 ```
 
-Fill in `apps/api/.env`:
+Fill in `apps/api/.env` (see [`apps/api/.env.example`](apps/api/.env.example)):
 
 ```env
-DATABASE_URL=postgresql://...
-BETTER_AUTH_URL=http://localhost:5000
-BETTER_AUTH_SECRET=<generate-a-random-string>
+DATABASE_URL=postgres://interis:interis@localhost:5432/interis
+DIRECT_DATABASE_URL=postgres://interis:interis@localhost:5432/interis
+USE_LOCAL_DB_PROXY=true
+JWT_ACCESS_SECRET=<generate-a-random-string, 32+ chars>
 TMDB_ACCESS_TOKEN=Bearer <your-tmdb-token>
 CORS_ORIGIN=http://localhost:5173
 PORT=5000
@@ -200,8 +203,10 @@ VITE_API_BASE_URL=
 ```bash
 cd ../api
 bun install
-bunx drizzle-kit migrate
+bun run scripts/docker-migrate.ts   # applies to local Postgres via DIRECT_DATABASE_URL
 ```
+
+(`bunx drizzle-kit migrate` targets Neon and is for the Render pre-deploy step only.)
 
 5. Start both services:
 
@@ -242,8 +247,8 @@ Entities are exported in dependency order to satisfy foreign key references:
 6. Generate and apply the migration:
 
 ```bash
-bunx drizzle-kit generate
-bunx drizzle-kit migrate
+bunx drizzle-kit generate            # writes the SQL to drizzle/
+bun run scripts/docker-migrate.ts    # applies it to your local Postgres
 ```
 
 ### Drizzle configuration
@@ -554,7 +559,9 @@ describe("health", () => {
 });
 ```
 
-Run tests:
+Run tests (needs a local Postgres up — `docker compose up postgres db-proxy` —
+with `DIRECT_DATABASE_URL` pointing at it; the suite throws rather than fall
+back to Neon):
 
 ```bash
 bun test

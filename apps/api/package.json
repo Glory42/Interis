@@ -10,7 +10,7 @@
     "test:integration": "bun test tests/integration --timeout 15000",
     "test:contract": "bun test tests/contract",
     "test:unit": "bun test tests/unit",
-    "test:db:migrate": "bunx drizzle-kit migrate",
+    "db:migrate:local": "bun run scripts/docker-migrate.ts",
     "test:db:reset": "bun run scripts/test-db-reset.ts",
     "auth:backfill-credentials": "bun run scripts/backfill-auth-credentials.ts",
     "test:ci": "bun run test:integration",

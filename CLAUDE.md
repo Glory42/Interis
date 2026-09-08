@@ -10,14 +10,16 @@ Interis is a social movie journal app (Letterboxd-inspired). Users log watches, 
 
 ### Backend (run from `apps/api/`)
 ```bash
+# from repo root: docker compose up postgres db-proxy   — local DB for dev + tests (never use Neon)
 bun run dev          # watch mode dev server (port 5000)
 bun run typecheck    # tsc --noEmit
-bun test             # all tests
+bun test             # all tests (needs DIRECT_DATABASE_URL → local Postgres)
 bun run test:integration   # integration tests only
 bun run lint:arch    # architecture layer check (see constraints below)
 bunx drizzle-kit generate  # generate migration after schema change
-bunx drizzle-kit migrate   # apply migrations
-bun run test:db:reset      # reset test DB
+bun run scripts/docker-migrate.ts   # apply migrations to local Postgres
+bunx drizzle-kit migrate   # apply migrations to Neon (prod / Render pre-deploy only)
+bun run test:db:reset      # reset test DB (TEST_DB_ALLOW_RESET=1 for a non-"test"-named local DB)
 ```
 
 ### Frontend (run from `apps/web/`)
@@ -37,9 +39,11 @@ bun run test:smoke   # Playwright smoke tests
 
 ## Environment
 
-`apps/api/.env`:
+`apps/api/.env` (see `apps/api/.env.example`):
 ```
-DATABASE_URL=
+DATABASE_URL=postgres://interis:interis@localhost:5432/interis        # dev, via local proxy
+DIRECT_DATABASE_URL=postgres://interis:interis@localhost:5432/interis # tests + migrations, direct
+USE_LOCAL_DB_PROXY=true
 JWT_ACCESS_SECRET=
 TMDB_ACCESS_TOKEN=Bearer <token>
 CORS_ORIGIN=http://localhost:5173
@@ -47,6 +51,14 @@ PORT=5000
 # Optional: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_PUBLIC_URL
 # Optional, have defaults: JWT_ACCESS_TTL_SECONDS, REFRESH_TOKEN_TTL_SECONDS, AUTH_ACCESS_COOKIE_NAME, AUTH_REFRESH_COOKIE_NAME
 ```
+
+**Local dev and the test suite must run against a local Postgres, never Neon** —
+running them against Neon drains the Free plan's 5 GB/month network-transfer
+quota (2026-09-08 incident). Bring the DB up with `docker compose up postgres
+db-proxy`. `db.ts` throws in `NODE_ENV=test` if `DIRECT_DATABASE_URL` is unset
+or points at a `*.neon.tech` host. Neon is production-only, configured in
+Render's env vars. Apply schema locally with `bun run scripts/docker-migrate.ts`
+(plain `drizzle-kit migrate` forces the Neon driver and won't hit local PG).
 
 `apps/web/.env`:
 ```
@@ -160,7 +172,7 @@ Apply these to every new feature, not just when something is already slow — th
 
 1. Create `src/modules/<module>/` with entity, routes, controller, service, repository, dto files. `<module>.routes.ts` creates an `express.Router()`, wrapping each handler in `asyncHandler()`.
 2. Export the entity from `src/infrastructure/database/entities.ts` in FK order.
-3. Run `bunx drizzle-kit generate && bunx drizzle-kit migrate`.
+3. Run `bunx drizzle-kit generate && bun run scripts/docker-migrate.ts` (local Postgres; `drizzle-kit migrate` is Neon/prod only).
 4. Mount the module's router in `src/infrastructure/routing/register-routes.ts`.
 5. Run `bun run lint:arch` to verify layer boundaries.
 

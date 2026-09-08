@@ -54,7 +54,12 @@ Everything else (`AUTH_ACCESS_COOKIE_NAME`, `AUTH_REFRESH_COOKIE_NAME`, `JWT_ACC
 
 ### Local development
 
-`apps/api/.env` mirrors this list (gitignored). `bun run dev` for local work.
+`apps/api/.env` (gitignored) is **not** a copy of this list — it points
+`DATABASE_URL` / `DIRECT_DATABASE_URL` at a local Postgres and sets
+`USE_LOCAL_DB_PROXY=true`. Dev and the test suite must never hit Neon (it
+drains the Free plan's monthly network-transfer quota). Bring the DB up with
+`docker compose up postgres db-proxy`, then `bun run dev`. See
+[`apps/api/.env.example`](apps/api/.env.example).
 
 ---
 
