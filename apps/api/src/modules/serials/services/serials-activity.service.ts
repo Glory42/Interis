@@ -4,7 +4,8 @@ import type {
   UpdateSerialLogDto,
 } from "../dto/serials.dto";
 import { buildDiaryEntryExtraMetadata } from "../helpers/serials-activity.helper";
-import { SerialsActivityRecorder } from "./serials-activity-recorder.service";
+import { deriveImplicitWatched } from "../../media-interactions/helpers/interaction-state-rules.helper";
+import { ActivityRecorder } from "../../social/services/activity-recorder.service";
 import { SerialsInteractionsRepository } from "../repositories/serials-interactions.repository";
 import { SerialsReviewsRepository } from "../repositories/serials-reviews.repository";
 import { SerialsCacheService } from "./serials-cache.service";
@@ -78,9 +79,7 @@ export class SerialsActivityService {
     const previousWatchlisted = previousRow?.watchlisted ?? false;
     const previousIsWatched = previousRow?.isWatched ?? false;
 
-    const isImplicitlyWatched =
-      input.liked === true ||
-      (input.rating !== undefined && input.rating !== null);
+    const isImplicitlyWatched = deriveImplicitWatched(input);
 
     const resolvedIsWatched = input.watched ?? (isImplicitlyWatched ? true : undefined);
 
@@ -116,20 +115,18 @@ export class SerialsActivityService {
       row?.watchlisted ?? input.watchlisted ?? previousWatchlisted;
 
     if (input.liked === true && !previousLiked && resolvedLiked) {
-      SerialsActivityRecorder.record({
+      ActivityRecorder.recordMedia({
         userId,
-        series,
-        target: { kind: "series" },
+        subject: { kind: "series", series },
         type: "liked_movie",
         entityId: String(series.id),
       });
     }
 
     if (input.watchlisted === true && !previousWatchlisted && resolvedWatchlisted) {
-      SerialsActivityRecorder.record({
+      ActivityRecorder.recordMedia({
         userId,
-        series,
-        target: { kind: "series" },
+        subject: { kind: "series", series },
         type: "watchlisted_movie",
         entityId: String(series.id),
       });
@@ -194,10 +191,9 @@ export class SerialsActivityService {
       });
     }
 
-    SerialsActivityRecorder.record({
+    ActivityRecorder.recordMedia({
       userId,
-      series,
-      target: { kind: "series" },
+      subject: { kind: "series", series },
       type: "diary_entry",
       entityId: entry.id,
       extraMetadata: buildDiaryEntryExtraMetadata({ rating, rewatch, review }),

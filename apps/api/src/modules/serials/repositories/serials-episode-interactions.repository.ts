@@ -4,6 +4,7 @@ import { serialEpisodeInteractions, serialInteractions, tvSeries } from "../seri
 import { reviews } from "../../reviews/reviews.entity";
 import { TV_EPISODE_REVIEW_TYPE } from "../../reviews/constants/review-media-type.constant";
 import { SPECIALS_SEASON_NUMBER } from "../constants/serials-season.constants";
+import { deriveImplicitWatched } from "../../media-interactions/helpers/interaction-state-rules.helper";
 
 export class SerialsEpisodeInteractionsRepository {
   static async getViewerEpisodeInteractions(
@@ -83,6 +84,17 @@ export class SerialsEpisodeInteractionsRepository {
     liked?: boolean;
     rating?: number | null;
   }) {
+    // Same implicit-watch rule the movie/series seam applies in
+    // resolveInteractionUpdate: an explicit `watched` wins, otherwise liking
+    // or rating the episode marks it watched. Applied here so callers pass
+    // raw intent instead of pre-computing `watched` at each call site.
+    const effectiveWatched =
+      input.watched !== undefined
+        ? input.watched
+        : deriveImplicitWatched(input)
+          ? true
+          : undefined;
+
     const [row] = await db
       .insert(serialEpisodeInteractions)
       .values({
@@ -90,7 +102,7 @@ export class SerialsEpisodeInteractionsRepository {
         seriesId: input.seriesId,
         seasonNumber: input.seasonNumber,
         episodeNumber: input.episodeNumber,
-        watched: input.watched ?? false,
+        watched: effectiveWatched ?? false,
         liked: input.liked ?? false,
         rating: input.rating ?? null,
       })
@@ -102,7 +114,7 @@ export class SerialsEpisodeInteractionsRepository {
           serialEpisodeInteractions.episodeNumber,
         ],
         set: {
-          ...(input.watched !== undefined && { watched: input.watched }),
+          ...(effectiveWatched !== undefined && { watched: effectiveWatched }),
           ...(input.liked !== undefined && { liked: input.liked }),
           ...(input.rating !== undefined && { rating: input.rating }),
           updatedAt: new Date(),

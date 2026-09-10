@@ -12,7 +12,7 @@ import { activities } from "../../../src/modules/social/social.entity";
 import type { ActivityType } from "../../../src/modules/social/repositories/social.repository";
 import { user } from "../../../src/infrastructure/database/auth.entity";
 
-// SerialsActivityRecorder.record() is fire-and-forget - the HTTP response
+// ActivityRecorder.recordMedia() is fire-and-forget - the HTTP response
 // doesn't wait for the activity insert to land - so every test here gives
 // the write a brief moment to settle before asserting against the DB.
 const waitForActivityWrite = () => new Promise((resolve) => setTimeout(resolve, 150));

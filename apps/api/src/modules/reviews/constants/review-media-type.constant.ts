@@ -18,4 +18,9 @@ export type SeasonEpisodeReviewMediaType = (typeof SEASON_EPISODE_REVIEW_MEDIA_T
 
 export const REVIEW_MEDIA_TYPES = [...MEDIA_TYPES, ...SEASON_EPISODE_REVIEW_MEDIA_TYPES] as const;
 
-export type ReviewMediaType = (typeof REVIEW_MEDIA_TYPES)[number];
+// Every value the `review.mediaType` column can hold at the row level:
+// movie/tv plus the two serials-only nesting levels. NOT the same as
+// `ReviewMediaType` in ../types/reviews.types.ts, which is the movie/tv-only
+// alias the activity/feed metadata deals in - keep the names distinct so an
+// import can't silently resolve to the wrong width.
+export type ReviewRowMediaType = (typeof REVIEW_MEDIA_TYPES)[number];

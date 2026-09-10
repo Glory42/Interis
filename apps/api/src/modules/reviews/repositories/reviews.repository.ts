@@ -7,6 +7,7 @@ import { profiles } from "../../users/users.entity";
 import { comments, reviewLikes, reviews } from "../reviews.entity";
 import type { UpdateReviewDto } from "../dto/reviews.dto";
 import type { MediaType } from "../../media/constants/media-type.constant";
+import type { ReviewRowMediaType } from "../constants/review-media-type.constant";
 
 export class ReviewsRepository {
   static async getLikeCounts(reviewIds: string[]) {
@@ -63,29 +64,51 @@ export class ReviewsRepository {
     return deleted ?? null;
   }
 
-  // The one write path for the reviews table - standalone movie reviews,
-  // TV reviews (SerialsReviewsRepository.upsertReview), and diary-linked
-  // movie reviews (DiaryWriteService, DataImportService) all funnel through
-  // here. movieId is null for TV reviews, which have no row in the movies
-  // table.
-  static async upsertReview(input: {
+  // The single low-level write to the review table. Every higher-level
+  // upsert composes its row shape and hands it here, so the
+  // INSERT ... ON CONFLICT (and the "did this row already exist" probe)
+  // live in exactly one place - standalone movie/tv reviews (upsertReview
+  // below), diary-linked reviews (DiaryWriteService, DataImportService),
+  // and season/episode reviews (SerialsSeasonEpisodeReviewsRepository) all
+  // go through here. `mediaSourceId` is pre-composed by the caller (a bare
+  // tmdbId for movie/tv, a `tmdb:season[:episode]` key for the nested
+  // serial levels).
+  static async upsertReviewRow(input: {
     userId: string;
-    mediaType: MediaType;
-    tmdbId: number;
-    movieId: number | null;
-    diaryEntryId: string | null;
+    mediaType: ReviewRowMediaType;
+    mediaSource?: string;
+    mediaSourceId: string;
+    movieId?: number | null;
+    diaryEntryId?: string | null;
     content: string;
     containsSpoilers: boolean;
-  }) {
-    const [review] = await db
+  }): Promise<{ row: typeof reviews.$inferSelect | null; isNew: boolean }> {
+    const mediaSource = input.mediaSource ?? "tmdb";
+    const movieId = input.movieId ?? null;
+    const diaryEntryId = input.diaryEntryId ?? null;
+
+    const [existing] = await db
+      .select({ id: reviews.id })
+      .from(reviews)
+      .where(
+        and(
+          eq(reviews.userId, input.userId),
+          eq(reviews.mediaType, input.mediaType),
+          eq(reviews.mediaSource, mediaSource),
+          eq(reviews.mediaSourceId, input.mediaSourceId),
+        ),
+      )
+      .limit(1);
+
+    const [row] = await db
       .insert(reviews)
       .values({
         userId: input.userId,
         mediaType: input.mediaType,
-        mediaSource: "tmdb",
-        mediaSourceId: String(input.tmdbId),
-        movieId: input.movieId,
-        diaryEntryId: input.diaryEntryId,
+        mediaSource,
+        mediaSourceId: input.mediaSourceId,
+        movieId,
+        diaryEntryId,
         content: input.content,
         containsSpoilers: input.containsSpoilers,
       })
@@ -97,8 +120,8 @@ export class ReviewsRepository {
           reviews.mediaSourceId,
         ],
         set: {
-          movieId: input.movieId,
-          diaryEntryId: input.diaryEntryId,
+          movieId,
+          diaryEntryId,
           content: input.content,
           containsSpoilers: input.containsSpoilers,
           updatedAt: new Date(),
@@ -106,7 +129,32 @@ export class ReviewsRepository {
       })
       .returning();
 
-    return review ?? null;
+    return { row: row ?? null, isNew: !existing };
+  }
+
+  // Standalone / diary-linked movie and TV reviews, keyed by a bare TMDB
+  // id. movieId is null for TV reviews, which have no row in the movies
+  // table.
+  static async upsertReview(input: {
+    userId: string;
+    mediaType: MediaType;
+    tmdbId: number;
+    movieId: number | null;
+    diaryEntryId: string | null;
+    content: string;
+    containsSpoilers: boolean;
+  }) {
+    const { row } = await ReviewsRepository.upsertReviewRow({
+      userId: input.userId,
+      mediaType: input.mediaType,
+      mediaSourceId: String(input.tmdbId),
+      movieId: input.movieId,
+      diaryEntryId: input.diaryEntryId,
+      content: input.content,
+      containsSpoilers: input.containsSpoilers,
+    });
+
+    return row;
   }
 
   static async findByIdWithLikeCount(reviewId: string) {

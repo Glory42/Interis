@@ -1,7 +1,7 @@
 import { toMediaFields } from "../../../commons/helpers/media-activity-fields.helper";
 import { truncateExcerpt } from "../../../commons/helpers/text.helper";
 
-// Extra fields only - MovieActivityRecorder already supplies movieId,
+// Extra fields only - ActivityRecorder.recordMedia already supplies movieId,
 // mediaType, and the base media fields for every movie activity.
 export const buildDiaryEntryActivityMetadata = (input: {
   rating: number | null;

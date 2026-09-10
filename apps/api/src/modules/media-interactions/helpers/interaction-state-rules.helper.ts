@@ -17,6 +17,19 @@ export type ResolvedInteractionUpdate = {
   updateSet: Partial<InteractionStateRow>;
 };
 
+// Liking a title, or rating it, is an implicit "I've watched this" signal -
+// the single rule every interaction write shares, movie / series / season /
+// episode alike. `resolveInteractionUpdate` applies it below for the
+// movie/series row; it's exported on its own so the serials tracking and
+// activity services can branch on the same derived value *before* their
+// write (season cascade, whether to record an activity) instead of
+// re-expressing the check inline and letting it drift.
+export function deriveImplicitWatched(
+  input: Pick<InteractionStateInput, "liked" | "rating">,
+): boolean {
+  return input.liked === true || (input.rating !== undefined && input.rating !== null);
+}
+
 // Liking, rating, or marking watched implies the media is no longer "to
 // watch" - auto-clear watchlisted alongside it, unless the caller sent an
 // explicit watchlisted value in the same request (that always wins). Shared
@@ -31,8 +44,7 @@ export type ResolvedInteractionUpdate = {
 // existing row lets the implicit-watch signal win over an explicit
 // `watched` value.
 export function resolveInteractionUpdate(input: InteractionStateInput): ResolvedInteractionUpdate {
-  const isImplicitlyWatched =
-    input.liked === true || (input.rating !== undefined && input.rating !== null);
+  const isImplicitlyWatched = deriveImplicitWatched(input);
 
   const shouldAutoClearWatchlist =
     input.watchlisted === undefined &&

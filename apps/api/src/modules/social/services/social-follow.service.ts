@@ -1,6 +1,7 @@
 import { SocialRepository } from "../repositories/social.repository";
 import { ModerationRepository } from "../../moderation/repositories/moderation.repository";
 import { NotificationsService } from "../../notifications/notifications.service";
+import { ActivityRecorder } from "./activity-recorder.service";
 import { SocialFeedService } from "./social-feed.service";
 
 export class SocialFollowService {
@@ -21,14 +22,14 @@ export class SocialFollowService {
 
     if (row) {
       await Promise.all([
-        SocialRepository.insertActivity({
+        ActivityRecorder.record({
           userId: followerId,
           type: "followed_user",
           entityId: followingId,
-          metadata: JSON.stringify({
+          metadata: {
             followingId,
             targetUsername: targetUsername ?? null,
-          }),
+          },
         }),
         NotificationsService.notify({
           recipientId: followingId,
@@ -37,7 +38,6 @@ export class SocialFollowService {
           entityId: followerId,
         }),
       ]);
-      SocialFeedService.invalidateFollowingFeed(followerId);
     }
 
     return { success: true } as const;

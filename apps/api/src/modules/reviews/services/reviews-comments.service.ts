@@ -1,7 +1,6 @@
 import { buildCommentCreatedActivityMetadata } from "../helpers/reviews-activity.helper";
 import { ReviewsRepository } from "../repositories/reviews.repository";
-import { SocialRepository } from "../../social/repositories/social.repository";
-import { SocialFeedService } from "../../social/services/social-feed.service";
+import { ActivityRecorder } from "../../social/services/activity-recorder.service";
 import { NotificationsService } from "../../notifications/notifications.service";
 
 export class ReviewsCommentsService {
@@ -27,27 +26,25 @@ export class ReviewsCommentsService {
         : null;
 
     const [, commentWithAuthor] = await Promise.all([
-      SocialRepository.insertActivity({
+      ActivityRecorder.record({
         userId,
         type: "commented",
         entityId: comment.id,
-        metadata: JSON.stringify(
-          buildCommentCreatedActivityMetadata({
-            reviewId,
-            commentId: comment.id,
-            content,
-            targetUsername: review.reviewAuthorUsername,
-            mediaMetadata: activityMediaType
-              ? {
-                  mediaType: activityMediaType,
-                  tmdbId: review.tmdbId,
-                  title: review.title,
-                  posterPath: review.posterPath,
-                  releaseYear: review.releaseYear,
-                }
-              : null,
-          }),
-        ),
+        metadata: buildCommentCreatedActivityMetadata({
+          reviewId,
+          commentId: comment.id,
+          content,
+          targetUsername: review.reviewAuthorUsername,
+          mediaMetadata: activityMediaType
+            ? {
+                mediaType: activityMediaType,
+                tmdbId: review.tmdbId,
+                title: review.title,
+                posterPath: review.posterPath,
+                releaseYear: review.releaseYear,
+              }
+            : null,
+        }),
       }),
       ReviewsRepository.getCommentWithAuthorById(comment.id),
       NotificationsService.notify({
@@ -61,8 +58,6 @@ export class ReviewsCommentsService {
     if (!commentWithAuthor) {
       throw new Error("Could not load comment author details");
     }
-
-    SocialFeedService.invalidateFollowingFeed(userId);
 
     return commentWithAuthor;
   }

@@ -16,6 +16,10 @@ import {
   toNullableTrimmedText,
 } from "../helpers/serials-normalization.helper";
 import { buildMediaRatingBreakdown } from "../../media/helpers/media-rating-breakdown.helper";
+import {
+  loadReviewEngagement,
+  sortReviewsByEngagement,
+} from "../../media/helpers/review-engagement.helper";
 import { SerialsInteractionsRepository } from "../repositories/serials-interactions.repository";
 import { SerialsReviewsRepository } from "../repositories/serials-reviews.repository";
 import { SerialsSeasonEpisodeReviewsRepository } from "../repositories/serials-season-episode-reviews.repository";
@@ -82,31 +86,23 @@ export class SerialsDetailService {
       ...seasonEpisodeReviewRows.map((row) => row.id),
     ];
 
-    const [likeRows, viewerLikedRows] = await Promise.all([
-      SerialsReviewsRepository.getReviewLikeCounts(reviewIds),
-      viewerUserId
-        ? SerialsReviewsRepository.getViewerLikedReviewRows(viewerUserId, reviewIds)
-        : Promise.resolve([]),
-    ]);
-
-    const likeCountByReviewId = new Map<string, number>(
-      likeRows.map((likeRow) => [likeRow.reviewId, likeRow.likeCount]),
-    );
-    const viewerLikedReviewIds = new Set<string>(
-      viewerLikedRows.map((likedRow) => likedRow.reviewId),
+    const engagement = await loadReviewEngagement(
+      SerialsReviewsRepository,
+      reviewIds,
+      viewerUserId,
     );
 
     const seriesReviews = resolveSeriesReviewItems(
       reviewRows,
-      likeCountByReviewId,
-      viewerLikedReviewIds,
+      engagement.likeCountByReviewId,
+      engagement.viewerLikedReviewIds,
     );
 
     const seasonEpisodeReviews = await resolveSeasonEpisodeReviewItems(
       input.tmdbId,
       seasonEpisodeReviewRows,
-      likeCountByReviewId,
-      viewerLikedReviewIds,
+      engagement.likeCountByReviewId,
+      engagement.viewerLikedReviewIds,
     );
 
     const reviewsWithEngagement: SerialDetailReviewItem[] = [
@@ -114,21 +110,7 @@ export class SerialsDetailService {
       ...seasonEpisodeReviews,
     ];
 
-    const sortedReviews = [...reviewsWithEngagement];
-    if (reviewsSort === "popular") {
-      sortedReviews.sort((leftReview, rightReview) => {
-        if (rightReview.likeCount !== leftReview.likeCount) {
-          return rightReview.likeCount - leftReview.likeCount;
-        }
-
-        return rightReview.createdAt.getTime() - leftReview.createdAt.getTime();
-      });
-    } else {
-      sortedReviews.sort(
-        (leftReview, rightReview) =>
-          rightReview.createdAt.getTime() - leftReview.createdAt.getTime(),
-      );
-    }
+    const sortedReviews = sortReviewsByEngagement(reviewsWithEngagement, reviewsSort);
 
     const ratingBreakdown = buildMediaRatingBreakdown(communityRatings);
 

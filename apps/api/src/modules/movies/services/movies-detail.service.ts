@@ -6,6 +6,10 @@ import {
 import { normalizeMovieGenres } from "../helpers/movies-format.helper";
 import { normalizeVoteAverage } from "../../media/helpers/media-vote-average.helper";
 import { buildMediaRatingBreakdown } from "../../media/helpers/media-rating-breakdown.helper";
+import {
+  loadReviewEngagement,
+  sortReviewsByEngagement,
+} from "../../media/helpers/review-engagement.helper";
 import { MoviesRepository } from "../repositories/movies.repository";
 import { MoviesReviewsRepository } from "../repositories/movies-reviews.repository";
 import { MoviesCacheService } from "./movies-cache.service";
@@ -103,58 +107,31 @@ export class MoviesDetailService {
     ]);
 
     const reviewIds = reviewRows.map((reviewRow) => reviewRow.id);
-
-    const [likeRows, viewerLikedRows] = await Promise.all([
-      MoviesReviewsRepository.getReviewLikeCounts(reviewIds),
-      viewerUserId
-        ? MoviesReviewsRepository.getViewerLikedReviewRows(viewerUserId, reviewIds)
-        : Promise.resolve([]),
-    ]);
-
-    const likeCountByReviewId = new Map<string, number>(
-      likeRows.map((likeRow) => [likeRow.reviewId, likeRow.likeCount]),
-    );
-    const viewerLikedReviewIds = new Set<string>(
-      viewerLikedRows.map((likedRow) => likedRow.reviewId),
+    const engagement = await loadReviewEngagement(
+      MoviesReviewsRepository,
+      reviewIds,
+      viewerUserId,
     );
 
-    const reviewsWithEngagement: MovieDetailReviewItem[] = reviewRows.map((reviewRow) => {
-      const rating = reviewRow.rating;
+    const reviewsWithEngagement: MovieDetailReviewItem[] = reviewRows.map((reviewRow) => ({
+      id: reviewRow.id,
+      content: reviewRow.content,
+      containsSpoilers: reviewRow.containsSpoilers,
+      createdAt: reviewRow.createdAt,
+      updatedAt: reviewRow.updatedAt,
+      watchedDate: reviewRow.watchedDate,
+      rating: reviewRow.rating,
+      likeCount: engagement.likeCountFor(reviewRow.id),
+      viewerHasLiked: engagement.viewerHasLiked(reviewRow.id),
+      author: {
+        id: reviewRow.userId,
+        username: reviewRow.authorUsername,
+        displayUsername: reviewRow.authorDisplayUsername,
+        avatarUrl: reviewRow.authorAvatarUrl,
+      },
+    }));
 
-      return {
-        id: reviewRow.id,
-        content: reviewRow.content,
-        containsSpoilers: reviewRow.containsSpoilers,
-        createdAt: reviewRow.createdAt,
-        updatedAt: reviewRow.updatedAt,
-        watchedDate: reviewRow.watchedDate,
-        rating,
-        likeCount: likeCountByReviewId.get(reviewRow.id) ?? 0,
-        viewerHasLiked: viewerLikedReviewIds.has(reviewRow.id),
-        author: {
-          id: reviewRow.userId,
-          username: reviewRow.authorUsername,
-          displayUsername: reviewRow.authorDisplayUsername,
-          avatarUrl: reviewRow.authorAvatarUrl,
-        },
-      };
-    });
-
-    const sortedReviews = [...reviewsWithEngagement];
-    if (reviewsSort === "popular") {
-      sortedReviews.sort((leftReview, rightReview) => {
-        if (rightReview.likeCount !== leftReview.likeCount) {
-          return rightReview.likeCount - leftReview.likeCount;
-        }
-
-        return rightReview.createdAt.getTime() - leftReview.createdAt.getTime();
-      });
-    } else {
-      sortedReviews.sort(
-        (leftReview, rightReview) =>
-          rightReview.createdAt.getTime() - leftReview.createdAt.getTime(),
-      );
-    }
+    const sortedReviews = sortReviewsByEngagement(reviewsWithEngagement, reviewsSort);
 
     const ratingBreakdown = buildMediaRatingBreakdown(communityRatings);
 

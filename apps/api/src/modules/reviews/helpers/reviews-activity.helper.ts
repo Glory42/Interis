@@ -2,7 +2,7 @@ import { toNullableMediaFields } from "../../../commons/helpers/media-activity-f
 import { truncateExcerpt as toExcerpt } from "../../../commons/helpers/text.helper";
 import type { ReviewMediaMetadata } from "../types/reviews.types";
 
-// Extra fields only - MovieActivityRecorder/SerialsActivityRecorder already
+// Extra fields only - ActivityRecorder.recordMedia already
 // supply the movie/series id, mediaType, and base media fields for every
 // review-creation activity.
 export const buildReviewCreatedActivityMetadata = (input: {

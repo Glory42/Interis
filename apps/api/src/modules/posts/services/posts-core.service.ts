@@ -1,4 +1,4 @@
-import { SocialRepository } from "../../social/repositories/social.repository";
+import { ActivityRecorder } from "../../social/services/activity-recorder.service";
 import { SocialFeedService } from "../../social/services/social-feed.service";
 import type { CreatePostDto, UpdatePostDto } from "../dto/posts.dto";
 import { buildPostCreatedActivityMetadata } from "../helpers/posts-activity.helper";
@@ -17,23 +17,19 @@ export class PostsCoreService {
       throw new Error("Could not create post");
     }
 
-    await SocialRepository.insertActivity({
+    await ActivityRecorder.record({
       userId,
       type: "post",
       entityId: post.id,
-      metadata: JSON.stringify(
-        buildPostCreatedActivityMetadata({
-          post: {
-            id: post.id,
-            content: post.content,
-            mediaId: post.mediaId,
-            mediaType: post.mediaType,
-          },
-        }),
-      ),
+      metadata: buildPostCreatedActivityMetadata({
+        post: {
+          id: post.id,
+          content: post.content,
+          mediaId: post.mediaId,
+          mediaType: post.mediaType,
+        },
+      }),
     });
-
-    SocialFeedService.invalidateFollowingFeed(userId);
 
     return post;
   }

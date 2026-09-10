@@ -20,16 +20,7 @@ export class SocialRepository {
 
   static async insertActivity(input: {
     userId: string;
-    type:
-      | "diary_entry"
-      | "review"
-      | "liked_movie"
-      | "watchlisted_movie"
-      | "followed_user"
-      | "created_list"
-      | "liked_review"
-      | "commented"
-      | "post";
+    type: ActivityType;
     entityId: string;
     metadata: string;
   }) {

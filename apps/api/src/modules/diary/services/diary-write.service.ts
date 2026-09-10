@@ -1,6 +1,6 @@
 import { InteractionsService } from "../../interactions/interactions.service";
 import { MoviesService } from "../../movies/movies.service";
-import { MovieActivityRecorder } from "../../movies/services/movie-activity-recorder.service";
+import { ActivityRecorder } from "../../social/services/activity-recorder.service";
 import { ReviewsRepository } from "../../reviews/repositories/reviews.repository";
 import { buildDiaryEntryActivityMetadata } from "../helpers/diary-activity.helper";
 import { DiaryRepository } from "../repositories/diary.repository";
@@ -52,9 +52,9 @@ export class DiaryWriteService {
 
     await InteractionsService.setWatched(userId, movie.id);
 
-    MovieActivityRecorder.record({
+    ActivityRecorder.recordMedia({
       userId,
-      movie,
+      subject: { kind: "movie", movie },
       type: "diary_entry",
       entityId: entry.id,
       extraMetadata: buildDiaryEntryActivityMetadata({
