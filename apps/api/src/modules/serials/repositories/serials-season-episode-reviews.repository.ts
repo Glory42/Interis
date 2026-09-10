@@ -3,6 +3,7 @@ import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { profiles } from "../../users/users.entity";
 import { reviews } from "../../reviews/reviews.entity";
+import { ReviewsRepository } from "../../reviews/repositories/reviews.repository";
 import { serialEpisodeInteractions, serialSeasonInteractions } from "../serials.entity";
 import { splitSeasonEpisodeReviewRows } from "../helpers/serials-season-episode-review-rows.helper";
 import {
@@ -162,45 +163,22 @@ export class SerialsSeasonEpisodeReviewsRepository {
     return row ?? null;
   }
 
+  // Delegates the actual write to the one shared review-row upsert; season
+  // and episode reviews only compose their mediaType + mediaSourceId
+  // differently (see callers below).
   private static async upsertReviewByMediaSource(
     userId: string,
     mediaType: SeasonEpisodeReviewMediaType,
     mediaSourceId: string,
     input: { content: string; containsSpoilers?: boolean },
   ) {
-    const [existing] = await db
-      .select({ id: reviews.id })
-      .from(reviews)
-      .where(
-        and(
-          eq(reviews.userId, userId),
-          eq(reviews.mediaType, mediaType),
-          eq(reviews.mediaSourceId, mediaSourceId),
-        ),
-      )
-      .limit(1);
-    const isNew = !existing;
-
-    const [row] = await db
-      .insert(reviews)
-      .values({
-        userId,
-        mediaType,
-        mediaSourceId,
-        content: input.content,
-        containsSpoilers: input.containsSpoilers ?? false,
-      })
-      .onConflictDoUpdate({
-        target: [reviews.userId, reviews.mediaType, reviews.mediaSource, reviews.mediaSourceId],
-        set: {
-          content: input.content,
-          containsSpoilers: input.containsSpoilers ?? false,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
-
-    return { row: row ?? null, isNew };
+    return ReviewsRepository.upsertReviewRow({
+      userId,
+      mediaType,
+      mediaSourceId,
+      content: input.content,
+      containsSpoilers: input.containsSpoilers ?? false,
+    });
   }
 
   private static async deleteReviewByMediaSource(
