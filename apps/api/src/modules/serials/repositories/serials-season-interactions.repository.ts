@@ -3,6 +3,7 @@ import { db } from "../../../infrastructure/database/db";
 import { serialSeasonInteractions } from "../serials.entity";
 import { reviews } from "../../reviews/reviews.entity";
 import { TV_SEASON_REVIEW_TYPE } from "../../reviews/constants/review-media-type.constant";
+import { deriveImplicitWatched } from "../../media-interactions/helpers/interaction-state-rules.helper";
 
 export class SerialsSeasonInteractionsRepository {
   static async getViewerSeasonInteractions(userId: string, seriesId: number, seriesTmdbId: number) {
@@ -69,13 +70,24 @@ export class SerialsSeasonInteractionsRepository {
     liked?: boolean;
     rating?: number | null;
   }) {
+    // Same implicit-watch rule the movie/series seam applies in
+    // resolveInteractionUpdate: an explicit `watched` wins, otherwise liking
+    // or rating the season marks it watched. Applied here so callers pass
+    // raw intent instead of pre-computing `watched` at each call site.
+    const effectiveWatched =
+      input.watched !== undefined
+        ? input.watched
+        : deriveImplicitWatched(input)
+          ? true
+          : undefined;
+
     const [row] = await db
       .insert(serialSeasonInteractions)
       .values({
         userId: input.userId,
         seriesId: input.seriesId,
         seasonNumber: input.seasonNumber,
-        watched: input.watched ?? false,
+        watched: effectiveWatched ?? false,
         liked: input.liked ?? false,
         rating: input.rating ?? null,
       })
@@ -86,7 +98,7 @@ export class SerialsSeasonInteractionsRepository {
           serialSeasonInteractions.seasonNumber,
         ],
         set: {
-          ...(input.watched !== undefined && { watched: input.watched }),
+          ...(effectiveWatched !== undefined && { watched: effectiveWatched }),
           ...(input.liked !== undefined && { liked: input.liked }),
           ...(input.rating !== undefined && { rating: input.rating }),
           updatedAt: new Date(),

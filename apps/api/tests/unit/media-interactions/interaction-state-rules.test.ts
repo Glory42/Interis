@@ -1,5 +1,33 @@
 import { describe, expect, it } from "bun:test";
-import { resolveInteractionUpdate } from "../../../src/modules/media-interactions/helpers/interaction-state-rules.helper";
+import {
+  deriveImplicitWatched,
+  resolveInteractionUpdate,
+} from "../../../src/modules/media-interactions/helpers/interaction-state-rules.helper";
+
+describe("deriveImplicitWatched", () => {
+  it("is true when liked is true", () => {
+    expect(deriveImplicitWatched({ liked: true })).toBe(true);
+  });
+
+  it("is true when a numeric rating is present", () => {
+    expect(deriveImplicitWatched({ rating: 7 })).toBe(true);
+    expect(deriveImplicitWatched({ rating: 0 })).toBe(true);
+  });
+
+  it("is false for rating: null and for the empty input", () => {
+    expect(deriveImplicitWatched({ rating: null })).toBe(false);
+    expect(deriveImplicitWatched({})).toBe(false);
+  });
+
+  it("is false when only unliking", () => {
+    expect(deriveImplicitWatched({ liked: false })).toBe(false);
+  });
+
+  it("matches the signal resolveInteractionUpdate applies internally", () => {
+    expect(resolveInteractionUpdate({ liked: true }).updateSet.isWatched).toBe(true);
+    expect(deriveImplicitWatched({ liked: true })).toBe(true);
+  });
+});
 
 describe("resolveInteractionUpdate", () => {
   describe("watchlist auto-clear", () => {
