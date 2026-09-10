@@ -3,23 +3,20 @@ import {
   getMovieDetails as tmdbGetDetails,
   getSimilarMovies,
 } from "../../../infrastructure/tmdb/cinemas";
-import { normalizeMovieGenres } from "../helpers/movies-format.helper";
-import { normalizeVoteAverage } from "../../media/helpers/media-vote-average.helper";
-import { buildMediaRatingBreakdown } from "../../media/helpers/media-rating-breakdown.helper";
+import { loadReviewEngagement } from "../../media/helpers/review-engagement.helper";
 import {
-  loadReviewEngagement,
-  sortReviewsByEngagement,
-} from "../../media/helpers/review-engagement.helper";
+  assembleMovieDetail,
+  type MovieDetailInputs,
+} from "../helpers/assemble-movie-detail.helper";
 import { MoviesRepository } from "../repositories/movies.repository";
 import { MoviesReviewsRepository } from "../repositories/movies-reviews.repository";
 import { MoviesCacheService } from "./movies-cache.service";
 import { PeopleCacheService } from "../../people/services/people-cache.service";
 import type { MovieDetailReviewSort } from "../dto/movies.dto";
-import type {
-  MovieDetailRatingBreakdownBucket,
-  MovieDetailResponse,
-  MovieDetailReviewItem,
-} from "../types/movies.types";
+import type { MovieDetailResponse } from "../types/movies.types";
+
+type MovieRow = NonNullable<Awaited<ReturnType<typeof MoviesCacheService.findOrCreate>>>;
+type TmdbCredits = NonNullable<Awaited<ReturnType<typeof getMovieCredits>>>;
 
 const toNullableTrimmedText = (value: string | null | undefined): string | null => {
   if (!value) {
@@ -28,6 +25,21 @@ const toNullableTrimmedText = (value: string | null | undefined): string | null 
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+};
+
+// TMDB lists a director once per department credit; keep the first
+// occurrence of each person id.
+const dedupeDirectorCredits = (credits: TmdbCredits | null) => {
+  const directorCredits = (credits?.crew ?? []).filter(
+    (crewMember) => crewMember.job === "Director",
+  );
+  const unique = new Map<number, (typeof directorCredits)[number]>();
+  for (const directorCredit of directorCredits) {
+    if (!unique.has(directorCredit.id)) {
+      unique.set(directorCredit.id, directorCredit);
+    }
+  }
+  return [...unique.values()];
 };
 
 export class MoviesDetailService {
@@ -41,34 +53,36 @@ export class MoviesDetailService {
       return null;
     }
 
-    const reviewsSort = input.reviewsSort;
+    const inputs = await MoviesDetailService.gather(movie, input);
+    return assembleMovieDetail(inputs);
+  }
+
+  // Every IO the detail response depends on: TMDB reads, movie repository
+  // reads, the director backfill write, person-link resolution, review
+  // engagement, and the viewer-only reads. Returns a fully-resolved
+  // MovieDetailInputs for the pure assembleMovieDetail step.
+  private static async gather(
+    movie: MovieRow,
+    input: { tmdbId: number; viewerUserId?: string | null; reviewsSort: MovieDetailReviewSort },
+  ): Promise<MovieDetailInputs> {
     const viewerUserId = input.viewerUserId ?? null;
 
-    const [tmdbDetail, tmdbCredits, logsCount, reviewRows, tmdbSimilar, communityRatings] = await Promise.all([
-      tmdbGetDetails(input.tmdbId).catch(() => null),
-      getMovieCredits(input.tmdbId).catch(() => null),
-      MoviesRepository.getLogsCountByMovieId(movie.id),
-      MoviesReviewsRepository.getReviewRowsByMovieId(movie.id),
-      getSimilarMovies(input.tmdbId).catch(() => []),
-      MoviesRepository.getCommunityRatingsByMovieId(movie.id),
-    ]);
+    const [tmdbDetail, tmdbCredits, logsCount, reviewRows, tmdbSimilar, communityRatings] =
+      await Promise.all([
+        tmdbGetDetails(input.tmdbId).catch(() => null),
+        getMovieCredits(input.tmdbId).catch(() => null),
+        MoviesRepository.getLogsCountByMovieId(movie.id),
+        MoviesReviewsRepository.getReviewRowsByMovieId(movie.id),
+        getSimilarMovies(input.tmdbId).catch(() => []),
+        MoviesRepository.getCommunityRatingsByMovieId(movie.id),
+      ]);
 
-    const directorCredits = (tmdbCredits?.crew ?? []).filter(
-      (crewMember) => crewMember.job === "Director",
-    );
-
-    const uniqueDirectorCredits = new Map<number, (typeof directorCredits)[number]>();
-    for (const directorCredit of directorCredits) {
-      if (!uniqueDirectorCredits.has(directorCredit.id)) {
-        uniqueDirectorCredits.set(directorCredit.id, directorCredit);
-      }
-    }
+    const uniqueDirectorCredits = dedupeDirectorCredits(tmdbCredits);
 
     const resolvedDirectorName =
-      [...uniqueDirectorCredits.values()]
+      uniqueDirectorCredits
         .map((directorCredit) => toNullableTrimmedText(directorCredit.name))
-        .find((directorName): directorName is string => Boolean(directorName)) ??
-      movie.director;
+        .find((directorName): directorName is string => Boolean(directorName)) ?? movie.director;
 
     if (!movie.director && resolvedDirectorName) {
       await MoviesRepository.updateDirectorByTmdbId(input.tmdbId, resolvedDirectorName).catch(
@@ -78,7 +92,7 @@ export class MoviesDetailService {
 
     const [directors, cast] = await Promise.all([
       PeopleCacheService.ensurePersonLinks(
-        [...uniqueDirectorCredits.values()].map((directorCredit) => ({
+        uniqueDirectorCredits.map((directorCredit) => ({
           tmdbPersonId: directorCredit.id,
           name: directorCredit.name,
           profilePath: directorCredit.profile_path,
@@ -106,47 +120,11 @@ export class MoviesDetailService {
       ),
     ]);
 
-    const reviewIds = reviewRows.map((reviewRow) => reviewRow.id);
     const engagement = await loadReviewEngagement(
       MoviesReviewsRepository,
-      reviewIds,
+      reviewRows.map((reviewRow) => reviewRow.id),
       viewerUserId,
     );
-
-    const reviewsWithEngagement: MovieDetailReviewItem[] = reviewRows.map((reviewRow) => ({
-      id: reviewRow.id,
-      content: reviewRow.content,
-      containsSpoilers: reviewRow.containsSpoilers,
-      createdAt: reviewRow.createdAt,
-      updatedAt: reviewRow.updatedAt,
-      watchedDate: reviewRow.watchedDate,
-      rating: reviewRow.rating,
-      likeCount: engagement.likeCountFor(reviewRow.id),
-      viewerHasLiked: engagement.viewerHasLiked(reviewRow.id),
-      author: {
-        id: reviewRow.userId,
-        username: reviewRow.authorUsername,
-        displayUsername: reviewRow.authorDisplayUsername,
-        avatarUrl: reviewRow.authorAvatarUrl,
-      },
-    }));
-
-    const sortedReviews = sortReviewsByEngagement(reviewsWithEngagement, reviewsSort);
-
-    const ratingBreakdown = buildMediaRatingBreakdown(communityRatings);
-
-    const similar = (tmdbSimilar ?? []).slice(0, 12).map((sim) => {
-      const releaseYear = sim.release_date
-        ? Number.parseInt(sim.release_date.slice(0, 4), 10)
-        : null;
-
-      return {
-        tmdbId: sim.id,
-        title: sim.title,
-        posterPath: sim.poster_path,
-        releaseYear: Number.isNaN(releaseYear) ? null : releaseYear,
-      };
-    });
 
     const [viewerDiaryRow, viewerReviewRow] = viewerUserId
       ? await Promise.all([
@@ -155,69 +133,21 @@ export class MoviesDetailService {
         ])
       : [[], []];
 
-    const viewerDiary = viewerDiaryRow[0] ?? null;
-    const viewerReview = viewerReviewRow[0] ?? null;
-
-    const globalRating = normalizeVoteAverage(tmdbDetail?.vote_average);
-
     return {
-      movie: {
-        id: movie.id,
-        tmdbId: movie.tmdbId,
-        title: movie.title,
-        originalTitle: movie.originalTitle,
-        posterPath: movie.posterPath,
-        backdropPath: movie.backdropPath,
-        releaseDate: movie.releaseDate,
-        releaseYear: movie.releaseYear,
-        director: resolvedDirectorName,
-        directors,
-        cast,
-        runtime: movie.runtime,
-        overview: movie.overview,
-        tagline: movie.tagline,
-        genres: normalizeMovieGenres(movie.genres),
-        languageCode:
-          tmdbDetail && tmdbDetail.original_language.trim().length > 0
-            ? tmdbDetail.original_language
-            : null,
-        productionCountries:
-          tmdbDetail?.production_countries
-            .map((country) => country.name.trim())
-            .filter((countryName) => countryName.length > 0) ?? [],
-        budget:
-          tmdbDetail && tmdbDetail.budget > 0 && Number.isFinite(tmdbDetail.budget)
-            ? tmdbDetail.budget
-            : null,
-        revenue:
-          tmdbDetail && tmdbDetail.revenue > 0 && Number.isFinite(tmdbDetail.revenue)
-            ? tmdbDetail.revenue
-            : null,
-        globalRating,
-        globalRatingVoteCount:
-          tmdbDetail && tmdbDetail.vote_count > 0 ? tmdbDetail.vote_count : null,
-      },
+      movie,
+      tmdbDetail,
+      directors,
+      cast,
+      resolvedDirectorName,
       logsCount,
-      reviewCount: reviewsWithEngagement.length,
-      userRating: viewerUserId
-        ? {
-            diaryEntryId: viewerDiary?.id ?? null,
-            reviewId: viewerReview?.id ?? null,
-            watchedDate: viewerDiary?.watchedDate ?? null,
-            rewatch: viewerDiary?.rewatch ?? false,
-            rating: viewerDiary?.rating ?? null,
-            reviewContent: viewerReview?.content ?? null,
-            reviewContainsSpoilers: viewerReview?.containsSpoilers ?? null,
-          }
-        : null,
-      reviewsSort,
-      reviews: sortedReviews,
-      ratingBreakdown: {
-        totalRatedReviews: ratingBreakdown.totalRatedReviews,
-        averageRating: ratingBreakdown.averageRating,
-        buckets: ratingBreakdown.buckets as MovieDetailRatingBreakdownBucket[],
-      },
-      similar,
+      reviewRows,
+      engagement,
+      communityRatings,
+      tmdbSimilar,
+      viewerDiary: viewerDiaryRow[0] ?? null,
+      viewerReview: viewerReviewRow[0] ?? null,
+      viewerUserId,
+      reviewsSort: input.reviewsSort,
     };
   }
 
