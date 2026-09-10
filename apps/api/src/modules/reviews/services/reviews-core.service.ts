@@ -1,104 +1,52 @@
 import { MoviesService } from "../../movies/movies.service";
-import { MovieActivityRecorder } from "../../movies/services/movie-activity-recorder.service";
 import { SerialsService } from "../../serials/serials.service";
-import { SerialsReviewsRepository } from "../../serials/repositories/serials-reviews.repository";
 import { SerialsInteractionsRepository } from "../../serials/repositories/serials-interactions.repository";
-import { SerialsActivityRecorder } from "../../serials/services/serials-activity-recorder.service";
+import {
+  ActivityRecorder,
+  type ActivitySubject,
+} from "../../social/services/activity-recorder.service";
 import { InteractionsService } from "../../interactions/interactions.service";
 import { SocialFeedService } from "../../social/services/social-feed.service";
 import { ReviewsRepository } from "../repositories/reviews.repository";
 import { buildReviewCreatedActivityMetadata } from "../helpers/reviews-activity.helper";
 import type { CreateReviewDto, UpdateReviewDto } from "../dto/reviews.dto";
+import type { MediaType } from "../../media/constants/media-type.constant";
 import { NotFoundError } from "../../../commons/errors/app-error";
 
 type Movie = Awaited<ReturnType<typeof MoviesService.findOrCreate>>;
 type Series = NonNullable<Awaited<ReturnType<typeof SerialsService.findOrCreate>>>;
-// SerialsReviewsRepository.upsertReview, DiaryWriteService, and
-// DataImportService all call ReviewsRepository.upsertReview directly now
-// (see issue #48), so movie and TV reviews share one concrete row shape.
 type ReviewsTableRow = NonNullable<Awaited<ReturnType<typeof ReviewsRepository.upsertReview>>>;
-type MovieReviewRow = ReviewsTableRow;
-type SeriesReviewRow = ReviewsTableRow;
 
-type ReviewRow = { id: string; containsSpoilers: boolean };
-
-// findOrCreate and insertReview stay genuinely per-media-type - movies and
-// TV write to the shared reviews table through two different repositories
-// with different field shapes (see issue #48, not yet unified). Everything
-// downstream of them - marking watched, recording the activity, shaping the
-// response - is written exactly once in createWithAdapter below, driven by
-// whichever adapter gets resolved.
-type ReviewMediaAdapter<TMedia, TReview extends ReviewRow, TResult> = {
+// Only the genuinely per-media-type facts: how to resolve the media, how to
+// address its review row, where "watched" gets marked, how the activity
+// subject is shaped, and which key the HTTP response uses. The whole write
+// sequence - upsert the row, mark watched, record the activity - is
+// createWithAdapter below, written once.
+type ReviewMediaAdapter<TMedia, TResult> = {
   findOrCreateMedia: (tmdbId: number) => Promise<TMedia>;
-  insertReview: (media: TMedia, input: CreateReviewDto, userId: string) => Promise<TReview | null>;
+  reviewRef: (media: TMedia) => { mediaType: MediaType; tmdbId: number; movieId: number | null };
   markWatched: (userId: string, media: TMedia) => Promise<void>;
-  recordActivity: (input: {
-    userId: string;
-    media: TMedia;
-    review: TReview;
-    extraMetadata: Record<string, unknown>;
-  }) => void;
-  toResult: (review: TReview, media: TMedia) => TResult;
+  activitySubject: (media: TMedia) => ActivitySubject;
+  toResult: (review: ReviewsTableRow, media: TMedia) => TResult;
 };
 
-const movieReviewAdapter: ReviewMediaAdapter<
-  Movie,
-  MovieReviewRow,
-  { review: MovieReviewRow; movie: Movie }
-> = {
+const movieReviewAdapter: ReviewMediaAdapter<Movie, { review: ReviewsTableRow; movie: Movie }> = {
   findOrCreateMedia: (tmdbId) => MoviesService.findOrCreate(tmdbId),
-  insertReview: (movie, input, userId) =>
-    ReviewsRepository.upsertReview({
-      userId,
-      mediaType: "movie",
-      tmdbId: movie.tmdbId,
-      movieId: movie.id,
-      diaryEntryId: input.diaryEntryId ?? null,
-      content: input.content,
-      containsSpoilers: input.containsSpoilers ?? false,
-    }),
+  reviewRef: (movie) => ({ mediaType: "movie", tmdbId: movie.tmdbId, movieId: movie.id }),
   markWatched: (userId, movie) => InteractionsService.setWatched(userId, movie.id),
-  recordActivity: ({ userId, media, review, extraMetadata }) => {
-    MovieActivityRecorder.record({
-      userId,
-      movie: media,
-      type: "review",
-      entityId: review.id,
-      extraMetadata,
-    });
-  },
+  activitySubject: (movie) => ({ kind: "movie", movie }),
   toResult: (review, movie) => ({ review, movie }),
 };
 
-const tvReviewAdapter: ReviewMediaAdapter<
-  Series,
-  SeriesReviewRow,
-  { review: SeriesReviewRow; series: Series }
-> = {
+const tvReviewAdapter: ReviewMediaAdapter<Series, { review: ReviewsTableRow; series: Series }> = {
   findOrCreateMedia: async (tmdbId) => {
     const series = await SerialsService.findOrCreate(tmdbId);
     if (!series) throw new NotFoundError("Series not found");
     return series;
   },
-  insertReview: (series, input, userId) =>
-    SerialsReviewsRepository.upsertReview({
-      userId,
-      seriesTmdbId: series.tmdbId,
-      diaryEntryId: input.diaryEntryId ?? null,
-      content: input.content,
-      containsSpoilers: input.containsSpoilers ?? false,
-    }),
+  reviewRef: (series) => ({ mediaType: "tv", tmdbId: series.tmdbId, movieId: null }),
   markWatched: (userId, series) => SerialsInteractionsRepository.setWatched(userId, series.id),
-  recordActivity: ({ userId, media, review, extraMetadata }) => {
-    SerialsActivityRecorder.record({
-      userId,
-      series: media,
-      target: { kind: "series" },
-      type: "review",
-      entityId: review.id,
-      extraMetadata,
-    });
-  },
+  activitySubject: (series) => ({ kind: "series", series }),
   toResult: (review, series) => ({ review, series }),
 };
 
@@ -110,23 +58,34 @@ export class ReviewsCoreService {
     return ReviewsCoreService.createWithAdapter(userId, input, movieReviewAdapter);
   }
 
-  private static async createWithAdapter<TMedia, TReview extends ReviewRow, TResult>(
+  private static async createWithAdapter<TMedia, TResult>(
     userId: string,
     input: CreateReviewDto,
-    adapter: ReviewMediaAdapter<TMedia, TReview, TResult>,
+    adapter: ReviewMediaAdapter<TMedia, TResult>,
   ): Promise<TResult> {
     const media = await adapter.findOrCreateMedia(input.tmdbId);
-    const review = await adapter.insertReview(media, input, userId);
+    const ref = adapter.reviewRef(media);
+
+    const review = await ReviewsRepository.upsertReview({
+      userId,
+      mediaType: ref.mediaType,
+      tmdbId: ref.tmdbId,
+      movieId: ref.movieId,
+      diaryEntryId: input.diaryEntryId ?? null,
+      content: input.content,
+      containsSpoilers: input.containsSpoilers ?? false,
+    });
     if (!review) {
       throw new Error("Could not create review");
     }
 
     await adapter.markWatched(userId, media);
 
-    adapter.recordActivity({
+    ActivityRecorder.recordMedia({
       userId,
-      media,
-      review,
+      subject: adapter.activitySubject(media),
+      type: "review",
+      entityId: review.id,
       extraMetadata: buildReviewCreatedActivityMetadata({
         reviewId: review.id,
         content: input.content,

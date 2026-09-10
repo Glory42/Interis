@@ -3,7 +3,7 @@ import { SerialsEpisodeInteractionsRepository } from "../repositories/serials-ep
 import { SerialsSeasonEpisodeReviewsRepository } from "../repositories/serials-season-episode-reviews.repository";
 import { SerialsCacheService } from "./serials-cache.service";
 import { getSeriesSeasonDetails as tmdbGetSeasonDetails } from "../../../infrastructure/tmdb/serials";
-import { SerialsActivityRecorder } from "./serials-activity-recorder.service";
+import { ActivityRecorder } from "../../social/services/activity-recorder.service";
 import { buildReviewExtraMetadata } from "../helpers/serials-activity.helper";
 
 export class SerialsTrackingService {
@@ -20,15 +20,14 @@ export class SerialsTrackingService {
     const previousLiked = previousRow?.liked ?? false;
 
     const rating = input.rating;
-    const isImplicitlyWatched =
-      input.liked === true ||
-      (input.rating !== undefined && input.rating !== null);
 
+    // Implicit-watch resolution (liking/rating marks watched) lives inside
+    // upsertSeasonInteraction now - pass raw intent.
     const row = await SerialsSeasonInteractionsRepository.upsertSeasonInteraction({
       userId,
       seriesId: series.id,
       seasonNumber,
-      watched: input.watched !== undefined ? input.watched : (isImplicitlyWatched ? true : undefined),
+      watched: input.watched,
       liked: input.liked,
       rating,
     });
@@ -36,10 +35,9 @@ export class SerialsTrackingService {
     if (!row) return null;
 
     if (input.liked === true && !previousLiked && row.liked) {
-      SerialsActivityRecorder.record({
+      ActivityRecorder.recordMedia({
         userId,
-        series,
-        target: { kind: "season", seasonNumber },
+        subject: { kind: "season", series, seasonNumber },
         type: "liked_movie",
         entityId: String(series.id),
       });
@@ -51,10 +49,9 @@ export class SerialsTrackingService {
       row.rating !== null &&
       row.rating !== previousRow?.rating
     ) {
-      SerialsActivityRecorder.record({
+      ActivityRecorder.recordMedia({
         userId,
-        series,
-        target: { kind: "season", seasonNumber },
+        subject: { kind: "season", series, seasonNumber },
         type: "liked_movie",
         entityId: String(series.id),
         extraMetadata: { rating: row.rating },
@@ -100,16 +97,15 @@ export class SerialsTrackingService {
     const previousLiked = previousRow?.liked ?? false;
 
     const rating = input.rating;
-    const isImplicitlyWatched =
-      input.liked === true ||
-      (input.rating !== undefined && input.rating !== null);
 
+    // Implicit-watch resolution (liking/rating marks watched) lives inside
+    // upsertEpisodeInteraction now - pass raw intent.
     const row = await SerialsEpisodeInteractionsRepository.upsertEpisodeInteraction({
       userId,
       seriesId: series.id,
       seasonNumber,
       episodeNumber,
-      watched: input.watched !== undefined ? input.watched : (isImplicitlyWatched ? true : undefined),
+      watched: input.watched,
       liked: input.liked,
       rating,
     });
@@ -117,10 +113,9 @@ export class SerialsTrackingService {
     if (!row) return null;
 
     if (input.liked === true && !previousLiked && row.liked) {
-      SerialsActivityRecorder.record({
+      ActivityRecorder.recordMedia({
         userId,
-        series,
-        target: { kind: "episode", seasonNumber, episodeNumber },
+        subject: { kind: "episode", series, seasonNumber, episodeNumber },
         type: "liked_movie",
         entityId: String(series.id),
       });
@@ -132,10 +127,9 @@ export class SerialsTrackingService {
       row.rating !== null &&
       row.rating !== previousRow?.rating
     ) {
-      SerialsActivityRecorder.record({
+      ActivityRecorder.recordMedia({
         userId,
-        series,
-        target: { kind: "episode", seasonNumber, episodeNumber },
+        subject: { kind: "episode", series, seasonNumber, episodeNumber },
         type: "liked_movie",
         entityId: String(series.id),
         extraMetadata: { rating: row.rating },
@@ -217,10 +211,9 @@ export class SerialsTrackingService {
     if (isNew && row) {
       const series = await SerialsCacheService.findOrCreate(seriesTmdbId).catch(() => null);
       if (series) {
-        SerialsActivityRecorder.record({
+        ActivityRecorder.recordMedia({
           userId,
-          series,
-          target: { kind: "season", seasonNumber },
+          subject: { kind: "season", series, seasonNumber },
           type: "review",
           entityId: row.id,
           extraMetadata: buildReviewExtraMetadata({
@@ -271,10 +264,9 @@ export class SerialsTrackingService {
     if (isNew && row) {
       const series = await SerialsCacheService.findOrCreate(seriesTmdbId).catch(() => null);
       if (series) {
-        SerialsActivityRecorder.record({
+        ActivityRecorder.recordMedia({
           userId,
-          series,
-          target: { kind: "episode", seasonNumber, episodeNumber },
+          subject: { kind: "episode", series, seasonNumber, episodeNumber },
           type: "review",
           entityId: row.id,
           extraMetadata: buildReviewExtraMetadata({

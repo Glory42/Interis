@@ -1,5 +1,4 @@
-import { SocialRepository } from "../../social/repositories/social.repository";
-import { SocialFeedService } from "../../social/services/social-feed.service";
+import { ActivityRecorder } from "../../social/services/activity-recorder.service";
 import { buildPostCommentedActivityMetadata } from "../helpers/posts-activity.helper";
 import { PostsRepository } from "../repositories/posts.repository";
 import { NotificationsService } from "../../notifications/notifications.service";
@@ -19,17 +18,15 @@ export class PostsCommentsService {
 
     if (comment) {
       await Promise.all([
-        SocialRepository.insertActivity({
+        ActivityRecorder.record({
           userId,
           type: "commented",
           entityId: comment.id,
-          metadata: JSON.stringify(
-            buildPostCommentedActivityMetadata({
-              post,
-              commentId: comment.id,
-              commentContent: content,
-            }),
-          ),
+          metadata: buildPostCommentedActivityMetadata({
+            post,
+            commentId: comment.id,
+            commentContent: content,
+          }),
         }),
         NotificationsService.notify({
           recipientId: post.userId,
@@ -38,8 +35,6 @@ export class PostsCommentsService {
           entityId: postId,
         }),
       ]);
-
-      SocialFeedService.invalidateFollowingFeed(userId);
     }
 
     return comment;

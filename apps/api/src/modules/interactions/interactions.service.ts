@@ -1,5 +1,5 @@
 import { MediaInteractions } from "../media-interactions/media-interactions.repository";
-import { MovieActivityRecorder } from "../movies/services/movie-activity-recorder.service";
+import { ActivityRecorder } from "../social/services/activity-recorder.service";
 import { MoviesService } from "../movies/movies.service";
 import type { UpdateInteractionDto } from "./dto/interactions.dto";
 
@@ -52,18 +52,18 @@ export class InteractionsService {
 
     // Write activity only for meaningful state changes
     if (input.liked === true) {
-      MovieActivityRecorder.record({
+      ActivityRecorder.recordMedia({
         userId,
-        movie,
+        subject: { kind: "movie", movie },
         type: "liked_movie",
         entityId: String(movie.id),
       });
     }
 
     if (input.watchlisted === true) {
-      MovieActivityRecorder.record({
+      ActivityRecorder.recordMedia({
         userId,
-        movie,
+        subject: { kind: "movie", movie },
         type: "watchlisted_movie",
         entityId: String(movie.id),
       });

@@ -1,6 +1,6 @@
 import { buildReviewLikedActivityMetadata } from "../helpers/reviews-activity.helper";
 import { ReviewsRepository } from "../repositories/reviews.repository";
-import { SocialRepository } from "../../social/repositories/social.repository";
+import { ActivityRecorder } from "../../social/services/activity-recorder.service";
 import { SocialFeedService } from "../../social/services/social-feed.service";
 import { NotificationsService } from "../../notifications/notifications.service";
 
@@ -21,25 +21,23 @@ export class ReviewsLikesService {
         : null;
 
     await Promise.all([
-      SocialRepository.insertActivity({
+      ActivityRecorder.record({
         userId,
         type: "liked_review",
         entityId: reviewId,
-        metadata: JSON.stringify(
-          buildReviewLikedActivityMetadata({
-            reviewId,
-            mediaMetadata: review && activityMediaType
-              ? {
-                  mediaType: activityMediaType,
-                  tmdbId: review.tmdbId,
-                  title: review.title,
-                  posterPath: review.posterPath,
-                  releaseYear: review.releaseYear,
-                }
-              : null,
-            targetUsername: review?.reviewAuthorUsername ?? null,
-          }),
-        ),
+        metadata: buildReviewLikedActivityMetadata({
+          reviewId,
+          mediaMetadata: review && activityMediaType
+            ? {
+                mediaType: activityMediaType,
+                tmdbId: review.tmdbId,
+                title: review.title,
+                posterPath: review.posterPath,
+                releaseYear: review.releaseYear,
+              }
+            : null,
+          targetUsername: review?.reviewAuthorUsername ?? null,
+        }),
       }),
       review
         ? NotificationsService.notify({
@@ -50,8 +48,6 @@ export class ReviewsLikesService {
           })
         : Promise.resolve(),
     ]);
-
-    SocialFeedService.invalidateFollowingFeed(userId);
 
     return { liked: true, alreadyLiked: false };
   }

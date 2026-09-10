@@ -1,7 +1,7 @@
 import { truncateExcerpt } from "../../../commons/helpers/text.helper";
 
 // Metadata fields that vary by *content*, not by which part of a series the
-// activity targets (series/season/episode - that's SerialsActivityRecorder's
+// activity targets (series/season/episode - that's ActivityRecorder's
 // job). Kept separate since a diary entry and a review carry genuinely
 // different extra fields, not just a different target shape.
 
