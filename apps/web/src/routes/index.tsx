@@ -4,9 +4,13 @@ import {
   getMyFeedSummary,
   getNetworkStats,
   getTrendingMovies,
+  getTrendingOnInteris,
 } from "@/features/feed/api";
 import { HomePage } from "@/features/feed/pages/HomePage";
-import { feedKeys, followingFeedInfiniteQueryOptions } from "@/features/feed/hooks/useFeed";
+import {
+  feedKeys,
+  followingFeedInfiniteQueryOptions,
+} from "@/features/feed/hooks/useFeed";
 import { getTrendingSeries } from "@/features/serials/api";
 import { serialKeys } from "@/features/serials/hooks/useSerials";
 import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
@@ -21,6 +25,10 @@ export const Route = createFileRoute("/")({
     void context.queryClient.prefetchQuery({
       queryKey: serialKeys.trending,
       queryFn: ({ signal }) => getTrendingSeries({ signal }),
+    });
+    void context.queryClient.prefetchQuery({
+      queryKey: feedKeys.trendingOnInteris(),
+      queryFn: ({ signal }) => getTrendingOnInteris({ signal }),
     });
     void context.queryClient.prefetchQuery({
       queryKey: feedKeys.networkStats,

@@ -1,12 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { getPosterUrl } from "@/features/films/components/utils";
-import type { FeedItem } from "@/features/feed/types";
+import { useTrendingOnInteris } from "@/features/feed/hooks/useFeed";
+import type { TrendingOnInterisItem } from "@/features/feed/types";
 
-type TrendingAmongUsersRailProps = {
-  feedItems: FeedItem[];
-};
-
-type LoggedThing = {
+type RailEntry = {
   id: string;
   title: string;
   to: "/cinema/$tmdbId" | "/serials/$tmdbId";
@@ -14,56 +11,31 @@ type LoggedThing = {
   posterPath: string | null;
   color: string;
   module: "CINEMA" | "SERIAL";
-  count: number;
 };
 
-const buildTopLoggedThings = (items: FeedItem[]): LoggedThing[] => {
-  const counts = new Map<string, LoggedThing>();
+const toRailEntry = (item: TrendingOnInterisItem): RailEntry => ({
+  id: `${item.mediaType}:${item.tmdbId}`,
+  title: item.title,
+  to: item.mediaType === "tv" ? "/serials/$tmdbId" : "/cinema/$tmdbId",
+  tmdbId: item.tmdbId,
+  posterPath: item.posterPath,
+  color: item.mediaType === "tv" ? "var(--module-serial)" : "var(--module-cinema)",
+  module: item.mediaType === "tv" ? "SERIAL" : "CINEMA",
+});
 
-  for (const item of items) {
-    if (!item.movie) {
-      continue;
-    }
-
-    const key = `${item.movie.mediaType}:${item.movie.tmdbId}`;
-    const existing = counts.get(key);
-    if (existing) {
-      existing.count += 1;
-      continue;
-    }
-
-    counts.set(key, {
-      id: key,
-      title: item.movie.title,
-      to:
-        item.movie.mediaType === "tv"
-          ? "/serials/$tmdbId"
-          : "/cinema/$tmdbId",
-      tmdbId: item.movie.tmdbId,
-      posterPath: item.movie.posterPath,
-      color: item.movie.mediaType === "tv" ? "var(--module-serial)" : "var(--module-cinema)",
-      module: item.movie.mediaType === "tv" ? "SERIAL" : "CINEMA",
-      count: 1,
-    });
-  }
-
-  return Array.from(counts.values())
-    .sort((left, right) => right.count - left.count)
-    .slice(0, 6);
-};
-
-export const TrendingAmongUsersRail = ({ feedItems }: TrendingAmongUsersRailProps) => {
-  const topLoggedThings = buildTopLoggedThings(feedItems);
+export const TrendingOnInterisRail = () => {
+  const { data } = useTrendingOnInteris();
+  const entries = (data ?? []).map(toRailEntry);
 
   return (
     <section>
       <p className="theme-kicker border-b border-border/50 pb-2 text-[9px] text-(--module-serial)">
-        Trending among users
+        Trending on Interis
       </p>
 
-      {topLoggedThings.length > 0 ? (
+      {entries.length > 0 ? (
         <div className="divide-y divide-border/30">
-          {topLoggedThings.map((entry) => (
+          {entries.map((entry) => (
             <Link
               key={entry.id}
               to={entry.to}

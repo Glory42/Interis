@@ -6,7 +6,7 @@ import {
 } from "@/features/feed/components/FeedActivityList";
 import { FeedFilterTabs } from "@/features/feed/components/FeedFilterTabs";
 import { QuickLogComposer } from "@/features/feed/components/QuickLogComposer";
-import { TrendingAmongUsersRail } from "@/features/feed/components/TrendingAmongUsersRail";
+import { TrendingOnInterisRail } from "@/features/feed/components/TrendingOnInterisRail";
 import { TrendingNowRail } from "@/features/feed/components/TrendingNowRail";
 import { useFollowingFeed, useTrendingNow } from "@/features/feed/hooks/useFeed";
 import { useTrendingSeries } from "@/features/serials/hooks/useSerials";
@@ -16,12 +16,6 @@ export const HomePage = () => {
   const [activeFilter, setActiveFilter] = useState<FeedFilter>("all");
 
   const isFollowingEnabled = Boolean(user);
-  // Always kept alongside the (possibly filtered) main query below - when
-  // activeFilter is "all" these share the same query key/cache entry, so
-  // this costs nothing extra; when a filter is active, the sidebar's
-  // "trending among users" rail still reflects the full feed instead of
-  // narrowing along with the main list.
-  const allFeedQuery = useFollowingFeed("all", isFollowingEnabled);
   const followingFeedQuery = useFollowingFeed(activeFilter, isFollowingEnabled);
   const cinemaTrendingQuery = useTrendingNow();
   const serialTrendingQuery = useTrendingSeries();
@@ -29,10 +23,6 @@ export const HomePage = () => {
   const feedItems = useMemo(
     () => followingFeedQuery.data?.pages.flatMap((page) => page.items) ?? [],
     [followingFeedQuery.data],
-  );
-  const allFeedItems = useMemo(
-    () => allFeedQuery.data?.pages.flatMap((page) => page.items) ?? [],
-    [allFeedQuery.data],
   );
   const isFeedLoading = isUserLoading || (isFollowingEnabled && followingFeedQuery.isPending);
   const isFeedError = isFollowingEnabled ? followingFeedQuery.isError : false;
@@ -93,7 +83,7 @@ export const HomePage = () => {
         </div>
 
         <aside className="order-3 w-full shrink-0 space-y-6 lg:sticky lg:top-16 lg:w-72">
-          <TrendingAmongUsersRail feedItems={allFeedItems} />
+          <TrendingOnInterisRail />
         </aside>
       </div>
     </section>
