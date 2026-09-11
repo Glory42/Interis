@@ -1,0 +1,7 @@
+# Trending on Interis is a global, backend-computed ranking, not a follow-scoped client-side tally
+
+Previously, the "Trending among users" rail was not a real feature — `TrendingAmongUsersRail.tsx` tallied `movie.tmdbId` occurrences client-side over whatever pages of the viewer's Following Feed happened to be cached, silently inflating titles a single prolific user logged repeatedly, and never getting more true reach than the viewer's own network.
+
+We decided to make it a genuine platform-wide signal: computed server-side over all Interis users (not just the viewer's follows), scored by **distinct-user count** rather than raw activity count (so repeat engagement from one person doesn't inflate a title's ranking), over a **rolling 7-day window**, counting only `diary_entry`, `review`, `liked_movie`, and `watchlisted_movie` activities (excluding second-order engagement like liking/commenting on someone else's review, and excluding `created_list`/`post`). It's served publicly, unauthenticated, like the existing TMDB-backed "Trending Now" rail, with no per-viewer moderation filtering, since it's one shared computation rather than a personalized one. No follow-scoped variant is retained — this fully replaces the old behavior rather than adding a toggle.
+
+We considered scoping to an extended network (follows-of-follows) instead of fully global, but rejected it as unnecessary complexity for what the user wants: a simple, universal "what's trending" signal, matching Letterboxd's "Popular This Week" pattern.
