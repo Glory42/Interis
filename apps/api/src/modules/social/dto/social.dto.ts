@@ -7,3 +7,7 @@ export type FeedQueryDto = {
 export type UsernameParamsDto = {
   username: string;
 };
+
+export type TrendingQueryDto = {
+  limit?: string;
+};

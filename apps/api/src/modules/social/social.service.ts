@@ -1,5 +1,6 @@
 import { SocialFeedService } from "./services/social-feed.service";
 import { SocialFollowService } from "./services/social-follow.service";
+import { SocialTrendingService } from "./services/social-trending.service";
 import { SocialRepository, type ActivityType } from "./repositories/social.repository";
 import { NotificationsService } from "../notifications/notifications.service";
 import type { FeedMediaType } from "./types/social-feed.types";
@@ -55,6 +56,10 @@ export class SocialService {
     mediaType?: FeedMediaType,
   ) {
     return SocialFeedService.getFollowingFeed(userId, limit, cursor, mediaType);
+  }
+
+  static async getTrending(limit?: number) {
+    return SocialTrendingService.getTrending(limit);
   }
 
   static async likeActivity(

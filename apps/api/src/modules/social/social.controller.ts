@@ -5,7 +5,8 @@ import {
   normalizeSocialFeedLimit,
   normalizeSocialFeedMediaType,
 } from "./helpers/social-query-normalizer.helper";
-import type { FeedQueryDto, UsernameParamsDto } from "./dto/social.dto";
+import type { FeedQueryDto, TrendingQueryDto, UsernameParamsDto } from "./dto/social.dto";
+import { parseIntParam } from "../../commons/helpers/parse-int-param.helper";
 import {
   resolveOrNotFound,
   sendBadRequest,
@@ -35,6 +36,15 @@ export class SocialController {
       mediaType,
     );
     res.status(200).json(feed);
+  }
+
+  static async getTrending(
+    req: Request<{}, {}, {}, TrendingQueryDto>,
+    res: Response,
+  ): Promise<void> {
+    const limit = parseIntParam(req.query.limit, 6, 1000);
+    const trending = await SocialService.getTrending(limit);
+    res.status(200).json(trending);
   }
 
   static async follow(
