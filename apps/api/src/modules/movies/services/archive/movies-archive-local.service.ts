@@ -1,3 +1,4 @@
+import { createTtlCache } from "../../../../infrastructure/cache/ttl-cache.helper";
 import { getMovieDirector } from "../../../../infrastructure/tmdb/cinemas";
 import {
   normalizeMovieGenres,
@@ -17,6 +18,19 @@ import {
   toAvailableGenresFromItems,
 } from "./movies-archive-shared.helper";
 import type { MoviesArchiveQueryInput } from "./movies-archive.types";
+
+const LOCAL_ARCHIVE_CACHE_TTL_MS = 2 * 60 * 1000;
+
+// Caches the full unbounded catalog scan so concurrent browsing shares one DB read.
+const getCachedLocalArchiveRows = createTtlCache(
+  (dateRange?: { watchedDateGte: string; watchedDateLte: string }) =>
+    MoviesRepository.getLocalArchiveRows(dateRange),
+  {
+    ttlMs: LOCAL_ARCHIVE_CACHE_TTL_MS,
+    keyFn: (dateRange) =>
+      dateRange ? `${dateRange.watchedDateGte}:${dateRange.watchedDateLte}` : "all",
+  },
+);
 
 const addViewerArchiveState = async (
   viewerUserId: string | null,
@@ -52,7 +66,7 @@ export const getArchiveFromLocalCatalog = async (
     isActivityWindowPeriod(effectivePeriod) &&
     (input.sortBy === "logs_desc" || input.sortBy === "rating_user_desc");
 
-  const rows = await MoviesRepository.getLocalArchiveRows(
+  const rows = await getCachedLocalArchiveRows(
     shouldFilterByActivityWindow &&
     periodWindow.releaseDateGte !== null &&
     periodWindow.releaseDateLte !== null

@@ -1,3 +1,4 @@
+import { createTtlCache } from "../../../../infrastructure/cache/ttl-cache.helper";
 import { toFeaturedSeries } from "../../helpers/serials-format.helper";
 import { SerialsArchiveRepository } from "../../repositories/serials-archive.repository";
 import type { SerialArchiveResponse } from "../../types/serials.types";
@@ -11,10 +12,18 @@ import {
 import type { SerialsArchiveQueryInput } from "./serials-archive.types";
 import { toArchiveItemFromLocalRow } from "./serials-archive-mapper.helper";
 
+const LOCAL_ARCHIVE_CACHE_TTL_MS = 2 * 60 * 1000;
+
+// Caches the full unbounded catalog scan so concurrent browsing shares one DB read.
+const getCachedLocalArchiveRows = createTtlCache(
+  () => SerialsArchiveRepository.getLocalArchiveRows(),
+  { ttlMs: LOCAL_ARCHIVE_CACHE_TTL_MS, keyFn: () => "all" },
+);
+
 export const getArchiveFromLocalCache = async (
   input: SerialsArchiveQueryInput,
 ): Promise<SerialArchiveResponse> => {
-  const rows = await SerialsArchiveRepository.getLocalArchiveRows();
+  const rows = await getCachedLocalArchiveRows();
   const allItems = rows.map((row) => toArchiveItemFromLocalRow(row));
 
   const effectivePeriod =
