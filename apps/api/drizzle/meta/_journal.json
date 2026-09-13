@@ -337,6 +337,20 @@
       "when": 1784567750581,
       "tag": "0047_thick_johnny_blaze",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1789291411233,
+      "tag": "0048_quiet_kulan_gath",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1789296869261,
+      "tag": "0049_ambitious_slayback",
+      "breakpoints": true
     }
   ]
 }

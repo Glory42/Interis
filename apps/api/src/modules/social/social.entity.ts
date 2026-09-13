@@ -56,6 +56,8 @@ export const activities = pgTable(
   (table) => [
     // Backs the feed query: WHERE user_id IN (...) ORDER BY created_at DESC
     index("activity_user_id_created_at_idx").on(table.userId, table.createdAt),
+    // Backs the trending query: WHERE type IN (...) AND created_at >= since
+    index("activity_type_created_at_idx").on(table.type, table.createdAt),
   ],
 );
 

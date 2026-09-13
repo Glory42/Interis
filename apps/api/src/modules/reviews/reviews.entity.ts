@@ -43,6 +43,12 @@ export const reviews = pgTable(
     ),
     index("review_movie_id_idx").on(table.movieId),
     index("review_diary_entry_id_idx").on(table.diaryEntryId),
+    // Backs lookups by these three columns without userId.
+    index("review_media_source_idx").on(
+      table.mediaType,
+      table.mediaSource,
+      table.mediaSourceId,
+    ),
   ],
 );
 

@@ -1,0 +1,1 @@
+CREATE INDEX "review_media_source_idx" ON "review" USING btree ("media_type","media_source","media_source_id");
