@@ -1,20 +1,35 @@
 import type { MovieDetailResponse, MovieDetailReviewSort } from "@/features/films/api";
 import { CINEMA_MODULE_STYLES } from "@/features/films/components/cinema-detail/styles";
 import { formatRelativeTime } from "@/features/films/components/cinema-detail/utils";
+import { useMovieReviewsLoadMore } from "@/features/films/hooks/useMovies";
 import { MediaReviewCard } from "@/features/media-archive/components/MediaReviewCard";
 import { MediaReviewsEmptyState } from "@/features/media-archive/components/MediaReviewsEmptyState";
 
 type CinemaReviewsSectionProps = {
+  tmdbId: number;
   reviewsSort: MovieDetailReviewSort;
   onSortChange: (nextSort: MovieDetailReviewSort) => void;
   reviews: MovieDetailResponse["reviews"];
+  reviewsLimit: number;
+  reviewsHasMore: boolean;
 };
 
 export const CinemaReviewsSection = ({
+  tmdbId,
   reviewsSort,
   onSortChange,
   reviews,
+  reviewsLimit,
+  reviewsHasMore,
 }: CinemaReviewsSectionProps) => {
+  const { extraItems, loadMore, isLoading, hasMore } = useMovieReviewsLoadMore(
+    tmdbId,
+    reviewsSort,
+    reviewsLimit,
+    reviewsHasMore,
+  );
+  const allReviews = [...reviews, ...extraItems];
+
   return (
     <section className="mt-10">
       <div
@@ -72,14 +87,14 @@ export const CinemaReviewsSection = ({
         </div>
       </div>
 
-      {reviews.length === 0 ? (
+      {allReviews.length === 0 ? (
         <MediaReviewsEmptyState
           message="No reviews yet for this movie."
           moduleStyles={CINEMA_MODULE_STYLES}
         />
       ) : (
         <div className="space-y-4">
-          {reviews.map((review) => (
+          {allReviews.map((review) => (
             <MediaReviewCard
               key={review.id}
               review={review}
@@ -87,6 +102,23 @@ export const CinemaReviewsSection = ({
               formatRelativeTime={formatRelativeTime}
             />
           ))}
+        </div>
+      )}
+
+      {hasMore && (
+        <div className="mt-5 flex justify-center">
+          <button
+            type="button"
+            className="rounded-full border px-4 py-1.5 font-mono text-[10px] transition-all disabled:opacity-50"
+            style={{
+              borderColor: CINEMA_MODULE_STYLES.borderSoft,
+              color: CINEMA_MODULE_STYLES.faint,
+            }}
+            onClick={() => void loadMore()}
+            disabled={isLoading}
+          >
+            {isLoading ? "Loading..." : "Load more reviews"}
+          </button>
         </div>
       )}
     </section>

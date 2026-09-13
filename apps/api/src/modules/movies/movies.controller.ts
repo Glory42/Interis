@@ -12,6 +12,7 @@ import type {
 import {
   normalizeCinemaArchiveQuery,
   normalizeMovieDetailQuery,
+  normalizeMovieLogsQuery,
   SearchMoviesQuerySchema,
 } from "./dto/movies.dto";
 
@@ -60,11 +61,14 @@ export class MoviesController {
     }
 
     const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
+    const { reviewsSort, reviewsPage, reviewsLimit } = normalizeMovieDetailQuery(req.query);
 
     const detail = await MoviesService.getDetail({
       tmdbId,
       viewerUserId,
-      reviewsSort: normalizeMovieDetailQuery(req.query).reviewsSort,
+      reviewsSort,
+      reviewsPage,
+      reviewsLimit,
     });
 
     if (!detail) {
@@ -74,6 +78,36 @@ export class MoviesController {
 
     res.setHeader("Cache-Control", "no-store");
     res.status(200).json(detail);
+  }
+
+  static async getReviews(
+    req: Request<MovieParams, {}, {}, MovieDetailQuery>,
+    res: Response,
+  ): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
+    if (tmdbId === null) {
+      sendBadRequest(res, "Invalid movie ID");
+      return;
+    }
+
+    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
+    const { reviewsSort, reviewsPage, reviewsLimit } = normalizeMovieDetailQuery(req.query);
+
+    const reviews = await MoviesService.getReviews({
+      tmdbId,
+      viewerUserId,
+      sort: reviewsSort,
+      page: reviewsPage,
+      limit: reviewsLimit,
+    });
+
+    if (!reviews) {
+      sendNotFound(res, "Movie not found");
+      return;
+    }
+
+    res.setHeader("Cache-Control", "no-store");
+    res.status(200).json(reviews);
   }
 
   static async getRecent(_req: Request, res: Response): Promise<void> {
@@ -112,7 +146,8 @@ export class MoviesController {
       return;
     }
 
-    const logs = await MoviesService.getLogsByTmdbId(tmdbId);
+    const { limit, offset } = normalizeMovieLogsQuery(req.query);
+    const logs = await MoviesService.getLogsByTmdbId(tmdbId, limit, offset);
     res.status(200).json(logs);
   }
 }

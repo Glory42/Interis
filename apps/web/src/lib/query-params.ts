@@ -43,6 +43,8 @@ export const buildArchiveSearchParams = (input: ArchiveSearchParamsInput): URLSe
 
 type DetailSearchParamsInput = {
   reviewsSort?: string;
+  reviewsPage?: number;
+  reviewsLimit?: number;
 };
 
 export const buildDetailSearchParams = (input: DetailSearchParamsInput): URLSearchParams => {
@@ -50,6 +52,14 @@ export const buildDetailSearchParams = (input: DetailSearchParamsInput): URLSear
 
   if (input.reviewsSort) {
     searchParams.set("reviewsSort", input.reviewsSort);
+  }
+
+  if (typeof input.reviewsPage === "number" && Number.isFinite(input.reviewsPage)) {
+    searchParams.set("reviewsPage", String(clampPositiveInt(input.reviewsPage)));
+  }
+
+  if (typeof input.reviewsLimit === "number" && Number.isFinite(input.reviewsLimit)) {
+    searchParams.set("reviewsLimit", String(clampPositiveInt(input.reviewsLimit)));
   }
 
   return searchParams;

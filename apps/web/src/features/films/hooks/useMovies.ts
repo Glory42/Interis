@@ -1,13 +1,16 @@
+import { useCallback, useState } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
   getMovieArchive,
   getMovieByTmdbId,
   getMovieDetail,
   getMovieLogs,
+  getMovieReviews,
   getRecentMovies,
   searchMovies,
   type MovieArchivePeriod,
   type MovieArchiveSort,
+  type MovieDetailReviewItem,
   type MovieDetailReviewSort,
 } from "@/features/films/api";
 
@@ -63,6 +66,39 @@ export const useMovieDetailView = (
     queryFn: ({ signal }) => getMovieDetail(tmdbId, { reviewsSort }, { signal }),
     enabled,
   });
+
+// Appends review pages beyond the one already in the detail response.
+// Remount (e.g. `key={reviewsSort}`) when reviewsSort changes.
+export const useMovieReviewsLoadMore = (
+  tmdbId: number,
+  sort: MovieDetailReviewSort,
+  limit: number,
+  initialHasMore: boolean,
+) => {
+  const [extraItems, setExtraItems] = useState<MovieDetailReviewItem[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loadMore = useCallback(async () => {
+    if (isLoading || !hasMore) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const nextPage = page + 1;
+      const response = await getMovieReviews(tmdbId, { sort, page: nextPage, limit });
+      setExtraItems((previous) => [...previous, ...response.items]);
+      setPage(nextPage);
+      setHasMore(response.hasMore);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [tmdbId, sort, limit, page, hasMore, isLoading]);
+
+  return { extraItems, loadMore, isLoading, hasMore };
+};
 
 export const useRecentMovies = () =>
   useQuery({

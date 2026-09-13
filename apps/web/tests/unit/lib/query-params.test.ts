@@ -67,4 +67,16 @@ describe("buildDetailSearchParams", () => {
   it("returns no params when reviewsSort is absent", () => {
     expect(buildDetailSearchParams({}).toString()).toBe("");
   });
+
+  it("clamps reviewsPage and reviewsLimit to positive integers", () => {
+    const params = buildDetailSearchParams({ reviewsPage: 2.7, reviewsLimit: 0 });
+    expect(params.get("reviewsPage")).toBe("2");
+    expect(params.get("reviewsLimit")).toBe("1");
+  });
+
+  it("omits reviewsPage / reviewsLimit that are not finite numbers", () => {
+    const params = buildDetailSearchParams({ reviewsPage: Number.NaN, reviewsLimit: Infinity });
+    expect(params.has("reviewsPage")).toBe(false);
+    expect(params.has("reviewsLimit")).toBe(false);
+  });
 });

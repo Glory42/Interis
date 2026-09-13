@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, gte, ilike, inArray, isNotNull, lte, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
+import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { diaryEntries } from "../../diary/diary.entity";
 import { movieInteractions } from "../../interactions/interactions.entity";
@@ -322,8 +323,8 @@ export class MoviesRepository {
     return deleted ?? null;
   }
 
-  static async getLogsByMovieId(movieId: number) {
-    return db
+  static async getLogsByMovieId(movieId: number, limit?: number, offset?: number) {
+    const query = db
       .select({
         diaryEntryId: diaryEntries.id,
         watchedDate: diaryEntries.watchedDate,
@@ -349,6 +350,9 @@ export class MoviesRepository {
         ),
       )
       .where(eq(diaryEntries.movieId, movieId))
-      .orderBy(desc(diaryEntries.createdAt));
+      .orderBy(desc(diaryEntries.createdAt))
+      .$dynamic();
+
+    return applyOptionalPagination(query, limit, offset);
   }
 }

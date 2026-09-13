@@ -67,6 +67,9 @@ const makeInputs = (over: Partial<MovieDetailInputs> = {}): MovieDetailInputs =>
   viewerReview: null,
   viewerUserId: null,
   reviewsSort: "recent",
+  reviewsPage: 1,
+  reviewsLimit: 10,
+  reviewsTotalCount: 0,
   ...over,
 });
 
@@ -145,7 +148,7 @@ describe("assembleMovieDetail", () => {
 
     it("sorts by engagement and stamps each item's like count / viewer-liked", () => {
       const res = assembleMovieDetail(
-        makeInputs({ reviewRows: rows, engagement, reviewsSort: "popular" }),
+        makeInputs({ reviewRows: rows, engagement, reviewsSort: "popular", reviewsTotalCount: rows.length }),
       );
 
       expect(res.reviews.map((r) => r.id)).toEqual(["mid", "old-popular", "new-quiet"]);

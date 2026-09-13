@@ -3,6 +3,7 @@ export {
   getMovieByTmdbId,
   getMovieDetail,
   getMovieLogs,
+  getMovieReviews,
   getRecentMovies,
   searchMovies,
 } from "./api/requests";
@@ -15,9 +16,12 @@ export type {
   MovieArchiveResponse,
   MovieArchiveSort,
   MovieDetailInput,
+  MovieDetailReviewItem,
   MovieDetailResponse,
   MovieDetailReviewSort,
   MovieLog,
+  MovieReviewsInput,
+  MovieReviewsPageResponse,
   QueryRequestOptions,
   TmdbSearchMovie,
 } from "./api/types";

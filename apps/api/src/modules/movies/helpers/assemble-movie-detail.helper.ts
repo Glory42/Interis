@@ -15,6 +15,7 @@ import type {
   MovieDetailRatingBreakdownBucket,
   MovieDetailResponse,
   MovieDetailReviewItem,
+  MovieReviewsPageResponse,
 } from "../types/movies.types";
 
 // The pure half of MoviesDetailService.getDetail: every IO the response
@@ -29,7 +30,7 @@ type TmdbMovieDetail = NonNullable<Awaited<ReturnType<typeof getMovieDetails>>>;
 type TmdbSimilarMovies = Awaited<ReturnType<typeof getSimilarMovies>>;
 type MovieReviewRow = Awaited<
   ReturnType<typeof MoviesReviewsRepository.getReviewRowsByMovieId>
->[number];
+>["rows"][number];
 type ViewerDiaryRow = Awaited<
   ReturnType<typeof MoviesRepository.getViewerDiaryRows>
 >[number];
@@ -54,12 +55,17 @@ export type MovieDetailInputs = {
   viewerReview: ViewerReviewRow | null;
   viewerUserId: string | null;
   reviewsSort: MovieDetailReviewSort;
+  reviewsPage: number;
+  reviewsLimit: number;
+  reviewsTotalCount: number;
 };
 
-export const assembleMovieDetail = (inputs: MovieDetailInputs): MovieDetailResponse => {
-  const { movie, tmdbDetail } = inputs;
-
-  const reviewsWithEngagement: MovieDetailReviewItem[] = inputs.reviewRows.map((reviewRow) => ({
+// Shared with assembleMovieReviewsPage below.
+const toReviewItems = (
+  reviewRows: MovieReviewRow[],
+  engagement: ReviewEngagementIndex,
+): MovieDetailReviewItem[] =>
+  reviewRows.map((reviewRow) => ({
     id: reviewRow.id,
     content: reviewRow.content,
     containsSpoilers: reviewRow.containsSpoilers,
@@ -67,8 +73,8 @@ export const assembleMovieDetail = (inputs: MovieDetailInputs): MovieDetailRespo
     updatedAt: reviewRow.updatedAt,
     watchedDate: reviewRow.watchedDate,
     rating: reviewRow.rating,
-    likeCount: inputs.engagement.likeCountFor(reviewRow.id),
-    viewerHasLiked: inputs.engagement.viewerHasLiked(reviewRow.id),
+    likeCount: engagement.likeCountFor(reviewRow.id),
+    viewerHasLiked: engagement.viewerHasLiked(reviewRow.id),
     author: {
       id: reviewRow.userId,
       username: reviewRow.authorUsername,
@@ -77,7 +83,40 @@ export const assembleMovieDetail = (inputs: MovieDetailInputs): MovieDetailRespo
     },
   }));
 
-  const sortedReviews = sortReviewsByEngagement(reviewsWithEngagement, inputs.reviewsSort);
+export type AssembleMovieReviewsPageInputs = {
+  reviewRows: MovieReviewRow[];
+  engagement: ReviewEngagementIndex;
+  sort: MovieDetailReviewSort;
+  page: number;
+  limit: number;
+  totalCount: number;
+};
+
+export const assembleMovieReviewsPage = (
+  inputs: AssembleMovieReviewsPageInputs,
+): MovieReviewsPageResponse => {
+  const items = sortReviewsByEngagement(
+    toReviewItems(inputs.reviewRows, inputs.engagement),
+    inputs.sort,
+  );
+
+  return {
+    items,
+    sort: inputs.sort,
+    page: inputs.page,
+    limit: inputs.limit,
+    totalCount: inputs.totalCount,
+    hasMore: inputs.page * inputs.limit < inputs.totalCount,
+  };
+};
+
+export const assembleMovieDetail = (inputs: MovieDetailInputs): MovieDetailResponse => {
+  const { movie, tmdbDetail } = inputs;
+
+  const sortedReviews = sortReviewsByEngagement(
+    toReviewItems(inputs.reviewRows, inputs.engagement),
+    inputs.reviewsSort,
+  );
   const ratingBreakdown = buildMediaRatingBreakdown(inputs.communityRatings);
 
   const similar = (inputs.tmdbSimilar ?? []).slice(0, 12).map((sim) => {
@@ -131,7 +170,7 @@ export const assembleMovieDetail = (inputs: MovieDetailInputs): MovieDetailRespo
         tmdbDetail && tmdbDetail.vote_count > 0 ? tmdbDetail.vote_count : null,
     },
     logsCount: inputs.logsCount,
-    reviewCount: reviewsWithEngagement.length,
+    reviewCount: inputs.reviewsTotalCount,
     userRating: inputs.viewerUserId
       ? {
           diaryEntryId: inputs.viewerDiary?.id ?? null,
@@ -145,6 +184,9 @@ export const assembleMovieDetail = (inputs: MovieDetailInputs): MovieDetailRespo
       : null,
     reviewsSort: inputs.reviewsSort,
     reviews: sortedReviews,
+    reviewsPage: inputs.reviewsPage,
+    reviewsLimit: inputs.reviewsLimit,
+    reviewsHasMore: inputs.reviewsPage * inputs.reviewsLimit < inputs.reviewsTotalCount,
     ratingBreakdown: {
       totalRatedReviews: ratingBreakdown.totalRatedReviews,
       averageRating: ratingBreakdown.averageRating,

@@ -53,8 +53,20 @@ export class MoviesService {
     tmdbId: number;
     viewerUserId?: string | null;
     reviewsSort: MovieDetailReviewSort;
+    reviewsPage: number;
+    reviewsLimit: number;
   }) {
     return MoviesDetailService.getDetail(input);
+  }
+
+  static async getReviews(input: {
+    tmdbId: number;
+    viewerUserId?: string | null;
+    sort: MovieDetailReviewSort;
+    page: number;
+    limit: number;
+  }) {
+    return MoviesDetailService.getReviews(input);
   }
 
   static async getArchive(input: {
@@ -69,8 +81,8 @@ export class MoviesService {
     return MoviesArchiveService.getArchive(input);
   }
 
-  static async getLogsByTmdbId(tmdbId: number) {
-    return MoviesDetailService.getLogsByTmdbId(tmdbId);
+  static async getLogsByTmdbId(tmdbId: number, limit?: number, offset?: number) {
+    return MoviesDetailService.getLogsByTmdbId(tmdbId, limit, offset);
   }
 
   static async listAllForAdmin(query: string | undefined, limit: number, offset: number) {

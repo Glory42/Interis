@@ -139,12 +139,24 @@ export type MovieDetailResponse = {
   userRating: MovieDetailUserRating | null;
   reviewsSort: MovieDetailReviewSort;
   reviews: MovieDetailReviewItem[];
+  reviewsPage: number;
+  reviewsLimit: number;
+  reviewsHasMore: boolean;
   ratingBreakdown: {
     totalRatedReviews: number;
     averageRating: number | null;
     buckets: MovieDetailRatingBreakdownBucket[];
   };
   similar: SimilarMovieItem[];
+};
+
+export type MovieReviewsPageResponse = {
+  items: MovieDetailReviewItem[];
+  sort: MovieDetailReviewSort;
+  page: number;
+  limit: number;
+  totalCount: number;
+  hasMore: boolean;
 };
 
 export type SimilarMovieItem = {

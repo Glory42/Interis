@@ -104,9 +104,13 @@ export function CinemaDetailPage({ tmdbId }: CinemaDetailPageProps) {
         </div>
 
         <CinemaReviewsSection
+          key={reviewsSort}
+          tmdbId={tmdbId}
           reviewsSort={reviewsSort}
           onSortChange={setReviewsSort}
           reviews={detail.reviews}
+          reviewsLimit={detail.reviewsLimit}
+          reviewsHasMore={detail.reviewsHasMore}
         />
 
         <CinemaSimilarSection similar={detail.similar} />

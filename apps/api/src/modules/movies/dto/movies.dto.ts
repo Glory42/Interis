@@ -4,8 +4,11 @@ import {
   DEFAULT_ARCHIVE_PAGE,
   DEFAULT_ARCHIVE_PERIOD,
   DEFAULT_ARCHIVE_SORT,
+  DEFAULT_DETAIL_REVIEWS_LIMIT,
+  DEFAULT_DETAIL_REVIEWS_PAGE,
   DEFAULT_DETAIL_REVIEWS_SORT,
   MAX_ARCHIVE_LIMIT,
+  MAX_DETAIL_REVIEWS_LIMIT,
 } from "../../../commons/constants/archive.constants";
 
 const cinemaArchiveSortValues = [
@@ -48,9 +51,41 @@ export type MovieParams = z.input<typeof MovieParamsSchema>;
 
 export const MovieDetailQuerySchema = z.object({
   reviewsSort: z.enum(movieDetailReviewSortValues).optional(),
+  reviewsPage: z.coerce.number().int().min(1).optional(),
+  reviewsLimit: z.coerce.number().int().min(1).max(MAX_DETAIL_REVIEWS_LIMIT).optional(),
 });
 
 export type MovieDetailQuery = z.input<typeof MovieDetailQuerySchema>;
+
+export type NormalizedMovieReviewsQuery = {
+  reviewsSort: MovieDetailReviewSort;
+  reviewsPage: number;
+  reviewsLimit: number;
+};
+
+const DEFAULT_LOGS_LIMIT = 50;
+
+// Mirrors SerialLogsQuerySchema/normalizeSerialLogsQuery.
+export const MovieLogsQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+});
+
+export type MovieLogsQuery = z.input<typeof MovieLogsQuerySchema>;
+
+export const normalizeMovieLogsQuery = (
+  input: unknown,
+): { limit: number; offset: number } => {
+  const parsed = MovieLogsQuerySchema.safeParse(input);
+  if (!parsed.success) {
+    return { limit: DEFAULT_LOGS_LIMIT, offset: 0 };
+  }
+
+  return {
+    limit: parsed.data.limit ?? DEFAULT_LOGS_LIMIT,
+    offset: parsed.data.offset ?? 0,
+  };
+};
 
 const optionalTrimmedTextSchema = z
   .string()
@@ -169,12 +204,14 @@ export type NormalizedCinemaArchiveQuery = {
 
 export const normalizeMovieDetailQuery = (
   input: MovieDetailQuery,
-): { reviewsSort: MovieDetailReviewSort } => {
+): NormalizedMovieReviewsQuery => {
   const parsed = MovieDetailQuerySchema.safeParse(input);
+  const data = parsed.success ? parsed.data : {};
+
   return {
-    reviewsSort: parsed.success
-      ? (parsed.data.reviewsSort ?? DEFAULT_DETAIL_REVIEWS_SORT)
-      : DEFAULT_DETAIL_REVIEWS_SORT,
+    reviewsSort: data.reviewsSort ?? (DEFAULT_DETAIL_REVIEWS_SORT as MovieDetailReviewSort),
+    reviewsPage: data.reviewsPage ?? DEFAULT_DETAIL_REVIEWS_PAGE,
+    reviewsLimit: data.reviewsLimit ?? DEFAULT_DETAIL_REVIEWS_LIMIT,
   };
 };
 

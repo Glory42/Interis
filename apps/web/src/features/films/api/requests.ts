@@ -3,6 +3,7 @@ import {
   movieArchiveResponseSchema,
   movieDetailResponseSchema,
   movieLogsResponseSchema,
+  movieReviewsPageResponseSchema,
   movieSchema,
   movieSearchResponseSchema,
 } from "./schemas";
@@ -10,6 +11,7 @@ import {
   normalizeSearchQuery,
   toMovieArchiveSearchParams,
   toMovieDetailSearchParams,
+  toMovieReviewsSearchParams,
 } from "./mappers";
 import type {
   Movie,
@@ -18,6 +20,8 @@ import type {
   MovieDetailInput,
   MovieDetailResponse,
   MovieLog,
+  MovieReviewsInput,
+  MovieReviewsPageResponse,
   QueryRequestOptions,
   TmdbSearchMovie,
 } from "./types";
@@ -107,4 +111,23 @@ export const getMovieDetail = async (
   });
 
   return movieDetailResponseSchema.parse(response);
+};
+
+export const getMovieReviews = async (
+  tmdbId: number,
+  input: MovieReviewsInput = {},
+  options: QueryRequestOptions = {},
+): Promise<MovieReviewsPageResponse> => {
+  const query = toMovieReviewsSearchParams(input).toString();
+  const path = query
+    ? `/api/movies/${tmdbId}/reviews?${query}`
+    : `/api/movies/${tmdbId}/reviews`;
+
+  const response = await apiRequest<unknown>(path, {
+    method: "GET",
+    signal: options.signal,
+    cache: "no-store",
+  });
+
+  return movieReviewsPageResponseSchema.parse(response);
 };

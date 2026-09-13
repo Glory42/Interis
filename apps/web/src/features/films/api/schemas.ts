@@ -139,12 +139,24 @@ export const movieDetailResponseSchema = z.object({
   userRating: movieDetailUserRatingSchema,
   reviewsSort: movieDetailReviewSortSchema,
   reviews: z.array(movieDetailReviewSchema),
+  reviewsPage: z.number().int().positive(),
+  reviewsLimit: z.number().int().positive(),
+  reviewsHasMore: z.boolean(),
   ratingBreakdown: z.object({
     totalRatedReviews: z.number().int().nonnegative(),
     averageRating: z.number().nullable(),
     buckets: z.array(movieDetailRatingBreakdownBucketSchema),
   }),
   similar: z.array(similarMovieItemSchema),
+});
+
+export const movieReviewsPageResponseSchema = z.object({
+  items: z.array(movieDetailReviewSchema),
+  sort: movieDetailReviewSortSchema,
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  totalCount: z.number().int().nonnegative(),
+  hasMore: z.boolean(),
 });
 
 export const movieArchiveResponseSchema = z.object({

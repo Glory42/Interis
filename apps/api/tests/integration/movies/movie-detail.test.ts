@@ -138,6 +138,31 @@ describe("movie detail + basic reads", () => {
       expect(detail.reviews[0]?.likeCount).toBe(1);
     });
 
+    it("bounds the embedded review page while reviewCount still reflects the true total", async () => {
+      const movie = await seedTestMovie("Detail Bounded Reviews Movie");
+      await logMovie("mdbound1", movie.tmdbId, { review: "one" });
+      await logMovie("mdbound2", movie.tmdbId, { review: "two" });
+      await logMovie("mdbound3", movie.tmdbId, { review: "three" });
+
+      const response = await apiRequest(
+        getServer().baseUrl,
+        `/api/movies/${movie.tmdbId}/detail?reviewsLimit=2`,
+      );
+      const detail = (await response.json()) as {
+        reviewCount: number;
+        reviews: unknown[];
+        reviewsPage: number;
+        reviewsLimit: number;
+        reviewsHasMore: boolean;
+      };
+
+      expect(detail.reviewCount).toBe(3);
+      expect(detail.reviews.length).toBe(2);
+      expect(detail.reviewsPage).toBe(1);
+      expect(detail.reviewsLimit).toBe(2);
+      expect(detail.reviewsHasMore).toBe(true);
+    });
+
     it("400s on a non-numeric id", async () => {
       const response = await apiRequest(getServer().baseUrl, "/api/movies/not-a-number/detail");
       expect(response.status).toBe(400);
@@ -145,6 +170,82 @@ describe("movie detail + basic reads", () => {
 
     it("404s for a tmdbId that is neither cached locally nor resolvable via TMDB", async () => {
       const response = await apiRequest(getServer().baseUrl, "/api/movies/999000001/detail");
+      expect(response.status).toBe(404);
+    });
+  });
+
+  describe("GET /api/movies/:tmdbId/reviews", () => {
+    it("paginates: page 1 has hasMore=true, page 2 has the remainder and hasMore=false", async () => {
+      const movie = await seedTestMovie("Reviews Page Movie");
+      await logMovie("mdrpg1", movie.tmdbId, { review: "alpha" });
+      await logMovie("mdrpg2", movie.tmdbId, { review: "beta" });
+      await logMovie("mdrpg3", movie.tmdbId, { review: "gamma" });
+
+      const page1Response = await apiRequest(
+        getServer().baseUrl,
+        `/api/movies/${movie.tmdbId}/reviews?reviewsLimit=2&reviewsPage=1`,
+      );
+      const page1 = (await page1Response.json()) as {
+        items: Array<{ id: string; content: string }>;
+        totalCount: number;
+        hasMore: boolean;
+        page: number;
+        limit: number;
+      };
+
+      expect(page1.totalCount).toBe(3);
+      expect(page1.items.length).toBe(2);
+      expect(page1.hasMore).toBe(true);
+      expect(page1.page).toBe(1);
+      expect(page1.limit).toBe(2);
+
+      const page2Response = await apiRequest(
+        getServer().baseUrl,
+        `/api/movies/${movie.tmdbId}/reviews?reviewsLimit=2&reviewsPage=2`,
+      );
+      const page2 = (await page2Response.json()) as {
+        items: Array<{ id: string }>;
+        hasMore: boolean;
+      };
+
+      expect(page2.items.length).toBe(1);
+      expect(page2.hasMore).toBe(false);
+
+      // No review appears on both pages.
+      const page1Ids = new Set(page1.items.map((item) => item.id));
+      expect(page2.items.every((item) => !page1Ids.has(item.id))).toBe(true);
+    });
+
+    it("orders by like count across pages when reviewsSort=popular", async () => {
+      const movie = await seedTestMovie("Reviews Page Popular Sort Movie");
+      const { reviewId: mostLikedId } = await logMovie("mdrpop1", movie.tmdbId, {
+        review: "most liked",
+      });
+      if (!mostLikedId) throw new Error("Expected a review id");
+      await logMovie("mdrpop2", movie.tmdbId, { review: "unliked" });
+      const { jar: likerJar } = await signUpTestUser(getServer().baseUrl, "mdrpopliker");
+
+      await apiRequest(
+        getServer().baseUrl,
+        `/api/reviews/${mostLikedId}/like`,
+        { method: "POST" },
+        likerJar,
+      );
+
+      const response = await apiRequest(
+        getServer().baseUrl,
+        `/api/movies/${movie.tmdbId}/reviews?reviewsSort=popular&reviewsLimit=1`,
+      );
+      const page = (await response.json()) as {
+        items: Array<{ id: string; likeCount: number }>;
+      };
+
+      expect(page.items[0]?.id).toBe(mostLikedId);
+      expect(page.items[0]?.likeCount).toBe(1);
+    });
+
+    it("404s for a tmdbId that is neither cached locally nor resolvable via TMDB", async () => {
+      const response = await apiRequest(getServer().baseUrl, "/api/movies/999000003/reviews");
       expect(response.status).toBe(404);
     });
   });

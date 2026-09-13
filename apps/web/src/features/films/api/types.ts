@@ -7,6 +7,7 @@ import {
   movieArchiveResponseSchema,
   movieDetailResponseSchema,
   movieDetailReviewSortSchema,
+  movieReviewsPageResponseSchema,
 } from "./schemas";
 
 export type { Movie, MovieLog, TmdbSearchMovie };
@@ -18,6 +19,8 @@ export type MovieDetailReviewSort = z.infer<typeof movieDetailReviewSortSchema>;
 export type ArchiveMovie = z.infer<typeof archiveMovieSchema>;
 export type MovieArchiveResponse = z.infer<typeof movieArchiveResponseSchema>;
 export type MovieDetailResponse = z.infer<typeof movieDetailResponseSchema>;
+export type MovieReviewsPageResponse = z.infer<typeof movieReviewsPageResponseSchema>;
+export type MovieDetailReviewItem = MovieDetailResponse["reviews"][number];
 
 export type { QueryRequestOptions } from "@/lib/api-client";
 
@@ -32,4 +35,10 @@ export type MovieArchiveInput = {
 
 export type MovieDetailInput = {
   reviewsSort?: MovieDetailReviewSort;
+};
+
+export type MovieReviewsInput = {
+  sort?: MovieDetailReviewSort;
+  page?: number;
+  limit?: number;
 };
