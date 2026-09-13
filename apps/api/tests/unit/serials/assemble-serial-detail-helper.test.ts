@@ -121,6 +121,9 @@ const makeInputs = (over: Partial<SerialDetailInputs> = {}): SerialDetailInputs 
   viewerTracking: null,
   viewerUserId: null,
   reviewsSort: "recent",
+  reviewsPage: 1,
+  reviewsLimit: 10,
+  reviewsTotalCount: 0,
   ...over,
 });
 
@@ -138,6 +141,7 @@ describe("assembleSerialDetail", () => {
         ],
         engagement: engagementFrom({ "series-old": 2, "series-new": 0 }, ["series-new"]),
         reviewsSort: "popular",
+        reviewsTotalCount: 2,
       });
 
       const res = assembleSerialDetail(inputs);

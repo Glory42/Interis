@@ -1,13 +1,17 @@
 import type { SerialDetailResponse, SerialDetailReviewSort } from "@/features/serials/api";
 import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
 import { formatRelativeTime } from "@/features/serials/components/serial-detail/utils";
+import { useSeriesReviewsLoadMore } from "@/features/serials/hooks/useSerials";
 import { MediaReviewCard } from "@/features/media-archive/components/MediaReviewCard";
 import { MediaReviewsEmptyState } from "@/features/media-archive/components/MediaReviewsEmptyState";
 
 type SerialReviewsSectionProps = {
+  tmdbId: number;
   reviewsSort: SerialDetailReviewSort;
   onSortChange: (nextSort: SerialDetailReviewSort) => void;
   reviews: SerialDetailResponse["reviews"];
+  reviewsLimit: number;
+  reviewsHasMore: boolean;
 };
 
 const formatReviewContextLabel = (
@@ -22,10 +26,21 @@ const formatReviewContextLabel = (
 };
 
 export const SerialReviewsSection = ({
+  tmdbId,
   reviewsSort,
   onSortChange,
   reviews,
+  reviewsLimit,
+  reviewsHasMore,
 }: SerialReviewsSectionProps) => {
+  const { extraItems, loadMore, isLoading, hasMore } = useSeriesReviewsLoadMore(
+    tmdbId,
+    reviewsSort,
+    reviewsLimit,
+    reviewsHasMore,
+  );
+  const allReviews = [...reviews, ...extraItems];
+
   return (
     <section className="mt-10">
       <div
@@ -86,14 +101,14 @@ export const SerialReviewsSection = ({
         </div>
       </div>
 
-      {reviews.length === 0 ? (
+      {allReviews.length === 0 ? (
         <MediaReviewsEmptyState
           message="No reviews yet for this series."
           moduleStyles={SERIAL_MODULE_STYLES}
         />
       ) : (
         <div className="space-y-4">
-          {reviews.map((review) => (
+          {allReviews.map((review) => (
             <MediaReviewCard
               key={review.id}
               review={review}
@@ -117,6 +132,23 @@ export const SerialReviewsSection = ({
               }
             />
           ))}
+        </div>
+      )}
+
+      {hasMore && (
+        <div className="mt-5 flex justify-center">
+          <button
+            type="button"
+            className="rounded-full border px-4 py-1.5 font-mono text-[10px] transition-all disabled:opacity-50"
+            style={{
+              borderColor: SERIAL_MODULE_STYLES.borderSoft,
+              color: SERIAL_MODULE_STYLES.faint,
+            }}
+            onClick={() => void loadMore()}
+            disabled={isLoading}
+          >
+            {isLoading ? "Loading..." : "Load more reviews"}
+          </button>
         </div>
       )}
     </section>

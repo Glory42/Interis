@@ -14,6 +14,7 @@ import {
   serialInteractionSchema,
   serialLogSchema,
   serialLogsListSchema,
+  serialReviewsPageResponseSchema,
   serialSeasonDetailSchema,
   tmdbSearchSeriesSchema,
   trendingSeriesSchema,
@@ -29,6 +30,8 @@ export type SerialArchiveItem = z.infer<typeof serialArchiveItemSchema>;
 export type SerialArchiveResponse = z.infer<typeof serialArchiveResponseSchema>;
 export type SerialDetailResponse = z.infer<typeof serialDetailResponseSchema>;
 export type SerialDetailViewerTracking = NonNullable<SerialDetailResponse["viewerTracking"]>;
+export type SerialReviewsPageResponse = z.infer<typeof serialReviewsPageResponseSchema>;
+export type SerialDetailReviewItem = SerialDetailResponse["reviews"][number];
 export type SerialSeasonDetailResponse = z.infer<typeof serialSeasonDetailSchema>;
 export type CachedSeries = z.infer<typeof cachedSeriesSchema>;
 export type TrendingSeries = z.infer<typeof trendingSeriesSchema>;
@@ -52,6 +55,12 @@ export type SerialArchiveInput = {
 
 export type SerialDetailInput = {
   reviewsSort?: SerialDetailReviewSort;
+};
+
+export type SerialReviewsInput = {
+  sort?: SerialDetailReviewSort;
+  page?: number;
+  limit?: number;
 };
 
 export type SerialDiaryEntry = z.infer<typeof serialDiaryEntrySchema>;

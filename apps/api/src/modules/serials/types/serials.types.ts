@@ -188,6 +188,9 @@ export type SerialDetailResponse = {
   userRating: SerialDetailUserRating | null;
   reviewsSort: SerialDetailReviewSort;
   reviews: SerialDetailReviewItem[];
+  reviewsPage: number;
+  reviewsLimit: number;
+  reviewsHasMore: boolean;
   ratingBreakdown: {
     totalRatedReviews: number;
     averageRating: number | null;
@@ -195,6 +198,15 @@ export type SerialDetailResponse = {
   };
   similar: SimilarSerialItem[];
   viewerTracking: SerialDetailViewerTracking | null;
+};
+
+export type SerialReviewsPageResponse = {
+  items: SerialDetailReviewItem[];
+  sort: SerialDetailReviewSort;
+  page: number;
+  limit: number;
+  totalCount: number;
+  hasMore: boolean;
 };
 
 export type SerialDetailViewerTracking = {

@@ -122,6 +122,9 @@ export const serialDetailResponseSchema = z.object({
   userRating: serialDetailUserRatingSchema,
   reviewsSort: serialDetailReviewSortSchema,
   reviews: z.array(serialDetailReviewSchema),
+  reviewsPage: z.number().int().positive(),
+  reviewsLimit: z.number().int().positive(),
+  reviewsHasMore: z.boolean(),
   ratingBreakdown: z.object({
     totalRatedReviews: z.number().int().nonnegative(),
     averageRating: z.number().nullable(),
@@ -129,4 +132,13 @@ export const serialDetailResponseSchema = z.object({
   }),
   similar: z.array(similarSeriesItemSchema),
   viewerTracking: serialDetailViewerTrackingSchema,
+});
+
+export const serialReviewsPageResponseSchema = z.object({
+  items: z.array(serialDetailReviewSchema),
+  sort: serialDetailReviewSortSchema,
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  totalCount: z.number().int().nonnegative(),
+  hasMore: z.boolean(),
 });

@@ -22,6 +22,7 @@ import type {
   SerialDetailRatingBreakdownBucket,
   SerialDetailResponse,
   SerialDetailReviewItem,
+  SerialReviewsPageResponse,
 } from "../types/serials.types";
 
 // The pure half of SerialsDetailService.getDetail. gather() has resolved
@@ -38,7 +39,7 @@ type TmdbSeriesDetail = NonNullable<Awaited<ReturnType<typeof getSeriesDetails>>
 type TmdbSimilarSeries = Awaited<ReturnType<typeof getSimilarSeries>>;
 type SeriesReviewRow = Awaited<
   ReturnType<typeof SerialsReviewsRepository.getReviewRowsBySeriesId>
->[number];
+>["rows"][number];
 type ViewerSeasonInteraction = Awaited<
   ReturnType<typeof SerialsSeasonInteractionsRepository.getViewerSeasonInteractions>
 >[number];
@@ -69,6 +70,41 @@ export type SerialDetailInputs = {
   viewerTracking: ViewerTracking | null;
   viewerUserId: string | null;
   reviewsSort: SerialDetailReviewSort;
+  reviewsPage: number;
+  reviewsLimit: number;
+  reviewsTotalCount: number;
+};
+
+export type AssembleSerialReviewsPageInputs = {
+  reviewRows: SeriesReviewRow[];
+  engagement: ReviewEngagementIndex;
+  sort: SerialDetailReviewSort;
+  page: number;
+  limit: number;
+  totalCount: number;
+};
+
+// Series-level reviews only - season/episode reviews stay fully embedded.
+export const assembleSerialReviewsPage = (
+  inputs: AssembleSerialReviewsPageInputs,
+): SerialReviewsPageResponse => {
+  const items = sortReviewsByEngagement(
+    resolveSeriesReviewItems(
+      inputs.reviewRows,
+      inputs.engagement.likeCountByReviewId,
+      inputs.engagement.viewerLikedReviewIds,
+    ),
+    inputs.sort,
+  );
+
+  return {
+    items,
+    sort: inputs.sort,
+    page: inputs.page,
+    limit: inputs.limit,
+    totalCount: inputs.totalCount,
+    hasMore: inputs.page * inputs.limit < inputs.totalCount,
+  };
 };
 
 export const assembleSerialDetail = (inputs: SerialDetailInputs): SerialDetailResponse => {
@@ -170,7 +206,7 @@ export const assembleSerialDetail = (inputs: SerialDetailInputs): SerialDetailRe
       seasons: mappedSeasons,
     },
     logsCount: inputs.logsCount,
-    reviewCount: reviewsWithEngagement.length,
+    reviewCount: inputs.reviewsTotalCount + inputs.seasonEpisodeReviews.length,
     userRating: inputs.viewerUserId
       ? {
           diaryEntryId: inputs.viewerDiary?.id ?? null,
@@ -184,6 +220,10 @@ export const assembleSerialDetail = (inputs: SerialDetailInputs): SerialDetailRe
       : null,
     reviewsSort: inputs.reviewsSort,
     reviews: sortedReviews,
+    reviewsPage: inputs.reviewsPage,
+    reviewsLimit: inputs.reviewsLimit,
+    // Tracks the series-level page, not the combined reviewCount above.
+    reviewsHasMore: inputs.reviewsPage * inputs.reviewsLimit < inputs.reviewsTotalCount,
     ratingBreakdown: {
       totalRatedReviews: ratingBreakdown.totalRatedReviews,
       averageRating: ratingBreakdown.averageRating,

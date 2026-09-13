@@ -14,6 +14,7 @@ router.get("/logs", requireAuth, asyncHandler(SerialsController.getMyLogs));
 router.put("/logs/:id", requireAuth, asyncHandler(SerialsController.updateLog));
 router.delete("/logs/:id", requireAuth, asyncHandler(SerialsController.deleteLog));
 router.get("/:tmdbId/detail", asyncHandler(SerialsController.getDetailByTmdbId));
+router.get("/:tmdbId/reviews", asyncHandler(SerialsController.getReviews));
 router.get("/:tmdbId/logs", asyncHandler(SerialsController.getLogsByTmdbId));
 router.get(
   "/:tmdbId/seasons/:seasonNumber",

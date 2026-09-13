@@ -273,10 +273,14 @@ export class PublicService {
     const userId = await PublicService.findUserIdByUsername(username);
     if (!userId) return null;
 
+    // This widget never reads detail.reviews/reviewCount - smallest
+    // possible reviews page so that part of the query does minimal work.
     const detail = await SerialsDetailService.getDetail({
       tmdbId,
       viewerUserId: userId,
       reviewsSort: "recent",
+      reviewsPage: 1,
+      reviewsLimit: 1,
     });
 
     if (!detail) return null;

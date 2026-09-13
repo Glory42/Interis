@@ -161,9 +161,13 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
         </div>
 
         <SerialReviewsSection
+          key={reviewsSort}
+          tmdbId={series.tmdbId}
           reviewsSort={reviewsSort}
           onSortChange={setReviewsSort}
           reviews={detail.reviews}
+          reviewsLimit={detail.reviewsLimit}
+          reviewsHasMore={detail.reviewsHasMore}
         />
 
         <SerialSeasonsSection

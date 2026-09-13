@@ -5,8 +5,11 @@ import {
   DEFAULT_ARCHIVE_PAGE,
   DEFAULT_ARCHIVE_PERIOD,
   DEFAULT_ARCHIVE_SORT,
+  DEFAULT_DETAIL_REVIEWS_LIMIT,
+  DEFAULT_DETAIL_REVIEWS_PAGE,
   DEFAULT_DETAIL_REVIEWS_SORT,
   MAX_ARCHIVE_LIMIT,
+  MAX_DETAIL_REVIEWS_LIMIT,
 } from "../../../commons/constants/archive.constants";
 
 export const SearchSerialsQuerySchema = z.object({
@@ -56,9 +59,17 @@ export type SerialDetailReviewSort = (typeof serialDetailReviewSortValues)[numbe
 
 export const SerialDetailQuerySchema = z.object({
   reviewsSort: z.enum(serialDetailReviewSortValues).optional(),
+  reviewsPage: z.coerce.number().int().min(1).optional(),
+  reviewsLimit: z.coerce.number().int().min(1).max(MAX_DETAIL_REVIEWS_LIMIT).optional(),
 });
 
 export type SerialDetailQuery = z.input<typeof SerialDetailQuerySchema>;
+
+export type NormalizedSerialReviewsQuery = {
+  reviewsSort: SerialDetailReviewSort;
+  reviewsPage: number;
+  reviewsLimit: number;
+};
 
 const optionalTrimmedTextSchema = z
   .string()
@@ -173,12 +184,14 @@ export type NormalizedSerialArchiveQuery = {
 
 export const normalizeSerialDetailQuery = (
   input: SerialDetailQuery,
-): { reviewsSort: SerialDetailReviewSort } => {
+): NormalizedSerialReviewsQuery => {
   const parsed = SerialDetailQuerySchema.safeParse(input);
+  const data = parsed.success ? parsed.data : {};
+
   return {
-    reviewsSort: parsed.success
-      ? (parsed.data.reviewsSort ?? DEFAULT_DETAIL_REVIEWS_SORT)
-      : DEFAULT_DETAIL_REVIEWS_SORT,
+    reviewsSort: data.reviewsSort ?? (DEFAULT_DETAIL_REVIEWS_SORT as SerialDetailReviewSort),
+    reviewsPage: data.reviewsPage ?? DEFAULT_DETAIL_REVIEWS_PAGE,
+    reviewsLimit: data.reviewsLimit ?? DEFAULT_DETAIL_REVIEWS_LIMIT,
   };
 };
 

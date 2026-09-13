@@ -5,6 +5,7 @@ import { comments, reviewLikes, reviews } from "../../reviews/reviews.entity";
 import { ReviewsRepository } from "../../reviews/repositories/reviews.repository";
 import { profiles } from "../../users/users.entity";
 import { serialDiaryEntries, tvSeries } from "../serials.entity";
+import type { SerialDetailReviewSort } from "../dto/serials.dto";
 
 export class SerialsReviewsRepository {
   static async getLogsCountBySeriesId(seriesId: number): Promise<number> {
@@ -17,7 +18,11 @@ export class SerialsReviewsRepository {
     return row?.count ?? 0;
   }
 
-  static async getReviewRowsBySeriesId(seriesId: number) {
+  // Sorted/paginated in SQL - see MoviesReviewsRepository's equivalent.
+  static async getReviewRowsBySeriesId(
+    seriesId: number,
+    options: { sort: SerialDetailReviewSort; limit: number; offset: number },
+  ) {
     const [series] = await db
       .select({ tmdbId: tvSeries.tmdbId })
       .from(tvSeries)
@@ -25,10 +30,19 @@ export class SerialsReviewsRepository {
       .limit(1);
 
     if (!series) {
-      return [];
+      return { rows: [], totalCount: 0 };
     }
 
-    return db
+    const likeCountExpr = sql<number>`(
+      select count(*) from ${reviewLikes} where ${reviewLikes.reviewId} = ${reviews.id}
+    )`;
+
+    const orderBy =
+      options.sort === "popular"
+        ? [desc(likeCountExpr), desc(reviews.createdAt)]
+        : [desc(reviews.createdAt)];
+
+    const rawRows = await db
       .select({
         id: reviews.id,
         userId: reviews.userId,
@@ -41,6 +55,7 @@ export class SerialsReviewsRepository {
         authorUsername: user.username,
         authorDisplayUsername: user.displayUsername,
         authorAvatarUrl: profiles.avatarUrl,
+        totalCount: sql<number>`count(*) over()::int`,
       })
       .from(reviews)
       .innerJoin(user, eq(user.id, reviews.userId))
@@ -53,7 +68,14 @@ export class SerialsReviewsRepository {
           eq(reviews.mediaSourceId, String(series.tmdbId)),
         ),
       )
-      .orderBy(desc(reviews.createdAt));
+      .orderBy(...orderBy)
+      .limit(options.limit)
+      .offset(options.offset);
+
+    const totalCount = rawRows[0]?.totalCount ?? 0;
+    const rows = rawRows.map(({ totalCount: _totalCount, ...row }) => row);
+
+    return { rows, totalCount };
   }
 
   static async getReviewLikeCounts(reviewIds: string[]) {

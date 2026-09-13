@@ -1,3 +1,4 @@
+import { useCallback, useState } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
   getMySerialLogs,
@@ -7,11 +8,13 @@ import {
   getSeriesDetail,
   getSeriesInteraction,
   getSeriesLogs,
+  getSeriesReviews,
   getSeriesSeasonDetail,
   getTrendingSeries,
   searchSeries,
   type SerialArchivePeriod,
   type SerialArchiveSort,
+  type SerialDetailReviewItem,
   type SerialDetailReviewSort,
 } from "@/features/serials/api";
 import { serialKeys } from "./query-keys";
@@ -49,6 +52,39 @@ export const useSeriesDetailView = (
     queryFn: ({ signal }) => getSeriesDetail(tmdbId, { reviewsSort }, { signal }),
     enabled,
   });
+
+// Series-level only, mirrors useMovieReviewsLoadMore.
+// Remount (e.g. `key={reviewsSort}`) when reviewsSort changes.
+export const useSeriesReviewsLoadMore = (
+  tmdbId: number,
+  sort: SerialDetailReviewSort,
+  limit: number,
+  initialHasMore: boolean,
+) => {
+  const [extraItems, setExtraItems] = useState<SerialDetailReviewItem[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loadMore = useCallback(async () => {
+    if (isLoading || !hasMore) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const nextPage = page + 1;
+      const response = await getSeriesReviews(tmdbId, { sort, page: nextPage, limit });
+      setExtraItems((previous) => [...previous, ...response.items]);
+      setPage(nextPage);
+      setHasMore(response.hasMore);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [tmdbId, sort, limit, page, hasMore, isLoading]);
+
+  return { extraItems, loadMore, isLoading, hasMore };
+};
 
 export const useSeriesInteraction = (tmdbId: number, enabled = true) =>
   useQuery({

@@ -19,12 +19,17 @@ import { resolveSeasonEpisodeReviewItems } from "../helpers/serials-review-conte
 import { calculateViewerTracking } from "../helpers/serials-tracking.helper";
 import {
   assembleSerialDetail,
+  assembleSerialReviewsPage,
   type SerialDetailInputs,
 } from "../helpers/assemble-serial-detail.helper";
 import { SerialsCacheService } from "./serials-cache.service";
 import { PeopleCacheService } from "../../people/services/people-cache.service";
 import type { SerialDetailReviewSort } from "../dto/serials.dto";
-import type { SerialDetailResponse, SerialSeasonDetailResponse } from "../types/serials.types";
+import type {
+  SerialDetailResponse,
+  SerialReviewsPageResponse,
+  SerialSeasonDetailResponse,
+} from "../types/serials.types";
 
 type SeriesRow = NonNullable<Awaited<ReturnType<typeof SerialsCacheService.findOrCreate>>>;
 type TmdbSeriesDetail = NonNullable<Awaited<ReturnType<typeof tmdbGetDetails>>>;
@@ -89,6 +94,8 @@ export class SerialsDetailService {
     tmdbId: number;
     viewerUserId?: string | null;
     reviewsSort: SerialDetailReviewSort;
+    reviewsPage: number;
+    reviewsLimit: number;
   }): Promise<SerialDetailResponse | null> {
     const cachedSeries = await SerialsCacheService.findOrCreate(input.tmdbId);
     if (!cachedSeries) {
@@ -99,6 +106,43 @@ export class SerialsDetailService {
     return assembleSerialDetail(inputs);
   }
 
+  // Mirrors MoviesDetailService.getReviews - series-level reviews only.
+  static async getReviews(input: {
+    tmdbId: number;
+    viewerUserId?: string | null;
+    sort: SerialDetailReviewSort;
+    page: number;
+    limit: number;
+  }): Promise<SerialReviewsPageResponse | null> {
+    const cachedSeries = await SerialsCacheService.findOrCreate(input.tmdbId);
+    if (!cachedSeries) {
+      return null;
+    }
+
+    const viewerUserId = input.viewerUserId ?? null;
+    const offset = (input.page - 1) * input.limit;
+
+    const { rows: reviewRows, totalCount } = await SerialsReviewsRepository.getReviewRowsBySeriesId(
+      cachedSeries.id,
+      { sort: input.sort, limit: input.limit, offset },
+    );
+
+    const engagement = await loadReviewEngagement(
+      SerialsReviewsRepository,
+      reviewRows.map((reviewRow) => reviewRow.id),
+      viewerUserId,
+    );
+
+    return assembleSerialReviewsPage({
+      reviewRows,
+      engagement,
+      sort: input.sort,
+      page: input.page,
+      limit: input.limit,
+      totalCount,
+    });
+  }
+
   // Every IO the detail response depends on: TMDB reads, series repository
   // reads, review engagement, the season/episode review items (which need
   // a TMDB season fetch for episode names), the three person-link groups,
@@ -107,15 +151,22 @@ export class SerialsDetailService {
   // the pure assembleSerialDetail step.
   private static async gather(
     cachedSeries: SeriesRow,
-    input: { tmdbId: number; viewerUserId?: string | null; reviewsSort: SerialDetailReviewSort },
+    input: {
+      tmdbId: number;
+      viewerUserId?: string | null;
+      reviewsSort: SerialDetailReviewSort;
+      reviewsPage: number;
+      reviewsLimit: number;
+    },
   ): Promise<SerialDetailInputs> {
     const viewerUserId = input.viewerUserId ?? null;
+    const reviewsOffset = (input.reviewsPage - 1) * input.reviewsLimit;
 
     const [
       tmdbDetail,
       tmdbAggregateCredits,
       logsCount,
-      reviewRows,
+      reviewsPage,
       tmdbSimilar,
       communityRatings,
       seasonEpisodeReviewRows,
@@ -123,11 +174,16 @@ export class SerialsDetailService {
       tmdbGetDetails(input.tmdbId).catch(() => null),
       tmdbGetAggregateCredits(input.tmdbId).catch(() => null),
       SerialsReviewsRepository.getLogsCountBySeriesId(cachedSeries.id),
-      SerialsReviewsRepository.getReviewRowsBySeriesId(cachedSeries.id),
+      SerialsReviewsRepository.getReviewRowsBySeriesId(cachedSeries.id, {
+        sort: input.reviewsSort,
+        limit: input.reviewsLimit,
+        offset: reviewsOffset,
+      }),
       getSimilarSeries(input.tmdbId).catch(() => []),
       SerialsInteractionsRepository.getCommunityRatingsBySeriesId(cachedSeries.id),
       SerialsSeasonEpisodeReviewsRepository.getReviewRowsBySeriesId(input.tmdbId, cachedSeries.id),
     ]);
+    const { rows: reviewRows, totalCount: reviewsTotalCount } = reviewsPage;
 
     const reviewIds = [
       ...reviewRows.map((reviewRow) => reviewRow.id),
@@ -190,6 +246,9 @@ export class SerialsDetailService {
       viewerTracking,
       viewerUserId,
       reviewsSort: input.reviewsSort,
+      reviewsPage: input.reviewsPage,
+      reviewsLimit: input.reviewsLimit,
+      reviewsTotalCount,
     };
   }
 

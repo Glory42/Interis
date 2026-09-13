@@ -63,8 +63,20 @@ export class SerialsService {
     tmdbId: number;
     viewerUserId?: string | null;
     reviewsSort: SerialDetailReviewSort;
+    reviewsPage: number;
+    reviewsLimit: number;
   }) {
     return SerialsDetailService.getDetail(input);
+  }
+
+  static async getReviews(input: {
+    tmdbId: number;
+    viewerUserId?: string | null;
+    sort: SerialDetailReviewSort;
+    page: number;
+    limit: number;
+  }) {
+    return SerialsDetailService.getReviews(input);
   }
 
   static async getSeasonDetail(input: {

@@ -67,11 +67,14 @@ export class SerialsController {
     }
 
     const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
+    const { reviewsSort, reviewsPage, reviewsLimit } = normalizeSerialDetailQuery(req.query);
 
     const detail = await SerialsService.getDetail({
       tmdbId,
       viewerUserId,
-      reviewsSort: normalizeSerialDetailQuery(req.query).reviewsSort,
+      reviewsSort,
+      reviewsPage,
+      reviewsLimit,
     });
 
     if (!detail) {
@@ -81,6 +84,36 @@ export class SerialsController {
 
     res.setHeader("Cache-Control", "no-store");
     res.status(200).json(detail);
+  }
+
+  static async getReviews(
+    req: Request<SerialParams, {}, {}, SerialDetailQuery>,
+    res: Response,
+  ): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
+    if (tmdbId === null) {
+      sendBadRequest(res, "Invalid series ID");
+      return;
+    }
+
+    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
+    const { reviewsSort, reviewsPage, reviewsLimit } = normalizeSerialDetailQuery(req.query);
+
+    const reviews = await SerialsService.getReviews({
+      tmdbId,
+      viewerUserId,
+      sort: reviewsSort,
+      page: reviewsPage,
+      limit: reviewsLimit,
+    });
+
+    if (!reviews) {
+      sendNotFound(res, "Series not found");
+      return;
+    }
+
+    res.setHeader("Cache-Control", "no-store");
+    res.status(200).json(reviews);
   }
 
   static async getInteractionByTmdbId(
