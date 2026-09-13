@@ -10,6 +10,7 @@ import {
 import { db } from "../../../src/infrastructure/database/db";
 import { user } from "../../../src/infrastructure/database/auth.entity";
 import { activities } from "../../../src/modules/social/social.entity";
+import { SocialTrendingService } from "../../../src/modules/social/services/social-trending.service";
 
 type TrendingItem = {
   mediaType: "movie" | "tv";
@@ -40,6 +41,8 @@ describe("GET /api/social/trending", () => {
   // Large enough that a seeded test item is never pushed out of the
   // response by unrelated activity from other tests sharing this DB.
   const fetchTrending = async () => {
+    // Bypass the TTL cache so this reflects what this test just seeded.
+    SocialTrendingService.invalidateCache();
     const response = await apiRequest(
       getServer().baseUrl,
       "/api/social/trending?limit=1000",
