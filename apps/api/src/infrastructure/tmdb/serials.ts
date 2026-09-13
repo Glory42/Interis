@@ -72,30 +72,33 @@ export const getTrendingSeries = async (
   return trendingPage.results;
 };
 
-export const getTrendingSeriesPage = async (
-  timeWindow: "day" | "week" = "week",
-  input: { page?: number; limit?: number } = {},
-): Promise<{
-  page: number;
-  totalPages: number;
-  totalResults: number;
-  results: TMDBDiscoverSeries[];
-}> => {
-  const page = Math.max(1, Math.floor(input.page ?? 1));
-  const limit = Math.max(1, Math.min(50, Math.floor(input.limit ?? 20)));
+export const getTrendingSeriesPage = createCachedTmdbFetcher(
+  async (
+    timeWindow: "day" | "week" = "week",
+    input: { page?: number; limit?: number } = {},
+  ): Promise<{
+    page: number;
+    totalPages: number;
+    totalResults: number;
+    results: TMDBDiscoverSeries[];
+  }> => {
+    const page = Math.max(1, Math.floor(input.page ?? 1));
+    const limit = Math.max(1, Math.min(50, Math.floor(input.limit ?? 20)));
 
-  const data = await fetchTMDB(
-    `/trending/tv/${timeWindow}?language=en-US&page=${page}`,
-  );
-  const parsed = TMDBDiscoverSeriesListSchema.parse(data);
+    const data = await fetchTMDB(
+      `/trending/tv/${timeWindow}?language=en-US&page=${page}`,
+    );
+    const parsed = TMDBDiscoverSeriesListSchema.parse(data);
 
-  return {
-    page: parsed.page,
-    totalPages: parsed.total_pages,
-    totalResults: parsed.total_results,
-    results: parsed.results.slice(0, limit),
-  };
-};
+    return {
+      page: parsed.page,
+      totalPages: parsed.total_pages,
+      totalResults: parsed.total_results,
+      results: parsed.results.slice(0, limit),
+    };
+  },
+  { keyFn: (timeWindow = "week", input = {}) => `${timeWindow}:${input.page ?? 1}:${input.limit ?? 20}` },
+);
 
 export const getSeriesGenres = async (): Promise<TMDBSeriesGenre[]> => {
   const now = Date.now();
@@ -188,11 +191,16 @@ export const getSeriesAggregateCredits = createCachedTmdbFetcher(async (tmdbId) 
   return TMDBSeriesAggregateCreditsSchema.parse(data);
 });
 
-export const getOnAirSeries = async (): Promise<TMDBSearchSeries[]> => {
-  const data = await fetchTMDB("/tv/on_the_air?language=en-US&page=1");
-  const results = (data as { results?: unknown }).results ?? [];
-  return z.array(TMDBSearchSeriesSchema).parse(results);
-};
+// Public, unauthenticated, no-param endpoint rendered on the homepage -
+// cached so every visitor doesn't trigger its own live TMDB round trip.
+export const getOnAirSeries = createCachedTmdbFetcher(
+  async (): Promise<TMDBSearchSeries[]> => {
+    const data = await fetchTMDB("/tv/on_the_air?language=en-US&page=1");
+    const results = (data as { results?: unknown }).results ?? [];
+    return z.array(TMDBSearchSeriesSchema).parse(results);
+  },
+  { keyFn: () => "on_the_air" },
+);
 
 export const getSimilarSeries = createCachedTmdbFetcher(async (tmdbId) => {
   try {

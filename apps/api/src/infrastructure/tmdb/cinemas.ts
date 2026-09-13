@@ -62,13 +62,18 @@ export const searchMovieByTitleAndYear = async (
   return z.array(TMDBSearchMovieSchema).parse(results);
 };
 
-export const getNowPlayingMovies = async (): Promise<TMDBSearchMovie[]> => {
-  const data = await fetchTMDB(
-    "/movie/now_playing?language=en-US&page=1&region=US",
-  );
-  const results = (data as { results?: unknown }).results ?? [];
-  return z.array(TMDBSearchMovieSchema).parse(results);
-};
+// Public, unauthenticated, no-param endpoints rendered on the homepage -
+// cached so every visitor doesn't trigger its own live TMDB round trip.
+export const getNowPlayingMovies = createCachedTmdbFetcher(
+  async (): Promise<TMDBSearchMovie[]> => {
+    const data = await fetchTMDB(
+      "/movie/now_playing?language=en-US&page=1&region=US",
+    );
+    const results = (data as { results?: unknown }).results ?? [];
+    return z.array(TMDBSearchMovieSchema).parse(results);
+  },
+  { keyFn: () => "now_playing" },
+);
 
 export const getTrendingMovies = async (
   timeWindow: "day" | "week" = "week",
@@ -77,32 +82,35 @@ export const getTrendingMovies = async (
   return trendingPage.results;
 };
 
-export const getTrendingMoviesPage = async (
-  timeWindow: "day" | "week" = "week",
-  input: { page?: number; limit?: number } = {},
-): Promise<{
-  page: number;
-  totalPages: number;
-  totalResults: number;
-  results: TMDBDiscoverMovie[];
-}> => {
-  const page = Math.max(1, Math.floor(input.page ?? 1));
-  const limit = Math.max(1, Math.min(50, Math.floor(input.limit ?? 20)));
+export const getTrendingMoviesPage = createCachedTmdbFetcher(
+  async (
+    timeWindow: "day" | "week" = "week",
+    input: { page?: number; limit?: number } = {},
+  ): Promise<{
+    page: number;
+    totalPages: number;
+    totalResults: number;
+    results: TMDBDiscoverMovie[];
+  }> => {
+    const page = Math.max(1, Math.floor(input.page ?? 1));
+    const limit = Math.max(1, Math.min(50, Math.floor(input.limit ?? 20)));
 
-  const data = await fetchTMDB(
-    `/trending/movie/${timeWindow}?language=en-US&page=${page}`,
-  );
-  const parsed = TMDBDiscoverMoviesSchema.parse(data);
+    const data = await fetchTMDB(
+      `/trending/movie/${timeWindow}?language=en-US&page=${page}`,
+    );
+    const parsed = TMDBDiscoverMoviesSchema.parse(data);
 
-  const results = z.array(TMDBDiscoverMovieSchema).parse(parsed.results).slice(0, limit);
+    const results = z.array(TMDBDiscoverMovieSchema).parse(parsed.results).slice(0, limit);
 
-  return {
-    page: parsed.page,
-    totalPages: parsed.total_pages,
-    totalResults: parsed.total_results,
-    results,
-  };
-};
+    return {
+      page: parsed.page,
+      totalPages: parsed.total_pages,
+      totalResults: parsed.total_results,
+      results,
+    };
+  },
+  { keyFn: (timeWindow = "week", input = {}) => `${timeWindow}:${input.page ?? 1}:${input.limit ?? 20}` },
+);
 
 export const getMovieGenres = async (): Promise<TMDBMovieGenre[]> => {
   const now = Date.now();
