@@ -15,6 +15,7 @@ export const activityTypeEnum = pgEnum("activity_type", [
   "review",
   "liked_movie",
   "watchlisted_movie",
+  "watched_movie",
   "followed_user",
   "created_list",
   "liked_review",

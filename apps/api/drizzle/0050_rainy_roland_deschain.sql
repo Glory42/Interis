@@ -1,0 +1,1 @@
+ALTER TYPE "public"."activity_type" ADD VALUE 'watched_movie' BEFORE 'followed_user';

@@ -31,6 +31,7 @@ export const activityTypeSchema = z.enum([
   "review",
   "liked_movie",
   "watchlisted_movie",
+  "watched_movie",
   "followed_user",
   "created_list",
   "liked_review",

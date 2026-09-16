@@ -12,12 +12,15 @@ export class SerialsTrackingService {
     tmdbId: number,
     seasonNumber: number,
     input: { watched?: boolean; liked?: boolean; rating?: number | null },
+    options: { recordWatchedActivity?: boolean } = {},
   ) {
+    const { recordWatchedActivity = true } = options;
     const series = await SerialsCacheService.findOrCreate(tmdbId);
     if (!series) return null;
 
     const previousRow = await SerialsSeasonInteractionsRepository.getSingleInteraction(userId, series.id, seasonNumber);
     const previousLiked = previousRow?.liked ?? false;
+    const previousWatched = previousRow?.watched ?? false;
 
     const rating = input.rating;
 
@@ -58,6 +61,20 @@ export class SerialsTrackingService {
       });
     }
 
+    if (
+      recordWatchedActivity &&
+      input.watched === true &&
+      !previousWatched &&
+      row.watched
+    ) {
+      ActivityRecorder.recordMedia({
+        userId,
+        subject: { kind: "season", series, seasonNumber },
+        type: "watched_movie",
+        entityId: String(series.id),
+      });
+    }
+
     if (input.watched === false || row.watched) {
       const targetWatchState = row.watched;
       const tmdbSeasonDetail = await tmdbGetSeasonDetails(
@@ -95,6 +112,7 @@ export class SerialsTrackingService {
 
     const previousRow = await SerialsEpisodeInteractionsRepository.getSingleInteraction(userId, series.id, seasonNumber, episodeNumber);
     const previousLiked = previousRow?.liked ?? false;
+    const previousWatched = previousRow?.watched ?? false;
 
     const rating = input.rating;
 
@@ -133,6 +151,15 @@ export class SerialsTrackingService {
         type: "liked_movie",
         entityId: String(series.id),
         extraMetadata: { rating: row.rating },
+      });
+    }
+
+    if (input.watched === true && !previousWatched && row.watched) {
+      ActivityRecorder.recordMedia({
+        userId,
+        subject: { kind: "episode", series, seasonNumber, episodeNumber },
+        type: "watched_movie",
+        entityId: String(series.id),
       });
     }
 

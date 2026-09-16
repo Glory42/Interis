@@ -168,4 +168,29 @@ describe("GET /api/social/trending", () => {
     // "commented" activity must not add a second distinct user.
     expect(item?.distinctUserCount).toBe(1);
   });
+
+  it("counts a plain 'mark as watched' toggle, but only once even if toggled repeatedly", async () => {
+    const watcher = await signUpTestUser(getServer().baseUrl, "sttrendwatcher");
+    const movie = await seedTestMovie("Trending Watched-Only Movie");
+
+    const putWatched = (watched: boolean) =>
+      apiRequest(
+        getServer().baseUrl,
+        `/api/interactions/${movie.tmdbId}`,
+        {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ watched }),
+        },
+        watcher.jar,
+      );
+
+    await putWatched(true);
+    await putWatched(false);
+    await putWatched(true);
+
+    const { body } = await fetchTrending();
+    const item = body.items.find((i) => i.tmdbId === movie.tmdbId);
+    expect(item?.distinctUserCount).toBe(1);
+  });
 });

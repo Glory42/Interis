@@ -28,6 +28,8 @@ const getTimelineVerb = (item: FeedItem): string => {
       return seLabel ? `Liked ${seLabel}` : "Liked a title";
     case "watchlisted_movie":
       return "Added to their watchlist";
+    case "watched_movie":
+      return seLabel ? `Watched ${seLabel}` : "Marked as watched";
     case "followed_user":
       return item.metadata.targetUsername
         ? `Started following @${item.metadata.targetUsername}`

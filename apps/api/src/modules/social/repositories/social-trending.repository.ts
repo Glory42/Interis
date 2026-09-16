@@ -13,6 +13,7 @@ export const TRENDING_ACTIVITY_TYPES: ActivityType[] = [
   "review",
   "liked_movie",
   "watchlisted_movie",
+  "watched_movie",
 ];
 
 export class SocialTrendingRepository {

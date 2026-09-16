@@ -42,6 +42,8 @@ export class InteractionsService {
     input: UpdateInteractionDto,
   ) {
     const movie = await MoviesService.findOrCreate(tmdbId);
+    const previousRow = await movieInteractionStore.find(userId, movie.id);
+    const wasWatched = previousRow?.isWatched ?? false;
 
     const upserted = await movieInteractionStore.upsertState(userId, movie.id, {
       liked: input.liked,
@@ -65,6 +67,17 @@ export class InteractionsService {
         userId,
         subject: { kind: "movie", movie },
         type: "watchlisted_movie",
+        entityId: String(movie.id),
+      });
+    }
+
+    // Only a genuine not-watched -> watched transition counts, so repeatedly
+    // hitting the toggle doesn't spam trending/the feed.
+    if (input.watched === true && !wasWatched && upserted?.isWatched) {
+      ActivityRecorder.recordMedia({
+        userId,
+        subject: { kind: "movie", movie },
+        type: "watched_movie",
         entityId: String(movie.id),
       });
     }
