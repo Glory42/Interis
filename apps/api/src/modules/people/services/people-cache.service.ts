@@ -20,8 +20,13 @@ export type PersonLinkSeed = {
   department?: string | null;
 };
 
+type ExistingPersonRow = NonNullable<Awaited<ReturnType<typeof PeopleRepository.findByTmdbPersonId>>>;
+
 export class PeopleCacheService {
-  static async ensurePersonLink(seed: PersonLinkSeed): Promise<PersonLinkItem | null> {
+  static async ensurePersonLink(
+    seed: PersonLinkSeed,
+    preloadedExisting?: ExistingPersonRow | null,
+  ): Promise<PersonLinkItem | null> {
     if (!Number.isInteger(seed.tmdbPersonId) || seed.tmdbPersonId <= 0) {
       return null;
     }
@@ -31,14 +36,17 @@ export class PeopleCacheService {
       return null;
     }
 
-    const cachedPerson = await PeopleCacheService.upsertPersonCache({
-      tmdbPersonId: seed.tmdbPersonId,
-      name: normalizedName,
-      knownForDepartment: normalizeKnownForDepartment(seed.knownForDepartment),
-      profilePath: seed.profilePath,
-      popularity: seed.popularity ?? null,
-      routeRoleHints: [seed.routeRole],
-    });
+    const cachedPerson = await PeopleCacheService.upsertPersonCache(
+      {
+        tmdbPersonId: seed.tmdbPersonId,
+        name: normalizedName,
+        knownForDepartment: normalizeKnownForDepartment(seed.knownForDepartment),
+        profilePath: seed.profilePath,
+        popularity: seed.popularity ?? null,
+        routeRoleHints: [seed.routeRole],
+      },
+      preloadedExisting,
+    );
 
     if (!cachedPerson) {
       return null;
@@ -62,8 +70,21 @@ export class PeopleCacheService {
       return [];
     }
 
+    // Batch-fetch every cast/crew member's existing cache row in one query
+    // instead of one findByTmdbPersonId per seed - this runs on every
+    // movie/series detail page fetch, so an unbatched per-person lookup
+    // multiplies into dozens of individual round trips per page view.
+    const uniqueTmdbPersonIds = [...new Set(seeds.map((seed) => seed.tmdbPersonId))];
+    const existingRows = await PeopleRepository.findByTmdbPersonIds(uniqueTmdbPersonIds);
+    const existingByTmdbPersonId = new Map(existingRows.map((row) => [row.tmdbPersonId, row]));
+
     const links = await Promise.all(
-      seeds.map((seed) => PeopleCacheService.ensurePersonLink(seed)),
+      seeds.map((seed) =>
+        PeopleCacheService.ensurePersonLink(
+          seed,
+          existingByTmdbPersonId.get(seed.tmdbPersonId) ?? null,
+        ),
+      ),
     );
     const unique = new Map<string, PersonLinkItem>();
 
@@ -143,15 +164,21 @@ export class PeopleCacheService {
     );
   }
 
-  static async upsertPersonCache(input: {
-    tmdbPersonId: number;
-    name: string;
-    knownForDepartment: string | null;
-    routeRoleHints: PersonRouteRole[];
-    profilePath: string | null;
-    popularity: number | null;
-  }) {
-    const existing = await PeopleRepository.findByTmdbPersonId(input.tmdbPersonId);
+  static async upsertPersonCache(
+    input: {
+      tmdbPersonId: number;
+      name: string;
+      knownForDepartment: string | null;
+      routeRoleHints: PersonRouteRole[];
+      profilePath: string | null;
+      popularity: number | null;
+    },
+    preloadedExisting?: ExistingPersonRow | null,
+  ) {
+    const existing =
+      preloadedExisting !== undefined
+        ? preloadedExisting
+        : await PeopleRepository.findByTmdbPersonId(input.tmdbPersonId);
     const normalizedName = toNullableTrimmed(input.name) ?? existing?.name ?? null;
 
     if (!normalizedName) {

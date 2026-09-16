@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { people, personSlugAliases } from "../people.entity";
 import type { PersonRouteRole } from "../types/people.types";
@@ -12,6 +12,18 @@ export class PeopleRepository {
       .limit(1);
 
     return row ?? null;
+  }
+
+  // Batched counterpart to findByTmdbPersonId - lets ensurePersonLinks look
+  // up every cast/crew member on a detail page in one round trip instead of
+  // one query per person (that N+1 pattern is what was driving Neon compute
+  // usage - see PeopleCacheService.ensurePersonLinks).
+  static async findByTmdbPersonIds(tmdbPersonIds: number[]) {
+    if (tmdbPersonIds.length === 0) {
+      return [];
+    }
+
+    return db.select().from(people).where(inArray(people.tmdbPersonId, tmdbPersonIds));
   }
 
   static async findByCanonicalSlug(slug: string) {
