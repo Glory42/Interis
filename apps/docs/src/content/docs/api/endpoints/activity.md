@@ -33,7 +33,6 @@ Common `kind` values include:
 - `review`
 - `liked_movie`
 - `watchlisted_movie`
-- `watched_movie`
 - `followed_user`
 - `created_list`
 - `liked_review`
@@ -52,8 +51,6 @@ When a user likes or rates a TV season or episode, a `liked_movie` item is emitt
 - Both set → episode-level like or rating
 
 For likes vs. ratings on seasons/episodes: `metadata.rating` is non-null when the action was a rating; it is `null` for a pure like.
-
-A plain "mark as watched" toggle (no diary log, rating, or review) emits a `watched_movie` item, following the same movie/series/season/episode granularity rules as `liked_movie` above. It's only emitted on a genuine not-watched → watched transition, and only once per direct user action (a series-wide "mark whole show watched" toggle emits a single series-level `watched_movie`, not one per season).
 
 ### List creation activity
 

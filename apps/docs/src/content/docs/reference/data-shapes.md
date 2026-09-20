@@ -77,7 +77,7 @@ Both endpoints return `FeedItem[]`.
 - `viewerHasLiked` is currently `null` in public feed responses (no viewer context is passed).
 - Depending on activity type, `movie`, `post`, or `review` can be `null`.
 - `kind` may be a derived value (for example `liked_comment`, `liked_post`, `commented_post`).
-- `seasonNumber` and `episodeNumber` are populated for season/episode interactions (`liked_movie`, `watched_movie`, `review`). Both are `null` for movie/series-level activities.
+- `seasonNumber` and `episodeNumber` are populated for season/episode interactions (`liked_movie`, `review`). Both are `null` for movie/series-level activities.
 - For `liked_movie` activities on seasons/episodes, `metadata.rating` will be non-null when the action was a rating (not a like); `metadata.rating` is `null` for pure like actions.
 - `listId` and `listTitle` are populated for `created_list` activities; both are `null` for all other activity types.
 

@@ -31,15 +31,9 @@ export class SerialsActivityService {
     const promises: Promise<unknown>[] = [];
     for (let seasonNum = 1; seasonNum <= numberOfSeasons; seasonNum++) {
       promises.push(
-        SerialsTrackingService.updateSeasonInteraction(
-          userId,
-          tmdbId,
-          seasonNum,
-          { watched },
-          // The series-level toggle already records its own watched_movie
-          // activity - don't fan that out into one per season too.
-          { recordWatchedActivity: false },
-        ),
+        SerialsTrackingService.updateSeasonInteraction(userId, tmdbId, seasonNum, {
+          watched,
+        }),
       );
     }
     await Promise.all(promises);
@@ -134,15 +128,6 @@ export class SerialsActivityService {
         userId,
         subject: { kind: "series", series },
         type: "watchlisted_movie",
-        entityId: String(series.id),
-      });
-    }
-
-    if (input.watched === true && !previousIsWatched && row?.isWatched) {
-      ActivityRecorder.recordMedia({
-        userId,
-        subject: { kind: "series", series },
-        type: "watched_movie",
         entityId: String(series.id),
       });
     }
