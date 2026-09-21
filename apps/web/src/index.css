@@ -657,6 +657,16 @@
   }
 }
 
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 @layer components {
   .theme-shell-gradient {
     background: var(--theme-shell-gradient);
@@ -943,8 +953,29 @@
     display: none;
   }
 
+  .edge-fade-x {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 10%,
+      black 90%,
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 10%,
+      black 90%,
+      transparent
+    );
+  }
+
   .animate-like-pop {
     animation: like-pop 320ms var(--ease-out);
+  }
+
+  .animate-marquee {
+    animation: marquee 36s linear infinite;
   }
 }
 
@@ -958,6 +989,10 @@
   }
 
   .animate-like-pop {
+    animation: none;
+  }
+
+  .animate-marquee {
     animation: none;
   }
 }
