@@ -4,7 +4,7 @@ A social movie journal app inspired by Letterboxd + timeline-style social apps.
 
 - Log watches with dates, ratings, rewatches, and optional reviews
 - Follow people and browse a personalized activity feed
-- Browse a cinema archive with genre/language/time/sort filters
+- Browse a movie archive with genre/language/time/sort filters
 - Explore public profile pages, stats, lists, likes, and watchlists
 - Power external widgets through a small public API (`https://api.interis.gorkemkaryol.dev/api/public/*`)
 

@@ -5,7 +5,7 @@ React + Vite frontend for Interis.
 ## What this app includes
 
 - Feed, diary, and profile experiences
-- Cinema archive and movie detail pages
+- Movie archive and movie detail pages
 - TV series archive and detail pages
 - Director and actor pages
 - Auth flows (register/login) with session cookies
@@ -78,8 +78,8 @@ bun run test
 | Route | Description |
 | --- | --- |
 | `/` | Home/feed view |
-| `/cinema` | Cinema archive |
-| `/cinema/:tmdbId` | Movie detail |
+| `/movies` | Movie archive |
+| `/movies/:tmdbId` | Movie detail |
 | `/serials` | TV series archive |
 | `/serials/:tmdbId` | TV series detail |
 | `/director/:slug` | Director page |
@@ -165,7 +165,6 @@ feature/
 - **Data prefetching**: `loader` functions use `queryClient.prefetchQuery` for route-driven data loading.
 - **Route error boundaries**: Major routes define `errorComponent` boundaries for resilient failures.
 - **Route matching for active state**: Active tab/nav state derives from route matching APIs, not pathname string parsing.
-- **Legacy redirects**: `/films` routes redirect to `/cinema` for backward compatibility.
 - **Safe redirects**: `getSafeRedirectPath()` prevents open redirect attacks.
 
 ## Notes

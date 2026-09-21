@@ -38,7 +38,7 @@ Create git commits following Conventional Commits with project-specific domain s
 | `posts` | Short posts with comments/likes — `modules/posts/`, `features/posts/` |
 | `feed` | Social feed assembly and display — `modules/social/`, `features/feed/` |
 | `social` | Follow graph, activity insertion — `modules/social/` |
-| `films` | Movie search, detail, archive, cinema pages — `modules/movies/`, `features/films/` |
+| `films` | Movie search, detail, archive, movie pages — `modules/movies/`, `features/movies/` |
 | `serials` | TV series search, detail, archive, season/episode tracking — `modules/serials/`, `features/serials/` |
 | `profile` | Public profile pages, tabs, top picks — `modules/users/`, `features/profile/` |
 | `public` | Rate-limited widget endpoints — `modules/public/`, `features/public/` |

@@ -33,7 +33,7 @@ Both packages run on Bun. The frontend proxies `/api` requests to the backend du
 
 - Log movie watches with dates, ratings (0.5-5 scale), rewatches, and reviews
 - Follow users and browse a personalized activity feed
-- Browse a cinema archive with genre/language/time/sort filters
+- Browse a movie archive with genre/language/time/sort filters
 - TV series support with seasons/episodes
 - Director and actor pages
 - Public profile pages with stats, lists, likes, and watchlists
@@ -477,7 +477,7 @@ export const Route = createFileRoute('/settings/profile')({
 Use the provided guards from `@/lib/router/auth-guards`:
 
 - `requireAuthenticatedUser()` - redirects to `/login` if not authenticated.
-- `requireGuestUser()` - redirects to `/cinema` if already authenticated.
+- `requireGuestUser()` - redirects to `/movies` if already authenticated.
 - `requireAdminUser()` - redirects to `/` if not an admin.
 
 ### Error handling
