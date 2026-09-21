@@ -41,7 +41,7 @@ describe("list items (dual-media)", () => {
     return (await response.json()) as { id: string };
   };
 
-  it("adds a movie item and derives type 'cinema'", async () => {
+  it("adds a movie item and derives type 'movie'", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "mov");
     const list = await createList(jar);
     const movie = await seedTestMovie();
@@ -52,21 +52,21 @@ describe("list items (dual-media)", () => {
       {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ tmdbId: movie.tmdbId, itemType: "cinema" }),
+        body: JSON.stringify({ tmdbId: movie.tmdbId, itemType: "movie" }),
       },
       jar,
     );
     expect(addResponse.status).toBe(201);
     const added = (await addResponse.json()) as { derivedType: string | null };
-    expect(added.derivedType).toBe("cinema");
+    expect(added.derivedType).toBe("movie");
 
     const detail = await apiRequest(getServer().baseUrl, `/api/lists/${list.id}`);
     const body = (await detail.json()) as { itemCount: number; derivedType: string | null };
     expect(body.itemCount).toBe(1);
-    expect(body.derivedType).toBe("cinema");
+    expect(body.derivedType).toBe("movie");
   });
 
-  it("transitions derivedType through cinema -> mixed -> serial as items change", async () => {
+  it("transitions derivedType through movie -> mixed -> serial as items change", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "mix");
     const list = await createList(jar);
     const movie = await seedTestMovie();
@@ -78,12 +78,12 @@ describe("list items (dual-media)", () => {
       {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ tmdbId: movie.tmdbId, itemType: "cinema" }),
+        body: JSON.stringify({ tmdbId: movie.tmdbId, itemType: "movie" }),
       },
       jar,
     );
     expect(((await addMovie.json()) as { derivedType: string | null }).derivedType).toBe(
-      "cinema",
+      "movie",
     );
 
     const addSerial = await apiRequest(
@@ -110,7 +110,7 @@ describe("list items (dual-media)", () => {
     );
     expect(removeResponse.status).toBe(200);
     const removeBody = (await removeResponse.json()) as { derivedType: string | null };
-    expect(removeBody.derivedType).toBe("cinema");
+    expect(removeBody.derivedType).toBe("movie");
   });
 
   it("rejects adding/removing items on a list you don't own, and 404s unknown targets", async () => {
@@ -125,7 +125,7 @@ describe("list items (dual-media)", () => {
       {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ tmdbId: movie.tmdbId, itemType: "cinema" }),
+        body: JSON.stringify({ tmdbId: movie.tmdbId, itemType: "movie" }),
       },
       intruder.jar,
     );
@@ -137,7 +137,7 @@ describe("list items (dual-media)", () => {
       {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ tmdbId: movie.tmdbId, itemType: "cinema" }),
+        body: JSON.stringify({ tmdbId: movie.tmdbId, itemType: "movie" }),
       },
       owner.jar,
     );

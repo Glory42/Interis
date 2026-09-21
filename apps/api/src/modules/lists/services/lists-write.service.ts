@@ -78,7 +78,7 @@ export class ListsWriteService {
     listId: string,
     userId: string,
     tmdbId: number,
-    itemType: "cinema" | "serial",
+    itemType: "movie" | "serial",
   ): Promise<
     | { entry: NonNullable<Awaited<ReturnType<typeof ListsWriteRepository.insertEntry>>>; derivedType: string | null }
     | ServiceError
@@ -105,13 +105,13 @@ export class ListsWriteService {
     let tvSeriesId: number | undefined;
 
     const [media, maxPosition] = await Promise.all([
-      itemType === "cinema"
+      itemType === "movie"
         ? MoviesCacheService.findOrCreate(tmdbId)
         : SerialsCacheService.findOrCreate(tmdbId),
       ListsReadRepository.getMaxPosition(listId),
     ]);
 
-    if (itemType === "cinema") {
+    if (itemType === "movie") {
       movieId = media.id;
     } else {
       tvSeriesId = media.id;
