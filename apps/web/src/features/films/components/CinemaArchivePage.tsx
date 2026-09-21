@@ -135,7 +135,7 @@ export const CinemaArchivePage = () => {
       <div className="px-4 py-8">
         <div className="mb-8">
           <p
-            className="mb-1 font-mono text-[10px] uppercase tracking-[0.22em]"
+            className="theme-kicker mb-1 text-[10px]"
             style={{ color: CINEMA_MODULE_STYLES.accent }}
           >
             Module 02
@@ -202,12 +202,8 @@ export const CinemaArchivePage = () => {
 
         {archiveQuery.isError ? (
           <div
-            className="rounded-xl border p-4 font-mono text-xs"
-            style={{
-              borderColor: CINEMA_MODULE_STYLES.border,
-              color: CINEMA_MODULE_STYLES.muted,
-              background: CINEMA_MODULE_STYLES.panel,
-            }}
+            className="surface-card p-4 font-mono text-xs"
+            style={{ color: CINEMA_MODULE_STYLES.muted }}
           >
             Could not load the cinema archive right now.
           </div>
@@ -215,12 +211,8 @@ export const CinemaArchivePage = () => {
 
         {!archiveQuery.isPending && !archiveQuery.isError && archiveItems.length === 0 ? (
           <div
-            className="rounded-xl border p-8 text-center font-mono text-xs"
-            style={{
-              borderColor: CINEMA_MODULE_STYLES.border,
-              color: CINEMA_MODULE_STYLES.muted,
-              background: CINEMA_MODULE_STYLES.panel,
-            }}
+            className="surface-card p-8 text-center font-mono text-xs"
+            style={{ color: CINEMA_MODULE_STYLES.muted }}
           >
             No titles match these filters right now.
           </div>
@@ -254,21 +246,16 @@ export const CinemaArchivePage = () => {
             </div>
 
             {hasNextPage ? (
-              <div className="mt-5 flex justify-center">
+              <div className="mt-8 flex justify-center">
                 <button
                   type="button"
                   disabled={isFetchingNextPage}
-                  className="rounded-full border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-                  style={{
-                    borderColor: CINEMA_MODULE_STYLES.border,
-                    color: CINEMA_MODULE_STYLES.muted,
-                    background: "transparent",
-                  }}
+                  className="theme-kicker border border-border/60 px-5 py-2 text-[10px] uppercase text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
                   onClick={() => {
                     void fetchNextPage();
                   }}
                 >
-                  {isFetchingNextPage ? "Loading..." : "Show more"}
+                  {isFetchingNextPage ? "Loading…" : "Show more"}
                 </button>
               </div>
             ) : (
