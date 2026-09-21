@@ -50,9 +50,14 @@ test("toggles episode/season/series watch state and rating, and writes a season 
         timeout: 10_000,
       });
 
-      const episodeSelect = episode1.locator("select");
-      await episodeSelect.selectOption("9");
-      await expect(episodeSelect).toHaveValue("9", { timeout: 10_000 });
+      // RatingSelect is a themed dropdown, not a native <select> - its
+      // option list is portaled to document.body (to escape the season
+      // accordion's overflow-hidden clipping), so the trigger is scoped to
+      // episode1 but the opened option is a page-wide lookup.
+      const episodeRatingTrigger = episode1.getByRole("button", { name: "Episode rating" });
+      await episodeRatingTrigger.click();
+      await page.getByRole("button", { name: "9.0", exact: true }).click();
+      await expect(episodeRatingTrigger).toHaveAccessibleName(/9\.0/, { timeout: 10_000 });
     });
 
     await test.step("toggles season 1 watched and sets its rating", async () => {
@@ -61,9 +66,10 @@ test("toggles episode/season/series watch state and rating, and writes a season 
         timeout: 10_000,
       });
 
-      const seasonSelect = season1Row.locator("select");
-      await seasonSelect.selectOption("8");
-      await expect(seasonSelect).toHaveValue("8", { timeout: 10_000 });
+      const seasonRatingTrigger = season1Row.getByRole("button", { name: "Season rating" });
+      await seasonRatingTrigger.click();
+      await page.getByRole("button", { name: "8.0", exact: true }).click();
+      await expect(seasonRatingTrigger).toHaveAccessibleName(/8\.0/, { timeout: 10_000 });
     });
 
     await test.step("writes a season review", async () => {

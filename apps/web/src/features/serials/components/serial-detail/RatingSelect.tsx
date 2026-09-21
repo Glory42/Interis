@@ -87,6 +87,7 @@ export const RatingSelect = ({ value, onChange, size = "season" }: RatingSelectP
         ref={triggerRef}
         type="button"
         onClick={toggleOpen}
+        aria-label={`${isEpisode ? "Episode" : "Season"} rating: ${value !== null ? value.toFixed(1) : "not set"}`}
         className={cn(
           "flex items-center gap-1 rounded-full border bg-background/30 px-1.5 font-mono text-muted-foreground transition-colors",
           isEpisode ? "h-6 text-[8px]" : "h-7 text-[9px]",
