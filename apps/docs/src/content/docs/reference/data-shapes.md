@@ -21,7 +21,7 @@ Key fields:
 Returned by `/top4`.
 
 - `categories` array with category objects (`id`, `key`, `supported`, `items`)
-- Category keys are currently `cinema` and `serial`
+- Category keys are currently `movie` and `serial`
 - Each item has `slot`, `mediaType`, `mediaSource`, `mediaSourceId`, `entityId`, `tmdbId`, `title`, `posterPath`, `releaseYear`
 
 ## Feed item (`recent`, `activity`)

@@ -14,7 +14,7 @@ There is no auth token flow. Every request is shaped as `GET /api/public/:userna
 ## Endpoints
 
 - [Profile](https://docs.interis.gorkemkaryol.dev/api/endpoints/profile/): `GET /:username/profile` — profile summary + stats. No limit param.
-- [Top 4](https://docs.interis.gorkemkaryol.dev/api/endpoints/top4/): `GET /:username/top4` — top picks grouped by `cinema`/`serial` category.
+- [Top 4](https://docs.interis.gorkemkaryol.dev/api/endpoints/top4/): `GET /:username/top4` — top picks grouped by `movie`/`serial` category.
 - [Recent](https://docs.interis.gorkemkaryol.dev/api/endpoints/recent/): `GET /:username/recent?limit=10` (max 20) — compact activity feed.
 - [Activity](https://docs.interis.gorkemkaryol.dev/api/endpoints/activity/): `GET /:username/activity?limit=30` (max 100) — same `FeedItem[]` shape as recent, larger default/max.
 - [Reviews](https://docs.interis.gorkemkaryol.dev/api/endpoints/reviews/): `GET /:username/reviews?limit=50` (max 200) — movie + TV reviews.

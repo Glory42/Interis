@@ -18,7 +18,7 @@ async function loadTopFavorites(username) {
   );
 
   return {
-    films: categories.cinema ?? [],
+    films: categories.movie ?? [],
     series: categories.serial ?? [],
   };
 }

@@ -28,7 +28,7 @@ None.
   "categories": [
     {
       "id": 1,
-      "key": "cinema",
+      "key": "movie",
       "supported": true,
       "items": [
         {
@@ -56,7 +56,7 @@ None.
 
 ### Notes
 
-- Categories are currently fixed to `cinema` (`id: 1`) and `serial` (`id: 2`).
+- Categories are currently fixed to `movie` (`id: 1`) and `serial` (`id: 2`).
 - `items` are sorted by `slot`.
 - `entityId` and `tmdbId` can be `null` for unresolved/non-TMDB records.
 
@@ -80,8 +80,8 @@ const res = await fetch(`https://api.interis.gorkemkaryol.dev/api/public/your_us
 if (!res.ok) throw new Error(`Top4 failed: ${res.status}`);
 
 const data = await res.json();
-const cinema = data.categories.find((category) => category.key === 'cinema');
-console.log(cinema?.items ?? []);
+const movie = data.categories.find((category) => category.key === 'movie');
+console.log(movie?.items ?? []);
 ```
 
 ### cURL
@@ -96,7 +96,7 @@ curl "https://api.interis.gorkemkaryol.dev/api/public/your_username/top4"
 function toTopPickSections(response) {
   return response.categories.map((category) => ({
     key: category.key,
-    heading: category.key === 'cinema' ? 'Top 4 Films' : 'Top 4 Series',
+    heading: category.key === 'movie' ? 'Top 4 Films' : 'Top 4 Series',
     items: category.items,
   }));
 }
