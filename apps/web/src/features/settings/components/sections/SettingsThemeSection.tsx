@@ -62,7 +62,7 @@ export const SettingsThemeSection = () => {
       <div>
         <p className="mb-1 text-lg font-bold text-foreground">Appearance</p>
         <p className="text-sm settings-shell-muted">
-          Choose between Rose Pine, NULL://LOG, Tokyo Night, and AMOLED. Selection applies immediately.
+          Choose between Rose Pine, NULL://LOG, Tokyo Night, and Marquee. Selection applies immediately.
         </p>
       </div>
 

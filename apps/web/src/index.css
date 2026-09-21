@@ -177,22 +177,22 @@
 :root[data-theme-id="null-log"] {
   --radius: 0.55rem;
 
-  --background: #080808;
-  --foreground: #e0e0e0;
-  --card: #0c0c0c;
-  --card-foreground: #e0e0e0;
-  --popover: #0b0b0b;
-  --popover-foreground: #e0e0e0;
+  --background: #000000;
+  --foreground: #e6e6e6;
+  --card: #0d0d0d;
+  --card-foreground: #e6e6e6;
+  --popover: #0a0a0a;
+  --popover-foreground: #e6e6e6;
   --primary: #00ff88;
   --primary-foreground: #020202;
-  --secondary: #111111;
+  --secondary: #141414;
   --secondary-foreground: #dedede;
   --muted: #0a0a0a;
   --muted-foreground: #8d8d8d;
   --accent: #00cfff;
   --accent-foreground: #020202;
   --border: #232323;
-  --input: #101010;
+  --input: #141414;
   --ring: #00ff88;
   --destructive: #ff6b85;
   --aura-primary: #00ff88;
@@ -210,7 +210,7 @@
       rgba(0, 207, 255, 0.12),
       transparent 72%
     ),
-    linear-gradient(180deg, #080808 0%, #090909 52%, #070707 100%);
+    linear-gradient(180deg, #000000 0%, #030303 52%, #000000 100%);
   --theme-shell-pattern: repeating-linear-gradient(
     0deg,
     rgba(255, 255, 255, 0.03) 0,
@@ -234,7 +234,7 @@
       rgba(0, 255, 136, 0.14),
       transparent 66%
     ),
-    linear-gradient(180deg, rgba(8, 8, 8, 0.08) 0%, rgba(8, 8, 8, 0.92) 100%);
+    linear-gradient(180deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.94) 100%);
   --theme-hero-gradient-opacity: 1;
   --theme-hero-pattern: repeating-linear-gradient(
     0deg,
@@ -247,11 +247,11 @@
   --theme-hero-pattern-position: center;
   --theme-hero-pattern-opacity: 0.38;
 
-  --theme-modal-overlay: rgba(3, 3, 3, 0.9);
+  --theme-modal-overlay: rgba(0, 0, 0, 0.92);
   --theme-modal-gradient: linear-gradient(
     180deg,
-    rgba(14, 14, 14, 0.98),
-    rgba(8, 8, 8, 0.98)
+    rgba(13, 13, 13, 0.98),
+    rgba(0, 0, 0, 0.98)
   );
   --theme-modal-pattern: repeating-linear-gradient(
     0deg,
@@ -268,16 +268,16 @@
     0 34px 72px -42px rgba(0, 0, 0, 0.9),
     0 18px 36px -30px rgba(0, 255, 136, 0.22);
 
-  --theme-navbar-bg: rgba(8, 8, 8, 0.95);
+  --theme-navbar-bg: rgba(0, 0, 0, 0.96);
   --theme-navbar-border: rgba(255, 255, 255, 0.08);
-  --theme-navbar-shadow: 0 14px 28px -24px rgba(0, 0, 0, 0.85);
-  --theme-navbar-overlay: rgba(8, 8, 8, 0.76);
+  --theme-navbar-shadow: 0 14px 28px -24px rgba(0, 0, 0, 0.9);
+  --theme-navbar-overlay: rgba(0, 0, 0, 0.8);
 
   --theme-pill-bg: rgba(255, 255, 255, 0.04);
   --theme-pill-border: rgba(255, 255, 255, 0.24);
   --theme-pill-text: #ffffff;
   --theme-pill-shadow: none;
-  --theme-segment-bg: rgba(12, 12, 12, 0.88);
+  --theme-segment-bg: rgba(13, 13, 13, 0.88);
   --theme-segment-border: rgba(255, 255, 255, 0.08);
 
   --theme-body-font: "Sora", "Space Grotesk", "Segoe UI", sans-serif;
@@ -298,12 +298,6 @@
   --module-cinema: #00ff88;
   --module-serial: #00cfff;
   --module-neutral: #9ca3af;
-
-  /* Card and background sit too close in luminance here for the default
-     opacity to read as a border at all - needs more contrast than other
-     themes to stay visible. */
-  --surface-card-border: color-mix(in srgb, var(--foreground) 26%, transparent);
-  --surface-card-border-hover: color-mix(in srgb, var(--foreground) 40%, transparent);
 }
 
 :root[data-theme-id="tokyo-night"] {
@@ -429,111 +423,113 @@
   --module-neutral: #565f89;
 }
 
-:root[data-theme-id="amoled"] {
-  --radius: 0.4rem;
+:root[data-theme-id="marquee"] {
+  --radius: 0.6rem;
 
-  --background: #000000;
-  --foreground: #ffffff;
-  --card: #0d0d0d;
-  --card-foreground: #ffffff;
-  --popover: #080808;
-  --popover-foreground: #ffffff;
-  --primary: #a855f7;
-  --primary-foreground: #000000;
-  --secondary: #1f1f1f;
-  --secondary-foreground: #ffffff;
-  --muted: #0a0a0a;
-  --muted-foreground: #888888;
-  --accent: #d4a8ff;
-  --accent-foreground: #000000;
-  --border: #333333;
-  --input: #1f1f1f;
-  --ring: #a855f7;
-  --destructive: #ef4444;
-  --aura-primary: #a855f7;
-  --aura-secondary: #d4a8ff;
-  --aura-muted: #1f1f1f;
+  --background: #faf6ee;
+  --foreground: #2b211a;
+  --card: #ffffff;
+  --card-foreground: #2b211a;
+  --popover: #fffaf0;
+  --popover-foreground: #2b211a;
+  --primary: #b8123a;
+  --primary-foreground: #fffaf0;
+  --secondary: #f1e4cf;
+  --secondary-foreground: #2b211a;
+  --muted: #f3ebde;
+  --muted-foreground: #7a6a58;
+  --accent: #c8892c;
+  --accent-foreground: #2b211a;
+  --border: #e2d5c0;
+  --input: #f1e4cf;
+  --ring: #b8123a;
+  --destructive: #c2410c;
+  --aura-primary: #b8123a;
+  --aura-secondary: #c8892c;
+  --aura-muted: #e2d5c0;
 
   --theme-shell-gradient:
     radial-gradient(
-      860px 340px at 50% -8%,
-      rgba(168, 85, 247, 0.16),
-      transparent 64%
+      880px 360px at 50% -10%,
+      rgba(200, 137, 44, 0.16),
+      transparent 65%
     ),
-    linear-gradient(180deg, #000000 0%, #020202 52%, #000000 100%);
-  --theme-shell-pattern:
-    linear-gradient(rgba(168, 85, 247, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(168, 85, 247, 0.025) 1px, transparent 1px);
-  --theme-shell-pattern-size: 44px 44px;
+    radial-gradient(
+      700px 320px at 90% 112%,
+      rgba(184, 18, 58, 0.08),
+      transparent 70%
+    ),
+    linear-gradient(180deg, #fdfaf3 0%, #faf6ee 50%, #f6efe0 100%);
+  --theme-shell-pattern: radial-gradient(
+    rgba(43, 33, 26, 0.06) 1px,
+    transparent 1px
+  );
+  --theme-shell-pattern-size: 10px 10px;
   --theme-shell-pattern-position: center;
-  --theme-shell-pattern-opacity: 1;
+  --theme-shell-pattern-opacity: 0.5;
   --theme-shell-vignette: radial-gradient(
     140% 95% at 50% -12%,
-    transparent 50%,
-    rgba(0, 0, 0, 0.9) 100%
+    transparent 55%,
+    rgba(43, 33, 26, 0.07) 100%
   );
-  --theme-shell-vignette-opacity: 0.88;
+  --theme-shell-vignette-opacity: 0.6;
 
   --theme-hero-gradient:
     radial-gradient(
       95% 72% at 50% 0%,
-      rgba(168, 85, 247, 0.18),
-      transparent 62%
+      rgba(184, 18, 58, 0.1),
+      transparent 60%
     ),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.06) 0%, rgba(0, 0, 0, 0.94) 100%);
+    linear-gradient(180deg, rgba(250, 246, 238, 0.1) 0%, rgba(250, 246, 238, 0.95) 100%);
   --theme-hero-gradient-opacity: 1;
   --theme-hero-pattern: none;
   --theme-hero-pattern-size: auto;
   --theme-hero-pattern-position: center;
   --theme-hero-pattern-opacity: 0;
 
-  --theme-modal-overlay: rgba(0, 0, 0, 0.92);
+  --theme-modal-overlay: rgba(43, 33, 26, 0.45);
   --theme-modal-gradient: linear-gradient(
     180deg,
-    rgba(13, 13, 13, 0.98),
-    rgba(5, 5, 5, 0.98)
+    rgba(255, 250, 240, 0.98),
+    rgba(241, 228, 207, 0.98)
   );
   --theme-modal-pattern: none;
   --theme-modal-pattern-size: auto;
   --theme-modal-pattern-position: center;
   --theme-modal-pattern-opacity: 0;
-  --theme-modal-border: rgba(168, 85, 247, 0.3);
+  --theme-modal-border: rgba(184, 18, 58, 0.22);
   --theme-modal-shadow:
-    0 34px 72px -42px rgba(0, 0, 0, 0.96),
-    0 18px 36px -30px rgba(168, 85, 247, 0.24);
+    0 34px 72px -42px rgba(43, 33, 26, 0.35),
+    0 18px 36px -30px rgba(184, 18, 58, 0.15);
 
-  --theme-navbar-bg: rgba(0, 0, 0, 0.96);
-  --theme-navbar-border: rgba(168, 85, 247, 0.2);
-  --theme-navbar-shadow: 0 14px 28px -24px rgba(0, 0, 0, 0.9);
-  --theme-navbar-overlay: rgba(0, 0, 0, 0.8);
+  --theme-navbar-bg: rgba(255, 250, 240, 0.92);
+  --theme-navbar-border: rgba(226, 213, 192, 0.8);
+  --theme-navbar-shadow: 0 14px 30px -26px rgba(43, 33, 26, 0.2);
+  --theme-navbar-overlay: rgba(255, 250, 240, 0.5);
 
-  --theme-pill-bg: rgba(168, 85, 247, 0.14);
-  --theme-pill-border: rgba(168, 85, 247, 0.36);
-  --theme-pill-text: #d4a8ff;
-  --theme-pill-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.18);
-  --theme-segment-bg: rgba(13, 13, 13, 0.88);
-  --theme-segment-border: rgba(168, 85, 247, 0.2);
+  --theme-pill-bg: rgba(184, 18, 58, 0.1);
+  --theme-pill-border: rgba(184, 18, 58, 0.34);
+  --theme-pill-text: #7a0d29;
+  --theme-pill-shadow: inset 0 0 0 1px rgba(184, 18, 58, 0.12);
+  --theme-segment-bg: rgba(241, 228, 207, 0.85);
+  --theme-segment-border: rgba(226, 213, 192, 0.7);
 
-  --theme-body-font: "Sora", "Space Grotesk", "Segoe UI", sans-serif;
-  --theme-display-font: "Space Grotesk", "Sora", "Segoe UI", sans-serif;
-  --theme-display-letter-spacing: -0.02em;
+  --theme-body-font: "Sora", "Segoe UI", sans-serif;
+  --theme-display-font: "Playfair Display", Georgia, "Times New Roman", serif;
+  --theme-display-letter-spacing: 0em;
   --theme-display-shadow: none;
   --theme-kicker-font: "JetBrains Mono", "Fira Code", monospace;
   --theme-kicker-tracking: 0.18em;
   --theme-kicker-weight: 700;
 
-  --theme-button-primary-shadow:
-    0 0 0 1px rgba(168, 85, 247, 0.32) inset,
-    0 0 24px rgba(168, 85, 247, 0.28);
-  --theme-button-primary-shadow-hover:
-    0 0 0 1px rgba(168, 85, 247, 0.44) inset,
-    0 0 30px rgba(168, 85, 247, 0.38);
-  --theme-button-danger-shadow: 0 0 0 1px rgba(239, 68, 68, 0.36) inset;
-  --theme-button-danger-shadow-hover: 0 0 0 1px rgba(239, 68, 68, 0.48) inset;
+  --theme-button-primary-shadow: 0 10px 24px -15px rgba(184, 18, 58, 0.45);
+  --theme-button-primary-shadow-hover: 0 14px 30px -16px rgba(184, 18, 58, 0.55);
+  --theme-button-danger-shadow: 0 10px 24px -15px rgba(194, 65, 12, 0.4);
+  --theme-button-danger-shadow-hover: 0 14px 30px -16px rgba(194, 65, 12, 0.5);
 
-  --module-cinema: #a855f7;
-  --module-serial: #818cf8;
-  --module-neutral: #888888;
+  --module-cinema: #b8123a;
+  --module-serial: #0f766e;
+  --module-neutral: #8a7a68;
 }
 
 @layer base {
