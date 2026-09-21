@@ -20,7 +20,7 @@ test("searches for a movie and a series and navigates to each from the results",
     };
 
     const searchInput = () =>
-      page.getByRole("dialog").getByPlaceholder("Search users, cinema, serials...");
+      page.getByRole("dialog").getByPlaceholder("Search users, movie, serials...");
 
     await test.step("shows a hint below the minimum query length", async () => {
       await openSearch();
@@ -32,7 +32,7 @@ test("searches for a movie and a series and navigates to each from the results",
       await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 10_000 });
     });
 
-    await test.step("finds a movie and navigates to its cinema page", async () => {
+    await test.step("finds a movie and navigates to its movie page", async () => {
       await openSearch();
       await searchInput().fill(KNOWN_MOVIE_TITLE);
 
@@ -45,7 +45,7 @@ test("searches for a movie and a series and navigates to each from the results",
       await expect(movieResult).toBeVisible({ timeout: 10_000 });
       await movieResult.click();
 
-      await expect(page).toHaveURL(/\/cinema\/550$/, { timeout: 10_000 });
+      await expect(page).toHaveURL(/\/movies\/550$/, { timeout: 10_000 });
       await expect(page.getByRole("heading", { name: KNOWN_MOVIE_TITLE })).toBeVisible({
         timeout: 10_000,
       });

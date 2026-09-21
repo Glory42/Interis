@@ -46,9 +46,9 @@ test("edits profile, theme, Top4 favorites, and manages blocked users from setti
       });
     });
 
-    await test.step("sets a Top4 cinema favorite", async () => {
+    await test.step("sets a Top4 movie favorite", async () => {
       await page.goto("/settings/favorites");
-      await page.getByRole("button", { name: "Cinema #1" }).click();
+      await page.getByRole("button", { name: "Movie #1" }).click();
 
       const dialog = page.getByRole("dialog");
       await expect(dialog).toBeVisible({ timeout: 10_000 });

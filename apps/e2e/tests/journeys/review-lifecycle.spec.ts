@@ -16,7 +16,7 @@ test("writes a review, then views/comments/edits it from its detail page and the
   try {
     await test.step("sign up and log the film with a review", async () => {
       await registerUser(page, user);
-      await page.goto(`/cinema/${KNOWN_MOVIE_TMDB_ID}`);
+      await page.goto(`/movies/${KNOWN_MOVIE_TMDB_ID}`);
       await expect(page.getByRole("heading", { name: KNOWN_MOVIE_TITLE })).toBeVisible({
         timeout: 15_000,
       });
@@ -31,7 +31,7 @@ test("writes a review, then views/comments/edits it from its detail page and the
     await test.step("the review shows up on the profile reviews tab and its own detail page", async () => {
       await page.goto(`/profile/${user.username}/reviews`);
       // ProfileReviewsPage.tsx also renders a poster-thumbnail link to
-      // /cinema/$tmdbId right before the title link, whose accessible name
+      // /movies/$tmdbId right before the title link, whose accessible name
       // ("Fight Club poster", from the img alt) matches a loose
       // name-based regex just as well as the real title link - scoping to
       // href*="/reviews/" targets only the links that actually lead to

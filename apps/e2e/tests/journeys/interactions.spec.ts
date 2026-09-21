@@ -12,7 +12,7 @@ test("toggling watchlist/watch/like/rating on a film reflects on the profile tab
   try {
     await test.step("sign up and open the film page", async () => {
       await registerUser(page, user);
-      await page.goto(`/cinema/${KNOWN_MOVIE_TMDB_ID}`);
+      await page.goto(`/movies/${KNOWN_MOVIE_TMDB_ID}`);
       await expect(page.getByRole("heading", { name: KNOWN_MOVIE_TITLE })).toBeVisible({
         timeout: 15_000,
       });
@@ -29,7 +29,7 @@ test("toggling watchlist/watch/like/rating on a film reflects on the profile tab
       await page.goto(`/profile/${user.username}/watchlist`);
       await expect(page.getByText(KNOWN_MOVIE_TITLE).first()).toBeVisible({ timeout: 10_000 });
 
-      await page.goto(`/cinema/${KNOWN_MOVIE_TMDB_ID}`);
+      await page.goto(`/movies/${KNOWN_MOVIE_TMDB_ID}`);
       await expect(page.getByRole("button", { name: "watchlisted" })).toBeVisible({
         timeout: 10_000,
       });
@@ -82,7 +82,7 @@ test("toggling watchlist/watch/like/rating on a film reflects on the profile tab
     });
 
     await test.step("un-toggles like", async () => {
-      await page.goto(`/cinema/${KNOWN_MOVIE_TMDB_ID}`);
+      await page.goto(`/movies/${KNOWN_MOVIE_TMDB_ID}`);
       await expect(page.getByRole("button", { name: "Liked", exact: true })).toBeVisible({
         timeout: 10_000,
       });

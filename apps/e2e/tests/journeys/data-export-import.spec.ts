@@ -23,7 +23,7 @@ test("exports the diary as CSV and imports a fixture back in", async ({ page }) 
   try {
     await test.step("sign up and log a movie so the export has content", async () => {
       await registerUser(page, user);
-      await page.goto(`/cinema/${LOGGED_MOVIE_TMDB_ID}`);
+      await page.goto(`/movies/${LOGGED_MOVIE_TMDB_ID}`);
       await expect(page.getByRole("heading", { name: LOGGED_MOVIE_TITLE })).toBeVisible({
         timeout: 15_000,
       });
