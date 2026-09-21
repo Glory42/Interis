@@ -7,7 +7,7 @@ import {
   sortOptions,
 } from "@/features/serials/components/serial-archive/constants";
 import { ArchiveLoadingMoreRow } from "@/features/serials/components/serial-archive/ArchiveLoadingMoreRow";
-import { getPosterUrl } from "@/features/serials/components/utils";
+import { getBackdropUrl, getPosterUrl } from "@/features/serials/components/utils";
 import {
   getCreatorYearLine,
   getRating,
@@ -23,6 +23,7 @@ import { useSeriesArchive } from "@/features/serials/hooks/useSerials";
 import { ArchiveFilterControls } from "@/features/media-archive/components/ArchiveFilterControls";
 import { ArchiveMediaCard } from "@/features/media-archive/components/ArchiveMediaCard";
 import { ArchiveSkeletonGrid } from "@/features/media-archive/components/ArchiveSkeletonGrid";
+import { RotatingPosterBackdrop } from "@/features/media-archive/components/RotatingPosterBackdrop";
 import type { ArchiveMenuKey } from "@/features/media-archive/types";
 
 export const SerialsArchivePage = () => {
@@ -56,6 +57,13 @@ export const SerialsArchivePage = () => {
     () => (archivePages ? archivePages.flatMap((page) => page.items) : []),
     [archivePages],
   );
+
+  const backdropUrls = useMemo(() => {
+    return (firstPage?.items ?? [])
+      .filter((series) => series.backdropPath)
+      .slice(0, 10)
+      .map((series) => getBackdropUrl(series.backdropPath));
+  }, [firstPage]);
 
   // Latches one frame after the first non-empty result set has painted, so
   // that initial paint still renders with the stagger classes present; only
@@ -142,25 +150,33 @@ export const SerialsArchivePage = () => {
   return (
     <main className="relative mx-auto w-full max-w-400">
       <div className="px-4 py-8">
-        <div className="mb-8">
-          <p
-            className="theme-kicker mb-1 text-[10px]"
-            style={{ color: SERIAL_MODULE_STYLES.accent }}
-          >
-            Module 03
-          </p>
-          <h2
-            className="mb-2 font-mono text-3xl font-bold md:text-5xl"
-            style={{ color: SERIAL_MODULE_STYLES.text }}
-          >
-            Serials
-          </h2>
-          <p
-            className="font-mono text-sm"
-            style={{ color: SERIAL_MODULE_STYLES.muted }}
-          >
-            episodic series - limited runs - anthologies
-          </p>
+        <div className="surface-card relative mb-8 flex min-h-72 items-end overflow-hidden px-6 py-10 sm:min-h-96 sm:px-10 sm:py-14">
+          <RotatingPosterBackdrop
+            key={backdropUrls.join("|")}
+            backdropUrls={backdropUrls}
+            accentColor={SERIAL_MODULE_STYLES.accent}
+          />
+
+          <div className="relative z-10">
+            <p
+              className="theme-kicker mb-1 text-[10px]"
+              style={{ color: SERIAL_MODULE_STYLES.accent }}
+            >
+              Module 03
+            </p>
+            <h2
+              className="mb-2 font-mono text-3xl font-bold md:text-5xl"
+              style={{ color: SERIAL_MODULE_STYLES.text }}
+            >
+              Serials
+            </h2>
+            <p
+              className="font-mono text-sm"
+              style={{ color: SERIAL_MODULE_STYLES.muted }}
+            >
+              episodic series - limited runs - anthologies
+            </p>
+          </div>
         </div>
 
         <ArchiveFilterControls

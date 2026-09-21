@@ -6,7 +6,7 @@ import {
   periodOptions,
   sortOptions,
 } from "@/features/films/components/cinema-archive/constants";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { getBackdropUrl, getPosterUrl } from "@/features/films/components/utils";
 import {
   getMovieStateLabel,
   getRating,
@@ -19,6 +19,7 @@ import { useMovieArchive } from "@/features/films/hooks/useMovies";
 import { ArchiveFilterControls } from "@/features/media-archive/components/ArchiveFilterControls";
 import { ArchiveMediaCard } from "@/features/media-archive/components/ArchiveMediaCard";
 import { ArchiveSkeletonGrid } from "@/features/media-archive/components/ArchiveSkeletonGrid";
+import { RotatingPosterBackdrop } from "@/features/media-archive/components/RotatingPosterBackdrop";
 import type { ArchiveMenuKey } from "@/features/media-archive/types";
 
 export const CinemaArchivePage = () => {
@@ -75,6 +76,13 @@ export const CinemaArchivePage = () => {
 
     return archivePages.flatMap((page) => page.items);
   }, [archivePages]);
+
+  const backdropUrls = useMemo(() => {
+    return (firstPage?.items ?? [])
+      .filter((movie) => movie.backdropPath)
+      .slice(0, 10)
+      .map((movie) => getBackdropUrl(movie.backdropPath));
+  }, [firstPage]);
 
   // Latches one frame after the first non-empty result set has painted, so
   // that initial paint still renders with the stagger classes present; only
@@ -133,25 +141,33 @@ export const CinemaArchivePage = () => {
   return (
     <main className="relative mx-auto w-full max-w-400">
       <div className="px-4 py-8">
-        <div className="mb-8">
-          <p
-            className="theme-kicker mb-1 text-[10px]"
-            style={{ color: CINEMA_MODULE_STYLES.accent }}
-          >
-            Module 02
-          </p>
-          <h2
-            className="mb-2 font-mono text-3xl font-bold md:text-5xl"
-            style={{ color: CINEMA_MODULE_STYLES.text }}
-          >
-            Cinema
-          </h2>
-          <p
-            className="font-mono text-sm"
-            style={{ color: CINEMA_MODULE_STYLES.muted }}
-          >
-            feature films - documentaries - shorts
-          </p>
+        <div className="surface-card relative mb-8 flex min-h-72 items-end overflow-hidden px-6 py-10 sm:min-h-96 sm:px-10 sm:py-14">
+          <RotatingPosterBackdrop
+            key={backdropUrls.join("|")}
+            backdropUrls={backdropUrls}
+            accentColor={CINEMA_MODULE_STYLES.accent}
+          />
+
+          <div className="relative z-10">
+            <p
+              className="theme-kicker mb-1 text-[10px]"
+              style={{ color: CINEMA_MODULE_STYLES.accent }}
+            >
+              Module 02
+            </p>
+            <h2
+              className="mb-2 font-mono text-3xl font-bold md:text-5xl"
+              style={{ color: CINEMA_MODULE_STYLES.text }}
+            >
+              Cinema
+            </h2>
+            <p
+              className="font-mono text-sm"
+              style={{ color: CINEMA_MODULE_STYLES.muted }}
+            >
+              feature films - documentaries - shorts
+            </p>
+          </div>
         </div>
 
         <ArchiveFilterControls

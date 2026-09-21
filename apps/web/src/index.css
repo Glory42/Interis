@@ -968,6 +968,10 @@
     animation: fade-up 280ms var(--ease-out) both;
   }
 
+  .animate-poster-crossfade {
+    animation: fade-only 1.6s var(--ease-out) both;
+  }
+
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
