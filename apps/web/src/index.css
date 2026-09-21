@@ -144,9 +144,9 @@
   --theme-button-danger-shadow-hover: 0 14px 30px -16px
     rgba(241, 127, 160, 0.78);
 
-  --module-cinema: #00ff88;
-  --module-serial: #00cfff;
-  --module-neutral: #9ca3af;
+  --module-cinema: #e0a8a3;
+  --module-serial: #9fd4df;
+  --module-neutral: #9c94ad;
 
   --profile-shell-bg: color-mix(in srgb, var(--background) 88%, black);
   --profile-shell-fg: var(--foreground);
