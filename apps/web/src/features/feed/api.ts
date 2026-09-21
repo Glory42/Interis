@@ -4,12 +4,10 @@ import {
   meFeedSummarySchema,
   networkStatsSchema,
   trendingMovieListSchema,
-  trendingOnInterisResponseSchema,
   type FeedPage,
   type MeFeedSummary,
   type NetworkStats,
   type TrendingMovie,
-  type TrendingOnInterisItem,
 } from "@/features/feed/types";
 import type { MediaType } from "@/types/api";
 
@@ -57,22 +55,6 @@ export const getTrendingMovies = async (
   });
 
   return trendingMovieListSchema.parse(response).slice(0, options.limit ?? 3);
-};
-
-export const getTrendingOnInteris = async (
-  options: QueryRequestOptions & { limit?: number } = {},
-): Promise<TrendingOnInterisItem[]> => {
-  const params = new URLSearchParams();
-  if (options.limit) {
-    params.set("limit", String(options.limit));
-  }
-
-  const response = await apiRequest<unknown>(
-    `/api/social/trending${params.size > 0 ? `?${params.toString()}` : ""}`,
-    { method: "GET", signal: options.signal },
-  );
-
-  return trendingOnInterisResponseSchema.parse(response).items;
 };
 
 export const getMyFeedSummary = async (

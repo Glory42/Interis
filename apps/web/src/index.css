@@ -171,6 +171,10 @@
   --developer-shell-border: color-mix(in srgb, var(--primary) 22%, transparent);
   --developer-shell-panel: color-mix(in srgb, var(--card) 76%, var(--background) 24%);
 
+  /* Shared "surface card" language: feed, profile, archive, settings. Soft border, no shadow. */
+  --surface-card-bg: color-mix(in srgb, var(--card) 55%, var(--background) 45%);
+  --surface-card-border: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --surface-card-border-hover: color-mix(in srgb, var(--foreground) 20%, transparent);
 }
 
 :root[data-theme-id="null-log"] {
@@ -847,6 +851,17 @@
 
   .profile-shell-bio {
     font-family: Georgia, "Times New Roman", serif;
+  }
+
+  .surface-card {
+    background: var(--surface-card-bg);
+    border: 1px solid var(--surface-card-border);
+    border-radius: var(--radius-xl);
+    transition: border-color 0.15s var(--ease-out);
+  }
+
+  .surface-card:hover {
+    border-color: var(--surface-card-border-hover);
   }
 
   .settings-shell {

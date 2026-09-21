@@ -63,7 +63,7 @@ A one-directional relationship where one user (the follower) subscribes to anoth
 _Avoid_: friend, connection
 
 **Activity**:
-A record of one discrete user action — logging a Diary Entry, writing a Review, liking or watchlisting a Movie/Serial, following a user, creating a List, liking a Review, commenting, or posting. Stored as a row in the `activity` table (`type` enum) and is the raw material both the Following Feed and Trending on Interis are built from.
+A record of one discrete user action — logging a Diary Entry, writing a Review, liking or watchlisting a Movie/Serial, following a user, creating a List, liking a Review, commenting, or posting. Stored as a row in the `activity` table (`type` enum) and is the raw material the Following Feed is built from.
 _Avoid_: event, log entry (ambiguous with Diary Entry)
 
 **Post**:
@@ -72,11 +72,11 @@ _Avoid_: status, tweet
 
 **Following Feed**:
 The personalized, authenticated activity stream showing Activities from the users the viewer follows (plus their own), scoped via the Follow relationship. Backs `GET /api/social/feed/following`.
-_Avoid_: feed (too ambiguous alone — always qualify as "Following Feed" or "Trending on Interis")
+_Avoid_: feed (too ambiguous alone — always qualify as "Following Feed" or "Trending Now")
 
-**Trending on Interis**:
-A global, unauthenticated ranking of Movies/Serials by how many distinct users engaged with them in the last 7 days, counting only `diary_entry`, `review`, `liked_movie`, and `watchlisted_movie` Activities (second-order engagement like liking or commenting on someone else's Review does not count, nor does creating a List or posting). Ranked by distinct-user count, not raw Activity count, so one user's repeat engagement with the same title doesn't inflate its ranking. Not scoped by the Follow relationship — every user sees the same ranking.
-_Avoid_: Trending among users (the old, follow-scoped name for this same rail — superseded), Trending Now (a different, unrelated rail that mirrors TMDB's industry-wide trending data, with no Interis user activity involved at all)
+**Trending Now**:
+TMDB's industry-wide popularity ranking for Movies and Serials, fetched on demand and cached locally like any other TMDB data — carries no Interis user activity and is not personalized or Follow-scoped. Shown as two separate rankings, one for Movies and one for Serials, never blended into a single list.
+_Avoid_: Trending on Interis (a superseded, Interis-engagement-based ranking that existed alongside this rail; removed — see [ADR 0001](docs/adr/0001-global-trending-on-interis.md))
 
 ### Moderation & trust
 

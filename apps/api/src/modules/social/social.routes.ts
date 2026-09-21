@@ -50,6 +50,5 @@ router.delete(
 // Public
 router.get("/followers/:username", asyncHandler(SocialController.getFollowers));
 router.get("/following/:username", asyncHandler(SocialController.getFollowing));
-router.get("/trending", asyncHandler(SocialController.getTrending));
 
 export default router;

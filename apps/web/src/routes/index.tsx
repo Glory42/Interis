@@ -1,11 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { authQueryOptions, useAuth } from "@/features/auth/hooks/useAuth";
-import {
-  getMyFeedSummary,
-  getNetworkStats,
-  getTrendingMovies,
-  getTrendingOnInteris,
-} from "@/features/feed/api";
+import { getMyFeedSummary, getNetworkStats, getTrendingMovies } from "@/features/feed/api";
 import { HomePage } from "@/features/feed/pages/HomePage";
 import {
   feedKeys,
@@ -36,10 +31,6 @@ export const Route = createFileRoute("/")({
       return;
     }
 
-    void context.queryClient.prefetchQuery({
-      queryKey: feedKeys.trendingOnInteris(),
-      queryFn: ({ signal }) => getTrendingOnInteris({ signal }),
-    });
     void context.queryClient.prefetchQuery({
       queryKey: feedKeys.networkStats,
       queryFn: ({ signal }) => getNetworkStats({ signal }),
