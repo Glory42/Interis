@@ -23,48 +23,6 @@ export type PersonLinkSeed = {
 type ExistingPersonRow = NonNullable<Awaited<ReturnType<typeof PeopleRepository.findByTmdbPersonId>>>;
 
 export class PeopleCacheService {
-  static async ensurePersonLink(
-    seed: PersonLinkSeed,
-    preloadedExisting?: ExistingPersonRow | null,
-  ): Promise<PersonLinkItem | null> {
-    if (!Number.isInteger(seed.tmdbPersonId) || seed.tmdbPersonId <= 0) {
-      return null;
-    }
-
-    const normalizedName = toNullableTrimmed(seed.name);
-    if (!normalizedName) {
-      return null;
-    }
-
-    const cachedPerson = await PeopleCacheService.upsertPersonCache(
-      {
-        tmdbPersonId: seed.tmdbPersonId,
-        name: normalizedName,
-        knownForDepartment: normalizeKnownForDepartment(seed.knownForDepartment),
-        profilePath: seed.profilePath,
-        popularity: seed.popularity ?? null,
-        routeRoleHints: [seed.routeRole],
-      },
-      preloadedExisting,
-    );
-
-    if (!cachedPerson) {
-      return null;
-    }
-
-    return {
-      tmdbPersonId: cachedPerson.tmdbPersonId,
-      slug: cachedPerson.slug,
-      name: cachedPerson.name,
-      profilePath: cachedPerson.profilePath,
-      knownForDepartment: cachedPerson.knownForDepartment,
-      routeRole: seed.routeRole,
-      character: toNullableTrimmed(seed.character),
-      job: toNullableTrimmed(seed.job),
-      department: toNullableTrimmed(seed.department),
-    };
-  }
-
   static async ensurePersonLinks(seeds: PersonLinkSeed[]): Promise<PersonLinkItem[]> {
     if (seeds.length === 0) {
       return [];
@@ -78,20 +36,64 @@ export class PeopleCacheService {
     const existingRows = await PeopleRepository.findByTmdbPersonIds(uniqueTmdbPersonIds);
     const existingByTmdbPersonId = new Map(existingRows.map((row) => [row.tmdbPersonId, row]));
 
-    const links = await Promise.all(
-      seeds.map((seed) =>
-        PeopleCacheService.ensurePersonLink(
-          seed,
-          existingByTmdbPersonId.get(seed.tmdbPersonId) ?? null,
-        ),
-      ),
+    // One upsert per distinct tmdbPersonId, not per seed - the same person
+    // can appear in multiple seeds (e.g. one actor playing two characters).
+    // Upserting those concurrently against the same preloaded `existing`
+    // snapshot races two inserts for the same not-yet-taken slug: Postgres's
+    // ON CONFLICT(tmdb_person_id) only suppresses that one constraint, so the
+    // second insert still throws on the separate slug unique constraint.
+    const firstSeedByTmdbPersonId = new Map<number, PersonLinkSeed>();
+    for (const seed of seeds) {
+      if (!firstSeedByTmdbPersonId.has(seed.tmdbPersonId)) {
+        firstSeedByTmdbPersonId.set(seed.tmdbPersonId, seed);
+      }
+    }
+
+    const cachedPersonEntries = await Promise.all(
+      [...firstSeedByTmdbPersonId.entries()].map(async ([tmdbPersonId, seed]) => {
+        const cachedPerson = await PeopleCacheService.upsertPersonCache(
+          {
+            tmdbPersonId,
+            name: seed.name,
+            knownForDepartment: seed.knownForDepartment,
+            profilePath: seed.profilePath,
+            popularity: seed.popularity ?? null,
+            routeRoleHints: [seed.routeRole],
+          },
+          existingByTmdbPersonId.get(tmdbPersonId) ?? null,
+        );
+
+        return cachedPerson ? ([tmdbPersonId, cachedPerson] as const) : null;
+      }),
     );
+    const cachedPersonByTmdbPersonId = new Map(
+      cachedPersonEntries.filter((entry) => entry !== null),
+    );
+
     const unique = new Map<string, PersonLinkItem>();
 
-    for (const link of links) {
-      if (!link) {
+    for (const seed of seeds) {
+      const normalizedName = toNullableTrimmed(seed.name);
+      if (!Number.isInteger(seed.tmdbPersonId) || seed.tmdbPersonId <= 0 || !normalizedName) {
         continue;
       }
+
+      const cachedPerson = cachedPersonByTmdbPersonId.get(seed.tmdbPersonId);
+      if (!cachedPerson) {
+        continue;
+      }
+
+      const link: PersonLinkItem = {
+        tmdbPersonId: cachedPerson.tmdbPersonId,
+        slug: cachedPerson.slug,
+        name: cachedPerson.name,
+        profilePath: cachedPerson.profilePath,
+        knownForDepartment: cachedPerson.knownForDepartment,
+        routeRole: seed.routeRole,
+        character: toNullableTrimmed(seed.character),
+        job: toNullableTrimmed(seed.job),
+        department: toNullableTrimmed(seed.department),
+      };
 
       const key = [
         String(link.tmdbPersonId),
