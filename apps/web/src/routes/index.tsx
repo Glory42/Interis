@@ -18,7 +18,10 @@ import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
 
 export const Route = createFileRoute("/")({
   loader: async ({ context }) => {
-    const user = await context.queryClient.fetchQuery(authQueryOptions);
+    // A failed auth check (transient backend error, dropped connection)
+    // must not crash the whole home route - fall back to guest so the
+    // page still renders; useAuth's own query reflects the real state.
+    const user = await context.queryClient.fetchQuery(authQueryOptions).catch(() => null);
 
     void context.queryClient.prefetchQuery({
       queryKey: feedKeys.trending(user ? 3 : 9),
