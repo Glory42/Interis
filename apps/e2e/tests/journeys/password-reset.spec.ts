@@ -23,7 +23,9 @@ test("resets a forgotten password via the security question and signs in with it
     await test.step("sign up, then sign out", async () => {
       await registerUser(page, user);
       await signOut(page);
-      await expect(page.getByRole("link", { name: "LOGIN" })).toBeVisible({ timeout: 10_000 });
+      // Signed-out "/" is the guest landing page (no navbar) - its hero
+      // has a "Log in" link instead of the navbar's "LOGIN" link.
+      await expect(page.getByRole("link", { name: "Log in" })).toBeVisible({ timeout: 10_000 });
     });
 
     await test.step("looks up the account and answers the security question", async () => {

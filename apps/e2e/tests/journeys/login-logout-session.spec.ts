@@ -31,7 +31,9 @@ test("logs out, signs back in, and stays authenticated across a reload", async (
 
     await test.step("sign out", async () => {
       await signOut(page);
-      await expect(page.getByRole("link", { name: "LOGIN" })).toBeVisible({ timeout: 10_000 });
+      // Signed-out "/" is the guest landing page (no navbar) - its hero
+      // has a "Log in" link instead of the navbar's "LOGIN" link.
+      await expect(page.getByRole("link", { name: "Log in" })).toBeVisible({ timeout: 10_000 });
       await expect(page.getByRole("button", { name: "Open profile menu" })).not.toBeVisible();
     });
 
@@ -50,12 +52,12 @@ test("logs out, signs back in, and stays authenticated across a reload", async (
       await expect(page.getByRole("button", { name: "Open profile menu" })).toBeVisible({
         timeout: 10_000,
       });
-      await expect(page.getByRole("link", { name: "LOGIN" })).not.toBeVisible();
+      await expect(page.getByRole("link", { name: "Log in" })).not.toBeVisible();
     });
 
     await test.step("rejects the wrong password", async () => {
       await signOut(page);
-      await expect(page.getByRole("link", { name: "LOGIN" })).toBeVisible({ timeout: 10_000 });
+      await expect(page.getByRole("link", { name: "Log in" })).toBeVisible({ timeout: 10_000 });
 
       await page.goto("/login");
       await fillLoginForm(page, user.email, "the-wrong-password");
