@@ -34,8 +34,8 @@ export const HomePage = () => {
     followingFeedQuery.hasNextPage;
 
   return (
-    <section className="mx-auto w-full max-w-[1032px] px-4 pt-8 pb-16">
-      <div className="flex flex-col gap-10 lg:flex-row lg:items-start">
+    <section className="mx-auto w-full max-w-400 px-4 pt-8 pb-16">
+      <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 flex-1 lg:max-w-2xl">
           <div id="quick-log-composer" className="surface-card mb-6 p-4">
             <QuickLogComposer user={user} />
