@@ -154,7 +154,6 @@
   --profile-shell-accent: var(--primary);
   --profile-shell-border: color-mix(in srgb, var(--primary) 24%, transparent);
   --profile-shell-row-border: color-mix(in srgb, var(--primary) 12%, transparent);
-  --profile-shell-panel: color-mix(in srgb, var(--card) 78%, var(--background) 22%);
 
   --settings-shell-bg: var(--profile-shell-bg);
   --settings-shell-fg: var(--profile-shell-fg);
@@ -163,13 +162,11 @@
   --settings-shell-accent: var(--primary);
   --settings-shell-border: color-mix(in srgb, var(--primary) 22%, transparent);
   --settings-shell-row-border: color-mix(in srgb, var(--primary) 12%, transparent);
-  --settings-shell-panel: color-mix(in srgb, var(--card) 76%, var(--background) 24%);
 
   --developer-shell-bg: var(--profile-shell-bg);
   --developer-shell-fg: var(--profile-shell-fg);
   --developer-shell-muted: color-mix(in srgb, var(--foreground) 30%, transparent);
   --developer-shell-border: color-mix(in srgb, var(--primary) 22%, transparent);
-  --developer-shell-panel: color-mix(in srgb, var(--card) 76%, var(--background) 24%);
 
   /* Shared "surface card" language: feed, profile, archive, settings. Soft border, no shadow. */
   --surface-card-bg: color-mix(in srgb, var(--card) 55%, var(--background) 45%);
@@ -845,7 +842,8 @@
   }
 
   .profile-shell-panel {
-    background: var(--profile-shell-panel);
+    background: var(--surface-card-bg);
+    border: 1px solid var(--surface-card-border);
     border-radius: var(--radius-xl);
   }
 
@@ -890,7 +888,8 @@
   }
 
   .settings-shell-panel {
-    background: var(--settings-shell-panel);
+    background: var(--surface-card-bg);
+    border: 1px solid var(--surface-card-border);
     border-radius: var(--radius-xl);
   }
 
@@ -925,7 +924,8 @@
   }
 
   .developer-shell-panel {
-    background: var(--developer-shell-panel);
+    background: var(--surface-card-bg);
+    border: 1px solid var(--surface-card-border);
     border-radius: var(--radius-xl);
   }
 
