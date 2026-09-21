@@ -62,7 +62,7 @@ export const PostActivityCard = memo(function PostActivityCard({ item }: PostAct
   const to = item.movie
     ? item.movie.mediaType === "tv"
       ? "/serials/$tmdbId"
-      : "/cinema/$tmdbId"
+      : "/movies/$tmdbId"
     : null;
 
   const openDialog = (mode: "view" | "edit") => {

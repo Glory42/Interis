@@ -21,7 +21,7 @@ export const ProfileWatchlistPage = ({
         icon: Bookmark,
         title: "No watchlist items yet",
         description: "This profile has not added anything to watchlist yet.",
-        cta: { label: "Browse Cinema", to: "/cinema" },
+        cta: { label: "Browse Movie", to: "/movies" },
       }}
       isPending={watchlistQuery.isPending}
       isError={watchlistQuery.isError}

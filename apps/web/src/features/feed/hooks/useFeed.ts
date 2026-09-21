@@ -11,7 +11,7 @@ import {
 export const FEED_PAGE_SIZE = 15;
 
 const toMediaTypeFilter = (filter: FeedFilter): FeedMediaTypeFilter | undefined => {
-  if (filter === "cinema") return "movie";
+  if (filter === "movie") return "movie";
   if (filter === "serial") return "tv";
   return undefined;
 };

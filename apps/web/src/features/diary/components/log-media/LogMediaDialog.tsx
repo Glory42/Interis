@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ModalShell } from "@/components/ui/ModalShell";
 import { Textarea } from "@/components/ui/textarea";
-import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
+import { SpaceRatingInput } from "@/features/movies/components/SpaceRating";
 import { CalendarPicker } from "@/components/ui/CalendarPicker";
 import { todayAsLocalDateInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
@@ -46,9 +46,9 @@ type LogMediaDialogProps = {
   // Footer extras
   onDelete?: () => void;
   submitLabel?: string;
-  // Content-type accent — cinema (movies) vs serial (series/season/episode).
+  // Content-type accent — movie vs serial (series/season/episode).
   // Defaults to the active theme's generic primary color.
-  accent?: "cinema" | "serial";
+  accent?: "movie" | "serial";
 };
 
 export const LogMediaDialog = ({
@@ -82,7 +82,7 @@ export const LogMediaDialog = ({
   accent,
 }: LogMediaDialogProps) => {
   const accentColor =
-    accent === "cinema" ? "var(--module-cinema)" : accent === "serial" ? "var(--module-serial)" : "var(--primary)";
+    accent === "movie" ? "var(--module-movie)" : accent === "serial" ? "var(--module-serial)" : "var(--primary)";
   const headerSubtitle = subtitle
     ? `${title} · ${subtitle}`
     : `${title}${year ? ` (${year})` : ""}`;
@@ -104,7 +104,7 @@ export const LogMediaDialog = ({
         aria-modal="true"
         className={cn(
           "theme-modal-panel relative z-50 flex w-[calc(100vw-1rem)] max-h-[calc(100dvh-1rem)] max-w-4xl flex-col overflow-hidden border border-border/70 bg-card/95 shadow-2xl backdrop-blur-xl animate-fade-up sm:w-[calc(100vw-2rem)] sm:max-h-[calc(100dvh-2rem)]",
-          accent === "cinema" && "theme-modal-panel--cinema",
+          accent === "movie" && "theme-modal-panel--movie",
           accent === "serial" && "theme-modal-panel--serial",
         )}
       >

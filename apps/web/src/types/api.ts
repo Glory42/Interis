@@ -168,7 +168,7 @@ export const topPickCategoryIdSchema = z.union([
 ]);
 
 export const topPickCategoryKeySchema = z.enum([
-  "cinema",
+  "movie",
   "serial",
 ]);
 

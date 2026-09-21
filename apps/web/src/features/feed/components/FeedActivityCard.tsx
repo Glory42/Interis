@@ -63,7 +63,7 @@ const AttachedMediaCard = ({ item }: { item: FeedItem }) => {
 
   const channel = inferFeedChannel(item);
   const accentColor = channel ? feedChannelMeta[channel].color : "var(--module-neutral)";
-  const to = item.movie.mediaType === "tv" ? "/serials/$tmdbId" : "/cinema/$tmdbId";
+  const to = item.movie.mediaType === "tv" ? "/serials/$tmdbId" : "/movies/$tmdbId";
 
   return (
     <FeedMoviePreviewCard

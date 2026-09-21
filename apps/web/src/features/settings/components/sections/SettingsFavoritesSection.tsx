@@ -24,24 +24,24 @@ export const SettingsFavoritesSection = () => {
       <div className="border p-5 settings-shell-border settings-shell-panel">
         <p className="mb-1 text-base font-bold text-foreground">Top Picks</p>
         <p className="mb-5 text-sm settings-shell-muted">
-          Set up to 4 favorites for Cinema and Serial. These appear as a showcase on your public profile.
+          Set up to 4 favorites for Movie and Serial. These appear as a showcase on your public profile.
         </p>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div>
             <div className="mb-3 flex items-center gap-2">
-              <Film className="h-3.5 w-3.5" style={{ color: "var(--module-cinema)" }} />
-              <span className="text-sm font-semibold" style={{ color: "var(--module-cinema)" }}>
-                Cinema
+              <Film className="h-3.5 w-3.5" style={{ color: "var(--module-movie)" }} />
+              <span className="text-sm font-semibold" style={{ color: "var(--module-movie)" }}>
+                Movie
               </span>
               <span className="text-xs settings-shell-muted">
-                ({controller.selectedCinemaCount}/4)
+                ({controller.selectedMovieCount}/4)
               </span>
             </div>
 
             <FavoritesSlotList
-              category="cinema"
-              slots={controller.cinemaSlots}
+              category="movie"
+              slots={controller.movieSlots}
               isBusy={controller.isBusy}
               onOpenSlotPicker={controller.openPickerForSlot}
               onClearSlot={controller.handleClearSlot}

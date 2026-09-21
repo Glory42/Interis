@@ -16,8 +16,7 @@ import { Route as SettingsRouteRouteImport } from './routes/settings/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as SerialsIndexRouteImport } from './routes/serials/index'
-import { Route as FilmsIndexRouteImport } from './routes/films/index'
-import { Route as CinemaIndexRouteImport } from './routes/cinema/index'
+import { Route as MoviesIndexRouteImport } from './routes/movies/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as SettingsThemeRouteImport } from './routes/settings/theme'
 import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
@@ -27,9 +26,8 @@ import { Route as SettingsDataRouteImport } from './routes/settings/data'
 import { Route as SettingsBlockedRouteImport } from './routes/settings/blocked'
 import { Route as SettingsAuthRouteImport } from './routes/settings/auth'
 import { Route as SerialsTmdbIdRouteImport } from './routes/serials/$tmdbId'
-import { Route as FilmsTmdbIdRouteImport } from './routes/films/$tmdbId'
+import { Route as MoviesTmdbIdRouteImport } from './routes/movies/$tmdbId'
 import { Route as DirectorSlugRouteImport } from './routes/director/$slug'
-import { Route as CinemaTmdbIdRouteImport } from './routes/cinema/$tmdbId'
 import { Route as ActorSlugRouteImport } from './routes/actor/$slug'
 import { Route as AuthLayoutRegisterRouteImport } from './routes/_authLayout/register'
 import { Route as AuthLayoutLoginRouteImport } from './routes/_authLayout/login'
@@ -84,14 +82,9 @@ const SerialsIndexRoute = SerialsIndexRouteImport.update({
   path: '/serials/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FilmsIndexRoute = FilmsIndexRouteImport.update({
-  id: '/films/',
-  path: '/films/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CinemaIndexRoute = CinemaIndexRouteImport.update({
-  id: '/cinema/',
-  path: '/cinema/',
+const MoviesIndexRoute = MoviesIndexRouteImport.update({
+  id: '/movies/',
+  path: '/movies/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -139,19 +132,14 @@ const SerialsTmdbIdRoute = SerialsTmdbIdRouteImport.update({
   path: '/serials/$tmdbId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FilmsTmdbIdRoute = FilmsTmdbIdRouteImport.update({
-  id: '/films/$tmdbId',
-  path: '/films/$tmdbId',
+const MoviesTmdbIdRoute = MoviesTmdbIdRouteImport.update({
+  id: '/movies/$tmdbId',
+  path: '/movies/$tmdbId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DirectorSlugRoute = DirectorSlugRouteImport.update({
   id: '/director/$slug',
   path: '/director/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CinemaTmdbIdRoute = CinemaTmdbIdRouteImport.update({
-  id: '/cinema/$tmdbId',
-  path: '/cinema/$tmdbId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ActorSlugRoute = ActorSlugRouteImport.update({
@@ -265,9 +253,8 @@ export interface FileRoutesByFullPath {
   '/login': typeof AuthLayoutLoginRoute
   '/register': typeof AuthLayoutRegisterRoute
   '/actor/$slug': typeof ActorSlugRoute
-  '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
   '/director/$slug': typeof DirectorSlugRoute
-  '/films/$tmdbId': typeof FilmsTmdbIdRoute
+  '/movies/$tmdbId': typeof MoviesTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
   '/settings/blocked': typeof SettingsBlockedRoute
@@ -277,8 +264,7 @@ export interface FileRoutesByFullPath {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/theme': typeof SettingsThemeRoute
   '/admin/': typeof AdminIndexRoute
-  '/cinema/': typeof CinemaIndexRoute
-  '/films/': typeof FilmsIndexRoute
+  '/movies/': typeof MoviesIndexRoute
   '/serials/': typeof SerialsIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/profile/$username/cinema': typeof ProfileUsernameCinemaRoute
@@ -304,9 +290,8 @@ export interface FileRoutesByTo {
   '/login': typeof AuthLayoutLoginRoute
   '/register': typeof AuthLayoutRegisterRoute
   '/actor/$slug': typeof ActorSlugRoute
-  '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
   '/director/$slug': typeof DirectorSlugRoute
-  '/films/$tmdbId': typeof FilmsTmdbIdRoute
+  '/movies/$tmdbId': typeof MoviesTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
   '/settings/blocked': typeof SettingsBlockedRoute
@@ -316,8 +301,7 @@ export interface FileRoutesByTo {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/theme': typeof SettingsThemeRoute
   '/admin': typeof AdminIndexRoute
-  '/cinema': typeof CinemaIndexRoute
-  '/films': typeof FilmsIndexRoute
+  '/movies': typeof MoviesIndexRoute
   '/serials': typeof SerialsIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/profile/$username/cinema': typeof ProfileUsernameCinemaRoute
@@ -347,9 +331,8 @@ export interface FileRoutesById {
   '/_authLayout/login': typeof AuthLayoutLoginRoute
   '/_authLayout/register': typeof AuthLayoutRegisterRoute
   '/actor/$slug': typeof ActorSlugRoute
-  '/cinema/$tmdbId': typeof CinemaTmdbIdRoute
   '/director/$slug': typeof DirectorSlugRoute
-  '/films/$tmdbId': typeof FilmsTmdbIdRoute
+  '/movies/$tmdbId': typeof MoviesTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
   '/settings/auth': typeof SettingsAuthRoute
   '/settings/blocked': typeof SettingsBlockedRoute
@@ -359,8 +342,7 @@ export interface FileRoutesById {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/theme': typeof SettingsThemeRoute
   '/admin/': typeof AdminIndexRoute
-  '/cinema/': typeof CinemaIndexRoute
-  '/films/': typeof FilmsIndexRoute
+  '/movies/': typeof MoviesIndexRoute
   '/serials/': typeof SerialsIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/profile/$username/cinema': typeof ProfileUsernameCinemaRoute
@@ -390,9 +372,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/actor/$slug'
-    | '/cinema/$tmdbId'
     | '/director/$slug'
-    | '/films/$tmdbId'
+    | '/movies/$tmdbId'
     | '/serials/$tmdbId'
     | '/settings/auth'
     | '/settings/blocked'
@@ -402,8 +383,7 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/theme'
     | '/admin/'
-    | '/cinema/'
-    | '/films/'
+    | '/movies/'
     | '/serials/'
     | '/settings/'
     | '/profile/$username/cinema'
@@ -429,9 +409,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/actor/$slug'
-    | '/cinema/$tmdbId'
     | '/director/$slug'
-    | '/films/$tmdbId'
+    | '/movies/$tmdbId'
     | '/serials/$tmdbId'
     | '/settings/auth'
     | '/settings/blocked'
@@ -441,8 +420,7 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/theme'
     | '/admin'
-    | '/cinema'
-    | '/films'
+    | '/movies'
     | '/serials'
     | '/settings'
     | '/profile/$username/cinema'
@@ -471,9 +449,8 @@ export interface FileRouteTypes {
     | '/_authLayout/login'
     | '/_authLayout/register'
     | '/actor/$slug'
-    | '/cinema/$tmdbId'
     | '/director/$slug'
-    | '/films/$tmdbId'
+    | '/movies/$tmdbId'
     | '/serials/$tmdbId'
     | '/settings/auth'
     | '/settings/blocked'
@@ -483,8 +460,7 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/theme'
     | '/admin/'
-    | '/cinema/'
-    | '/films/'
+    | '/movies/'
     | '/serials/'
     | '/settings/'
     | '/profile/$username/cinema'
@@ -511,13 +487,11 @@ export interface RootRouteChildren {
   SetupSecurityQuestionRoute: typeof SetupSecurityQuestionRoute
   ProfileUsernameRouteRoute: typeof ProfileUsernameRouteRouteWithChildren
   ActorSlugRoute: typeof ActorSlugRoute
-  CinemaTmdbIdRoute: typeof CinemaTmdbIdRoute
   DirectorSlugRoute: typeof DirectorSlugRoute
-  FilmsTmdbIdRoute: typeof FilmsTmdbIdRoute
+  MoviesTmdbIdRoute: typeof MoviesTmdbIdRoute
   SerialsTmdbIdRoute: typeof SerialsTmdbIdRoute
   AdminIndexRoute: typeof AdminIndexRoute
-  CinemaIndexRoute: typeof CinemaIndexRoute
-  FilmsIndexRoute: typeof FilmsIndexRoute
+  MoviesIndexRoute: typeof MoviesIndexRoute
   SerialsIndexRoute: typeof SerialsIndexRoute
   ReviewsUsernameReviewIdRoute: typeof ReviewsUsernameReviewIdRoute
 }
@@ -573,18 +547,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SerialsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/films/': {
-      id: '/films/'
-      path: '/films'
-      fullPath: '/films/'
-      preLoaderRoute: typeof FilmsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/cinema/': {
-      id: '/cinema/'
-      path: '/cinema'
-      fullPath: '/cinema/'
-      preLoaderRoute: typeof CinemaIndexRouteImport
+    '/movies/': {
+      id: '/movies/'
+      path: '/movies'
+      fullPath: '/movies/'
+      preLoaderRoute: typeof MoviesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -650,11 +617,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SerialsTmdbIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/films/$tmdbId': {
-      id: '/films/$tmdbId'
-      path: '/films/$tmdbId'
-      fullPath: '/films/$tmdbId'
-      preLoaderRoute: typeof FilmsTmdbIdRouteImport
+    '/movies/$tmdbId': {
+      id: '/movies/$tmdbId'
+      path: '/movies/$tmdbId'
+      fullPath: '/movies/$tmdbId'
+      preLoaderRoute: typeof MoviesTmdbIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/director/$slug': {
@@ -662,13 +629,6 @@ declare module '@tanstack/react-router' {
       path: '/director/$slug'
       fullPath: '/director/$slug'
       preLoaderRoute: typeof DirectorSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/cinema/$tmdbId': {
-      id: '/cinema/$tmdbId'
-      path: '/cinema/$tmdbId'
-      fullPath: '/cinema/$tmdbId'
-      preLoaderRoute: typeof CinemaTmdbIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/actor/$slug': {
@@ -892,13 +852,11 @@ const rootRouteChildren: RootRouteChildren = {
   SetupSecurityQuestionRoute: SetupSecurityQuestionRoute,
   ProfileUsernameRouteRoute: ProfileUsernameRouteRouteWithChildren,
   ActorSlugRoute: ActorSlugRoute,
-  CinemaTmdbIdRoute: CinemaTmdbIdRoute,
   DirectorSlugRoute: DirectorSlugRoute,
-  FilmsTmdbIdRoute: FilmsTmdbIdRoute,
+  MoviesTmdbIdRoute: MoviesTmdbIdRoute,
   SerialsTmdbIdRoute: SerialsTmdbIdRoute,
   AdminIndexRoute: AdminIndexRoute,
-  CinemaIndexRoute: CinemaIndexRoute,
-  FilmsIndexRoute: FilmsIndexRoute,
+  MoviesIndexRoute: MoviesIndexRoute,
   SerialsIndexRoute: SerialsIndexRoute,
   ReviewsUsernameReviewIdRoute: ReviewsUsernameReviewIdRoute,
 }

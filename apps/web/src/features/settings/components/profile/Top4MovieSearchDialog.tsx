@@ -3,8 +3,8 @@ import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ModalShell } from "@/components/ui/ModalShell";
 import { Spinner } from "@/components/ui/spinner";
-import { getPosterUrl, toReleaseYear } from "@/features/films/components/utils";
-import { useMovieSearch } from "@/features/films/hooks/useMovies";
+import { getPosterUrl, toReleaseYear } from "@/features/movies/components/utils";
+import { useMovieSearch } from "@/features/movies/hooks/useMovies";
 import type { TmdbSearchMovie } from "@/types/api";
 
 type Top4MovieSearchDialogProps = {

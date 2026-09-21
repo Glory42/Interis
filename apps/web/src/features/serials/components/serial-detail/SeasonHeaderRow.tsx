@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronUp, Heart, MessageSquare } from "lucide-react";
 import type { SerialDetailResponse } from "@/features/serials/api";
-import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
+import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
 import { toYearFromDateLabel } from "@/features/serials/components/serial-detail/utils";
 import { RatingSelect } from "@/features/serials/components/serial-detail/RatingSelect";
 

@@ -5,7 +5,7 @@ import {
   type MovieInteraction,
   type UpdateMovieInteractionInput,
 } from "@/features/interactions/api";
-import { movieKeys } from "@/features/films/hooks/useMovies";
+import { movieKeys } from "@/features/movies/hooks/useMovies";
 
 export const interactionKeys = {
   detail: (tmdbId: number) => ["interactions", "movie", tmdbId] as const,

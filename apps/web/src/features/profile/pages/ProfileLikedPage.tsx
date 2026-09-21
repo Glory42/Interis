@@ -12,7 +12,7 @@ import {
 } from "@/features/profile/hooks/useProfile";
 
 type LikedTab = "medias" | "reviews" | "lists";
-type ListFilter = "all" | "cinema" | "serial" | "mixed";
+type ListFilter = "all" | "movie" | "serial" | "mixed";
 
 const topTabs: Array<{ key: LikedTab; label: string }> = [
   { key: "medias", label: "Medias" },
@@ -22,13 +22,13 @@ const topTabs: Array<{ key: LikedTab; label: string }> = [
 
 const mediaSubFilters: Array<{ key: MediaFilter; label: string }> = [
   { key: "all", label: "All" },
-  { key: "cinema", label: "Cinema" },
+  { key: "movie", label: "Movie" },
   { key: "serial", label: "Serial" },
 ];
 
 const listSubFilters: Array<{ key: ListFilter; label: string }> = [
   { key: "all", label: "All" },
-  { key: "cinema", label: "Cinema" },
+  { key: "movie", label: "Movie" },
   { key: "serial", label: "Serial" },
   { key: "mixed", label: "Mixed" },
 ];
@@ -72,7 +72,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
 
   const filteredReviews = useMemo(() => {
     if (reviewFilter === "all") return reviewItems;
-    if (reviewFilter === "cinema") return reviewItems.filter((r) => r.mediaType === "movie");
+    if (reviewFilter === "movie") return reviewItems.filter((r) => r.mediaType === "movie");
     return reviewItems.filter((r) => r.mediaType === "tv");
   }, [reviewItems, reviewFilter]);
 
@@ -150,7 +150,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
               icon={Heart}
               title="No liked media yet"
               description="This profile has not liked any films or series yet."
-              cta={{ label: "Browse Cinema", to: "/cinema" }}
+              cta={{ label: "Browse Movie", to: "/movies" }}
             />
           ) : (
             <LikedMediaGrid items={mediaItems} filter={mediaFilter} />

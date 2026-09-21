@@ -144,7 +144,7 @@
   --theme-button-danger-shadow-hover: 0 14px 30px -16px
     rgba(241, 127, 160, 0.78);
 
-  --module-cinema: #e0a8a3;
+  --module-movie: #e0a8a3;
   --module-serial: #9fd4df;
   --module-neutral: #9c94ad;
 
@@ -295,7 +295,7 @@
   --theme-button-danger-shadow: 0 0 0 1px rgba(255, 107, 133, 0.36) inset;
   --theme-button-danger-shadow-hover: 0 0 0 1px rgba(255, 107, 133, 0.45) inset;
 
-  --module-cinema: #00ff88;
+  --module-movie: #00ff88;
   --module-serial: #00cfff;
   --module-neutral: #9ca3af;
 }
@@ -418,7 +418,7 @@
   --theme-button-danger-shadow-hover: 0 14px 30px -16px
     rgba(247, 118, 142, 0.74);
 
-  --module-cinema: #7aa2f7;
+  --module-movie: #7aa2f7;
   --module-serial: #bb9af7;
   --module-neutral: #565f89;
 }
@@ -527,7 +527,7 @@
   --theme-button-danger-shadow: 0 10px 24px -15px rgba(194, 65, 12, 0.4);
   --theme-button-danger-shadow-hover: 0 14px 30px -16px rgba(194, 65, 12, 0.5);
 
-  --module-cinema: #b8123a;
+  --module-movie: #b8123a;
   --module-serial: #0f766e;
   --module-neutral: #8a7a68;
 }
@@ -562,7 +562,7 @@
     background-image: linear-gradient(
       180deg,
       color-mix(in srgb, var(--primary) 90%, white 10%),
-      var(--module-cinema)
+      var(--module-movie)
     );
   }
 
@@ -766,8 +766,8 @@
   /* Content-type accent: the log/review dialog's border reflects whether
      it's logging a movie or a serial, rather than always following the
      active theme's generic primary color. */
-  .theme-modal-panel.theme-modal-panel--cinema {
-    border-color: var(--module-cinema) !important;
+  .theme-modal-panel.theme-modal-panel--movie {
+    border-color: var(--module-movie) !important;
   }
 
   .theme-modal-panel.theme-modal-panel--serial {

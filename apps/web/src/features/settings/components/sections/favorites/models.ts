@@ -12,7 +12,7 @@ export type TopPickSlot = {
   releaseYear: number | null;
 };
 
-export type TopPickCategoryKey = "cinema" | "serial";
+export type TopPickCategoryKey = "movie" | "serial";
 
 export type PickerTarget = {
   category: TopPickCategoryKey;

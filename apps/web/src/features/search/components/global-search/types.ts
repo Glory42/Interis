@@ -4,7 +4,7 @@ import type { TmdbSearchSeries } from "@/features/serials/api";
 import type { TmdbSearchMovie } from "@/types/api";
 
 export type SearchMode = "home" | "scoped";
-export type ScopedTarget = "users" | "cinema" | "serials";
+export type ScopedTarget = "users" | "movie" | "serials";
 // Home (unscoped) sections also include a merged movies+TV section, which
 // isn't an individually enterable scope the way ScopedTarget values are.
 export type SectionTarget = ScopedTarget | "titles";
@@ -17,8 +17,8 @@ export type UserResultEntry = {
   avatarUrl: string | null;
 };
 
-export type CinemaResultEntry = {
-  kind: "cinema";
+export type MovieResultEntry = {
+  kind: "movie";
   id: string;
   tmdbId: number;
   title: string;
@@ -37,7 +37,7 @@ export type SerialResultEntry = {
 
 export type SearchResultEntry =
   | UserResultEntry
-  | CinemaResultEntry
+  | MovieResultEntry
   | SerialResultEntry;
 
 export type SearchSection = {
@@ -64,6 +64,6 @@ export type SearchSectionOffset = {
 
 export type SearchResultMappers = {
   toUserEntry: (profile: UserSearchResult) => UserResultEntry;
-  toCinemaEntry: (movie: TmdbSearchMovie) => CinemaResultEntry;
+  toMovieEntry: (movie: TmdbSearchMovie) => MovieResultEntry;
   toSerialEntry: (series: TmdbSearchSeries) => SerialResultEntry;
 };

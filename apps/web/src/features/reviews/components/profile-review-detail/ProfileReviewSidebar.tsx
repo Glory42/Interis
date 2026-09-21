@@ -69,7 +69,7 @@ export const ProfileReviewSidebar = ({ detail }: ProfileReviewSidebarProps) => {
           </Button>
         ) : (
           <Button asChild variant="outline" className="w-full">
-            <Link to="/cinema/$tmdbId" params={{ tmdbId: String(detail.media.tmdbId) }}>
+            <Link to="/movies/$tmdbId" params={{ tmdbId: String(detail.media.tmdbId) }}>
               Open film page
             </Link>
           </Button>

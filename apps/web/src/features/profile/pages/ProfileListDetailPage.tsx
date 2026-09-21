@@ -90,8 +90,8 @@ export const ProfileListDetailPage = ({
   }
 
   const derivedTypeLabel =
-    list.derivedType === "cinema"
-      ? "CINEMA"
+    list.derivedType === "movie"
+      ? "MOVIE"
       : list.derivedType === "serial"
         ? "SERIAL"
         : list.derivedType === "mixed"
@@ -222,8 +222,8 @@ export const ProfileListDetailPage = ({
             <Link
               key={item.id}
               to={
-                item.itemType === "cinema"
-                  ? "/cinema/$tmdbId"
+                item.itemType === "movie"
+                  ? "/movies/$tmdbId"
                   : "/serials/$tmdbId"
               }
               params={{ tmdbId: String(item.tmdbId ?? "") }}

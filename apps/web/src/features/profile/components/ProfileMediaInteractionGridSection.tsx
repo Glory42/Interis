@@ -11,11 +11,11 @@ import {
 } from "@/features/profile/components/ProfileTabEmptyState";
 import type { UserInteractionMovie } from "@/features/profile/api";
 
-type FavoritesFilter = "all" | "cinema" | "serial";
+type FavoritesFilter = "all" | "movie" | "serial";
 
 const filterTabs: Array<{ key: FavoritesFilter; label: string }> = [
   { key: "all", label: "All" },
-  { key: "cinema", label: "Cinema" },
+  { key: "movie", label: "Movie" },
   { key: "serial", label: "Serial" },
 ];
 
@@ -24,7 +24,7 @@ const filterMatches = (item: UserInteractionMovie, filter: FavoritesFilter): boo
     return true;
   }
 
-  if (filter === "cinema") {
+  if (filter === "movie") {
     return item.mediaType === "movie";
   }
 

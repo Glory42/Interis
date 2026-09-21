@@ -20,8 +20,8 @@ export const ListCard = memo(function ListCard({ list, username }: ListCardProps
   const coverCount = covers.filter((c) => c.posterPath).length;
 
   const derivedTypeLabel =
-    list.derivedType === "cinema"
-      ? "CINEMA"
+    list.derivedType === "movie"
+      ? "MOVIE"
       : list.derivedType === "serial"
         ? "SERIAL"
         : list.derivedType === "mixed"

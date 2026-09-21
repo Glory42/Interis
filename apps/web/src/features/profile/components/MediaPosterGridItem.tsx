@@ -1,10 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { getPosterUrl } from "@/features/movies/components/utils";
 import type { UserInteractionMovie } from "@/features/profile/api";
 import { getRelativeTime } from "@/features/profile/utils/profile.utils";
 
-const routeByMediaType: Record<string, "/cinema/$tmdbId" | "/serials/$tmdbId" | null> = {
-  movie: "/cinema/$tmdbId",
+const routeByMediaType: Record<string, "/movies/$tmdbId" | "/serials/$tmdbId" | null> = {
+  movie: "/movies/$tmdbId",
   tv: "/serials/$tmdbId",
 };
 

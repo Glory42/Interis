@@ -2,18 +2,18 @@ import { Link } from "@tanstack/react-router";
 import { Film, Tv, type LucideIcon } from "lucide-react";
 import { useState, type CSSProperties } from "react";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { getPosterUrl } from "@/features/movies/components/utils";
 import type { UserTopPickCategory, UserTopPickItem } from "@/features/profile/api";
 
-export type TopPickCategoryKey = "cinema" | "serial";
+export type TopPickCategoryKey = "movie" | "serial";
 
 const topPickCategoryMeta: Record<
   TopPickCategoryKey,
   { label: string; color: string; icon: LucideIcon; defaultSupported: boolean }
 > = {
-  cinema: {
-    label: "Favorite Cinemas",
-    color: "var(--module-cinema)",
+  movie: {
+    label: "Favorite Movies",
+    color: "var(--module-movie)",
     icon: Film,
     defaultSupported: true,
   },
@@ -111,10 +111,10 @@ const TopPickSlot = ({
     </div>
   );
 
-  if (categoryKey === "cinema" && tmdbId !== null) {
+  if (categoryKey === "movie" && tmdbId !== null) {
     return (
       <Link
-        to="/cinema/$tmdbId"
+        to="/movies/$tmdbId"
         params={{ tmdbId: String(tmdbId) }}
         className={linkClassName}
         style={style}

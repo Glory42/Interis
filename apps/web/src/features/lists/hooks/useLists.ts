@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
-import { searchMovies } from "@/features/films/api/requests";
+import { searchMovies } from "@/features/movies/api/requests";
 import { searchSeries } from "@/features/serials/api/requests";
 import {
   addListItem,
@@ -58,7 +58,7 @@ export const useUserLists = (username: string, enabled = true) =>
 export const useUserListsForItem = (
   username: string,
   tmdbId: number,
-  itemType: "cinema" | "serial",
+  itemType: "movie" | "serial",
   enabled = true,
 ) =>
   useQuery({
@@ -133,7 +133,7 @@ export const useAddListItem = (listId: string, ownerUsername: string) => {
   return useMutation({
     mutationFn: (data: {
       tmdbId: number;
-      itemType: "cinema" | "serial";
+      itemType: "movie" | "serial";
       title: string;
       posterPath: string | null;
       releaseYear: number | null;
@@ -291,7 +291,7 @@ export const useUnlikeList = (listId: string, viewerUsername?: string) => {
 export const useToggleListItem = (
   ownerUsername: string,
   tmdbId: number,
-  itemType: "cinema" | "serial",
+  itemType: "movie" | "serial",
 ) => {
   const queryClient = useQueryClient();
   const queryKey = listKeys.userListsForItem(ownerUsername, tmdbId, itemType);

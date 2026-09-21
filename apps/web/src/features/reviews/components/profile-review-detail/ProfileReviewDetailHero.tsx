@@ -2,8 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { ArrowLeft, Film, Tv } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { type ReviewDetail } from "@/features/reviews/api";
-import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { SpaceRatingDisplay } from "@/features/movies/components/SpaceRating";
+import { getPosterUrl } from "@/features/movies/components/utils";
 import { formatRelativeTime } from "@/features/reviews/components/profile-review-detail/utils";
 
 type ProfileReviewDetailHeroProps = {
@@ -59,7 +59,7 @@ export const ProfileReviewDetailHero = ({
                 </div>
               </Link>
             ) : (
-              <Link to="/cinema/$tmdbId" params={{ tmdbId: String(detail.media.tmdbId) }}>
+              <Link to="/movies/$tmdbId" params={{ tmdbId: String(detail.media.tmdbId) }}>
                 <div className="h-40 w-28 overflow-hidden rounded-xl border border-border/60 shadow-2xl">
                   <img
                     src={getPosterUrl(detail.media.posterPath)}

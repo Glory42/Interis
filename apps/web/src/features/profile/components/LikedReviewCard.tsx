@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { Link } from "@tanstack/react-router";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { getPosterUrl } from "@/features/movies/components/utils";
 import type { LikedReview } from "@/features/profile/api";
 import { formatRelativeTime } from "@/lib/time";
 
@@ -9,7 +9,7 @@ export const LikedReviewCard = memo(function LikedReviewCard({
 }: {
   review: LikedReview;
 }) {
-  const route = review.mediaType === "movie" ? "/cinema/$tmdbId" : "/serials/$tmdbId";
+  const route = review.mediaType === "movie" ? "/movies/$tmdbId" : "/serials/$tmdbId";
   const tmdbId = review.mediaTmdbId;
 
   return (

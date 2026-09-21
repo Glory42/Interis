@@ -13,7 +13,7 @@ import { runDialogSubmit } from "@/lib/fire-and-forget";
 
 type AddToListDialogProps = {
   tmdbId: number;
-  itemType: "cinema" | "serial";
+  itemType: "movie" | "serial";
   triggerStyle?: React.CSSProperties;
   triggerClassName?: string;
 };

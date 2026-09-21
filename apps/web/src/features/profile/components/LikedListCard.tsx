@@ -15,8 +15,8 @@ const CONTAINER_W = POSTER_W + OFFSET * 3;
 export const LikedListCard = memo(function LikedListCard({ list }: { list: LikedList }) {
   const covers = list.coverImages.slice(0, 4);
   const derivedTypeLabel =
-    list.derivedType === "cinema"
-      ? "CINEMA"
+    list.derivedType === "movie"
+      ? "MOVIE"
       : list.derivedType === "serial"
         ? "SERIAL"
         : list.derivedType === "mixed"

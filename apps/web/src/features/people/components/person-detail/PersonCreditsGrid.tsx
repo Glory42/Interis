@@ -39,7 +39,7 @@ export const PersonCreditsGrid = ({
         return (
           <Link
             key={`${credit.mediaType}-${credit.tmdbId}-${credit.character ?? credit.job ?? "credit"}`}
-            to={credit.mediaType === "movie" ? "/cinema/$tmdbId" : "/serials/$tmdbId"}
+            to={credit.mediaType === "movie" ? "/movies/$tmdbId" : "/serials/$tmdbId"}
             params={{ tmdbId: String(credit.tmdbId) }}
             className="rounded-xl border p-3 transition-colors"
             style={{
@@ -66,7 +66,7 @@ export const PersonCreditsGrid = ({
                   {credit.releaseYear ?? "Year unknown"} ·{" "}
                   {credit.mediaType === "movie" ? (
                     <span className="inline-flex items-center gap-1">
-                      <Film className="h-3 w-3" /> Cinema
+                      <Film className="h-3 w-3" /> Movie
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1">

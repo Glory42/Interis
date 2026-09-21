@@ -35,8 +35,8 @@ export const ProfileOverviewContent = ({ username }: ProfileOverviewContentProps
       <section>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           <ProfileTopPicksRow
-            categoryKey="cinema"
-            category={categoriesByKey.get("cinema")}
+            categoryKey="movie"
+            category={categoriesByKey.get("movie")}
             isPending={topPicksQuery.isPending}
             isError={topPicksQuery.isError}
           />

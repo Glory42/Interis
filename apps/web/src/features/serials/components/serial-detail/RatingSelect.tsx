@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
+import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
 
 const RATING_OPTIONS = [
   0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10,

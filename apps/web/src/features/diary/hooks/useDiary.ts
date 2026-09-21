@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authKeys } from "@/features/auth/hooks/useAuth";
 import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
 import { createDiaryEntry, getMyFilmLogs } from "@/features/diary/api";
-import { movieKeys } from "@/features/films/hooks/useMovies";
+import { movieKeys } from "@/features/movies/hooks/useMovies";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import type { CreateDiaryEntryInput, MeProfile, MovieLog } from "@/types/api";
 

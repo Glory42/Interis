@@ -27,7 +27,7 @@ export type DiaryRow = {
 };
 
 export const channelDisplayLabel: Record<FeedChannel, string> = {
-  cinema: "Cinema",
+  movie: "Movie",
   serial: "Serial",
 };
 
@@ -59,7 +59,7 @@ export const toDateParts = (value: string): {
 };
 
 const channelByMediaType: Record<DiaryItem["mediaType"], FeedChannel> = {
-  movie: "cinema",
+  movie: "movie",
   tv: "serial",
 };
 
@@ -112,7 +112,7 @@ export const toDiaryRows = (
       reviewId: item.review?.id ?? null,
       hasReview: item.review !== null,
       isLiked:
-        channel === "cinema" && tmdbId !== null && likedMovieTmdbIdSet.has(tmdbId),
+        channel === "movie" && tmdbId !== null && likedMovieTmdbIdSet.has(tmdbId),
     };
   });
 

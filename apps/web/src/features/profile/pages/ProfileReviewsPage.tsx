@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Star, TriangleAlert } from "lucide-react";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { getPosterUrl } from "@/features/movies/components/utils";
 import type { UserReview } from "@/features/profile/api";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import { ReviewCardSkeleton } from "@/features/profile/components/ReviewCardSkeleton";
@@ -20,8 +20,8 @@ const mediaMetaByType: Record<
   }
 > = {
   movie: {
-    label: "Cinema",
-    color: "var(--module-cinema)",
+    label: "Movie",
+    color: "var(--module-movie)",
   },
   tv: {
     label: "Serial",
@@ -70,7 +70,7 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
           icon={Star}
           title="No written reviews yet"
           description="This profile has not published any reviews yet."
-          cta={{ label: "Browse Cinema", to: "/cinema" }}
+          cta={{ label: "Browse Movie", to: "/movies" }}
         />
       ) : null}
 
@@ -118,7 +118,7 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
                 </Link>
               ) : (
                 <Link
-                  to="/cinema/$tmdbId"
+                  to="/movies/$tmdbId"
                   params={{ tmdbId: String(entry.tmdbId) }}
                   className="shrink-0"
                   viewTransition

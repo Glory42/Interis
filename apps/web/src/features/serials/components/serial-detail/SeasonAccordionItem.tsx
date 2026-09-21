@@ -13,7 +13,7 @@ import {
   useUpsertEpisodeReview,
   useDeleteEpisodeReview,
 } from "@/features/serials/hooks/useSerials";
-import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
+import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
 import { useReviewDraftSync } from "@/features/serials/hooks/serials/use-review-draft-sync";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { LogMediaDialog } from "@/features/diary/components/log-media/LogMediaDialog";

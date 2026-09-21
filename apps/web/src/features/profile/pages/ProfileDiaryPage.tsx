@@ -52,7 +52,7 @@ export const ProfileDiaryPage = ({ username }: ProfileDiaryPageProps) => {
           icon={BookOpen}
           title="No diary activity yet"
           description="This profile has not logged or reviewed anything yet."
-          cta={{ label: "Browse Cinema", to: "/cinema" }}
+          cta={{ label: "Browse Movie", to: "/movies" }}
         />
       ) : null}
 

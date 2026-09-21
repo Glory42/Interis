@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { Activity, FileText, LayoutDashboard, Zap } from "lucide-react";
 
-export type UseCaseTone = "primary" | "cinema" | "serial" | "destructive";
+export type UseCaseTone = "primary" | "movie" | "serial" | "destructive";
 
 export type UseCase = {
   title: string;
@@ -26,7 +26,7 @@ export const useCases: readonly UseCase[] = [
   {
     title: "Portfolio Widget",
     description:
-      "Show your Top 4 cinema and serial picks directly on your personal website.",
+      "Show your Top 4 movie and serial picks directly on your personal website.",
     icon: LayoutDashboard,
     tone: "primary",
   },
@@ -35,7 +35,7 @@ export const useCases: readonly UseCase[] = [
     description:
       "Display your latest activity stream in a small sidebar or homepage module.",
     icon: Activity,
-    tone: "cinema",
+    tone: "movie",
   },
   {
     title: "Review Feed",
@@ -55,11 +55,11 @@ export const useCases: readonly UseCase[] = [
 
 export const publicSurface: readonly PublicEndpoint[] = [
   { method: "GET", path: "/api/public/:username/profile", description: "Public profile summary and core counts." },
-  { method: "GET", path: "/api/public/:username/top4", description: "Featured top cinema and serial picks." },
+  { method: "GET", path: "/api/public/:username/top4", description: "Featured top movie and serial picks." },
   { method: "GET", path: "/api/public/:username/recent", description: "Short recent public activity stream." },
   { method: "GET", path: "/api/public/:username/reviews", description: "Public reviews with media context." },
   { method: "GET", path: "/api/public/:username/lists", description: "Public lists and list entries." },
-  { method: "GET", path: "/api/public/:username/likes", description: "Public liked cinema and serial media." },
+  { method: "GET", path: "/api/public/:username/likes", description: "Public liked movie and serial media." },
   { method: "GET", path: "/api/public/:username/watchlist", description: "Public watchlist items." },
   {
     method: "GET",
@@ -132,7 +132,7 @@ return (
 
 export const toneToColor: Record<UseCaseTone, string> = {
   primary: "var(--primary)",
-  cinema: "var(--module-cinema)",
+  movie: "var(--module-movie)",
   serial: "var(--module-serial)",
   destructive: "var(--destructive)",
 };

@@ -86,7 +86,7 @@ export const getUserLists = async (
 export const getUserListsForItem = async (
   username: string,
   tmdbId: number,
-  itemType: "cinema" | "serial",
+  itemType: "movie" | "serial",
   options: QueryRequestOptions = {},
 ): Promise<ListSummary[]> => {
   const params = new URLSearchParams({
@@ -150,7 +150,7 @@ export const deleteList = async (listId: string): Promise<void> => {
   });
 };
 
-type AddListItemBody = { tmdbId: number; itemType: "cinema" | "serial" };
+type AddListItemBody = { tmdbId: number; itemType: "movie" | "serial" };
 
 export const addListItem = async (
   listId: string,

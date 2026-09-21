@@ -1,57 +1,27 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
+import { Check } from "lucide-react";
 import { type SerialDetailReviewSort } from "@/features/serials/api";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { SerialActionsSidebar } from "@/features/serials/components/serial-detail/SerialActionsSidebar";
+import { LogSeriesModal } from "@/features/serials/components/LogSeriesModal";
 import { SerialDetailsMainSection } from "@/features/serials/components/serial-detail/SerialDetailsMainSection";
 import { SerialReviewsSection } from "@/features/serials/components/serial-detail/SerialReviewsSection";
 import { SerialSeasonsSection } from "@/features/serials/components/serial-detail/SerialSeasonsSection";
-import { SerialSimilarSection } from "@/features/serials/components/serial-detail/SerialSimilarSection";
-import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
-import { getBackdropUrl } from "@/features/serials/components/utils";
+import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
+import { getBackdropUrl, getPosterUrl } from "@/features/serials/components/utils";
 import {
   useSeriesDetailView,
   useSeriesInteraction,
   useUpdateSeriesInteraction,
 } from "@/features/serials/hooks/useSerials";
-import { MediaDetailBackdrop } from "@/features/media-archive/components/MediaDetailBackdrop";
+import { MediaDetailBackdrop } from "@/features/media/detail/MediaDetailBackdrop";
+import { MediaSimilarSection } from "@/features/media/detail/MediaSimilarSection";
+import { MediaDetailStatusPanel } from "@/features/media/detail/MediaDetailStatusPanel";
+import { MediaActionsSidebar } from "@/features/media/detail/MediaActionsSidebar";
 
 type SerialDetailPageProps = {
   tmdbId: number;
-};
-
-const SerialDetailStatusPanel = ({
-  message,
-  loading = false,
-}: {
-  message: string;
-  loading?: boolean;
-}) => {
-  return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-10">
-      {loading ? (
-        <div
-          className="h-64 animate-pulse border"
-          style={{
-            borderColor: SERIAL_MODULE_STYLES.border,
-            background: SERIAL_MODULE_STYLES.panel,
-          }}
-        />
-      ) : (
-        <div
-          className="border p-5 font-mono text-xs"
-          style={{
-            borderColor: SERIAL_MODULE_STYLES.border,
-            background: SERIAL_MODULE_STYLES.panel,
-            color: SERIAL_MODULE_STYLES.muted,
-          }}
-        >
-          {message}
-        </div>
-      )}
-    </main>
-  );
 };
 
 export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
@@ -72,15 +42,15 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
   const updateInteractionMutation = useUpdateSeriesInteraction(tmdbId);
 
   if (!isValidTmdbId) {
-    return <SerialDetailStatusPanel message="Invalid series id." />;
+    return <MediaDetailStatusPanel message="Invalid series id." moduleStyles={SERIAL_MODULE_STYLES} />;
   }
 
   if (detailQuery.isPending) {
-    return <SerialDetailStatusPanel message="Loading..." loading />;
+    return <MediaDetailStatusPanel message="Loading..." moduleStyles={SERIAL_MODULE_STYLES} loading />;
   }
 
   if (detailQuery.isError || !detailQuery.data) {
-    return <SerialDetailStatusPanel message="Could not load this series right now." />;
+    return <MediaDetailStatusPanel message="Could not load this series right now." moduleStyles={SERIAL_MODULE_STYLES} />;
   }
 
   const detail = detailQuery.data;
@@ -102,6 +72,14 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
   // and shouldn't visually lock while the (TMDB-backed, sometimes
   // multi-second) cascade request is still in flight in the background.
   const isInteractionBusy = interactionQuery.isPending;
+
+  const modalInitialState = {
+    watchedDate: detail.userRating?.watchedDate ?? null,
+    rating: currentRating,
+    rewatch: detail.userRating?.rewatch ?? false,
+    reviewContent: detail.userRating?.reviewContent ?? null,
+    containsSpoilers: detail.userRating?.reviewContainsSpoilers ?? null,
+  };
 
   const handleToggleWatchlist = () => {
     void updateInteractionMutation.mutateAsync({ watchlisted: !watchlisted });
@@ -158,8 +136,35 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
         </Link>
 
         <div className="grid grid-cols-1 gap-10 md:grid-cols-[220px_1fr]">
-          <SerialActionsSidebar
-            detail={detail}
+          <MediaActionsSidebar
+            moduleStyles={SERIAL_MODULE_STYLES}
+            posterSlot={
+              <img
+                src={getPosterUrl(series.posterPath)}
+                alt={`${series.title} poster`}
+                className="h-full w-full object-cover"
+              />
+            }
+            logModalSlot={
+              <LogSeriesModal
+                tmdbId={series.tmdbId}
+                seriesTitle={series.title}
+                seriesFirstAirYear={series.firstAirYear}
+                seriesPosterPath={series.posterPath}
+                initialState={modalInitialState}
+                triggerVariant="outline"
+                triggerLabel="Log"
+                triggerClassName="h-auto rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
+                triggerContent={
+                  <>
+                    <Check className="h-3 w-3" />
+                    <span>Log</span>
+                  </>
+                }
+              />
+            }
+            tmdbId={series.tmdbId}
+            itemType="serial"
             currentRating={currentRating}
             isRatingSaving={updateInteractionMutation.isPending}
             onRatingChange={handleRatingChange}
@@ -171,6 +176,61 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
             onToggleWatchlist={handleToggleWatchlist}
             onToggleLike={handleToggleLike}
             onToggleWatched={handleToggleWatched}
+            trailingSlot={
+              Boolean(user) && detail.viewerTracking ? (
+                <div
+                  className="rounded-xl border p-3 space-y-3"
+                  style={{
+                    borderColor: SERIAL_MODULE_STYLES.border,
+                    background: SERIAL_MODULE_STYLES.panelElevated,
+                  }}
+                >
+                  <p
+                    className="font-mono text-[9px] uppercase tracking-[0.22em]"
+                    style={{ color: SERIAL_MODULE_STYLES.faint }}
+                  >
+                    Your Progress
+                  </p>
+
+                  <div className="space-y-1.5 font-mono text-[11px]" style={{ color: SERIAL_MODULE_STYLES.muted }}>
+                    <div className="flex justify-between">
+                      <span>Episodes:</span>
+                      <span className="font-bold text-foreground">
+                        {detail.viewerTracking.watchedEpisodesCount} / {series.numberOfEpisodes ?? "?"}
+                      </span>
+                    </div>
+
+                    {detail.viewerTracking.currentEpisode ? (
+                      <div className="flex justify-between">
+                        <span>Up Next:</span>
+                        <span className="font-bold text-foreground font-semibold" style={{ color: SERIAL_MODULE_STYLES.accent }}>
+                          S{detail.viewerTracking.currentEpisode.seasonNumber}E{detail.viewerTracking.currentEpisode.episodeNumber}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="text-[10px] text-green-500 font-semibold uppercase tracking-wider">
+                        ✓ Series Completed
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="border-t pt-2 mt-2 space-y-1 font-mono text-[10px]" style={{ borderColor: SERIAL_MODULE_STYLES.borderSoft, color: SERIAL_MODULE_STYLES.faint }}>
+                    <div className="flex justify-between">
+                      <span>Ratings (S/E):</span>
+                      <span>{detail.viewerTracking.ratingsCount}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Likes (S/E):</span>
+                      <span>{detail.viewerTracking.likesCount}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Reviews (S/E):</span>
+                      <span>{detail.viewerTracking.reviewsCount}</span>
+                    </div>
+                  </div>
+                </div>
+              ) : undefined
+            }
           />
 
           <SerialDetailsMainSection detail={detail} />
@@ -193,7 +253,13 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
           onToggleSeason={handleToggleSeason}
         />
 
-        <SerialSimilarSection similar={detail.similar} />
+        <MediaSimilarSection
+          heading="Similar Shows"
+          items={detail.similar.map((item) => ({ ...item, year: item.firstAirYear }))}
+          moduleStyles={SERIAL_MODULE_STYLES}
+          getPosterUrl={getPosterUrl}
+          detailRoute="/serials/$tmdbId"
+        />
       </main>
     </div>
   );

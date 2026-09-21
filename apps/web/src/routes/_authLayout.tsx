@@ -49,12 +49,12 @@ function AuthLayoutRoute() {
           <div className="hidden min-w-0 space-y-8 lg:block">
             <TrendingPosterRow
               title="Trending Movies"
-              to="/cinema/$tmdbId"
-              accentColor="var(--module-cinema)"
+              to="/movies/$tmdbId"
+              accentColor="var(--module-movie)"
               isLoading={trendingMoviesQuery.isPending}
               isError={trendingMoviesQuery.isError}
               items={trendingMovies.map((movie) => ({
-                id: `cinema-${movie.tmdbId}`,
+                id: `movie-${movie.tmdbId}`,
                 title: movie.title,
                 tmdbId: movie.tmdbId,
                 posterPath: movie.posterPath,

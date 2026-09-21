@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { getPosterUrl } from "@/features/movies/components/utils";
 import { toPosterFallbackLabel } from "./diary-model";
 
 type DiaryPosterCellProps = {

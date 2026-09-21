@@ -7,11 +7,11 @@ import { useUserLists } from "@/features/lists/hooks/useLists";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import type { ListSummary } from "@/features/lists/api";
 
-type ListFilter = "all" | "cinema" | "serial" | "mixed";
+type ListFilter = "all" | "movie" | "serial" | "mixed";
 
 const filterTabs: Array<{ key: ListFilter; label: string }> = [
   { key: "all", label: "All" },
-  { key: "cinema", label: "Cinema" },
+  { key: "movie", label: "Movie" },
   { key: "serial", label: "Serial" },
   { key: "mixed", label: "Mixed" },
 ];

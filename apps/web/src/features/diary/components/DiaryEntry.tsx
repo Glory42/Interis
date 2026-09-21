@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { getPosterUrl } from "@/features/movies/components/utils";
 import { formatDateOnlyLabel } from "@/lib/time";
 import { formatRatingLabel } from "@/lib/rating";
 import type { DiaryEntry } from "@/types/api";

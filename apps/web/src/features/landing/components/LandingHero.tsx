@@ -53,7 +53,7 @@ export const LandingHero = ({ posterPaths }: LandingHeroProps) => {
           </div>
 
           <Link
-            to="/cinema"
+            to="/movies"
             viewTransition
             className="theme-kicker mt-4 text-[10px] text-muted-foreground/70 transition-colors hover:text-foreground"
           >

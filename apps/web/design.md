@@ -14,7 +14,7 @@ product feature, not incidental styling.
 
 **This design system does not own color here.** Every existing and future theme keeps
 driving `--background`, `--foreground`, `--card`, `--primary`, `--accent`,
-`--border`, `--muted`, `--destructive`, `--module-cinema`, `--module-serial`,
+`--border`, `--muted`, `--destructive`, `--module-movie`, `--module-serial`,
 and the `--theme-*` decorative tokens (gradients, patterns, shadows, navbar,
 modal, pill). Nothing in this file introduces a new palette or picks a single
 anchor hue. Redesign work always references these existing semantic tokens —
@@ -35,7 +35,7 @@ app is a close fit today. The other two are sketched and will be refined
 when we actually build those pages (amend this file, don't invent a new
 system per page).
 
-- **Browse/app pages** (Home Feed, Cinema index, Serials index, Search,
+- **Browse/app pages** (Home Feed, Movies index, Serials index, Search,
   Profile diary/reviews/lists/watchlist, Settings) → **Ecosystem Index**.
   Multiple discovery surfaces — rails, grids, filtered lists — each
   surfacing a different cut of content. No hero declaration. Divider
@@ -61,7 +61,7 @@ Preserved, not replaced — the existing pairing is already distinctive
 
 **Discipline tightened, not the fonts themselves:** the mono kicker is
 reserved for genuine metadata — timestamps, tab labels, day dividers, module
-badges (`CINEMA` / `SERIAL`). It is never used to fake a decorative section
+badges (`MOVIE` / `SERIAL`). It is never used to fake a decorative section
 eyebrow (`01 · FEATURES`) on a page that has no real ordinal structure.
 
 Headings stay roman always (no italic display face) — global rule.

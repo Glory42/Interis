@@ -35,12 +35,12 @@ export const LandingPage = () => {
       <div className="mx-auto w-full max-w-7xl space-y-10 px-4 py-10">
         <TrendingPosterRow
           title="Trending Movies"
-          to="/cinema/$tmdbId"
-          accentColor="var(--module-cinema)"
+          to="/movies/$tmdbId"
+          accentColor="var(--module-movie)"
           isLoading={trendingMoviesQuery.isPending}
           isError={trendingMoviesQuery.isError}
           items={trendingMovies.map((movie) => ({
-            id: `cinema-${movie.tmdbId}`,
+            id: `movie-${movie.tmdbId}`,
             title: movie.title,
             tmdbId: movie.tmdbId,
             posterPath: movie.posterPath,

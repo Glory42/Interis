@@ -16,7 +16,7 @@ export const HomePage = () => {
 
   const isFollowingEnabled = Boolean(user);
   const followingFeedQuery = useFollowingFeed(activeFilter, isFollowingEnabled);
-  const cinemaTrendingQuery = useTrendingNow(6);
+  const movieTrendingQuery = useTrendingNow(6);
   const serialTrendingQuery = useTrendingSeries();
 
   const feedItems = useMemo(
@@ -72,9 +72,9 @@ export const HomePage = () => {
 
         <aside className="w-full shrink-0 lg:sticky lg:top-16 lg:w-72">
           <TrendingNowRail
-            cinemaIsLoading={cinemaTrendingQuery.isPending}
-            cinemaIsError={cinemaTrendingQuery.isError}
-            cinemaItems={cinemaTrendingQuery.data ?? []}
+            movieIsLoading={movieTrendingQuery.isPending}
+            movieIsError={movieTrendingQuery.isError}
+            movieItems={movieTrendingQuery.data ?? []}
             serialsIsLoading={serialTrendingQuery.isPending}
             serialsIsError={serialTrendingQuery.isError}
             serialsItems={serialTrendingQuery.data ?? []}

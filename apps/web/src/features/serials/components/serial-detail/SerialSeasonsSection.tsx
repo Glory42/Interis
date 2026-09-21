@@ -1,6 +1,6 @@
 import type { SerialDetailResponse } from "@/features/serials/api";
 import { SeasonAccordionItem } from "@/features/serials/components/serial-detail/SeasonAccordionItem";
-import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
+import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
 
 type SerialSeasonsSectionProps = {
   tmdbId: number;
