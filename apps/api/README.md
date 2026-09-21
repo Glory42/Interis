@@ -187,4 +187,4 @@ Tests use `bun:test` and spin up a real Express server on a random port for inte
 - Session-based auth relies on cookies; frontend requests must use `credentials: include`.
 - Public endpoints are intentionally rate-limited to protect backend resources.
 - Username policy enforces 3-20 chars, lowercase alphanumeric + underscore, with a reserved list.
-- Supported themes: rose-pine, null-log, tokyo-night, amoled.
+- Supported themes: rose-pine, null-log, tokyo-night, marquee.

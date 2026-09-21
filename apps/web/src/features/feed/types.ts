@@ -121,19 +121,6 @@ export const trendingMovieSchema = z.object({
 
 export const trendingMovieListSchema = z.array(trendingMovieSchema);
 
-export const trendingOnInterisItemSchema = z.object({
-  mediaType: mediaTypeSchema,
-  tmdbId: z.number().int().positive(),
-  title: z.string(),
-  posterPath: z.string().nullable(),
-  releaseYear: z.number().int().nullable(),
-  distinctUserCount: z.number().int().nonnegative(),
-});
-
-export const trendingOnInterisResponseSchema = z.object({
-  items: z.array(trendingOnInterisItemSchema),
-});
-
 export const meFeedSummarySchema = z.object({
   id: z.string(),
   username: z.string(),
@@ -163,6 +150,5 @@ export type FeedItem = z.infer<typeof feedItemSchema>;
 export type FeedPage = z.infer<typeof feedPageSchema>;
 export type FeedActivityKind = z.infer<typeof feedActivityKindSchema>;
 export type TrendingMovie = z.infer<typeof trendingMovieSchema>;
-export type TrendingOnInterisItem = z.infer<typeof trendingOnInterisItemSchema>;
 export type MeFeedSummary = z.infer<typeof meFeedSummarySchema>;
 export type NetworkStats = z.infer<typeof networkStatsSchema>;

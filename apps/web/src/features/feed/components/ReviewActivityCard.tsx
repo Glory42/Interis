@@ -109,7 +109,7 @@ export const ReviewActivityCard = memo(function ReviewActivityCard({
   return (
     <>
       <article
-        className="group -mx-2 flex cursor-pointer gap-3 rounded-xl px-3 py-4 transition-colors hover:bg-foreground/[0.025]"
+        className="surface-card group flex cursor-pointer gap-3 p-5"
         onClick={handleRowClick}
       >
         <FeedActorAvatar

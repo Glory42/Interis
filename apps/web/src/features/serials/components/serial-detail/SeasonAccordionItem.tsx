@@ -292,6 +292,7 @@ export const SeasonAccordionItem = ({
 
       {activeReviewModal?.type === "season" && createPortal(
         <LogMediaDialog
+          accent="serial"
           title={season.name || `Season ${season.seasonNumber}`}
           subtitle="Season Review"
           posterUrl={getPosterUrl(season.posterPath)}
@@ -329,6 +330,7 @@ export const SeasonAccordionItem = ({
 
         return createPortal(
           <LogMediaDialog
+            accent="serial"
             title={season.name || `Season ${season.seasonNumber}`}
             subtitle={`Episode ${activeReviewModal.episodeNumber}: ${activeReviewModal.episodeName}`}
             posterUrl={getPosterUrl(season.posterPath)}

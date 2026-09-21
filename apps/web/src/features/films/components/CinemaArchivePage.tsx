@@ -6,7 +6,7 @@ import {
   periodOptions,
   sortOptions,
 } from "@/features/films/components/cinema-archive/constants";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { getBackdropUrl, getPosterUrl } from "@/features/films/components/utils";
 import {
   getMovieStateLabel,
   getRating,
@@ -19,6 +19,7 @@ import { useMovieArchive } from "@/features/films/hooks/useMovies";
 import { ArchiveFilterControls } from "@/features/media-archive/components/ArchiveFilterControls";
 import { ArchiveMediaCard } from "@/features/media-archive/components/ArchiveMediaCard";
 import { ArchiveSkeletonGrid } from "@/features/media-archive/components/ArchiveSkeletonGrid";
+import { RotatingPosterBackdrop } from "@/features/media-archive/components/RotatingPosterBackdrop";
 import type { ArchiveMenuKey } from "@/features/media-archive/types";
 
 export const CinemaArchivePage = () => {
@@ -75,6 +76,13 @@ export const CinemaArchivePage = () => {
 
     return archivePages.flatMap((page) => page.items);
   }, [archivePages]);
+
+  const backdropUrls = useMemo(() => {
+    return (firstPage?.items ?? [])
+      .filter((movie) => movie.backdropPath)
+      .slice(0, 10)
+      .map((movie) => getBackdropUrl(movie.backdropPath));
+  }, [firstPage]);
 
   // Latches one frame after the first non-empty result set has painted, so
   // that initial paint still renders with the stagger classes present; only
@@ -133,25 +141,33 @@ export const CinemaArchivePage = () => {
   return (
     <main className="relative mx-auto w-full max-w-400">
       <div className="px-4 py-8">
-        <div className="mb-8">
-          <p
-            className="mb-1 font-mono text-[10px] uppercase tracking-[0.22em]"
-            style={{ color: CINEMA_MODULE_STYLES.accent }}
-          >
-            Module 02
-          </p>
-          <h2
-            className="mb-2 font-mono text-3xl font-bold md:text-5xl"
-            style={{ color: CINEMA_MODULE_STYLES.text }}
-          >
-            Cinema
-          </h2>
-          <p
-            className="font-mono text-sm"
-            style={{ color: CINEMA_MODULE_STYLES.muted }}
-          >
-            feature films - documentaries - shorts
-          </p>
+        <div className="surface-card relative mb-8 flex min-h-72 items-end overflow-hidden px-6 py-10 sm:min-h-96 sm:px-10 sm:py-14">
+          <RotatingPosterBackdrop
+            key={backdropUrls.join("|")}
+            backdropUrls={backdropUrls}
+            accentColor={CINEMA_MODULE_STYLES.accent}
+          />
+
+          <div className="relative z-10">
+            <p
+              className="theme-kicker mb-1 text-[10px]"
+              style={{ color: CINEMA_MODULE_STYLES.accent }}
+            >
+              Module 02
+            </p>
+            <h2
+              className="mb-2 font-mono text-3xl font-bold md:text-5xl"
+              style={{ color: CINEMA_MODULE_STYLES.text }}
+            >
+              Cinema
+            </h2>
+            <p
+              className="font-mono text-sm"
+              style={{ color: CINEMA_MODULE_STYLES.muted }}
+            >
+              feature films - documentaries - shorts
+            </p>
+          </div>
         </div>
 
         <ArchiveFilterControls
@@ -202,12 +218,8 @@ export const CinemaArchivePage = () => {
 
         {archiveQuery.isError ? (
           <div
-            className="rounded-xl border p-4 font-mono text-xs"
-            style={{
-              borderColor: CINEMA_MODULE_STYLES.border,
-              color: CINEMA_MODULE_STYLES.muted,
-              background: CINEMA_MODULE_STYLES.panel,
-            }}
+            className="surface-card p-4 font-mono text-xs"
+            style={{ color: CINEMA_MODULE_STYLES.muted }}
           >
             Could not load the cinema archive right now.
           </div>
@@ -215,12 +227,8 @@ export const CinemaArchivePage = () => {
 
         {!archiveQuery.isPending && !archiveQuery.isError && archiveItems.length === 0 ? (
           <div
-            className="rounded-xl border p-8 text-center font-mono text-xs"
-            style={{
-              borderColor: CINEMA_MODULE_STYLES.border,
-              color: CINEMA_MODULE_STYLES.muted,
-              background: CINEMA_MODULE_STYLES.panel,
-            }}
+            className="surface-card p-8 text-center font-mono text-xs"
+            style={{ color: CINEMA_MODULE_STYLES.muted }}
           >
             No titles match these filters right now.
           </div>
@@ -254,21 +262,16 @@ export const CinemaArchivePage = () => {
             </div>
 
             {hasNextPage ? (
-              <div className="mt-5 flex justify-center">
+              <div className="mt-8 flex justify-center">
                 <button
                   type="button"
                   disabled={isFetchingNextPage}
-                  className="rounded-full border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-                  style={{
-                    borderColor: CINEMA_MODULE_STYLES.border,
-                    color: CINEMA_MODULE_STYLES.muted,
-                    background: "transparent",
-                  }}
+                  className="theme-kicker border border-border/60 px-5 py-2 text-[10px] uppercase text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
                   onClick={() => {
                     void fetchNextPage();
                   }}
                 >
-                  {isFetchingNextPage ? "Loading..." : "Show more"}
+                  {isFetchingNextPage ? "Loading…" : "Show more"}
                 </button>
               </div>
             ) : (

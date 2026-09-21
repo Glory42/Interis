@@ -87,8 +87,8 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
             key={entry.id}
             className="group rounded-xl border transition-colors hover:border-primary/30"
             style={{
-              borderColor: "var(--profile-shell-border)",
-              background: "var(--profile-shell-panel)",
+              borderColor: "var(--surface-card-border)",
+              background: "var(--surface-card-bg)",
             }}
           >
             <div className="grid gap-3 p-3 sm:p-4" style={{ gridTemplateColumns: "68px 1fr" }}>

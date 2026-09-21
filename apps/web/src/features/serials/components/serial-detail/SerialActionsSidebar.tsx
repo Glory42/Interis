@@ -4,6 +4,7 @@ import type { SerialDetailResponse } from "@/features/serials/api";
 import { LogSeriesModal } from "@/features/serials/components/LogSeriesModal";
 import { getPosterUrl } from "@/features/serials/components/utils";
 import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
+import { RatingPanelStarfield } from "@/features/media-archive/components/RatingPanelStarfield";
 import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
 import { AddToListDialog } from "@/features/lists/components/AddToListDialog";
 
@@ -200,14 +201,16 @@ export const SerialActionsSidebar = ({
         ) : null}
 
         <div
-          className="rounded-xl border p-3"
+          className="relative overflow-hidden rounded-xl border p-3"
           style={{
             borderColor: SERIAL_MODULE_STYLES.border,
             background: SERIAL_MODULE_STYLES.panelElevated,
           }}
         >
+          <RatingPanelStarfield accentColor={SERIAL_MODULE_STYLES.accent} />
+
           <p
-            className="mb-2 font-mono text-[9px] uppercase tracking-[0.22em]"
+            className="relative mb-2 font-mono text-[9px] uppercase tracking-[0.22em]"
             style={{ color: SERIAL_MODULE_STYLES.faint }}
           >
             Your Rating
@@ -217,6 +220,7 @@ export const SerialActionsSidebar = ({
               value={currentRating}
               onChange={onRatingChange}
               disabled={isRatingSaving}
+              accentColor={SERIAL_MODULE_STYLES.accent}
             />
           ) : (
             <Link

@@ -29,17 +29,17 @@ const formatDayLabel = (value: string): string => {
 };
 
 const FeedSkeletonRow = () => (
-  <div className="flex animate-pulse gap-4 py-6 first:pt-0">
-    <div className="h-28 w-[76px] shrink-0 bg-muted/40" />
+  <div className="surface-card flex animate-pulse gap-4 p-5">
+    <div className="h-28 w-[76px] shrink-0 rounded-lg bg-muted/40" />
     <div className="min-w-0 flex-1 space-y-3 pt-1">
       <div className="flex items-center gap-2">
-        <div className="h-3 w-24 bg-muted/40" />
-        <div className="ml-auto h-3 w-10 bg-muted/25" />
+        <div className="h-3 w-24 rounded bg-muted/40" />
+        <div className="ml-auto h-3 w-10 rounded bg-muted/25" />
       </div>
-      <div className="h-4 w-48 bg-muted/35" />
+      <div className="h-4 w-48 rounded bg-muted/35" />
       <div className="space-y-2">
-        <div className="h-3 w-full bg-muted/20" />
-        <div className="h-3 w-2/3 bg-muted/20" />
+        <div className="h-3 w-full rounded bg-muted/20" />
+        <div className="h-3 w-2/3 rounded bg-muted/20" />
       </div>
     </div>
   </div>
@@ -53,7 +53,7 @@ export const FeedActivityList = ({
 }: FeedActivityListProps) => {
   if (isLoading) {
     return (
-      <div className="divide-y divide-border/30">
+      <div className="space-y-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <FeedSkeletonRow key={i} />
         ))}
@@ -86,7 +86,7 @@ export const FeedActivityList = ({
   }
 
   return (
-    <div className="divide-y divide-border/40">
+    <div className="space-y-4">
       {items.map((item, index) => {
         const dayLabel = formatDayLabel(item.createdAt);
         const previousDayLabel =
@@ -97,8 +97,8 @@ export const FeedActivityList = ({
             {dayLabel !== previousDayLabel ? (
               <p
                 className={cn(
-                  "theme-kicker mb-1.5 text-[9px] text-muted-foreground/70",
-                  index === 0 ? "mt-0" : "mt-6",
+                  "theme-kicker mb-4 text-[9px] text-muted-foreground/70",
+                  index === 0 ? "mt-0" : "mt-8",
                 )}
               >
                 {dayLabel}

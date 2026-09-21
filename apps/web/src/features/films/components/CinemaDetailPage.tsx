@@ -1,17 +1,21 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { type MovieDetailReviewSort } from "@/features/films/api";
 import { CinemaActionsSidebar } from "@/features/films/components/cinema-detail/CinemaActionsSidebar";
 import { CinemaDetailsMainSection } from "@/features/films/components/cinema-detail/CinemaDetailsMainSection";
 import { CinemaDetailStatusPanel } from "@/features/films/components/cinema-detail/CinemaDetailStatusPanel";
-import { CinemaDetailTopBar } from "@/features/films/components/cinema-detail/CinemaDetailTopBar";
 import { CinemaReviewsSection } from "@/features/films/components/cinema-detail/CinemaReviewsSection";
 import { CinemaSimilarSection } from "@/features/films/components/cinema-detail/CinemaSimilarSection";
+import { CINEMA_MODULE_STYLES } from "@/features/films/components/cinema-detail/styles";
+import { getBackdropUrl } from "@/features/films/components/utils";
 import { useMovieDetailView } from "@/features/films/hooks/useMovies";
 import {
   useMovieInteraction,
   useUpdateMovieInteraction,
 } from "@/features/interactions/hooks/useInteractions";
+import { MediaDetailBackdrop } from "@/features/media-archive/components/MediaDetailBackdrop";
 
 type CinemaDetailPageProps = {
   tmdbId: number;
@@ -45,6 +49,7 @@ export function CinemaDetailPage({ tmdbId }: CinemaDetailPageProps) {
 
   const detail = detailQuery.data;
   const movie = detail.movie;
+  const backdropUrl = movie.backdropPath ? getBackdropUrl(movie.backdropPath) : null;
 
   const watchlisted = interactionQuery.data?.watchlisted ?? false;
   const liked = interactionQuery.data?.liked ?? false;
@@ -80,9 +85,21 @@ export function CinemaDetailPage({ tmdbId }: CinemaDetailPageProps) {
 
   return (
     <div className="min-h-screen">
-      <CinemaDetailTopBar title={movie.title} />
+      <div className="relative h-[42vh] max-h-135 min-h-80 w-full overflow-hidden">
+        <MediaDetailBackdrop backdropUrl={backdropUrl} accentColor={CINEMA_MODULE_STYLES.accent} />
+      </div>
 
-      <main className="mx-auto w-full max-w-5xl px-4 py-10">
+      <main className="relative z-10 mx-auto -mt-20 w-full max-w-5xl px-4 pb-10 sm:-mt-28">
+        <Link
+          to="/cinema"
+          className="mb-4 inline-flex items-center gap-1.5 font-mono text-[11px]"
+          style={{ color: CINEMA_MODULE_STYLES.muted }}
+          viewTransition
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span>Cinema</span>
+        </Link>
+
         <div className="grid grid-cols-1 gap-10 md:grid-cols-[220px_1fr]">
           <CinemaActionsSidebar
             detail={detail}

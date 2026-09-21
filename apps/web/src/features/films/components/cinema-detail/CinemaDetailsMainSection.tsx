@@ -8,6 +8,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { MovieDetailResponse } from "@/features/films/api";
+import { CinemaRatingBreakdown } from "@/features/films/components/cinema-detail/CinemaRatingBreakdown";
 import { CINEMA_MODULE_STYLES } from "@/features/films/components/cinema-detail/styles";
 import { PersonRouteLink } from "@/features/people/components/PersonRouteLink";
 import {
@@ -287,6 +288,8 @@ export const CinemaDetailsMainSection = ({
           </div>
         ))}
       </div>
+
+      <CinemaRatingBreakdown buckets={detail.ratingBreakdown.buckets} />
     </section>
   );
 };

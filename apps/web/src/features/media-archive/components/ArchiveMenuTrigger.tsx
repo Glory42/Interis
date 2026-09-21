@@ -12,7 +12,7 @@ type ArchiveMenuTriggerProps = {
   menuClassName: string;
   children: ReactNode;
   disabled?: boolean;
-  moduleStyles: Pick<ArchiveCardModuleStyles, "accent" | "muted" | "faint" | "border" | "borderSoft" | "panel">;
+  moduleStyles: Pick<ArchiveCardModuleStyles, "accent" | "muted" | "faint">;
 };
 
 export const ArchiveMenuTrigger = ({
@@ -33,19 +33,14 @@ export const ArchiveMenuTrigger = ({
       <button
         type="button"
         disabled={disabled}
-        className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 font-mono text-[10px] transition-colors"
+        className="surface-card inline-flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] transition-colors"
         style={{
-          borderColor: disabled
-            ? moduleStyles.borderSoft
-            : isOpen
-              ? moduleStyles.accent
-              : moduleStyles.borderSoft,
+          borderColor: isOpen ? moduleStyles.accent : undefined,
           color: disabled
             ? moduleStyles.faint
             : isOpen
               ? moduleStyles.accent
               : moduleStyles.muted,
-          background: "transparent",
         }}
         aria-haspopup="menu"
         aria-expanded={isOpen}
@@ -63,13 +58,9 @@ export const ArchiveMenuTrigger = ({
       {isOpen ? (
         <div
           className={cn(
-            "absolute left-0 top-full z-40 mt-1 overflow-hidden rounded-xl border",
+            "surface-card absolute left-0 top-full z-40 mt-1 overflow-hidden",
             menuClassName,
           )}
-          style={{
-            borderColor: moduleStyles.border,
-            background: moduleStyles.panel,
-          }}
         >
           {children}
         </div>

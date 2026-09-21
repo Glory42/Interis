@@ -5,8 +5,8 @@ export const ReviewCardSkeleton = () => {
     <article
       className="border"
       style={{
-        borderColor: "var(--profile-shell-border)",
-        background: "var(--profile-shell-panel)",
+        borderColor: "var(--surface-card-border)",
+        background: "var(--surface-card-bg)",
       }}
     >
       <div className="grid gap-3 p-3 sm:p-4" style={{ gridTemplateColumns: "68px 1fr" }}>

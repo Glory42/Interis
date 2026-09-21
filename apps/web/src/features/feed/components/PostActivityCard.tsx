@@ -113,7 +113,7 @@ export const PostActivityCard = memo(function PostActivityCard({ item }: PostAct
   return (
     <>
       <article
-        className="group -mx-2 flex cursor-pointer gap-3 rounded-xl px-3 py-3.5 transition-colors hover:bg-foreground/[0.025]"
+        className="surface-card group flex cursor-pointer gap-3 p-4"
         onClick={handleRowClick}
       >
         <FeedActorAvatar

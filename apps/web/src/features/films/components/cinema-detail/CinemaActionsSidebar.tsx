@@ -6,6 +6,7 @@ import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
 import { CINEMA_MODULE_STYLES } from "@/features/films/components/cinema-detail/styles";
 import { getPosterUrl } from "@/features/films/components/utils";
 import { AddToListDialog } from "@/features/lists/components/AddToListDialog";
+import { RatingPanelStarfield } from "@/features/media-archive/components/RatingPanelStarfield";
 
 type CinemaActionsSidebarProps = {
   detail: MovieDetailResponse;
@@ -225,24 +226,27 @@ export const CinemaActionsSidebar = ({
         ) : null}
 
         <div
-          className="rounded-xl border p-3"
+          className="relative overflow-hidden rounded-xl border p-3"
           style={{
             borderColor: CINEMA_MODULE_STYLES.border,
             background: CINEMA_MODULE_STYLES.panelElevated,
           }}
         >
+          <RatingPanelStarfield accentColor={CINEMA_MODULE_STYLES.accent} />
+
           <p
-            className="mb-2 font-mono text-[9px] uppercase tracking-[0.22em]"
+            className="relative mb-2 font-mono text-[9px] uppercase tracking-[0.22em]"
             style={{ color: CINEMA_MODULE_STYLES.faint }}
           >
             Your Rating
           </p>
-          <div className="flex items-center gap-3">
+          <div className="relative flex items-center gap-3">
             {isAuthenticated ? (
               <SpaceRatingInput
                 value={currentRating}
                 onChange={onRatingChange}
                 disabled={isRatingSaving}
+                accentColor={CINEMA_MODULE_STYLES.accent}
               />
             ) : (
               <Link

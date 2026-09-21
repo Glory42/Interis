@@ -64,8 +64,7 @@ export const ArchiveFilterControls = <TSort extends string, TPeriod extends stri
     <div
       ref={controlsRef}
       onBlurCapture={onBlurCapture}
-      className="mb-8 border-b pb-4"
-      style={{ borderColor: moduleStyles.border }}
+      className="surface-card mb-8 p-3"
     >
       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         <span

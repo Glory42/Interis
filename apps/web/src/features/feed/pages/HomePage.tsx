@@ -6,7 +6,6 @@ import {
 } from "@/features/feed/components/FeedActivityList";
 import { FeedFilterTabs } from "@/features/feed/components/FeedFilterTabs";
 import { QuickLogComposer } from "@/features/feed/components/QuickLogComposer";
-import { TrendingOnInterisRail } from "@/features/feed/components/TrendingOnInterisRail";
 import { TrendingNowRail } from "@/features/feed/components/TrendingNowRail";
 import { useFollowingFeed, useTrendingNow } from "@/features/feed/hooks/useFeed";
 import { useTrendingSeries } from "@/features/serials/hooks/useSerials";
@@ -17,7 +16,7 @@ export const HomePage = () => {
 
   const isFollowingEnabled = Boolean(user);
   const followingFeedQuery = useFollowingFeed(activeFilter, isFollowingEnabled);
-  const cinemaTrendingQuery = useTrendingNow();
+  const cinemaTrendingQuery = useTrendingNow(6);
   const serialTrendingQuery = useTrendingSeries();
 
   const feedItems = useMemo(
@@ -35,26 +34,15 @@ export const HomePage = () => {
     followingFeedQuery.hasNextPage;
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 pt-4 pb-10">
-      <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-        <aside className="order-2 w-full shrink-0 space-y-6 lg:order-1 lg:sticky lg:top-16 lg:w-64">
-          <TrendingNowRail
-            cinemaIsLoading={cinemaTrendingQuery.isPending}
-            cinemaIsError={cinemaTrendingQuery.isError}
-            cinemaItems={cinemaTrendingQuery.data ?? []}
-            serialsIsLoading={serialTrendingQuery.isPending}
-            serialsIsError={serialTrendingQuery.isError}
-            serialsItems={serialTrendingQuery.data ?? []}
-          />
-        </aside>
-
-        <div className="order-1 min-w-0 flex-1 lg:order-2 lg:max-w-2xl">
-          <div className="mb-6 flex items-center justify-between gap-4">
-            <FeedFilterTabs activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+    <section className="mx-auto w-full max-w-[1032px] px-4 pt-8 pb-16">
+      <div className="flex flex-col gap-10 lg:flex-row lg:items-start">
+        <div className="min-w-0 flex-1 lg:max-w-2xl">
+          <div id="quick-log-composer" className="surface-card mb-6 p-4">
+            <QuickLogComposer user={user} />
           </div>
 
-          <div id="quick-log-composer" className="mb-4">
-            <QuickLogComposer user={user} />
+          <div className="mb-8 flex items-center justify-between gap-4">
+            <FeedFilterTabs activeFilter={activeFilter} onFilterChange={setActiveFilter} />
           </div>
 
           <div className="animate-fade-up">
@@ -67,7 +55,7 @@ export const HomePage = () => {
           </div>
 
           {canShowMoreFeed ? (
-            <div className="mt-6 flex justify-center">
+            <div className="mt-8 flex justify-center">
               <button
                 type="button"
                 disabled={isFetchingMoreFeed}
@@ -82,8 +70,15 @@ export const HomePage = () => {
           ) : null}
         </div>
 
-        <aside className="order-3 w-full shrink-0 space-y-6 lg:sticky lg:top-16 lg:w-72">
-          <TrendingOnInterisRail />
+        <aside className="w-full shrink-0 lg:sticky lg:top-16 lg:w-72">
+          <TrendingNowRail
+            cinemaIsLoading={cinemaTrendingQuery.isPending}
+            cinemaIsError={cinemaTrendingQuery.isError}
+            cinemaItems={cinemaTrendingQuery.data ?? []}
+            serialsIsLoading={serialTrendingQuery.isPending}
+            serialsIsError={serialTrendingQuery.isError}
+            serialsItems={serialTrendingQuery.data ?? []}
+          />
         </aside>
       </div>
     </section>

@@ -63,7 +63,7 @@ export const SUPPORTED_THEME_IDS = [
   "rose-pine",
   "null-log",
   "tokyo-night",
-  "amoled",
+  "marquee",
   "your-theme-id",  // <-- add here
 ] as const;
 ```
@@ -84,7 +84,7 @@ If you are retiring an existing theme, move it from `SUPPORTED_THEME_IDS` to the
 Add your theme ID to `SUPPORTED_THEME_IDS` (line 16):
 
 ```typescript
-const SUPPORTED_THEME_IDS = ["rose-pine", "null-log", "tokyo-night", "amoled", "your-theme-id"] as const;
+const SUPPORTED_THEME_IDS = ["rose-pine", "null-log", "tokyo-night", "marquee", "your-theme-id"] as const;
 ```
 
 Also update `DEFAULT_THEME_ID` (line 14) if you want your theme to be the new default.
@@ -270,7 +270,7 @@ You must define every token that appears in the `:root` default block. Tokens no
 Update the `ThemeRegistryId` union type to include your theme:
 
 ```typescript
-type ThemeRegistryId = "rose-pine" | "null-log" | "tokyo-night" | "amoled" | "your-theme-id";
+type ThemeRegistryId = "rose-pine" | "null-log" | "tokyo-night" | "marquee" | "your-theme-id";
 ```
 
 ---
@@ -283,7 +283,7 @@ Update the `CardDescription` text (around line 72) to include your theme name in
 
 ```tsx
 <CardDescription>
-  Choose between Rose Pine, NULL://LOG, Tokyo Night, AMOLED, and Your Theme Name. Selection applies immediately and syncs to your account.
+  Choose between Rose Pine, NULL://LOG, Tokyo Night, Marquee, and Your Theme Name. Selection applies immediately and syncs to your account.
 </CardDescription>
 ```
 

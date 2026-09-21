@@ -1,18 +1,21 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { ArrowLeft } from "lucide-react";
 import { type SerialDetailReviewSort } from "@/features/serials/api";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { SerialActionsSidebar } from "@/features/serials/components/serial-detail/SerialActionsSidebar";
 import { SerialDetailsMainSection } from "@/features/serials/components/serial-detail/SerialDetailsMainSection";
-import { SerialDetailTopBar } from "@/features/serials/components/serial-detail/SerialDetailTopBar";
 import { SerialReviewsSection } from "@/features/serials/components/serial-detail/SerialReviewsSection";
 import { SerialSeasonsSection } from "@/features/serials/components/serial-detail/SerialSeasonsSection";
 import { SerialSimilarSection } from "@/features/serials/components/serial-detail/SerialSimilarSection";
 import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
+import { getBackdropUrl } from "@/features/serials/components/utils";
 import {
   useSeriesDetailView,
   useSeriesInteraction,
   useUpdateSeriesInteraction,
 } from "@/features/serials/hooks/useSerials";
+import { MediaDetailBackdrop } from "@/features/media-archive/components/MediaDetailBackdrop";
 
 type SerialDetailPageProps = {
   tmdbId: number;
@@ -82,6 +85,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
 
   const detail = detailQuery.data;
   const series = detail.series;
+  const backdropUrl = series.backdropPath ? getBackdropUrl(series.backdropPath) : null;
 
   const resolvedOpenSeasonNumber =
     openSeasonNumber === undefined
@@ -138,9 +142,21 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
 
   return (
     <div className="min-h-screen">
-      <SerialDetailTopBar title={series.title} />
+      <div className="relative h-[42vh] max-h-135 min-h-80 w-full overflow-hidden">
+        <MediaDetailBackdrop backdropUrl={backdropUrl} accentColor={SERIAL_MODULE_STYLES.accent} />
+      </div>
 
-      <main className="mx-auto w-full max-w-5xl px-4 py-10">
+      <main className="relative z-10 mx-auto -mt-20 w-full max-w-5xl px-4 pb-10 sm:-mt-28">
+        <Link
+          to="/serials"
+          className="mb-4 inline-flex items-center gap-1.5 font-mono text-[11px]"
+          style={{ color: SERIAL_MODULE_STYLES.muted }}
+          viewTransition
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span>Serials</span>
+        </Link>
+
         <div className="grid grid-cols-1 gap-10 md:grid-cols-[220px_1fr]">
           <SerialActionsSidebar
             detail={detail}

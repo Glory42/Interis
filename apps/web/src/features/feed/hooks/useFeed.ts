@@ -5,7 +5,6 @@ import {
   getMyFeedSummary,
   getNetworkStats,
   getTrendingMovies,
-  getTrendingOnInteris,
   type FeedMediaTypeFilter,
 } from "@/features/feed/api";
 
@@ -24,7 +23,6 @@ export const feedKeys = {
   followingRoot: ["feed", "following"] as const,
   following: (filter: FeedFilter = "all") => ["feed", "following", filter] as const,
   trending: (limit = 3) => ["feed", "trending", limit] as const,
-  trendingOnInteris: (limit = 6) => ["feed", "trending-on-interis", limit] as const,
   meSummary: ["feed", "me-summary"] as const,
   networkStats: ["feed", "network-stats"] as const,
 };
@@ -50,13 +48,6 @@ export const useTrendingNow = (limit = 3) =>
   useQuery({
     queryKey: feedKeys.trending(limit),
     queryFn: ({ signal }) => getTrendingMovies({ signal, limit }),
-    staleTime: 300_000,
-  });
-
-export const useTrendingOnInteris = (limit = 6) =>
-  useQuery({
-    queryKey: feedKeys.trendingOnInteris(limit),
-    queryFn: ({ signal }) => getTrendingOnInteris({ signal, limit }),
     staleTime: 300_000,
   });
 

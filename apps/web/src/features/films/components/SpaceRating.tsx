@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type CSSProperties } from "react";
 import { Rocket } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -102,6 +102,9 @@ type SpaceRatingInputProps = {
   // Save step, since onChange fires an API call per change here and this
   // avoids writing on every drag frame (e.g. detail-page sidebar).
   autoSave?: boolean;
+  // Content-type accent (e.g. var(--module-cinema)/var(--module-serial)) -
+  // defaults to the theme's generic primary color.
+  accentColor?: string;
 };
 
 const TRACK_HEIGHT = 160;
@@ -111,6 +114,7 @@ export const SpaceRatingInput = ({
   onChange,
   disabled = false,
   autoSave = false,
+  accentColor = "var(--primary)",
 }: SpaceRatingInputProps) => {
   const trackRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -222,10 +226,13 @@ export const SpaceRatingInput = ({
         {/* Fill */}
         <div
           className={cn(
-            "absolute inset-y-0 left-1/2 w-px origin-bottom bg-primary/65",
+            "absolute inset-y-0 left-1/2 w-px origin-bottom",
             !isDragging && "transition-transform duration-100",
           )}
-          style={{ transform: `translateX(-50%) scaleY(${fillPct / 100})` }}
+          style={{
+            transform: `translateX(-50%) scaleY(${fillPct / 100})`,
+            background: `color-mix(in srgb, ${accentColor} 65%, transparent)`,
+          }}
         />
 
         {/* Tick marks */}
@@ -259,10 +266,8 @@ export const SpaceRatingInput = ({
           }}
         >
           <Rocket
-            className={cn(
-              "h-4 w-4 transition-colors duration-150",
-              draft !== null ? "text-primary" : "text-muted-foreground/25",
-            )}
+            className="h-4 w-4 transition-colors duration-150"
+            style={{ color: draft !== null ? accentColor : "color-mix(in srgb, var(--muted-foreground) 25%, transparent)" }}
           />
         </div>
       </div>
@@ -294,7 +299,13 @@ export const SpaceRatingInput = ({
             onClick={() => {
               if (draft !== null) onChange(draft);
             }}
-            className="rounded-full border border-primary/50 bg-primary/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-primary transition-[color,background-color,transform] active:scale-[0.97] hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-25"
+            className="space-rating-save-button rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] transition-[color,background-color,transform] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-25"
+            style={{
+              "--space-rating-accent": accentColor,
+              borderColor: `color-mix(in srgb, ${accentColor} 50%, transparent)`,
+              background: `color-mix(in srgb, ${accentColor} 10%, transparent)`,
+              color: accentColor,
+            } as CSSProperties}
           >
             Save
           </button>
