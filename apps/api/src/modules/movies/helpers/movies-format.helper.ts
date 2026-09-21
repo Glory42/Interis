@@ -1,7 +1,7 @@
 import type {
   ArchiveGenre,
-  CinemaArchiveFeaturedMovie,
-  CinemaArchiveItem,
+  MovieArchiveFeaturedMovie,
+  MovieArchiveItem,
 } from "../types/movies.types";
 import {
   compareMediaTimestampsAsc,
@@ -18,8 +18,8 @@ export const normalizeMovieGenres = (rawGenres: unknown): ArchiveGenre[] =>
   normalizeGenres<ArchiveGenre>(rawGenres);
 
 export const compareByReleaseDesc = (
-  left: CinemaArchiveItem,
-  right: CinemaArchiveItem,
+  left: MovieArchiveItem,
+  right: MovieArchiveItem,
 ): number => {
   return (
     toReleaseTimestamp(right.releaseDate, right.releaseYear) -
@@ -28,8 +28,8 @@ export const compareByReleaseDesc = (
 };
 
 export const compareByReleaseAsc = (
-  left: CinemaArchiveItem,
-  right: CinemaArchiveItem,
+  left: MovieArchiveItem,
+  right: MovieArchiveItem,
 ): number => {
   return compareMediaTimestampsAsc(
     toReleaseTimestamp(left.releaseDate, left.releaseYear),
@@ -40,8 +40,8 @@ export const compareByReleaseAsc = (
 };
 
 export const toFeaturedMovie = (
-  items: CinemaArchiveItem[],
-): CinemaArchiveFeaturedMovie | null => {
+  items: MovieArchiveItem[],
+): MovieArchiveFeaturedMovie | null => {
   const featuredMovie = [...items].sort(compareByReleaseDesc)[0] ?? null;
 
   if (!featuredMovie) {

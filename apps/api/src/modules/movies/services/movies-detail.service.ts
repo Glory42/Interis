@@ -2,7 +2,7 @@ import {
   getMovieCredits,
   getMovieDetails as tmdbGetDetails,
   getSimilarMovies,
-} from "../../../infrastructure/tmdb/cinemas";
+} from "../../../infrastructure/tmdb/movies";
 import { loadReviewEngagement } from "../../media/helpers/review-engagement.helper";
 import {
   assembleMovieDetail,

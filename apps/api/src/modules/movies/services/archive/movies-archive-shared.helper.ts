@@ -1,4 +1,4 @@
-import type { CinemaArchivePeriod, CinemaArchiveSort } from "../../dto/movies.dto";
+import type { MovieArchivePeriod, MovieArchiveSort } from "../../dto/movies.dto";
 import {
   compareByReleaseAsc,
   compareByReleaseDesc,
@@ -14,18 +14,18 @@ import {
 import { sortArchiveItemsGeneric, type ArchiveSortKind } from "../../../media/helpers/media-archive-sort.helper";
 import type {
   ArchiveGenreOption,
-  CinemaArchiveItem,
+  MovieArchiveItem,
 } from "../../types/movies.types";
 import type { MoviesArchivePeriodWindow } from "./movies-archive.types";
 
 export const toAvailableGenresFromItems = (
-  items: CinemaArchiveItem[],
+  items: MovieArchiveItem[],
 ): ArchiveGenreOption[] => {
   return buildAvailableGenresFromItems(items) as ArchiveGenreOption[];
 };
 
 export const getArchivePeriodWindow = (
-  period: CinemaArchivePeriod,
+  period: MovieArchivePeriod,
 ): MoviesArchivePeriodWindow => {
   const window = computeArchivePeriodWindow(period as ArchivePeriod);
 
@@ -44,7 +44,7 @@ export const getArchivePeriodWindow = (
 // widely-watched titles with a slightly lower but far more reliable
 // average. Recent-period windows use a lower floor since new releases
 // haven't accumulated many votes yet.
-const RATING_SORT_MIN_VOTE_COUNT_BY_PERIOD: Record<CinemaArchivePeriod, number> = {
+const RATING_SORT_MIN_VOTE_COUNT_BY_PERIOD: Record<MovieArchivePeriod, number> = {
   today: 10,
   this_week: 20,
   this_year: 50,
@@ -53,8 +53,8 @@ const RATING_SORT_MIN_VOTE_COUNT_BY_PERIOD: Record<CinemaArchivePeriod, number> 
 };
 
 export const getTmdbMinVoteCountForPeriod = (
-  period: CinemaArchivePeriod,
-  sortBy: CinemaArchiveSort,
+  period: MovieArchivePeriod,
+  sortBy: MovieArchiveSort,
 ): number => {
   return getGenericTmdbMinVoteCountForPeriod(
     period as ArchivePeriod,
@@ -69,13 +69,13 @@ export const getTmdbMinVoteCountForPeriod = (
 // items (where we already have every candidate's vote count in memory).
 const RATING_SORT_MIN_VOTES_FOR_CONFIDENCE = 300;
 
-export const isActivityWindowPeriod = (period: CinemaArchivePeriod): boolean => {
+export const isActivityWindowPeriod = (period: MovieArchivePeriod): boolean => {
   return period === "this_week" || period === "today";
 };
 
 export const isMovieInArchivePeriod = (
-  movie: Pick<CinemaArchiveItem, "releaseDate" | "releaseYear">,
-  period: CinemaArchivePeriod,
+  movie: Pick<MovieArchiveItem, "releaseDate" | "releaseYear">,
+  period: MovieArchivePeriod,
   periodWindow: MoviesArchivePeriodWindow,
 ): boolean => {
   // Preserves the exact original call - no release-year fallback passed here.
@@ -89,7 +89,7 @@ export const isMovieInArchivePeriod = (
   });
 };
 
-const SORT_KIND_BY_CINEMA_SORT: Record<CinemaArchiveSort, ArchiveSortKind> = {
+const SORT_KIND_BY_MOVIE_SORT: Record<MovieArchiveSort, ArchiveSortKind> = {
   trending: "trending",
   release_desc: "date_desc",
   release_asc: "date_asc",
@@ -100,12 +100,12 @@ const SORT_KIND_BY_CINEMA_SORT: Record<CinemaArchiveSort, ArchiveSortKind> = {
 };
 
 export const sortLocalArchiveItems = (
-  items: CinemaArchiveItem[],
-  sortBy: CinemaArchiveSort,
-): CinemaArchiveItem[] => {
+  items: MovieArchiveItem[],
+  sortBy: MovieArchiveSort,
+): MovieArchiveItem[] => {
   return sortArchiveItemsGeneric(
     items,
-    SORT_KIND_BY_CINEMA_SORT[sortBy],
+    SORT_KIND_BY_MOVIE_SORT[sortBy],
     compareByReleaseDesc,
     compareByReleaseAsc,
     RATING_SORT_MIN_VOTES_FOR_CONFIDENCE,

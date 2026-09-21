@@ -4,10 +4,10 @@ import {
   getMovieGenres,
   getTrendingMoviesPage,
   type TMDBMovieGenre,
-} from "../../../../infrastructure/tmdb/cinemas";
+} from "../../../../infrastructure/tmdb/movies";
 import { toFeaturedMovie } from "../../helpers/movies-format.helper";
 import { MoviesRepository } from "../../repositories/movies.repository";
-import type { CinemaArchiveResponse } from "../../types/movies.types";
+import type { MovieArchiveResponse } from "../../types/movies.types";
 import {
   getArchivePeriodWindow,
   getTmdbMinVoteCountForPeriod,
@@ -20,12 +20,12 @@ import {
 } from "./movies-archive-mapper.helper";
 
 const filterArchiveItemsByGenreAndLanguage = (
-  items: CinemaArchiveResponse["items"],
+  items: MovieArchiveResponse["items"],
   input: {
     selectedGenre: string | null;
     selectedLanguage: string | null;
   },
-): CinemaArchiveResponse["items"] => {
+): MovieArchiveResponse["items"] => {
   const selectedGenreLower = input.selectedGenre?.toLowerCase() ?? null;
   const selectedLanguageLower = input.selectedLanguage?.toLowerCase() ?? null;
 
@@ -43,8 +43,8 @@ const filterArchiveItemsByGenreAndLanguage = (
 };
 
 const hydrateMissingDirectors = async (
-  items: CinemaArchiveResponse["items"],
-): Promise<CinemaArchiveResponse["items"]> => {
+  items: MovieArchiveResponse["items"],
+): Promise<MovieArchiveResponse["items"]> => {
   const missingDirectorItems = items.filter((item) => item.director === null);
 
   if (missingDirectorItems.length === 0) {
@@ -84,8 +84,8 @@ const hydrateMissingDirectors = async (
 
 const addViewerArchiveState = async (
   viewerUserId: string | null,
-  pageItems: CinemaArchiveResponse["items"],
-): Promise<CinemaArchiveResponse["items"]> => {
+  pageItems: MovieArchiveResponse["items"],
+): Promise<MovieArchiveResponse["items"]> => {
   if (!viewerUserId || pageItems.length === 0) {
     return pageItems;
   }
@@ -108,7 +108,7 @@ const addViewerArchiveState = async (
 
 export const getArchiveFromTmdbCatalog = async (
   input: MoviesArchiveQueryInput,
-): Promise<CinemaArchiveResponse> => {
+): Promise<MovieArchiveResponse> => {
   const availableTmdbGenres = await getMovieGenres();
   const genreById = new Map<number, TMDBMovieGenre>(
     availableTmdbGenres.map((genre) => [genre.id, genre]),
@@ -162,7 +162,7 @@ export const getArchiveFromTmdbCatalog = async (
     let tmdbTotalPages = 1;
     let tmdbTotalResults = 0;
 
-    const filteredTrendingItems: CinemaArchiveResponse["items"] = [];
+    const filteredTrendingItems: MovieArchiveResponse["items"] = [];
 
     while (tmdbPage <= tmdbTotalPages && filteredTrendingItems.length <= endIndex) {
       const trendingPage = await getTrendingMoviesPage("week", {

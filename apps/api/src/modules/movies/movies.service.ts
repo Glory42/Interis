@@ -4,10 +4,10 @@ import {
   searchMovies as tmdbSearch,
   type TMDBMovieDetail,
   type TMDBSearchMovie,
-} from "../../infrastructure/tmdb/cinemas";
+} from "../../infrastructure/tmdb/movies";
 import type {
-  CinemaArchivePeriod,
-  CinemaArchiveSort,
+  MovieArchivePeriod,
+  MovieArchiveSort,
   MovieDetailReviewSort,
 } from "./dto/movies.dto";
 import { MoviesArchiveService } from "./services/movies-archive.service";
@@ -72,8 +72,8 @@ export class MoviesService {
   static async getArchive(input: {
     genre: string | null;
     language: string | null;
-    sort: CinemaArchiveSort;
-    period: CinemaArchivePeriod;
+    sort: MovieArchiveSort;
+    period: MovieArchivePeriod;
     page: number;
     limit: number;
     viewerUserId?: string | null;

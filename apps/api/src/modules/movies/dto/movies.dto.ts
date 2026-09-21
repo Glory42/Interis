@@ -11,7 +11,7 @@ import {
   MAX_DETAIL_REVIEWS_LIMIT,
 } from "../../../commons/constants/archive.constants";
 
-const cinemaArchiveSortValues = [
+const movieArchiveSortValues = [
   "trending",
   "release_desc",
   "release_asc",
@@ -21,9 +21,9 @@ const cinemaArchiveSortValues = [
   "title_asc",
 ] as const;
 
-export type CinemaArchiveSort = (typeof cinemaArchiveSortValues)[number];
+export type MovieArchiveSort = (typeof movieArchiveSortValues)[number];
 
-const cinemaArchivePeriodValues = [
+const movieArchivePeriodValues = [
   "all_time",
   "this_year",
   "last_10_years",
@@ -31,7 +31,7 @@ const cinemaArchivePeriodValues = [
   "today",
 ] as const;
 
-export type CinemaArchivePeriod = (typeof cinemaArchivePeriodValues)[number];
+export type MovieArchivePeriod = (typeof movieArchivePeriodValues)[number];
 
 const movieDetailReviewSortValues = ["popular", "recent"] as const;
 
@@ -124,29 +124,29 @@ const optionalArchiveLanguageSchema = optionalTrimmedTextSchema.transform((value
   return normalized;
 });
 
-const archiveSortSchema = optionalTrimmedTextSchema.transform((value): CinemaArchiveSort => {
+const archiveSortSchema = optionalTrimmedTextSchema.transform((value): MovieArchiveSort => {
   if (!value) {
-    return DEFAULT_ARCHIVE_SORT as CinemaArchiveSort;
+    return DEFAULT_ARCHIVE_SORT as MovieArchiveSort;
   }
 
   if (value === "rating_desc") {
     return "rating_user_desc";
   }
 
-  return (cinemaArchiveSortValues as readonly string[]).includes(value)
-    ? (value as CinemaArchiveSort)
-    : (DEFAULT_ARCHIVE_SORT as CinemaArchiveSort);
+  return (movieArchiveSortValues as readonly string[]).includes(value)
+    ? (value as MovieArchiveSort)
+    : (DEFAULT_ARCHIVE_SORT as MovieArchiveSort);
 });
 
 const archivePeriodSchema = optionalTrimmedTextSchema.transform(
-  (value): CinemaArchivePeriod => {
+  (value): MovieArchivePeriod => {
     if (!value) {
-      return DEFAULT_ARCHIVE_PERIOD as CinemaArchivePeriod;
+      return DEFAULT_ARCHIVE_PERIOD as MovieArchivePeriod;
     }
 
-    return (cinemaArchivePeriodValues as readonly string[]).includes(value)
-      ? (value as CinemaArchivePeriod)
-      : (DEFAULT_ARCHIVE_PERIOD as CinemaArchivePeriod);
+    return (movieArchivePeriodValues as readonly string[]).includes(value)
+      ? (value as MovieArchivePeriod)
+      : (DEFAULT_ARCHIVE_PERIOD as MovieArchivePeriod);
   },
 );
 
@@ -182,7 +182,7 @@ const clampedArchiveLimitSchema = z
     return Math.max(1, Math.min(MAX_ARCHIVE_LIMIT, parsed));
   });
 
-export const CinemaArchiveQuerySchema = z.object({
+export const MovieArchiveQuerySchema = z.object({
   genre: optionalArchiveGenreSchema.optional(),
   language: optionalArchiveLanguageSchema.optional(),
   sort: archiveSortSchema.optional(),
@@ -191,13 +191,13 @@ export const CinemaArchiveQuerySchema = z.object({
   limit: clampedArchiveLimitSchema.optional(),
 });
 
-export type CinemaArchiveQuery = z.input<typeof CinemaArchiveQuerySchema>;
+export type MovieArchiveQuery = z.input<typeof MovieArchiveQuerySchema>;
 
-export type NormalizedCinemaArchiveQuery = {
+export type NormalizedMovieArchiveQuery = {
   genre: string | null;
   language: string | null;
-  sort: CinemaArchiveSort;
-  period: CinemaArchivePeriod;
+  sort: MovieArchiveSort;
+  period: MovieArchivePeriod;
   page: number;
   limit: number;
 };
@@ -215,17 +215,17 @@ export const normalizeMovieDetailQuery = (
   };
 };
 
-export const normalizeCinemaArchiveQuery = (
-  input: CinemaArchiveQuery,
-): NormalizedCinemaArchiveQuery => {
-  const parsed = CinemaArchiveQuerySchema.safeParse(input);
+export const normalizeMovieArchiveQuery = (
+  input: MovieArchiveQuery,
+): NormalizedMovieArchiveQuery => {
+  const parsed = MovieArchiveQuerySchema.safeParse(input);
   const data = parsed.success ? parsed.data : {};
 
   return {
     genre: data.genre ?? null,
     language: data.language ?? null,
-    sort: data.sort ?? (DEFAULT_ARCHIVE_SORT as CinemaArchiveSort),
-    period: data.period ?? (DEFAULT_ARCHIVE_PERIOD as CinemaArchivePeriod),
+    sort: data.sort ?? (DEFAULT_ARCHIVE_SORT as MovieArchiveSort),
+    period: data.period ?? (DEFAULT_ARCHIVE_PERIOD as MovieArchivePeriod),
     page: data.page ?? DEFAULT_ARCHIVE_PAGE,
     limit: data.limit ?? DEFAULT_ARCHIVE_LIMIT,
   };

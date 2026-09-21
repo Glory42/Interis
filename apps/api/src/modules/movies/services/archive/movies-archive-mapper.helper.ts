@@ -1,7 +1,7 @@
 import type {
   TMDBDiscoverMovie,
   TMDBMovieGenre,
-} from "../../../../infrastructure/tmdb/cinemas";
+} from "../../../../infrastructure/tmdb/movies";
 import { normalizeVoteAverage } from "../../../media/helpers/media-vote-average.helper";
 import {
   normalizeMovieGenres,
@@ -11,7 +11,7 @@ import {
 import { MoviesRepository } from "../../repositories/movies.repository";
 import type {
   ArchiveGenre,
-  CinemaArchiveItem,
+  MovieArchiveItem,
   LocalArchiveAggregate,
 } from "../../types/movies.types";
 
@@ -44,7 +44,7 @@ export const mapTmdbArchiveMovie = (
   tmdbMovie: TMDBDiscoverMovie,
   genreById: Map<number, TMDBMovieGenre>,
   localAggregate: LocalArchiveAggregate | undefined,
-): CinemaArchiveItem => {
+): MovieArchiveItem => {
   const releaseDate = toTmdbReleaseDate(tmdbMovie.release_date);
   const releaseYear = toTmdbReleaseYear(releaseDate);
 

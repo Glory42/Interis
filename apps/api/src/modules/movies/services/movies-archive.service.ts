@@ -1,5 +1,5 @@
-import type { CinemaArchivePeriod, CinemaArchiveSort } from "../dto/movies.dto";
-import type { CinemaArchiveResponse } from "../types/movies.types";
+import type { MovieArchivePeriod, MovieArchiveSort } from "../dto/movies.dto";
+import type { MovieArchiveResponse } from "../types/movies.types";
 import { getArchiveFromLocalCatalog } from "./archive/movies-archive-local.service";
 import { getArchiveFromTmdbCatalog } from "./archive/movies-archive-tmdb.service";
 
@@ -7,12 +7,12 @@ export class MoviesArchiveService {
   static async getArchive(input: {
     genre: string | null;
     language: string | null;
-    sort: CinemaArchiveSort;
-    period: CinemaArchivePeriod;
+    sort: MovieArchiveSort;
+    period: MovieArchivePeriod;
     page: number;
     limit: number;
     viewerUserId?: string | null;
-  }): Promise<CinemaArchiveResponse> {
+  }): Promise<MovieArchiveResponse> {
     const normalizedInput = {
       selectedGenre: input.genre,
       selectedLanguage: input.language,

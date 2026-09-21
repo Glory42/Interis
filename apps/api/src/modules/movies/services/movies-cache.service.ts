@@ -2,7 +2,7 @@ import {
   getMovieDetails as tmdbGetDetails,
   getMovieDirector,
   type TMDBMovieDetail,
-} from "../../../infrastructure/tmdb/cinemas";
+} from "../../../infrastructure/tmdb/movies";
 import { MoviesRepository } from "../repositories/movies.repository";
 import { NotFoundError } from "../../../commons/errors/app-error";
 

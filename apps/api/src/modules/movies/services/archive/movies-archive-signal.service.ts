@@ -1,4 +1,4 @@
-import { getMovieDetails as tmdbGetDetails } from "../../../../infrastructure/tmdb/cinemas";
+import { getMovieDetails as tmdbGetDetails } from "../../../../infrastructure/tmdb/movies";
 import { createCachedTmdbFetcher } from "../../../../infrastructure/tmdb/tmdb-cache.helper";
 import { normalizeVoteAverage } from "../../../media/helpers/media-vote-average.helper";
 
