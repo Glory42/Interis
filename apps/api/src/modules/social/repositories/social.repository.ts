@@ -94,15 +94,21 @@ export class SocialRepository {
     limit: number,
     before?: FeedCursor,
   ) {
+    // Excludes rows whose `type` predates a reverted feature (e.g.
+    // `watched_movie`, left behind by 761bd02) - the Postgres enum can only
+    // grow, never shrink, so stale values can still be sitting in old rows
+    // and would otherwise fail the feed response's schema validation.
+    const knownTypeCondition = inArray(activities.type, activityTypeEnum.enumValues);
     const whereCondition = before
       ? and(
+          knownTypeCondition,
           inArray(activities.userId, userIds),
           or(
             lt(activities.createdAt, before.createdAt),
             and(eq(activities.createdAt, before.createdAt), lt(activities.id, before.id)),
           ),
         )
-      : inArray(activities.userId, userIds);
+      : and(knownTypeCondition, inArray(activities.userId, userIds));
 
     return db
       .select({
