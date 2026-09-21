@@ -170,8 +170,8 @@
 
   /* Shared "surface card" language: feed, profile, archive, settings. Soft border, no shadow. */
   --surface-card-bg: color-mix(in srgb, var(--card) 55%, var(--background) 45%);
-  --surface-card-border: color-mix(in srgb, var(--foreground) 10%, transparent);
-  --surface-card-border-hover: color-mix(in srgb, var(--foreground) 20%, transparent);
+  --surface-card-border: color-mix(in srgb, var(--foreground) 14%, transparent);
+  --surface-card-border-hover: color-mix(in srgb, var(--foreground) 24%, transparent);
 }
 
 :root[data-theme-id="null-log"] {
@@ -298,6 +298,12 @@
   --module-cinema: #00ff88;
   --module-serial: #00cfff;
   --module-neutral: #9ca3af;
+
+  /* Card and background sit too close in luminance here for the default
+     opacity to read as a border at all - needs more contrast than other
+     themes to stay visible. */
+  --surface-card-border: color-mix(in srgb, var(--foreground) 26%, transparent);
+  --surface-card-border-hover: color-mix(in srgb, var(--foreground) 40%, transparent);
 }
 
 :root[data-theme-id="tokyo-night"] {
