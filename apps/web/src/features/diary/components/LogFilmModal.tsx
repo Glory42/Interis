@@ -145,6 +145,7 @@ export const LogFilmModal = ({
       {isOpen
         ? createPortal(
             <LogMediaDialog
+              accent="cinema"
               title={movieTitle}
               year={movieReleaseYear}
               yearDescriptionLabel="Released in"

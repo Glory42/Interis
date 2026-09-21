@@ -220,6 +220,7 @@ export const SerialActionsSidebar = ({
               value={currentRating}
               onChange={onRatingChange}
               disabled={isRatingSaving}
+              accentColor={SERIAL_MODULE_STYLES.accent}
             />
           ) : (
             <Link

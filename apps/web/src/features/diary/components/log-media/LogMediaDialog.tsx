@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { SpaceRatingInput } from "@/features/films/components/SpaceRating";
 import { CalendarPicker } from "@/components/ui/CalendarPicker";
 import { todayAsLocalDateInput } from "@/lib/time";
+import { cn } from "@/lib/utils";
 
 type LogMediaDialogProps = {
   title: string;
@@ -45,6 +46,9 @@ type LogMediaDialogProps = {
   // Footer extras
   onDelete?: () => void;
   submitLabel?: string;
+  // Content-type accent — cinema (movies) vs serial (series/season/episode).
+  // Defaults to the active theme's generic primary color.
+  accent?: "cinema" | "serial";
 };
 
 export const LogMediaDialog = ({
@@ -75,7 +79,10 @@ export const LogMediaDialog = ({
   onWatchedChange,
   onDelete,
   submitLabel = "Post Review",
+  accent,
 }: LogMediaDialogProps) => {
+  const accentColor =
+    accent === "cinema" ? "var(--module-cinema)" : accent === "serial" ? "var(--module-serial)" : "var(--primary)";
   const headerSubtitle = subtitle
     ? `${title} · ${subtitle}`
     : `${title}${year ? ` (${year})` : ""}`;
@@ -95,7 +102,11 @@ export const LogMediaDialog = ({
       <div
         role="dialog"
         aria-modal="true"
-        className="theme-modal-panel relative z-50 flex w-[calc(100vw-1rem)] max-h-[calc(100dvh-1rem)] max-w-4xl flex-col overflow-hidden border border-border/70 bg-card/95 shadow-2xl backdrop-blur-xl animate-fade-up sm:w-[calc(100vw-2rem)] sm:max-h-[calc(100dvh-2rem)]"
+        className={cn(
+          "theme-modal-panel relative z-50 flex w-[calc(100vw-1rem)] max-h-[calc(100dvh-1rem)] max-w-4xl flex-col overflow-hidden border border-border/70 bg-card/95 shadow-2xl backdrop-blur-xl animate-fade-up sm:w-[calc(100vw-2rem)] sm:max-h-[calc(100dvh-2rem)]",
+          accent === "cinema" && "theme-modal-panel--cinema",
+          accent === "serial" && "theme-modal-panel--serial",
+        )}
       >
         <div className="flex items-start justify-between border-b border-border/60 bg-card/90 px-4 py-3.5 backdrop-blur-sm sm:px-5 sm:py-4">
           <div>
@@ -174,11 +185,16 @@ export const LogMediaDialog = ({
                   <section className="shrink-0 space-y-2">
                     <label className="block text-sm font-semibold text-foreground">
                       <span className="flex items-center gap-2">
-                        <Rocket className="h-3.5 w-3.5" />
+                        <Rocket className="h-3.5 w-3.5" style={{ color: accentColor }} />
                         <span>Rating</span>
                       </span>
                     </label>
-                    <SpaceRatingInput value={rating} onChange={onRatingChange} autoSave />
+                    <SpaceRatingInput
+                      value={rating}
+                      onChange={onRatingChange}
+                      autoSave
+                      accentColor={accentColor}
+                    />
                   </section>
 
                   <section className="flex min-w-0 flex-1 flex-col gap-2">
@@ -205,9 +221,9 @@ export const LogMediaDialog = ({
                     onClick={() => onLikedChange(!liked)}
                     className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-[color,background-color,border-color,transform] hover:bg-secondary/30 active:scale-[0.97]"
                     style={{
-                      borderColor: liked ? "var(--primary)" : "var(--border)",
-                      color: liked ? "var(--primary)" : "var(--muted-foreground)",
-                      background: liked ? "color-mix(in srgb, var(--primary) 10%, transparent)" : "transparent",
+                      borderColor: liked ? accentColor : "var(--border)",
+                      color: liked ? accentColor : "var(--muted-foreground)",
+                      background: liked ? `color-mix(in srgb, ${accentColor} 10%, transparent)` : "transparent",
                     }}
                   >
                     <Heart className="h-3.5 w-3.5" fill={liked ? "currentColor" : "transparent"} />

@@ -246,6 +246,7 @@ export const CinemaActionsSidebar = ({
                 value={currentRating}
                 onChange={onRatingChange}
                 disabled={isRatingSaving}
+                accentColor={CINEMA_MODULE_STYLES.accent}
               />
             ) : (
               <Link

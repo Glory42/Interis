@@ -763,6 +763,21 @@
     z-index: 1;
   }
 
+  /* Content-type accent: the log/review dialog's border reflects whether
+     it's logging a movie or a serial, rather than always following the
+     active theme's generic primary color. */
+  .theme-modal-panel.theme-modal-panel--cinema {
+    border-color: var(--module-cinema) !important;
+  }
+
+  .theme-modal-panel.theme-modal-panel--serial {
+    border-color: var(--module-serial) !important;
+  }
+
+  .space-rating-save-button:hover {
+    background: color-mix(in srgb, var(--space-rating-accent) 20%, transparent);
+  }
+
   .theme-navbar-shell {
     background: var(--theme-navbar-bg) !important;
     border-bottom-color: var(--theme-navbar-border) !important;

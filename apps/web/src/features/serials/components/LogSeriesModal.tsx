@@ -143,6 +143,7 @@ export const LogSeriesModal = ({
       {isOpen
         ? createPortal(
             <LogMediaDialog
+              accent="serial"
               title={seriesTitle}
               year={seriesFirstAirYear}
               yearDescriptionLabel="First aired in"
