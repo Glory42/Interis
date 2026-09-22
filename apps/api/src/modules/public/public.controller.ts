@@ -110,12 +110,12 @@ export class PublicController {
   }
 
   // GET /api/public/:username/movies/watched?limit=50
-  static async getWatchedFilms(
+  static async getWatchedMovies(
     req: Request<{ username: string }, unknown, unknown, PublicCollectionQueryDto>,
     res: Response,
   ): Promise<void> {
     const limit = normalizePublicCollectionLimit(req.query.limit);
-    const data = await PublicService.getWatchedFilms(req.params.username, limit);
+    const data = await PublicService.getWatchedMovies(req.params.username, limit);
 
     if (!data) {
       PublicController.sendUserNotFound(res);

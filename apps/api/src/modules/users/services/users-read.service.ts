@@ -30,16 +30,16 @@ export class UsersReadService {
     return UsersReviewsRepository.getReviewDetailByUsername(username, reviewId, viewerUserId);
   }
 
-  static async getWatchedFilms(userId: string, limit?: number, offset?: number) {
-    return UsersMediaInteractionsRepository.getWatchedFilms(userId, limit, offset);
+  static async getWatchedMovies(userId: string, limit?: number, offset?: number) {
+    return UsersMediaInteractionsRepository.getWatchedMovies(userId, limit, offset);
   }
 
-  static async getLikedFilms(userId: string, limit?: number, offset?: number) {
-    return UsersMediaInteractionsRepository.getFilmsByFlag(userId, "liked", limit, offset);
+  static async getLikedMovies(userId: string, limit?: number, offset?: number) {
+    return UsersMediaInteractionsRepository.getMoviesByFlag(userId, "liked", limit, offset);
   }
 
-  static async getWatchlistedFilms(userId: string, limit?: number, offset?: number) {
-    return UsersMediaInteractionsRepository.getFilmsByFlag(userId, "watchlisted", limit, offset);
+  static async getWatchlistedMovies(userId: string, limit?: number, offset?: number) {
+    return UsersMediaInteractionsRepository.getMoviesByFlag(userId, "watchlisted", limit, offset);
   }
 
   static async getStats(userId: string) {

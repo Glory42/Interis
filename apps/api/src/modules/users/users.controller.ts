@@ -116,7 +116,7 @@ export class UsersController {
       return;
     }
     const { limit, offset } = parseProfileListPagination(req.query);
-    const liked = await UsersService.getLikedFilms(profile.id, limit, offset);
+    const liked = await UsersService.getLikedMovies(profile.id, limit, offset);
     res.status(200).json(liked);
   }
 
@@ -162,7 +162,7 @@ export class UsersController {
     }
 
     const { limit, offset } = parseProfileListPagination(req.query);
-    const watchlist = await UsersService.getWatchlistedFilms(profile.id, limit, offset);
+    const watchlist = await UsersService.getWatchlistedMovies(profile.id, limit, offset);
     res.status(200).json(watchlist);
   }
 

@@ -9,7 +9,7 @@ import { serialInteractions, tvSeries } from "../../serials/serials.entity";
 export type MediaInteractionFlag = "liked" | "watchlisted";
 
 export class UsersMediaInteractionsRepository {
-  static async getWatchedFilms(userId: string, limit?: number, offset?: number) {
+  static async getWatchedMovies(userId: string, limit?: number, offset?: number) {
     const baseQuery = db
       .select({
         tmdbId: movies.tmdbId,
@@ -30,7 +30,7 @@ export class UsersMediaInteractionsRepository {
     return applyOptionalPagination(baseQuery, limit, offset);
   }
 
-  static async getFilmsByFlag(
+  static async getMoviesByFlag(
     userId: string,
     flag: MediaInteractionFlag,
     limit?: number,

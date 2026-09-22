@@ -6,7 +6,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import {
-  getUserLikedFilms,
+  getUserLikedMovies,
   getUserLikedReviews,
   getUserLikedLists,
   getUserProfile,
@@ -83,11 +83,11 @@ export const PROFILE_LIST_PAGE_SIZE = 60;
 const getNextProfileListPageParam = <T>(lastPage: T[], allPages: T[][]): number | undefined =>
   lastPage.length === PROFILE_LIST_PAGE_SIZE ? allPages.length * PROFILE_LIST_PAGE_SIZE : undefined;
 
-export const useUserLikedFilms = (username: string) =>
+export const useUserLikedMovies = (username: string) =>
   useInfiniteQuery({
     queryKey: profileKeys.likes(username),
     queryFn: ({ signal, pageParam }) =>
-      getUserLikedFilms(username, PROFILE_LIST_PAGE_SIZE, pageParam, { signal }),
+      getUserLikedMovies(username, PROFILE_LIST_PAGE_SIZE, pageParam, { signal }),
     initialPageParam: 0,
     getNextPageParam: getNextProfileListPageParam,
     enabled: username.trim().length > 0,

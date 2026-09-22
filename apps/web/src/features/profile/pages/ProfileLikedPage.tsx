@@ -6,7 +6,7 @@ import { LikedListCard } from "@/features/profile/components/LikedListCard";
 import { LikedReviewCard } from "@/features/profile/components/LikedReviewCard";
 import { ProfileMediaGridSkeleton } from "@/features/profile/components/ProfileMediaGridSkeleton";
 import {
-  useUserLikedFilms,
+  useUserLikedMovies,
   useUserLikedLists,
   useUserLikedReviews,
 } from "@/features/profile/hooks/useProfile";
@@ -56,7 +56,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
   const [reviewFilter, setReviewFilter] = useState<MediaFilter>("all");
   const [listFilter, setListFilter] = useState<ListFilter>("all");
 
-  const mediasQuery = useUserLikedFilms(username);
+  const mediasQuery = useUserLikedMovies(username);
   const reviewsQuery = useUserLikedReviews(username);
   const listsQuery = useUserLikedLists(username);
 
@@ -149,7 +149,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
             <ProfileTabEmptyState
               icon={Heart}
               title="No liked media yet"
-              description="This profile has not liked any films or series yet."
+              description="This profile has not liked any movies or series yet."
               cta={{ label: "Browse Movie", to: "/movies" }}
             />
           ) : (
