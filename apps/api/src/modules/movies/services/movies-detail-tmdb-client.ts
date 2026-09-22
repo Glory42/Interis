@@ -4,11 +4,8 @@ import {
   getSimilarMovies,
 } from "../../../infrastructure/tmdb/movies";
 
-// The seam MoviesDetailService.gather() reads TMDB through. Production
-// code never constructs this explicitly - getDetail() defaults to
-// defaultMoviesDetailTmdbClient below - but a test can pass a fake client
-// through getDetail()'s own public interface to drive gather()'s
-// TMDB-down / partial-failure branches, which no test previously reached.
+// Seam for gather()'s TMDB reads - getDetail() defaults to the real
+// client below, tests can inject a fake to drive TMDB-down paths.
 export type MoviesDetailTmdbClient = {
   getDetails: typeof getMovieDetails;
   getCredits: typeof getMovieCredits;

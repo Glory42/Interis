@@ -208,10 +208,8 @@ export class SerialsDetailService {
       PeopleCacheService.ensurePersonLinks(crewSeeds(tmdbAggregateCredits)),
     ]);
 
-    // viewerDiary/viewerReview and userSeasonInteractions don't depend on
-    // each other - only viewerTracking (below) depends on
-    // userSeasonInteractions - so the first two fetches run concurrently
-    // with it instead of stacking three sequential round-trips.
+    // Only viewerTracking depends on userSeasonInteractions, so the other
+    // two fetches run concurrent with it instead of sequentially.
     const [[viewerDiaryRow, viewerReviewRow], userSeasonInteractions] = viewerUserId
       ? await Promise.all([
           Promise.all([

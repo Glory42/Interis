@@ -2,12 +2,8 @@ import { getMovieDirector } from "../../../../infrastructure/tmdb/movies";
 import { MoviesRepository } from "../../repositories/movies.repository";
 import type { MovieArchiveResponse } from "../../types/movies.types";
 
-// Deep module: owns the N+1 TMDB director backfill for archive rows that
-// were cached before the director column existed. Callers hand it a page
-// of items; it owns concurrency and the "one item's lookup/persist failure
-// never fails the batch" policy internally, so that guarantee holds
-// regardless of which adapter is plugged in — an adapter that forgets to
-// catch its own errors (e.g. a test fake) can't take down the whole page.
+// Owns the "one item's failure can't fail the batch" guarantee itself,
+// regardless of which adapter is plugged in.
 type DirectorLookup = (tmdbId: number) => Promise<string | null>;
 type DirectorPersist = (tmdbId: number, director: string) => Promise<void>;
 

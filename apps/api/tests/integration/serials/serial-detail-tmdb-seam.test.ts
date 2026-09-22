@@ -3,10 +3,7 @@ import { SerialsDetailService } from "../../../src/modules/serials/services/seri
 import type { SerialsDetailTmdbClient } from "../../../src/modules/serials/services/serials-detail-tmdb-client";
 import { seedTestSerial } from "../../support/factories/media.factory";
 
-// Mirrors movie-detail-tmdb-seam.test.ts: exercises the branches inside
-// SerialsDetailService's private gather() where every TMDB call is
-// individually swallowed, using the seam (getDetail's optional tmdbClient
-// param) instead of depending on whatever TMDB happens to do in CI.
+// Mirrors movie-detail-tmdb-seam.test.ts, for SerialsDetailService.
 const rejectingTmdbClient: SerialsDetailTmdbClient = {
   getDetails: () => Promise.reject(new Error("TMDB is down")),
   getAggregateCredits: () => Promise.reject(new Error("TMDB is down")),

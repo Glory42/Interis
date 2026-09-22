@@ -10,9 +10,8 @@ type UseReviewSubmissionArgs = {
   onClose: () => void;
 };
 
-// Deep module: owns the season/episode review submit-validate-error cycle
-// that SeasonAccordionItem previously duplicated once per season and once
-// per episode. Both callers only differ in which mutation they hand in.
+// SeasonAccordionItem's season/episode callers only differ in which
+// mutation they hand in.
 export const useReviewSubmission = ({
   draft,
   upsertReview,

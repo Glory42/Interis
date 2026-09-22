@@ -3,13 +3,8 @@ import { MoviesDetailService } from "../../../src/modules/movies/services/movies
 import type { MoviesDetailTmdbClient } from "../../../src/modules/movies/services/movies-detail-tmdb-client";
 import { seedTestMovie } from "../../support/factories/media.factory";
 
-// Exercises the branches inside MoviesDetailService's private gather() that
-// no other test reached: every TMDB call there is individually swallowed
-// (.catch(() => null / [])), and a director backfill write only fires when
-// credits resolve with a director TMDB didn't already have cached locally.
-// The seam (getDetail's optional tmdbClient param) lets these be driven
-// directly instead of depending on whatever the real TMDB API happens to
-// do in CI.
+// Drives gather()'s swallowed-TMDB-call branches directly via the seam,
+// instead of depending on whatever the real TMDB API does in CI.
 const rejectingTmdbClient: MoviesDetailTmdbClient = {
   getDetails: () => Promise.reject(new Error("TMDB is down")),
   getCredits: () => Promise.reject(new Error("TMDB is down")),

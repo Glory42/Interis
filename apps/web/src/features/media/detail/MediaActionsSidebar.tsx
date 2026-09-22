@@ -39,10 +39,8 @@ const toggleButtonClassName =
 const loginLinkClassName =
   "flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]";
 
-// The one place that owns "what a toggle action looks like": authenticated
-// active/inactive styling plus the unauthenticated login-link fallback.
-// Every action (watchlist, watched, liked, ...) renders through here
-// instead of three near-identical inline blocks.
+// Every action (watchlist, watched, liked) renders through here instead
+// of three near-identical inline blocks.
 const ActionButton = ({
   action,
   isAuthenticated,

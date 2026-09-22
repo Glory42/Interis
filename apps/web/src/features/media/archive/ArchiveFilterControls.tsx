@@ -54,10 +54,8 @@ export const ArchiveFilterControls = <TSort extends string, TPeriod extends stri
   onSelectPeriod,
   moduleStyles,
 }: ArchiveFilterControlsProps<TSort, TPeriod>) => {
-  // Every selected-*-label is a lookup into the options list this
-  // component already owns for rendering the dropdown itself - deriving
-  // it here (once) means callers only ever hand over a raw selection,
-  // never a pre-computed label that could drift from the option list.
+  // Derived here so callers only ever hand over a raw selection, never
+  // a pre-computed label that could drift from the option list.
   const selectedSortLabel =
     sortOptions.find((option) => option.value === selectedSort)?.label ?? "Trending";
   const selectedLanguageLabel =

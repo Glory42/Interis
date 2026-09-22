@@ -12,12 +12,8 @@ type LogSubmitInput = {
 };
 
 type UseMediaLogSubmissionArgs = {
-  // Owned by the caller, not this hook: the caller's interaction query
-  // (useMovieInteraction/useSeriesInteraction) must be enabled by the same
-  // isOpen flag, and a query hook can't be called from inside another
-  // hook conditionally on a value that hook itself produces. Passing
-  // isOpen/onOpenChange in (rather than owning open state here) breaks
-  // that circular dependency while still centralizing everything else.
+  // Owned by the caller: its interaction query must be enabled by this
+  // same flag, and a hook can't be called conditionally on another hook's output.
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   initialState?: LogMediaInitialState;
@@ -26,12 +22,8 @@ type UseMediaLogSubmissionArgs = {
   updateLiked: (liked: boolean) => Promise<unknown>;
 };
 
-// Deep module: owns the diary-log modal's form lifecycle — body-scroll
-// lock, form field state, the liked override, and the
-// submit-both-mutations-then-close-or-error cycle. LogMovieModal and
-// LogSeriesModal previously duplicated all of this; they now only differ
-// in which mutation they hand in as submitLog/updateLiked, and in the
-// interaction-query result they pass as likedFromInteraction.
+// Owns the log-modal form lifecycle; LogMovieModal/LogSeriesModal only
+// differ in the mutations they hand in.
 export const useMediaLogSubmission = ({
   isOpen,
   onOpenChange,
