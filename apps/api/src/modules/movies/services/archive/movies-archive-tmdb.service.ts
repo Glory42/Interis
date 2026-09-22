@@ -1,6 +1,5 @@
 import {
   discoverMovies as tmdbDiscover,
-  getMovieDirector,
   getMovieGenres,
   getTrendingMoviesPage,
   type TMDBMovieGenre,
@@ -18,6 +17,7 @@ import {
   getLocalArchiveAggregatesByTmdbIds,
   mapTmdbArchiveMovie,
 } from "./movies-archive-mapper.helper";
+import { enrichMissingDirectors } from "./movies-director-enricher.helper";
 
 const filterArchiveItemsByGenreAndLanguage = (
   items: MovieArchiveResponse["items"],
@@ -40,46 +40,6 @@ const filterArchiveItemsByGenreAndLanguage = (
 
     return matchesGenre && matchesLanguage;
   });
-};
-
-const hydrateMissingDirectors = async (
-  items: MovieArchiveResponse["items"],
-): Promise<MovieArchiveResponse["items"]> => {
-  const missingDirectorItems = items.filter((item) => item.director === null);
-
-  if (missingDirectorItems.length === 0) {
-    return items;
-  }
-
-  const hydratedDirectors = await Promise.all(
-    missingDirectorItems.map(async (item) => {
-      const director = await getMovieDirector(item.tmdbId).catch(() => null);
-      if (!director) {
-        return null;
-      }
-
-      await MoviesRepository.updateDirectorByTmdbId(item.tmdbId, director).catch(
-        () => undefined,
-      );
-
-      return [item.tmdbId, director] as const;
-    }),
-  );
-
-  const hydratedDirectorByTmdbId = new Map<number, string>(
-    hydratedDirectors.filter(
-      (entry): entry is readonly [number, string] => entry !== null,
-    ),
-  );
-
-  if (hydratedDirectorByTmdbId.size === 0) {
-    return items;
-  }
-
-  return items.map((item) => ({
-    ...item,
-    director: hydratedDirectorByTmdbId.get(item.tmdbId) ?? item.director,
-  }));
 };
 
 const addViewerArchiveState = async (
@@ -184,7 +144,7 @@ export const getArchiveFromTmdbCatalog = async (
         mapTmdbArchiveMovie(movie, genreById, localAggregateByTmdbId.get(movie.id)),
       );
 
-      const hydratedItems = await hydrateMissingDirectors(mappedItems);
+      const hydratedItems = await enrichMissingDirectors(mappedItems);
       const filteredItems = filterArchiveItemsByGenreAndLanguage(hydratedItems, {
         selectedGenre: matchedGenre?.name ?? null,
         selectedLanguage: input.selectedLanguage,
@@ -257,7 +217,7 @@ export const getArchiveFromTmdbCatalog = async (
     mapTmdbArchiveMovie(movie, genreById, localAggregateByTmdbId.get(movie.id)),
   );
 
-  const pageItemsWithDirector = await hydrateMissingDirectors(pageItems);
+  const pageItemsWithDirector = await enrichMissingDirectors(pageItems);
 
   const pageItemsWithViewerState = await addViewerArchiveState(
     input.viewerUserId,
