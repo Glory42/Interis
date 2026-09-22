@@ -2,8 +2,9 @@ import {
   getSeriesAggregateCredits as tmdbGetAggregateCredits,
   getSeriesDetails as tmdbGetDetails,
   getSeriesSeasonDetails as tmdbGetSeasonDetails,
-  getSimilarSeries,
 } from "../../../infrastructure/tmdb/serials";
+import type { SerialsDetailTmdbClient } from "./serials-detail-tmdb-client";
+import { defaultSerialsDetailTmdbClient } from "./serials-detail-tmdb-client";
 import { SerialsSeasonInteractionsRepository } from "../repositories/serials-season-interactions.repository";
 import { SerialsEpisodeInteractionsRepository } from "../repositories/serials-episode-interactions.repository";
 import {
@@ -90,19 +91,22 @@ const crewSeeds = (credits: TmdbAggregateCredits | null) =>
     });
 
 export class SerialsDetailService {
-  static async getDetail(input: {
-    tmdbId: number;
-    viewerUserId?: string | null;
-    reviewsSort: SerialDetailReviewSort;
-    reviewsPage: number;
-    reviewsLimit: number;
-  }): Promise<SerialDetailResponse | null> {
+  static async getDetail(
+    input: {
+      tmdbId: number;
+      viewerUserId?: string | null;
+      reviewsSort: SerialDetailReviewSort;
+      reviewsPage: number;
+      reviewsLimit: number;
+    },
+    tmdbClient: SerialsDetailTmdbClient = defaultSerialsDetailTmdbClient,
+  ): Promise<SerialDetailResponse | null> {
     const cachedSeries = await SerialsCacheService.findOrCreate(input.tmdbId);
     if (!cachedSeries) {
       return null;
     }
 
-    const inputs = await SerialsDetailService.gather(cachedSeries, input);
+    const inputs = await SerialsDetailService.gather(cachedSeries, input, tmdbClient);
     return assembleSerialDetail(inputs);
   }
 
@@ -158,6 +162,7 @@ export class SerialsDetailService {
       reviewsPage: number;
       reviewsLimit: number;
     },
+    tmdbClient: SerialsDetailTmdbClient,
   ): Promise<SerialDetailInputs> {
     const viewerUserId = input.viewerUserId ?? null;
     const reviewsOffset = (input.reviewsPage - 1) * input.reviewsLimit;
@@ -171,15 +176,15 @@ export class SerialsDetailService {
       communityRatings,
       seasonEpisodeReviewRows,
     ] = await Promise.all([
-      tmdbGetDetails(input.tmdbId).catch(() => null),
-      tmdbGetAggregateCredits(input.tmdbId).catch(() => null),
+      tmdbClient.getDetails(input.tmdbId).catch(() => null),
+      tmdbClient.getAggregateCredits(input.tmdbId).catch(() => null),
       SerialsReviewsRepository.getLogsCountBySeriesId(cachedSeries.id),
       SerialsReviewsRepository.getReviewRowsBySeriesId(cachedSeries.id, {
         sort: input.reviewsSort,
         limit: input.reviewsLimit,
         offset: reviewsOffset,
       }),
-      getSimilarSeries(input.tmdbId).catch(() => []),
+      tmdbClient.getSimilar(input.tmdbId).catch(() => []),
       SerialsInteractionsRepository.getCommunityRatingsBySeriesId(cachedSeries.id),
       SerialsSeasonEpisodeReviewsRepository.getReviewRowsBySeriesId(input.tmdbId, cachedSeries.id),
     ]);
@@ -203,20 +208,23 @@ export class SerialsDetailService {
       PeopleCacheService.ensurePersonLinks(crewSeeds(tmdbAggregateCredits)),
     ]);
 
-    const [viewerDiaryRow, viewerReviewRow] = viewerUserId
+    // viewerDiary/viewerReview and userSeasonInteractions don't depend on
+    // each other - only viewerTracking (below) depends on
+    // userSeasonInteractions - so the first two fetches run concurrently
+    // with it instead of stacking three sequential round-trips.
+    const [[viewerDiaryRow, viewerReviewRow], userSeasonInteractions] = viewerUserId
       ? await Promise.all([
-          SerialsInteractionsRepository.getViewerDiaryRows(viewerUserId, cachedSeries.id),
-          SerialsReviewsRepository.getViewerReviewRows(viewerUserId, cachedSeries.id),
+          Promise.all([
+            SerialsInteractionsRepository.getViewerDiaryRows(viewerUserId, cachedSeries.id),
+            SerialsReviewsRepository.getViewerReviewRows(viewerUserId, cachedSeries.id),
+          ]),
+          SerialsSeasonInteractionsRepository.getViewerSeasonInteractions(
+            viewerUserId,
+            cachedSeries.id,
+            cachedSeries.tmdbId,
+          ),
         ])
-      : [[], []];
-
-    const userSeasonInteractions = viewerUserId
-      ? await SerialsSeasonInteractionsRepository.getViewerSeasonInteractions(
-          viewerUserId,
-          cachedSeries.id,
-          cachedSeries.tmdbId,
-        )
-      : [];
+      : [[[], []], []];
 
     const viewerTracking = viewerUserId
       ? await calculateViewerTracking(
