@@ -28,10 +28,10 @@ export type PublicProfileResponse = {
   themeId: string;
   createdAt: Date;
   stats: {
-    filmEntryCount: number;
+    movieEntryCount: number;
     serialEntryCount: number;
     reviewCount: number;
-    filmCount: number;
+    movieCount: number;
     listCount: number;
     followerCount: number;
     followingCount: number;
