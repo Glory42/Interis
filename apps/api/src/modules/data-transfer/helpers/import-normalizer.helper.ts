@@ -1,4 +1,4 @@
-import { searchMovieByTitleAndYear } from "../../../infrastructure/tmdb/cinemas";
+import { searchMovieByTitleAndYear } from "../../../infrastructure/tmdb/movies";
 import { searchSeriesByTitleAndYear } from "../../../infrastructure/tmdb/serials";
 import type { MediaType } from "../../media/constants/media-type.constant";
 

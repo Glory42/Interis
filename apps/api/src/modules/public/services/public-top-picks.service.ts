@@ -34,7 +34,7 @@ export class PublicTopPicksService {
   static async getTop4ByUserId(userId: string): Promise<PublicTopPicksResponse> {
     const topPickRows = await PublicTopPicksRepository.getTopPicksByUserId(userId);
 
-    const cinemaTmdbIds = topPickRows
+    const movieTmdbIds = topPickRows
       .filter(
         (row) =>
           row.categoryId === 1 &&
@@ -55,7 +55,7 @@ export class PublicTopPicksService {
       .map((row) => Number(row.mediaSourceId));
 
     const [movieRows, serialRows] = await Promise.all([
-      PublicTopPicksRepository.getMoviesByTmdbIds([...new Set(cinemaTmdbIds)]),
+      PublicTopPicksRepository.getMoviesByTmdbIds([...new Set(movieTmdbIds)]),
       PublicTopPicksRepository.getSeriesByTmdbIds([...new Set(serialTmdbIds)]),
     ]);
 

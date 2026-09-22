@@ -2,7 +2,7 @@ import { FeedActivityCard } from "@/features/feed/components/FeedActivityCard";
 import type { FeedItem } from "@/features/feed/types";
 import { cn } from "@/lib/utils";
 
-export type FeedFilter = "all" | "cinema" | "serial";
+export type FeedFilter = "all" | "movie" | "serial";
 
 type FeedActivityListProps = {
   isAuthenticated: boolean;

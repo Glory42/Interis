@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { getPosterUrl } from "@/features/movies/components/utils";
 
 export type TrendingPosterItem = {
   id: string;
@@ -10,7 +10,7 @@ export type TrendingPosterItem = {
 
 type TrendingPosterRowProps = {
   title: string;
-  to: "/cinema/$tmdbId" | "/serials/$tmdbId";
+  to: "/movies/$tmdbId" | "/serials/$tmdbId";
   accentColor: string;
   isLoading: boolean;
   isError: boolean;

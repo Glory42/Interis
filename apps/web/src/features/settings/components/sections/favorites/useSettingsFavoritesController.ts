@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { getMovieByTmdbId } from "@/features/films/api";
+import { getMovieByTmdbId } from "@/features/movies/api";
 import { useUpdateMyProfile, useUserTopPicks } from "@/features/profile/hooks/useProfile";
 import { getSeriesByTmdbId, type TmdbSearchSeries } from "@/features/serials/api";
 import type { TmdbSearchMovie } from "@/types/api";
@@ -18,7 +18,7 @@ export const useSettingsFavoritesController = (username: string) => {
   const updateProfileMutation = useUpdateMyProfile();
   const topPicksQuery = useUserTopPicks(username);
 
-  const [draftCinemaSlots, setDraftCinemaSlots] = useState<
+  const [draftMovieSlots, setDraftMovieSlots] = useState<
     Array<TopPickSlot | null> | null
   >(null);
   const [draftSerialSlots, setDraftSerialSlots] = useState<
@@ -32,25 +32,25 @@ export const useSettingsFavoritesController = (username: string) => {
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
   const categories = topPicksQuery.data?.categories ?? [];
-  const cinemaCategory = categories.find((category) => category.key === "cinema");
+  const movieCategory = categories.find((category) => category.key === "movie");
   const serialCategory = categories.find((category) => category.key === "serial");
 
-  const savedCinemaSlots = useMemo(
-    () => resolveCategorySlots(cinemaCategory, "movie"),
-    [cinemaCategory],
+  const savedMovieSlots = useMemo(
+    () => resolveCategorySlots(movieCategory, "movie"),
+    [movieCategory],
   );
   const savedSerialSlots = useMemo(
     () => resolveCategorySlots(serialCategory, "tv"),
     [serialCategory],
   );
 
-  const cinemaSlots = draftCinemaSlots ?? savedCinemaSlots;
+  const movieSlots = draftMovieSlots ?? savedMovieSlots;
   const serialSlots = draftSerialSlots ?? savedSerialSlots;
-  const isDirty = draftCinemaSlots !== null || draftSerialSlots !== null;
+  const isDirty = draftMovieSlots !== null || draftSerialSlots !== null;
 
-  const selectedCinemaCount = useMemo(
-    () => cinemaSlots.filter(asTopPickSlot).length,
-    [cinemaSlots],
+  const selectedMovieCount = useMemo(
+    () => movieSlots.filter(asTopPickSlot).length,
+    [movieSlots],
   );
   const selectedSerialCount = useMemo(
     () => serialSlots.filter(asTopPickSlot).length,
@@ -78,9 +78,9 @@ export const useSettingsFavoritesController = (username: string) => {
     slotIndex: number,
     value: TopPickSlot | null,
   ) => {
-    if (category === "cinema") {
-      setDraftCinemaSlots((currentDraft) => {
-        const current = currentDraft ?? cinemaSlots;
+    if (category === "movie") {
+      setDraftMovieSlots((currentDraft) => {
+        const current = currentDraft ?? movieSlots;
         const next = [...current];
         next[slotIndex] = value;
         return toFixedLengthSlots(next);
@@ -97,7 +97,7 @@ export const useSettingsFavoritesController = (username: string) => {
   };
 
   const handleSelectMovie = async (movie: TmdbSearchMovie) => {
-    if (!pickerTarget || pickerTarget.category !== "cinema") {
+    if (!pickerTarget || pickerTarget.category !== "movie") {
       return;
     }
 
@@ -108,7 +108,7 @@ export const useSettingsFavoritesController = (username: string) => {
     try {
       const resolvedMovie = await getMovieByTmdbId(movie.id);
 
-      updateSlotDraft("cinema", pickerTarget.slotIndex, {
+      updateSlotDraft("movie", pickerTarget.slotIndex, {
         slot: pickerTarget.slotIndex + 1,
         mediaType: "movie",
         mediaSource: "tmdb",
@@ -177,12 +177,12 @@ export const useSettingsFavoritesController = (username: string) => {
     try {
       await updateProfileMutation.mutateAsync({
         topPicks: [
-          buildTopPickPayload(1, cinemaSlots),
+          buildTopPickPayload(1, movieSlots),
           buildTopPickPayload(2, serialSlots),
         ],
       });
 
-      setDraftCinemaSlots(null);
+      setDraftMovieSlots(null);
       setDraftSerialSlots(null);
       setSaveSuccess("Favorites saved.");
     } catch (error) {
@@ -197,9 +197,9 @@ export const useSettingsFavoritesController = (username: string) => {
     updateProfileMutation,
     pickerTarget,
     searchQuery,
-    cinemaSlots,
+    movieSlots,
     serialSlots,
-    selectedCinemaCount,
+    selectedMovieCount,
     selectedSerialCount,
     isDirty,
     isSelectingMovie,

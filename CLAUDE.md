@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this project is
 
-Interis is a social movie journal app (Letterboxd-inspired). Users log watches, write reviews, follow each other, browse a cinema/serial archive, and maintain public profiles with lists, likes, and watchlists. External widgets are served via a public API (`/api/public/*`).
+Interis is a social movie journal app (Letterboxd-inspired). Users log watches, write reviews, follow each other, browse a movie/serial archive, and maintain public profiles with lists, likes, and watchlists. External widgets are served via a public API (`/api/public/*`).
 
 ## Commands
 

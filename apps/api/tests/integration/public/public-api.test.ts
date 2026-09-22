@@ -240,7 +240,7 @@ describe("public widget API (/api/public/*)", () => {
       {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ tmdbId: movie.tmdbId, itemType: "cinema" }),
+        body: JSON.stringify({ tmdbId: movie.tmdbId, itemType: "movie" }),
       },
       jar,
     );

@@ -64,7 +64,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       {
         name: "description",
         content:
-          "Log watches, write reviews, follow friends, and browse a cinema and TV archive.",
+          "Log watches, write reviews, follow friends, and browse a movie and TV archive.",
       },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Interis" },
@@ -72,7 +72,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       {
         property: "og:description",
         content:
-          "Log watches, write reviews, follow friends, and browse a cinema and TV archive.",
+          "Log watches, write reviews, follow friends, and browse a movie and TV archive.",
       },
       { property: "og:image", content: "/og-image.png" },
       { name: "twitter:card", content: "summary_large_image" },

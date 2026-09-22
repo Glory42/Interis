@@ -4,7 +4,7 @@ import { buildTestUser, deleteTestUser, registerUser } from "../support/register
 const KNOWN_MOVIE_TMDB_ID = 550; // Fight Club
 const KNOWN_MOVIE_TITLE = "Fight Club";
 const REVIEW_TEXT = "A visceral, unforgettable descent into anti-consumerist mania.";
-const EDITED_REVIEW_TEXT = "Edited: still one of the most quotable films ever made.";
+const EDITED_REVIEW_TEXT = "Edited: still one of the most quotable movies ever made.";
 const COMMENT_TEXT = "Completely agree, the twist still holds up.";
 const EDITED_COMMENT_TEXT = "Completely agree, the twist still holds up on rewatch.";
 
@@ -14,16 +14,16 @@ test("writes a review, then views/comments/edits it from its detail page and the
   const user = buildTestUser("e2ei");
 
   try {
-    await test.step("sign up and log the film with a review", async () => {
+    await test.step("sign up and log the movie with a review", async () => {
       await registerUser(page, user);
-      await page.goto(`/cinema/${KNOWN_MOVIE_TMDB_ID}`);
+      await page.goto(`/movies/${KNOWN_MOVIE_TMDB_ID}`);
       await expect(page.getByRole("heading", { name: KNOWN_MOVIE_TITLE })).toBeVisible({
         timeout: 15_000,
       });
 
       await page.getByRole("button", { name: "Log", exact: true }).click();
       await expect(page.getByRole("dialog")).toBeVisible({ timeout: 10_000 });
-      await page.getByPlaceholder("Share your thoughts about this film...").fill(REVIEW_TEXT);
+      await page.getByPlaceholder("Share your thoughts about this movie...").fill(REVIEW_TEXT);
       await page.getByRole("button", { name: "Post Review" }).click();
       await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 10_000 });
     });
@@ -31,7 +31,7 @@ test("writes a review, then views/comments/edits it from its detail page and the
     await test.step("the review shows up on the profile reviews tab and its own detail page", async () => {
       await page.goto(`/profile/${user.username}/reviews`);
       // ProfileReviewsPage.tsx also renders a poster-thumbnail link to
-      // /cinema/$tmdbId right before the title link, whose accessible name
+      // /movies/$tmdbId right before the title link, whose accessible name
       // ("Fight Club poster", from the img alt) matches a loose
       // name-based regex just as well as the real title link - scoping to
       // href*="/reviews/" targets only the links that actually lead to

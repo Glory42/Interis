@@ -3,7 +3,7 @@ import type { UserInteractionMovie } from "@/features/profile/api";
 import { MediaPosterGridItem } from "@/features/profile/components/MediaPosterGridItem";
 import { PROFILE_MEDIA_GRID_CLASSES } from "@/features/profile/components/ProfileMediaGridSkeleton";
 
-export type MediaFilter = "all" | "cinema" | "serial";
+export type MediaFilter = "all" | "movie" | "serial";
 
 export const LikedMediaGrid = ({
   items,
@@ -14,7 +14,7 @@ export const LikedMediaGrid = ({
 }) => {
   const filtered = useMemo(() => {
     if (filter === "all") return items;
-    if (filter === "cinema") return items.filter((i) => i.mediaType === "movie");
+    if (filter === "movie") return items.filter((i) => i.mediaType === "movie");
     return items.filter((i) => i.mediaType === "tv");
   }, [items, filter]);
 

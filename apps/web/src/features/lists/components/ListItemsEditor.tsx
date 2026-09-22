@@ -65,7 +65,7 @@ export const ListItemsEditor = ({
     return (
       <div className="rounded-xl border border-dashed border-border/50 py-12 text-center">
         <p className="font-mono text-sm text-muted-foreground">
-          Search above to add films and series to this list.
+          Search above to add movies and series to this list.
         </p>
       </div>
     );

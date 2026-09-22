@@ -1,7 +1,7 @@
 import { memo, useState, type MouseEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { TriangleAlert } from "lucide-react";
-import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
+import { SpaceRatingDisplay } from "@/features/movies/components/SpaceRating";
 import {
   CommentButton,
   EditButton,
@@ -13,7 +13,7 @@ import { FeedCardHeader } from "@/features/feed/components/FeedCardHeader";
 import { FeedReviewEditDialog } from "@/features/feed/components/FeedReviewEditDialog";
 import { ReviewActivityDialog } from "@/features/feed/components/ReviewActivityDialog";
 import { toSeasonEpisodeLabel, truncateQuote } from "@/features/feed/components/feed-row.utils";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { getPosterUrl } from "@/features/movies/components/utils";
 import type { FeedItem } from "@/features/feed/types";
 import { useReviewActivityCard } from "./review-activity-card/useReviewActivityCard";
 
@@ -133,7 +133,7 @@ export const ReviewActivityCard = memo(function ReviewActivityCard({
               <>
                 {needsOf ? " of " : " "}
                 <Link
-                  to={movie.mediaType === "tv" ? "/serials/$tmdbId" : "/cinema/$tmdbId"}
+                  to={movie.mediaType === "tv" ? "/serials/$tmdbId" : "/movies/$tmdbId"}
                   params={{ tmdbId: String(movie.tmdbId) }}
                   className="font-bold text-foreground hover:text-primary"
                   style={{ fontFamily: "var(--theme-display-font)" }}

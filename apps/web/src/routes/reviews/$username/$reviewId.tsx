@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getProfileReviewDetail } from "@/features/reviews/api";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { getPosterUrl } from "@/features/movies/components/utils";
 import { ProfileReviewDetailPage } from "@/features/reviews/components/ProfileReviewDetailPage";
 import { reviewKeys } from "@/features/reviews/hooks/useReviews";
 

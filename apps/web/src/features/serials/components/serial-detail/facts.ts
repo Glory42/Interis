@@ -6,15 +6,9 @@ import {
   RadioTower,
   Rows3,
   Star,
-  type LucideIcon,
 } from "lucide-react";
 import type { SerialDetailResponse } from "@/features/serials/api";
-
-export type SerialFactRow = {
-  label: string;
-  value: string;
-  icon: LucideIcon;
-};
+import type { MediaFactRow } from "@/features/media/detail/MediaFactsGrid";
 
 export const buildSerialFactRows = (
   detail: SerialDetailResponse,
@@ -22,7 +16,7 @@ export const buildSerialFactRows = (
   languageLabel: string | null,
   firstAirDateLabel: string | null,
   lastAirDateLabel: string | null,
-): SerialFactRow[] => {
+): MediaFactRow[] => {
   const series = detail.series;
 
   return [

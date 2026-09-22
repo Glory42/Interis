@@ -24,7 +24,7 @@ test("sign up, log a movie, get followed, and show up in the follower's feed", a
     });
 
     await test.step("user A logs a movie", async () => {
-      await pageA.goto(`/cinema/${KNOWN_MOVIE_TMDB_ID}`);
+      await pageA.goto(`/movies/${KNOWN_MOVIE_TMDB_ID}`);
       await expect(pageA.getByRole("heading", { name: KNOWN_MOVIE_TITLE })).toBeVisible({
         timeout: 15_000,
       });

@@ -16,8 +16,12 @@ _Avoid_: account settings
 
 ### Media catalog
 
+**Media**:
+The umbrella term for "Movie or Serial" — used where logic, UI, or storage is genuinely shared between the two (e.g. Interaction, rating, archive browsing, detail-page layout). Already the de facto term in code (`modules/media`, `modules/media-interactions`, `features/media-archive`); formalized here as the canonical name for cross-cutting Movie/Serial concepts going forward.
+_Avoid_: content, title (both too generic)
+
 **Movie**:
-A film, TMDB-sourced and cached locally (title, release year, director, runtime, genres) the first time any user references it — never bulk-imported. The canonical term across the backend; the frontend's `films` feature directory and `/cinema/*` routes refer to the same concept under different names — a naming split worth resolving intentionally, not silently.
+A film, TMDB-sourced and cached locally (title, release year, director, runtime, genres) the first time any user references it — never bulk-imported. Canonical term across backend (`movies` table/module) and, as of the films/serials consolidation refactor, the frontend too — `features/films` and `/cinema/*` were renamed to `features/movies` and `/movies/*` to match. No redirect is kept from the old `/cinema`/`/films` URLs — they were removed outright rather than aliased.
 _Avoid_: film, cinema, title (title is ambiguous with the string field)
 
 **Serial**:

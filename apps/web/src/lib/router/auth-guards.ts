@@ -44,7 +44,7 @@ export const requireGuestUser = async (queryClient: QueryClient) => {
   }
 
   if (user) {
-    throw redirect({ to: "/cinema" });
+    throw redirect({ to: "/movies" });
   }
 };
 

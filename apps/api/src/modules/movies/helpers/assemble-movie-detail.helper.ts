@@ -5,7 +5,7 @@ import {
   sortReviewsByEngagement,
   type ReviewEngagementIndex,
 } from "../../media/helpers/review-engagement.helper";
-import type { getMovieDetails, getSimilarMovies } from "../../../infrastructure/tmdb/cinemas";
+import type { getMovieDetails, getSimilarMovies } from "../../../infrastructure/tmdb/movies";
 import type { PersonLinkItem } from "../../people/types/people.types";
 import type { MoviesCacheService } from "../services/movies-cache.service";
 import type { MoviesRepository } from "../repositories/movies.repository";

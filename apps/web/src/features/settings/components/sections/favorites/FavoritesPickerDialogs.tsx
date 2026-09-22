@@ -28,7 +28,7 @@ export const FavoritesPickerDialogs = ({
   return (
     <>
       <Top4MovieSearchDialog
-        isOpen={pickerTarget?.category === "cinema"}
+        isOpen={pickerTarget?.category === "movie"}
         onClose={onClose}
         query={searchQuery}
         onQueryChange={onQueryChange}

@@ -90,8 +90,8 @@ export const ProfileListDetailPage = ({
   }
 
   const derivedTypeLabel =
-    list.derivedType === "cinema"
-      ? "CINEMA"
+    list.derivedType === "movie"
+      ? "MOVIE"
       : list.derivedType === "serial"
         ? "SERIAL"
         : list.derivedType === "mixed"
@@ -212,7 +212,7 @@ export const ProfileListDetailPage = ({
         <div className="rounded-xl border border-dashed border-border/50 py-12 text-center">
           <p className="font-mono text-sm text-muted-foreground">
             {isOwnProfile
-              ? "Edit this list to add films and series."
+              ? "Edit this list to add movies and series."
               : "This list is empty."}
           </p>
         </div>
@@ -222,8 +222,8 @@ export const ProfileListDetailPage = ({
             <Link
               key={item.id}
               to={
-                item.itemType === "cinema"
-                  ? "/cinema/$tmdbId"
+                item.itemType === "movie"
+                  ? "/movies/$tmdbId"
                   : "/serials/$tmdbId"
               }
               params={{ tmdbId: String(item.tmdbId ?? "") }}

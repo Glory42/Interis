@@ -57,7 +57,7 @@ export class UsersStatsRepository {
       entryRows,
       serialEntryRows,
       reviewRows,
-      filmRows,
+      movieRows,
       listRows,
       followerRows,
       followingRows,
@@ -81,7 +81,7 @@ export class UsersStatsRepository {
               SELECT movie_id AS id FROM diary_entry WHERE user_id = ${userId}
               UNION
               SELECT movie_id AS id FROM movie_interaction WHERE user_id = ${userId} AND is_watched = true
-            ) unique_films
+            ) unique_movies
           )`.mapWith(Number),
         })
         .from(diaryEntries) // Keep dummy from/where so structure is clean
@@ -101,10 +101,10 @@ export class UsersStatsRepository {
     ]);
 
     return {
-      filmEntryCount: entryRows[0]?.count ?? 0,
+      movieEntryCount: entryRows[0]?.count ?? 0,
       serialEntryCount: serialEntryRows[0]?.count ?? 0,
       reviewCount: reviewRows[0]?.count ?? 0,
-      filmCount: filmRows[0]?.count ?? 0,
+      movieCount: movieRows[0]?.count ?? 0,
       listCount: listRows[0]?.count ?? 0,
       followerCount: followerRows[0]?.count ?? 0,
       followingCount: followingRows[0]?.count ?? 0,

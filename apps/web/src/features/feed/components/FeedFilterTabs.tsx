@@ -9,7 +9,7 @@ type FeedFilterTabsProps = {
 
 const TABS: Array<{ id: FeedFilter; label: string; color: string }> = [
   { id: "all", label: "All", color: "var(--primary)" },
-  { id: "cinema", label: "Cinema", color: "var(--module-cinema)" },
+  { id: "movie", label: "Movie", color: "var(--module-movie)" },
   { id: "serial", label: "Serial", color: "var(--module-serial)" },
 ];
 

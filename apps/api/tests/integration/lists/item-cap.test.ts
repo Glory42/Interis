@@ -51,7 +51,7 @@ describe("list item cap", () => {
     await db.insert(listEntries).values(
       Array.from({ length: MAX_LIST_ITEMS }, (_, i) => ({
         listId: list.id,
-        itemType: "cinema",
+        itemType: "movie",
         position: i + 1,
       })),
     );
@@ -63,7 +63,7 @@ describe("list item cap", () => {
       {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ tmdbId: movie.tmdbId, itemType: "cinema" }),
+        body: JSON.stringify({ tmdbId: movie.tmdbId, itemType: "movie" }),
       },
       jar,
     );

@@ -5,7 +5,7 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { useMovieSearch } from "@/features/films/hooks/useMovies";
+import { useMovieSearch } from "@/features/movies/hooks/useMovies";
 import { useUserSearch } from "@/features/profile/hooks/useProfile";
 import { useTitleSearch } from "@/features/search/hooks/useSearch";
 import { useSerialSearch } from "@/features/serials/hooks/useSerials";
@@ -13,7 +13,7 @@ import {
   MAX_RESULTS_PER_SECTION,
   MIN_QUERY_LENGTH,
 } from "./constants";
-import { toCinemaEntry, toSerialEntry, toTitleEntry, toUserEntry } from "./mappers";
+import { toMovieEntry, toSerialEntry, toTitleEntry, toUserEntry } from "./mappers";
 import type {
   ScopedTarget,
   SearchMode,
@@ -61,10 +61,10 @@ export const useGlobalSearchState = (): GlobalSearchState => {
     shouldRunSearch && (!isScopedMode || scopedTarget === "users")
       ? deferredQuery
       : "";
-  // Cinema/serials queries only run in scoped (single-type drill-down) mode —
+  // Movie/serials queries only run in scoped (single-type drill-down) mode —
   // the unscoped home view uses the merged titlesQuery below instead.
-  const cinemaQueryValue =
-    shouldRunSearch && isScopedMode && scopedTarget === "cinema"
+  const movieQueryValue =
+    shouldRunSearch && isScopedMode && scopedTarget === "movie"
       ? deferredQuery
       : "";
   const serialsQueryValue =
@@ -75,7 +75,7 @@ export const useGlobalSearchState = (): GlobalSearchState => {
     shouldRunSearch && !isScopedMode ? deferredQuery : "";
 
   const usersQuery = useUserSearch(usersQueryValue, MAX_RESULTS_PER_SECTION);
-  const cinemaQuery = useMovieSearch(cinemaQueryValue);
+  const movieQuery = useMovieSearch(movieQueryValue);
   const serialsQuery = useSerialSearch(serialsQueryValue);
   const titlesQuery = useTitleSearch(titlesQueryValue);
 
@@ -83,9 +83,9 @@ export const useGlobalSearchState = (): GlobalSearchState => {
     return (usersQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toUserEntry);
   }, [usersQuery.data]);
 
-  const cinemaEntries = useMemo(() => {
-    return (cinemaQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toCinemaEntry);
-  }, [cinemaQuery.data]);
+  const movieEntries = useMemo(() => {
+    return (movieQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toMovieEntry);
+  }, [movieQuery.data]);
 
   const serialEntries = useMemo(() => {
     return (serialsQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toSerialEntry);
@@ -112,14 +112,14 @@ export const useGlobalSearchState = (): GlobalSearchState => {
       ];
     }
 
-    if (isScopedMode && scopedTarget === "cinema") {
+    if (isScopedMode && scopedTarget === "movie") {
       return [
         {
-          target: "cinema",
-          label: "Cinema",
-          items: cinemaEntries,
-          isLoading: cinemaQuery.isFetching,
-          isError: cinemaQuery.isError,
+          target: "movie",
+          label: "Movie",
+          items: movieEntries,
+          isLoading: movieQuery.isFetching,
+          isError: movieQuery.isError,
         },
       ];
     }
@@ -157,13 +157,13 @@ export const useGlobalSearchState = (): GlobalSearchState => {
     isScopedMode,
     scopedTarget,
     userEntries,
-    cinemaEntries,
+    movieEntries,
     serialEntries,
     titleEntries,
     usersQuery.isFetching,
     usersQuery.isError,
-    cinemaQuery.isFetching,
-    cinemaQuery.isError,
+    movieQuery.isFetching,
+    movieQuery.isError,
     serialsQuery.isFetching,
     serialsQuery.isError,
     titlesQuery.isFetching,

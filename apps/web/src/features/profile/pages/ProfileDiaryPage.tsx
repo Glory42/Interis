@@ -5,7 +5,7 @@ import { DiaryRow } from "@/features/profile/components/diary/DiaryRow";
 import { DiaryRowSkeleton } from "@/features/profile/components/diary/DiaryRowSkeleton";
 import { DiaryTableHeader } from "@/features/profile/components/diary/DiaryTableHeader";
 import { toDiaryRows } from "@/features/profile/components/diary/diary-model";
-import { useUserDiary, useUserLikedFilms } from "@/features/profile/hooks/useProfile";
+import { useUserDiary, useUserLikedMovies } from "@/features/profile/hooks/useProfile";
 
 type ProfileDiaryPageProps = {
   username: string;
@@ -13,10 +13,10 @@ type ProfileDiaryPageProps = {
 
 export const ProfileDiaryPage = ({ username }: ProfileDiaryPageProps) => {
   const diaryQuery = useUserDiary(username);
-  const likedQuery = useUserLikedFilms(username);
+  const likedQuery = useUserLikedMovies(username);
 
   const likedTmdbIdSet = useMemo(() => {
-    // Only the first page of liked films is loaded here - fine for marking
+    // Only the first page of liked movies is loaded here - fine for marking
     // recently-liked diary rows, and avoids fetching a profile's entire
     // liked collection just to compute this lookup set.
     return new Set(
@@ -52,7 +52,7 @@ export const ProfileDiaryPage = ({ username }: ProfileDiaryPageProps) => {
           icon={BookOpen}
           title="No diary activity yet"
           description="This profile has not logged or reviewed anything yet."
-          cta={{ label: "Browse Cinema", to: "/cinema" }}
+          cta={{ label: "Browse Movie", to: "/movies" }}
         />
       ) : null}
 

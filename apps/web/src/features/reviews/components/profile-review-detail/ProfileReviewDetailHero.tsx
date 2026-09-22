@@ -2,8 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { ArrowLeft, Film, Tv } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { type ReviewDetail } from "@/features/reviews/api";
-import { SpaceRatingDisplay } from "@/features/films/components/SpaceRating";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { SpaceRatingDisplay } from "@/features/movies/components/SpaceRating";
+import { getPosterUrl } from "@/features/movies/components/utils";
 import { formatRelativeTime } from "@/features/reviews/components/profile-review-detail/utils";
 
 type ProfileReviewDetailHeroProps = {
@@ -59,7 +59,7 @@ export const ProfileReviewDetailHero = ({
                 </div>
               </Link>
             ) : (
-              <Link to="/cinema/$tmdbId" params={{ tmdbId: String(detail.media.tmdbId) }}>
+              <Link to="/movies/$tmdbId" params={{ tmdbId: String(detail.media.tmdbId) }}>
                 <div className="h-40 w-28 overflow-hidden rounded-xl border border-border/60 shadow-2xl">
                   <img
                     src={getPosterUrl(detail.media.posterPath)}
@@ -79,7 +79,7 @@ export const ProfileReviewDetailHero = ({
                 <Film className="h-3 w-3 text-primary" />
               )}
               <span className="theme-kicker font-bold uppercase tracking-[0.16em] text-primary">
-                {detail.mediaType === "tv" ? "Series Review" : "Film Review"}
+                {detail.mediaType === "tv" ? "Series Review" : "Movie Review"}
               </span>
               {detail.containsSpoilers ? (
                 <span className="rounded-full border border-amber-500/35 bg-amber-500/10 px-2 py-0.5 text-amber-200">

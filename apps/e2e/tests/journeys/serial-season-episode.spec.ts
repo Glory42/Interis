@@ -98,7 +98,7 @@ test("toggles episode/season/series watch state and rating, and writes a season 
       });
     });
 
-    // Unlike the movie cinema page, this page also has per-season and
+    // Unlike the movie detail page, this page also has per-season and
     // per-episode "Watched"/"Unwatched" buttons and its own rating
     // slider inherited from the season-review modal pattern - scoping to
     // the sidebar's <aside> (complementary landmark) keeps these

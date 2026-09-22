@@ -4,13 +4,13 @@ import { sendBadRequest, sendNotFound, sendValidationError } from "../../commons
 import { parseTmdbIdParam } from "../../commons/validation/params.helper";
 import { MoviesService } from "./movies.service";
 import type {
-  CinemaArchiveQuery,
+  MovieArchiveQuery,
   MovieDetailQuery,
   MovieParams,
   SearchMoviesQuery,
 } from "./dto/movies.dto";
 import {
-  normalizeCinemaArchiveQuery,
+  normalizeMovieArchiveQuery,
   normalizeMovieDetailQuery,
   normalizeMovieLogsQuery,
   SearchMoviesQuerySchema,
@@ -116,13 +116,13 @@ export class MoviesController {
   }
 
   static async getArchive(
-    req: Request<{}, {}, {}, CinemaArchiveQuery>,
+    req: Request<{}, {}, {}, MovieArchiveQuery>,
     res: Response,
   ): Promise<void> {
     const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
 
     const archive = await MoviesService.getArchive({
-      ...normalizeCinemaArchiveQuery(req.query),
+      ...normalizeMovieArchiveQuery(req.query),
       viewerUserId,
     });
 

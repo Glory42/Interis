@@ -1,13 +1,13 @@
 import { createTtlCache } from "../../../../infrastructure/cache/ttl-cache.helper";
-import { getMovieDirector } from "../../../../infrastructure/tmdb/cinemas";
+import { getMovieDirector } from "../../../../infrastructure/tmdb/movies";
 import {
   normalizeMovieGenres,
   toFeaturedMovie,
 } from "../../helpers/movies-format.helper";
 import { MoviesRepository } from "../../repositories/movies.repository";
 import type {
-  CinemaArchiveItem,
-  CinemaArchiveResponse,
+  MovieArchiveItem,
+  MovieArchiveResponse,
 } from "../../types/movies.types";
 import { getTmdbSignalsByTmdbIds } from "./movies-archive-signal.service";
 import {
@@ -34,8 +34,8 @@ const getCachedLocalArchiveRows = createTtlCache(
 
 const addViewerArchiveState = async (
   viewerUserId: string | null,
-  pageItems: CinemaArchiveItem[],
-): Promise<CinemaArchiveItem[]> => {
+  pageItems: MovieArchiveItem[],
+): Promise<MovieArchiveItem[]> => {
   if (!viewerUserId || pageItems.length === 0) {
     return pageItems;
   }
@@ -58,7 +58,7 @@ const addViewerArchiveState = async (
 
 export const getArchiveFromLocalCatalog = async (
   input: MoviesArchiveQueryInput,
-): Promise<CinemaArchiveResponse> => {
+): Promise<MovieArchiveResponse> => {
   const effectivePeriod =
     input.sortBy === "trending" ? "all_time" : input.selectedPeriod;
   const periodWindow = getArchivePeriodWindow(effectivePeriod);
@@ -93,7 +93,7 @@ export const getArchiveFromLocalCatalog = async (
     );
   }
 
-  const allItems: CinemaArchiveItem[] = rows.map((row) => {
+  const allItems: MovieArchiveItem[] = rows.map((row) => {
     const genres = normalizeMovieGenres(row.genres);
 
     return {

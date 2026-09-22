@@ -3,7 +3,7 @@ export const TOP_PICK_CATEGORY_IDS = [1, 2] as const;
 export type TopPickCategoryId = (typeof TOP_PICK_CATEGORY_IDS)[number];
 
 export const TOP_PICK_CATEGORY_KEYS = {
-  1: "cinema",
+  1: "movie",
   2: "serial",
 } as const;
 

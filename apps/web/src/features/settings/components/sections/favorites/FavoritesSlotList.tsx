@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { getPosterUrl } from "@/features/movies/components/utils";
 import type { TopPickCategoryKey, TopPickSlot } from "./models";
 
 type FavoritesSlotListProps = {
@@ -45,7 +45,7 @@ export const FavoritesSlotList = ({
             ) : null}
 
             <span className={"text-sm " + (slot ? "text-foreground" : "settings-shell-muted")}>
-              {slot?.title ?? `${category === "cinema" ? "Cinema" : "Serial"} #${index + 1}`}
+              {slot?.title ?? `${category === "movie" ? "Movie" : "Serial"} #${index + 1}`}
             </span>
           </button>
 

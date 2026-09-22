@@ -153,10 +153,10 @@ export const createDiaryEntryResponseSchema = z
   .passthrough();
 
 export const userStatsSchema = z.object({
-  filmEntryCount: z.number().int().nonnegative(),
+  movieEntryCount: z.number().int().nonnegative(),
   serialEntryCount: z.number().int().nonnegative().optional(),
   reviewCount: z.number().int().nonnegative(),
-  filmCount: z.number().int().nonnegative().optional(),
+  movieCount: z.number().int().nonnegative().optional(),
   listCount: z.number().int().nonnegative().optional(),
   followerCount: z.number().int().nonnegative().optional(),
   followingCount: z.number().int().nonnegative().optional(),
@@ -168,7 +168,7 @@ export const topPickCategoryIdSchema = z.union([
 ]);
 
 export const topPickCategoryKeySchema = z.enum([
-  "cinema",
+  "movie",
   "serial",
 ]);
 

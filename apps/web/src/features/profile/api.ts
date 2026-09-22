@@ -114,7 +114,7 @@ export const getUserReviews = async (
   return userReviewListSchema.parse(response);
 };
 
-export const getUserLikedFilms = async (
+export const getUserLikedMovies = async (
   username: string,
   limit: number,
   offset: number,

@@ -1,0 +1,115 @@
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
+import { SpaceRatingDisplay } from "@/features/movies/components/SpaceRating";
+import { formatRatingLabel } from "@/lib/rating";
+import { useMovieLogs } from "@/features/movies/hooks/useMovies";
+import { formatDateOnlyLabel } from "@/lib/time";
+
+type MovieLogsProps = {
+  tmdbId: number;
+};
+
+const formatDate = (value: string | null): string => {
+  if (!value) {
+    return "Unknown";
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return parsed.toLocaleDateString();
+};
+
+// watchedDate is a date-only value ("YYYY-MM-DD") with no timezone, unlike
+// createdAt above which is a full instant - formatDateOnlyLabel parses it as
+// local midnight so it doesn't shift a day for viewers west of UTC. Empty
+// options match formatDate's bare toLocaleDateString() output.
+const formatWatchedDate = (value: string | null): string =>
+  value ? formatDateOnlyLabel(value, {}) : "Unknown";
+
+export const MovieLogs = ({ tmdbId }: MovieLogsProps) => {
+  const logsQuery = useMovieLogs(tmdbId, tmdbId > 0);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Community logs</CardTitle>
+      </CardHeader>
+
+      <CardContent className="space-y-3">
+        {logsQuery.isPending ? (
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Spinner /> Loading logs...
+          </p>
+        ) : null}
+
+        {logsQuery.isError ? (
+          <p className="text-sm text-destructive">Could not load movie logs.</p>
+        ) : null}
+
+        {!logsQuery.isPending && !logsQuery.isError && (logsQuery.data?.length ?? 0) === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No one has logged this movie yet.
+          </p>
+        ) : null}
+
+        <div className="space-y-3">
+          {logsQuery.data?.map((log) => (
+            <div
+              key={log.diaryEntryId}
+              className="space-y-2  border border-border/70 bg-secondary/20 p-3 sm:p-3.5"
+            >
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex min-w-0 items-center gap-2">
+                  <img
+                    src={
+                      log.avatarUrl ||
+                      "https://placehold.co/80x80/1b2140/cfd7ff?text=User"
+                    }
+                    alt={`${log.username} avatar`}
+                    className="h-8 w-8  border border-border object-cover"
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-foreground">@{log.username}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Watched {formatWatchedDate(log.watchedDate)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {log.rating !== null ? (
+                    <span className="inline-flex items-center gap-1  border border-border/65 bg-secondary/40 px-2 py-1 text-xs text-foreground">
+                      <SpaceRatingDisplay
+                        rating={log.rating}
+                        size="sm"
+                      />
+                      <span>{formatRatingLabel(log.rating)}</span>
+                    </span>
+                  ) : null}
+                  {log.rewatch ? <Badge variant="primary">Rewatch</Badge> : null}
+                </div>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                Logged on {formatDate(log.createdAt)}
+              </p>
+
+              {log.reviewContent ? (
+                <div className="space-y-1  bg-background/40 p-2">
+                  {log.reviewContainsSpoilers ? (
+                    <Badge variant="default">Spoilers</Badge>
+                  ) : null}
+                  <p className="text-sm text-foreground">{log.reviewContent}</p>
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};

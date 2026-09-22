@@ -24,7 +24,7 @@ router.get("/:username/likes", asyncHandler(PublicController.getLikes));
 router.get("/:username/watchlist", asyncHandler(PublicController.getWatchlist));
 router.get("/:username/diary", asyncHandler(PublicController.getDiary));
 router.get("/:username/top4", asyncHandler(PublicController.getTop4));
-router.get("/:username/movies/watched", asyncHandler(PublicController.getWatchedFilms));
+router.get("/:username/movies/watched", asyncHandler(PublicController.getWatchedMovies));
 // Must be registered before the :tmdbId route below — Express matches in
 // registration order, and :tmdbId would otherwise swallow this literal path.
 router.get(

@@ -4,7 +4,7 @@ A social movie journal app inspired by Letterboxd + timeline-style social apps.
 
 - Log watches with dates, ratings, rewatches, and optional reviews
 - Follow people and browse a personalized activity feed
-- Browse a cinema archive with genre/language/time/sort filters
+- Browse a movie archive with genre/language/time/sort filters
 - Explore public profile pages, stats, lists, likes, and watchlists
 - Power external widgets through a small public API (`https://api.interis.gorkemkaryol.dev/api/public/*`)
 
@@ -209,7 +209,7 @@ for environment variable setup and first-time configuration.
 - **Separate models**: Diary entries (watch logs) and reviews are modeled separately by design.
 - **Read-optimized profiles**: Public profile routes are optimized for read-heavy usage and widget integration.
 - **Route-driven frontend**: Frontend is route-driven and feature-oriented, with route-level error boundaries for major layouts.
-- **API decomposition**: Film/serial frontend APIs are split into `api/{schemas,types,mappers,requests}` submodules behind stable feature barrels.
+- **API decomposition**: Movie/serial frontend APIs are split into `api/{schemas,types,mappers,requests}` submodules behind stable feature barrels.
 - **DTO normalization**: Backend query parsing is schema-first with explicit default/clamp normalization.
 - **Architecture enforcement**: Frontend lint rules and backend `bun run lint:arch` checks prevent large monolith files, cross-layer imports, and reintroduction of removed transitional wrappers.
 - **Performance-first**: scoped cache invalidation, paginated list endpoints, batched queries (no N+1), and cached external API reads are enforced conventions — see CONTRIBUTING.md's [Performance conventions](CONTRIBUTING.md#performance-conventions) and the `/performance-check` skill.

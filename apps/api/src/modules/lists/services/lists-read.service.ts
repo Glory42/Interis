@@ -53,7 +53,7 @@ export class ListsReadService {
       let movieId: number | null = null;
       let tvSeriesId: number | null = null;
 
-      if (checkItemType === "cinema") {
+      if (checkItemType === "movie") {
         const movie = await MoviesCacheService.findOrCreate(checkTmdbId).catch(() => null);
         movieId = movie?.id ?? null;
       } else if (checkItemType === "serial") {
@@ -112,7 +112,7 @@ export class ListsReadService {
     ]);
 
     const items = itemRows.map((row) => {
-      if (row.itemType === "cinema") {
+      if (row.itemType === "movie") {
         return {
           id: row.id,
           position: row.position,

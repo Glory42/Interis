@@ -8,7 +8,7 @@ import {
   interactionKeys,
   useUpdateMovieInteraction,
 } from "@/features/interactions/hooks/useInteractions";
-import { movieKeys } from "@/features/films/hooks/useMovies";
+import { movieKeys } from "@/features/movies/hooks/useMovies";
 import type { MovieInteraction } from "@/features/interactions/api";
 
 const createTestQueryClient = (): QueryClient =>

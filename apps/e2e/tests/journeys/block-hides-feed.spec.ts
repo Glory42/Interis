@@ -27,7 +27,7 @@ test("blocking a user removes their activity from your feed", async ({ browser }
     });
 
     await test.step("user B logs a movie", async () => {
-      await pageB.goto(`/cinema/${KNOWN_MOVIE_TMDB_ID}`);
+      await pageB.goto(`/movies/${KNOWN_MOVIE_TMDB_ID}`);
       await expect(pageB.getByRole("heading", { name: KNOWN_MOVIE_TITLE })).toBeVisible({
         timeout: 15_000,
       });

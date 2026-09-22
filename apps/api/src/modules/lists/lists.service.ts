@@ -42,7 +42,7 @@ export class ListsService {
     listId: string,
     userId: string,
     tmdbId: number,
-    itemType: "cinema" | "serial",
+    itemType: "movie" | "serial",
   ) {
     return ListsWriteService.addItem(listId, userId, tmdbId, itemType);
   }

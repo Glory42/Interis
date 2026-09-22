@@ -16,7 +16,7 @@ export const UpdateListSchema = z.object({
 
 export const AddListItemSchema = z.object({
   tmdbId: z.number().int().positive(),
-  itemType: z.enum(["cinema", "serial"]),
+  itemType: z.enum(["movie", "serial"]),
 });
 
 export const ReorderListItemsSchema = z.object({
@@ -32,7 +32,7 @@ export const ReorderListItemsSchema = z.object({
 
 export const GetUserListsQuerySchema = z.object({
   tmdbId: z.coerce.number().int().positive().optional(),
-  itemType: z.enum(["cinema", "serial"]).optional(),
+  itemType: z.enum(["movie", "serial"]).optional(),
 });
 
 export type CreateListDto = z.infer<typeof CreateListSchema>;

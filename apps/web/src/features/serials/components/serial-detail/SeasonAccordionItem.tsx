@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { SerialDetailResponse } from "@/features/serials/api";
 import { getPosterUrl } from "@/features/serials/components/utils";
@@ -13,8 +13,9 @@ import {
   useUpsertEpisodeReview,
   useDeleteEpisodeReview,
 } from "@/features/serials/hooks/useSerials";
-import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
+import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
 import { useReviewDraftSync } from "@/features/serials/hooks/serials/use-review-draft-sync";
+import { useReviewSubmission } from "@/features/serials/hooks/serials/use-review-submission";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { LogMediaDialog } from "@/features/diary/components/log-media/LogMediaDialog";
 import { SeasonHeaderRow } from "@/features/serials/components/serial-detail/SeasonHeaderRow";
@@ -50,9 +51,6 @@ export const SeasonAccordionItem = ({
     episodeName: string;
   } | null>(null);
 
-  const [seasonFormError, setSeasonFormError] = useState<string | null>(null);
-  const [episodeFormError, setEpisodeFormError] = useState<string | null>(null);
-
   const seasonReviewQuery = useSeasonReview(
     tmdbId,
     season.seasonNumber,
@@ -78,6 +76,26 @@ export const SeasonAccordionItem = ({
 
   const seasonDraft = useReviewDraftSync(seasonReviewQuery.data);
   const episodeDraft = useReviewDraftSync(episodeReviewQuery.data);
+
+  const seasonReviewSubmission = useReviewSubmission({
+    draft: seasonDraft,
+    upsertReview: (input) => upsertSeasonReviewMutation.mutateAsync(input),
+    deleteReview: () => deleteSeasonReviewMutation.mutateAsync(),
+    onClose: () => {
+      setActiveReviewModal(null);
+      seasonDraft.reset();
+    },
+  });
+
+  const episodeReviewSubmission = useReviewSubmission({
+    draft: episodeDraft,
+    upsertReview: (input) => upsertEpisodeReviewMutation.mutateAsync(input),
+    deleteReview: () => deleteEpisodeReviewMutation.mutateAsync(),
+    onClose: () => {
+      setActiveReviewModal(null);
+      episodeDraft.reset();
+    },
+  });
 
   const handleSeasonWatchedChange = (nextWatched: boolean) => {
     updateSeasonInteractionMutation.mutate({
@@ -121,31 +139,6 @@ export const SeasonAccordionItem = ({
     }, 500);
   };
 
-  const handleSeasonReviewSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!seasonDraft.content.trim()) {
-      setSeasonFormError("Please write a review before saving.");
-      return;
-    }
-    setSeasonFormError(null);
-    try {
-      await upsertSeasonReviewMutation.mutateAsync({
-        content: seasonDraft.content.trim(),
-        containsSpoilers: seasonDraft.containsSpoilers,
-      });
-      setActiveReviewModal(null);
-      seasonDraft.reset();
-    } catch {
-      setSeasonFormError("Failed to save the review. Please try again.");
-    }
-  };
-
-  const handleSeasonReviewDelete = async () => {
-    await deleteSeasonReviewMutation.mutateAsync();
-    setActiveReviewModal(null);
-    seasonDraft.reset();
-  };
-
   const handleEpisodeWatchedChange = (episodeNumber: number, nextWatched: boolean) => {
     updateEpisodeInteractionMutation.mutate({
       episodeNumber,
@@ -176,33 +169,6 @@ export const SeasonAccordionItem = ({
         input: { rating: nextRating },
       });
     }, 500);
-  };
-
-  const handleEpisodeReviewSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (activeReviewModal?.type !== "episode") return;
-    if (!episodeDraft.content.trim()) {
-      setEpisodeFormError("Please write a review before saving.");
-      return;
-    }
-    setEpisodeFormError(null);
-    try {
-      await upsertEpisodeReviewMutation.mutateAsync({
-        content: episodeDraft.content.trim(),
-        containsSpoilers: episodeDraft.containsSpoilers,
-      });
-      setActiveReviewModal(null);
-      episodeDraft.reset();
-    } catch {
-      setEpisodeFormError("Failed to save the review. Please try again.");
-    }
-  };
-
-  const handleEpisodeReviewDelete = async () => {
-    if (activeReviewModal?.type !== "episode") return;
-    await deleteEpisodeReviewMutation.mutateAsync();
-    setActiveReviewModal(null);
-    episodeDraft.reset();
   };
 
   const seasonWatched = season.viewerInteraction?.watched ?? false;
@@ -307,15 +273,11 @@ export const SeasonAccordionItem = ({
           watched={seasonWatched}
           onWatchedChange={handleSeasonWatchedChange}
           isSubmitting={upsertSeasonReviewMutation.isPending || deleteSeasonReviewMutation.isPending}
-          onClose={() => {
-            setActiveReviewModal(null);
-            setSeasonFormError(null);
-            seasonDraft.reset();
-          }}
-          onSubmit={handleSeasonReviewSubmit}
-          onDelete={seasonReviewQuery.data?.content ? handleSeasonReviewDelete : undefined}
+          onClose={seasonReviewSubmission.close}
+          onSubmit={seasonReviewSubmission.handleSubmit}
+          onDelete={seasonReviewQuery.data?.content ? seasonReviewSubmission.handleDelete : undefined}
           submitLabel="Save"
-          formError={seasonFormError}
+          formError={seasonReviewSubmission.formError}
           reviewMaxLength={10000}
           reviewPlaceholder="Share your thoughts about this season..."
         />,
@@ -345,15 +307,11 @@ export const SeasonAccordionItem = ({
             watched={epWatched}
             onWatchedChange={(nextWatched) => handleEpisodeWatchedChange(activeReviewModal.episodeNumber, nextWatched)}
             isSubmitting={upsertEpisodeReviewMutation.isPending || deleteEpisodeReviewMutation.isPending}
-            onClose={() => {
-              setActiveReviewModal(null);
-              setEpisodeFormError(null);
-              episodeDraft.reset();
-            }}
-            onSubmit={handleEpisodeReviewSubmit}
-            onDelete={episodeReviewQuery.data?.content ? handleEpisodeReviewDelete : undefined}
+            onClose={episodeReviewSubmission.close}
+            onSubmit={episodeReviewSubmission.handleSubmit}
+            onDelete={episodeReviewQuery.data?.content ? episodeReviewSubmission.handleDelete : undefined}
             submitLabel="Save"
-            formError={episodeFormError}
+            formError={episodeReviewSubmission.formError}
             reviewMaxLength={10000}
             reviewPlaceholder="Share your thoughts about this episode..."
           />,

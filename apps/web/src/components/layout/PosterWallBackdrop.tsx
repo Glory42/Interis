@@ -1,4 +1,4 @@
-import { getPosterUrl } from "@/features/films/components/utils";
+import { getPosterUrl } from "@/features/movies/components/utils";
 import { cn } from "@/lib/utils";
 
 type PosterWallBackdropProps = {

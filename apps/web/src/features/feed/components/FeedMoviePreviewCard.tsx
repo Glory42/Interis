@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { getPosterUrl } from "@/features/movies/components/utils";
 import { cn } from "@/lib/utils";
 
 type FeedMoviePreviewCardProps = {
-  to: "/cinema/$tmdbId" | "/serials/$tmdbId";
+  to: "/movies/$tmdbId" | "/serials/$tmdbId";
   tmdbId: number;
   title: string;
   releaseYear: number | null;
@@ -16,7 +16,7 @@ type FeedMoviePreviewCardProps = {
 
 // Shared "attached media" card used by every feed card tier so a review, a
 // post, and a plain timeline entry all reference a movie/show the same way
-// (poster + title + year, thin accent edge for cinema/serial).
+// (poster + title + year, thin accent edge for movie/serial).
 export const FeedMoviePreviewCard = ({
   to,
   tmdbId,

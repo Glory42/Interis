@@ -1,5 +1,5 @@
 import { ArrowRight } from "lucide-react";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { getPosterUrl } from "@/features/movies/components/utils";
 import { cn } from "@/lib/utils";
 import { toYear } from "./mappers";
 import type { SearchResultEntry } from "./types";
@@ -73,8 +73,8 @@ export const SearchResultRow = ({
     );
   }
 
-  const isCinema = entry.kind === "cinema";
-  const year = isCinema ? toYear(entry.releaseDate) : toYear(entry.firstAirDate);
+  const isMovie = entry.kind === "movie";
+  const year = isMovie ? toYear(entry.releaseDate) : toYear(entry.firstAirDate);
 
   return (
     <li>
@@ -104,7 +104,7 @@ export const SearchResultRow = ({
             {entry.title}
           </span>
           <span className="block font-mono text-[10px] text-muted-foreground/85">
-            {isCinema ? "Cinema" : "Serials"}
+            {isMovie ? "Movie" : "Serials"}
             {year ? ` · ${year}` : ""}
           </span>
         </span>

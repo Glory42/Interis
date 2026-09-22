@@ -1,7 +1,7 @@
 import { Heart, MessageSquare } from "lucide-react";
 import type { SerialSeasonDetailResponse } from "@/features/serials/api";
 import { getStillUrl } from "@/features/serials/components/utils";
-import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
+import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
 import { toDateLabel, toEpisodeCodeLabel } from "@/features/serials/components/serial-detail/utils";
 import { RatingSelect } from "@/features/serials/components/serial-detail/RatingSelect";
 

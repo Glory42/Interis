@@ -1,7 +1,7 @@
 import type { PersonRouteRole } from "@/features/people/shared";
 
 export const getPersonModuleStyles = (role: PersonRouteRole) => {
-  const accent = role === "director" ? "var(--module-serial)" : "var(--module-cinema)";
+  const accent = role === "director" ? "var(--module-serial)" : "var(--module-movie)";
 
   return {
     accent,

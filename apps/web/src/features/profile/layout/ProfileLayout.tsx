@@ -197,7 +197,7 @@ export const ProfileLayout = ({
     </Link>
   );
 
-  const entryCount = (profile.stats?.filmEntryCount ?? 0) + (profile.stats?.serialEntryCount ?? 0);
+  const entryCount = (profile.stats?.movieEntryCount ?? 0) + (profile.stats?.serialEntryCount ?? 0);
   const followerCount = profile.stats?.followerCount ?? 0;
   const followingCount = profile.stats?.followingCount ?? 0;
   const reviewCount = profile.stats?.reviewCount ?? 0;

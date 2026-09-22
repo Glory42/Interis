@@ -3,9 +3,9 @@ export const deriveListType = (itemTypes: string[]): string | null => {
     return null;
   }
 
-  const allCinema = itemTypes.every((t) => t === "cinema");
-  if (allCinema) {
-    return "cinema";
+  const allMovie = itemTypes.every((t) => t === "movie");
+  if (allMovie) {
+    return "movie";
   }
 
   const allSerial = itemTypes.every((t) => t === "serial");

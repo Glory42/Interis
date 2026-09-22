@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
-import * as RealCinemas from "../../../src/infrastructure/tmdb/cinemas";
+import * as RealMovies from "../../../src/infrastructure/tmdb/movies";
 import * as RealMoviesRepositoryModule from "../../../src/modules/movies/repositories/movies.repository";
 
 const getMovieDetailsMock = mock(() => Promise.resolve<unknown>(null));
@@ -12,8 +12,8 @@ const upsertCachedMovieMock = mock(() => Promise.resolve<unknown>(null));
 // other files import other named exports (e.g. searchMovieByTitleAndYear)
 // from these same module paths. A bare replacement here would silently
 // break them.
-mock.module("../../../src/infrastructure/tmdb/cinemas", () => ({
-  ...RealCinemas,
+mock.module("../../../src/infrastructure/tmdb/movies", () => ({
+  ...RealMovies,
   getMovieDetails: getMovieDetailsMock,
   getMovieDirector: getMovieDirectorMock,
 }));

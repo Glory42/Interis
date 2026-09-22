@@ -1,12 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { getPosterUrl } from "@/features/movies/components/utils";
 import type { TrendingMovie } from "@/features/feed/types";
 import type { TrendingSeries } from "@/features/serials/api";
 
 type TrendingNowRailProps = {
-  cinemaIsLoading: boolean;
-  cinemaIsError: boolean;
-  cinemaItems: TrendingMovie[];
+  movieIsLoading: boolean;
+  movieIsError: boolean;
+  movieItems: TrendingMovie[];
   serialsIsLoading: boolean;
   serialsIsError: boolean;
   serialsItems: TrendingSeries[];
@@ -15,7 +15,7 @@ type TrendingNowRailProps = {
 type RailEntry = {
   id: string;
   title: string;
-  to: "/cinema/$tmdbId" | "/serials/$tmdbId";
+  to: "/movies/$tmdbId" | "/serials/$tmdbId";
   tmdbId: number;
   posterPath: string | null;
 };
@@ -108,17 +108,17 @@ const TrendingSection = ({
 );
 
 export const TrendingNowRail = ({
-  cinemaIsLoading,
-  cinemaIsError,
-  cinemaItems,
+  movieIsLoading,
+  movieIsError,
+  movieItems,
   serialsIsLoading,
   serialsIsError,
   serialsItems,
 }: TrendingNowRailProps) => {
-  const movieEntries: RailEntry[] = cinemaItems.slice(0, RAIL_LENGTH).map((item) => ({
-    id: `cinema-${item.tmdbId}`,
+  const movieEntries: RailEntry[] = movieItems.slice(0, RAIL_LENGTH).map((item) => ({
+    id: `movie-${item.tmdbId}`,
     title: item.title,
-    to: "/cinema/$tmdbId",
+    to: "/movies/$tmdbId",
     tmdbId: item.tmdbId,
     posterPath: item.posterPath,
   }));
@@ -135,9 +135,9 @@ export const TrendingNowRail = ({
     <div className="space-y-3">
       <TrendingSection
         label="Trending movies"
-        accentColor="var(--module-cinema)"
-        isLoading={cinemaIsLoading}
-        isError={cinemaIsError}
+        accentColor="var(--module-movie)"
+        isLoading={movieIsLoading}
+        isError={movieIsError}
         entries={movieEntries}
         emptyLabel="No trending movies yet."
       />

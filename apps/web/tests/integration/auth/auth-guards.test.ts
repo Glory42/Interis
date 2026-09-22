@@ -69,7 +69,7 @@ describe("auth guards", () => {
 
     await expect(requireGuestUser(queryClient)).rejects.toMatchObject({
       options: {
-        to: "/cinema",
+        to: "/movies",
       },
     });
   });

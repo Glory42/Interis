@@ -54,7 +54,7 @@ export const listEntries = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [
-    uniqueIndex("le_cinema_unique")
+    uniqueIndex("le_movie_unique")
       .on(table.listId, table.movieId)
       .where(sql`movie_id IS NOT NULL`),
     uniqueIndex("le_serial_unique")

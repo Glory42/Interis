@@ -37,20 +37,20 @@ export const GlobalSearchDialog = ({
     onOpenChange(false);
   };
 
-  const openCinema = (tmdbId: number) => {
+  const openMovie = (tmdbId: number) => {
     closeDialog();
 
     void navigateWithViewTransitionFallback(
       () =>
         navigate({
-          to: "/cinema/$tmdbId",
+          to: "/movies/$tmdbId",
           params: { tmdbId: String(tmdbId) },
           viewTransition: true,
           startTransition: true,
         }),
       () =>
         navigate({
-          to: "/cinema/$tmdbId",
+          to: "/movies/$tmdbId",
           params: { tmdbId: String(tmdbId) },
         }),
     );
@@ -154,7 +154,7 @@ export const GlobalSearchDialog = ({
         return;
       }
 
-      openSearchEntry(selectedEntry, { openCinema, openSerial, openUser });
+      openSearchEntry(selectedEntry, { openMovie, openSerial, openUser });
     }
   };
 
@@ -165,7 +165,7 @@ export const GlobalSearchDialog = ({
   const currentPlaceholder =
     state.isScopedMode && state.scopedTarget
       ? scopedPlaceholder[state.scopedTarget]
-      : "Search users, cinema, serials...";
+      : "Search users, movie, serials...";
 
   return (
     <ModalShell
@@ -261,7 +261,7 @@ export const GlobalSearchDialog = ({
               effectiveHighlightedIndex={state.effectiveHighlightedIndex}
               onHoverIndex={state.setHighlightedIndex}
               onSelectEntry={(entry) => {
-                openSearchEntry(entry, { openCinema, openSerial, openUser });
+                openSearchEntry(entry, { openMovie, openSerial, openUser });
               }}
               onEnterScope={(target) => {
                 state.enterScopedMode(target);

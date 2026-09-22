@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { apiRequest } from "@/lib/api-client";
-import type { QueryRequestOptions } from "@/features/films/api";
+import type { QueryRequestOptions } from "@/features/movies/api";
 import { mediaTypeSchema } from "@/types/api";
 
 export const unifiedSearchResultSchema = z.object({

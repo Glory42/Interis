@@ -1,9 +1,7 @@
 import type { SerialDetailResponse, SerialDetailReviewSort } from "@/features/serials/api";
-import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-detail/styles";
-import { formatRelativeTime } from "@/features/serials/components/serial-detail/utils";
+import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
 import { useSeriesReviewsLoadMore } from "@/features/serials/hooks/useSerials";
-import { MediaReviewCard } from "@/features/media-archive/components/MediaReviewCard";
-import { MediaReviewsEmptyState } from "@/features/media-archive/components/MediaReviewsEmptyState";
+import { MediaReviewsSection } from "@/features/media/detail/MediaReviewsSection";
 
 type SerialReviewsSectionProps = {
   tmdbId: number;
@@ -39,118 +37,41 @@ export const SerialReviewsSection = ({
     reviewsLimit,
     reviewsHasMore,
   );
-  const allReviews = [...reviews, ...extraItems];
+
+  const contextByReviewId = new Map(
+    [...reviews, ...extraItems].map((review) => [review.id, formatReviewContextLabel(review.context)]),
+  );
 
   return (
-    <section className="mt-10">
-      <div
-        className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b pb-4"
-        style={{ borderColor: SERIAL_MODULE_STYLES.borderSoft }}
-      >
-        <h2
-          className="font-mono text-lg font-bold"
-          style={{ color: SERIAL_MODULE_STYLES.text }}
-        >
-          Reviews
-        </h2>
+    <MediaReviewsSection
+      moduleStyles={SERIAL_MODULE_STYLES}
+      emptyMessage="No reviews yet for this series."
+      reviewsSort={reviewsSort}
+      onSortChange={onSortChange}
+      reviews={reviews}
+      extraItems={extraItems}
+      isLoadingMore={isLoading}
+      hasMore={hasMore}
+      onLoadMore={() => void loadMore()}
+      renderContextLabel={(review) => {
+        const label = contextByReviewId.get(review.id);
+        if (!label) {
+          return undefined;
+        }
 
-        <div className="flex gap-2">
-          <button
-            type="button"
-            className="rounded-full border px-3 py-1.5 font-mono text-[10px] transition-all"
-            style={{
-              borderColor:
-                reviewsSort === "popular"
-                  ? SERIAL_MODULE_STYLES.accent
-                  : SERIAL_MODULE_STYLES.borderSoft,
-              color:
-                reviewsSort === "popular"
-                  ? SERIAL_MODULE_STYLES.accent
-                  : SERIAL_MODULE_STYLES.faint,
-              background:
-                reviewsSort === "popular"
-                  ? "color-mix(in srgb, var(--module-serial) 8%, transparent)"
-                  : "transparent",
-            }}
-            onClick={() => onSortChange("popular")}
-          >
-            Popular
-          </button>
-
-          <button
-            type="button"
-            className="rounded-full border px-3 py-1.5 font-mono text-[10px] transition-all"
-            style={{
-              borderColor:
-                reviewsSort === "recent"
-                  ? SERIAL_MODULE_STYLES.accent
-                  : SERIAL_MODULE_STYLES.borderSoft,
-              color:
-                reviewsSort === "recent"
-                  ? SERIAL_MODULE_STYLES.accent
-                  : SERIAL_MODULE_STYLES.faint,
-              background:
-                reviewsSort === "recent"
-                  ? "color-mix(in srgb, var(--module-serial) 8%, transparent)"
-                  : "transparent",
-            }}
-            onClick={() => onSortChange("recent")}
-          >
-            Recent
-          </button>
-        </div>
-      </div>
-
-      {allReviews.length === 0 ? (
-        <MediaReviewsEmptyState
-          message="No reviews yet for this series."
-          moduleStyles={SERIAL_MODULE_STYLES}
-        />
-      ) : (
-        <div className="space-y-4">
-          {allReviews.map((review) => (
-            <MediaReviewCard
-              key={review.id}
-              review={review}
-              moduleStyles={SERIAL_MODULE_STYLES}
-              formatRelativeTime={formatRelativeTime}
-              renderContextLabel={
-                formatReviewContextLabel(review.context)
-                  ? () => (
-                      <span
-                        className="inline-flex items-center rounded-full border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em]"
-                        style={{
-                          borderColor: SERIAL_MODULE_STYLES.borderSoft,
-                          color: SERIAL_MODULE_STYLES.faint,
-                          background: SERIAL_MODULE_STYLES.panelElevated,
-                        }}
-                      >
-                        {formatReviewContextLabel(review.context)}
-                      </span>
-                    )
-                  : undefined
-              }
-            />
-          ))}
-        </div>
-      )}
-
-      {hasMore && (
-        <div className="mt-5 flex justify-center">
-          <button
-            type="button"
-            className="rounded-full border px-4 py-1.5 font-mono text-[10px] transition-all disabled:opacity-50"
+        return (
+          <span
+            className="inline-flex items-center rounded-full border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em]"
             style={{
               borderColor: SERIAL_MODULE_STYLES.borderSoft,
               color: SERIAL_MODULE_STYLES.faint,
+              background: SERIAL_MODULE_STYLES.panelElevated,
             }}
-            onClick={() => void loadMore()}
-            disabled={isLoading}
           >
-            {isLoading ? "Loading..." : "Load more reviews"}
-          </button>
-        </div>
-      )}
-    </section>
+            {label}
+          </span>
+        );
+      }}
+    />
   );
 };

@@ -38,7 +38,7 @@ None.
   "stats": {
     "entryCount": 120,
     "reviewCount": 42,
-    "filmCount": 95,
+    "movieCount": 95,
     "listCount": 8,
     "followerCount": 15,
     "followingCount": 21

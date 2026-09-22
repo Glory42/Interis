@@ -3,7 +3,7 @@ import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ModalShell } from "@/components/ui/ModalShell";
 import { Spinner } from "@/components/ui/spinner";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { getPosterUrl } from "@/features/movies/components/utils";
 import { useSerialSearch } from "@/features/serials/hooks/useSerials";
 import type { TmdbSearchSeries } from "@/features/serials/api";
 

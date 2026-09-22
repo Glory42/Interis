@@ -76,13 +76,13 @@ export class PublicService {
     return allReviews.slice(0, limit);
   }
 
-  static async getWatchedFilms(username: string, limit = 50) {
+  static async getWatchedMovies(username: string, limit = 50) {
     const userId = await PublicService.findUserIdByUsername(username);
     if (!userId) {
       return null;
     }
 
-    const watched = await UsersService.getWatchedFilms(userId, limit);
+    const watched = await UsersService.getWatchedMovies(userId, limit);
     return watched.slice(0, limit);
   }
 
@@ -102,7 +102,7 @@ export class PublicService {
       return null;
     }
 
-    const likes = await UsersService.getLikedFilms(userId, limit);
+    const likes = await UsersService.getLikedMovies(userId, limit);
     return likes.slice(0, limit);
   }
 
@@ -112,7 +112,7 @@ export class PublicService {
       return null;
     }
 
-    const watchlist = await UsersService.getWatchlistedFilms(userId, limit);
+    const watchlist = await UsersService.getWatchlistedMovies(userId, limit);
     return watchlist.slice(0, limit);
   }
 

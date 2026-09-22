@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 export type PrimaryNavItem = {
-  to: "/" | "/cinema" | "/serials";
+  to: "/" | "/movies" | "/serials";
   label: string;
   icon: LucideIcon;
   exact?: boolean;
@@ -22,10 +22,10 @@ export const primaryNavItems: PrimaryNavItem[] = [
     activeColor: "var(--foreground)",
   },
   {
-    to: "/cinema",
-    label: "CINEMA",
+    to: "/movies",
+    label: "MOVIE",
     icon: Film,
-    activeColor: "var(--module-cinema)",
+    activeColor: "var(--module-movie)",
   },
   {
     to: "/serials",

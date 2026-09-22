@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Film, Tv } from "lucide-react";
 import { useState } from "react";
-import { getPosterUrl } from "@/features/films/components/utils";
+import { getPosterUrl } from "@/features/movies/components/utils";
 import { getRelativeTime } from "@/features/profile/utils/profile.utils";
 import type { ProfileRecentActivityItem } from "./profileOverview.utils";
 
@@ -18,7 +18,7 @@ const formatActionLabel = (action: ProfileRecentActivityItem["actionLabel"]): st
 const ActivityThumbnail = ({ item }: { item: ProfileRecentActivityItem }) => {
   const [didPosterFail, setDidPosterFail] = useState(false);
   const isSerial = item.mediaType === "tv";
-  const accentColor = isSerial ? "var(--module-serial)" : "var(--module-cinema)";
+  const accentColor = isSerial ? "var(--module-serial)" : "var(--module-movie)";
   const Icon = isSerial ? Tv : Film;
   const posterUrl = item.posterPath ? getPosterUrl(item.posterPath) : null;
   const showPoster = Boolean(posterUrl && !didPosterFail);
@@ -81,8 +81,8 @@ export const ProfileRecentActivitySection = ({
           const isSerial = item.mediaType === "tv";
           const accentColor = isSerial
             ? "var(--module-serial)"
-            : "var(--module-cinema)";
-          const mediaLabel = isSerial ? "Serial" : "Cinema";
+            : "var(--module-movie)";
+          const mediaLabel = isSerial ? "Serial" : "Movie";
 
           const rowInner = (
             <>
@@ -138,7 +138,7 @@ export const ProfileRecentActivitySection = ({
           ) : (
             <Link
               key={item.id}
-              to="/cinema/$tmdbId"
+              to="/movies/$tmdbId"
               params={{ tmdbId: String(item.tmdbId) }}
               className="flex items-center gap-4 border-b py-3 transition-colors hover:bg-background/25 profile-shell-row-border"
               viewTransition

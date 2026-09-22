@@ -51,7 +51,7 @@ describe("list reorder + likes", () => {
         {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ tmdbId, itemType: "cinema" }),
+          body: JSON.stringify({ tmdbId, itemType: "movie" }),
         },
         owner.jar,
       );

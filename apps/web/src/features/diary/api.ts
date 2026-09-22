@@ -11,7 +11,7 @@ import {
 
 const diaryListSchema = z.array(diaryEntrySchema);
 
-export const getMyFilmLogs = async (): Promise<DiaryEntry[]> => {
+export const getMyMovieLogs = async (): Promise<DiaryEntry[]> => {
   const response = await apiRequest<unknown>("/api/diary", {
     method: "GET",
   });

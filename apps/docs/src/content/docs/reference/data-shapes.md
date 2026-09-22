@@ -14,14 +14,14 @@ Key fields:
 - `username`, `displayUsername`, `name`
 - `image`, `avatarUrl`, `bio`, `location`
 - `favoriteGenres[]`, `themeId`, `createdAt`
-- `stats` with `entryCount`, `reviewCount`, `filmCount`, `listCount`, `followerCount`, `followingCount`
+- `stats` with `entryCount`, `reviewCount`, `movieCount`, `listCount`, `followerCount`, `followingCount`
 
 ## Top 4 payload
 
 Returned by `/top4`.
 
 - `categories` array with category objects (`id`, `key`, `supported`, `items`)
-- Category keys are currently `cinema` and `serial`
+- Category keys are currently `movie` and `serial`
 - Each item has `slot`, `mediaType`, `mediaSource`, `mediaSourceId`, `entityId`, `tmdbId`, `title`, `posterPath`, `releaseYear`
 
 ## Feed item (`recent`, `activity`)
@@ -97,7 +97,7 @@ Key fields:
 - `runtime`, `genres`, `mediaType`
 - `lastInteractionAt`
 
-Note: `/likes` and `/watchlist` mix both `movie` and `tv` rows. `/movies/watched` uses this exact same row shape but is film-only. `/serials/watched` has a different, series-specific shape — see the Watched Serials payload section below.
+Note: `/likes` and `/watchlist` mix both `movie` and `tv` rows. `/movies/watched` uses this exact same row shape but is movie-only. `/serials/watched` has a different, series-specific shape — see the Watched Serials payload section below.
 
 ## List row (`/lists`)
 
@@ -140,7 +140,7 @@ An array of in-progress series, most recently watched first. Key fields per item
 
 ## Watched Movies payload (`/movies/watched`)
 
-Same row shape as [Interaction rows](#interaction-rows-likes-watchlist) above, but film-only (`mediaType` is always `"movie"`) and filtered to the movie interaction's `isWatched` flag rather than `liked`/`watchlisted`.
+Same row shape as [Interaction rows](#interaction-rows-likes-watchlist) above, but movie-only (`mediaType` is always `"movie"`) and filtered to the movie interaction's `isWatched` flag rather than `liked`/`watchlisted`.
 
 ## Watched Serials payload (`/serials/watched`)
 

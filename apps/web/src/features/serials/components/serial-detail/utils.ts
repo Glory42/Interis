@@ -1,7 +1,4 @@
-import {
-  formatDateOnlyLabel,
-  formatRelativeTime as formatRelativeTimeLabel,
-} from "@/lib/time";
+import { formatDateOnlyLabel } from "@/lib/time";
 
 // firstAirDate/lastAirDate/episode.airDate are all date-only TMDB values
 // ("YYYY-MM-DD") with no timezone.
@@ -11,10 +8,6 @@ export const toDateLabel = (value: string | null): string | null => {
   }
 
   return formatDateOnlyLabel(value);
-};
-
-export const formatRelativeTime = (value: string): string => {
-  return formatRelativeTimeLabel(value);
 };
 
 export const toEpisodeCodeLabel = (episodeNumber: number): string => {

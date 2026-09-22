@@ -7,7 +7,7 @@ import { server } from "../../../support/msw/server";
 import { diaryKeys, useCreateDiaryEntry } from "@/features/diary/hooks/useDiary";
 import { authKeys } from "@/features/auth/hooks/useAuth";
 import { feedKeys } from "@/features/feed/hooks/useFeed";
-import { movieKeys } from "@/features/films/hooks/useMovies";
+import { movieKeys } from "@/features/movies/hooks/useMovies";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import type { MeProfile, MovieLog } from "@/types/api";
 

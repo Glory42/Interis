@@ -1,13 +1,12 @@
 import {
   discoverMovies as tmdbDiscover,
-  getMovieDirector,
   getMovieGenres,
   getTrendingMoviesPage,
   type TMDBMovieGenre,
-} from "../../../../infrastructure/tmdb/cinemas";
+} from "../../../../infrastructure/tmdb/movies";
 import { toFeaturedMovie } from "../../helpers/movies-format.helper";
 import { MoviesRepository } from "../../repositories/movies.repository";
-import type { CinemaArchiveResponse } from "../../types/movies.types";
+import type { MovieArchiveResponse } from "../../types/movies.types";
 import {
   getArchivePeriodWindow,
   getTmdbMinVoteCountForPeriod,
@@ -18,14 +17,15 @@ import {
   getLocalArchiveAggregatesByTmdbIds,
   mapTmdbArchiveMovie,
 } from "./movies-archive-mapper.helper";
+import { enrichMissingDirectors } from "./movies-director-enricher.helper";
 
 const filterArchiveItemsByGenreAndLanguage = (
-  items: CinemaArchiveResponse["items"],
+  items: MovieArchiveResponse["items"],
   input: {
     selectedGenre: string | null;
     selectedLanguage: string | null;
   },
-): CinemaArchiveResponse["items"] => {
+): MovieArchiveResponse["items"] => {
   const selectedGenreLower = input.selectedGenre?.toLowerCase() ?? null;
   const selectedLanguageLower = input.selectedLanguage?.toLowerCase() ?? null;
 
@@ -42,50 +42,10 @@ const filterArchiveItemsByGenreAndLanguage = (
   });
 };
 
-const hydrateMissingDirectors = async (
-  items: CinemaArchiveResponse["items"],
-): Promise<CinemaArchiveResponse["items"]> => {
-  const missingDirectorItems = items.filter((item) => item.director === null);
-
-  if (missingDirectorItems.length === 0) {
-    return items;
-  }
-
-  const hydratedDirectors = await Promise.all(
-    missingDirectorItems.map(async (item) => {
-      const director = await getMovieDirector(item.tmdbId).catch(() => null);
-      if (!director) {
-        return null;
-      }
-
-      await MoviesRepository.updateDirectorByTmdbId(item.tmdbId, director).catch(
-        () => undefined,
-      );
-
-      return [item.tmdbId, director] as const;
-    }),
-  );
-
-  const hydratedDirectorByTmdbId = new Map<number, string>(
-    hydratedDirectors.filter(
-      (entry): entry is readonly [number, string] => entry !== null,
-    ),
-  );
-
-  if (hydratedDirectorByTmdbId.size === 0) {
-    return items;
-  }
-
-  return items.map((item) => ({
-    ...item,
-    director: hydratedDirectorByTmdbId.get(item.tmdbId) ?? item.director,
-  }));
-};
-
 const addViewerArchiveState = async (
   viewerUserId: string | null,
-  pageItems: CinemaArchiveResponse["items"],
-): Promise<CinemaArchiveResponse["items"]> => {
+  pageItems: MovieArchiveResponse["items"],
+): Promise<MovieArchiveResponse["items"]> => {
   if (!viewerUserId || pageItems.length === 0) {
     return pageItems;
   }
@@ -108,7 +68,7 @@ const addViewerArchiveState = async (
 
 export const getArchiveFromTmdbCatalog = async (
   input: MoviesArchiveQueryInput,
-): Promise<CinemaArchiveResponse> => {
+): Promise<MovieArchiveResponse> => {
   const availableTmdbGenres = await getMovieGenres();
   const genreById = new Map<number, TMDBMovieGenre>(
     availableTmdbGenres.map((genre) => [genre.id, genre]),
@@ -162,7 +122,7 @@ export const getArchiveFromTmdbCatalog = async (
     let tmdbTotalPages = 1;
     let tmdbTotalResults = 0;
 
-    const filteredTrendingItems: CinemaArchiveResponse["items"] = [];
+    const filteredTrendingItems: MovieArchiveResponse["items"] = [];
 
     while (tmdbPage <= tmdbTotalPages && filteredTrendingItems.length <= endIndex) {
       const trendingPage = await getTrendingMoviesPage("week", {
@@ -184,7 +144,7 @@ export const getArchiveFromTmdbCatalog = async (
         mapTmdbArchiveMovie(movie, genreById, localAggregateByTmdbId.get(movie.id)),
       );
 
-      const hydratedItems = await hydrateMissingDirectors(mappedItems);
+      const hydratedItems = await enrichMissingDirectors(mappedItems);
       const filteredItems = filterArchiveItemsByGenreAndLanguage(hydratedItems, {
         selectedGenre: matchedGenre?.name ?? null,
         selectedLanguage: input.selectedLanguage,
@@ -257,7 +217,7 @@ export const getArchiveFromTmdbCatalog = async (
     mapTmdbArchiveMovie(movie, genreById, localAggregateByTmdbId.get(movie.id)),
   );
 
-  const pageItemsWithDirector = await hydrateMissingDirectors(pageItems);
+  const pageItemsWithDirector = await enrichMissingDirectors(pageItems);
 
   const pageItemsWithViewerState = await addViewerArchiveState(
     input.viewerUserId,

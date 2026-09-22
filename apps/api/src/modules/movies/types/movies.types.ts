@@ -1,6 +1,6 @@
 import type {
-  CinemaArchivePeriod,
-  CinemaArchiveSort,
+  MovieArchivePeriod,
+  MovieArchiveSort,
   MovieDetailReviewSort,
 } from "../dto/movies.dto";
 import type { PersonLinkItem } from "../../people/types/people.types";
@@ -10,7 +10,7 @@ export type ArchiveGenre = {
   name: string;
 };
 
-export type CinemaArchiveItem = {
+export type MovieArchiveItem = {
   tmdbId: number;
   title: string;
   posterPath: string | null;
@@ -30,7 +30,7 @@ export type CinemaArchiveItem = {
   viewerWatchlisted: boolean;
 };
 
-export type CinemaArchiveFeaturedMovie = {
+export type MovieArchiveFeaturedMovie = {
   tmdbId: number;
   title: string;
   posterPath: string | null;
@@ -46,20 +46,20 @@ export type ArchiveGenreOption = {
   count: number | null;
 };
 
-export type CinemaArchiveResponse = {
+export type MovieArchiveResponse = {
   totalCount: number;
   filteredCount: number;
   selectedGenre: string | null;
   selectedLanguage: string | null;
-  selectedSort: CinemaArchiveSort;
-  selectedPeriod: CinemaArchivePeriod;
-  featuredMovie: CinemaArchiveFeaturedMovie | null;
+  selectedSort: MovieArchiveSort;
+  selectedPeriod: MovieArchivePeriod;
+  featuredMovie: MovieArchiveFeaturedMovie | null;
   availableGenres: ArchiveGenreOption[];
   page: number;
   limit: number;
   hasMore: boolean;
   nextPage: number | null;
-  items: CinemaArchiveItem[];
+  items: MovieArchiveItem[];
 };
 
 export type LocalArchiveAggregate = {

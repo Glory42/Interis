@@ -22,10 +22,10 @@ export const DiaryMediaLink = ({ row, className, children }: DiaryMediaLinkProps
     );
   }
 
-  if (row.channel === "cinema" && row.tmdbId !== null) {
+  if (row.channel === "movie" && row.tmdbId !== null) {
     return (
       <Link
-        to="/cinema/$tmdbId"
+        to="/movies/$tmdbId"
         params={{ tmdbId: String(row.tmdbId) }}
         className={className}
         viewTransition

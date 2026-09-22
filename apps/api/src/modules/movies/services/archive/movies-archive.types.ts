@@ -1,10 +1,10 @@
-import type { CinemaArchivePeriod, CinemaArchiveSort } from "../../dto/movies.dto";
+import type { MovieArchivePeriod, MovieArchiveSort } from "../../dto/movies.dto";
 
 export type MoviesArchiveQueryInput = {
   selectedGenre: string | null;
   selectedLanguage: string | null;
-  selectedPeriod: CinemaArchivePeriod;
-  sortBy: CinemaArchiveSort;
+  selectedPeriod: MovieArchivePeriod;
+  sortBy: MovieArchiveSort;
   page: number;
   limit: number;
   viewerUserId: string | null;

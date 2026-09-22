@@ -46,7 +46,7 @@ Every theme must define these token groups:
 | **Typography** | `--theme-body-font`, `--theme-display-font`, `--theme-display-letter-spacing`, `--theme-display-shadow`, `--theme-kicker-font`, `--theme-kicker-tracking`, `--theme-kicker-weight` |
 | **Button effects** | `--theme-button-primary-shadow`, `--theme-button-primary-shadow-hover`, `--theme-button-danger-shadow`, `--theme-button-danger-shadow-hover` |
 | **Radius** | `--radius` (base border radius, used to calculate sm/md/lg/xl/2xl/3xl/4xl) |
-| **Module colors** | `--module-cinema`, `--module-serial`, `--module-neutral` |
+| **Module colors** | `--module-movie`, `--module-serial`, `--module-neutral` |
 
 ---
 
@@ -245,7 +245,7 @@ You must define every token that appears in the `:root` default block. Tokens no
   --theme-button-danger-shadow-hover: ...;
 
   /* Module colors */
-  --module-cinema: #...;
+  --module-movie: #...;
   --module-serial: #...;
   --module-neutral: #...;
 }

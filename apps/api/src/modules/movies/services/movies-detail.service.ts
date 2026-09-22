@@ -1,8 +1,6 @@
-import {
-  getMovieCredits,
-  getMovieDetails as tmdbGetDetails,
-  getSimilarMovies,
-} from "../../../infrastructure/tmdb/cinemas";
+import { getMovieCredits } from "../../../infrastructure/tmdb/movies";
+import type { MoviesDetailTmdbClient } from "./movies-detail-tmdb-client";
+import { defaultMoviesDetailTmdbClient } from "./movies-detail-tmdb-client";
 import { loadReviewEngagement } from "../../media/helpers/review-engagement.helper";
 import {
   assembleMovieDetail,
@@ -44,19 +42,22 @@ const dedupeDirectorCredits = (credits: TmdbCredits | null) => {
 };
 
 export class MoviesDetailService {
-  static async getDetail(input: {
-    tmdbId: number;
-    viewerUserId?: string | null;
-    reviewsSort: MovieDetailReviewSort;
-    reviewsPage: number;
-    reviewsLimit: number;
-  }): Promise<MovieDetailResponse | null> {
+  static async getDetail(
+    input: {
+      tmdbId: number;
+      viewerUserId?: string | null;
+      reviewsSort: MovieDetailReviewSort;
+      reviewsPage: number;
+      reviewsLimit: number;
+    },
+    tmdbClient: MoviesDetailTmdbClient = defaultMoviesDetailTmdbClient,
+  ): Promise<MovieDetailResponse | null> {
     const movie = await MoviesCacheService.findOrCreate(input.tmdbId);
     if (!movie) {
       return null;
     }
 
-    const inputs = await MoviesDetailService.gather(movie, input);
+    const inputs = await MoviesDetailService.gather(movie, input, tmdbClient);
     return assembleMovieDetail(inputs);
   }
 
@@ -110,21 +111,22 @@ export class MoviesDetailService {
       reviewsPage: number;
       reviewsLimit: number;
     },
+    tmdbClient: MoviesDetailTmdbClient,
   ): Promise<MovieDetailInputs> {
     const viewerUserId = input.viewerUserId ?? null;
     const reviewsOffset = (input.reviewsPage - 1) * input.reviewsLimit;
 
     const [tmdbDetail, tmdbCredits, logsCount, reviewsPage, tmdbSimilar, communityRatings] =
       await Promise.all([
-        tmdbGetDetails(input.tmdbId).catch(() => null),
-        getMovieCredits(input.tmdbId).catch(() => null),
+        tmdbClient.getDetails(input.tmdbId).catch(() => null),
+        tmdbClient.getCredits(input.tmdbId).catch(() => null),
         MoviesRepository.getLogsCountByMovieId(movie.id),
         MoviesReviewsRepository.getReviewRowsByMovieId(movie.id, {
           sort: input.reviewsSort,
           limit: input.reviewsLimit,
           offset: reviewsOffset,
         }),
-        getSimilarMovies(input.tmdbId).catch(() => []),
+        tmdbClient.getSimilar(input.tmdbId).catch(() => []),
         MoviesRepository.getCommunityRatingsByMovieId(movie.id),
       ]);
     const { rows: reviewRows, totalCount: reviewsTotalCount } = reviewsPage;

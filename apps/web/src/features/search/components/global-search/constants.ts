@@ -6,13 +6,13 @@ export const MAX_RESULTS_PER_SECTION = 6;
 
 export const scopedPlaceholder: Record<ScopedTarget, string> = {
   users: "Search among users",
-  cinema: "Search among cinema",
+  movie: "Search among movie",
   serials: "Search among serials",
 };
 
 export const scopedEmptyPrompt: Record<ScopedTarget, string> = {
   users: "Search among users",
-  cinema: "Search among cinema",
+  movie: "Search among movie",
   serials: "Search among serials",
 };
 
@@ -26,11 +26,11 @@ export const quickLinks: QuickLink[] = [
     tint: "color-mix(in srgb, var(--destructive) 14%, transparent)",
   },
   {
-    target: "cinema",
-    title: "Discover Cinema",
-    description: "Search among all films",
+    target: "movie",
+    title: "Discover Movie",
+    description: "Search among all movies",
     icon: Film,
-    color: "var(--module-cinema)",
+    color: "var(--module-movie)",
     tint: "rgba(0, 255, 136, 0.1)",
   },
   {
