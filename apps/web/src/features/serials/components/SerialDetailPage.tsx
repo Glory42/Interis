@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { Check } from "lucide-react";
+import { Check, Heart, Plus } from "lucide-react";
 import { type SerialDetailReviewSort } from "@/features/serials/api";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { LogSeriesModal } from "@/features/serials/components/LogSeriesModal";
@@ -18,7 +18,7 @@ import {
 import { MediaDetailBackdrop } from "@/features/media/detail/MediaDetailBackdrop";
 import { MediaSimilarSection } from "@/features/media/detail/MediaSimilarSection";
 import { MediaDetailStatusPanel } from "@/features/media/detail/MediaDetailStatusPanel";
-import { MediaActionsSidebar } from "@/features/media/detail/MediaActionsSidebar";
+import { MediaActionsSidebar, type MediaAction } from "@/features/media/detail/MediaActionsSidebar";
 
 type SerialDetailPageProps = {
   tmdbId: number;
@@ -103,6 +103,39 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
     });
   };
 
+  const actions: [MediaAction, ...MediaAction[]] = [
+    {
+      key: "watchlist",
+      isActive: watchlisted,
+      activeIcon: <Check className="h-3 w-3" />,
+      inactiveIcon: <Plus className="h-3 w-3" />,
+      activeLabel: "watchlisted",
+      inactiveLabel: "watchlist",
+      loginLabel: "Queue",
+      onToggle: handleToggleWatchlist,
+    },
+    {
+      key: "watched",
+      isActive: watched,
+      activeIcon: <Check className="h-3 w-3" />,
+      inactiveIcon: <Check className="h-3 w-3" />,
+      activeLabel: "Watched",
+      inactiveLabel: "Watch",
+      loginLabel: "Watch",
+      onToggle: handleToggleWatched,
+    },
+    {
+      key: "liked",
+      isActive: liked,
+      activeIcon: <Heart className="h-3 w-3" />,
+      inactiveIcon: <Heart className="h-3 w-3" />,
+      activeLabel: "Liked",
+      inactiveLabel: "Like",
+      loginLabel: "Like",
+      onToggle: handleToggleLike,
+    },
+  ];
+
   const handleToggleSeason = (seasonNumber: number) => {
     setOpenSeasonNumber((currentSeasonNumber) => {
       const currentResolvedSeasonNumber =
@@ -169,13 +202,8 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
             isRatingSaving={updateInteractionMutation.isPending}
             onRatingChange={handleRatingChange}
             isAuthenticated={Boolean(user)}
-            watchlisted={watchlisted}
-            liked={liked}
-            watched={watched}
             isInteractionBusy={isInteractionBusy}
-            onToggleWatchlist={handleToggleWatchlist}
-            onToggleLike={handleToggleLike}
-            onToggleWatched={handleToggleWatched}
+            actions={actions}
             trailingSlot={
               Boolean(user) && detail.viewerTracking ? (
                 <div

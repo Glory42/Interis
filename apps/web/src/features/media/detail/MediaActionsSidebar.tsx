@@ -1,10 +1,20 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Check, Heart, Plus } from "lucide-react";
 import { AddToListDialog } from "@/features/lists/components/AddToListDialog";
 import { SpaceRatingInput } from "@/features/movies/components/SpaceRating";
 import { RatingPanelStarfield } from "@/features/media/detail/RatingPanelStarfield";
 import type { MediaModuleStyles } from "@/features/media/styles";
+
+export type MediaAction = {
+  key: string;
+  isActive: boolean;
+  activeIcon: ReactNode;
+  inactiveIcon: ReactNode;
+  activeLabel: string;
+  inactiveLabel: string;
+  loginLabel: string;
+  onToggle: () => void;
+};
 
 type MediaActionsSidebarProps = {
   moduleStyles: MediaModuleStyles;
@@ -16,14 +26,10 @@ type MediaActionsSidebarProps = {
   isRatingSaving: boolean;
   onRatingChange: (rating: number | null) => void;
   isAuthenticated: boolean;
-  watchlisted: boolean;
-  liked: boolean;
-  watched: boolean;
   isInteractionBusy: boolean;
   isInteractionLoading?: boolean;
-  onToggleWatchlist: () => void;
-  onToggleLike: () => void;
-  onToggleWatched: () => void;
+  // First entry sits beside logModalSlot; the rest fill their own row.
+  actions: [MediaAction, ...MediaAction[]];
   trailingSlot?: ReactNode;
 };
 
@@ -32,6 +38,57 @@ const toggleButtonClassName =
 
 const loginLinkClassName =
   "flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]";
+
+// The one place that owns "what a toggle action looks like": authenticated
+// active/inactive styling plus the unauthenticated login-link fallback.
+// Every action (watchlist, watched, liked, ...) renders through here
+// instead of three near-identical inline blocks.
+const ActionButton = ({
+  action,
+  isAuthenticated,
+  isInteractionBusy,
+  isInteractionLoading,
+  moduleStyles,
+}: {
+  action: MediaAction;
+  isAuthenticated: boolean;
+  isInteractionBusy: boolean;
+  isInteractionLoading: boolean;
+  moduleStyles: MediaModuleStyles;
+}) => {
+  if (!isAuthenticated) {
+    return (
+      <Link
+        to="/login"
+        className={loginLinkClassName}
+        style={{ borderColor: moduleStyles.border, color: moduleStyles.muted }}
+        viewTransition
+      >
+        {action.inactiveIcon}
+        <span>{action.loginLabel}</span>
+      </Link>
+    );
+  }
+
+  const isActive = !isInteractionLoading && action.isActive;
+
+  return (
+    <button
+      type="button"
+      disabled={isInteractionBusy}
+      className={toggleButtonClassName}
+      style={{
+        borderColor: isActive ? moduleStyles.accent : moduleStyles.border,
+        color: isActive ? moduleStyles.accent : moduleStyles.muted,
+        background: "transparent",
+      }}
+      onClick={action.onToggle}
+    >
+      {isActive ? action.activeIcon : action.inactiveIcon}
+      <span>{isActive ? action.activeLabel : action.inactiveLabel}</span>
+    </button>
+  );
+};
 
 export const MediaActionsSidebar = ({
   moduleStyles,
@@ -43,16 +100,13 @@ export const MediaActionsSidebar = ({
   isRatingSaving,
   onRatingChange,
   isAuthenticated,
-  watchlisted,
-  liked,
-  watched,
   isInteractionBusy,
   isInteractionLoading = false,
-  onToggleWatchlist,
-  onToggleLike,
-  onToggleWatched,
+  actions,
   trailingSlot,
 }: MediaActionsSidebarProps) => {
+  const [firstAction, ...restActions] = actions;
+
   return (
     <aside>
       <div
@@ -65,106 +119,29 @@ export const MediaActionsSidebar = ({
       <div className="space-y-2">
         <div className="grid grid-cols-2 gap-2">
           {logModalSlot}
-
-          {isAuthenticated ? (
-            <button
-              type="button"
-              disabled={isInteractionBusy}
-              className={toggleButtonClassName}
-              style={{
-                borderColor: !isInteractionLoading && watchlisted
-                  ? moduleStyles.accent
-                  : moduleStyles.border,
-                color: !isInteractionLoading && watchlisted
-                  ? moduleStyles.accent
-                  : moduleStyles.muted,
-                background: "transparent",
-              }}
-              onClick={onToggleWatchlist}
-            >
-              {!isInteractionLoading && watchlisted ? (
-                <Check className="h-3 w-3" />
-              ) : (
-                <Plus className="h-3 w-3" />
-              )}
-              <span>{!isInteractionLoading && watchlisted ? "watchlisted" : "watchlist"}</span>
-            </button>
-          ) : (
-            <Link
-              to="/login"
-              className={loginLinkClassName}
-              style={{ borderColor: moduleStyles.border, color: moduleStyles.muted }}
-              viewTransition
-            >
-              <Plus className="h-3 w-3" />
-              <span>Queue</span>
-            </Link>
-          )}
+          <ActionButton
+            action={firstAction}
+            isAuthenticated={isAuthenticated}
+            isInteractionBusy={isInteractionBusy}
+            isInteractionLoading={isInteractionLoading}
+            moduleStyles={moduleStyles}
+          />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          {isAuthenticated ? (
-            <button
-              type="button"
-              disabled={isInteractionBusy}
-              className={toggleButtonClassName}
-              style={{
-                borderColor: !isInteractionLoading && watched
-                  ? moduleStyles.accent
-                  : moduleStyles.border,
-                color: !isInteractionLoading && watched
-                  ? moduleStyles.accent
-                  : moduleStyles.muted,
-                background: "transparent",
-              }}
-              onClick={onToggleWatched}
-            >
-              <Check className="h-3 w-3" />
-              <span>{!isInteractionLoading && watched ? "Watched" : "Watch"}</span>
-            </button>
-          ) : (
-            <Link
-              to="/login"
-              className={loginLinkClassName}
-              style={{ borderColor: moduleStyles.border, color: moduleStyles.muted }}
-              viewTransition
-            >
-              <Check className="h-3 w-3" />
-              <span>Watch</span>
-            </Link>
-          )}
-
-          {isAuthenticated ? (
-            <button
-              type="button"
-              disabled={isInteractionBusy}
-              className={toggleButtonClassName}
-              style={{
-                borderColor: !isInteractionLoading && liked
-                  ? moduleStyles.accent
-                  : moduleStyles.border,
-                color: !isInteractionLoading && liked
-                  ? moduleStyles.accent
-                  : moduleStyles.muted,
-                background: "transparent",
-              }}
-              onClick={onToggleLike}
-            >
-              <Heart className="h-3 w-3" />
-              <span>{!isInteractionLoading && liked ? "Liked" : "Like"}</span>
-            </button>
-          ) : (
-            <Link
-              to="/login"
-              className={loginLinkClassName}
-              style={{ borderColor: moduleStyles.border, color: moduleStyles.muted }}
-              viewTransition
-            >
-              <Heart className="h-3 w-3" />
-              <span>Like</span>
-            </Link>
-          )}
-        </div>
+        {restActions.length > 0 ? (
+          <div className="grid grid-cols-2 gap-2">
+            {restActions.map((action) => (
+              <ActionButton
+                key={action.key}
+                action={action}
+                isAuthenticated={isAuthenticated}
+                isInteractionBusy={isInteractionBusy}
+                isInteractionLoading={isInteractionLoading}
+                moduleStyles={moduleStyles}
+              />
+            ))}
+          </div>
+        ) : null}
 
         {isAuthenticated ? (
           <AddToListDialog

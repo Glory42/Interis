@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { Award, Check } from "lucide-react";
+import { Award, Check, Heart, Plus } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { type MovieDetailReviewSort } from "@/features/movies/api";
 import { LogMovieModal } from "@/features/diary/components/LogMovieModal";
@@ -17,7 +17,7 @@ import {
 } from "@/features/interactions/hooks/useInteractions";
 import { MediaDetailBackdrop } from "@/features/media/detail/MediaDetailBackdrop";
 import { MediaSimilarSection } from "@/features/media/detail/MediaSimilarSection";
-import { MediaActionsSidebar } from "@/features/media/detail/MediaActionsSidebar";
+import { MediaActionsSidebar, type MediaAction } from "@/features/media/detail/MediaActionsSidebar";
 
 type MovieDetailPageProps = {
   tmdbId: number;
@@ -93,6 +93,39 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
     });
   };
 
+  const actions: [MediaAction, ...MediaAction[]] = [
+    {
+      key: "watchlist",
+      isActive: watchlisted,
+      activeIcon: <Check className="h-3 w-3" />,
+      inactiveIcon: <Plus className="h-3 w-3" />,
+      activeLabel: "watchlisted",
+      inactiveLabel: "watchlist",
+      loginLabel: "Queue",
+      onToggle: handleToggleWatchlist,
+    },
+    {
+      key: "watched",
+      isActive: watched,
+      activeIcon: <Check className="h-3 w-3" />,
+      inactiveIcon: <Check className="h-3 w-3" />,
+      activeLabel: "Watched",
+      inactiveLabel: "Watch",
+      loginLabel: "Watch",
+      onToggle: handleToggleWatched,
+    },
+    {
+      key: "liked",
+      isActive: liked,
+      activeIcon: <Heart className="h-3 w-3" />,
+      inactiveIcon: <Heart className="h-3 w-3" />,
+      activeLabel: "Liked",
+      inactiveLabel: "Like",
+      loginLabel: "Like",
+      onToggle: handleToggleLike,
+    },
+  ];
+
   return (
     <div className="min-h-screen">
       <div className="relative h-[42vh] max-h-135 min-h-80 w-full overflow-hidden">
@@ -164,14 +197,9 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
             isRatingSaving={updateInteractionMutation.isPending}
             onRatingChange={handleRatingChange}
             isAuthenticated={Boolean(user)}
-            watchlisted={watchlisted}
-            liked={liked}
-            watched={watched}
             isInteractionBusy={isInteractionBusy}
             isInteractionLoading={isInteractionLoading}
-            onToggleWatchlist={handleToggleWatchlist}
-            onToggleLike={handleToggleLike}
-            onToggleWatched={handleToggleWatched}
+            actions={actions}
           />
 
           <MovieDetailsMainSection detail={detail} />
