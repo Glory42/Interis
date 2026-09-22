@@ -24,9 +24,6 @@ type MediaArchivePageProps<TItem, TSort extends string, TPeriod extends string> 
   selectedLanguage: string;
   selectedSort: TSort;
   selectedPeriod: TPeriod;
-  selectedSortLabel: string;
-  selectedLanguageLabel: string;
-  selectedPeriodLabel: string;
   isPeriodDisabled: boolean;
   availableGenres?: ReadonlyArray<{ name: string; count?: number | null }>;
   sortOptions: ReadonlyArray<ArchiveFilterOption<TSort>>;
@@ -60,9 +57,6 @@ export function MediaArchivePage<TItem, TSort extends string, TPeriod extends st
   selectedLanguage,
   selectedSort,
   selectedPeriod,
-  selectedSortLabel,
-  selectedLanguageLabel,
-  selectedPeriodLabel,
   isPeriodDisabled,
   availableGenres,
   sortOptions,
@@ -185,9 +179,6 @@ export function MediaArchivePage<TItem, TSort extends string, TPeriod extends st
           selectedLanguage={selectedLanguage}
           selectedSort={selectedSort}
           selectedPeriod={selectedPeriod}
-          selectedSortLabel={selectedSortLabel}
-          selectedLanguageLabel={selectedLanguageLabel}
-          selectedPeriodLabel={selectedPeriodLabel}
           availableGenres={availableGenres}
           isPeriodDisabled={isPeriodDisabled}
           sortOptions={sortOptions}

@@ -26,26 +26,8 @@ export const MovieArchivePage = () => {
   const [selectedPeriod, setSelectedPeriod] =
     useState<MovieArchivePeriod>("this_year");
 
-  const selectedSortLabel = useMemo(() => {
-    return (
-      sortOptions.find((option) => option.value === selectedSort)?.label ?? "Trending"
-    );
-  }, [selectedSort]);
-
-  const selectedLanguageLabel = useMemo(() => {
-    return (
-      languageOptions.find((option) => option.value === selectedLanguage)?.label ??
-      "All languages"
-    );
-  }, [selectedLanguage]);
-
   const effectivePeriod = selectedSort === "trending" ? "all_time" : selectedPeriod;
   const isPeriodDisabled = selectedSort === "trending";
-  const selectedPeriodLabel =
-    isPeriodDisabled
-      ? "Weekly trending"
-      : (periodOptions.find((option) => option.value === selectedPeriod)?.label ??
-        "This year");
 
   const archiveRatingSource: ArchiveRatingSource =
     selectedSort === "rating_tmdb_desc" ? "tmdb" : "user";
@@ -94,9 +76,6 @@ export const MovieArchivePage = () => {
       selectedLanguage={selectedLanguage}
       selectedSort={selectedSort}
       selectedPeriod={selectedPeriod}
-      selectedSortLabel={selectedSortLabel}
-      selectedLanguageLabel={selectedLanguageLabel}
-      selectedPeriodLabel={selectedPeriodLabel}
       isPeriodDisabled={isPeriodDisabled}
       availableGenres={firstPage?.availableGenres}
       sortOptions={sortOptions}

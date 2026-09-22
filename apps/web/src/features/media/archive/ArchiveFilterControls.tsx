@@ -19,9 +19,6 @@ type ArchiveFilterControlsProps<TSort extends string, TPeriod extends string> = 
   selectedLanguage: string;
   selectedSort: TSort;
   selectedPeriod: TPeriod;
-  selectedSortLabel: string;
-  selectedLanguageLabel: string;
-  selectedPeriodLabel: string;
   isPeriodDisabled: boolean;
   archiveCountLabel: string;
   availableGenres?: ReadonlyArray<{ name: string; count?: number | null }>;
@@ -45,9 +42,6 @@ export const ArchiveFilterControls = <TSort extends string, TPeriod extends stri
   selectedLanguage,
   selectedSort,
   selectedPeriod,
-  selectedSortLabel,
-  selectedLanguageLabel,
-  selectedPeriodLabel,
   isPeriodDisabled,
   archiveCountLabel,
   availableGenres,
@@ -60,6 +54,20 @@ export const ArchiveFilterControls = <TSort extends string, TPeriod extends stri
   onSelectPeriod,
   moduleStyles,
 }: ArchiveFilterControlsProps<TSort, TPeriod>) => {
+  // Every selected-*-label is a lookup into the options list this
+  // component already owns for rendering the dropdown itself - deriving
+  // it here (once) means callers only ever hand over a raw selection,
+  // never a pre-computed label that could drift from the option list.
+  const selectedSortLabel =
+    sortOptions.find((option) => option.value === selectedSort)?.label ?? "Trending";
+  const selectedLanguageLabel =
+    languageOptions.find((option) => option.value === selectedLanguage)?.label ??
+    "All languages";
+  const selectedPeriodLabel = isPeriodDisabled
+    ? "Weekly trending"
+    : (periodOptions.find((option) => option.value === selectedPeriod)?.label ??
+      "This year");
+
   return (
     <div
       ref={controlsRef}

@@ -57,31 +57,6 @@ export const SerialsArchivePage = () => {
       .map((series) => getBackdropUrl(series.backdropPath));
   }, [firstPage]);
 
-  const selectedSortLabel = useMemo(() => {
-    return (
-      sortOptions.find((option) => option.value === selectedSort)?.label ??
-      "Trending"
-    );
-  }, [selectedSort]);
-
-  const selectedLanguageLabel = useMemo(() => {
-    return (
-      languageOptions.find((option) => option.value === selectedLanguage)
-        ?.label ?? "All languages"
-    );
-  }, [selectedLanguage]);
-
-  const selectedPeriodLabel = useMemo(() => {
-    if (selectedSort === "trending") {
-      return "Weekly trending";
-    }
-
-    return (
-      periodOptions.find((option) => option.value === selectedPeriod)?.label ??
-      "This year"
-    );
-  }, [selectedPeriod, selectedSort]);
-
   const archiveRatingSource: ArchiveRatingSource =
     selectedSort === "rating_tmdb_desc" ? "tmdb" : "user";
 
@@ -103,9 +78,6 @@ export const SerialsArchivePage = () => {
       selectedLanguage={selectedLanguage}
       selectedSort={selectedSort}
       selectedPeriod={selectedPeriod}
-      selectedSortLabel={selectedSortLabel}
-      selectedLanguageLabel={selectedLanguageLabel}
-      selectedPeriodLabel={selectedPeriodLabel}
       isPeriodDisabled={isPeriodDisabled}
       availableGenres={firstPage?.availableGenres}
       sortOptions={sortOptions}
