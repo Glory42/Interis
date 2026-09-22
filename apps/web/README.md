@@ -84,7 +84,7 @@ bun run test
 | `/serials/:tmdbId` | TV series detail |
 | `/director/:slug` | Director page |
 | `/actor/:slug` | Actor page |
-| `/profile/:username/*` | Profile tabs (overview, diary, reviews, films, likes, watchlist, lists) |
+| `/profile/:username/*` | Profile tabs (overview, diary, reviews, liked, watching, watchlist, stats, lists) |
 | `/settings/*` | Account/profile/theme settings |
 | `/login`, `/register` | Auth |
 | `/admin` | Admin section |
@@ -136,9 +136,10 @@ feature/
 | `auth/` | Authentication, login/register forms, useAuth hook |
 | `diary/` | Diary entry CRUD |
 | `feed/` | Home feed, trending, network stats |
-| `films/` | Movie archive, detail, search, FilmCard, SpaceRating |
 | `interactions/` | Like/watchlist interactions |
 | `lists/` | User-curated lists |
+| `media/` | Shared movie/serial archive + detail UI (`MediaArchivePage`, `MediaActionsSidebar`, `MediaDetailsMainSection`, ...) |
+| `movies/` | Movie archive, detail, search, MovieCard, SpaceRating |
 | `people/` | Director/actor pages |
 | `posts/` | Short posts |
 | `profile/` | User profiles with tabs |

@@ -96,7 +96,7 @@ curl "https://api.interis.gorkemkaryol.dev/api/public/your_username/top4"
 function toTopPickSections(response) {
   return response.categories.map((category) => ({
     key: category.key,
-    heading: category.key === 'movie' ? 'Top 4 Films' : 'Top 4 Series',
+    heading: category.key === 'movie' ? 'Top 4 Movies' : 'Top 4 Series',
     items: category.items,
   }));
 }

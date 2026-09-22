@@ -1,6 +1,6 @@
 ---
 title: Top 4 Favorites
-description: Render separate film and series favorites sections from a single response.
+description: Render separate movie and series favorites sections from a single response.
 ---
 
 Use `/top4` to drive static profile sections without extra API calls.
@@ -18,12 +18,12 @@ async function loadTopFavorites(username) {
   );
 
   return {
-    films: categories.movie ?? [],
+    movies: categories.movie ?? [],
     series: categories.serial ?? [],
   };
 }
 
-const { films, series } = await loadTopFavorites('your_username');
+const { movies, series } = await loadTopFavorites('your_username');
 ```
 
 ## Render helper

@@ -4,13 +4,13 @@ import { buildTestUser, deleteTestUser, registerUser } from "../support/register
 const KNOWN_MOVIE_TMDB_ID = 550; // Fight Club
 const KNOWN_MOVIE_TITLE = "Fight Club";
 
-test("toggling watchlist/watch/like/rating on a film reflects on the profile tabs", async ({
+test("toggling watchlist/watch/like/rating on a movie reflects on the profile tabs", async ({
   page,
 }) => {
   const user = buildTestUser("e2eh");
 
   try {
-    await test.step("sign up and open the film page", async () => {
+    await test.step("sign up and open the movie page", async () => {
       await registerUser(page, user);
       await page.goto(`/movies/${KNOWN_MOVIE_TMDB_ID}`);
       await expect(page.getByRole("heading", { name: KNOWN_MOVIE_TITLE })).toBeVisible({

@@ -39,7 +39,7 @@ This example renders a minimal profile + favorites widget from two endpoints.
     <h2>${profile.displayUsername ?? profile.username}</h2>
     <p>${profile.stats.reviewCount} reviews · ${profile.stats.entryCount} logs</p>
 
-    <h3>Top 4 Films</h3>
+    <h3>Top 4 Movies</h3>
     <ul>${(byKey.movie ?? []).map((item) => `<li>${item.title ?? 'Untitled'}</li>`).join('')}</ul>
 
     <h3>Top 4 Series</h3>

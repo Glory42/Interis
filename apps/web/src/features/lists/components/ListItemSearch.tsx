@@ -80,7 +80,7 @@ export const ListItemSearch = ({ existingTmdbIds, onSelect }: ListItemSearchProp
   return (
     <div className="mb-4 border-t border-border/50 pt-6">
       <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-        Add films &amp; series
+        Add movies &amp; series
       </p>
       <div className="relative" ref={searchRef}>
         <div className="relative">
@@ -140,7 +140,7 @@ export const ListItemSearch = ({ existingTmdbIds, onSelect }: ListItemSearchProp
                           ) : null}
                         </div>
                         <span className="shrink-0 rounded-full border border-border/50 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.14em] text-muted-foreground">
-                          {result.itemType === "movie" ? "Film" : "Series"}
+                          {result.itemType === "movie" ? "Movie" : "Series"}
                         </span>
                         {alreadyAdded ? (
                           <span className="shrink-0 font-mono text-[10px] text-muted-foreground">

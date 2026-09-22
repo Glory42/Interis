@@ -42,7 +42,7 @@ system per page).
   language is **rail-titled bands** (a kicker label + hairline rule), never
   a bordered/boxed panel. "See more →" at a rail's edge, not a global CTA.
   **This is today's target family — see § Home Feed below.**
-- **Detail pages** (Film/Serial/Review/Person detail) → sketch only, refine
+- **Detail pages** (Movie/Serial/Review/Person detail) → sketch only, refine
   when built: a Photographic-led fold (poster/backdrop dominates the top)
   transitioning into a Long-Document-style body (synopsis, cast, reviews).
 - **Auth pages** (Login, Register, Forgot password, Setup security

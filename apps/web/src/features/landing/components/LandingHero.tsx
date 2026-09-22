@@ -24,7 +24,7 @@ export const LandingHero = ({ posterPaths }: LandingHeroProps) => {
 
           <span className="theme-kicker inline-flex items-center gap-1.5 text-[10px] text-primary">
             <Clapperboard className="h-3.5 w-3.5" />
-            Your film &amp; TV journal
+            Your movie &amp; TV journal
           </span>
 
           <h1 className="theme-display-title text-4xl font-black leading-tight tracking-tight text-foreground sm:text-6xl">
@@ -33,7 +33,7 @@ export const LandingHero = ({ posterPaths }: LandingHeroProps) => {
 
           <p className="max-w-lg text-sm text-muted-foreground sm:text-base">
             Log what you watch, rate and review it, and see what the people
-            you follow are into. Interis is a film and TV diary built for
+            you follow are into. Interis is a movie and TV diary built for
             people who take their watchlist seriously.
           </p>
 

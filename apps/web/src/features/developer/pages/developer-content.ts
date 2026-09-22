@@ -70,7 +70,7 @@ export const publicSurface: readonly PublicEndpoint[] = [
   {
     method: "GET",
     path: "/api/public/:username/movies/watched",
-    description: "Watched movies (film-only).",
+    description: "Watched movies (movie-only).",
   },
   {
     method: "GET",

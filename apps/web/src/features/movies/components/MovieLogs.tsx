@@ -52,7 +52,7 @@ export const MovieLogs = ({ tmdbId }: MovieLogsProps) => {
 
         {!logsQuery.isPending && !logsQuery.isError && (logsQuery.data?.length ?? 0) === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No one has logged this film yet.
+            No one has logged this movie yet.
           </p>
         ) : null}
 

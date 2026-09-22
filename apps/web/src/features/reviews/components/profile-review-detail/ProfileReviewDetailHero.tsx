@@ -79,7 +79,7 @@ export const ProfileReviewDetailHero = ({
                 <Film className="h-3 w-3 text-primary" />
               )}
               <span className="theme-kicker font-bold uppercase tracking-[0.16em] text-primary">
-                {detail.mediaType === "tv" ? "Series Review" : "Film Review"}
+                {detail.mediaType === "tv" ? "Series Review" : "Movie Review"}
               </span>
               {detail.containsSpoilers ? (
                 <span className="rounded-full border border-amber-500/35 bg-amber-500/10 px-2 py-0.5 text-amber-200">

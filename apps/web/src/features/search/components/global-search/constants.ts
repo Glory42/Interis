@@ -28,7 +28,7 @@ export const quickLinks: QuickLink[] = [
   {
     target: "movie",
     title: "Discover Movie",
-    description: "Search among all films",
+    description: "Search among all movies",
     icon: Film,
     color: "var(--module-movie)",
     tint: "rgba(0, 255, 136, 0.1)",

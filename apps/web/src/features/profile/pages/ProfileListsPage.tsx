@@ -124,7 +124,7 @@ export const ProfileListsPage = ({ username }: ProfileListsPageProps) => {
           title="No lists yet"
           description={
             isOwnProfile
-              ? "Create your first list to organize films and series."
+              ? "Create your first list to organize movies and series."
               : "This profile has not created any public lists yet."
           }
           cta={

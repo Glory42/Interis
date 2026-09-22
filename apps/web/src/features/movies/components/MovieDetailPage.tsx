@@ -216,7 +216,7 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
         />
 
         <MediaSimilarSection
-          heading="Similar Films"
+          heading="Similar Movies"
           items={detail.similar.map((item) => ({ ...item, year: item.releaseYear }))}
           moduleStyles={MOVIE_MODULE_STYLES}
           getPosterUrl={getPosterUrl}

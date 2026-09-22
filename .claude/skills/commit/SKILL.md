@@ -38,7 +38,7 @@ Create git commits following Conventional Commits with project-specific domain s
 | `posts` | Short posts with comments/likes — `modules/posts/`, `features/posts/` |
 | `feed` | Social feed assembly and display — `modules/social/`, `features/feed/` |
 | `social` | Follow graph, activity insertion — `modules/social/` |
-| `films` | Movie search, detail, archive, movie pages — `modules/movies/`, `features/movies/` |
+| `movies` | Movie search, detail, archive, movie pages — `modules/movies/`, `features/movies/` |
 | `serials` | TV series search, detail, archive, season/episode tracking — `modules/serials/`, `features/serials/` |
 | `profile` | Public profile pages, tabs, top picks — `modules/users/`, `features/profile/` |
 | `public` | Rate-limited widget endpoints — `modules/public/`, `features/public/` |
@@ -90,7 +90,7 @@ EOF
 ## Examples
 
 ```
-feat(diary): add rewatch toggle and like button to log film modal
+feat(diary): add rewatch toggle and like button to log movie modal
 fix(feed): guard non-uuid diary_entry entity ids in review context builder
 refactor(serials): replace SeasonEpisodeReviewDialog with shared LogMediaDialog
 feat(rating): replace ratingOutOfFive with real 0.5-10 scale across all modules
