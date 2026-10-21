@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   DEFAULT_ARCHIVE_LIMIT,
   DEFAULT_ARCHIVE_PAGE,
+  MAX_ARCHIVE_PAGE,
   DEFAULT_ARCHIVE_PERIOD,
   DEFAULT_ARCHIVE_SORT,
   DEFAULT_DETAIL_REVIEWS_LIMIT,
@@ -163,7 +164,7 @@ const clampedArchivePageSchema = z
       return DEFAULT_ARCHIVE_PAGE;
     }
 
-    return Math.max(1, parsed);
+    return Math.min(MAX_ARCHIVE_PAGE, Math.max(1, parsed));
   });
 
 const clampedArchiveLimitSchema = z

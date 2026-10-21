@@ -17,10 +17,14 @@ export const enrichMissingDirectors = async (
   deps: {
     lookupDirector?: DirectorLookup;
     persistDirector?: DirectorPersist;
+    // Only titles already cached locally can take the write; for the rest the
+    // UPDATE matches zero rows and would just repeat on every request.
+    shouldPersist?: (tmdbId: number) => boolean;
   } = {},
 ): Promise<MovieArchiveResponse["items"]> => {
   const lookupDirector = deps.lookupDirector ?? defaultLookupDirector;
   const persistDirector = deps.persistDirector ?? defaultPersistDirector;
+  const shouldPersist = deps.shouldPersist ?? (() => true);
 
   const missingDirectorItems = items.filter((item) => item.director === null);
 
@@ -35,7 +39,9 @@ export const enrichMissingDirectors = async (
         return null;
       }
 
-      await persistDirector(item.tmdbId, director).catch(() => undefined);
+      if (shouldPersist(item.tmdbId)) {
+        await persistDirector(item.tmdbId, director).catch(() => undefined);
+      }
 
       return [item.tmdbId, director] as const;
     }),

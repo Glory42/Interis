@@ -2,6 +2,7 @@ import {
   discoverMovies as tmdbDiscover,
   getMovieGenres,
   getTrendingMoviesPage,
+  type TMDBDiscoverMovie,
   type TMDBMovieGenre,
 } from "../../../../infrastructure/tmdb/movies";
 import { toFeaturedMovie } from "../../helpers/movies-format.helper";
@@ -18,6 +19,10 @@ import {
   mapTmdbArchiveMovie,
 } from "./movies-archive-mapper.helper";
 import { enrichMissingDirectors } from "./movies-director-enricher.helper";
+
+// Bounds how far a "trending" request walks TMDB pages (20 items each), so a deep
+// ?page= or a rare genre filter can't fan out into hundreds of sequential fetches.
+const MAX_TRENDING_SCAN_PAGES = 25;
 
 const filterArchiveItemsByGenreAndLanguage = (
   items: MovieArchiveResponse["items"],
@@ -122,9 +127,15 @@ export const getArchiveFromTmdbCatalog = async (
     let tmdbTotalPages = 1;
     let tmdbTotalResults = 0;
 
-    const filteredTrendingItems: MovieArchiveResponse["items"] = [];
+    // Filter on the raw TMDB mapping (genre/language don't need local data), then only
+    // touch the DB for the slice actually returned - not for every scanned TMDB page.
+    const filteredTrendingMovies: Array<{
+      movie: TMDBDiscoverMovie;
+      item: MovieArchiveResponse["items"][number];
+    }> = [];
+    const scanPageLimit = () => Math.min(tmdbTotalPages, MAX_TRENDING_SCAN_PAGES);
 
-    while (tmdbPage <= tmdbTotalPages && filteredTrendingItems.length <= endIndex) {
+    while (tmdbPage <= scanPageLimit() && filteredTrendingMovies.length <= endIndex) {
       const trendingPage = await getTrendingMoviesPage("week", {
         page: tmdbPage,
         limit: 20,
@@ -137,24 +148,31 @@ export const getArchiveFromTmdbCatalog = async (
         break;
       }
 
-      const tmdbIds = trendingPage.results.map((movie) => movie.id);
-      const localAggregateByTmdbId = await getLocalArchiveAggregatesByTmdbIds(tmdbIds);
-
-      const mappedItems = trendingPage.results.map((movie) =>
-        mapTmdbArchiveMovie(movie, genreById, localAggregateByTmdbId.get(movie.id)),
-      );
-
-      const hydratedItems = await enrichMissingDirectors(mappedItems);
-      const filteredItems = filterArchiveItemsByGenreAndLanguage(hydratedItems, {
-        selectedGenre: matchedGenre?.name ?? null,
-        selectedLanguage: input.selectedLanguage,
-      });
-
-      filteredTrendingItems.push(...filteredItems);
+      for (const movie of trendingPage.results) {
+        const item = mapTmdbArchiveMovie(movie, genreById, undefined);
+        const [matching] = filterArchiveItemsByGenreAndLanguage([item], {
+          selectedGenre: matchedGenre?.name ?? null,
+          selectedLanguage: input.selectedLanguage,
+        });
+        if (matching) {
+          filteredTrendingMovies.push({ movie, item: matching });
+        }
+      }
       tmdbPage += 1;
     }
 
-    const pageItems = filteredTrendingItems.slice(startIndex, endIndex);
+    const pageMovies = filteredTrendingMovies
+      .slice(startIndex, endIndex)
+      .map((entry) => entry.movie);
+    const localAggregateByTmdbId = await getLocalArchiveAggregatesByTmdbIds(
+      pageMovies.map((movie) => movie.id),
+    );
+    const pageItems = await enrichMissingDirectors(
+      pageMovies.map((movie) =>
+        mapTmdbArchiveMovie(movie, genreById, localAggregateByTmdbId.get(movie.id)),
+      ),
+      { shouldPersist: (tmdbId) => localAggregateByTmdbId.has(tmdbId) },
+    );
     const pageItemsWithViewerState = await addViewerArchiveState(
       input.viewerUserId,
       pageItems,
@@ -162,15 +180,19 @@ export const getArchiveFromTmdbCatalog = async (
 
     const hasActiveTrendingFilters =
       matchedGenre !== null || input.selectedLanguage !== null;
-    const scannedAllTrendingPages = tmdbPage > tmdbTotalPages;
+    const scannedAllTrendingPages = tmdbPage > scanPageLimit();
+    const reachableTrendingResults = Math.min(
+      tmdbTotalResults,
+      MAX_TRENDING_SCAN_PAGES * 20,
+    );
     const hasMore = hasActiveTrendingFilters
-      ? filteredTrendingItems.length > endIndex || !scannedAllTrendingPages
-      : endIndex < tmdbTotalResults;
+      ? filteredTrendingMovies.length > endIndex || !scannedAllTrendingPages
+      : endIndex < reachableTrendingResults;
     const filteredCount = hasActiveTrendingFilters
       ? scannedAllTrendingPages
-        ? filteredTrendingItems.length
+        ? filteredTrendingMovies.length
         : Math.max(
-            filteredTrendingItems.length,
+            filteredTrendingMovies.length,
             startIndex + pageItemsWithViewerState.length + (hasMore ? 1 : 0),
           )
       : tmdbTotalResults;
@@ -217,7 +239,9 @@ export const getArchiveFromTmdbCatalog = async (
     mapTmdbArchiveMovie(movie, genreById, localAggregateByTmdbId.get(movie.id)),
   );
 
-  const pageItemsWithDirector = await enrichMissingDirectors(pageItems);
+  const pageItemsWithDirector = await enrichMissingDirectors(pageItems, {
+    shouldPersist: (tmdbId) => localAggregateByTmdbId.has(tmdbId),
+  });
 
   const pageItemsWithViewerState = await addViewerArchiveState(
     input.viewerUserId,
