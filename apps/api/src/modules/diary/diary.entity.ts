@@ -36,7 +36,6 @@ export const diaryEntries = pgTable(
       .notNull(),
   },
   (table) => [
-    index("diary_entry_user_id_idx").on(table.userId),
     index("diary_entry_movie_id_idx").on(table.movieId),
     // Backs the diary page query: WHERE user_id = X ORDER BY watched_date DESC, created_at DESC
     index("diary_entry_user_watched_created_idx").on(
