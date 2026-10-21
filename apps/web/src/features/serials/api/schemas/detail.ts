@@ -13,7 +13,8 @@ const serialDetailSeasonSchema = z.object({
 });
 
 const serialDetailSeriesSchema = z.object({
-  id: z.number().int().positive(),
+  // 0 = a series the API hasn't saved locally yet (read paths don't insert rows).
+  id: z.number().int().nonnegative(),
   tmdbId: z.number().int().positive(),
   title: z.string(),
   originalTitle: z.string().nullable(),
