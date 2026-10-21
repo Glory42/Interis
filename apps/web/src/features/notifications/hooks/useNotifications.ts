@@ -6,8 +6,6 @@ import {
   markNotificationRead,
 } from "@/features/notifications/api";
 
-const UNREAD_COUNT_POLL_INTERVAL_MS = 60_000;
-
 export const notificationKeys = {
   list: ["notifications", "list"] as const,
   unreadCount: ["notifications", "unread-count"] as const,
@@ -25,7 +23,9 @@ export const useUnreadNotificationCount = (enabled = true) =>
     queryKey: notificationKeys.unreadCount,
     queryFn: getUnreadNotificationCount,
     enabled,
-    refetchInterval: enabled ? UNREAD_COUNT_POLL_INTERVAL_MS : false,
+    // No interval polling: any query inside Neon's 5-min idle window keeps compute awake,
+    // so a 60s poll from one open tab burned the Free plan's compute hours (2026-10-21).
+    refetchOnWindowFocus: true,
   });
 
 export const useMarkNotificationRead = () => {
