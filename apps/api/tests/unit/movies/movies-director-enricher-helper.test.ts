@@ -54,6 +54,22 @@ describe("enrichMissingDirectors", () => {
     expect(persisted).toEqual([{ tmdbId: 1, director: "Greta Gerwig" }]);
   });
 
+  it("skips the write for titles not cached locally but still returns the director", async () => {
+    const items = [buildItem({ tmdbId: 1 }), buildItem({ tmdbId: 2 })];
+    const persisted: number[] = [];
+
+    const result = await enrichMissingDirectors(items, {
+      lookupDirector: async () => "Agnès Varda",
+      persistDirector: async (tmdbId) => {
+        persisted.push(tmdbId);
+      },
+      shouldPersist: (tmdbId) => tmdbId === 2,
+    });
+
+    expect(result.map((item) => item.director)).toEqual(["Agnès Varda", "Agnès Varda"]);
+    expect(persisted).toEqual([2]);
+  });
+
   it("keeps the item as director: null, without persisting, when the lookup throws", async () => {
     const items = [buildItem({ tmdbId: 1, director: null })];
     let persistCalls = 0;

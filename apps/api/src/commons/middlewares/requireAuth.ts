@@ -37,7 +37,7 @@ export const requireAuth = async (
   const resolved = await resolveSessionFromAccessToken(accessToken);
 
   if (resolved) {
-    const profile = await resolveProfileFlags(resolved.user.id);
+    const profile = resolved.profileFlags;
     if (profile?.isSuspended) {
       sendForbidden(res, "Account suspended");
       return;

@@ -11,7 +11,7 @@ import type {
   PublicList,
   PublicListEntry,
 } from "./dto/public.dto";
-import { SerialsDetailService } from "../serials/services/serials-detail.service";
+import { SerialsProgressService } from "../serials/services/serials-progress.service";
 import { SerialsCurrentlyWatchingService } from "../serials/services/serials-currently-watching.service";
 import { SerialsService } from "../serials/serials.service";
 
@@ -273,34 +273,6 @@ export class PublicService {
     const userId = await PublicService.findUserIdByUsername(username);
     if (!userId) return null;
 
-    // This widget never reads detail.reviews/reviewCount - smallest
-    // possible reviews page so that part of the query does minimal work.
-    const detail = await SerialsDetailService.getDetail({
-      tmdbId,
-      viewerUserId: userId,
-      reviewsSort: "recent",
-      reviewsPage: 1,
-      reviewsLimit: 1,
-    });
-
-    if (!detail) return null;
-
-    return {
-      series: {
-        id: detail.series.id,
-        tmdbId: detail.series.tmdbId,
-        title: detail.series.title,
-        posterPath: detail.series.posterPath,
-        numberOfSeasons: detail.series.numberOfSeasons,
-        numberOfEpisodes: detail.series.numberOfEpisodes,
-      },
-      viewerTracking: detail.viewerTracking,
-      seasons: detail.series.seasons.map((s) => ({
-        seasonNumber: s.seasonNumber,
-        name: s.name,
-        episodeCount: s.episodeCount,
-        viewerInteraction: s.viewerInteraction,
-      })),
-    };
+    return SerialsProgressService.getProgress(tmdbId, userId);
   }
 }

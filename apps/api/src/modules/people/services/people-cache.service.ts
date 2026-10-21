@@ -132,19 +132,19 @@ export class PeopleCacheService {
     return `${disambiguatedBaseSlug}-${Date.now().toString(36)}`;
   }
 
+  // popularity is deliberately not compared: TMDB shifts it daily and nothing reads the
+  // stored value, so comparing it rewrote every cast/crew row on most detail views.
   static isPersonCacheUnchanged(
     existing: {
       name: string;
       knownForDepartment: string | null;
       profilePath: string | null;
-      popularity: number | null;
       routeRoleHints: PersonRouteRole[];
     },
     incoming: {
       name: string;
       knownForDepartment: string | null;
       profilePath: string | null;
-      popularity: number | null;
       routeRoleHints: PersonRouteRole[];
     },
   ): boolean {
@@ -152,7 +152,6 @@ export class PeopleCacheService {
       existing.name !== incoming.name ||
       existing.knownForDepartment !== incoming.knownForDepartment ||
       existing.profilePath !== incoming.profilePath ||
-      existing.popularity !== incoming.popularity ||
       existing.routeRoleHints.length !== incoming.routeRoleHints.length
     ) {
       return false;
@@ -192,6 +191,9 @@ export class PeopleCacheService {
       existing?.knownForDepartment ??
       null;
 
+    // Some credit lists omit profile_path - keep the known one rather than flip-flopping.
+    const profilePath = input.profilePath ?? existing?.profilePath ?? null;
+
     const mergedRoleHints = mergeRoleHints(
       existing?.routeRoleHints ?? [],
       input.routeRoleHints,
@@ -207,8 +209,7 @@ export class PeopleCacheService {
       PeopleCacheService.isPersonCacheUnchanged(existing, {
         name: normalizedName,
         knownForDepartment: normalizedKnownForDepartment,
-        profilePath: input.profilePath,
-        popularity: input.popularity,
+        profilePath,
         routeRoleHints: mergedRoleHints,
       })
     ) {
@@ -227,7 +228,7 @@ export class PeopleCacheService {
       name: normalizedName,
       knownForDepartment: normalizedKnownForDepartment,
       routeRoleHints: mergedRoleHints,
-      profilePath: input.profilePath,
+      profilePath,
       popularity: input.popularity,
     });
 

@@ -63,7 +63,7 @@ export class PeopleDetailService {
       profilePath: detail.profile_path,
       popularity: detail.popularity,
       routeRoleHints: [input.role],
-    });
+    }, resolved.person);
 
     if (!cachedPerson) {
       return null;

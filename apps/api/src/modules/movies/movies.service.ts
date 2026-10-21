@@ -45,6 +45,10 @@ export class MoviesService {
     return MoviesCacheService.findOrCreate(tmdbId);
   }
 
+  static async findForRead(tmdbId: number) {
+    return MoviesCacheService.findForRead(tmdbId);
+  }
+
   static async cacheMovie(tmdbData: TMDBMovieDetail) {
     return MoviesCacheService.cacheMovie(tmdbData);
   }

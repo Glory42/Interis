@@ -9,7 +9,7 @@ import reviewsRouter from "../../modules/reviews/reviews.routes";
 import socialRouter from "../../modules/social/social.routes";
 import interactionsRouter from "../../modules/interactions/interactions.routes";
 import uploadsRouter from "../../modules/uploads/uploads.routes";
-import publicRouter from "../../modules/public/public.routes";
+import { createPublicRouter } from "../../modules/public/public.routes";
 import postsRouter from "../../modules/posts/posts.routes";
 import dataTransferRouter from "../../modules/data-transfer/data-transfer.routes";
 import searchRouter from "../../modules/search/search.routes";
@@ -35,7 +35,7 @@ export const registerRoutes = (app: Express): void => {
   app.use("/api/social", socialRouter);
   app.use("/api/interactions", interactionsRouter);
   app.use("/api/uploads", uploadsRouter);
-  app.use("/api/public", publicRouter);
+  app.use("/api/public", createPublicRouter());
   app.use("/api/posts", postsRouter);
   app.use("/api/lists", listsRouter);
   app.use("/api/data", dataTransferRouter);

@@ -2,6 +2,8 @@ import { getSeriesDetails, type TMDBSeriesDetail } from "../../../infrastructure
 import { normalizeTmdbSeriesDetail } from "../helpers/serials-normalization.helper";
 import { SerialsCacheRepository } from "../repositories/serials-cache.repository";
 import { NotFoundError } from "../../../commons/errors/app-error";
+import { hasCachedMediaChanged } from "../../media/helpers/media-cache-diff.helper";
+import { UNSAVED_MEDIA_ID } from "../../media/constants/unsaved-media.constants";
 
 // Cached series rows (season/episode counts, status, etc.) go stale for
 // still-airing shows once TMDB publishes a new season - without a refresh,
@@ -35,6 +37,40 @@ export class SerialsCacheService {
     }
 
     throw new NotFoundError("Series not found");
+  }
+
+  // Cached row only, no TMDB fetch - for checks where an uncached series can't match anything.
+  static async findCached(tmdbId: number) {
+    return SerialsCacheRepository.findByTmdbId(tmdbId);
+  }
+
+  // Read-path variant: never inserts. An uncached series is returned as an unsaved row
+  // (id = UNSAVED_MEDIA_ID) - it only gets a DB row once someone logs/reviews/tracks it.
+  // A stale cached row is rewritten only if TMDB data actually changed.
+  static async findForRead(tmdbId: number) {
+    const existing = await SerialsCacheRepository.findByTmdbId(tmdbId);
+    if (existing && !isStale(existing.cachedAt)) {
+      return existing;
+    }
+
+    const tmdbData = await getSeriesDetails(tmdbId).catch(() => null);
+    if (!tmdbData) {
+      if (existing) {
+        return existing;
+      }
+      throw new NotFoundError("Series not found");
+    }
+
+    const values = normalizeTmdbSeriesDetail(tmdbData);
+    if (!existing) {
+      return { ...values, id: UNSAVED_MEDIA_ID, cachedAt: new Date() };
+    }
+
+    if (!hasCachedMediaChanged(existing, values)) {
+      return existing;
+    }
+
+    return (await SerialsCacheRepository.upsertCachedSeries(values)) ?? existing;
   }
 
   // Bypasses the TTL check above — always refetches from TMDB.

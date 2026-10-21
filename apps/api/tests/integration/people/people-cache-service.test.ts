@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { randomInt } from "node:crypto";
 import { PeopleCacheService } from "../../../src/modules/people/services/people-cache.service";
 import { PeopleRepository } from "../../../src/modules/people/repositories/people.repository";
+import type { PersonRouteRole } from "../../../src/modules/people/types/people.types";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
 
 // PeopleCacheService is pure DB CRUD (no TMDB network calls), so it's
@@ -71,6 +72,40 @@ describe("PeopleCacheService", () => {
 
       expect(second?.id).toBe(first!.id);
       expect(second?.slug).toBe(first!.slug);
+    });
+
+    it("does not rewrite the row when only TMDB popularity drifted", async () => {
+      const tmdbPersonId = randomTmdbPersonId();
+      const input = {
+        tmdbPersonId,
+        name: uniqueName("Drifting Person"),
+        knownForDepartment: "Acting",
+        routeRoleHints: ["actor"] as PersonRouteRole[],
+        profilePath: "/drift.jpg",
+      };
+
+      const first = await PeopleCacheService.upsertPersonCache({ ...input, popularity: 5 });
+      const second = await PeopleCacheService.upsertPersonCache({ ...input, popularity: 7.3 });
+
+      expect(second?.updatedAt.getTime()).toBe(first!.updatedAt.getTime());
+      expect(second?.popularity).toBe(5);
+    });
+
+    it("keeps a known profile path when a later credit omits it", async () => {
+      const tmdbPersonId = randomTmdbPersonId();
+      const input = {
+        tmdbPersonId,
+        name: uniqueName("Pictured Person"),
+        knownForDepartment: "Acting",
+        routeRoleHints: ["actor"] as PersonRouteRole[],
+        popularity: null,
+      };
+
+      const first = await PeopleCacheService.upsertPersonCache({ ...input, profilePath: "/p.jpg" });
+      const second = await PeopleCacheService.upsertPersonCache({ ...input, profilePath: null });
+
+      expect(second?.profilePath).toBe("/p.jpg");
+      expect(second?.updatedAt.getTime()).toBe(first!.updatedAt.getTime());
     });
 
     it("merges role hints across acting and directing without duplicating", async () => {

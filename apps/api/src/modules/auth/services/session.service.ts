@@ -7,9 +7,13 @@ import {
 import { TokenService } from "./token.service";
 import type { IssuedSession, SessionDeviceInfo } from "../types/auth.types";
 
-const isActive = (session: AuthSessionRow): boolean => {
+const isActive = (session: Pick<AuthSessionRow, "revokedAt" | "expiresAt">): boolean => {
   return !session.revokedAt && session.expiresAt.getTime() > Date.now();
 };
+
+// Revoked sessions are kept this long so a replayed refresh token is still
+// recognised as theft (see rotateRefreshToken), then pruned.
+const DEAD_SESSION_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
 
 const issueForSession = async (
   sessionId: string,
@@ -49,7 +53,30 @@ export class SessionService {
       expiresAt: refreshTokenExpiresAt,
     });
 
+    // Sessions were never deleted, only marked revoked; prune on login (rare, cheap)
+    // so the table doesn't grow forever. Best-effort - never blocks the login.
+    void AuthSessionsRepository.deleteExpiredOrRevokedBefore(
+      new Date(Date.now() - DEAD_SESSION_RETENTION_MS),
+    ).catch(() => undefined);
+
     return issueForSession(sessionId, userId, refreshToken, refreshTokenExpiresAt);
+  }
+
+  // Active session joined with its user and profile flags, or null if the
+  // session is missing, revoked, expired, or belongs to a different user.
+  static async findActiveSessionContext(sessionId: string, userId: string) {
+    const context = await AuthSessionsRepository.findSessionContext(sessionId);
+    if (!context || context.sessionUserId !== userId || !isActive(context)) {
+      return null;
+    }
+
+    return {
+      user: context.user,
+      profileFlags:
+        context.isAdmin === null || context.isSuspended === null
+          ? null
+          : { isAdmin: context.isAdmin, isSuspended: context.isSuspended },
+    };
   }
 
   // Validates that an access token's referenced session is still live —

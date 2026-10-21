@@ -47,6 +47,10 @@ export class SerialsService {
     return SerialsCacheService.findOrCreate(tmdbId);
   }
 
+  static async findForRead(tmdbId: number) {
+    return SerialsCacheService.findForRead(tmdbId);
+  }
+
   static async getArchive(input: {
     genre: NormalizedSerialArchiveQuery["genre"];
     language: NormalizedSerialArchiveQuery["language"];
@@ -116,7 +120,7 @@ export class SerialsService {
   }
 
   static async getLogs(tmdbId: number, limit?: number, offset?: number) {
-    const series = await SerialsCacheService.findOrCreate(tmdbId);
+    const series = await SerialsCacheService.findForRead(tmdbId);
     if (!series) return null;
     return SerialsActivityService.getLogs(series.id, limit, offset);
   }

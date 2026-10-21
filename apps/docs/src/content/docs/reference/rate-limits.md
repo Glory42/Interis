@@ -34,17 +34,19 @@ curl -i "https://api.interis.gorkemkaryol.dev/api/public/your_username/profile"
 Successful public responses set:
 
 ```txt
-Cache-Control: public, max-age=60, stale-while-revalidate=120
+Cache-Control: public, max-age=300, stale-while-revalidate=600
 Vary: Accept-Encoding
 ```
 
-Browsers and CDN edges cache each response for 60 seconds. During the
-120-second stale-while-revalidate window, a stale response is served
-immediately while a background revalidation occurs. This means widget
-page reloads within the same minute don't count against the rate limit.
+The server also keeps each response (including `404 User not found`) in
+memory for 5 minutes, so data can lag a new log or review by up to 5
+minutes. A response served from that cache carries `X-Cache: HIT`.
+Browsers and CDN edges cache each response for 5 minutes, and during the
+10-minute stale-while-revalidate window a stale response is served
+immediately while a background revalidation occurs.
 
 ## Practical guidance
 
-- The 60 s cache window means polling faster than once per minute gives
-  no benefit — you'll receive a cached response anyway.
+- The 5-minute cache window means polling faster than once every 5 minutes
+  gives no benefit — you'll receive a cached response anyway.
 - Avoid aggressive polling from client-side widgets.

@@ -104,11 +104,13 @@ export const useSeriesSeasonDetail = (
     enabled,
   });
 
-export const useTrendingSeries = () =>
-  useQuery({
-    queryKey: serialKeys.trending,
-    queryFn: ({ signal }) => getTrendingSeries({ signal }),
-  });
+export const trendingSeriesQueryOptions = () => ({
+  queryKey: serialKeys.trending,
+  queryFn: ({ signal }: { signal: AbortSignal }) => getTrendingSeries({ signal }),
+  staleTime: 300_000,
+});
+
+export const useTrendingSeries = () => useQuery(trendingSeriesQueryOptions());
 
 export const useRecentSeries = () =>
   useQuery({

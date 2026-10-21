@@ -88,6 +88,8 @@ export const getArchiveFromLocalCatalog = async (
         }
 
         directorByTmdbId.set(row.tmdbId, director);
+        // Patch the TTL-cached row too, so requests within the TTL don't repeat the UPDATE.
+        row.director = director;
         await MoviesRepository.updateDirectorByTmdbId(row.tmdbId, director);
       }),
     );

@@ -1,4 +1,4 @@
-import { desc, eq, ilike, inArray } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, isNull } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { tvSeries } from "../serials.entity";
 
@@ -129,6 +129,17 @@ export class SerialsCacheRepository {
       .orderBy(desc(tvSeries.cachedAt))
       .limit(limit)
       .offset(offset);
+  }
+
+  // Backfills only rows still missing a creator, so a repeat call is a no-op match.
+  static async fillMissingCreatorByTmdbId(
+    tmdbId: number,
+    signal: { creator: string | null; network: string | null },
+  ): Promise<void> {
+    await db
+      .update(tvSeries)
+      .set({ creator: signal.creator, network: signal.network })
+      .where(and(eq(tvSeries.tmdbId, tmdbId), isNull(tvSeries.creator)));
   }
 
   static async updateById(id: number, fields: AdminUpdateSeriesFields) {

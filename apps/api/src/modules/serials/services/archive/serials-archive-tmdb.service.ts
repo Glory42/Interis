@@ -2,6 +2,7 @@ import {
   discoverSeries as tmdbDiscover,
   getSeriesGenres,
   getTrendingSeriesPage,
+  type TMDBDiscoverSeries,
   type TMDBSeriesGenre,
 } from "../../../../infrastructure/tmdb/serials";
 import { toFeaturedSeries } from "../../helpers/serials-format.helper";
@@ -19,6 +20,10 @@ import {
   getLocalArchiveAggregatesByTmdbIds,
   mapTmdbArchiveSeries,
 } from "./serials-archive-mapper.helper";
+
+// Bounds how far a "trending" request walks TMDB pages (20 items each), so a deep
+// ?page= or a rare genre filter can't fan out into hundreds of sequential fetches.
+const MAX_TRENDING_SCAN_PAGES = 25;
 
 const filterArchiveItemsByGenreAndLanguage = (
   items: SerialArchiveResponse["items"],
@@ -99,9 +104,12 @@ export const getArchiveFromTmdb = async (
     let tmdbTotalPages = 1;
     let tmdbTotalResults = 0;
 
-    const filteredTrendingItems: SerialArchiveResponse["items"] = [];
+    // Filter on the raw TMDB mapping (genre/language don't need local data), then only
+    // touch the DB / creator lookups for the slice actually returned.
+    const filteredTrendingSeries: TMDBDiscoverSeries[] = [];
+    const scanPageLimit = () => Math.min(tmdbTotalPages, MAX_TRENDING_SCAN_PAGES);
 
-    while (tmdbPage <= tmdbTotalPages && filteredTrendingItems.length <= endIndex) {
+    while (tmdbPage <= scanPageLimit() && filteredTrendingSeries.length <= endIndex) {
       const trendingPage = await getTrendingSeriesPage("week", {
         page: tmdbPage,
         limit: 20,
@@ -114,29 +122,31 @@ export const getArchiveFromTmdb = async (
         break;
       }
 
-      const localAggregateByTmdbId = await getLocalArchiveAggregatesByTmdbIds(
-        trendingPage.results.map((series) => series.id),
-      );
-
-      const mappedItems = trendingPage.results.map((series) =>
-        mapTmdbArchiveSeries(
-          series,
-          genreById,
-          localAggregateByTmdbId.get(series.id),
-        ),
-      );
-
-      const hydratedItems = await hydrateCreatorSignalsForItems(mappedItems);
-      const filteredItems = filterArchiveItemsByGenreAndLanguage(hydratedItems, {
-        selectedGenre: matchedGenre?.name ?? null,
-        selectedLanguage: input.selectedLanguage,
-      });
-
-      filteredTrendingItems.push(...filteredItems);
+      for (const series of trendingPage.results) {
+        const [matching] = filterArchiveItemsByGenreAndLanguage(
+          [mapTmdbArchiveSeries(series, genreById, undefined)],
+          {
+            selectedGenre: matchedGenre?.name ?? null,
+            selectedLanguage: input.selectedLanguage,
+          },
+        );
+        if (matching) {
+          filteredTrendingSeries.push(series);
+        }
+      }
       tmdbPage += 1;
     }
 
-    const pageItems = filteredTrendingItems.slice(startIndex, endIndex);
+    const pageSeries = filteredTrendingSeries.slice(startIndex, endIndex);
+    const localAggregateByTmdbId = await getLocalArchiveAggregatesByTmdbIds(
+      pageSeries.map((series) => series.id),
+    );
+    const pageItems = await hydrateCreatorSignalsForItems(
+      pageSeries.map((series) =>
+        mapTmdbArchiveSeries(series, genreById, localAggregateByTmdbId.get(series.id)),
+      ),
+      { isCachedLocally: (tmdbId) => localAggregateByTmdbId.has(tmdbId) },
+    );
     const pageItemsWithViewerState = await addViewerArchiveState(
       input.viewerUserId,
       pageItems,
@@ -144,15 +154,19 @@ export const getArchiveFromTmdb = async (
 
     const hasActiveTrendingFilters =
       matchedGenre !== null || input.selectedLanguage !== null;
-    const scannedAllTrendingPages = tmdbPage > tmdbTotalPages;
+    const scannedAllTrendingPages = tmdbPage > scanPageLimit();
+    const reachableTrendingResults = Math.min(
+      tmdbTotalResults,
+      MAX_TRENDING_SCAN_PAGES * 20,
+    );
     const hasMore = hasActiveTrendingFilters
-      ? filteredTrendingItems.length > endIndex || !scannedAllTrendingPages
-      : endIndex < tmdbTotalResults;
+      ? filteredTrendingSeries.length > endIndex || !scannedAllTrendingPages
+      : endIndex < reachableTrendingResults;
     const filteredCount = hasActiveTrendingFilters
       ? scannedAllTrendingPages
-        ? filteredTrendingItems.length
+        ? filteredTrendingSeries.length
         : Math.max(
-            filteredTrendingItems.length,
+            filteredTrendingSeries.length,
             startIndex + pageItemsWithViewerState.length + (hasMore ? 1 : 0),
           )
       : tmdbTotalResults;
@@ -200,7 +214,9 @@ export const getArchiveFromTmdb = async (
     mapTmdbArchiveSeries(series, genreById, localAggregateByTmdbId.get(series.id)),
   );
 
-  const items = await hydrateCreatorSignalsForItems(mappedItems);
+  const items = await hydrateCreatorSignalsForItems(mappedItems, {
+    isCachedLocally: (tmdbId) => localAggregateByTmdbId.has(tmdbId),
+  });
 
   const periodFilteredItems = items.filter((item) =>
     isSeriesInArchivePeriod(item, input.selectedPeriod, periodWindow),

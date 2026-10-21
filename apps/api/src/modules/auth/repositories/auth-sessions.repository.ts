@@ -1,6 +1,7 @@
-import { and, eq, isNull, ne } from "drizzle-orm";
+import { and, eq, isNull, lt, ne, or } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
-import { authSessions } from "../../../infrastructure/database/auth.entity";
+import { authSessions, user } from "../../../infrastructure/database/auth.entity";
+import { profiles } from "../../users/users.entity";
 
 export type AuthSessionInsert = typeof authSessions.$inferInsert;
 export type AuthSessionRow = typeof authSessions.$inferSelect;
@@ -19,6 +20,27 @@ export class AuthSessionsRepository {
     const [row] = await db
       .select()
       .from(authSessions)
+      .where(eq(authSessions.id, id))
+      .limit(1);
+
+    return row ?? null;
+  }
+
+  // Session + user + profile flags in one round trip - this runs on every
+  // authenticated request, so three sequential lookups added up fast.
+  static async findSessionContext(id: string) {
+    const [row] = await db
+      .select({
+        sessionUserId: authSessions.userId,
+        expiresAt: authSessions.expiresAt,
+        revokedAt: authSessions.revokedAt,
+        user,
+        isAdmin: profiles.isAdmin,
+        isSuspended: profiles.isSuspended,
+      })
+      .from(authSessions)
+      .innerJoin(user, eq(user.id, authSessions.userId))
+      .leftJoin(profiles, eq(profiles.userId, authSessions.userId))
       .where(eq(authSessions.id, id))
       .limit(1);
 
@@ -80,6 +102,12 @@ export class AuthSessionsRepository {
       .update(authSessions)
       .set({ revokedAt: new Date() })
       .where(and(...conditions));
+  }
+
+  static async deleteExpiredOrRevokedBefore(cutoff: Date): Promise<void> {
+    await db
+      .delete(authSessions)
+      .where(or(lt(authSessions.expiresAt, cutoff), lt(authSessions.revokedAt, cutoff)));
   }
 
   static async listActiveForUser(userId: string): Promise<AuthSessionRow[]> {

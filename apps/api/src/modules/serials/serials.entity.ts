@@ -57,7 +57,6 @@ export const serialDiaryEntries = pgTable("serial_diary_entry", {
     .$onUpdate(() => new Date())
     .notNull(),
 }, (table) => [
-  index("serial_diary_entry_user_id_idx").on(table.userId),
   index("serial_diary_entry_series_id_idx").on(table.seriesId),
   // Backs the diary page query: WHERE user_id = X ORDER BY watched_date DESC, created_at DESC
   index("serial_diary_entry_user_watched_created_idx").on(

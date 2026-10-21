@@ -10,11 +10,17 @@ import {
 import { MoviesRepository } from "../repositories/movies.repository";
 import { MoviesReviewsRepository } from "../repositories/movies-reviews.repository";
 import { MoviesCacheService } from "./movies-cache.service";
+import { createTtlCache } from "../../../infrastructure/cache/ttl-cache.helper";
+import {
+  ANONYMOUS_DETAIL_CACHE_MAX_ENTRIES,
+  ANONYMOUS_DETAIL_CACHE_TTL_MS,
+} from "../../media/constants/anonymous-detail-cache.constants";
 import { PeopleCacheService } from "../../people/services/people-cache.service";
+import { UNSAVED_MEDIA_ID } from "../../media/constants/unsaved-media.constants";
 import type { MovieDetailReviewSort } from "../dto/movies.dto";
 import type { MovieDetailResponse, MovieReviewsPageResponse } from "../types/movies.types";
 
-type MovieRow = NonNullable<Awaited<ReturnType<typeof MoviesCacheService.findOrCreate>>>;
+type MovieRow = NonNullable<Awaited<ReturnType<typeof MoviesCacheService.findForRead>>>;
 type TmdbCredits = NonNullable<Awaited<ReturnType<typeof getMovieCredits>>>;
 
 const toNullableTrimmedText = (value: string | null | undefined): string | null => {
@@ -41,18 +47,42 @@ const dedupeDirectorCredits = (credits: TmdbCredits | null) => {
   return [...unique.values()];
 };
 
+type DetailInput = {
+  tmdbId: number;
+  viewerUserId?: string | null;
+  reviewsSort: MovieDetailReviewSort;
+  reviewsPage: number;
+  reviewsLimit: number;
+};
+
+const getCachedAnonymousDetail = createTtlCache(
+  (input: DetailInput, tmdbClient: MoviesDetailTmdbClient) => MoviesDetailService.loadDetail(input, tmdbClient),
+  {
+    ttlMs: ANONYMOUS_DETAIL_CACHE_TTL_MS,
+    maxEntries: ANONYMOUS_DETAIL_CACHE_MAX_ENTRIES,
+    keyFn: (input) =>
+      `${input.tmdbId}:${input.reviewsSort}:${input.reviewsPage}:${input.reviewsLimit}`,
+  },
+);
+
 export class MoviesDetailService {
   static async getDetail(
-    input: {
-      tmdbId: number;
-      viewerUserId?: string | null;
-      reviewsSort: MovieDetailReviewSort;
-      reviewsPage: number;
-      reviewsLimit: number;
-    },
+    input: DetailInput,
     tmdbClient: MoviesDetailTmdbClient = defaultMoviesDetailTmdbClient,
   ): Promise<MovieDetailResponse | null> {
-    const movie = await MoviesCacheService.findOrCreate(input.tmdbId);
+    if (!input.viewerUserId) {
+      return getCachedAnonymousDetail(input, tmdbClient);
+    }
+
+    return MoviesDetailService.loadDetail(input, tmdbClient);
+  }
+
+  // Uncached detail load - getDetail routes logged-out viewers through the shared cache.
+  static async loadDetail(
+    input: DetailInput,
+    tmdbClient: MoviesDetailTmdbClient = defaultMoviesDetailTmdbClient,
+  ): Promise<MovieDetailResponse | null> {
+    const movie = await MoviesCacheService.findForRead(input.tmdbId);
     if (!movie) {
       return null;
     }
@@ -69,7 +99,7 @@ export class MoviesDetailService {
     page: number;
     limit: number;
   }): Promise<MovieReviewsPageResponse | null> {
-    const movie = await MoviesCacheService.findOrCreate(input.tmdbId);
+    const movie = await MoviesCacheService.findForRead(input.tmdbId);
     if (!movie) {
       return null;
     }
@@ -138,7 +168,7 @@ export class MoviesDetailService {
         .map((directorCredit) => toNullableTrimmedText(directorCredit.name))
         .find((directorName): directorName is string => Boolean(directorName)) ?? movie.director;
 
-    if (!movie.director && resolvedDirectorName) {
+    if (!movie.director && resolvedDirectorName && movie.id !== UNSAVED_MEDIA_ID) {
       await MoviesRepository.updateDirectorByTmdbId(input.tmdbId, resolvedDirectorName).catch(
         () => undefined,
       );
@@ -209,7 +239,7 @@ export class MoviesDetailService {
   }
 
   static async getLogsByTmdbId(tmdbId: number, limit?: number, offset?: number) {
-    const movie = await MoviesCacheService.findOrCreate(tmdbId);
+    const movie = await MoviesCacheService.findForRead(tmdbId);
     return MoviesRepository.getLogsByMovieId(movie.id, limit, offset);
   }
 }

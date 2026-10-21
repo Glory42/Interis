@@ -34,7 +34,7 @@ import type {
 // branches (season list, rating, network/status/runtime fallbacks) the
 // integration path can't reach.
 
-type SeriesRow = NonNullable<Awaited<ReturnType<typeof SerialsCacheService.findOrCreate>>>;
+type SeriesRow = NonNullable<Awaited<ReturnType<typeof SerialsCacheService.findForRead>>>;
 type TmdbSeriesDetail = NonNullable<Awaited<ReturnType<typeof getSeriesDetails>>>;
 type TmdbSimilarSeries = Awaited<ReturnType<typeof getSimilarSeries>>;
 type SeriesReviewRow = Awaited<

@@ -29,7 +29,9 @@ export const authSessions = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    refreshTokenHash: text("refresh_token_hash").notNull().unique(),
+    // Uniqueness comes from sessions_refreshTokenHash_idx below - a column-level
+    // .unique() on top of it built a second identical index.
+    refreshTokenHash: text("refresh_token_hash").notNull(),
     // Retained one rotation back so a replayed (already-rotated) refresh
     // token can be recognized as theft and trigger revocation, instead of
     // just failing as "unknown token".
