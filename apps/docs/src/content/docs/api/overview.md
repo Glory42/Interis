@@ -37,7 +37,7 @@ All routes are `GET` and use `:username` path params.
 - **HTTP 404** with `{ "error": "User not found" }` when username is missing.
 - **HTTP 429** when a rate limit is exceeded.
 - **HTTP 500** with `{ "error": "Internal server error" }` for unhandled errors.
-- `Cache-Control: public, max-age=60, stale-while-revalidate=120` is set on successful public responses.
+- `Cache-Control: public, max-age=300, stale-while-revalidate=600` is set on successful public responses.
 
 ## Rate limiting
 

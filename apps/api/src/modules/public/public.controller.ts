@@ -18,11 +18,13 @@ import type {
 
 export class PublicController {
   private static sendUserNotFound(res: Response): void {
+    res.setHeader("Cache-Control", "public, max-age=60");
     sendNotFound(res, "User not found");
   }
 
   private static sendPublicResponse(res: Response, payload: unknown): void {
-    res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
+    // Matches the server-side response cache TTL (public-response-cache.helper.ts).
+    res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=600");
     res.setHeader("Vary", "Accept-Encoding");
     res.status(200).json(payload);
   }

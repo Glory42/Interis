@@ -94,4 +94,4 @@ curl "$BASE_URL/api/public/$USERNAME/serials/watched?limit=20"
 curl -i "$BASE_URL/api/public/$USERNAME/profile"
 ```
 
-You should see standard rate limit headers from `express-rate-limit` and `Cache-Control: public, max-age=60, stale-while-revalidate=120`.
+You should see standard rate limit headers from `express-rate-limit` and `Cache-Control: public, max-age=300, stale-while-revalidate=600`.
