@@ -104,6 +104,11 @@ export const createApp = (options: CreateAppOptions = {}) => {
     res.json({ status: "ok", message: "Hello Zeytin" });
   });
 
+  // Nothing on the API host is meant to be crawled; every hit can wake the DB.
+  app.get("/robots.txt", (_req: Request, res: Response) => {
+    res.type("text/plain").send("User-agent: *\nDisallow: /\n");
+  });
+
   app.get("/api/health", (req: Request, res: Response) => {
     res.json({ status: "ok", message: "Interis API is alive" });
   });
