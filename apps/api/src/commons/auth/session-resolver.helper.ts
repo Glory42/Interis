@@ -2,7 +2,6 @@ import type { IncomingHttpHeaders } from "node:http";
 import { env } from "../../infrastructure/config/env";
 import { TokenService } from "../../modules/auth/services/token.service";
 import { SessionService } from "../../modules/auth/services/session.service";
-import { AuthUsersRepository } from "../../modules/auth/repositories/auth-users.repository";
 import { toAuthUser } from "../../modules/auth/helpers/auth-user-mapper.helper";
 import { parseCookie } from "../../modules/auth/helpers/auth-cookies.helper";
 import type { AuthUser } from "../../modules/auth/types/auth.types";
@@ -10,6 +9,8 @@ import type { AuthUser } from "../../modules/auth/types/auth.types";
 export type ResolvedAuthSession = {
   user: AuthUser;
   sessionId: string;
+  // null when the user has no profile row yet.
+  profileFlags: { isAdmin: boolean; isSuspended: boolean } | null;
 };
 
 // Verifies the access-token JWT and confirms the session it points at is
@@ -27,17 +28,19 @@ export const resolveSessionFromAccessToken = async (
     return null;
   }
 
-  const isActive = await SessionService.isSessionActive(claims.sessionId);
-  if (!isActive) {
+  const context = await SessionService.findActiveSessionContext(
+    claims.sessionId,
+    claims.userId,
+  );
+  if (!context) {
     return null;
   }
 
-  const userRow = await AuthUsersRepository.findById(claims.userId);
-  if (!userRow) {
-    return null;
-  }
-
-  return { user: toAuthUser(userRow), sessionId: claims.sessionId };
+  return {
+    user: toAuthUser(context.user),
+    sessionId: claims.sessionId,
+    profileFlags: context.profileFlags,
+  };
 };
 
 export const getAccessTokenFromHeaders = (headers: IncomingHttpHeaders): string | null => {

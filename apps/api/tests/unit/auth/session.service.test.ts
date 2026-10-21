@@ -8,6 +8,8 @@ const rotateRefreshTokenMock = mock(() => Promise.resolve());
 const revokeMock = mock(() => Promise.resolve());
 const revokeAllForUserMock = mock(() => Promise.resolve());
 const listActiveForUserMock = mock(() => Promise.resolve([]));
+const findSessionContextMock = mock(() => Promise.resolve<unknown>(null));
+const deleteExpiredOrRevokedBeforeMock = mock((_cutoff: Date) => Promise.resolve());
 
 mock.module("../../../src/modules/auth/repositories/auth-sessions.repository", () => ({
   AuthSessionsRepository: {
@@ -19,6 +21,8 @@ mock.module("../../../src/modules/auth/repositories/auth-sessions.repository", (
     revoke: revokeMock,
     revokeAllForUser: revokeAllForUserMock,
     listActiveForUser: listActiveForUserMock,
+    findSessionContext: findSessionContextMock,
+    deleteExpiredOrRevokedBefore: deleteExpiredOrRevokedBeforeMock,
   },
 }));
 
@@ -45,6 +49,56 @@ describe("SessionService (unit)", () => {
     revokeMock.mockClear();
     revokeAllForUserMock.mockClear();
     listActiveForUserMock.mockClear();
+    findSessionContextMock.mockClear();
+    deleteExpiredOrRevokedBeforeMock.mockClear();
+  });
+
+  it("prunes sessions dead for over a week when a new session is created", async () => {
+    await SessionService.createSession("user-1");
+
+    expect(deleteExpiredOrRevokedBeforeMock).toHaveBeenCalledTimes(1);
+    const cutoff = deleteExpiredOrRevokedBeforeMock.mock.calls[0]![0];
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    expect(Math.abs(cutoff.getTime() - sevenDaysAgo)).toBeLessThan(5_000);
+  });
+
+  it("findActiveSessionContext returns user + profile flags for a live session", async () => {
+    const userRow = {
+      id: "user-1",
+      email: "a@b.c",
+      username: "a",
+      displayUsername: "a",
+      name: "A",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    findSessionContextMock.mockImplementationOnce(() =>
+      Promise.resolve({
+        ...activeSession(),
+        sessionUserId: "user-1",
+        user: userRow,
+        isAdmin: true,
+        isSuspended: false,
+      }),
+    );
+
+    const context = await SessionService.findActiveSessionContext("session-1", "user-1");
+
+    expect(context?.user).toEqual(userRow);
+    expect(context?.profileFlags).toEqual({ isAdmin: true, isSuspended: false });
+  });
+
+  it("findActiveSessionContext rejects revoked sessions and mismatched users", async () => {
+    const base = { sessionUserId: "user-1", user: { id: "user-1" }, isAdmin: false, isSuspended: false };
+    findSessionContextMock.mockImplementationOnce(() =>
+      Promise.resolve({ ...activeSession({ revokedAt: new Date() }), ...base }),
+    );
+    expect(await SessionService.findActiveSessionContext("session-1", "user-1")).toBeNull();
+
+    findSessionContextMock.mockImplementationOnce(() =>
+      Promise.resolve({ ...activeSession(), ...base }),
+    );
+    expect(await SessionService.findActiveSessionContext("session-1", "user-2")).toBeNull();
   });
 
   it("creates a session and issues an access+refresh pair", async () => {
