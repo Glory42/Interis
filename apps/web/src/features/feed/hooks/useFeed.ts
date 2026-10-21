@@ -44,12 +44,14 @@ export const useFollowingFeed = (filter: FeedFilter = "all", enabled = true) =>
     enabled,
   });
 
-export const useTrendingNow = (limit = 3) =>
-  useQuery({
-    queryKey: feedKeys.trending(limit),
-    queryFn: ({ signal }) => getTrendingMovies({ signal, limit }),
-    staleTime: 300_000,
-  });
+// Shared with the home route loader so its prefetch can't drift onto a key nothing reads.
+export const trendingMoviesQueryOptions = (limit = 3) => ({
+  queryKey: feedKeys.trending(limit),
+  queryFn: ({ signal }: { signal: AbortSignal }) => getTrendingMovies({ signal, limit }),
+  staleTime: 300_000,
+});
+
+export const useTrendingNow = (limit = 3) => useQuery(trendingMoviesQueryOptions(limit));
 
 export const useMyFeedSummary = (enabled = true) =>
   useQuery({

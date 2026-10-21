@@ -13,7 +13,9 @@ const router = createRouter({
   context: {
     queryClient,
   },
-  defaultPreload: "intent",
+  // No hover preloading: route loaders hit DB-backed endpoints, so sweeping the
+  // cursor across a poster grid fired a detail fetch per poster.
+  defaultPreload: false,
   defaultStructuralSharing: true,
   scrollRestoration: true,
 });
