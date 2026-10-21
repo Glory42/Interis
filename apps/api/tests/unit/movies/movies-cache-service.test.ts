@@ -166,3 +166,53 @@ describe("MoviesCacheService.refreshForAdmin (unit)", () => {
     expect(upsertCachedMovieMock).not.toHaveBeenCalled();
   });
 });
+
+describe("MoviesCacheService.findForRead (unit)", () => {
+  beforeEach(() => {
+    getMovieDetailsMock.mockReset();
+    getMovieDirectorMock.mockReset();
+    findByTmdbIdMock.mockReset();
+    upsertCachedMovieMock.mockReset();
+  });
+
+  it("returns an unsaved row for an uncached movie without inserting it", async () => {
+    findByTmdbIdMock.mockResolvedValueOnce(null);
+    getMovieDetailsMock.mockResolvedValueOnce(tmdbDetail);
+    getMovieDirectorMock.mockResolvedValueOnce("David Fincher");
+
+    const result = await MoviesCacheService.findForRead(550);
+
+    expect(result).toMatchObject({ id: 0, tmdbId: 550, title: "Fight Club", director: "David Fincher" });
+    expect(upsertCachedMovieMock).not.toHaveBeenCalled();
+  });
+
+  it("skips the write when a stale row's TMDB data is unchanged", async () => {
+    const staleRow = buildMovieRow({ cachedAt: new Date(Date.now() - 8 * ONE_DAY_MS) });
+    findByTmdbIdMock.mockResolvedValueOnce(staleRow);
+    getMovieDetailsMock.mockResolvedValueOnce(tmdbDetail);
+    // A transient director-lookup miss must not count as a change.
+    getMovieDirectorMock.mockResolvedValueOnce(null);
+
+    const result = await MoviesCacheService.findForRead(550);
+
+    expect(result).toBe(staleRow);
+    expect(upsertCachedMovieMock).not.toHaveBeenCalled();
+  });
+
+  it("rewrites a stale row when TMDB data changed", async () => {
+    const staleRow = buildMovieRow({
+      title: "Old Title",
+      cachedAt: new Date(Date.now() - 8 * ONE_DAY_MS),
+    });
+    const refreshedRow = buildMovieRow();
+    findByTmdbIdMock.mockResolvedValueOnce(staleRow);
+    getMovieDetailsMock.mockResolvedValueOnce(tmdbDetail);
+    getMovieDirectorMock.mockResolvedValueOnce("David Fincher");
+    upsertCachedMovieMock.mockResolvedValueOnce(refreshedRow);
+
+    const result = await MoviesCacheService.findForRead(550);
+
+    expect(result).toBe(refreshedRow);
+    expect(upsertCachedMovieMock).toHaveBeenCalledTimes(1);
+  });
+});

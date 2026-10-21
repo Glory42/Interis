@@ -11,10 +11,11 @@ import { MoviesRepository } from "../repositories/movies.repository";
 import { MoviesReviewsRepository } from "../repositories/movies-reviews.repository";
 import { MoviesCacheService } from "./movies-cache.service";
 import { PeopleCacheService } from "../../people/services/people-cache.service";
+import { UNSAVED_MEDIA_ID } from "../../media/constants/unsaved-media.constants";
 import type { MovieDetailReviewSort } from "../dto/movies.dto";
 import type { MovieDetailResponse, MovieReviewsPageResponse } from "../types/movies.types";
 
-type MovieRow = NonNullable<Awaited<ReturnType<typeof MoviesCacheService.findOrCreate>>>;
+type MovieRow = NonNullable<Awaited<ReturnType<typeof MoviesCacheService.findForRead>>>;
 type TmdbCredits = NonNullable<Awaited<ReturnType<typeof getMovieCredits>>>;
 
 const toNullableTrimmedText = (value: string | null | undefined): string | null => {
@@ -52,7 +53,7 @@ export class MoviesDetailService {
     },
     tmdbClient: MoviesDetailTmdbClient = defaultMoviesDetailTmdbClient,
   ): Promise<MovieDetailResponse | null> {
-    const movie = await MoviesCacheService.findOrCreate(input.tmdbId);
+    const movie = await MoviesCacheService.findForRead(input.tmdbId);
     if (!movie) {
       return null;
     }
@@ -69,7 +70,7 @@ export class MoviesDetailService {
     page: number;
     limit: number;
   }): Promise<MovieReviewsPageResponse | null> {
-    const movie = await MoviesCacheService.findOrCreate(input.tmdbId);
+    const movie = await MoviesCacheService.findForRead(input.tmdbId);
     if (!movie) {
       return null;
     }
@@ -138,7 +139,7 @@ export class MoviesDetailService {
         .map((directorCredit) => toNullableTrimmedText(directorCredit.name))
         .find((directorName): directorName is string => Boolean(directorName)) ?? movie.director;
 
-    if (!movie.director && resolvedDirectorName) {
+    if (!movie.director && resolvedDirectorName && movie.id !== UNSAVED_MEDIA_ID) {
       await MoviesRepository.updateDirectorByTmdbId(input.tmdbId, resolvedDirectorName).catch(
         () => undefined,
       );
@@ -209,7 +210,7 @@ export class MoviesDetailService {
   }
 
   static async getLogsByTmdbId(tmdbId: number, limit?: number, offset?: number) {
-    const movie = await MoviesCacheService.findOrCreate(tmdbId);
+    const movie = await MoviesCacheService.findForRead(tmdbId);
     return MoviesRepository.getLogsByMovieId(movie.id, limit, offset);
   }
 }

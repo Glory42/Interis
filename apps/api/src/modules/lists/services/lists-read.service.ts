@@ -54,10 +54,10 @@ export class ListsReadService {
       let tvSeriesId: number | null = null;
 
       if (checkItemType === "movie") {
-        const movie = await MoviesCacheService.findOrCreate(checkTmdbId).catch(() => null);
+        const movie = await MoviesCacheService.findCached(checkTmdbId);
         movieId = movie?.id ?? null;
       } else if (checkItemType === "serial") {
-        const serial = await SerialsCacheService.findOrCreate(checkTmdbId).catch(() => null);
+        const serial = await SerialsCacheService.findCached(checkTmdbId);
         tvSeriesId = serial?.id ?? null;
       }
 

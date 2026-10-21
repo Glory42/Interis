@@ -47,7 +47,7 @@ export class SerialsController {
       return;
     }
 
-    const series = await SerialsService.findOrCreate(tmdbId);
+    const series = await SerialsService.findForRead(tmdbId);
     if (!series) {
       sendNotFound(res, "Series not found");
       return;

@@ -41,7 +41,7 @@ export class MoviesController {
       return;
     }
 
-    const movie = await MoviesService.findOrCreate(tmdbId);
+    const movie = await MoviesService.findForRead(tmdbId);
     if (!movie) {
       sendNotFound(res, "Movie not found");
       return;

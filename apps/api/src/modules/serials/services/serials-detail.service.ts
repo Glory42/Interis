@@ -32,7 +32,7 @@ import type {
   SerialSeasonDetailResponse,
 } from "../types/serials.types";
 
-type SeriesRow = NonNullable<Awaited<ReturnType<typeof SerialsCacheService.findOrCreate>>>;
+type SeriesRow = NonNullable<Awaited<ReturnType<typeof SerialsCacheService.findForRead>>>;
 type TmdbSeriesDetail = NonNullable<Awaited<ReturnType<typeof tmdbGetDetails>>>;
 type TmdbAggregateCredits = NonNullable<Awaited<ReturnType<typeof tmdbGetAggregateCredits>>>;
 
@@ -101,7 +101,7 @@ export class SerialsDetailService {
     },
     tmdbClient: SerialsDetailTmdbClient = defaultSerialsDetailTmdbClient,
   ): Promise<SerialDetailResponse | null> {
-    const cachedSeries = await SerialsCacheService.findOrCreate(input.tmdbId);
+    const cachedSeries = await SerialsCacheService.findForRead(input.tmdbId);
     if (!cachedSeries) {
       return null;
     }
@@ -118,7 +118,7 @@ export class SerialsDetailService {
     page: number;
     limit: number;
   }): Promise<SerialReviewsPageResponse | null> {
-    const cachedSeries = await SerialsCacheService.findOrCreate(input.tmdbId);
+    const cachedSeries = await SerialsCacheService.findForRead(input.tmdbId);
     if (!cachedSeries) {
       return null;
     }
@@ -263,7 +263,7 @@ export class SerialsDetailService {
     seasonNumber: number;
     viewerUserId?: string | null;
   }): Promise<SerialSeasonDetailResponse | null> {
-    const cachedSeries = await SerialsCacheService.findOrCreate(input.tmdbId);
+    const cachedSeries = await SerialsCacheService.findForRead(input.tmdbId);
     if (!cachedSeries) {
       return null;
     }

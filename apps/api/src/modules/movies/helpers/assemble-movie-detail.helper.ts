@@ -25,7 +25,7 @@ import type {
 // synchronous transform that unit tests can drive with fixtures (including
 // the TMDB-present branches the integration test can't reach).
 
-type MovieRow = NonNullable<Awaited<ReturnType<typeof MoviesCacheService.findOrCreate>>>;
+type MovieRow = NonNullable<Awaited<ReturnType<typeof MoviesCacheService.findForRead>>>;
 type TmdbMovieDetail = NonNullable<Awaited<ReturnType<typeof getMovieDetails>>>;
 type TmdbSimilarMovies = Awaited<ReturnType<typeof getSimilarMovies>>;
 type MovieReviewRow = Awaited<
