@@ -191,12 +191,15 @@ describe("data-transfer", () => {
         "",
       ].join("\n");
 
-      await apiRequest(
+      // The import streams NDJSON progress - drain the first response so its insert has
+      // landed before the second import runs its "already in diary" check.
+      const firstResponse = await apiRequest(
         getServer().baseUrl,
         "/api/data/import",
         { method: "POST", headers: { "content-type": "text/csv" }, body: csv },
         jar,
       );
+      await firstResponse.text();
 
       const secondResponse = await apiRequest(
         getServer().baseUrl,
