@@ -24,6 +24,11 @@ import {
   type SerialDetailInputs,
 } from "../helpers/assemble-serial-detail.helper";
 import { SerialsCacheService } from "./serials-cache.service";
+import { createTtlCache } from "../../../infrastructure/cache/ttl-cache.helper";
+import {
+  ANONYMOUS_DETAIL_CACHE_MAX_ENTRIES,
+  ANONYMOUS_DETAIL_CACHE_TTL_MS,
+} from "../../media/constants/anonymous-detail-cache.constants";
 import { PeopleCacheService } from "../../people/services/people-cache.service";
 import type { SerialDetailReviewSort } from "../dto/serials.dto";
 import type {
@@ -90,15 +95,39 @@ const crewSeeds = (credits: TmdbAggregateCredits | null) =>
       };
     });
 
+type DetailInput = {
+  tmdbId: number;
+  viewerUserId?: string | null;
+  reviewsSort: SerialDetailReviewSort;
+  reviewsPage: number;
+  reviewsLimit: number;
+};
+
+const getCachedAnonymousDetail = createTtlCache(
+  (input: DetailInput, tmdbClient: SerialsDetailTmdbClient) => SerialsDetailService.loadDetail(input, tmdbClient),
+  {
+    ttlMs: ANONYMOUS_DETAIL_CACHE_TTL_MS,
+    maxEntries: ANONYMOUS_DETAIL_CACHE_MAX_ENTRIES,
+    keyFn: (input) =>
+      `${input.tmdbId}:${input.reviewsSort}:${input.reviewsPage}:${input.reviewsLimit}`,
+  },
+);
+
 export class SerialsDetailService {
   static async getDetail(
-    input: {
-      tmdbId: number;
-      viewerUserId?: string | null;
-      reviewsSort: SerialDetailReviewSort;
-      reviewsPage: number;
-      reviewsLimit: number;
-    },
+    input: DetailInput,
+    tmdbClient: SerialsDetailTmdbClient = defaultSerialsDetailTmdbClient,
+  ): Promise<SerialDetailResponse | null> {
+    if (!input.viewerUserId) {
+      return getCachedAnonymousDetail(input, tmdbClient);
+    }
+
+    return SerialsDetailService.loadDetail(input, tmdbClient);
+  }
+
+  // Uncached detail load - getDetail routes logged-out viewers through the shared cache.
+  static async loadDetail(
+    input: DetailInput,
     tmdbClient: SerialsDetailTmdbClient = defaultSerialsDetailTmdbClient,
   ): Promise<SerialDetailResponse | null> {
     const cachedSeries = await SerialsCacheService.findForRead(input.tmdbId);

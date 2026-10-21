@@ -10,6 +10,11 @@ import {
 import { MoviesRepository } from "../repositories/movies.repository";
 import { MoviesReviewsRepository } from "../repositories/movies-reviews.repository";
 import { MoviesCacheService } from "./movies-cache.service";
+import { createTtlCache } from "../../../infrastructure/cache/ttl-cache.helper";
+import {
+  ANONYMOUS_DETAIL_CACHE_MAX_ENTRIES,
+  ANONYMOUS_DETAIL_CACHE_TTL_MS,
+} from "../../media/constants/anonymous-detail-cache.constants";
 import { PeopleCacheService } from "../../people/services/people-cache.service";
 import { UNSAVED_MEDIA_ID } from "../../media/constants/unsaved-media.constants";
 import type { MovieDetailReviewSort } from "../dto/movies.dto";
@@ -42,15 +47,39 @@ const dedupeDirectorCredits = (credits: TmdbCredits | null) => {
   return [...unique.values()];
 };
 
+type DetailInput = {
+  tmdbId: number;
+  viewerUserId?: string | null;
+  reviewsSort: MovieDetailReviewSort;
+  reviewsPage: number;
+  reviewsLimit: number;
+};
+
+const getCachedAnonymousDetail = createTtlCache(
+  (input: DetailInput, tmdbClient: MoviesDetailTmdbClient) => MoviesDetailService.loadDetail(input, tmdbClient),
+  {
+    ttlMs: ANONYMOUS_DETAIL_CACHE_TTL_MS,
+    maxEntries: ANONYMOUS_DETAIL_CACHE_MAX_ENTRIES,
+    keyFn: (input) =>
+      `${input.tmdbId}:${input.reviewsSort}:${input.reviewsPage}:${input.reviewsLimit}`,
+  },
+);
+
 export class MoviesDetailService {
   static async getDetail(
-    input: {
-      tmdbId: number;
-      viewerUserId?: string | null;
-      reviewsSort: MovieDetailReviewSort;
-      reviewsPage: number;
-      reviewsLimit: number;
-    },
+    input: DetailInput,
+    tmdbClient: MoviesDetailTmdbClient = defaultMoviesDetailTmdbClient,
+  ): Promise<MovieDetailResponse | null> {
+    if (!input.viewerUserId) {
+      return getCachedAnonymousDetail(input, tmdbClient);
+    }
+
+    return MoviesDetailService.loadDetail(input, tmdbClient);
+  }
+
+  // Uncached detail load - getDetail routes logged-out viewers through the shared cache.
+  static async loadDetail(
+    input: DetailInput,
     tmdbClient: MoviesDetailTmdbClient = defaultMoviesDetailTmdbClient,
   ): Promise<MovieDetailResponse | null> {
     const movie = await MoviesCacheService.findForRead(input.tmdbId);
