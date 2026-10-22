@@ -1,0 +1,1 @@
+ALTER TABLE "serial_episode_interaction" ADD COLUMN "watched_implicitly" boolean DEFAULT false NOT NULL;

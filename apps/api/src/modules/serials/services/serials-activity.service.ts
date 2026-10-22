@@ -4,7 +4,6 @@ import type {
   UpdateSerialLogDto,
 } from "../dto/serials.dto";
 import { buildDiaryEntryExtraMetadata } from "../helpers/serials-activity.helper";
-import { deriveImplicitWatched } from "../../media-interactions/helpers/interaction-state-rules.helper";
 import { ActivityRecorder } from "../../social/services/activity-recorder.service";
 import { SerialsInteractionsRepository } from "../repositories/serials-interactions.repository";
 import { SerialsReviewsRepository } from "../repositories/serials-reviews.repository";
@@ -91,13 +90,10 @@ export class SerialsActivityService {
     const previousWatchlisted = previousRow?.watchlisted ?? false;
     const previousStatus = previousRow?.watchStatus ?? null;
 
-    // An explicit watched toggle always cascades (even to the same value -
-    // matches the sidebar toggle). Liking/rating implicitly marks a series
-    // watched only the first time; re-rating a completed series doesn't
-    // re-run the season/episode cascade.
-    const isImplicitlyWatched = deriveImplicitWatched(input);
-    const cascadeTarget =
-      input.watched ?? (isImplicitlyWatched && previousStatus !== "completed" ? true : undefined);
+    // Only an explicit watched toggle cascades (even to the same value -
+    // matches the sidebar toggle). Liking or rating a series says nothing
+    // about which episodes were seen, so it leaves them and the status alone (#66).
+    const cascadeTarget = input.watched;
 
     let watchStatus = previousStatus;
     if (cascadeTarget !== undefined) {

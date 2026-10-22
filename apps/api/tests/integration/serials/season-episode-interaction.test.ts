@@ -81,8 +81,8 @@ describe("season and episode interaction", () => {
     };
     expect(body.liked).toBe(true);
     expect(body.rating).toBe(9);
-    // Rating implicitly marks the season watched, mirroring series-level behavior.
-    expect(body.watched).toBe(true);
+    // Liking / rating a season doesn't mark it (or its episodes) watched (#66).
+    expect(body.watched).toBe(false);
   }, 15000);
 
   it("persists episode-level watched/liked/rating", async () => {
