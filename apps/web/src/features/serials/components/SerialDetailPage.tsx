@@ -2,12 +2,16 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { Check, Heart, Plus } from "lucide-react";
-import { type SerialDetailReviewSort } from "@/features/serials/api";
+import {
+  type SerialDetailReviewSort,
+  type UpdateSerialInteractionInput,
+} from "@/features/serials/api";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { LogSeriesModal } from "@/features/serials/components/LogSeriesModal";
 import { SerialDetailsMainSection } from "@/features/serials/components/serial-detail/SerialDetailsMainSection";
 import { SerialReviewsSection } from "@/features/serials/components/serial-detail/SerialReviewsSection";
 import { SerialSeasonsSection } from "@/features/serials/components/serial-detail/SerialSeasonsSection";
+import { SerialProgressPanel } from "@/features/serials/components/serial-detail/SerialProgressPanel";
 import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
 import { getBackdropUrl, getPosterUrl } from "@/features/serials/components/utils";
 import {
@@ -91,6 +95,12 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
 
   const handleToggleWatched = () => {
     void updateInteractionMutation.mutateAsync({ watched: !watched });
+  };
+
+  const handleWatchStatusChange = (
+    watchStatus: NonNullable<UpdateSerialInteractionInput["watchStatus"]>,
+  ) => {
+    void updateInteractionMutation.mutateAsync({ watchStatus });
   };
 
   const handleRatingChange = (nextRating: number | null) => {
@@ -206,57 +216,13 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
             actions={actions}
             trailingSlot={
               Boolean(user) && detail.viewerTracking ? (
-                <div
-                  className="rounded-xl border p-3 space-y-3"
-                  style={{
-                    borderColor: SERIAL_MODULE_STYLES.border,
-                    background: SERIAL_MODULE_STYLES.panelElevated,
-                  }}
-                >
-                  <p
-                    className="font-mono text-[9px] uppercase tracking-[0.22em]"
-                    style={{ color: SERIAL_MODULE_STYLES.faint }}
-                  >
-                    Your Progress
-                  </p>
-
-                  <div className="space-y-1.5 font-mono text-[11px]" style={{ color: SERIAL_MODULE_STYLES.muted }}>
-                    <div className="flex justify-between">
-                      <span>Episodes:</span>
-                      <span className="font-bold text-foreground">
-                        {detail.viewerTracking.watchedEpisodesCount} / {series.numberOfEpisodes ?? "?"}
-                      </span>
-                    </div>
-
-                    {detail.viewerTracking.currentEpisode ? (
-                      <div className="flex justify-between">
-                        <span>Up Next:</span>
-                        <span className="font-bold text-foreground font-semibold" style={{ color: SERIAL_MODULE_STYLES.accent }}>
-                          S{detail.viewerTracking.currentEpisode.seasonNumber}E{detail.viewerTracking.currentEpisode.episodeNumber}
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="text-[10px] text-green-500 font-semibold uppercase tracking-wider">
-                        ✓ Series Completed
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="border-t pt-2 mt-2 space-y-1 font-mono text-[10px]" style={{ borderColor: SERIAL_MODULE_STYLES.borderSoft, color: SERIAL_MODULE_STYLES.faint }}>
-                    <div className="flex justify-between">
-                      <span>Ratings (S/E):</span>
-                      <span>{detail.viewerTracking.ratingsCount}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Likes (S/E):</span>
-                      <span>{detail.viewerTracking.likesCount}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Reviews (S/E):</span>
-                      <span>{detail.viewerTracking.reviewsCount}</span>
-                    </div>
-                  </div>
-                </div>
+                <SerialProgressPanel
+                  tracking={detail.viewerTracking}
+                  numberOfEpisodes={series.numberOfEpisodes}
+                  watchStatus={interactionQuery.data?.watchStatus ?? null}
+                  isStatusSaving={updateInteractionMutation.isPending}
+                  onWatchStatusChange={handleWatchStatusChange}
+                />
               ) : undefined
             }
           />

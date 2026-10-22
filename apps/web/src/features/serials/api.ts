@@ -42,6 +42,7 @@ export type {
   SerialDiaryEntry,
   SerialDiaryList,
   SerialInteraction,
+  SerialWatchStatus,
   SerialLog,
   SerialLogsList,
   SerialReviewsInput,
