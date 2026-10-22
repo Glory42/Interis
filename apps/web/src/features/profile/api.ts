@@ -216,7 +216,7 @@ export const getUserDiary = async (
   options: QueryRequestOptions = {},
 ): Promise<DiaryItem[]> => {
   const response = await apiRequest<unknown>(
-    `/api/public/${encodePathSegment(username)}/diary?${toPaginationParams(limit, offset)}`,
+    `/api/users/${encodePathSegment(username)}/diary?${toPaginationParams(limit, offset)}`,
     {
       method: "GET",
       cache: "no-store",
@@ -233,7 +233,7 @@ export const getUserCurrentlyWatching = async (
   options: QueryRequestOptions = {},
 ): Promise<CurrentlyWatchingSeries[]> => {
   const response = await apiRequest<unknown>(
-    `/api/public/${encodePathSegment(username)}/serials/currently-watching?limit=${normalizeRecentLimit(limit, 10, 30)}`,
+    `/api/users/${encodePathSegment(username)}/serials/currently-watching?limit=${normalizeRecentLimit(limit, 10, 30)}`,
     {
       method: "GET",
       cache: "no-store",
@@ -249,7 +249,7 @@ export const getUserTopPicks = async (
   options: QueryRequestOptions = {},
 ): Promise<UserTopPicks> => {
   const response = await apiRequest<unknown>(
-    `/api/public/${encodePathSegment(username)}/top4`,
+    `/api/users/${encodePathSegment(username)}/top4`,
     {
       method: "GET",
       cache: "no-store",
@@ -266,7 +266,7 @@ export const getUserRecentActivity = async (
   options: QueryRequestOptions = {},
 ): Promise<UserRecentActivity[]> => {
   const response = await apiRequest<unknown>(
-    `/api/public/${encodePathSegment(username)}/recent?limit=${normalizeRecentLimit(limit, 20)}`,
+    `/api/users/${encodePathSegment(username)}/recent?limit=${normalizeRecentLimit(limit, 20)}`,
     {
       method: "GET",
       cache: "no-store",
