@@ -76,7 +76,7 @@ export class SerialsInteractionsRepository {
   }
 
   // Single batched read of everything the archive grid needs from
-  // serialInteractions (watchlisted, explicitly-fully-watched, rated) for a
+  // serialInteractions (watchlisted, watch status, rated) for a
   // page of tmdbIds, instead of one query per flag.
   static async getViewerSeriesInteractionStateByTmdbIds(
     viewerUserId: string,
@@ -91,7 +91,7 @@ export class SerialsInteractionsRepository {
       .select({
         tmdbId: tvSeries.tmdbId,
         watchlisted: serialInteractions.watchlisted,
-        isWatched: serialInteractions.isWatched,
+        watchStatus: serialInteractions.watchStatus,
         rating: serialInteractions.rating,
       })
       .from(serialInteractions)
@@ -105,7 +105,18 @@ export class SerialsInteractionsRepository {
   }
 
   static async getInteractionRow(userId: string, seriesId: number) {
-    return seriesInteractionStore.find(userId, seriesId);
+    const [row] = await db
+      .select({
+        liked: serialInteractions.liked,
+        watchlisted: serialInteractions.watchlisted,
+        rating: serialInteractions.rating,
+        watchStatus: serialInteractions.watchStatus,
+      })
+      .from(serialInteractions)
+      .where(and(eq(serialInteractions.userId, userId), eq(serialInteractions.seriesId, seriesId)))
+      .limit(1);
+
+    return row ?? null;
   }
 
   static async upsertInteraction(input: {
@@ -113,21 +124,19 @@ export class SerialsInteractionsRepository {
     seriesId: number;
     liked?: boolean;
     watchlisted?: boolean;
-    isWatched?: boolean;
     rating?: number | null;
+    watched?: boolean;
   }) {
     return seriesInteractionStore.upsertState(input.userId, input.seriesId, {
       liked: input.liked,
       watchlisted: input.watchlisted,
       rating: input.rating,
-      watched: input.isWatched,
+      watched: input.watched,
     });
   }
 
-  // Fully watched series, most recently marked watched first. isWatched is
-  // a series-level flag that can be set independently of any per-episode
-  // rows (see setWatched below), so this queries serialInteractions
-  // directly rather than deriving completion from episode counts.
+  // Completed series, most recently updated first. watch_status covers both
+  // "marked watched" and "finished episode by episode".
   static async getWatchedSeriesForUser(userId: string, limit?: number, offset?: number) {
     const baseQuery = db
       .select({
@@ -143,15 +152,11 @@ export class SerialsInteractionsRepository {
       })
       .from(serialInteractions)
       .innerJoin(tvSeries, eq(serialInteractions.seriesId, tvSeries.id))
-      .where(and(eq(serialInteractions.userId, userId), eq(serialInteractions.isWatched, true)))
+      .where(and(eq(serialInteractions.userId, userId), eq(serialInteractions.watchStatus, "completed")))
       .orderBy(desc(serialInteractions.updatedAt))
       .$dynamic();
 
     return applyOptionalPagination(baseQuery, limit, offset);
-  }
-
-  static async setWatched(userId: string, seriesId: number): Promise<void> {
-    await seriesInteractionStore.markWatched(userId, seriesId);
   }
 
   static async insertDiaryEntry(input: {

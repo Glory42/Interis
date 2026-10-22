@@ -12,7 +12,8 @@ import { SerialsCacheService } from "./serials-cache.service";
 import { SerialsEpisodeInteractionsRepository } from "../repositories/serials-episode-interactions.repository";
 import { SerialsSeasonInteractionsRepository } from "../repositories/serials-season-interactions.repository";
 import { SerialsTrackingService } from "./serials-tracking.service";
-import { filterWatchedNonSpecialEpisodes } from "../helpers/serials-episode-filter.helper";
+import { SerialsWatchStatusService } from "./serials-watch-status.service";
+import type { SerialWatchStatus } from "../constants/serials-watch-status.constants";
 
 export class SerialsActivityService {
   // Shared by updateInteraction (the sidebar "Watch" toggle) and createLog
@@ -40,9 +41,13 @@ export class SerialsActivityService {
     const promises: Promise<unknown>[] = [];
     for (let seasonNum = 1; seasonNum <= numberOfSeasons; seasonNum++) {
       promises.push(
-        SerialsTrackingService.updateSeasonInteraction(userId, tmdbId, seasonNum, {
-          watched,
-        }),
+        SerialsTrackingService.updateSeasonInteraction(
+          userId,
+          tmdbId,
+          seasonNum,
+          { watched },
+          { syncWatchStatus: false },
+        ),
       );
     }
     await Promise.all(promises);
@@ -55,21 +60,19 @@ export class SerialsActivityService {
     }
 
     const row = await SerialsInteractionsRepository.getInteractionRow(userId, series.id);
-    const userEpisodeInteractions =
-      await SerialsEpisodeInteractionsRepository.getAllViewerEpisodeInteractions(
-        userId,
-        series.id,
-        series.tmdbId,
-      );
-    const watchedEpisodesCount = filterWatchedNonSpecialEpisodes(userEpisodeInteractions).length;
-    const allEpisodesWatched =
-      watchedEpisodesCount === series.numberOfEpisodes && series.numberOfEpisodes > 0;
+    return SerialsActivityService.toInteractionState(row, row?.watchStatus ?? null);
+  }
 
+  private static toInteractionState(
+    row: { liked: boolean; watchlisted: boolean; rating: number | null } | null,
+    watchStatus: SerialWatchStatus | null,
+  ) {
     return {
       liked: row?.liked ?? false,
       watchlisted: row?.watchlisted ?? false,
       rating: row?.rating ?? null,
-      watched: allEpisodesWatched || (row?.isWatched === true),
+      watched: watchStatus === "completed",
+      watchStatus,
     };
   }
 
@@ -86,37 +89,47 @@ export class SerialsActivityService {
     const previousRow = await SerialsInteractionsRepository.getInteractionRow(userId, series.id);
     const previousLiked = previousRow?.liked ?? false;
     const previousWatchlisted = previousRow?.watchlisted ?? false;
-    const previousIsWatched = previousRow?.isWatched ?? false;
+    const previousStatus = previousRow?.watchStatus ?? null;
 
+    // An explicit watched toggle always cascades (even to the same value -
+    // matches the sidebar toggle). Liking/rating implicitly marks a series
+    // watched only the first time; re-rating a completed series doesn't
+    // re-run the season/episode cascade.
     const isImplicitlyWatched = deriveImplicitWatched(input);
+    const cascadeTarget =
+      input.watched ?? (isImplicitlyWatched && previousStatus !== "completed" ? true : undefined);
 
-    const resolvedIsWatched = input.watched ?? (isImplicitlyWatched ? true : undefined);
-
-    // Cascade whenever the user explicitly toggles "watched" (even to the
-    // same value - matches the existing sidebar toggle behavior), or when
-    // liking/rating implicitly flips it to watched for the first time. Once
-    // previousIsWatched is already true, re-rating doesn't re-cascade -
-    // otherwise every rating tweak on an already-watched series would
-    // needlessly re-run the season/episode cascade.
-    const shouldCascadeSeasons =
-      input.watched !== undefined || (resolvedIsWatched === true && !previousIsWatched);
-
-    if (shouldCascadeSeasons) {
-      await SerialsActivityService.cascadeSeasonsWatched(
-        userId,
-        series,
-        resolvedIsWatched ?? false,
-      );
+    let watchStatus = previousStatus;
+    if (cascadeTarget !== undefined) {
+      await SerialsActivityService.cascadeSeasonsWatched(userId, series, cascadeTarget);
+      watchStatus = cascadeTarget ? "completed" : null;
+    } else if (input.watchStatus !== undefined) {
+      watchStatus = await SerialsWatchStatusService.setUserStatus(userId, series, input.watchStatus);
     }
 
-    const row = await SerialsInteractionsRepository.upsertInteraction({
-      userId,
-      seriesId: series.id,
-      liked: input.liked,
-      watchlisted: input.watchlisted,
-      rating: input.rating,
-      isWatched: resolvedIsWatched,
-    });
+    // `watched` still goes through so marking a series watched clears its
+    // watchlist flag, same as for movies.
+    const hasRowChange =
+      input.liked !== undefined ||
+      input.watchlisted !== undefined ||
+      input.rating !== undefined ||
+      cascadeTarget !== undefined;
+
+    const [row] = await Promise.all([
+      hasRowChange
+        ? SerialsInteractionsRepository.upsertInteraction({
+            userId,
+            seriesId: series.id,
+            liked: input.liked,
+            watchlisted: input.watchlisted,
+            rating: input.rating,
+            watched: cascadeTarget,
+          })
+        : previousRow,
+      cascadeTarget !== undefined
+        ? SerialsWatchStatusService.setStatus(userId, series.id, watchStatus)
+        : null,
+    ]);
 
     const resolvedLiked = row?.liked ?? input.liked ?? previousLiked;
     const resolvedWatchlisted =
@@ -140,22 +153,10 @@ export class SerialsActivityService {
       });
     }
 
-    const userEpisodeInteractions =
-      await SerialsEpisodeInteractionsRepository.getAllViewerEpisodeInteractions(
-        userId,
-        series.id,
-        series.tmdbId,
-      );
-    const watchedEpisodesCount = filterWatchedNonSpecialEpisodes(userEpisodeInteractions).length;
-    const allEpisodesWatched =
-      watchedEpisodesCount === series.numberOfEpisodes && series.numberOfEpisodes > 0;
-
-    return {
-      liked: resolvedLiked,
-      watchlisted: resolvedWatchlisted,
-      rating: row?.rating ?? null,
-      watched: allEpisodesWatched || (row?.isWatched === true),
-    };
+    return SerialsActivityService.toInteractionState(
+      row && { liked: resolvedLiked, watchlisted: resolvedWatchlisted, rating: row.rating },
+      watchStatus,
+    );
   }
 
   static async createLog(userId: string, tmdbId: number, input: CreateSerialLogDto) {
@@ -208,7 +209,7 @@ export class SerialsActivityService {
     });
 
     await Promise.all([
-      SerialsInteractionsRepository.setWatched(userId, series.id),
+      SerialsWatchStatusService.setStatus(userId, series.id, "completed"),
       SerialsActivityService.cascadeSeasonsWatched(userId, series, true),
     ]);
 

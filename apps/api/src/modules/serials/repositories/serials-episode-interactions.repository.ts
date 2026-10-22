@@ -1,4 +1,4 @@
-import { eq, and, like, or, isNull, inArray, gt, sql } from "drizzle-orm";
+import { eq, and, like, inArray, gt, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { serialEpisodeInteractions, serialInteractions, tvSeries } from "../serials.entity";
 import { reviews } from "../../reviews/reviews.entity";
@@ -203,11 +203,12 @@ export class SerialsEpisodeInteractionsRepository {
       );
   }
 
-  // Finds series a user has started but not finished watching, in one
-  // grouped query rather than scanning their whole watch history in the
-  // application layer. Excludes series explicitly marked fully watched, and
-  // ignores specials so they can't keep a series "in progress" on their own.
+  // The user's series with watch_status = 'watching', with their regular
+  // (non-special) watched-episode progress, most recently watched first.
+  // Paused / dropped / completed series are excluded by status alone.
   static async getInProgressSeriesForUser(userId: string, limit: number) {
+    const lastWatchedAt = sql`coalesce(max(${serialEpisodeInteractions.updatedAt}), max(${serialInteractions.updatedAt}))`;
+
     return db
       .select({
         seriesId: tvSeries.id,
@@ -218,36 +219,33 @@ export class SerialsEpisodeInteractionsRepository {
         firstAirYear: tvSeries.firstAirYear,
         numberOfSeasons: tvSeries.numberOfSeasons,
         numberOfEpisodes: tvSeries.numberOfEpisodes,
-        watchedEpisodesCount: sql<number>`count(*) filter (where ${serialEpisodeInteractions.watched})::int`,
+        watchedEpisodesCount: sql<number>`count(${serialEpisodeInteractions.episodeNumber})::int`,
         // updatedAt is a naive (no-timezone) column that always holds UTC
         // wall-clock digits; casting the aggregate result to timestamptz via
         // `AT TIME ZONE 'UTC'` makes Postgres return it with an explicit
         // offset, so the driver parses it as an unambiguous instant instead
         // of raw untyped text with no timezone marker at all.
-        lastWatchedAt: sql<Date>`(max(${serialEpisodeInteractions.updatedAt}) filter (where ${serialEpisodeInteractions.watched})) at time zone 'UTC'`,
+        lastWatchedAt: sql<Date>`(${lastWatchedAt}) at time zone 'UTC'`,
       })
-      .from(serialEpisodeInteractions)
-      .innerJoin(tvSeries, eq(serialEpisodeInteractions.seriesId, tvSeries.id))
+      .from(serialInteractions)
+      .innerJoin(tvSeries, eq(serialInteractions.seriesId, tvSeries.id))
       .leftJoin(
-        serialInteractions,
+        serialEpisodeInteractions,
         and(
-          eq(serialInteractions.userId, serialEpisodeInteractions.userId),
-          eq(serialInteractions.seriesId, serialEpisodeInteractions.seriesId),
+          eq(serialEpisodeInteractions.userId, serialInteractions.userId),
+          eq(serialEpisodeInteractions.seriesId, serialInteractions.seriesId),
+          gt(serialEpisodeInteractions.seasonNumber, SPECIALS_SEASON_NUMBER),
+          eq(serialEpisodeInteractions.watched, true),
         ),
       )
       .where(
         and(
-          eq(serialEpisodeInteractions.userId, userId),
-          gt(serialEpisodeInteractions.seasonNumber, SPECIALS_SEASON_NUMBER),
-          or(isNull(serialInteractions.isWatched), eq(serialInteractions.isWatched, false)),
+          eq(serialInteractions.userId, userId),
+          eq(serialInteractions.watchStatus, "watching"),
         ),
       )
       .groupBy(tvSeries.id)
-      .having(
-        sql`count(*) filter (where ${serialEpisodeInteractions.watched}) > 0
-          and count(*) filter (where ${serialEpisodeInteractions.watched}) < ${tvSeries.numberOfEpisodes}`,
-      )
-      .orderBy(sql`max(${serialEpisodeInteractions.updatedAt}) filter (where ${serialEpisodeInteractions.watched}) desc`)
+      .orderBy(sql`${lastWatchedAt} desc`)
       .limit(limit);
   }
 

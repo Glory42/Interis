@@ -5,6 +5,8 @@ import { SerialsCacheService } from "./serials-cache.service";
 import { getSeriesSeasonDetails as tmdbGetSeasonDetails } from "../../../infrastructure/tmdb/serials";
 import { ActivityRecorder } from "../../social/services/activity-recorder.service";
 import { buildReviewExtraMetadata } from "../helpers/serials-activity.helper";
+import { isNonSpecialSeasonNumber } from "../constants/serials-season.constants";
+import { SerialsWatchStatusService } from "./serials-watch-status.service";
 
 export class SerialsTrackingService {
   static async updateSeasonInteraction(
@@ -12,6 +14,9 @@ export class SerialsTrackingService {
     tmdbId: number,
     seasonNumber: number,
     input: { watched?: boolean; liked?: boolean; rating?: number | null },
+    // The whole-series cascade sets the status itself once, instead of every
+    // season re-syncing it in parallel.
+    options: { syncWatchStatus?: boolean } = {},
   ) {
     const series = await SerialsCacheService.findOrCreate(tmdbId);
     if (!series) return null;
@@ -76,6 +81,16 @@ export class SerialsTrackingService {
       }
     }
 
+    if (
+      options.syncWatchStatus !== false &&
+      isNonSpecialSeasonNumber(seasonNumber) &&
+      (input.watched !== undefined || row.watched !== (previousRow?.watched ?? false))
+    ) {
+      await SerialsWatchStatusService.syncFromEpisodes(userId, series, {
+        episodeAdded: row.watched,
+      });
+    }
+
     return {
       watched: row.watched,
       liked: row.liked,
@@ -136,14 +151,22 @@ export class SerialsTrackingService {
       });
     }
 
-    if (input.watched !== undefined) {
-      await SerialsTrackingService.syncSeasonWatchedFromEpisodes(
-        userId,
-        tmdbId,
-        series.id,
-        seasonNumber,
-      );
-    }
+    const watchedChanged = row.watched !== (previousRow?.watched ?? false);
+    await Promise.all([
+      input.watched !== undefined
+        ? SerialsTrackingService.syncSeasonWatchedFromEpisodes(
+            userId,
+            tmdbId,
+            series.id,
+            seasonNumber,
+          )
+        : null,
+      watchedChanged && isNonSpecialSeasonNumber(seasonNumber)
+        ? SerialsWatchStatusService.syncFromEpisodes(userId, series, {
+            episodeAdded: row.watched,
+          })
+        : null,
+    ]);
 
     return {
       watched: row.watched,

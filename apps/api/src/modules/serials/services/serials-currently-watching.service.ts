@@ -3,8 +3,7 @@ import { SerialsEpisodeInteractionsRepository } from "../repositories/serials-ep
 import { findNextUnwatchedEpisode } from "../helpers/serials-tracking.helper";
 
 export class SerialsCurrentlyWatchingService {
-  // Series the viewer has started but not finished watching, most
-  // recently-watched first. One grouped query picks the candidates (capped by
+  // Series whose watch status is "watching", most recently-watched first. One grouped query picks the candidates (capped by
   // `limit`, already carrying watched counts); one more batch-fetches their
   // watched episodes for "up next". TMDB detail per series is cached.
   static async getCurrentlyWatching(viewerUserId: string, limit: number) {

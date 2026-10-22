@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isoDateSchema } from "../../../commons/validation/common.schemas";
+import { USER_SET_WATCH_STATUSES } from "../constants/serials-watch-status.constants";
 import {
   DEFAULT_ARCHIVE_LIMIT,
   DEFAULT_ARCHIVE_PAGE,
@@ -218,15 +219,18 @@ export const UpdateSerialInteractionSchema = z
     watchlisted: z.boolean().optional(),
     rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
     watched: z.boolean().optional(),
+    watchStatus: z.enum(USER_SET_WATCH_STATUSES).optional(),
   })
   .refine(
     (payload) =>
       payload.liked !== undefined ||
       payload.watchlisted !== undefined ||
       payload.rating !== undefined ||
-      payload.watched !== undefined,
+      payload.watched !== undefined ||
+      payload.watchStatus !== undefined,
     {
-      message: "At least one of liked, watchlisted, rating, or watched must be provided",
+      message:
+        "At least one of liked, watchlisted, rating, watched, or watchStatus must be provided",
     },
   );
 
