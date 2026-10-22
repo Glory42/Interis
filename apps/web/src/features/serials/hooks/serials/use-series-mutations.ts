@@ -15,6 +15,7 @@ import {
   patchSeasonsInDetailViewCache,
   restoreQueries,
 } from "@/features/serials/hooks/serials-cache.helper";
+import { invalidateViewerCurrentlyWatching } from "@/features/profile/hooks/useProfile";
 import { serialKeys } from "./query-keys";
 
 export const useUpdateSeriesInteraction = (tmdbId: number) => {
@@ -94,6 +95,7 @@ export const useUpdateSeriesInteraction = (tmdbId: number) => {
         queryClient.invalidateQueries({
           queryKey: serialKeys.logs(tmdbId),
         }),
+        invalidateViewerCurrentlyWatching(queryClient),
       ]);
     },
   });
