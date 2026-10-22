@@ -9,7 +9,10 @@ import {
   type RunningTestServer,
 } from "../../support/app/test-server";
 import { db } from "../../../src/infrastructure/database/db";
-import { tvSeries } from "../../../src/modules/serials/serials.entity";
+import {
+  serialEpisodeInteractions,
+  tvSeries,
+} from "../../../src/modules/serials/serials.entity";
 
 // SerialsCurrentlyWatchingService is only reachable through
 // GET /api/public/:username/serials/currently-watching. The candidate query
@@ -80,6 +83,65 @@ describe("serials currently-watching (via public widget API)", () => {
     expect(series[0]!.watchedEpisodesCount).toBe(1);
     expect(series[0]!.numberOfEpisodes).toBe(10);
     expect(series[0]!.progressPercent).toBe(10);
+  });
+
+  const getCurrentlyWatching = async (username: string) => {
+    const response = await apiRequest(
+      getServer().baseUrl,
+      `/api/public/${username}/serials/currently-watching`,
+    );
+    expect(response.status).toBe(200);
+    return (await response.json()) as Array<{ tmdbId: number; watchedEpisodesCount: number }>;
+  };
+
+  it("doesn't count specials (season 0) as watching progress", async () => {
+    const { jar, username } = await signUpTestUser(getServer().baseUrl, "cwspecials");
+    const serial = await seedTestSerial("Specials Only Serial");
+    await db
+      .update(tvSeries)
+      .set({ numberOfEpisodes: 10, numberOfSeasons: 1, firstAirYear: 2020 })
+      .where(eq(tvSeries.id, serial.id));
+
+    await watchEpisode(jar, serial.tmdbId, 0, 1);
+    expect(await getCurrentlyWatching(username)).toEqual([]);
+
+    await watchEpisode(jar, serial.tmdbId, 1, 1);
+    const series = await getCurrentlyWatching(username);
+    expect(series).toHaveLength(1);
+    expect(series[0]!.watchedEpisodesCount).toBe(1);
+  });
+
+  it("drops a series from currently watching once the whole series is unwatched, specials included", async () => {
+    const { jar, username } = await signUpTestUser(getServer().baseUrl, "cwunwatch");
+    const serial = await seedTestSerial("Unwatched Serial");
+    await db
+      .update(tvSeries)
+      .set({ numberOfEpisodes: 10, numberOfSeasons: 1, firstAirYear: 2020 })
+      .where(eq(tvSeries.id, serial.id));
+
+    await watchEpisode(jar, serial.tmdbId, 0, 1);
+    await watchEpisode(jar, serial.tmdbId, 1, 1);
+    await watchEpisode(jar, serial.tmdbId, 1, 2);
+    expect(await getCurrentlyWatching(username)).toHaveLength(1);
+
+    const unwatch = await apiRequest(
+      getServer().baseUrl,
+      `/api/serials/${serial.tmdbId}/interaction`,
+      {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ watched: false }),
+      },
+      jar,
+    );
+    expect(unwatch.status).toBe(200);
+
+    const remaining = await db
+      .select({ watched: serialEpisodeInteractions.watched })
+      .from(serialEpisodeInteractions)
+      .where(eq(serialEpisodeInteractions.seriesId, serial.id));
+    expect(remaining.every((row) => !row.watched)).toBe(true);
+    expect(await getCurrentlyWatching(username)).toEqual([]);
   });
 
   it("excludes a series once every episode has been watched", async () => {

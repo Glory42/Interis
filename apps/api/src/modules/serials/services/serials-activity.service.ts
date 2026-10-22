@@ -10,6 +10,7 @@ import { SerialsInteractionsRepository } from "../repositories/serials-interacti
 import { SerialsReviewsRepository } from "../repositories/serials-reviews.repository";
 import { SerialsCacheService } from "./serials-cache.service";
 import { SerialsEpisodeInteractionsRepository } from "../repositories/serials-episode-interactions.repository";
+import { SerialsSeasonInteractionsRepository } from "../repositories/serials-season-interactions.repository";
 import { SerialsTrackingService } from "./serials-tracking.service";
 import { filterWatchedNonSpecialEpisodes } from "../helpers/serials-episode-filter.helper";
 
@@ -20,10 +21,18 @@ export class SerialsActivityService {
   // season/episode instead of only flipping the series-level flag.
   private static async cascadeSeasonsWatched(
     userId: string,
-    tmdbId: number,
-    numberOfSeasons: number | null,
+    series: { id: number; tmdbId: number; numberOfSeasons: number | null },
     watched: boolean,
   ): Promise<void> {
+    const { tmdbId, numberOfSeasons } = series;
+    if (!watched) {
+      await Promise.all([
+        SerialsEpisodeInteractionsRepository.unwatchAllForSeries(userId, series.id),
+        SerialsSeasonInteractionsRepository.unwatchAllForSeries(userId, series.id),
+      ]);
+      return;
+    }
+
     if (!numberOfSeasons || numberOfSeasons <= 0) {
       return;
     }
@@ -95,8 +104,7 @@ export class SerialsActivityService {
     if (shouldCascadeSeasons) {
       await SerialsActivityService.cascadeSeasonsWatched(
         userId,
-        tmdbId,
-        series.numberOfSeasons,
+        series,
         resolvedIsWatched ?? false,
       );
     }
@@ -201,12 +209,7 @@ export class SerialsActivityService {
 
     await Promise.all([
       SerialsInteractionsRepository.setWatched(userId, series.id),
-      SerialsActivityService.cascadeSeasonsWatched(
-        userId,
-        tmdbId,
-        series.numberOfSeasons,
-        true,
-      ),
+      SerialsActivityService.cascadeSeasonsWatched(userId, series, true),
     ]);
 
     return { entry, series, review };

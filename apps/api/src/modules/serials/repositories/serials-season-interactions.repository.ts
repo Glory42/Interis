@@ -46,6 +46,21 @@ export class SerialsSeasonInteractionsRepository {
     }));
   }
 
+  // Clears every season row for the series, specials included, in one query
+  // instead of one TMDB-backed upsert per season.
+  static async unwatchAllForSeries(userId: string, seriesId: number) {
+    await db
+      .update(serialSeasonInteractions)
+      .set({ watched: false, updatedAt: new Date() })
+      .where(
+        and(
+          eq(serialSeasonInteractions.userId, userId),
+          eq(serialSeasonInteractions.seriesId, seriesId),
+          eq(serialSeasonInteractions.watched, true),
+        ),
+      );
+  }
+
   static async getSingleInteraction(userId: string, seriesId: number, seasonNumber: number) {
     const [row] = await db
       .select()

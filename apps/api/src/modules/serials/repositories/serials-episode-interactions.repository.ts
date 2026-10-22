@@ -164,9 +164,25 @@ export class SerialsEpisodeInteractionsRepository {
       .returning();
   }
 
+  // Clears every episode row for the series, specials included. Needs no TMDB
+  // episode list, so "unwatch series" can't half-apply when TMDB is down.
+  static async unwatchAllForSeries(userId: string, seriesId: number) {
+    await db
+      .update(serialEpisodeInteractions)
+      .set({ watched: false, updatedAt: new Date() })
+      .where(
+        and(
+          eq(serialEpisodeInteractions.userId, userId),
+          eq(serialEpisodeInteractions.seriesId, seriesId),
+          eq(serialEpisodeInteractions.watched, true),
+        ),
+      );
+  }
+
   // Finds series a user has started but not finished watching, in one
   // grouped query rather than scanning their whole watch history in the
-  // application layer. Excludes series explicitly marked fully watched.
+  // application layer. Excludes series explicitly marked fully watched, and
+  // ignores specials so they can't keep a series "in progress" on their own.
   static async getInProgressSeriesForUser(userId: string, limit: number) {
     return db
       .select({
@@ -198,6 +214,7 @@ export class SerialsEpisodeInteractionsRepository {
       .where(
         and(
           eq(serialEpisodeInteractions.userId, userId),
+          gt(serialEpisodeInteractions.seasonNumber, SPECIALS_SEASON_NUMBER),
           or(isNull(serialInteractions.isWatched), eq(serialInteractions.isWatched, false)),
         ),
       )
