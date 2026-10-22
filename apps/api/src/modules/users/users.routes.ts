@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { UsersController } from "./users.controller";
+import { UsersProfileTabsController } from "./users-profile-tabs.controller";
 import { requireAuth } from "../../commons/middlewares/requireAuth";
 import { asyncHandler } from "../../commons/utils/asyncHandler";
 
@@ -27,5 +28,12 @@ router.get("/:username/liked-reviews", asyncHandler(UsersController.getUserLiked
 router.get("/:username/liked-lists", asyncHandler(UsersController.getUserLikedLists));
 router.get("/:username/watchlist", asyncHandler(UsersController.getUserWatchlist));
 router.get("/:username/lists", asyncHandler(UsersController.getUserLists));
+router.get("/:username/diary", asyncHandler(UsersProfileTabsController.getDiary));
+router.get("/:username/top4", asyncHandler(UsersProfileTabsController.getTop4));
+router.get("/:username/recent", asyncHandler(UsersProfileTabsController.getRecent));
+router.get(
+  "/:username/serials/currently-watching",
+  asyncHandler(UsersProfileTabsController.getSerialsCurrentlyWatching),
+);
 
 export default router;
