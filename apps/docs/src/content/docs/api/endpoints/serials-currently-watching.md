@@ -9,7 +9,7 @@ description: Read a user's list of TV shows/serials they've started but not fini
 GET /api/public/:username/serials/currently-watching
 ```
 
-Returns the TV series the user has watched at least one episode of, but hasn't fully watched yet, ordered by most recent watch activity. Series the user has explicitly marked as fully watched are excluded, even if newer episodes exist.
+Returns the TV series the user has watched at least one regular episode of, but hasn't fully watched yet, ordered by most recent watch activity. Specials (season 0) don't count toward progress, so watching only specials doesn't put a series on this list. Series the user has explicitly marked as fully watched are excluded, even if newer episodes exist.
 
 ## Path params
 
