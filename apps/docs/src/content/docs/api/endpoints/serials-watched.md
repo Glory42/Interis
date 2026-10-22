@@ -9,7 +9,7 @@ description: Read a user's fully watched TV series.
 GET /api/public/:username/serials/watched?limit=50
 ```
 
-Returns TV series the user has explicitly marked as fully watched. For series that are started but not finished, see [Serials Currently Watching](/api/endpoints/serials-currently-watching/).
+Returns TV series whose watch status is **completed**: marked watched (watch toggle or a diary log), or finished by checking every regular episode. For series that are started but not finished, see [Serials Currently Watching](/api/endpoints/serials-currently-watching/).
 
 ## Path params
 
@@ -44,12 +44,12 @@ Returns TV series the user has explicitly marked as fully watched. For series th
 ### Notes
 
 - "Watched" here is the explicit series-level flag set when a user marks the whole series watched — the same flag used elsewhere in the app (independent of per-episode tracking). It is not derived from episode-completion counts.
-- Sorted by `lastInteractionAt` descending (most recently marked watched first).
+- Sorted by `lastInteractionAt` descending (most recently completed first).
 - Does not include per-season/episode progress. For that level of detail on one specific series, see [Serials Progress](/api/endpoints/serials-progress/).
 
 ## Empty state behavior
 
-Returns `[]` when the user hasn't marked any series fully watched.
+Returns `[]` when the user hasn't completed any series.
 
 ## Error behavior
 

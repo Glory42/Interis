@@ -1,6 +1,6 @@
 ---
 title: Serials Currently Watching
-description: Read a user's list of TV shows/serials they've started but not finished watching.
+description: Read the TV series a user is currently watching.
 ---
 
 ## Endpoint
@@ -9,7 +9,7 @@ description: Read a user's list of TV shows/serials they've started but not fini
 GET /api/public/:username/serials/currently-watching
 ```
 
-Returns the TV series the user has watched at least one regular episode of, but hasn't fully watched yet, ordered by most recent watch activity. Specials (season 0) don't count toward progress, so watching only specials doesn't put a series on this list. Series the user has explicitly marked as fully watched are excluded, even if newer episodes exist.
+Returns the TV series whose watch status is **watching**, ordered by most recent watch activity. A series becomes "watching" when the user checks its first regular episode, and leaves this list when every episode is watched (completed), when the user pauses or drops it, or when every episode is unchecked. Specials (season 0) don't count toward progress, so watching only specials doesn't put a series on this list. A completed series comes back here when new episodes air, as long as the user had tracked it episode by episode.
 
 ## Path params
 
@@ -57,7 +57,7 @@ Returns the TV series the user has watched at least one regular episode of, but 
 
 ## Empty state behavior
 
-Returns `[]` if the user has no series in progress (nothing started, or everything is either finished or not yet begun).
+Returns `[]` if the user has no series with the watching status (nothing started, or everything is completed, paused, or dropped).
 
 ## Error behavior
 

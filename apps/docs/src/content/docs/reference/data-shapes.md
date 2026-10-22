@@ -147,6 +147,6 @@ Same row shape as [Interaction rows](#interaction-rows-likes-watchlist) above, b
 An array of fully watched series (`mediaType` always `"tv"`). Key fields per item:
 
 - series info: `tmdbId`, `title`, `posterPath`, `backdropPath`, `firstAirYear`, `numberOfSeasons`, `numberOfEpisodes`
-- `lastInteractionAt`: when the series was marked watched (or last touched since).
+- `lastInteractionAt`: when the series was completed (or last touched since).
 
 No episode-level progress fields — this reflects the series-level `isWatched` flag only, not derived from per-episode completion. For per-episode detail on one series, use [Serials Progress](/api/endpoints/serials-progress/).
