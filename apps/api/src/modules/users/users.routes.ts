@@ -3,8 +3,19 @@ import { UsersController } from "./users.controller";
 import { UsersProfileTabsController } from "./users-profile-tabs.controller";
 import { requireAuth } from "../../commons/middlewares/requireAuth";
 import { asyncHandler } from "../../commons/utils/asyncHandler";
+import { peekViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
+import { env } from "../../infrastructure/config/env";
+import { createPublicResponseCache } from "../public/helpers/public-response-cache.helper";
 
 const router = Router();
+
+// Same 5-minute cache as the widget API, except the profile owner always
+// bypasses it. Disabled under test so integration suites see their own writes.
+const profileTabsCache = createPublicResponseCache({
+  ttlMs: env.NODE_ENV === "test" ? 0 : 5 * 60 * 1000,
+  maxEntries: 500,
+  resolveViewerId: (req) => peekViewerUserIdFromHeaders(req.headers),
+});
 
 // ── Protected — /me routes first, before /:username ──────────────────────────
 router.get("/me", requireAuth, asyncHandler(UsersController.getMe));
@@ -28,11 +39,20 @@ router.get("/:username/liked-reviews", asyncHandler(UsersController.getUserLiked
 router.get("/:username/liked-lists", asyncHandler(UsersController.getUserLikedLists));
 router.get("/:username/watchlist", asyncHandler(UsersController.getUserWatchlist));
 router.get("/:username/lists", asyncHandler(UsersController.getUserLists));
-router.get("/:username/diary", asyncHandler(UsersProfileTabsController.getDiary));
-router.get("/:username/top4", asyncHandler(UsersProfileTabsController.getTop4));
-router.get("/:username/recent", asyncHandler(UsersProfileTabsController.getRecent));
+router.get(
+  "/:username/diary",
+  profileTabsCache,
+  asyncHandler(UsersProfileTabsController.getDiary),
+);
+router.get("/:username/top4", profileTabsCache, asyncHandler(UsersProfileTabsController.getTop4));
+router.get(
+  "/:username/recent",
+  profileTabsCache,
+  asyncHandler(UsersProfileTabsController.getRecent),
+);
 router.get(
   "/:username/serials/currently-watching",
+  profileTabsCache,
   asyncHandler(UsersProfileTabsController.getSerialsCurrentlyWatching),
 );
 

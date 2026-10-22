@@ -51,6 +51,17 @@ export const getRefreshTokenFromHeaders = (headers: IncomingHttpHeaders): string
   return parseCookie(headers.cookie, env.AUTH_REFRESH_COOKIE_NAME);
 };
 
+// Signature-checked user id from the access cookie, skipping the session
+// lookup (no DB query). Only for non-security decisions like bypassing a
+// cache - never for authorization; use resolveViewerUserIdFromHeaders there.
+export const peekViewerUserIdFromHeaders = async (
+  headers: IncomingHttpHeaders,
+): Promise<string | null> => {
+  const accessToken = getAccessTokenFromHeaders(headers);
+  if (!accessToken) return null;
+  return (await TokenService.verifyAccessToken(accessToken))?.userId ?? null;
+};
+
 export const resolveViewerUserIdFromHeaders = async (
   headers: IncomingHttpHeaders,
 ): Promise<string | null> => {
