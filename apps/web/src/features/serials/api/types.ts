@@ -36,6 +36,7 @@ export type SerialSeasonDetailResponse = z.infer<typeof serialSeasonDetailSchema
 export type CachedSeries = z.infer<typeof cachedSeriesSchema>;
 export type TrendingSeries = z.infer<typeof trendingSeriesSchema>;
 export type SerialInteraction = z.infer<typeof serialInteractionSchema>;
+export type SerialWatchStatus = NonNullable<SerialInteraction["watchStatus"]>;
 export type UpdateSerialInteractionInput = z.infer<
   typeof updateSerialInteractionInputSchema
 >;

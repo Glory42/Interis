@@ -4,6 +4,7 @@ import {
   index,
   integer,
   jsonb,
+  pgEnum,
   pgTable,
   serial,
   text,
@@ -14,6 +15,9 @@ import {
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { user } from "../../infrastructure/database/auth.entity";
+import { SERIAL_WATCH_STATUSES } from "./constants/serials-watch-status.constants";
+
+export const serialWatchStatusEnum = pgEnum("serial_watch_status", SERIAL_WATCH_STATUSES);
 
 export const tvSeries = pgTable("tv_series", {
   id: serial("id").primaryKey(),
@@ -81,7 +85,10 @@ export const serialInteractions = pgTable(
       .references(() => tvSeries.id, { onDelete: "cascade" }),
     liked: boolean("liked").default(false).notNull(),
     watchlisted: boolean("watchlisted").default(false).notNull(),
+    // Legacy: superseded by watchStatus and no longer read for series. Still
+    // written by the shared movie/series interaction adapter until dropped.
     isWatched: boolean("is_watched").default(false).notNull(),
+    watchStatus: serialWatchStatusEnum("watch_status"),
     rating: real("rating"),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -90,6 +97,8 @@ export const serialInteractions = pgTable(
   },
   (table) => [
     unique("serial_interactions_unique").on(table.userId, table.seriesId),
+    // Backs the profile "watching" / "watched" lists: WHERE user_id = X AND watch_status = Y
+    index("serial_interaction_user_watch_status_idx").on(table.userId, table.watchStatus),
     // Backs the community-rating avg() subquery: WHERE series_id = X AND rating IS NOT NULL
     index("serial_interaction_series_rating_idx")
       .on(table.seriesId, table.rating)

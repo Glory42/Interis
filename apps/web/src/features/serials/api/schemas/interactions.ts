@@ -1,11 +1,17 @@
 import { z } from "zod";
 
+export const serialWatchStatusSchema = z.enum(["watching", "paused", "dropped", "completed"]);
+
+// Statuses the user sets by hand; completed / none come from the watched toggle.
+export const userSetSerialWatchStatusSchema = z.enum(["watching", "paused", "dropped"]);
+
 export const serialInteractionSchema = z
   .object({
     liked: z.boolean(),
     watchlisted: z.boolean(),
     rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable(),
     watched: z.boolean(),
+    watchStatus: serialWatchStatusSchema.nullable().default(null),
   })
   .passthrough();
 
@@ -15,13 +21,15 @@ export const updateSerialInteractionInputSchema = z
     watchlisted: z.boolean().optional(),
     rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
     watched: z.boolean().optional(),
+    watchStatus: userSetSerialWatchStatusSchema.optional(),
   })
   .refine(
     (payload) =>
       payload.liked !== undefined ||
       payload.watchlisted !== undefined ||
       payload.rating !== undefined ||
-      payload.watched !== undefined,
+      payload.watched !== undefined ||
+      payload.watchStatus !== undefined,
     {
       message: "At least one interaction field is required",
     },

@@ -57,7 +57,7 @@ The broader `/api` limiter is configured to skip `/public/*`, so public traffic 
 - Likes/watchlist include both movie and TV rows.
 - Diary includes both movie and TV entries merged and sorted by watched date.
 - Activity/recent return the same feed item shape, but with different default/max limits.
-- Currently-watching excludes series explicitly marked fully watched, and requires at least one watched episode.
+- Currently-watching lists series with the "watching" status; completed, paused, and dropped series are excluded.
 - Movies watched / serials watched are each movie-only or series-only (unlike likes/watchlist, which mix both media types).
 
 ## Endpoint docs

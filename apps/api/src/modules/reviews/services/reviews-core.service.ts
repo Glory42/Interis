@@ -1,6 +1,6 @@
 import { MoviesService } from "../../movies/movies.service";
 import { SerialsService } from "../../serials/serials.service";
-import { SerialsInteractionsRepository } from "../../serials/repositories/serials-interactions.repository";
+import { SerialsWatchStatusService } from "../../serials/services/serials-watch-status.service";
 import {
   ActivityRecorder,
   type ActivitySubject,
@@ -45,7 +45,8 @@ const tvReviewAdapter: ReviewMediaAdapter<Series, { review: ReviewsTableRow; ser
     return series;
   },
   reviewRef: (series) => ({ mediaType: "tv", tmdbId: series.tmdbId, movieId: null }),
-  markWatched: (userId, series) => SerialsInteractionsRepository.setWatched(userId, series.id),
+  // A review mid-season mustn't knock the series off "watching".
+  markWatched: (userId, series) => SerialsWatchStatusService.markCompletedIfUntracked(userId, series.id),
   activitySubject: (series) => ({ kind: "series", series }),
   toResult: (review, series) => ({ review, series }),
 };

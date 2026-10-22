@@ -64,12 +64,14 @@ describe("series-level interaction", () => {
       watchlisted: boolean;
       rating: number | null;
       watched: boolean;
+      watchStatus: string | null;
     };
     expect(body).toEqual({
       liked: false,
       watchlisted: false,
       rating: null,
       watched: false,
+      watchStatus: null,
     });
   });
 

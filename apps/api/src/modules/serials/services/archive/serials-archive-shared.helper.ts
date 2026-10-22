@@ -53,7 +53,7 @@ export const addViewerArchiveState = async (
 
   for (const row of viewerInteractionRows) {
     if (row.watchlisted) viewerWatchlistedTmdbIdSet.add(row.tmdbId);
-    if (row.isWatched) viewerFullyWatchedTmdbIdSet.add(row.tmdbId);
+    if (row.watchStatus === "completed") viewerFullyWatchedTmdbIdSet.add(row.tmdbId);
     if (row.rating !== null) viewerLoggedTmdbIdSet.add(row.tmdbId);
   }
 
@@ -63,17 +63,12 @@ export const addViewerArchiveState = async (
 
   return pageItems.map((item) => {
     const watchedEpisodesCount = viewerWatchedEpisodesCountByTmdbId.get(item.tmdbId) ?? 0;
-    const viewerFullyWatched =
-      viewerFullyWatchedTmdbIdSet.has(item.tmdbId) ||
-      (item.numberOfEpisodes !== null &&
-        item.numberOfEpisodes > 0 &&
-        watchedEpisodesCount === item.numberOfEpisodes);
 
     return {
       ...item,
       viewerHasLogged: viewerLoggedTmdbIdSet.has(item.tmdbId),
       viewerWatchlisted: viewerWatchlistedTmdbIdSet.has(item.tmdbId),
-      viewerFullyWatched,
+      viewerFullyWatched: viewerFullyWatchedTmdbIdSet.has(item.tmdbId),
       viewerHasProgress: watchedEpisodesCount > 0,
     };
   });

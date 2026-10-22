@@ -39,7 +39,12 @@ export const useUpdateSeriesInteraction = (tmdbId: number) => {
           ...(input.rating !== undefined
             ? { rating: input.rating }
             : {}),
-          ...(input.watched !== undefined ? { watched: input.watched } : {}),
+          ...(input.watched !== undefined
+            ? { watched: input.watched, watchStatus: input.watched ? "completed" : null }
+            : {}),
+          ...(input.watched === undefined && input.watchStatus !== undefined
+            ? { watchStatus: input.watchStatus }
+            : {}),
         });
       }
 
