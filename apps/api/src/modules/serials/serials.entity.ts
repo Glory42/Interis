@@ -145,6 +145,9 @@ export const serialEpisodeInteractions = pgTable(
     seasonNumber: integer("season_number").notNull(),
     episodeNumber: integer("episode_number").notNull(),
     watched: boolean("watched").default(false).notNull(),
+    // True when `watched` came only from liking / rating the episode, so
+    // removing that like / rating can take it back (#66).
+    watchedImplicitly: boolean("watched_implicitly").default(false).notNull(),
     liked: boolean("liked").default(false).notNull(),
     rating: real("rating"),
     updatedAt: timestamp("updated_at")

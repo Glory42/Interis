@@ -124,7 +124,7 @@ describe("series-level interaction", () => {
     expect(getBody.watchlisted).toBe(true);
   });
 
-  it("rating implicitly marks the series watched", async () => {
+  it("rating a series doesn't mark it watched (#66)", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "siwat");
     const serial = await seedTestSerial();
 
@@ -141,7 +141,7 @@ describe("series-level interaction", () => {
     expect(response.status).toBe(200);
     const body = (await response.json()) as { rating: number; watched: boolean };
     expect(body.rating).toBe(8);
-    expect(body.watched).toBe(true);
+    expect(body.watched).toBe(false);
   });
 
   it("liking a watchlisted series removes it from the watchlist", async () => {

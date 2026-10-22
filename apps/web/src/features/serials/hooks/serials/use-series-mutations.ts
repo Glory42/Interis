@@ -48,16 +48,11 @@ export const useUpdateSeriesInteraction = (tmdbId: number) => {
         });
       }
 
-      // Mirrors SerialsActivityService.updateInteraction's shouldCascadeSeasons
+      // Mirrors SerialsActivityService.updateInteraction: only an explicit
+      // watched toggle cascades to seasons/episodes (liking or rating doesn't),
       // so season rows don't show stale state until the TMDB-backed cascade
       // response (potentially multi-second) comes back.
-      const isImplicitlyWatched =
-        input.liked === true || (input.rating !== undefined && input.rating !== null);
-      const previousWatched = previousState?.watched ?? false;
-      const resolvedWatched = input.watched ?? (isImplicitlyWatched ? true : undefined);
-      const shouldCascade =
-        input.watched !== undefined || (resolvedWatched === true && !previousWatched);
-
+      const shouldCascade = input.watched !== undefined;
       let previousSeasonQueries: ReturnType<typeof patchSeasonsInDetailViewCache> = [];
       let previousEpisodeQueries: ReturnType<typeof patchEpisodesInSeasonDetailCache> = [];
       if (shouldCascade) {
@@ -66,7 +61,7 @@ export const useUpdateSeriesInteraction = (tmdbId: number) => {
           queryClient.cancelQueries({ queryKey: serialKeys.seasonDetailRoot(tmdbId) }),
         ]);
 
-        const cascadeWatched = resolvedWatched ?? false;
+        const cascadeWatched = input.watched ?? false;
         previousSeasonQueries = patchSeasonsInDetailViewCache(queryClient, tmdbId, "all", {
           watched: cascadeWatched,
         });

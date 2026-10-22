@@ -7,6 +7,7 @@ import { ActivityRecorder } from "../../social/services/activity-recorder.servic
 import { buildReviewExtraMetadata } from "../helpers/serials-activity.helper";
 import { isNonSpecialSeasonNumber } from "../constants/serials-season.constants";
 import { SerialsWatchStatusService } from "./serials-watch-status.service";
+import { resolveEpisodeWatchedUpdate } from "../helpers/serials-implicit-watched.helper";
 
 export class SerialsTrackingService {
   static async updateSeasonInteraction(
@@ -26,8 +27,6 @@ export class SerialsTrackingService {
 
     const rating = input.rating;
 
-    // Implicit-watch resolution (liking/rating marks watched) lives inside
-    // upsertSeasonInteraction now - pass raw intent.
     const row = await SerialsSeasonInteractionsRepository.upsertSeasonInteraction({
       userId,
       seriesId: series.id,
@@ -63,8 +62,11 @@ export class SerialsTrackingService {
       });
     }
 
-    if (input.watched === false || row.watched) {
-      const targetWatchState = row.watched;
+    // Only an explicit toggle cascades. Re-cascading whenever the stored flag
+    // is true would mark newly aired episodes watched on a later like or
+    // rating of an already-watched season (#70).
+    if (input.watched !== undefined) {
+      const targetWatchState = input.watched;
       const tmdbSeasonDetail = await tmdbGetSeasonDetails(
         tmdbId,
         seasonNumber,
@@ -113,14 +115,12 @@ export class SerialsTrackingService {
 
     const rating = input.rating;
 
-    // Implicit-watch resolution (liking/rating marks watched) lives inside
-    // upsertEpisodeInteraction now - pass raw intent.
     const row = await SerialsEpisodeInteractionsRepository.upsertEpisodeInteraction({
       userId,
       seriesId: series.id,
       seasonNumber,
       episodeNumber,
-      watched: input.watched,
+      watched: resolveEpisodeWatchedUpdate(previousRow, input),
       liked: input.liked,
       rating,
     });
@@ -153,7 +153,7 @@ export class SerialsTrackingService {
 
     const watchedChanged = row.watched !== (previousRow?.watched ?? false);
     await Promise.all([
-      input.watched !== undefined
+      watchedChanged
         ? SerialsTrackingService.syncSeasonWatchedFromEpisodes(
             userId,
             tmdbId,

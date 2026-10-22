@@ -17,13 +17,11 @@ export type ResolvedInteractionUpdate = {
   updateSet: Partial<InteractionStateRow>;
 };
 
-// Liking a title, or rating it, is an implicit "I've watched this" signal -
-// the single rule every interaction write shares, movie / series / season /
-// episode alike. `resolveInteractionUpdate` applies it below for the
-// movie/series row; it's exported on its own so the serials tracking and
-// activity services can branch on the same derived value *before* their
-// write (season cascade, whether to record an activity) instead of
-// re-expressing the check inline and letting it drift.
+// Liking or rating a single watchable item - a movie or an episode - is an
+// implicit "I've watched this" signal. `resolveInteractionUpdate` applies it
+// to the movie row; the episode path applies it (reversibly) through
+// resolveEpisodeWatchedUpdate. Seasons and series don't use it: liking one
+// says nothing about which episodes were seen (#66).
 export function deriveImplicitWatched(
   input: Pick<InteractionStateInput, "liked" | "rating">,
 ): boolean {

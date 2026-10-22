@@ -4,7 +4,6 @@ import { serialEpisodeInteractions, serialInteractions, tvSeries } from "../seri
 import { reviews } from "../../reviews/reviews.entity";
 import { TV_EPISODE_REVIEW_TYPE } from "../../reviews/constants/review-media-type.constant";
 import { SPECIALS_SEASON_NUMBER } from "../constants/serials-season.constants";
-import { deriveImplicitWatched } from "../../media-interactions/helpers/interaction-state-rules.helper";
 
 export class SerialsEpisodeInteractionsRepository {
   static async getViewerEpisodeInteractions(
@@ -80,21 +79,11 @@ export class SerialsEpisodeInteractionsRepository {
     seriesId: number;
     seasonNumber: number;
     episodeNumber: number;
-    watched?: boolean;
+    // Already resolved by resolveEpisodeWatchedUpdate; omitted = unchanged.
+    watched?: { watched: boolean; watchedImplicitly: boolean };
     liked?: boolean;
     rating?: number | null;
   }) {
-    // Same implicit-watch rule the movie/series seam applies in
-    // resolveInteractionUpdate: an explicit `watched` wins, otherwise liking
-    // or rating the episode marks it watched. Applied here so callers pass
-    // raw intent instead of pre-computing `watched` at each call site.
-    const effectiveWatched =
-      input.watched !== undefined
-        ? input.watched
-        : deriveImplicitWatched(input)
-          ? true
-          : undefined;
-
     const [row] = await db
       .insert(serialEpisodeInteractions)
       .values({
@@ -102,7 +91,8 @@ export class SerialsEpisodeInteractionsRepository {
         seriesId: input.seriesId,
         seasonNumber: input.seasonNumber,
         episodeNumber: input.episodeNumber,
-        watched: effectiveWatched ?? false,
+        watched: input.watched?.watched ?? false,
+        watchedImplicitly: input.watched?.watchedImplicitly ?? false,
         liked: input.liked ?? false,
         rating: input.rating ?? null,
       })
@@ -114,7 +104,7 @@ export class SerialsEpisodeInteractionsRepository {
           serialEpisodeInteractions.episodeNumber,
         ],
         set: {
-          ...(effectiveWatched !== undefined && { watched: effectiveWatched }),
+          ...(input.watched !== undefined && input.watched),
           ...(input.liked !== undefined && { liked: input.liked }),
           ...(input.rating !== undefined && { rating: input.rating }),
           updatedAt: new Date(),
@@ -147,6 +137,7 @@ export class SerialsEpisodeInteractionsRepository {
           seasonNumber: input.seasonNumber,
           episodeNumber,
           watched: input.watched,
+          watchedImplicitly: false,
         })),
       )
       .onConflictDoUpdate({
@@ -158,6 +149,7 @@ export class SerialsEpisodeInteractionsRepository {
         ],
         set: {
           watched: input.watched,
+          watchedImplicitly: false,
           updatedAt: new Date(),
         },
       })
@@ -193,7 +185,7 @@ export class SerialsEpisodeInteractionsRepository {
   static async unwatchAllForSeries(userId: string, seriesId: number) {
     await db
       .update(serialEpisodeInteractions)
-      .set({ watched: false, updatedAt: new Date() })
+      .set({ watched: false, watchedImplicitly: false, updatedAt: new Date() })
       .where(
         and(
           eq(serialEpisodeInteractions.userId, userId),
