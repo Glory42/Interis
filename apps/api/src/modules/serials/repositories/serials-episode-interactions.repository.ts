@@ -164,6 +164,30 @@ export class SerialsEpisodeInteractionsRepository {
       .returning();
   }
 
+  // Watched regular-season episodes for a page of series in one query, so
+  // callers listing several series don't fire per-series lookups.
+  static async getWatchedRegularEpisodesForSeries(userId: string, seriesIds: number[]) {
+    if (seriesIds.length === 0) {
+      return [];
+    }
+
+    return db
+      .select({
+        seriesId: serialEpisodeInteractions.seriesId,
+        seasonNumber: serialEpisodeInteractions.seasonNumber,
+        episodeNumber: serialEpisodeInteractions.episodeNumber,
+      })
+      .from(serialEpisodeInteractions)
+      .where(
+        and(
+          eq(serialEpisodeInteractions.userId, userId),
+          inArray(serialEpisodeInteractions.seriesId, seriesIds),
+          gt(serialEpisodeInteractions.seasonNumber, SPECIALS_SEASON_NUMBER),
+          eq(serialEpisodeInteractions.watched, true),
+        ),
+      );
+  }
+
   // Clears every episode row for the series, specials included. Needs no TMDB
   // episode list, so "unwatch series" can't half-apply when TMDB is down.
   static async unwatchAllForSeries(userId: string, seriesId: number) {

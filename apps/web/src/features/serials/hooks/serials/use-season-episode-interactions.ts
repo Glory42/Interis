@@ -9,6 +9,7 @@ import {
   patchSeasonsInDetailViewCache,
   restoreQueries,
 } from "@/features/serials/hooks/serials-cache.helper";
+import { invalidateViewerCurrentlyWatching } from "@/features/profile/hooks/useProfile";
 import { serialKeys } from "./query-keys";
 
 export const useUpdateSeasonInteraction = (tmdbId: number) => {
@@ -61,6 +62,7 @@ export const useUpdateSeasonInteraction = (tmdbId: number) => {
         queryClient.invalidateQueries({
           queryKey: serialKeys.interaction(tmdbId),
         }),
+        invalidateViewerCurrentlyWatching(queryClient),
       ]);
     },
   });
@@ -127,6 +129,7 @@ export const useUpdateEpisodeInteraction = (tmdbId: number, seasonNumber: number
         queryClient.invalidateQueries({
           queryKey: serialKeys.interaction(tmdbId),
         }),
+        invalidateViewerCurrentlyWatching(queryClient),
       ]);
     },
   });

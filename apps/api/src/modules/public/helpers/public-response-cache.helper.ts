@@ -4,6 +4,8 @@ type CachedPublicResponse = {
   status: number;
   body: unknown;
   cacheControl: string | null;
+  // Set by handlers via res.locals.profileOwnerId; lets the owner skip the cache.
+  ownerUserId: string | null;
   expiresAt: number;
 };
 
@@ -13,19 +15,21 @@ const CACHEABLE_STATUSES = new Set([200, 404]);
 // sites re-request the same few URLs on every page view; serving repeats from memory
 // means that traffic doesn't wake the DB (Neon compute only sleeps after 5 idle min).
 // Responses are viewer-independent (no cookies/auth on /api/public), so sharing is safe.
-export const createPublicResponseCache = (options: { ttlMs: number; maxEntries: number }) => {
+// With `resolveViewerId`, a viewer who owns the cached profile always gets a fresh
+// response (which also refreshes the entry), so users see their own changes at once.
+export const createPublicResponseCache = (options: {
+  ttlMs: number;
+  maxEntries: number;
+  resolveViewerId?: (req: Request) => Promise<string | null>;
+}) => {
   const cache = new Map<string, CachedPublicResponse>();
 
-  return (req: Request, res: Response, next: NextFunction): void => {
-    if (req.method !== "GET" || options.ttlMs <= 0) {
-      next();
-      return;
-    }
-
+  const handle = (req: Request, res: Response, next: NextFunction, viewerId: string | null) => {
     const key = req.originalUrl;
     const now = Date.now();
     const hit = cache.get(key);
-    if (hit && hit.expiresAt > now) {
+    const viewerOwnsHit = viewerId !== null && hit?.ownerUserId === viewerId;
+    if (hit && hit.expiresAt > now && !viewerOwnsHit) {
       res.setHeader("X-Cache", "HIT");
       if (hit.cacheControl) res.setHeader("Cache-Control", hit.cacheControl);
       res.status(hit.status).json(hit.body);
@@ -41,10 +45,12 @@ export const createPublicResponseCache = (options: { ttlMs: number; maxEntries: 
           if (oldestKey !== undefined) cache.delete(oldestKey);
         }
         const cacheControl = res.getHeader("Cache-Control");
+        const ownerUserId: unknown = res.locals?.profileOwnerId;
         cache.set(key, {
           status: res.statusCode,
           body,
           cacheControl: typeof cacheControl === "string" ? cacheControl : null,
+          ownerUserId: typeof ownerUserId === "string" ? ownerUserId : null,
           expiresAt: now + options.ttlMs,
         });
       }
@@ -53,5 +59,19 @@ export const createPublicResponseCache = (options: { ttlMs: number; maxEntries: 
     };
 
     next();
+  };
+
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (req.method !== "GET" || options.ttlMs <= 0) {
+      next();
+      return;
+    }
+
+    if (!options.resolveViewerId) {
+      handle(req, res, next, null);
+      return;
+    }
+
+    options.resolveViewerId(req).then((viewerId) => handle(req, res, next, viewerId), next);
   };
 };

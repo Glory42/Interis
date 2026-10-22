@@ -24,7 +24,7 @@ const toTimestamp = (value: string | Date): number => {
 };
 
 export class PublicService {
-  private static findUserIdByUsername(username: string): Promise<string | null> {
+  static findUserIdByUsername(username: string): Promise<string | null> {
     return PublicRepository.findUserIdByUsername(username);
   }
 
@@ -54,6 +54,10 @@ export class PublicService {
     const userId = await PublicService.findUserIdByUsername(username);
     if (!userId) return null;
 
+    return SocialFeedService.getUserActivityFeed(userId, limit);
+  }
+
+  static getRecentActivityByUserId(userId: string, limit = 10) {
     return SocialFeedService.getUserActivityFeed(userId, limit);
   }
 
@@ -126,6 +130,14 @@ export class PublicService {
       return null;
     }
 
+    return PublicService.getDiaryByUserId(userId, limit, offset);
+  }
+
+  static async getDiaryByUserId(
+    userId: string,
+    limit = 50,
+    offset = 0,
+  ): Promise<PublicDiaryItem[]> {
     // Fetch enough of each source to cover through offset+limit, then merge,
     // sort, and slice the exact page - matches the pattern used for
     // reviews/likes/watchlist (see UsersReviewsRepository.getReviewsWithMovies)
@@ -257,6 +269,17 @@ export class PublicService {
     }
 
     return PublicTopPicksService.getTop4ByUserId(userId);
+  }
+
+  static getTop4ByUserId(userId: string) {
+    return PublicTopPicksService.getTop4ByUserId(userId);
+  }
+
+  static getSerialsCurrentlyWatchingByUserId(
+    userId: string,
+    limit: number,
+  ): Promise<PublicCurrentlyWatchingSeries[]> {
+    return SerialsCurrentlyWatchingService.getCurrentlyWatching(userId, limit);
   }
 
   static async getSerialsCurrentlyWatching(
