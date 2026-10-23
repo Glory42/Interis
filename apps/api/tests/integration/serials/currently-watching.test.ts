@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "bun:test";
+import { afterAll, beforeAll, describe, expect, it, setDefaultTimeout } from "bun:test";
 import { eq } from "drizzle-orm";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
@@ -13,6 +13,9 @@ import {
   serialEpisodeInteractions,
   tvSeries,
 } from "../../../src/modules/serials/serials.entity";
+
+// Each episode toggle waits on a failing TMDB season lookup in CI.
+setDefaultTimeout(15000);
 
 // SerialsCurrentlyWatchingService is only reachable through
 // GET /api/public/:username/serials/currently-watching. The candidate query

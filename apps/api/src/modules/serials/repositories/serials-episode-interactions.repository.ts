@@ -180,6 +180,22 @@ export class SerialsEpisodeInteractionsRepository {
       );
   }
 
+  // Clears a season's episode rows from the DB alone, so unwatching a season
+  // can't half-apply when TMDB is down.
+  static async unwatchSeason(userId: string, seriesId: number, seasonNumber: number) {
+    await db
+      .update(serialEpisodeInteractions)
+      .set({ watched: false, watchedImplicitly: false, updatedAt: new Date() })
+      .where(
+        and(
+          eq(serialEpisodeInteractions.userId, userId),
+          eq(serialEpisodeInteractions.seriesId, seriesId),
+          eq(serialEpisodeInteractions.seasonNumber, seasonNumber),
+          eq(serialEpisodeInteractions.watched, true),
+        ),
+      );
+  }
+
   // Clears every episode row for the series, specials included. Needs no TMDB
   // episode list, so "unwatch series" can't half-apply when TMDB is down.
   static async unwatchAllForSeries(userId: string, seriesId: number) {

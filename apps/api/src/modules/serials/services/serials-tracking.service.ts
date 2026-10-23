@@ -8,19 +8,43 @@ import { buildReviewExtraMetadata } from "../helpers/serials-activity.helper";
 import { isNonSpecialSeasonNumber } from "../constants/serials-season.constants";
 import { SerialsWatchStatusService } from "./serials-watch-status.service";
 import { resolveEpisodeWatchedUpdate } from "../helpers/serials-implicit-watched.helper";
+import { ServiceUnavailableError } from "../../../commons/errors/app-error";
 
 export class SerialsTrackingService {
+  // The episode numbers a "mark season watched" cascade checks. Resolved
+  // before anything is written, so a TMDB failure fails the request instead
+  // of saving the season flag with no episodes behind it (#69).
+  static async getSeasonEpisodeNumbers(tmdbId: number, seasonNumber: number): Promise<number[]> {
+    const detail = await tmdbGetSeasonDetails(tmdbId, seasonNumber).catch(() => null);
+    if (!detail) {
+      throw new ServiceUnavailableError(
+        "Couldn't load this season's episodes right now. Please try again.",
+      );
+    }
+    return (detail.episodes ?? []).map((episode) => episode.episode_number);
+  }
+
   static async updateSeasonInteraction(
     userId: string,
     tmdbId: number,
     seasonNumber: number,
     input: { watched?: boolean; liked?: boolean; rating?: number | null },
-    // The whole-series cascade sets the status itself once, instead of every
-    // season re-syncing it in parallel.
-    options: { syncWatchStatus?: boolean } = {},
+    options: {
+      // The whole-series cascade sets the status itself once, instead of
+      // every season re-syncing it in parallel.
+      syncWatchStatus?: boolean;
+      // Pre-resolved by a caller cascading several seasons at once.
+      episodeNumbers?: number[];
+    } = {},
   ) {
     const series = await SerialsCacheService.findOrCreate(tmdbId);
     if (!series) return null;
+
+    const episodeNumbers =
+      input.watched === true
+        ? (options.episodeNumbers ??
+          (await SerialsTrackingService.getSeasonEpisodeNumbers(tmdbId, seasonNumber)))
+        : [];
 
     const previousRow = await SerialsSeasonInteractionsRepository.getSingleInteraction(userId, series.id, seasonNumber);
     const previousLiked = previousRow?.liked ?? false;
@@ -64,23 +88,18 @@ export class SerialsTrackingService {
 
     // Only an explicit toggle cascades. Re-cascading whenever the stored flag
     // is true would mark newly aired episodes watched on a later like or
-    // rating of an already-watched season (#70).
-    if (input.watched !== undefined) {
-      const targetWatchState = input.watched;
-      const tmdbSeasonDetail = await tmdbGetSeasonDetails(
-        tmdbId,
+    // rating of an already-watched season (#70). Unwatching needs no episode
+    // list from TMDB: it clears whatever rows the season has.
+    if (input.watched === true) {
+      await SerialsEpisodeInteractionsRepository.upsertManyEpisodeWatchedState({
+        userId,
+        seriesId: series.id,
         seasonNumber,
-      ).catch(() => null);
-
-      if (tmdbSeasonDetail && tmdbSeasonDetail.episodes) {
-        await SerialsEpisodeInteractionsRepository.upsertManyEpisodeWatchedState({
-          userId,
-          seriesId: series.id,
-          seasonNumber,
-          episodeNumbers: tmdbSeasonDetail.episodes.map((episode) => episode.episode_number),
-          watched: targetWatchState,
-        });
-      }
+        episodeNumbers,
+        watched: true,
+      });
+    } else if (input.watched === false) {
+      await SerialsEpisodeInteractionsRepository.unwatchSeason(userId, series.id, seasonNumber);
     }
 
     if (
@@ -159,6 +178,7 @@ export class SerialsTrackingService {
             tmdbId,
             series.id,
             seasonNumber,
+            row.watched,
           )
         : null,
       watchedChanged && isNonSpecialSeasonNumber(seasonNumber)
@@ -187,9 +207,23 @@ export class SerialsTrackingService {
     tmdbId: number,
     seriesId: number,
     seasonNumber: number,
+    episodeWatched: boolean,
   ): Promise<void> {
     const tmdbSeasonDetail = await tmdbGetSeasonDetails(tmdbId, seasonNumber).catch(() => null);
-    if (!tmdbSeasonDetail || !tmdbSeasonDetail.episodes || tmdbSeasonDetail.episodes.length === 0) {
+    if (!tmdbSeasonDetail) {
+      // Without the episode list we can't tell whether the season is now
+      // complete, but an unchecked episode always means it isn't (#69).
+      if (!episodeWatched) {
+        await SerialsSeasonInteractionsRepository.upsertSeasonInteraction({
+          userId,
+          seriesId,
+          seasonNumber,
+          watched: false,
+        });
+      }
+      return;
+    }
+    if (!tmdbSeasonDetail.episodes || tmdbSeasonDetail.episodes.length === 0) {
       return;
     }
 
