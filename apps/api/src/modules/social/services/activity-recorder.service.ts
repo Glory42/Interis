@@ -1,5 +1,9 @@
 import { toMediaFields } from "../../../commons/helpers/media-activity-fields.helper";
-import { SocialRepository, type ActivityType } from "../repositories/social.repository";
+import {
+  SocialRepository,
+  type ActivityMetadataFilter,
+  type ActivityType,
+} from "../repositories/social.repository";
 import { SocialFeedService } from "./social-feed.service";
 
 // The one entry point for writing an activity-feed row. Every write path -
@@ -74,6 +78,46 @@ const buildSubjectMetadata = (subject: ActivitySubject): Record<string, unknown>
   return base;
 };
 
+// Picks out one subject's rows among those sharing a (type, entityId) pair -
+// see ActivityMetadataFilter. Season and episode ratings are recorded as
+// `liked_movie` rows carrying a `rating`, so `rated` keeps a like's
+// retraction from also removing the rating's row, and vice versa.
+const buildSubjectFilter = (subject: ActivitySubject, rated: boolean): ActivityMetadataFilter => {
+  const hasKeys = rated ? ["rating"] : [];
+  const missingKeys = rated ? [] : ["rating"];
+
+  if (subject.kind === "movie") {
+    return { contains: { movieId: subject.movie.id }, hasKeys, missingKeys };
+  }
+
+  const seriesId = subject.series.id;
+  if (subject.kind === "series") {
+    return {
+      contains: { seriesId, mediaType: "tv" },
+      hasKeys,
+      missingKeys: [...missingKeys, "seasonNumber", "episodeNumber"],
+    };
+  }
+
+  if (subject.kind === "season") {
+    return {
+      contains: { seriesId, seasonNumber: subject.seasonNumber },
+      hasKeys,
+      missingKeys: [...missingKeys, "episodeNumber"],
+    };
+  }
+
+  return {
+    contains: {
+      seriesId,
+      seasonNumber: subject.seasonNumber,
+      episodeNumber: subject.episodeNumber,
+    },
+    hasKeys,
+    missingKeys,
+  };
+};
+
 export class ActivityRecorder {
   // Awaited write: insert the row, then invalidate the actor's following
   // feed. Used by the write paths that already await their activity insert
@@ -125,6 +169,44 @@ export class ActivityRecorder {
         ...buildSubjectMetadata(input.subject),
         ...input.extraMetadata,
       },
+    });
+  }
+
+  // Undo of record(): deletes the actor's rows for an action they reversed
+  // (unlike, un-watchlist, unfollow) so followers stop seeing it. Removes
+  // every matching row, duplicates included. Awaited, so a quick undo then
+  // redo can't have this delete land after the redo's new row, but it never
+  // fails the request: a stale feed row is better than a failed unlike.
+  static async retract(input: {
+    userId: string;
+    type: ActivityType;
+    entityId: string;
+    metadata?: ActivityMetadataFilter;
+  }): Promise<void> {
+    try {
+      const deleted = await SocialRepository.deleteActivities(input);
+      if (deleted.length > 0) {
+        SocialFeedService.invalidateFollowingFeed(input.userId);
+        SocialFeedService.invalidateUserActivityFeed(input.userId);
+      }
+    } catch {
+      // Swallowed on purpose, see above.
+    }
+  }
+
+  // Media-scoped retract, matching recordMedia's subject.
+  static async retractMedia(input: {
+    userId: string;
+    subject: ActivitySubject;
+    type: ActivityType;
+    entityId: string;
+    rated?: boolean;
+  }): Promise<void> {
+    await ActivityRecorder.retract({
+      userId: input.userId,
+      type: input.type,
+      entityId: input.entityId,
+      metadata: buildSubjectFilter(input.subject, input.rated ?? false),
     });
   }
 }

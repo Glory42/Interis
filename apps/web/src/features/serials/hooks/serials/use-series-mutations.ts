@@ -16,6 +16,7 @@ import {
   restoreQueries,
 } from "@/features/serials/hooks/serials-cache.helper";
 import { invalidateViewerCurrentlyWatching } from "@/features/profile/hooks/useProfile";
+import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
 import { serialKeys } from "./query-keys";
 
 export const useUpdateSeriesInteraction = (tmdbId: number) => {
@@ -97,6 +98,7 @@ export const useUpdateSeriesInteraction = (tmdbId: number) => {
           queryKey: serialKeys.logs(tmdbId),
         }),
         invalidateViewerCurrentlyWatching(queryClient),
+        invalidateFollowingFeed(queryClient),
       ]);
     },
   });

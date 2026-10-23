@@ -218,4 +218,9 @@ export class SocialFeedService {
   static invalidateFollowingFeed(userId: string): void {
     cachedGetFollowingFeed.invalidatePrefix(`${userId}:`);
   }
+
+  // The public profile's activity list, cached per actor.
+  static invalidateUserActivityFeed(userId: string): void {
+    cachedGetUserActivityFeed.invalidatePrefix(`${userId}:`);
+  }
 }

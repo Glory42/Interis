@@ -6,6 +6,7 @@ import {
   type UpdateMovieInteractionInput,
 } from "@/features/interactions/api";
 import { movieKeys } from "@/features/movies/hooks/useMovies";
+import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
 
 export const interactionKeys = {
   detail: (tmdbId: number) => ["interactions", "movie", tmdbId] as const,
@@ -77,6 +78,9 @@ export const useUpdateMovieInteraction = (tmdbId: number) => {
         queryClient.invalidateQueries({
           queryKey: movieKeys.logs(tmdbId),
         }),
+        // Likes and watchlist adds are feed rows, and undoing them removes
+        // the row server-side (#76).
+        invalidateFollowingFeed(queryClient),
       ]);
     },
   });

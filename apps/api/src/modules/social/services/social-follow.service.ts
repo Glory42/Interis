@@ -45,6 +45,11 @@ export class SocialFollowService {
 
   static async unfollow(followerId: string, followingId: string) {
     await SocialRepository.deleteFollow(followerId, followingId);
+    await ActivityRecorder.retract({
+      userId: followerId,
+      type: "followed_user",
+      entityId: followingId,
+    });
     SocialFeedService.invalidateFollowingFeed(followerId);
     return { success: true } as const;
   }
