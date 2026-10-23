@@ -10,6 +10,7 @@ import { ActivityRecorder } from "../../social/services/activity-recorder.servic
 import { buildReviewExtraMetadata } from "../helpers/serials-activity.helper";
 import { isNonSpecialSeasonNumber } from "../constants/serials-season.constants";
 import { SerialsWatchStatusService } from "./serials-watch-status.service";
+import { SerialsLevelActivityService } from "./serials-level-activity.service";
 import { resolveEpisodeWatchedUpdate } from "../helpers/serials-implicit-watched.helper";
 import { ServiceUnavailableError } from "../../../commons/errors/app-error";
 
@@ -50,7 +51,6 @@ export class SerialsTrackingService {
         : [];
 
     const previousRow = await SerialsSeasonInteractionsRepository.getSingleInteraction(userId, series.id, seasonNumber);
-    const previousLiked = previousRow?.liked ?? false;
 
     const rating = input.rating;
 
@@ -65,29 +65,13 @@ export class SerialsTrackingService {
 
     if (!row) return null;
 
-    if (input.liked === true && !previousLiked && row.liked) {
-      ActivityRecorder.recordMedia({
-        userId,
-        subject: { kind: "season", series, seasonNumber },
-        type: "liked_movie",
-        entityId: String(series.id),
-      });
-    }
-
-    if (
-      input.rating !== undefined &&
-      input.rating !== null &&
-      row.rating !== null &&
-      row.rating !== previousRow?.rating
-    ) {
-      ActivityRecorder.recordMedia({
-        userId,
-        subject: { kind: "season", series, seasonNumber },
-        type: "liked_movie",
-        entityId: String(series.id),
-        extraMetadata: { rating: row.rating },
-      });
-    }
+    await SerialsLevelActivityService.syncInteraction({
+      userId,
+      subject: { kind: "season", series, seasonNumber },
+      change: input,
+      previous: previousRow,
+      current: row,
+    });
 
     // Only an explicit toggle cascades. Re-cascading whenever the stored flag
     // is true would mark newly aired episodes watched on a later like or
@@ -133,7 +117,6 @@ export class SerialsTrackingService {
     if (!series) return null;
 
     const previousRow = await SerialsEpisodeInteractionsRepository.getSingleInteraction(userId, series.id, seasonNumber, episodeNumber);
-    const previousLiked = previousRow?.liked ?? false;
 
     const rating = input.rating;
 
@@ -149,29 +132,13 @@ export class SerialsTrackingService {
 
     if (!row) return null;
 
-    if (input.liked === true && !previousLiked && row.liked) {
-      ActivityRecorder.recordMedia({
-        userId,
-        subject: { kind: "episode", series, seasonNumber, episodeNumber },
-        type: "liked_movie",
-        entityId: String(series.id),
-      });
-    }
-
-    if (
-      input.rating !== undefined &&
-      input.rating !== null &&
-      row.rating !== null &&
-      row.rating !== previousRow?.rating
-    ) {
-      ActivityRecorder.recordMedia({
-        userId,
-        subject: { kind: "episode", series, seasonNumber, episodeNumber },
-        type: "liked_movie",
-        entityId: String(series.id),
-        extraMetadata: { rating: row.rating },
-      });
-    }
+    await SerialsLevelActivityService.syncInteraction({
+      userId,
+      subject: { kind: "episode", series, seasonNumber, episodeNumber },
+      change: input,
+      previous: previousRow,
+      current: row,
+    });
 
     const watchedChanged = row.watched !== (previousRow?.watched ?? false);
     await Promise.all([

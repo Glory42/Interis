@@ -5,6 +5,16 @@ import { profiles } from "../../users/users.entity";
 import { activities, activityLikes, activityTypeEnum, follows } from "../social.entity";
 
 export type ActivityType = (typeof activityTypeEnum.enumValues)[number];
+
+// Narrows a retraction to rows whose JSON metadata matches. Needed because
+// some types share one (type, entityId) pair across different subjects -
+// e.g. a series, its seasons and its episodes all record `liked_movie`
+// against the series id, told apart only by seasonNumber/episodeNumber.
+export type ActivityMetadataFilter = {
+  contains?: Record<string, unknown>;
+  hasKeys?: string[];
+  missingKeys?: string[];
+};
 import type { FeedCursor } from "../helpers/social-feed-cursor.helper";
 
 export class SocialRepository {
@@ -30,6 +40,30 @@ export class SocialRepository {
       entityId: input.entityId,
       metadata: input.metadata,
     });
+  }
+
+  static async deleteActivities(input: {
+    userId: string;
+    type: ActivityType;
+    entityId: string;
+    metadata?: ActivityMetadataFilter;
+  }) {
+    const metadataJson = sql`(${activities.metadata})::jsonb`;
+    const { contains, hasKeys = [], missingKeys = [] } = input.metadata ?? {};
+
+    return db
+      .delete(activities)
+      .where(
+        and(
+          eq(activities.userId, input.userId),
+          eq(activities.type, input.type),
+          eq(activities.entityId, input.entityId),
+          contains ? sql`${metadataJson} @> ${JSON.stringify(contains)}::jsonb` : undefined,
+          ...hasKeys.map((key) => sql`${metadataJson} -> ${key} is not null`),
+          ...missingKeys.map((key) => sql`${metadataJson} -> ${key} is null`),
+        ),
+      )
+      .returning({ id: activities.id });
   }
 
   static async deleteFollow(followerId: string, followingId: string) {

@@ -69,6 +69,28 @@ export class InteractionsService {
       });
     }
 
+    // Undoing a like or watchlist takes its feed row back out (#76).
+    // Watching a movie also clears its watchlist flag, but that isn't an
+    // undo, so only an explicit `false` retracts.
+    await Promise.all([
+      input.liked === false
+        ? ActivityRecorder.retractMedia({
+            userId,
+            subject: { kind: "movie", movie },
+            type: "liked_movie",
+            entityId: String(movie.id),
+          })
+        : null,
+      input.watchlisted === false
+        ? ActivityRecorder.retractMedia({
+            userId,
+            subject: { kind: "movie", movie },
+            type: "watchlisted_movie",
+            entityId: String(movie.id),
+          })
+        : null,
+    ]);
+
     return toInteractionResponse(
       upserted ?? {
         liked: input.liked ?? false,

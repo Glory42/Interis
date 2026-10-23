@@ -34,6 +34,14 @@ export class PostsLikesService {
 
   static async unlike(userId: string, postId: string) {
     const result = await PostsRepository.deleteLikeByUserAndPost(userId, postId);
+    // A post like is a `commented` row keyed by the post id; comments on
+    // the post are keyed by their own id, so `action` is a safety net.
+    await ActivityRecorder.retract({
+      userId,
+      type: "commented",
+      entityId: postId,
+      metadata: { contains: { action: "liked_post" } },
+    });
     SocialFeedService.invalidateFollowingFeed(userId);
     return result;
   }

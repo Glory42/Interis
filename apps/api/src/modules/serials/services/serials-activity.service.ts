@@ -165,6 +165,26 @@ export class SerialsActivityService {
       });
     }
 
+    // Undoing a like or watchlist takes its feed row back out (#76).
+    await Promise.all([
+      input.liked === false && previousLiked
+        ? ActivityRecorder.retractMedia({
+            userId,
+            subject: { kind: "series", series },
+            type: "liked_movie",
+            entityId: String(series.id),
+          })
+        : null,
+      input.watchlisted === false && previousWatchlisted
+        ? ActivityRecorder.retractMedia({
+            userId,
+            subject: { kind: "series", series },
+            type: "watchlisted_movie",
+            entityId: String(series.id),
+          })
+        : null,
+    ]);
+
     return SerialsActivityService.toInteractionState(
       row && { liked: resolvedLiked, watchlisted: resolvedWatchlisted, rating: row.rating },
       watchStatus,

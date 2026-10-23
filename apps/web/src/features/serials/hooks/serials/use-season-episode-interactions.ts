@@ -10,6 +10,7 @@ import {
   restoreQueries,
 } from "@/features/serials/hooks/serials-cache.helper";
 import { invalidateViewerCurrentlyWatching } from "@/features/profile/hooks/useProfile";
+import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
 import { serialKeys } from "./query-keys";
 
 export const useUpdateSeasonInteraction = (tmdbId: number) => {
@@ -64,6 +65,7 @@ export const useUpdateSeasonInteraction = (tmdbId: number) => {
           queryKey: serialKeys.interaction(tmdbId),
         }),
         invalidateViewerCurrentlyWatching(queryClient),
+        invalidateFollowingFeed(queryClient),
       ]);
     },
   });
@@ -132,6 +134,7 @@ export const useUpdateEpisodeInteraction = (tmdbId: number, seasonNumber: number
           queryKey: serialKeys.interaction(tmdbId),
         }),
         invalidateViewerCurrentlyWatching(queryClient),
+        invalidateFollowingFeed(queryClient),
       ]);
     },
   });
