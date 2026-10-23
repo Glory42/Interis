@@ -7,6 +7,8 @@ const wait = (ms: number) =>
     setTimeout(resolve, ms);
   });
 
+class NonRetryableTmdbError extends Error {}
+
 const isRetryableStatus = (status: number): boolean => {
   return status === 429 || status >= 500;
 };
@@ -35,20 +37,19 @@ export const fetchTMDB = async (endpoint: string): Promise<unknown> => {
       });
 
       if (!response.ok) {
-        const responseError = new Error(
-          `TMDB Error: ${response.status} ${response.statusText}`,
-        );
-
-        if (attempt < TMDB_MAX_RETRIES && isRetryableStatus(response.status)) {
-          await wait((attempt + 1) * 200);
-          continue;
-        }
-
-        throw responseError;
+        const message = `TMDB Error: ${response.status} ${response.statusText}`;
+        // A 4xx won't change on retry, so fail on the first one (#108).
+        throw isRetryableStatus(response.status)
+          ? new Error(message)
+          : new NonRetryableTmdbError(message);
       }
 
       return response.json();
     } catch (error) {
+      if (error instanceof NonRetryableTmdbError) {
+        throw error;
+      }
+
       const normalizedError =
         error instanceof Error ? error : new Error("Unknown TMDB fetch error");
 

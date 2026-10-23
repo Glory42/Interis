@@ -132,7 +132,7 @@ describe("season cascades when TMDB is unavailable", () => {
     expect(response.status).toBe(503);
     expect(await seasonRow(serial.id, 1)).toBeNull();
     expect(await watchedEpisodes(serial.id)).toEqual([]);
-  }, 15000);
+  });
 
   it("marking a season watched checks every episode TMDB lists", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "cascup");
@@ -144,7 +144,7 @@ describe("season cascades when TMDB is unavailable", () => {
     });
     expect(response.status).toBe(200);
     expect(await watchedEpisodes(serial.id)).toEqual([1, 2, 3]);
-  }, 15000);
+  });
 
   it("unwatching a season works while TMDB is down", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "cascunw");
@@ -159,7 +159,7 @@ describe("season cascades when TMDB is unavailable", () => {
     expect(response.status).toBe(200);
     expect(await seasonRow(serial.id, 1)).toEqual({ watched: false });
     expect(await watchedEpisodes(serial.id)).toEqual([]);
-  }, 15000);
+  });
 
   it("unchecking an episode while TMDB is down unmarks its season", async () => {
     const { jar, userId } = await signUpWithId("cascepi");
@@ -174,7 +174,7 @@ describe("season cascades when TMDB is unavailable", () => {
 
     expect((await put(jar, episodePath(2), { watched: false })).status).toBe(200);
     expect(await seasonRow(serial.id, 1)).toEqual({ watched: false });
-  }, 15000);
+  });
 
   it("marking a series watched fails if any season can't be loaded, and saves nothing", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "cascser");
@@ -192,7 +192,7 @@ describe("season cascades when TMDB is unavailable", () => {
       .from(serialInteractions)
       .where(eq(serialInteractions.seriesId, serial.id));
     expect(interaction?.watchStatus ?? null).toBeNull();
-  }, 15000);
+  });
 
   it("logging a series fails while TMDB is down and creates no diary entry", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "casclog");
@@ -214,5 +214,5 @@ describe("season cascades when TMDB is unavailable", () => {
       .from(serialDiaryEntries)
       .where(eq(serialDiaryEntries.seriesId, serial.id));
     expect(entries).toEqual([]);
-  }, 15000);
+  });
 });
