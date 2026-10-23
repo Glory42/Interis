@@ -5,9 +5,11 @@ import { restoreQueries, type QuerySnapshot } from "@/lib/query-optimistic";
 import {
   addReviewComment,
   deleteReviewComment,
+  getMyTitleReviews,
   getProfileReviewDetail,
   getReviewComments,
   likeReview,
+  type MyTitleReviewsQuery,
   type ReviewComment,
   type ReviewDetail,
   type ReviewMediaType,
@@ -24,6 +26,21 @@ export const reviewKeys = {
   detailRoot: ["reviews", "detail"] as const,
   comments: (mediaType: ReviewMediaType, reviewId: string) =>
     ["reviews", "comments", mediaType, reviewId] as const,
+  mineForTitle: (query: MyTitleReviewsQuery) => ["reviews", "mine", query] as const,
+};
+
+// Loads the viewer's reviews of a title on demand (when they open the review
+// chooser) rather than on every detail-page view; staleTime 0 so a review
+// written a moment ago is always listed.
+export const useFetchMyTitleReviews = () => {
+  const queryClient = useQueryClient();
+
+  return (query: MyTitleReviewsQuery) =>
+    queryClient.fetchQuery({
+      queryKey: reviewKeys.mineForTitle(query),
+      queryFn: () => getMyTitleReviews(query),
+      staleTime: 0,
+    });
 };
 
 const matchesReview = (item: FeedItem, reviewId: string): boolean => {

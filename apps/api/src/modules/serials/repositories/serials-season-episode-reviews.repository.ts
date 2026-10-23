@@ -13,6 +13,13 @@ import {
   type SeasonEpisodeReviewMediaType,
 } from "../../reviews/constants/review-media-type.constant";
 
+export type SeasonEpisodeReviewInput = {
+  content: string;
+  containsSpoilers?: boolean;
+  reviewId?: string;
+  createNew?: boolean;
+};
+
 export type SerialSeasonEpisodeReviewRow = {
   id: string;
   userId: string;
@@ -140,14 +147,15 @@ export class SerialsSeasonEpisodeReviewsRepository {
     ];
   }
 
-  // A user can have several reviews of one season/episode (#72). These
-  // single-review endpoints act on the newest one - get/save/delete by owner
-  // + media source - and season and episode reviews only differ in
-  // mediaType and how their mediaSourceId is composed.
+  // A user can have several reviews of one season/episode (#72). With no
+  // reviewId / createNew these endpoints act on the newest one, so get, save
+  // and delete go by owner + media source; season and episode reviews only
+  // differ in mediaType and how their mediaSourceId is composed.
   private static async getReviewByMediaSource(
     userId: string,
     mediaType: SeasonEpisodeReviewMediaType,
     mediaSourceId: string,
+    reviewId?: string,
   ) {
     const [row] = await db
       .select()
@@ -157,6 +165,7 @@ export class SerialsSeasonEpisodeReviewsRepository {
           eq(reviews.userId, userId),
           eq(reviews.mediaType, mediaType),
           eq(reviews.mediaSourceId, mediaSourceId),
+          reviewId ? eq(reviews.id, reviewId) : undefined,
         ),
       )
       .orderBy(desc(reviews.createdAt), desc(reviews.id))
@@ -165,24 +174,32 @@ export class SerialsSeasonEpisodeReviewsRepository {
     return row ?? null;
   }
 
-  // Edits the newest review, or writes the first one.
-  private static async upsertReviewByMediaSource(
+  // Edits the review named by reviewId (null if it isn't this user's review
+  // of this season/episode), writes a new one for createNew, and otherwise
+  // edits the newest review or writes the first one.
+  private static async saveReviewByMediaSource(
     userId: string,
     mediaType: SeasonEpisodeReviewMediaType,
     mediaSourceId: string,
-    input: { content: string; containsSpoilers?: boolean },
+    input: SeasonEpisodeReviewInput,
   ) {
-    const latest = await SerialsSeasonEpisodeReviewsRepository.getReviewByMediaSource(
-      userId,
-      mediaType,
-      mediaSourceId,
-    );
-    if (latest) {
-      const row = await ReviewsRepository.updateByIdAndUser(latest.id, userId, {
+    const existing = input.createNew
+      ? null
+      : await SerialsSeasonEpisodeReviewsRepository.getReviewByMediaSource(
+          userId,
+          mediaType,
+          mediaSourceId,
+          input.reviewId,
+        );
+    if (existing) {
+      const row = await ReviewsRepository.updateByIdAndUser(existing.id, userId, {
         content: input.content,
         containsSpoilers: input.containsSpoilers ?? false,
       });
       return { row, isNew: false };
+    }
+    if (input.reviewId) {
+      return { row: null, isNew: false };
     }
 
     const row = await ReviewsRepository.insertReviewRow({
@@ -199,14 +216,16 @@ export class SerialsSeasonEpisodeReviewsRepository {
     userId: string,
     mediaType: SeasonEpisodeReviewMediaType,
     mediaSourceId: string,
+    reviewId?: string,
   ) {
-    const latest = await SerialsSeasonEpisodeReviewsRepository.getReviewByMediaSource(
+    const target = await SerialsSeasonEpisodeReviewsRepository.getReviewByMediaSource(
       userId,
       mediaType,
       mediaSourceId,
+      reviewId,
     );
-    if (!latest) return null;
-    return ReviewsRepository.deleteByIdAndUser(latest.id, userId);
+    if (!target) return null;
+    return ReviewsRepository.deleteByIdAndUser(target.id, userId);
   }
 
   static async getSeasonReview(userId: string, seriesTmdbId: number, seasonNumber: number) {
@@ -221,9 +240,9 @@ export class SerialsSeasonEpisodeReviewsRepository {
     userId: string,
     seriesTmdbId: number,
     seasonNumber: number,
-    input: { content: string; containsSpoilers?: boolean },
+    input: SeasonEpisodeReviewInput,
   ) {
-    return SerialsSeasonEpisodeReviewsRepository.upsertReviewByMediaSource(
+    return SerialsSeasonEpisodeReviewsRepository.saveReviewByMediaSource(
       userId,
       TV_SEASON_REVIEW_TYPE,
       `${seriesTmdbId}:${seasonNumber}`,
@@ -231,11 +250,17 @@ export class SerialsSeasonEpisodeReviewsRepository {
     );
   }
 
-  static async deleteSeasonReview(userId: string, seriesTmdbId: number, seasonNumber: number) {
+  static async deleteSeasonReview(
+    userId: string,
+    seriesTmdbId: number,
+    seasonNumber: number,
+    reviewId?: string,
+  ) {
     return SerialsSeasonEpisodeReviewsRepository.deleteReviewByMediaSource(
       userId,
       TV_SEASON_REVIEW_TYPE,
       `${seriesTmdbId}:${seasonNumber}`,
+      reviewId,
     );
   }
 
@@ -257,9 +282,9 @@ export class SerialsSeasonEpisodeReviewsRepository {
     seriesTmdbId: number,
     seasonNumber: number,
     episodeNumber: number,
-    input: { content: string; containsSpoilers?: boolean },
+    input: SeasonEpisodeReviewInput,
   ) {
-    return SerialsSeasonEpisodeReviewsRepository.upsertReviewByMediaSource(
+    return SerialsSeasonEpisodeReviewsRepository.saveReviewByMediaSource(
       userId,
       TV_EPISODE_REVIEW_TYPE,
       `${seriesTmdbId}:${seasonNumber}:${episodeNumber}`,
@@ -272,11 +297,13 @@ export class SerialsSeasonEpisodeReviewsRepository {
     seriesTmdbId: number,
     seasonNumber: number,
     episodeNumber: number,
+    reviewId?: string,
   ) {
     return SerialsSeasonEpisodeReviewsRepository.deleteReviewByMediaSource(
       userId,
       TV_EPISODE_REVIEW_TYPE,
       `${seriesTmdbId}:${seasonNumber}:${episodeNumber}`,
+      reviewId,
     );
   }
 }

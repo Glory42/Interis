@@ -16,13 +16,13 @@ export {
   updateSeriesInteraction,
   updateSeasonInteraction,
   updateEpisodeInteraction,
-  getSeasonReview,
   upsertSeasonReview,
   deleteSeasonReview,
-  getEpisodeReview,
   upsertEpisodeReview,
   deleteEpisodeReview,
 } from "./api/requests";
+
+export type { SeasonEpisodeReviewSaveInput } from "./api/requests";
 
 export type {
   CachedSeries,

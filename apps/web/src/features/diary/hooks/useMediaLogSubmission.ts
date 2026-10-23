@@ -63,11 +63,11 @@ export const useMediaLogSubmission = ({
   };
 
   const openModal = () => {
-    setWatchedDate(initialState?.watchedDate ?? todayAsLocalDateInput());
+    setWatchedDate(todayAsLocalDateInput());
     setRating(initialState?.rating ?? null);
     setRewatch(initialState?.rewatch ?? false);
-    setReview(initialState?.reviewContent ?? "");
-    setContainsSpoilers(initialState?.containsSpoilers ?? false);
+    setReview("");
+    setContainsSpoilers(false);
     setLikedOverride(null);
     setFormError(null);
     onOpenChange(true);

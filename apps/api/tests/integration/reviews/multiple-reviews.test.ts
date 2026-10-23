@@ -13,6 +13,7 @@ type MyReview = {
   content: string;
   diaryEntryId: string | null;
   rating: number | null;
+  watchedDate: string | null;
 };
 
 // #72: a user can review one title more than once, each log keeps the
@@ -103,9 +104,16 @@ describe("multiple reviews per title", () => {
 
     const mine = await getMine(jar, `mediaType=movie&tmdbId=${movie.tmdbId}`);
     expect(mine.status).toBe(200);
-    expect(mine.body.map((review) => [review.content, review.diaryEntryId, review.rating])).toEqual([
-      ["Now I get it", second.entry.id, 9],
-      ["Didn't get it", first.entry.id, 6],
+    expect(
+      mine.body.map((review) => [
+        review.content,
+        review.diaryEntryId,
+        review.rating,
+        review.watchedDate,
+      ]),
+    ).toEqual([
+      ["Now I get it", second.entry.id, 9, "2026-03-01"],
+      ["Didn't get it", first.entry.id, 6, "2026-01-01"],
     ]);
   });
 
@@ -148,6 +156,54 @@ describe("multiple reviews per title", () => {
 
     const mine = await getMine(jar, `mediaType=tv_season&tmdbId=${serial.tmdbId}&seasonNumber=1`);
     expect(mine.body.map((review) => review.content)).toEqual(["Final"]);
+  });
+
+  it("the season review endpoint writes another review or edits a chosen one", async () => {
+    const { jar } = await signUpTestUser(getServer().baseUrl, "mrseasonpick");
+    const other = await signUpTestUser(getServer().baseUrl, "mrseasonother");
+    const serial = await seedTestSerial("Season Picker Serial");
+    const path = `/api/serials/${serial.tmdbId}/seasons/1/review`;
+    const seasonQuery = `mediaType=tv_season&tmdbId=${serial.tmdbId}&seasonNumber=1`;
+
+    await post(jar, path, { content: "First take" });
+    expect((await post(jar, path, { content: "Second take", createNew: true })).status).toBe(200);
+    const [newest, oldest] = (await getMine(jar, seasonQuery)).body;
+    expect([newest?.content, oldest?.content]).toEqual(["Second take", "First take"]);
+
+    expect(
+      (await post(jar, path, { content: "First take, revised", reviewId: oldest!.id })).status,
+    ).toBe(200);
+    expect((await getMine(jar, seasonQuery)).body.map((review) => review.content)).toEqual([
+      "Second take",
+      "First take, revised",
+    ]);
+
+    // Someone else's review, or one of another season, can't be targeted.
+    expect((await post(other.jar, path, { content: "Hijack", reviewId: oldest!.id })).status).toBe(
+      404,
+    );
+    expect(
+      (
+        await post(jar, `/api/serials/${serial.tmdbId}/seasons/2/review`, {
+          content: "Wrong season",
+          reviewId: oldest!.id,
+        })
+      ).status,
+    ).toBe(404);
+    expect(
+      (await post(jar, path, { content: "Both", reviewId: oldest!.id, createNew: true })).status,
+    ).toBe(400);
+
+    const deleted = await apiRequest(
+      getServer().baseUrl,
+      `${path}?reviewId=${oldest!.id}`,
+      { method: "DELETE" },
+      jar,
+    );
+    expect(deleted.status).toBe(200);
+    expect((await getMine(jar, seasonQuery)).body.map((review) => review.content)).toEqual([
+      "Second take",
+    ]);
   });
 
   it("only lists the viewer's own reviews, and checks the query", async () => {

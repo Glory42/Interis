@@ -130,8 +130,8 @@ export class ReviewsRepository {
     return Boolean(row);
   }
 
-  // One user's reviews of one title, newest first, each with the rating of
-  // the log it belongs to (season/episode reviews have no log).
+  // One user's reviews of one title, newest first, each with the rating and
+  // watch date of the log it belongs to (season/episode reviews have no log).
   static async findByUserAndMediaSource(
     userId: string,
     mediaType: ReviewRowMediaType,
@@ -147,6 +147,9 @@ export class ReviewsRepository {
         createdAt: reviews.createdAt,
         updatedAt: reviews.updatedAt,
         rating: sql<number | null>`coalesce(${diaryEntries.rating}, ${serialDiaryEntries.rating})`,
+        watchedDate: sql<
+          string | null
+        >`coalesce(${diaryEntries.watchedDate}, ${serialDiaryEntries.watchedDate})::text`,
       })
       .from(reviews)
       .leftJoin(

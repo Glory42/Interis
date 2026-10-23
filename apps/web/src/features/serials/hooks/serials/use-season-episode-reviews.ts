@@ -1,33 +1,22 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
 import {
   deleteEpisodeReview,
   deleteSeasonReview,
-  getEpisodeReview,
-  getSeasonReview,
   upsertEpisodeReview,
   upsertSeasonReview,
+  type SeasonEpisodeReviewSaveInput,
 } from "@/features/serials/api";
 import { serialKeys } from "./query-keys";
-
-export const useSeasonReview = (tmdbId: number, seasonNumber: number, enabled = true) =>
-  useQuery({
-    queryKey: serialKeys.seasonReview(tmdbId, seasonNumber),
-    queryFn: () => getSeasonReview(tmdbId, seasonNumber),
-    enabled,
-  });
 
 export const useUpsertSeasonReview = (tmdbId: number, seasonNumber: number) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: { content: string; containsSpoilers?: boolean }) =>
+    mutationFn: (input: SeasonEpisodeReviewSaveInput) =>
       upsertSeasonReview(tmdbId, seasonNumber, input),
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: serialKeys.seasonReview(tmdbId, seasonNumber),
-        }),
         queryClient.invalidateQueries({
           queryKey: serialKeys.detailViewRoot(tmdbId),
         }),
@@ -41,12 +30,9 @@ export const useDeleteSeasonReview = (tmdbId: number, seasonNumber: number) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => deleteSeasonReview(tmdbId, seasonNumber),
+    mutationFn: (reviewId: string) => deleteSeasonReview(tmdbId, seasonNumber, reviewId),
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: serialKeys.seasonReview(tmdbId, seasonNumber),
-        }),
         queryClient.invalidateQueries({
           queryKey: serialKeys.detailViewRoot(tmdbId),
         }),
@@ -56,33 +42,14 @@ export const useDeleteSeasonReview = (tmdbId: number, seasonNumber: number) => {
   });
 };
 
-export const useEpisodeReview = (
-  tmdbId: number,
-  seasonNumber: number,
-  episodeNumber: number,
-  enabled = true,
-) =>
-  useQuery({
-    queryKey: serialKeys.episodeReview(tmdbId, seasonNumber, episodeNumber),
-    queryFn: () => getEpisodeReview(tmdbId, seasonNumber, episodeNumber),
-    enabled,
-  });
-
-export const useUpsertEpisodeReview = (
-  tmdbId: number,
-  seasonNumber: number,
-  episodeNumber: number,
-) => {
+export const useUpsertEpisodeReview = (tmdbId: number, seasonNumber: number) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: { content: string; containsSpoilers?: boolean }) =>
+    mutationFn: ({ episodeNumber, input }: { episodeNumber: number; input: SeasonEpisodeReviewSaveInput }) =>
       upsertEpisodeReview(tmdbId, seasonNumber, episodeNumber, input),
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: serialKeys.episodeReview(tmdbId, seasonNumber, episodeNumber),
-        }),
         queryClient.invalidateQueries({
           queryKey: serialKeys.seasonDetail(tmdbId, seasonNumber),
         }),
@@ -92,20 +59,14 @@ export const useUpsertEpisodeReview = (
   });
 };
 
-export const useDeleteEpisodeReview = (
-  tmdbId: number,
-  seasonNumber: number,
-  episodeNumber: number,
-) => {
+export const useDeleteEpisodeReview = (tmdbId: number, seasonNumber: number) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => deleteEpisodeReview(tmdbId, seasonNumber, episodeNumber),
+    mutationFn: ({ episodeNumber, reviewId }: { episodeNumber: number; reviewId: string }) =>
+      deleteEpisodeReview(tmdbId, seasonNumber, episodeNumber, reviewId),
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: serialKeys.episodeReview(tmdbId, seasonNumber, episodeNumber),
-        }),
         queryClient.invalidateQueries({
           queryKey: serialKeys.seasonDetail(tmdbId, seasonNumber),
         }),

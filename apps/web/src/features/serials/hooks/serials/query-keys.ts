@@ -19,10 +19,6 @@ export const serialKeys = {
   // Prefix-only variant (no seasonNumber) - matches every cached season for
   // a series, e.g. for a series-level cascade patch/invalidation.
   seasonDetailRoot: (tmdbId: number) => ["serials", "season-detail", tmdbId] as const,
-  seasonReview: (tmdbId: number, seasonNumber: number) =>
-    ["serials", "season-review", tmdbId, seasonNumber] as const,
-  episodeReview: (tmdbId: number, seasonNumber: number, episodeNumber: number) =>
-    ["serials", "episode-review", tmdbId, seasonNumber, episodeNumber] as const,
   interaction: (tmdbId: number) => ["serials", "interaction", tmdbId] as const,
   trending: ["serials", "trending"] as const,
   recent: ["serials", "recent"] as const,

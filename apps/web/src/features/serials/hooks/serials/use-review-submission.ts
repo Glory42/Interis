@@ -1,20 +1,20 @@
 import { useState, type FormEvent } from "react";
-import type { useReviewDraftSync } from "@/features/serials/hooks/serials/use-review-draft-sync";
+import type { useReviewDraft } from "@/features/serials/hooks/serials/use-review-draft";
 
-type ReviewDraft = ReturnType<typeof useReviewDraftSync>;
+type ReviewDraft = ReturnType<typeof useReviewDraft>;
 
 type UseReviewSubmissionArgs = {
   draft: ReviewDraft;
-  upsertReview: (input: { content: string; containsSpoilers?: boolean }) => Promise<unknown>;
+  saveReview: (input: { content: string; containsSpoilers: boolean }) => Promise<unknown>;
   deleteReview: () => Promise<unknown>;
   onClose: () => void;
 };
 
-// SeasonAccordionItem's season/episode callers only differ in which
-// mutation they hand in.
+// The season/episode review editor in SeasonAccordionItem; the caller picks
+// which review the save and delete go to.
 export const useReviewSubmission = ({
   draft,
-  upsertReview,
+  saveReview,
   deleteReview,
   onClose,
 }: UseReviewSubmissionArgs) => {
@@ -36,7 +36,7 @@ export const useReviewSubmission = ({
     setFormError(null);
 
     try {
-      await upsertReview({
+      await saveReview({
         content: draft.content.trim(),
         containsSpoilers: draft.containsSpoilers,
       });

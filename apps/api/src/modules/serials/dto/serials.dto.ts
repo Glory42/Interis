@@ -296,9 +296,23 @@ export const UpdateSeasonInteractionSchema = z.object({
 
 export type UpdateSeasonInteractionDto = z.infer<typeof UpdateSeasonInteractionSchema>;
 
-export const SeasonReviewInputSchema = z.object({
-  content: z.string().min(1).max(10000),
-  containsSpoilers: z.boolean().optional(),
-});
+// A user can have several reviews of one season/episode (#72). `reviewId`
+// edits that review, `createNew` writes another one, and with neither the
+// newest review is edited (or the first one written).
+export const SeasonReviewInputSchema = z
+  .object({
+    content: z.string().min(1).max(10000),
+    containsSpoilers: z.boolean().optional(),
+    reviewId: z.string().uuid().optional(),
+    createNew: z.boolean().optional(),
+  })
+  .refine((input) => !(input.reviewId && input.createNew), {
+    message: "Pass either reviewId or createNew, not both",
+  });
 
 export type SeasonReviewInputDto = z.infer<typeof SeasonReviewInputSchema>;
+
+// Without a reviewId, DELETE removes the newest review.
+export const SeasonReviewDeleteQuerySchema = z.object({
+  reviewId: z.string().uuid().optional(),
+});

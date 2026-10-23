@@ -21,6 +21,10 @@ type LogMovieModalProps = {
   triggerClassName?: string;
   triggerVariant?: ComponentProps<typeof Button>["variant"];
   triggerSize?: ComponentProps<typeof Button>["size"];
+  // Lets the caller step in before the form opens (the review chooser, #74);
+  // it calls openLog to continue to the log form.
+  onRequestOpen?: (openLog: () => void) => void;
+  isTriggerBusy?: boolean;
 };
 
 const REVIEW_MAX_LENGTH = 5000;
@@ -36,6 +40,8 @@ export const LogMovieModal = ({
   triggerClassName,
   triggerVariant,
   triggerSize,
+  onRequestOpen,
+  isTriggerBusy = false,
 }: LogMovieModalProps) => {
   const { user } = useAuth();
   const createDiaryMutation = useCreateDiaryEntry();
@@ -66,7 +72,10 @@ export const LogMovieModal = ({
   return (
     <>
       <Button
-        onClick={submission.openModal}
+        onClick={() =>
+          onRequestOpen ? onRequestOpen(submission.openModal) : submission.openModal()
+        }
+        disabled={isTriggerBusy}
         variant={triggerVariant}
         size={triggerSize}
         className={triggerClassName}

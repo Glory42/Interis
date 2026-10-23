@@ -12,6 +12,7 @@ type FeedReviewEditDialogProps = {
   reviewId: string;
   initialContent: string;
   containsSpoilers: boolean;
+  onSaved?: () => void;
 };
 
 export const FeedReviewEditDialog = ({ isOpen, ...rest }: FeedReviewEditDialogProps) => {
@@ -28,6 +29,7 @@ const FeedReviewEditDialogContent = ({
   reviewId,
   initialContent,
   containsSpoilers,
+  onSaved,
 }: FeedReviewEditDialogContentProps) => {
   const [draftContent, setDraftContent] = useState(initialContent);
   const updateReviewMutation = useUpdateReview(reviewId);
@@ -48,6 +50,7 @@ const FeedReviewEditDialogContent = ({
         content: draftContent.trim(),
         containsSpoilers,
       });
+      onSaved?.();
       onClose();
     });
 

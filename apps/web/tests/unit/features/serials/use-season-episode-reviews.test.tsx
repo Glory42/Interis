@@ -34,8 +34,14 @@ const reviewResponse = () =>
   });
 
 describe("useUpsertSeasonReview", () => {
-  it("invalidates the following feed alongside the season review and detail-view caches", async () => {
-    server.use(http.post("*/api/serials/1399/seasons/1/review", async () => reviewResponse()));
+  it("sends the review target and invalidates the following feed and detail view", async () => {
+    let requestBody: unknown = null;
+    server.use(
+      http.post("*/api/serials/1399/seasons/1/review", async ({ request }) => {
+        requestBody = await request.json();
+        return reviewResponse();
+      }),
+    );
 
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(feedKeys.followingRoot, { pages: [], pageParams: [] });
@@ -44,16 +50,23 @@ describe("useUpsertSeasonReview", () => {
       wrapper: wrapperFor(queryClient),
     });
 
-    result.current.mutate({ content: "great season" });
+    result.current.mutate({ content: "great season", createNew: true });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
+    expect(requestBody).toEqual({ content: "great season", createNew: true });
     expect(queryClient.getQueryState(feedKeys.followingRoot)?.isInvalidated).toBe(true);
   });
 });
 
 describe("useDeleteSeasonReview", () => {
   it("invalidates the following feed on delete", async () => {
-    server.use(http.delete("*/api/serials/1399/seasons/1/review", async () => HttpResponse.json({})));
+    let requestedUrl = "";
+    server.use(
+      http.delete("*/api/serials/1399/seasons/1/review", async ({ request }) => {
+        requestedUrl = request.url;
+        return HttpResponse.json({});
+      }),
+    );
 
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(feedKeys.followingRoot, { pages: [], pageParams: [] });
@@ -62,15 +75,16 @@ describe("useDeleteSeasonReview", () => {
       wrapper: wrapperFor(queryClient),
     });
 
-    result.current.mutate();
+    result.current.mutate("review-1");
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
+    expect(new URL(requestedUrl).searchParams.get("reviewId")).toBe("review-1");
     expect(queryClient.getQueryState(feedKeys.followingRoot)?.isInvalidated).toBe(true);
   });
 });
 
 describe("useUpsertEpisodeReview", () => {
-  it("invalidates the following feed alongside the episode review and season-detail caches", async () => {
+  it("invalidates the following feed alongside the season-detail cache", async () => {
     server.use(
       http.post("*/api/serials/1399/seasons/1/episodes/3/review", async () => reviewResponse()),
     );
@@ -78,11 +92,14 @@ describe("useUpsertEpisodeReview", () => {
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(feedKeys.followingRoot, { pages: [], pageParams: [] });
 
-    const { result } = renderHook(() => useUpsertEpisodeReview(1399, 1, 3), {
+    const { result } = renderHook(() => useUpsertEpisodeReview(1399, 1), {
       wrapper: wrapperFor(queryClient),
     });
 
-    result.current.mutate({ content: "great episode" });
+    result.current.mutate({
+      episodeNumber: 3,
+      input: { content: "great episode", reviewId: "review-1" },
+    });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(queryClient.getQueryState(feedKeys.followingRoot)?.isInvalidated).toBe(true);
@@ -98,11 +115,11 @@ describe("useDeleteEpisodeReview", () => {
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(feedKeys.followingRoot, { pages: [], pageParams: [] });
 
-    const { result } = renderHook(() => useDeleteEpisodeReview(1399, 1, 3), {
+    const { result } = renderHook(() => useDeleteEpisodeReview(1399, 1), {
       wrapper: wrapperFor(queryClient),
     });
 
-    result.current.mutate();
+    result.current.mutate({ episodeNumber: 3, reviewId: "review-1" });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(queryClient.getQueryState(feedKeys.followingRoot)?.isInvalidated).toBe(true);
