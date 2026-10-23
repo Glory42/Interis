@@ -2,9 +2,9 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
-import { tvSeries } from "../../serials/serials.entity";
-import { profiles } from "../../users/users.entity";
-import { comments, reviewLikes, reviews } from "../reviews.entity";
+import { serialDiaryEntries, tvSeries } from "../../serials/serials.entity";
+import { diaryEntries } from "../../diary/diary.entity";
+import { reviewLikes, reviews } from "../reviews.entity";
 import type { UpdateReviewDto } from "../dto/reviews.dto";
 import type { MediaType } from "../../media/constants/media-type.constant";
 import type { ReviewRowMediaType } from "../constants/review-media-type.constant";
@@ -64,16 +64,14 @@ export class ReviewsRepository {
     return deleted ?? null;
   }
 
-  // The single low-level write to the review table. Every higher-level
-  // upsert composes its row shape and hands it here, so the
-  // INSERT ... ON CONFLICT (and the "did this row already exist" probe)
-  // live in exactly one place - standalone movie/tv reviews (upsertReview
-  // below), diary-linked reviews (DiaryWriteService, DataImportService),
-  // and season/episode reviews (SerialsSeasonEpisodeReviewsRepository) all
-  // go through here. `mediaSourceId` is pre-composed by the caller (a bare
-  // tmdbId for movie/tv, a `tmdb:season[:episode]` key for the nested
-  // serial levels).
-  static async upsertReviewRow(input: {
+  // The single low-level insert into the review table. A user can review
+  // the same title more than once (#72), so this always adds a row:
+  // standalone movie/tv reviews (createReview below), diary-linked reviews
+  // (DiaryWriteService, DataImportService) and season/episode reviews
+  // (SerialsSeasonEpisodeReviewsRepository) all go through here.
+  // `mediaSourceId` is pre-composed by the caller (a bare tmdbId for
+  // movie/tv, a `tmdb:season[:episode]` key for the nested serial levels).
+  static async insertReviewRow(input: {
     userId: string;
     mediaType: ReviewRowMediaType;
     mediaSource?: string;
@@ -82,60 +80,28 @@ export class ReviewsRepository {
     diaryEntryId?: string | null;
     content: string;
     containsSpoilers: boolean;
-  }): Promise<{ row: typeof reviews.$inferSelect | null; isNew: boolean }> {
-    const mediaSource = input.mediaSource ?? "tmdb";
-    const movieId = input.movieId ?? null;
-    const diaryEntryId = input.diaryEntryId ?? null;
-
-    const [existing] = await db
-      .select({ id: reviews.id })
-      .from(reviews)
-      .where(
-        and(
-          eq(reviews.userId, input.userId),
-          eq(reviews.mediaType, input.mediaType),
-          eq(reviews.mediaSource, mediaSource),
-          eq(reviews.mediaSourceId, input.mediaSourceId),
-        ),
-      )
-      .limit(1);
-
+  }) {
     const [row] = await db
       .insert(reviews)
       .values({
         userId: input.userId,
         mediaType: input.mediaType,
-        mediaSource,
+        mediaSource: input.mediaSource ?? "tmdb",
         mediaSourceId: input.mediaSourceId,
-        movieId,
-        diaryEntryId,
+        movieId: input.movieId ?? null,
+        diaryEntryId: input.diaryEntryId ?? null,
         content: input.content,
         containsSpoilers: input.containsSpoilers,
       })
-      .onConflictDoUpdate({
-        target: [
-          reviews.userId,
-          reviews.mediaType,
-          reviews.mediaSource,
-          reviews.mediaSourceId,
-        ],
-        set: {
-          movieId,
-          diaryEntryId,
-          content: input.content,
-          containsSpoilers: input.containsSpoilers,
-          updatedAt: new Date(),
-        },
-      })
       .returning();
 
-    return { row: row ?? null, isNew: !existing };
+    return row ?? null;
   }
 
   // Standalone / diary-linked movie and TV reviews, keyed by a bare TMDB
   // id. movieId is null for TV reviews, which have no row in the movies
   // table.
-  static async upsertReview(input: {
+  static async createReview(input: {
     userId: string;
     mediaType: MediaType;
     tmdbId: number;
@@ -144,7 +110,7 @@ export class ReviewsRepository {
     content: string;
     containsSpoilers: boolean;
   }) {
-    const { row } = await ReviewsRepository.upsertReviewRow({
+    return ReviewsRepository.insertReviewRow({
       userId: input.userId,
       mediaType: input.mediaType,
       mediaSourceId: String(input.tmdbId),
@@ -153,8 +119,54 @@ export class ReviewsRepository {
       content: input.content,
       containsSpoilers: input.containsSpoilers,
     });
+  }
 
-    return row;
+  static async existsForDiaryEntry(diaryEntryId: string) {
+    const [row] = await db
+      .select({ id: reviews.id })
+      .from(reviews)
+      .where(eq(reviews.diaryEntryId, diaryEntryId))
+      .limit(1);
+    return Boolean(row);
+  }
+
+  // One user's reviews of one title, newest first, each with the rating of
+  // the log it belongs to (season/episode reviews have no log).
+  static async findByUserAndMediaSource(
+    userId: string,
+    mediaType: ReviewRowMediaType,
+    mediaSourceId: string,
+    limit: number,
+  ) {
+    return db
+      .select({
+        id: reviews.id,
+        content: reviews.content,
+        containsSpoilers: reviews.containsSpoilers,
+        diaryEntryId: reviews.diaryEntryId,
+        createdAt: reviews.createdAt,
+        updatedAt: reviews.updatedAt,
+        rating: sql<number | null>`coalesce(${diaryEntries.rating}, ${serialDiaryEntries.rating})`,
+      })
+      .from(reviews)
+      .leftJoin(
+        diaryEntries,
+        and(eq(reviews.mediaType, "movie"), eq(diaryEntries.id, reviews.diaryEntryId)),
+      )
+      .leftJoin(
+        serialDiaryEntries,
+        and(eq(reviews.mediaType, "tv"), eq(serialDiaryEntries.id, reviews.diaryEntryId)),
+      )
+      .where(
+        and(
+          eq(reviews.userId, userId),
+          eq(reviews.mediaType, mediaType),
+          eq(reviews.mediaSource, "tmdb"),
+          eq(reviews.mediaSourceId, mediaSourceId),
+        ),
+      )
+      .orderBy(desc(reviews.createdAt), desc(reviews.id))
+      .limit(limit);
   }
 
   static async findByIdWithLikeCount(reviewId: string) {
@@ -253,19 +265,6 @@ export class ReviewsRepository {
       .offset(offset);
   }
 
-  static async insertComment(input: { userId: string; reviewId: string; content: string }) {
-    const [comment] = await db
-      .insert(comments)
-      .values({
-        userId: input.userId,
-        reviewId: input.reviewId,
-        content: input.content,
-      })
-      .returning();
-
-    return comment ?? null;
-  }
-
   static async getReviewWithMedia(reviewId: string) {
     const [reviewRow] = await db
       .select({
@@ -338,66 +337,5 @@ export class ReviewsRepository {
       posterPath: null,
       releaseYear: null,
     };
-  }
-
-  static async getCommentsByReviewId(reviewId: string) {
-    return db
-      .select({
-        id: comments.id,
-        userId: comments.userId,
-        reviewId: comments.reviewId,
-        content: comments.content,
-        createdAt: comments.createdAt,
-        updatedAt: comments.updatedAt,
-        authorUsername: user.username,
-        authorDisplayUsername: user.displayUsername,
-        authorAvatarUrl: profiles.avatarUrl,
-      })
-      .from(comments)
-      .innerJoin(user, eq(comments.userId, user.id))
-      .leftJoin(profiles, eq(comments.userId, profiles.userId))
-      .where(eq(comments.reviewId, reviewId))
-      .orderBy(comments.createdAt);
-  }
-
-  static async getCommentWithAuthorById(commentId: string) {
-    const [commentWithAuthor] = await db
-      .select({
-        id: comments.id,
-        userId: comments.userId,
-        reviewId: comments.reviewId,
-        content: comments.content,
-        createdAt: comments.createdAt,
-        updatedAt: comments.updatedAt,
-        authorUsername: user.username,
-        authorDisplayUsername: user.displayUsername,
-        authorAvatarUrl: profiles.avatarUrl,
-      })
-      .from(comments)
-      .innerJoin(user, eq(comments.userId, user.id))
-      .leftJoin(profiles, eq(comments.userId, profiles.userId))
-      .where(eq(comments.id, commentId))
-      .limit(1);
-
-    return commentWithAuthor ?? null;
-  }
-
-  static async deleteCommentByIdAndUser(commentId: string, userId: string) {
-    const [deleted] = await db
-      .delete(comments)
-      .where(and(eq(comments.id, commentId), eq(comments.userId, userId)))
-      .returning({ id: comments.id });
-
-    return deleted ?? null;
-  }
-
-  static async updateCommentByIdAndUser(commentId: string, userId: string, content: string) {
-    const [updated] = await db
-      .update(comments)
-      .set({ content, updatedAt: new Date() })
-      .where(and(eq(comments.id, commentId), eq(comments.userId, userId)))
-      .returning({ id: comments.id });
-
-    return updated ?? null;
   }
 }

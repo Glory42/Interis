@@ -49,7 +49,7 @@ type DiaryImportAdapter<TMedia extends DiaryImportMedia> = {
     rating: number | null;
     rewatch: boolean;
   }) => Promise<{ id: string } | null>;
-  upsertReview: (input: {
+  createReview: (input: {
     userId: string;
     media: TMedia;
     diaryEntryId: string;
@@ -67,8 +67,8 @@ const movieImportAdapter: DiaryImportAdapter<DiaryImportMedia> = {
     DiaryRepository.existsByUserMovieAndDate(userId, movieId, watchedDate),
   insertDiaryEntry: ({ userId, mediaId, watchedDate, rating, rewatch }) =>
     DiaryRepository.insertEntry({ userId, movieId: mediaId, watchedDate, rating, rewatch }),
-  upsertReview: ({ userId, media, diaryEntryId, content, containsSpoilers }) =>
-    ReviewsRepository.upsertReview({
+  createReview: ({ userId, media, diaryEntryId, content, containsSpoilers }) =>
+    ReviewsRepository.createReview({
       userId,
       mediaType: "movie",
       tmdbId: media.tmdbId,
@@ -89,8 +89,8 @@ const seriesImportAdapter: DiaryImportAdapter<DiaryImportMedia> = {
     SerialsInteractionsRepository.existsByUserSeriesAndDate(userId, seriesId, watchedDate),
   insertDiaryEntry: ({ userId, mediaId, watchedDate, rating, rewatch }) =>
     SerialsInteractionsRepository.insertDiaryEntry({ userId, seriesId: mediaId, watchedDate, rating, rewatch }),
-  upsertReview: ({ userId, media, diaryEntryId, content, containsSpoilers }) =>
-    SerialsReviewsRepository.upsertReview({
+  createReview: ({ userId, media, diaryEntryId, content, containsSpoilers }) =>
+    SerialsReviewsRepository.createReview({
       userId,
       seriesTmdbId: media.tmdbId,
       diaryEntryId,
@@ -159,7 +159,7 @@ async function importDiaryRow(
 
   if (normalized.review) {
     try {
-      await adapter.upsertReview({
+      await adapter.createReview({
         userId,
         media,
         diaryEntryId: entry.id,

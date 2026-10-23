@@ -9,13 +9,15 @@ import { InteractionsService } from "../../interactions/interactions.service";
 import { SocialFeedService } from "../../social/services/social-feed.service";
 import { ReviewsRepository } from "../repositories/reviews.repository";
 import { buildReviewCreatedActivityMetadata } from "../helpers/reviews-activity.helper";
-import type { CreateReviewDto, UpdateReviewDto } from "../dto/reviews.dto";
+import type { CreateReviewDto, MyTitleReviewsQueryDto, UpdateReviewDto } from "../dto/reviews.dto";
 import type { MediaType } from "../../media/constants/media-type.constant";
-import { NotFoundError } from "../../../commons/errors/app-error";
+import { ConflictError, NotFoundError } from "../../../commons/errors/app-error";
+
+const MY_TITLE_REVIEWS_LIMIT = 50;
 
 type Movie = Awaited<ReturnType<typeof MoviesService.findOrCreate>>;
 type Series = NonNullable<Awaited<ReturnType<typeof SerialsService.findOrCreate>>>;
-type ReviewsTableRow = NonNullable<Awaited<ReturnType<typeof ReviewsRepository.upsertReview>>>;
+type ReviewsTableRow = NonNullable<Awaited<ReturnType<typeof ReviewsRepository.createReview>>>;
 
 // Only the genuinely per-media-type facts: how to resolve the media, how to
 // address its review row, where "watched" gets marked, how the activity
@@ -64,10 +66,15 @@ export class ReviewsCoreService {
     input: CreateReviewDto,
     adapter: ReviewMediaAdapter<TMedia, TResult>,
   ): Promise<TResult> {
+    // Each review is its own row (#72), but a log holds at most one.
+    if (input.diaryEntryId && (await ReviewsRepository.existsForDiaryEntry(input.diaryEntryId))) {
+      throw new ConflictError("This log already has a review. Edit that one instead.");
+    }
+
     const media = await adapter.findOrCreateMedia(input.tmdbId);
     const ref = adapter.reviewRef(media);
 
-    const review = await ReviewsRepository.upsertReview({
+    const review = await ReviewsRepository.createReview({
       userId,
       mediaType: ref.mediaType,
       tmdbId: ref.tmdbId,
@@ -103,6 +110,18 @@ export class ReviewsCoreService {
 
   static async findByMovie(movieId: number) {
     return ReviewsRepository.findByMovieId(movieId);
+  }
+
+  static async findMineForTitle(userId: string, query: MyTitleReviewsQueryDto) {
+    const mediaSourceId = [query.tmdbId, query.seasonNumber, query.episodeNumber]
+      .filter((part) => part !== undefined)
+      .join(":");
+    return ReviewsRepository.findByUserAndMediaSource(
+      userId,
+      query.mediaType,
+      mediaSourceId,
+      MY_TITLE_REVIEWS_LIMIT,
+    );
   }
 
   static async findByUser(userId: string) {

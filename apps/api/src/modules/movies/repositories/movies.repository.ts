@@ -158,6 +158,8 @@ export class MoviesRepository {
           eq(reviews.mediaType, "movie"),
         ),
       )
+      // A user can have several reviews of a title (#72); show the newest.
+      .orderBy(desc(reviews.createdAt), desc(reviews.id))
       .limit(1);
   }
 
@@ -343,11 +345,9 @@ export class MoviesRepository {
       .innerJoin(user, eq(user.id, diaryEntries.userId))
       .leftJoin(
         reviews,
-        and(
-          eq(reviews.userId, diaryEntries.userId),
-          eq(reviews.movieId, diaryEntries.movieId),
-          eq(reviews.mediaType, "movie"),
-        ),
+        // A log's review is the one written with it, not any review of the
+        // same movie (#73).
+        and(eq(reviews.diaryEntryId, diaryEntries.id), eq(reviews.mediaType, "movie")),
       )
       .where(eq(diaryEntries.movieId, movieId))
       .orderBy(desc(diaryEntries.createdAt))

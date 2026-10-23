@@ -3,6 +3,7 @@ import { sendNotFound, sendValidationError } from "../../commons/http/validation
 import { ReviewsService } from "./reviews.service";
 import {
   CreateReviewSchema,
+  MyTitleReviewsQuerySchema,
   ReviewCommentSchema,
   UpdateReviewSchema,
 } from "./dto/reviews.dto";
@@ -18,6 +19,16 @@ export class ReviewsController {
       return;
     }
     res.status(200).json(review);
+  }
+
+  static async getMineForTitle(req: Request, res: Response): Promise<void> {
+    const parsed = MyTitleReviewsQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    res.status(200).json(await ReviewsService.findMineForTitle(req.user.id, parsed.data));
   }
 
   static async create(req: Request, res: Response): Promise<void> {

@@ -5,6 +5,10 @@ import { asyncHandler } from "../../commons/utils/asyncHandler";
 
 const router = Router();
 
+// Protected — the viewer's own reviews of one title, newest first. Must sit
+// above /:id.
+router.get("/mine", requireAuth, asyncHandler(ReviewsController.getMineForTitle));
+
 // Public
 router.get("/:id", asyncHandler(ReviewsController.getById));
 router.get("/:id/comments", asyncHandler(ReviewsController.getComments));
