@@ -9,6 +9,7 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { AppFooter } from "@/components/layout/AppFooter";
 import { AppNavbar } from "@/components/layout/AppNavbar";
+import { Toaster } from "@/components/ui/Toaster";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { GlobalSearchDialogProvider } from "@/features/search/components/GlobalSearchDialogProvider";
 import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
@@ -52,6 +53,7 @@ const RootLayout = () => {
           <AppFooter />
         </div>
       </GlobalSearchDialogProvider>
+      <Toaster />
       {import.meta.env.DEV ? <TanStackRouterDevtools position="bottom-right" /> : null}
     </>
   );

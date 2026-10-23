@@ -16,6 +16,7 @@ export const useUpdateSeasonInteraction = (tmdbId: number) => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { errorToast: "Couldn't update this season" },
     mutationFn: ({
       seasonNumber,
       input,
@@ -72,6 +73,7 @@ export const useUpdateEpisodeInteraction = (tmdbId: number, seasonNumber: number
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { errorToast: "Couldn't update this episode" },
     mutationFn: ({
       episodeNumber,
       input,

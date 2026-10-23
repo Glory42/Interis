@@ -1,5 +1,6 @@
-import { QueryClient } from "@tanstack/react-query";
+import { MutationCache, QueryClient } from "@tanstack/react-query";
 import { ApiError } from "./api-client";
+import { showMutationErrorToast } from "./mutation-error-toast";
 
 const shouldRetry = (failureCount: number, error: unknown): boolean => {
   // At most one retry, and none on a 10s timeout: the server already did the work and
@@ -14,6 +15,7 @@ const shouldRetry = (failureCount: number, error: unknown): boolean => {
 };
 
 export const queryClient = new QueryClient({
+  mutationCache: new MutationCache({ onError: showMutationErrorToast }),
   defaultOptions: {
     queries: {
       // Every request costs several DB round trips, so keep data fresh for a while and
