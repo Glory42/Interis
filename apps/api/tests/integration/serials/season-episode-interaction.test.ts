@@ -7,12 +7,11 @@ import {
   type RunningTestServer,
 } from "../../support/app/test-server";
 
-// updateSeasonInteraction/updateEpisodeInteraction best-effort cascade to
-// TMDB-backed episode data (tmdbGetSeasonDetails) whenever the resulting
-// state is "watched" — that call is wrapped in .catch(() => null), so it
-// fails harmlessly against a fake seeded series/tmdbId and the season/
-// episode row's own watched/liked/rating state (what these tests assert on)
-// is persisted and returned correctly regardless.
+// None of these tests mark a whole season watched, the one update that needs
+// TMDB's episode list and fails with 503 without it (#69; see
+// season-cascade-tmdb.test.ts). An episode toggle's season sync tolerates the
+// fake seeded tmdbId, so the season/episode row's own watched/liked/rating
+// state (what these tests assert on) is persisted and returned regardless.
 describe("season and episode interaction", () => {
   let testServer: RunningTestServer | null = null;
 

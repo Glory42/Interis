@@ -15,17 +15,35 @@ import { SerialsWatchStatusService } from "./serials-watch-status.service";
 import type { SerialWatchStatus } from "../constants/serials-watch-status.constants";
 
 export class SerialsActivityService {
+  // Every regular season's episode numbers, resolved before any write so a
+  // TMDB failure fails "mark series watched" / "log" outright instead of
+  // saving some seasons and not others (#69).
+  private static async resolveSeasonEpisodeNumbers(series: {
+    tmdbId: number;
+    numberOfSeasons: number | null;
+  }): Promise<Map<number, number[]>> {
+    const seasonNumbers = Array.from(
+      { length: Math.max(series.numberOfSeasons ?? 0, 0) },
+      (_, index) => index + 1,
+    );
+    const episodeNumbers = await Promise.all(
+      seasonNumbers.map((seasonNumber) =>
+        SerialsTrackingService.getSeasonEpisodeNumbers(series.tmdbId, seasonNumber),
+      ),
+    );
+    return new Map(seasonNumbers.map((seasonNumber, index) => [seasonNumber, episodeNumbers[index]!]));
+  }
+
   // Shared by updateInteraction (the sidebar "Watch" toggle) and createLog
   // (the "Log" modal) - both are ways for the user to say "I watched this
   // series," so both must cascade the same watched state down to every
   // season/episode instead of only flipping the series-level flag.
   private static async cascadeSeasonsWatched(
     userId: string,
-    series: { id: number; tmdbId: number; numberOfSeasons: number | null },
-    watched: boolean,
+    series: { id: number; tmdbId: number },
+    seasonEpisodeNumbers: Map<number, number[]> | null,
   ): Promise<void> {
-    const { tmdbId, numberOfSeasons } = series;
-    if (!watched) {
+    if (!seasonEpisodeNumbers) {
       await Promise.all([
         SerialsEpisodeInteractionsRepository.unwatchAllForSeries(userId, series.id),
         SerialsSeasonInteractionsRepository.unwatchAllForSeries(userId, series.id),
@@ -33,23 +51,17 @@ export class SerialsActivityService {
       return;
     }
 
-    if (!numberOfSeasons || numberOfSeasons <= 0) {
-      return;
-    }
-
-    const promises: Promise<unknown>[] = [];
-    for (let seasonNum = 1; seasonNum <= numberOfSeasons; seasonNum++) {
-      promises.push(
+    await Promise.all(
+      [...seasonEpisodeNumbers].map(([seasonNumber, episodeNumbers]) =>
         SerialsTrackingService.updateSeasonInteraction(
           userId,
-          tmdbId,
-          seasonNum,
-          { watched },
-          { syncWatchStatus: false },
+          series.tmdbId,
+          seasonNumber,
+          { watched: true },
+          { syncWatchStatus: false, episodeNumbers },
         ),
-      );
-    }
-    await Promise.all(promises);
+      ),
+    );
   }
 
   static async getInteraction(userId: string, tmdbId: number) {
@@ -97,7 +109,11 @@ export class SerialsActivityService {
 
     let watchStatus = previousStatus;
     if (cascadeTarget !== undefined) {
-      await SerialsActivityService.cascadeSeasonsWatched(userId, series, cascadeTarget);
+      await SerialsActivityService.cascadeSeasonsWatched(
+        userId,
+        series,
+        cascadeTarget ? await SerialsActivityService.resolveSeasonEpisodeNumbers(series) : null,
+      );
       watchStatus = cascadeTarget ? "completed" : null;
     } else if (input.watchStatus !== undefined) {
       watchStatus = await SerialsWatchStatusService.setUserStatus(userId, series, input.watchStatus);
@@ -163,6 +179,7 @@ export class SerialsActivityService {
 
     const rating = input.rating ?? null;
     const rewatch = input.rewatch ?? false;
+    const seasonEpisodeNumbers = await SerialsActivityService.resolveSeasonEpisodeNumbers(series);
 
     const entry = await SerialsInteractionsRepository.insertDiaryEntry({
       userId,
@@ -206,7 +223,7 @@ export class SerialsActivityService {
 
     await Promise.all([
       SerialsWatchStatusService.setStatus(userId, series.id, "completed"),
-      SerialsActivityService.cascadeSeasonsWatched(userId, series, true),
+      SerialsActivityService.cascadeSeasonsWatched(userId, series, seasonEpisodeNumbers),
     ]);
 
     return { entry, series, review };
