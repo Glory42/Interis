@@ -140,9 +140,10 @@ export class SerialsSeasonEpisodeReviewsRepository {
     ];
   }
 
-  // Single season/episode review persistence (get/upsert/delete by owner +
-  // media source) - season and episode reviews only differ in mediaType and
-  // how their mediaSourceId is composed, so the CRUD itself is shared here.
+  // A user can have several reviews of one season/episode (#72). These
+  // single-review endpoints act on the newest one - get/save/delete by owner
+  // + media source - and season and episode reviews only differ in
+  // mediaType and how their mediaSourceId is composed.
   private static async getReviewByMediaSource(
     userId: string,
     mediaType: SeasonEpisodeReviewMediaType,
@@ -158,27 +159,40 @@ export class SerialsSeasonEpisodeReviewsRepository {
           eq(reviews.mediaSourceId, mediaSourceId),
         ),
       )
+      .orderBy(desc(reviews.createdAt), desc(reviews.id))
       .limit(1);
 
     return row ?? null;
   }
 
-  // Delegates the actual write to the one shared review-row upsert; season
-  // and episode reviews only compose their mediaType + mediaSourceId
-  // differently (see callers below).
+  // Edits the newest review, or writes the first one.
   private static async upsertReviewByMediaSource(
     userId: string,
     mediaType: SeasonEpisodeReviewMediaType,
     mediaSourceId: string,
     input: { content: string; containsSpoilers?: boolean },
   ) {
-    return ReviewsRepository.upsertReviewRow({
+    const latest = await SerialsSeasonEpisodeReviewsRepository.getReviewByMediaSource(
+      userId,
+      mediaType,
+      mediaSourceId,
+    );
+    if (latest) {
+      const row = await ReviewsRepository.updateByIdAndUser(latest.id, userId, {
+        content: input.content,
+        containsSpoilers: input.containsSpoilers ?? false,
+      });
+      return { row, isNew: false };
+    }
+
+    const row = await ReviewsRepository.insertReviewRow({
       userId,
       mediaType,
       mediaSourceId,
       content: input.content,
       containsSpoilers: input.containsSpoilers ?? false,
     });
+    return { row, isNew: true };
   }
 
   private static async deleteReviewByMediaSource(
@@ -186,18 +200,13 @@ export class SerialsSeasonEpisodeReviewsRepository {
     mediaType: SeasonEpisodeReviewMediaType,
     mediaSourceId: string,
   ) {
-    const [deleted] = await db
-      .delete(reviews)
-      .where(
-        and(
-          eq(reviews.userId, userId),
-          eq(reviews.mediaType, mediaType),
-          eq(reviews.mediaSourceId, mediaSourceId),
-        ),
-      )
-      .returning();
-
-    return deleted ?? null;
+    const latest = await SerialsSeasonEpisodeReviewsRepository.getReviewByMediaSource(
+      userId,
+      mediaType,
+      mediaSourceId,
+    );
+    if (!latest) return null;
+    return ReviewsRepository.deleteByIdAndUser(latest.id, userId);
   }
 
   static async getSeasonReview(userId: string, seriesTmdbId: number, seasonNumber: number) {

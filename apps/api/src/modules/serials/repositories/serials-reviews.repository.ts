@@ -163,17 +163,19 @@ export class SerialsReviewsRepository {
           eq(reviews.mediaSourceId, String(series.tmdbId)),
         ),
       )
+      // A user can have several reviews of a title (#72); show the newest.
+      .orderBy(desc(reviews.createdAt), desc(reviews.id))
       .limit(1);
   }
 
-  static async upsertReview(input: {
+  static async createReview(input: {
     userId: string;
     seriesTmdbId: number;
     diaryEntryId: string | null;
     content: string;
     containsSpoilers: boolean;
   }) {
-    return ReviewsRepository.upsertReview({
+    return ReviewsRepository.createReview({
       userId: input.userId,
       mediaType: "tv",
       tmdbId: input.seriesTmdbId,

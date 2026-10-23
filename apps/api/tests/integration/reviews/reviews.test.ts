@@ -90,9 +90,9 @@ describe("reviews", () => {
       expect(fetched.likeCount).toBe(0);
     });
 
-    it("upserts in place when reviewing the same movie twice", async () => {
-      const { jar } = await signUpTestUser(getServer().baseUrl, "rcupsert");
-      const movie = await seedTestMovie("Upsert Review Movie");
+    it("adds a second review of the same movie instead of overwriting the first (#72)", async () => {
+      const { jar } = await signUpTestUser(getServer().baseUrl, "rcsecond");
+      const movie = await seedTestMovie("Second Review Movie");
       const { body: first } = await createReview(jar, movie.tmdbId, "First take");
       const { response: secondResponse, body: second } = await createReview(
         jar,
@@ -100,8 +100,12 @@ describe("reviews", () => {
         "Revised take",
       );
       expect(secondResponse.status).toBe(201);
-      expect(second.review.id).toBe(first.review.id);
-      expect(second.review.content).toBe("Revised take");
+      expect(second.review.id).not.toBe(first.review.id);
+
+      const firstAgain = await apiRequest(getServer().baseUrl, `/api/reviews/${first.review.id}`);
+      expect(((await firstAgain.json()) as { review: { content: string } }).review.content).toBe(
+        "First take",
+      );
     });
 
     it("creates a standalone TV review via the same endpoint", async () => {

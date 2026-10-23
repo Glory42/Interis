@@ -204,7 +204,7 @@ export class SerialsActivityService {
       | null = null;
 
     if (reviewContent) {
-      review = await SerialsReviewsRepository.upsertReview({
+      review = await SerialsReviewsRepository.createReview({
         userId,
         seriesTmdbId: series.tmdbId,
         diaryEntryId: entry.id,

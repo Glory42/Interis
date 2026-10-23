@@ -51,11 +51,9 @@ export class DiaryRepository {
       .innerJoin(movies, eq(movies.id, diaryEntries.movieId))
       .leftJoin(
         reviews,
-        and(
-          eq(reviews.userId, diaryEntries.userId),
-          eq(reviews.movieId, diaryEntries.movieId),
-          eq(reviews.mediaType, "movie"),
-        ),
+        // A log's review is the one written with it, not any review of the
+        // same movie (#73).
+        and(eq(reviews.diaryEntryId, diaryEntries.id), eq(reviews.mediaType, "movie")),
       )
       .where(eq(diaryEntries.userId, userId))
       .orderBy(desc(diaryEntries.watchedDate), desc(diaryEntries.createdAt))
@@ -87,11 +85,9 @@ export class DiaryRepository {
       .innerJoin(movies, eq(movies.id, diaryEntries.movieId))
       .leftJoin(
         reviews,
-        and(
-          eq(reviews.userId, diaryEntries.userId),
-          eq(reviews.movieId, diaryEntries.movieId),
-          eq(reviews.mediaType, "movie"),
-        ),
+        // A log's review is the one written with it, not any review of the
+        // same movie (#73).
+        and(eq(reviews.diaryEntryId, diaryEntries.id), eq(reviews.mediaType, "movie")),
       )
       .where(and(eq(diaryEntries.id, entryId), eq(diaryEntries.userId, userId)))
       .limit(1);

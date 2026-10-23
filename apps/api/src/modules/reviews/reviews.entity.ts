@@ -7,6 +7,7 @@ import {
   uuid,
   unique,
   index,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { user } from "../../infrastructure/database/auth.entity";
 import { movies } from "../movies/movies.entity";
@@ -35,14 +36,17 @@ export const reviews = pgTable(
       .notNull(),
   },
   (table) => [
-    unique("reviews_user_media_unique").on(
+    // Not unique: a user can review the same title more than once (#72).
+    index("review_user_media_idx").on(
       table.userId,
       table.mediaType,
       table.mediaSource,
       table.mediaSourceId,
+      table.createdAt,
     ),
     index("review_movie_id_idx").on(table.movieId),
-    index("review_diary_entry_id_idx").on(table.diaryEntryId),
+    // One review per log: logs find their review by this column (#73).
+    uniqueIndex("review_diary_entry_id_unique").on(table.diaryEntryId),
     // Backs lookups by these three columns without userId.
     index("review_media_source_idx").on(
       table.mediaType,

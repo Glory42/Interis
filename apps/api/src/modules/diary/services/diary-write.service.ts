@@ -39,7 +39,7 @@ export class DiaryWriteService {
       | null = null;
 
     if (reviewContent) {
-      review = await ReviewsRepository.upsertReview({
+      review = await ReviewsRepository.createReview({
         userId,
         mediaType: "movie",
         tmdbId: movie.tmdbId,

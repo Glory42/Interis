@@ -1,4 +1,4 @@
-import type { CreateReviewDto, UpdateReviewDto } from "./dto/reviews.dto";
+import type { CreateReviewDto, MyTitleReviewsQueryDto, UpdateReviewDto } from "./dto/reviews.dto";
 import { ReviewsCommentsService } from "./services/reviews-comments.service";
 import { ReviewsCoreService } from "./services/reviews-core.service";
 import { ReviewsLikesService } from "./services/reviews-likes.service";
@@ -14,6 +14,10 @@ export class ReviewsService {
 
   static async findByMovie(movieId: number) {
     return ReviewsCoreService.findByMovie(movieId);
+  }
+
+  static async findMineForTitle(userId: string, query: MyTitleReviewsQueryDto) {
+    return ReviewsCoreService.findMineForTitle(userId, query);
   }
 
   static async findByUser(userId: string) {

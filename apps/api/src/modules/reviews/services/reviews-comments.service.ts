@@ -1,11 +1,12 @@
 import { buildCommentCreatedActivityMetadata } from "../helpers/reviews-activity.helper";
 import { ReviewsRepository } from "../repositories/reviews.repository";
+import { ReviewsCommentsRepository } from "../repositories/reviews-comments.repository";
 import { ActivityRecorder } from "../../social/services/activity-recorder.service";
 import { NotificationsService } from "../../notifications/notifications.service";
 
 export class ReviewsCommentsService {
   static async getComments(reviewId: string) {
-    return ReviewsRepository.getCommentsByReviewId(reviewId);
+    return ReviewsCommentsRepository.getCommentsByReviewId(reviewId);
   }
 
   static async addComment(userId: string, reviewId: string, content: string) {
@@ -14,7 +15,7 @@ export class ReviewsCommentsService {
       return null;
     }
 
-    const comment = await ReviewsRepository.insertComment({ userId, reviewId, content });
+    const comment = await ReviewsCommentsRepository.insertComment({ userId, reviewId, content });
 
     if (!comment) {
       throw new Error("Could not create comment");
@@ -46,7 +47,7 @@ export class ReviewsCommentsService {
             : null,
         }),
       }),
-      ReviewsRepository.getCommentWithAuthorById(comment.id),
+      ReviewsCommentsRepository.getCommentWithAuthorById(comment.id),
       NotificationsService.notify({
         recipientId: review.userId,
         actorId: userId,
@@ -63,15 +64,15 @@ export class ReviewsCommentsService {
   }
 
   static async deleteComment(commentId: string, userId: string) {
-    return ReviewsRepository.deleteCommentByIdAndUser(commentId, userId);
+    return ReviewsCommentsRepository.deleteCommentByIdAndUser(commentId, userId);
   }
 
   static async updateComment(commentId: string, userId: string, content: string) {
-    const updated = await ReviewsRepository.updateCommentByIdAndUser(commentId, userId, content);
+    const updated = await ReviewsCommentsRepository.updateCommentByIdAndUser(commentId, userId, content);
     if (!updated) {
       return null;
     }
 
-    return ReviewsRepository.getCommentWithAuthorById(commentId);
+    return ReviewsCommentsRepository.getCommentWithAuthorById(commentId);
   }
 }
