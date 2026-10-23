@@ -93,9 +93,16 @@ test("toggles episode/season/series watch state and rating, and writes a season 
       await dialog.getByRole("button", { name: "Save", exact: true }).click();
       await expect(dialog).not.toBeVisible({ timeout: 10_000 });
 
-      await expect(season1Row.getByRole("button", { name: "Edit Review" })).toBeVisible({
-        timeout: 10_000,
-      });
+      // With a review written, Review asks whether to write another one or
+      // edit it (#74); editing reopens the form with that review's text.
+      await season1Row.getByRole("button", { name: "Review", exact: true }).click();
+      await page.getByRole("button", { name: /Edit your review from/ }).click();
+      await expect(dialog).toBeVisible({ timeout: 10_000 });
+      await expect(
+        page.getByPlaceholder("Share your thoughts about this season..."),
+      ).toHaveValue(SEASON_REVIEW_TEXT);
+      await dialog.getByRole("button", { name: "Close review modal" }).click();
+      await expect(dialog).not.toBeVisible({ timeout: 10_000 });
     });
 
     // Unlike the movie detail page, this page also has per-season and

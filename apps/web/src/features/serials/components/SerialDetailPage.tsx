@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { Check, Heart, Plus } from "lucide-react";
@@ -15,6 +16,7 @@ import { SerialProgressPanel } from "@/features/serials/components/serial-detail
 import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
 import { getBackdropUrl, getPosterUrl } from "@/features/serials/components/utils";
 import {
+  serialKeys,
   useSeriesDetailView,
   useSeriesInteraction,
   useUpdateSeriesInteraction,
@@ -23,6 +25,8 @@ import { MediaDetailBackdrop } from "@/features/media/detail/MediaDetailBackdrop
 import { MediaSimilarSection } from "@/features/media/detail/MediaSimilarSection";
 import { MediaDetailStatusPanel } from "@/features/media/detail/MediaDetailStatusPanel";
 import { MediaActionsSidebar, type MediaAction } from "@/features/media/detail/MediaActionsSidebar";
+import { MediaReviewChooser } from "@/features/media/detail/MediaReviewChooser";
+import { useReviewChooser } from "@/features/reviews/hooks/useReviewChooser";
 
 type SerialDetailPageProps = {
   tmdbId: number;
@@ -44,6 +48,8 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
     Boolean(user) && isValidTmdbId,
   );
   const updateInteractionMutation = useUpdateSeriesInteraction(tmdbId);
+  const reviewChooser = useReviewChooser();
+  const queryClient = useQueryClient();
 
   if (!isValidTmdbId) {
     return <MediaDetailStatusPanel message="Invalid series id." moduleStyles={SERIAL_MODULE_STYLES} />;
@@ -78,11 +84,16 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
   const isInteractionBusy = interactionQuery.isPending;
 
   const modalInitialState = {
-    watchedDate: detail.userRating?.watchedDate ?? null,
     rating: currentRating,
-    rewatch: detail.userRating?.rewatch ?? false,
-    reviewContent: detail.userRating?.reviewContent ?? null,
-    containsSpoilers: detail.userRating?.reviewContainsSpoilers ?? null,
+    rewatch: Boolean(detail.userRating?.diaryEntryId),
+  };
+
+  const handleReviewEdited = () => {
+    void Promise.all([
+      queryClient.invalidateQueries({ queryKey: serialKeys.detailViewRoot(tmdbId) }),
+      queryClient.invalidateQueries({ queryKey: serialKeys.logs(tmdbId) }),
+      queryClient.invalidateQueries({ queryKey: serialKeys.myLogs }),
+    ]);
   };
 
   const handleToggleWatchlist = () => {
@@ -195,6 +206,10 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
                 seriesFirstAirYear={series.firstAirYear}
                 seriesPosterPath={series.posterPath}
                 initialState={modalInitialState}
+                onRequestOpen={(openLog) =>
+                  reviewChooser.start({ mediaType: "tv", tmdbId: series.tmdbId }, openLog)
+                }
+                isTriggerBusy={reviewChooser.isChecking}
                 triggerVariant="outline"
                 triggerLabel="Log"
                 triggerClassName="h-auto rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
@@ -229,6 +244,8 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
 
           <SerialDetailsMainSection detail={detail} />
         </div>
+
+        <MediaReviewChooser chooser={reviewChooser} onReviewEdited={handleReviewEdited} />
 
         <SerialReviewsSection
           key={reviewsSort}

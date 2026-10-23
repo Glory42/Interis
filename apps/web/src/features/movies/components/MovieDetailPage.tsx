@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { Award, Check, Heart, Plus } from "lucide-react";
@@ -10,7 +11,10 @@ import { MediaDetailStatusPanel } from "@/features/media/detail/MediaDetailStatu
 import { MovieReviewsSection } from "@/features/movies/components/movie-detail/MovieReviewsSection";
 import { MOVIE_MODULE_STYLES } from "@/features/media/styles";
 import { getBackdropUrl, getPosterUrl } from "@/features/movies/components/utils";
-import { useMovieDetailView } from "@/features/movies/hooks/useMovies";
+import { movieKeys, useMovieDetailView } from "@/features/movies/hooks/useMovies";
+import { diaryKeys } from "@/features/diary/hooks/useDiary";
+import { useReviewChooser } from "@/features/reviews/hooks/useReviewChooser";
+import { MediaReviewChooser } from "@/features/media/detail/MediaReviewChooser";
 import {
   useMovieInteraction,
   useUpdateMovieInteraction,
@@ -36,6 +40,8 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
     Boolean(user) && isValidTmdbId,
   );
   const updateInteractionMutation = useUpdateMovieInteraction(tmdbId);
+  const reviewChooser = useReviewChooser();
+  const queryClient = useQueryClient();
 
   if (!isValidTmdbId) {
     return <MediaDetailStatusPanel message="Invalid movie id." moduleStyles={MOVIE_MODULE_STYLES} />;
@@ -64,11 +70,16 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
     interactionQuery.isPending || updateInteractionMutation.isPending;
 
   const modalInitialState = {
-    watchedDate: detail.userRating?.watchedDate ?? null,
     rating: currentRating,
-    rewatch: detail.userRating?.rewatch ?? false,
-    reviewContent: detail.userRating?.reviewContent ?? null,
-    containsSpoilers: detail.userRating?.reviewContainsSpoilers ?? null,
+    rewatch: Boolean(detail.userRating?.diaryEntryId),
+  };
+
+  const handleReviewEdited = () => {
+    void Promise.all([
+      queryClient.invalidateQueries({ queryKey: movieKeys.detailViewRoot(tmdbId) }),
+      queryClient.invalidateQueries({ queryKey: movieKeys.logs(tmdbId) }),
+      queryClient.invalidateQueries({ queryKey: diaryKeys.myLogs }),
+    ]);
   };
 
   const handleToggleWatchlist = () => {
@@ -180,6 +191,10 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
                 movieReleaseYear={movie.releaseYear}
                 moviePosterPath={movie.posterPath}
                 initialState={modalInitialState}
+                onRequestOpen={(openLog) =>
+                  reviewChooser.start({ mediaType: "movie", tmdbId: movie.tmdbId }, openLog)
+                }
+                isTriggerBusy={reviewChooser.isChecking}
                 triggerVariant="outline"
                 triggerLabel="Log"
                 triggerClassName="h-auto flex-1 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
@@ -204,6 +219,8 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
 
           <MovieDetailsMainSection detail={detail} />
         </div>
+
+        <MediaReviewChooser chooser={reviewChooser} onReviewEdited={handleReviewEdited} />
 
         <MovieReviewsSection
           key={reviewsSort}

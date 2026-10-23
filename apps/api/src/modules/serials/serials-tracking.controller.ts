@@ -7,6 +7,7 @@ import {
   SerialSeasonParamsSchema,
   UpdateSeasonInteractionSchema,
   SeasonReviewInputSchema,
+  SeasonReviewDeleteQuerySchema,
 } from "./dto/serials.dto";
 import type {
   SerialEpisodeParams,
@@ -131,6 +132,11 @@ export class SerialsTrackingController {
       parsed.data,
     );
 
+    if (!review) {
+      sendNotFound(res, "Review not found");
+      return;
+    }
+
     res.status(200).json(review);
   }
 
@@ -147,10 +153,17 @@ export class SerialsTrackingController {
       return;
     }
 
+    const query = SeasonReviewDeleteQuerySchema.safeParse(req.query);
+    if (!query.success) {
+      sendValidationError(res, query.error);
+      return;
+    }
+
     const deleted = await SerialsTrackingService.deleteSeasonReview(
       req.user.id,
       tmdbId,
       seasonParams.data.seasonNumber,
+      query.data.reviewId,
     );
 
     if (!deleted) {
@@ -211,6 +224,11 @@ export class SerialsTrackingController {
       parsed.data,
     );
 
+    if (!review) {
+      sendNotFound(res, "Review not found");
+      return;
+    }
+
     res.status(200).json(review);
   }
 
@@ -227,11 +245,18 @@ export class SerialsTrackingController {
       return;
     }
 
+    const query = SeasonReviewDeleteQuerySchema.safeParse(req.query);
+    if (!query.success) {
+      sendValidationError(res, query.error);
+      return;
+    }
+
     const deleted = await SerialsTrackingService.deleteEpisodeReview(
       req.user.id,
       tmdbId,
       episodeParams.data.seasonNumber,
       episodeParams.data.episodeNumber,
+      query.data.reviewId,
     );
 
     if (!deleted) {

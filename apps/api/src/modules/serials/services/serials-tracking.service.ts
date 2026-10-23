@@ -1,6 +1,9 @@
 import { SerialsSeasonInteractionsRepository } from "../repositories/serials-season-interactions.repository";
 import { SerialsEpisodeInteractionsRepository } from "../repositories/serials-episode-interactions.repository";
-import { SerialsSeasonEpisodeReviewsRepository } from "../repositories/serials-season-episode-reviews.repository";
+import {
+  SerialsSeasonEpisodeReviewsRepository,
+  type SeasonEpisodeReviewInput,
+} from "../repositories/serials-season-episode-reviews.repository";
 import { SerialsCacheService } from "./serials-cache.service";
 import { getSeriesSeasonDetails as tmdbGetSeasonDetails } from "../../../infrastructure/tmdb/serials";
 import { ActivityRecorder } from "../../social/services/activity-recorder.service";
@@ -256,7 +259,7 @@ export class SerialsTrackingService {
     userId: string,
     seriesTmdbId: number,
     seasonNumber: number,
-    input: { content: string; containsSpoilers?: boolean },
+    input: SeasonEpisodeReviewInput,
   ) {
     const { row, isNew } = await SerialsSeasonEpisodeReviewsRepository.upsertSeasonReview(
       userId,
@@ -285,8 +288,18 @@ export class SerialsTrackingService {
     return row ?? null;
   }
 
-  static async deleteSeasonReview(userId: string, seriesTmdbId: number, seasonNumber: number) {
-    return SerialsSeasonEpisodeReviewsRepository.deleteSeasonReview(userId, seriesTmdbId, seasonNumber);
+  static async deleteSeasonReview(
+    userId: string,
+    seriesTmdbId: number,
+    seasonNumber: number,
+    reviewId?: string,
+  ) {
+    return SerialsSeasonEpisodeReviewsRepository.deleteSeasonReview(
+      userId,
+      seriesTmdbId,
+      seasonNumber,
+      reviewId,
+    );
   }
 
   static async getEpisodeReview(
@@ -308,7 +321,7 @@ export class SerialsTrackingService {
     seriesTmdbId: number,
     seasonNumber: number,
     episodeNumber: number,
-    input: { content: string; containsSpoilers?: boolean },
+    input: SeasonEpisodeReviewInput,
   ) {
     const { row, isNew } = await SerialsSeasonEpisodeReviewsRepository.upsertEpisodeReview(
       userId,
@@ -343,12 +356,14 @@ export class SerialsTrackingService {
     seriesTmdbId: number,
     seasonNumber: number,
     episodeNumber: number,
+    reviewId?: string,
   ) {
     return SerialsSeasonEpisodeReviewsRepository.deleteEpisodeReview(
       userId,
       seriesTmdbId,
       seasonNumber,
       episodeNumber,
+      reviewId,
     );
   }
 }

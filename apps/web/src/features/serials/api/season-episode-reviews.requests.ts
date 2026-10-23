@@ -8,25 +8,24 @@ export interface SeasonEpisodeReview {
   updatedAt: string;
 }
 
-export const getSeasonReview = async (
-  tmdbId: number,
-  seasonNumber: number,
-): Promise<SeasonEpisodeReview | null> => {
-  const response = await apiRequest<unknown>(
-    `/api/serials/${tmdbId}/seasons/${seasonNumber}/review`,
-    {
-      method: "GET",
-    },
-  );
-  return response as SeasonEpisodeReview | null;
+// `reviewId` edits that review, `createNew` writes another one (#72); with
+// neither the newest review is edited.
+export type SeasonEpisodeReviewSaveInput = {
+  content: string;
+  containsSpoilers?: boolean;
+  reviewId?: string;
+  createNew?: boolean;
 };
+
+const reviewIdQuery = (reviewId?: string): string =>
+  reviewId ? `?reviewId=${encodeURIComponent(reviewId)}` : "";
 
 export const upsertSeasonReview = async (
   tmdbId: number,
   seasonNumber: number,
-  input: { content: string; containsSpoilers?: boolean },
+  input: SeasonEpisodeReviewSaveInput,
 ): Promise<SeasonEpisodeReview> => {
-  const response = await apiRequest<SeasonEpisodeReview, { content: string; containsSpoilers?: boolean }>(
+  const response = await apiRequest<SeasonEpisodeReview, SeasonEpisodeReviewSaveInput>(
     `/api/serials/${tmdbId}/seasons/${seasonNumber}/review`,
     {
       method: "POST",
@@ -39,36 +38,23 @@ export const upsertSeasonReview = async (
 export const deleteSeasonReview = async (
   tmdbId: number,
   seasonNumber: number,
+  reviewId?: string,
 ): Promise<void> => {
   await apiRequest<unknown>(
-    `/api/serials/${tmdbId}/seasons/${seasonNumber}/review`,
+    `/api/serials/${tmdbId}/seasons/${seasonNumber}/review${reviewIdQuery(reviewId)}`,
     {
       method: "DELETE",
     },
   );
 };
 
-export const getEpisodeReview = async (
-  tmdbId: number,
-  seasonNumber: number,
-  episodeNumber: number,
-): Promise<SeasonEpisodeReview | null> => {
-  const response = await apiRequest<unknown>(
-    `/api/serials/${tmdbId}/seasons/${seasonNumber}/episodes/${episodeNumber}/review`,
-    {
-      method: "GET",
-    },
-  );
-  return response as SeasonEpisodeReview | null;
-};
-
 export const upsertEpisodeReview = async (
   tmdbId: number,
   seasonNumber: number,
   episodeNumber: number,
-  input: { content: string; containsSpoilers?: boolean },
+  input: SeasonEpisodeReviewSaveInput,
 ): Promise<SeasonEpisodeReview> => {
-  const response = await apiRequest<SeasonEpisodeReview, { content: string; containsSpoilers?: boolean }>(
+  const response = await apiRequest<SeasonEpisodeReview, SeasonEpisodeReviewSaveInput>(
     `/api/serials/${tmdbId}/seasons/${seasonNumber}/episodes/${episodeNumber}/review`,
     {
       method: "POST",
@@ -82,9 +68,10 @@ export const deleteEpisodeReview = async (
   tmdbId: number,
   seasonNumber: number,
   episodeNumber: number,
+  reviewId?: string,
 ): Promise<void> => {
   await apiRequest<unknown>(
-    `/api/serials/${tmdbId}/seasons/${seasonNumber}/episodes/${episodeNumber}/review`,
+    `/api/serials/${tmdbId}/seasons/${seasonNumber}/episodes/${episodeNumber}/review${reviewIdQuery(reviewId)}`,
     {
       method: "DELETE",
     },

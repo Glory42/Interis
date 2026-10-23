@@ -113,7 +113,7 @@ export const SeasonHeaderRow = ({
               title="Review Season"
             >
               <MessageSquare className="h-2.5 w-2.5" />
-              <span>{seasonHasReview ? "Edit Review" : "Review"}</span>
+              <span>Review</span>
             </button>
           </div>
         )}

@@ -143,7 +143,7 @@ export const EpisodeRow = ({
                 title="Review Episode"
               >
                 <MessageSquare className="h-2 w-2" />
-                <span>{epHasReview ? "Edit Review" : "Review"}</span>
+                <span>Review</span>
               </button>
             </div>
           )}

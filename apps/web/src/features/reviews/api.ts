@@ -78,6 +78,19 @@ const reviewDetailSchema = z.object({
   }),
 });
 
+const myTitleReviewSchema = z.object({
+  id: z.string(),
+  content: z.string(),
+  containsSpoilers: z.boolean(),
+  diaryEntryId: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  rating: z.number().nullable(),
+  watchedDate: z.string().nullable(),
+});
+
+const myTitleReviewListSchema = z.array(myTitleReviewSchema);
+
 const likeReviewResponseSchema = z.object({
   liked: z.boolean(),
   alreadyLiked: z.boolean().optional(),
@@ -90,6 +103,13 @@ const unlikeReviewResponseSchema = z.object({
 export type ReviewComment = z.infer<typeof reviewCommentSchema>;
 export type ReviewMediaType = z.infer<typeof reviewMediaTypeSchema>;
 export type ReviewDetail = z.infer<typeof reviewDetailSchema>;
+export type MyTitleReview = z.infer<typeof myTitleReviewSchema>;
+
+// Which title's reviews to list: a movie or series, or one season/episode.
+export type MyTitleReviewsQuery =
+  | { mediaType: "movie" | "tv"; tmdbId: number }
+  | { mediaType: "tv_season"; tmdbId: number; seasonNumber: number }
+  | { mediaType: "tv_episode"; tmdbId: number; seasonNumber: number; episodeNumber: number };
 
 type AddReviewCommentInput = z.infer<typeof addReviewCommentInputSchema>;
 type UpdateReviewInput = z.infer<typeof updateReviewInputSchema>;
@@ -198,4 +218,18 @@ export const updateReview = async (
   );
 
   return updatedReviewSchema.parse(response);
+};
+
+// The viewer's own reviews of one title, newest first.
+export const getMyTitleReviews = async (
+  query: MyTitleReviewsQuery,
+): Promise<MyTitleReview[]> => {
+  const params = new URLSearchParams(
+    Object.entries(query).map(([key, value]) => [key, String(value)]),
+  );
+  const response = await apiRequest<unknown>(`/api/reviews/mine?${params.toString()}`, {
+    method: "GET",
+  });
+
+  return myTitleReviewListSchema.parse(response);
 };

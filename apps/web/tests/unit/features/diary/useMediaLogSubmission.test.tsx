@@ -2,25 +2,22 @@ import { describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { useMediaLogSubmission } from "@/features/diary/hooks/useMediaLogSubmission";
 import { ApiError } from "@/lib/api-client";
+import { todayAsLocalDateInput } from "@/lib/time";
 
 const buildEvent = () =>
   ({ preventDefault: () => {} }) as unknown as React.FormEvent<HTMLFormElement>;
 
 describe("useMediaLogSubmission", () => {
-  it("prefills form fields from initialState when opened", () => {
+  // Every log is a new entry with its own review (#72), so only the rating
+  // and rewatch flag carry over; the review and date start blank.
+  it("opens a blank form apart from rating and rewatch", () => {
     const onOpenChange = vi.fn();
     const { result, rerender } = renderHook(
       ({ isOpen }) =>
         useMediaLogSubmission({
           isOpen,
           onOpenChange,
-          initialState: {
-            watchedDate: "2026-01-05",
-            rating: 8,
-            rewatch: true,
-            reviewContent: "great film",
-            containsSpoilers: true,
-          },
+          initialState: { rating: 8, rewatch: true },
           likedFromInteraction: false,
           submitLog: vi.fn(),
           updateLiked: vi.fn(),
@@ -28,14 +25,15 @@ describe("useMediaLogSubmission", () => {
       { initialProps: { isOpen: false } },
     );
 
+    act(() => result.current.setReview("left over from last time"));
     act(() => result.current.openModal());
     rerender({ isOpen: true });
 
-    expect(result.current.watchedDate).toBe("2026-01-05");
+    expect(result.current.watchedDate).toBe(todayAsLocalDateInput());
     expect(result.current.rating).toBe(8);
     expect(result.current.rewatch).toBe(true);
-    expect(result.current.review).toBe("great film");
-    expect(result.current.containsSpoilers).toBe(true);
+    expect(result.current.review).toBe("");
+    expect(result.current.containsSpoilers).toBe(false);
     expect(onOpenChange).toHaveBeenCalledWith(true);
   });
 
