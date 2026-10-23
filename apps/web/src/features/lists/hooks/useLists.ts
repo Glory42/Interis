@@ -221,6 +221,7 @@ export const useLikeList = (listId: string, viewerUsername?: string) => {
   const queryKey = listKeys.detail(listId);
 
   return useMutation({
+    meta: { errorToast: "Couldn't like this list" },
     mutationFn: () => likeList(listId),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey });
@@ -256,6 +257,7 @@ export const useUnlikeList = (listId: string, viewerUsername?: string) => {
   const queryKey = listKeys.detail(listId);
 
   return useMutation({
+    meta: { errorToast: "Couldn't unlike this list" },
     mutationFn: () => unlikeList(listId),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey });

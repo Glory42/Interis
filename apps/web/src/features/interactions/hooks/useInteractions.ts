@@ -22,6 +22,7 @@ export const useUpdateMovieInteraction = (tmdbId: number) => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { errorToast: "Couldn't update this movie" },
     mutationFn: (input: UpdateMovieInteractionInput) =>
       updateMovieInteraction(tmdbId, input),
     onMutate: async (input) => {

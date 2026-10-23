@@ -22,6 +22,7 @@ export const useUpdateSeriesInteraction = (tmdbId: number) => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { errorToast: "Couldn't update this series" },
     mutationFn: (input: UpdateSerialInteractionInput) =>
       updateSeriesInteraction(tmdbId, input),
     onMutate: async (input) => {

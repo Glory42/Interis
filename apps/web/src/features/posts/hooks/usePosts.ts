@@ -186,6 +186,7 @@ export const useLikePost = (postId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { errorToast: "Couldn't like this post" },
     mutationFn: () => likePost(postId),
     onMutate: async () => {
       const previousFeedQueries = patchFeedItems(
@@ -229,6 +230,7 @@ export const useUnlikePost = (postId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { errorToast: "Couldn't unlike this post" },
     mutationFn: () => unlikePost(postId),
     onMutate: async () => {
       const previousFeedQueries = patchFeedItems(

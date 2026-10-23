@@ -204,6 +204,7 @@ export const useLikeReview = (reviewId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { errorToast: "Couldn't like this review" },
     mutationFn: () => likeReview(reviewId),
     onMutate: async () => {
       const previousFeedQueries = patchFeedItems(
@@ -248,6 +249,7 @@ export const useUnlikeReview = (reviewId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { errorToast: "Couldn't unlike this review" },
     mutationFn: () => unlikeReview(reviewId),
     onMutate: async () => {
       const previousFeedQueries = patchFeedItems(
