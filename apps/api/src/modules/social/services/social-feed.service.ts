@@ -46,9 +46,11 @@ const buildFeedItems = async (
   // Promise.all above.
   const fallbackMedia = await buildFeedFallbackMediaContext(rows, reviewContext);
 
-  const feedItems = rows.map((row) =>
-    toFeedItem(row, reviewContext, postEngagementByPostId, activityEngagementById, fallbackMedia),
-  );
+  const feedItems = rows
+    .map((row) =>
+      toFeedItem(row, reviewContext, postEngagementByPostId, activityEngagementById, fallbackMedia),
+    )
+    .filter((item): item is FeedItem => item !== null);
 
   return dedupeReviewFeedItems(feedItems);
 };
@@ -90,10 +92,11 @@ const getFollowingFeedUncached = async (
     const rows = await SocialRepository.getFeedActivityRows(feedUserIds, fetchLimit, decodedCursor);
     const dedupedItems = await buildFeedItems(rows, userId);
 
-    // dedupedItems can be shorter than rows (dedupeReviewFeedItems only
-    // ever *drops* items, it never merges two rows into one - each
-    // surviving item's id/createdAt is still a genuine row's identity,
-    // see toFeedItem), so it can also be longer than normalizedLimit
+    // dedupedItems can be shorter than rows (items about deleted content
+    // are dropped, and dedupeReviewFeedItems only ever *drops* items, it
+    // never merges two rows into one - each surviving item's id/createdAt
+    // is still a genuine row's identity, see toFeedItem), so it can also
+    // be longer than normalizedLimit
     // since fetchLimit over-fetches 2x as headroom for that dedup step.
     // Slicing here (rather than returning dedupedItems as-is) is the fix:
     // the page must never return more than what was asked for.

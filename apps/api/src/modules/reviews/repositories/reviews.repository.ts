@@ -222,7 +222,7 @@ export class ReviewsRepository {
     const [deleted] = await db
       .delete(reviews)
       .where(and(eq(reviews.id, reviewId), eq(reviews.userId, userId)))
-      .returning({ id: reviews.id });
+      .returning({ id: reviews.id, userId: reviews.userId });
 
     return deleted ?? null;
   }
@@ -232,7 +232,7 @@ export class ReviewsRepository {
     const [deleted] = await db
       .delete(reviews)
       .where(eq(reviews.id, reviewId))
-      .returning({ id: reviews.id });
+      .returning({ id: reviews.id, userId: reviews.userId });
 
     return deleted ?? null;
   }

@@ -58,11 +58,18 @@ export class PostsCoreService {
   static async delete(postId: string, userId: string) {
     const deleted = await PostsRepository.deleteByIdAndUser(postId, userId);
     SocialFeedService.invalidateFollowingFeed(userId);
+    if (deleted) {
+      await ActivityRecorder.retract({ userId, type: "post", entityId: postId });
+    }
     return deleted;
   }
 
   static async deleteById(postId: string) {
-    return PostsRepository.deleteById(postId);
+    const deleted = await PostsRepository.deleteById(postId);
+    if (deleted) {
+      await ActivityRecorder.retract({ userId: deleted.userId, type: "post", entityId: postId });
+    }
+    return deleted;
   }
 
   static async listAllForAdmin(filters: { userId?: string }, limit: number, offset: number) {

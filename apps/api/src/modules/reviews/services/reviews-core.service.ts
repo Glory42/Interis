@@ -137,12 +137,19 @@ export class ReviewsCoreService {
   static async delete(reviewId: string, userId: string) {
     const deleted = await ReviewsRepository.deleteByIdAndUser(reviewId, userId);
     SocialFeedService.invalidateFollowingFeed(userId);
+    if (deleted) {
+      await ActivityRecorder.retract({ userId, type: "review", entityId: reviewId });
+    }
     return deleted;
   }
 
   // No ownership check — admin moderation only.
   static async deleteById(reviewId: string) {
-    return ReviewsRepository.deleteById(reviewId);
+    const deleted = await ReviewsRepository.deleteById(reviewId);
+    if (deleted) {
+      await ActivityRecorder.retract({ userId: deleted.userId, type: "review", entityId: reviewId });
+    }
+    return deleted;
   }
 
   // Movie reviews only — TV reviews live in the serials module's own table.
