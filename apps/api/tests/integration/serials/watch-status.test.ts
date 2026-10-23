@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it, setDefaultTimeout } from "bun:test";
+import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { and, eq } from "drizzle-orm";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
@@ -18,9 +18,6 @@ import {
 import { SerialsWatchStatusService } from "../../../src/modules/serials/services/serials-watch-status.service";
 
 type InteractionState = { watched: boolean; watchStatus: string | null };
-
-// Each episode toggle waits on a failing TMDB season lookup in CI.
-setDefaultTimeout(15000);
 
 // The stored series watch status (#65). Every scenario runs offline: episode
 // toggles drive the status from the seeded series' episode count alone, and
