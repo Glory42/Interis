@@ -45,11 +45,7 @@ export class SocialFollowService {
 
   static async unfollow(followerId: string, followingId: string) {
     await SocialRepository.deleteFollow(followerId, followingId);
-    await ActivityRecorder.retract({
-      userId: followerId,
-      type: "followed_user",
-      entityId: followingId,
-    });
+    await SocialFollowService.retractFollow(followerId, followingId);
     SocialFeedService.invalidateFollowingFeed(followerId);
     return { success: true } as const;
   }
@@ -68,6 +64,20 @@ export class SocialFollowService {
 
   static async removeFollower(userId: string, followerUserId: string) {
     await SocialRepository.removeFollower(userId, followerUserId);
+    await SocialFollowService.retractFollow(followerUserId, userId);
     return { success: true } as const;
+  }
+
+  // The follow is gone either way (unfollowed, or removed by the person
+  // followed), so its feed row and notification go too.
+  private static async retractFollow(followerId: string, followingId: string) {
+    await Promise.all([
+      ActivityRecorder.retract({
+        userId: followerId,
+        type: "followed_user",
+        entityId: followingId,
+      }),
+      NotificationsService.retract({ actorId: followerId, type: "follow", entityId: followerId }),
+    ]);
   }
 }

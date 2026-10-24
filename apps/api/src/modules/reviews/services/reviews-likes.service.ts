@@ -54,7 +54,10 @@ export class ReviewsLikesService {
 
   static async unlikeReview(userId: string, reviewId: string) {
     const result = await ReviewsRepository.deleteLike(userId, reviewId);
-    await ActivityRecorder.retract({ userId, type: "liked_review", entityId: reviewId });
+    await Promise.all([
+      ActivityRecorder.retract({ userId, type: "liked_review", entityId: reviewId }),
+      NotificationsService.retract({ actorId: userId, type: "like_review", entityId: reviewId }),
+    ]);
     SocialFeedService.invalidateFollowingFeed(userId);
     return result;
   }

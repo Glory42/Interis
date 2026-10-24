@@ -162,11 +162,14 @@ export class SocialRepository {
       .limit(limit);
   }
 
+  // Returns null when the activity was already liked.
   static async likeActivity(userId: string, activityId: string) {
-    await db
+    const [row] = await db
       .insert(activityLikes)
       .values({ userId, activityId })
-      .onConflictDoNothing();
+      .onConflictDoNothing()
+      .returning({ activityId: activityLikes.activityId });
+    return row ?? null;
   }
 
   static async unlikeActivity(userId: string, activityId: string) {

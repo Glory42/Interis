@@ -37,6 +37,21 @@ export class NotificationsService {
     });
   }
 
+  // Undo of notify(): the follow or like was taken back, so the recipient
+  // stops seeing it, and a re-follow or re-like leaves one notification,
+  // not one per toggle. Never fails the request, like ActivityRecorder.retract.
+  static async retract(input: {
+    actorId: string;
+    type: NotificationType;
+    entityId: string;
+  }): Promise<void> {
+    try {
+      await NotificationsRepository.deleteMatching(input);
+    } catch {
+      // Swallowed on purpose, see above.
+    }
+  }
+
   static async listForUser(userId: string, limit?: number, cursor?: string) {
     const normalizedLimit = normalizeLimit(limit);
     const decodedCursor = decodeFeedCursor(cursor);

@@ -18,6 +18,23 @@ export class NotificationsRepository {
     await db.insert(notifications).values(input);
   }
 
+  static async deleteMatching(input: {
+    actorId: string;
+    type: NotificationType;
+    entityId: string;
+  }) {
+    return db
+      .delete(notifications)
+      .where(
+        and(
+          eq(notifications.actorId, input.actorId),
+          eq(notifications.type, input.type),
+          eq(notifications.entityId, input.entityId),
+        ),
+      )
+      .returning({ id: notifications.id });
+  }
+
   static async listForUser(recipientId: string, limit: number, before?: FeedCursor) {
     const cursorCondition = before
       ? or(
