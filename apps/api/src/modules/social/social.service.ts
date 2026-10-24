@@ -65,20 +65,24 @@ export class SocialService {
     if (!activity) {
       return { error: "Activity not found" } as const;
     }
-    await Promise.all([
-      SocialRepository.likeActivity(userId, activityId),
-      NotificationsService.notify({
+    // Liking an already-liked activity is a no-op, not a new notification.
+    const liked = await SocialRepository.likeActivity(userId, activityId);
+    if (liked) {
+      await NotificationsService.notify({
         recipientId: activity.userId,
         actorId: userId,
         type: "like_activity",
         entityId: activityId,
-      }),
-    ]);
+      });
+    }
     return { success: true } as const;
   }
 
   static async unlikeActivity(userId: string, activityId: string) {
-    await SocialRepository.unlikeActivity(userId, activityId);
+    await Promise.all([
+      SocialRepository.unlikeActivity(userId, activityId),
+      NotificationsService.retract({ actorId: userId, type: "like_activity", entityId: activityId }),
+    ]);
     return { success: true } as const;
   }
 

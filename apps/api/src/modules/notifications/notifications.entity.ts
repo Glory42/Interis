@@ -39,5 +39,7 @@ export const notifications = pgTable(
   (table) => [
     index("notification_recipient_created_idx").on(table.recipientId, table.createdAt),
     index("notification_recipient_unread_idx").on(table.recipientId, table.isRead),
+    // Backs retracting a notification when its follow or like is undone.
+    index("notification_actor_type_entity_idx").on(table.actorId, table.type, table.entityId),
   ],
 );

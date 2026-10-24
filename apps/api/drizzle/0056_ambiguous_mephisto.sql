@@ -1,0 +1,1 @@
+CREATE INDEX "notification_actor_type_entity_idx" ON "notification" USING btree ("actor_id","type","entity_id");
