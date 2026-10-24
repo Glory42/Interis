@@ -261,12 +261,14 @@ export class SerialsTrackingService {
     seasonNumber: number,
     reviewId?: string,
   ) {
-    return SerialsSeasonEpisodeReviewsRepository.deleteSeasonReview(
+    const deleted = await SerialsSeasonEpisodeReviewsRepository.deleteSeasonReview(
       userId,
       seriesTmdbId,
       seasonNumber,
       reviewId,
     );
+    await SerialsTrackingService.retractReview(userId, deleted);
+    return deleted;
   }
 
   static async getEpisodeReview(
@@ -325,12 +327,20 @@ export class SerialsTrackingService {
     episodeNumber: number,
     reviewId?: string,
   ) {
-    return SerialsSeasonEpisodeReviewsRepository.deleteEpisodeReview(
+    const deleted = await SerialsSeasonEpisodeReviewsRepository.deleteEpisodeReview(
       userId,
       seriesTmdbId,
       seasonNumber,
       episodeNumber,
       reviewId,
     );
+    await SerialsTrackingService.retractReview(userId, deleted);
+    return deleted;
+  }
+
+  private static async retractReview(userId: string, deleted: { id: string } | null) {
+    if (deleted) {
+      await ActivityRecorder.retract({ userId, type: "review", entityId: deleted.id });
+    }
   }
 }

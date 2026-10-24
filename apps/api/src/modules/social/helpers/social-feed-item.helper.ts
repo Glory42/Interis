@@ -1,5 +1,12 @@
 import { parseMetadata, resolveActivityKind } from "./social-feed-metadata.helper";
-import { resolveMovie, resolvePost, resolveReviewId, toFeedMetadata } from "./social-feed-resolvers.helper";
+import { truncateExcerpt } from "../../../commons/helpers/text.helper";
+import {
+  resolveMovie,
+  resolvePost,
+  resolvePostFallbackId,
+  resolveReviewId,
+  toFeedMetadata,
+} from "./social-feed-resolvers.helper";
 import type {
   ActivityRow,
   FeedEngagement,
@@ -9,29 +16,42 @@ import type {
   ReviewContext,
 } from "../types/social-feed.types";
 
+// Returns null when the review or post the activity is about no longer
+// exists (deleted by its author or a moderator). Metadata keeps a copy of
+// the text from when the activity was recorded, but it must never stand in
+// for deleted content.
 export const toFeedItem = (
   row: ActivityRow,
   reviewContext: ReviewContext,
   postEngagementByPostId: Map<string, PostEngagement>,
   activityEngagementById: Map<string, FeedEngagement>,
   fallbackMedia: FeedFallbackMediaContext,
-): FeedItem => {
+): FeedItem | null => {
   const rawMetadata = parseMetadata(row.activity.metadata);
   const metadata = toFeedMetadata(rawMetadata);
   const kind = resolveActivityKind(row.activity.type, metadata.action);
 
   const reviewId = resolveReviewId(row.activity, metadata);
   const reviewById = reviewId ? reviewContext.byReviewId.get(reviewId) ?? null : null;
+  const isDiaryEntry = row.activity.type === "diary_entry";
   const reviewByDiaryEntry =
-    row.activity.type === "diary_entry"
+    isDiaryEntry
       ? reviewContext.byDiaryEntryId.get(row.activity.entityId) ?? null
       : null;
   const reviewDetails = reviewById ?? reviewByDiaryEntry;
 
-  const movie =
-    reviewDetails?.movie ?? resolveMovie(rawMetadata, row.activity, metadata, fallbackMedia);
+  // A diary entry outlives its review, so it stays in the feed without it.
+  if (reviewId && !reviewById && !isDiaryEntry) {
+    return null;
+  }
 
   const post = resolvePost(rawMetadata, row.activity, fallbackMedia);
+  if (resolvePostFallbackId(rawMetadata, row.activity) && !post) {
+    return null;
+  }
+
+  const movie =
+    reviewDetails?.movie ?? resolveMovie(rawMetadata, row.activity, metadata, fallbackMedia);
 
   const review = reviewDetails
     ? {
@@ -40,17 +60,24 @@ export const toFeedItem = (
         containsSpoilers: reviewDetails.containsSpoilers,
         rating: reviewDetails.rating,
       }
-    : metadata.hasReview || kind === "review"
-      ? {
-          id: metadata.reviewId ?? row.activity.entityId,
-          content: metadata.excerpt ?? "Shared a review.",
-          containsSpoilers: metadata.containsSpoilers ?? false,
-          rating: metadata.rating,
-        }
-      : null;
+    : null;
+
+  // Review items carry a copy of the review text in metadata.excerpt, taken
+  // when the activity was recorded. Replace it with the live review so an
+  // edited or deleted review never shows its old text.
+  const carriesReviewText = kind === "review" || kind === "liked_review" || isDiaryEntry;
+  const reviewMetadata = carriesReviewText
+    ? {
+        hasReview: reviewDetails !== null,
+        reviewId: reviewDetails?.id ?? null,
+        containsSpoilers: reviewDetails?.containsSpoilers ?? null,
+        excerpt: reviewDetails ? truncateExcerpt(reviewDetails.content) : null,
+      }
+    : {};
 
   const metadataWithReviewContext = {
     ...metadata,
+    ...reviewMetadata,
     targetUsername:
       metadata.targetUsername ?? reviewDetails?.reviewAuthorUsername ?? null,
     listId: row.activity.type === "created_list" ? row.activity.entityId : null,

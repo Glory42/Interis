@@ -97,14 +97,17 @@ export class PostsRepository {
     const [deleted] = await db
       .delete(posts)
       .where(and(eq(posts.id, postId), eq(posts.userId, userId)))
-      .returning({ id: posts.id });
+      .returning({ id: posts.id, userId: posts.userId });
 
     return deleted ?? null;
   }
 
   // No ownership check — admin moderation only.
   static async deleteById(postId: string) {
-    const [deleted] = await db.delete(posts).where(eq(posts.id, postId)).returning({ id: posts.id });
+    const [deleted] = await db
+      .delete(posts)
+      .where(eq(posts.id, postId))
+      .returning({ id: posts.id, userId: posts.userId });
 
     return deleted ?? null;
   }

@@ -57,8 +57,7 @@ export const resolveReviewId = (
   return metadata.reviewId;
 };
 
-// The id of the post to fetch as a fallback when metadata doesn't already
-// embed the post's content - null when no DB lookup is needed at all.
+// The id of the post the activity is about - null when it isn't about one.
 export const resolvePostFallbackId = (
   rawMetadata: FeedRawMetadata,
   activity: SocialActivity,
@@ -83,30 +82,14 @@ export const resolvePost = (
 
   const post = fallbackMedia.postsById.get(postId);
 
-  if (post) {
-    return {
-      id: post.id,
-      content: post.content,
-      mediaId: post.mediaId,
-      mediaType: post.mediaType,
-    };
-  }
-
-  const contentFromMetadata =
-    readString(rawMetadata, "content") ?? readString(rawMetadata, "excerpt");
-  const mediaIdFromMetadata = readNumber(rawMetadata, "mediaId");
-  const mediaTypeFromMetadata = readPostMediaType(rawMetadata, "mediaType");
-
-  if (contentFromMetadata) {
-    return {
-      id: postId,
-      content: contentFromMetadata,
-      mediaId: mediaIdFromMetadata,
-      mediaType: mediaTypeFromMetadata,
-    };
-  }
-
-  return null;
+  return post
+    ? {
+        id: post.id,
+        content: post.content,
+        mediaId: post.mediaId,
+        mediaType: post.mediaType,
+      }
+    : null;
 };
 
 // The internal movie id to fetch as a fallback when metadata doesn't
