@@ -254,15 +254,21 @@ export class SerialsActivityService {
   }
 
   static async updateLog(entryId: string, userId: string, input: UpdateSerialLogDto) {
-    return SerialsInteractionsRepository.updateDiaryEntry(entryId, userId, {
+    const updated = await SerialsInteractionsRepository.updateDiaryEntry(entryId, userId, {
       watchedDate: input.watchedDate,
       rating: input.rating,
       rewatch: input.rewatch,
     });
+    if (updated) ActivityRecorder.invalidateFeeds(userId);
+    return updated;
   }
 
   static async deleteLog(entryId: string, userId: string) {
-    return SerialsInteractionsRepository.deleteDiaryEntry(entryId, userId);
+    const deleted = await SerialsInteractionsRepository.deleteDiaryEntry(entryId, userId);
+    if (deleted) {
+      await ActivityRecorder.retract({ userId, type: "diary_entry", entityId: deleted.id });
+    }
+    return deleted;
   }
 
   static async getLogs(seriesId: number, limit?: number, offset?: number) {

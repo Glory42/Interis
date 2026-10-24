@@ -80,8 +80,9 @@ Both endpoints return `FeedItem[]`.
 - `seasonNumber` and `episodeNumber` are populated for season/episode interactions (`liked_movie`, `review`). Both are `null` for movie/series-level activities.
 - For `liked_movie` activities on seasons/episodes, `metadata.rating` will be non-null when the action was a rating (not a like); `metadata.rating` is `null` for pure like actions.
 - `listId` and `listTitle` are populated for `created_list` activities; both are `null` for all other activity types.
-- Activities about a review or post that has since been deleted are left out. A `diary_entry` stays after its review is deleted, with `review: null` and `metadata.hasReview: false`.
+- Activities about a review, post or diary log that has since been deleted are left out. A `diary_entry` stays after its review is deleted, with `review: null` and `metadata.hasReview: false`.
 - On `review`, `liked_review` and `diary_entry` items, `metadata.excerpt` is the start of the current review text, so it reflects edits.
+- On `diary_entry` items, `metadata.rating` and `metadata.rewatch` are the log's current values, so they reflect edits.
 
 ## Review row (`/reviews`)
 

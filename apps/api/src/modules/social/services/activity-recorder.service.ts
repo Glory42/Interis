@@ -186,12 +186,18 @@ export class ActivityRecorder {
     try {
       const deleted = await SocialRepository.deleteActivities(input);
       if (deleted.length > 0) {
-        SocialFeedService.invalidateFollowingFeed(input.userId);
-        SocialFeedService.invalidateUserActivityFeed(input.userId);
+        ActivityRecorder.invalidateFeeds(input.userId);
       }
     } catch {
       // Swallowed on purpose, see above.
     }
+  }
+
+  // The thing an activity is about was edited in place (e.g. a log's
+  // rating): the row stays, but cached feeds showing it are now stale.
+  static invalidateFeeds(userId: string): void {
+    SocialFeedService.invalidateFollowingFeed(userId);
+    SocialFeedService.invalidateUserActivityFeed(userId);
   }
 
   // Media-scoped retract, matching recordMedia's subject.

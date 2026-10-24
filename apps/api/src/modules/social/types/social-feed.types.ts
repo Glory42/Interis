@@ -131,7 +131,14 @@ export type FeedFallbackMovieRow = {
   releaseYear: number | null;
 };
 
+export type FeedDiaryEntryRow = {
+  id: string;
+  rating: number | null;
+  rewatch: boolean;
+};
+
 export type FeedFallbackMediaContext = {
   postsById: Map<string, FeedFallbackPostRow>;
   moviesById: Map<number, FeedFallbackMovieRow>;
+  diaryEntriesById: Map<string, FeedDiaryEntryRow>;
 };

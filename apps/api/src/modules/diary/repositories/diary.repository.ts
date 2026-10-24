@@ -147,7 +147,7 @@ export class DiaryRepository {
     const [deleted] = await db
       .delete(diaryEntries)
       .where(and(eq(diaryEntries.id, entryId), eq(diaryEntries.userId, userId)))
-      .returning({ id: diaryEntries.id });
+      .returning({ id: diaryEntries.id, userId: diaryEntries.userId });
 
     return deleted ?? null;
   }
@@ -157,7 +157,7 @@ export class DiaryRepository {
     const [deleted] = await db
       .delete(diaryEntries)
       .where(eq(diaryEntries.id, entryId))
-      .returning({ id: diaryEntries.id });
+      .returning({ id: diaryEntries.id, userId: diaryEntries.userId });
 
     return deleted ?? null;
   }
