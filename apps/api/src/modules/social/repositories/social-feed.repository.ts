@@ -2,6 +2,7 @@ import { and, eq, inArray, or, sql } from "drizzle-orm";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { db } from "../../../infrastructure/database/db";
 import { diaryEntries } from "../../diary/diary.entity";
+import { lists } from "../../lists/lists.entity";
 import { movies } from "../../movies/movies.entity";
 import { postComments, postLikes, posts } from "../../posts/posts.entity";
 import { comments, reviewLikes, reviews } from "../../reviews/reviews.entity";
@@ -249,5 +250,14 @@ export class SocialFeedRepository {
         .where(inArray(serialDiaryEntries.id, entryIds)),
     ]);
     return [...movieEntries, ...serialEntries];
+  }
+
+  // Live title and visibility for created_list activities.
+  static async getListsByIds(listIds: string[]) {
+    if (listIds.length === 0) return [];
+    return db
+      .select({ id: lists.id, title: lists.title, isPublic: lists.isPublic })
+      .from(lists)
+      .where(inArray(lists.id, listIds));
   }
 }

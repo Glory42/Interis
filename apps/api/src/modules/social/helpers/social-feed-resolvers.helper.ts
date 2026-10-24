@@ -41,8 +41,9 @@ export const toFeedMetadata = (rawMetadata: FeedRawMetadata): FeedMetadata => {
     postMediaType: readPostMediaType(rawMetadata, "mediaType"),
     seasonNumber: readNumber(rawMetadata, "seasonNumber"),
     episodeNumber: readNumber(rawMetadata, "episodeNumber"),
+    // Filled from the live list row in toFeedItem.
     listId: null,
-    listTitle: readString(rawMetadata, "title"),
+    listTitle: null,
   };
 };
 

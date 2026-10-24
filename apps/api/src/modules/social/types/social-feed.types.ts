@@ -137,8 +137,15 @@ export type FeedDiaryEntryRow = {
   rewatch: boolean;
 };
 
+export type FeedListRow = {
+  id: string;
+  title: string;
+  isPublic: boolean;
+};
+
 export type FeedFallbackMediaContext = {
   postsById: Map<string, FeedFallbackPostRow>;
   moviesById: Map<number, FeedFallbackMovieRow>;
   diaryEntriesById: Map<string, FeedDiaryEntryRow>;
+  listsById: Map<string, FeedListRow>;
 };

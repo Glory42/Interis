@@ -16,8 +16,9 @@ import type {
   ReviewContext,
 } from "../types/social-feed.types";
 
-// Returns null when the review, post or diary log the activity is about no
-// longer exists (deleted by its author or a moderator). Metadata keeps a copy of
+// Returns null when the review, post, diary log or list the activity is
+// about no longer exists (deleted by its author or a moderator), or when
+// the list is private. Metadata keeps a copy of
 // the text from when the activity was recorded, but it must never stand in
 // for deleted content.
 export const toFeedItem = (
@@ -45,6 +46,14 @@ export const toFeedItem = (
     ? fallbackMedia.diaryEntriesById.get(row.activity.entityId) ?? null
     : null;
   if (isDiaryEntry && !diaryEntry) {
+    return null;
+  }
+
+  // A private list stays out of every feed, its owner's included, and comes
+  // back if it's made public again. The title is the list's current one.
+  const isCreatedList = row.activity.type === "created_list";
+  const list = isCreatedList ? fallbackMedia.listsById.get(row.activity.entityId) ?? null : null;
+  if (isCreatedList && !list?.isPublic) {
     return null;
   }
 
@@ -89,7 +98,8 @@ export const toFeedItem = (
     ...(diaryEntry && { rating: diaryEntry.rating, rewatch: diaryEntry.rewatch }),
     targetUsername:
       metadata.targetUsername ?? reviewDetails?.reviewAuthorUsername ?? null,
-    listId: row.activity.type === "created_list" ? row.activity.entityId : null,
+    listId: list?.id ?? null,
+    listTitle: list?.title ?? null,
   };
 
   const postId = post?.id ?? metadata.postId ?? (kind === "post" ? row.activity.entityId : null);

@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import { searchMovies } from "@/features/movies/api/requests";
 import { searchSeries } from "@/features/serials/api/requests";
@@ -28,6 +29,13 @@ export const listKeys = {
   formSearch: (kind: "movies" | "series", query: string) =>
     ["lists", "formSearch", kind, query] as const,
 };
+
+// Feeds show a list's current title, and hide it while it's private.
+const invalidateListActivity = (queryClient: QueryClient, ownerUsername: string) =>
+  Promise.all([
+    invalidateFollowingFeed(queryClient),
+    queryClient.invalidateQueries({ queryKey: profileKeys.recentActivity(ownerUsername, 20) }),
+  ]);
 
 const FORM_SEARCH_MIN_QUERY_LENGTH = 2;
 const FORM_SEARCH_STALE_TIME_MS = 30_000;
@@ -87,6 +95,7 @@ export const useCreateList = (ownerUsername: string) => {
         queryClient.invalidateQueries({
           queryKey: profileKeys.detail(ownerUsername),
         }),
+        invalidateListActivity(queryClient, ownerUsername),
       ]);
     },
   });
@@ -103,6 +112,7 @@ export const useUpdateList = (listId: string, ownerUsername: string) => {
         queryClient.invalidateQueries({
           queryKey: listKeys.userLists(ownerUsername),
         }),
+        invalidateListActivity(queryClient, ownerUsername),
       ]);
     },
   });
@@ -121,6 +131,7 @@ export const useDeleteList = (listId: string, ownerUsername: string) => {
         queryClient.invalidateQueries({
           queryKey: profileKeys.detail(ownerUsername),
         }),
+        invalidateListActivity(queryClient, ownerUsername),
       ]);
     },
   });

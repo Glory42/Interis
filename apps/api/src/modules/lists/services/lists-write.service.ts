@@ -54,6 +54,8 @@ export class ListsWriteService {
       return { error: "List not found", status: 404 };
     }
 
+    // The feed shows the list's current title and hides it while private.
+    ActivityRecorder.invalidateFeeds(userId);
     return updated;
   }
 
@@ -72,6 +74,7 @@ export class ListsWriteService {
     }
 
     await ListsWriteRepository.deleteById(listId);
+    await ListsWriteService.retractCreatedList(list);
   }
 
   static async addItem(
@@ -225,6 +228,11 @@ export class ListsWriteService {
     }
 
     await ListsWriteRepository.deleteById(listId);
+    await ListsWriteService.retractCreatedList(list);
     return { deleted: true };
+  }
+
+  private static async retractCreatedList(list: { id: string; userId: string }) {
+    await ActivityRecorder.retract({ userId: list.userId, type: "created_list", entityId: list.id });
   }
 }
