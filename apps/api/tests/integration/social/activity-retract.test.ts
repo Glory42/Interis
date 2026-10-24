@@ -79,6 +79,26 @@ describe("undoing an action retracts its feed activity (#76)", () => {
     expect(await activityMetadataFor(userId, "watchlisted_movie")).toHaveLength(0);
   });
 
+  it("resending a movie like or watchlist adds no second row (#79)", async () => {
+    const { jar, username } = await signUpTestUser(getServer().baseUrl, "rtresend");
+    const movie = await seedTestMovie();
+    const userId = await getUserId(username);
+    const path = `/api/interactions/${movie.tmdbId}`;
+
+    await send(jar, "PUT", path, { liked: true, watchlisted: true });
+    await send(jar, "PUT", path, { liked: true, watchlisted: true });
+    await send(jar, "PUT", path, { liked: true, rating: 7 });
+    await waitForActivityWrite();
+    expect(await activityMetadataFor(userId, "liked_movie")).toHaveLength(1);
+    expect(await activityMetadataFor(userId, "watchlisted_movie")).toHaveLength(1);
+
+    // A real off -> on flip is news again.
+    await send(jar, "PUT", path, { liked: false });
+    await send(jar, "PUT", path, { liked: true });
+    await waitForActivityWrite();
+    expect(await activityMetadataFor(userId, "liked_movie")).toHaveLength(1);
+  });
+
   it("unliking one level of a series leaves the other levels' likes and ratings", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "rtseries");
     const serial = await seedTestSerial();

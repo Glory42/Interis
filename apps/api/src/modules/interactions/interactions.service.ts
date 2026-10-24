@@ -42,6 +42,7 @@ export class InteractionsService {
     input: UpdateInteractionDto,
   ) {
     const movie = await MoviesService.findOrCreate(tmdbId);
+    const previous = await movieInteractionStore.find(userId, movie.id);
 
     const upserted = await movieInteractionStore.upsertState(userId, movie.id, {
       liked: input.liked,
@@ -50,8 +51,9 @@ export class InteractionsService {
       watched: input.watched,
     });
 
-    // Write activity only for meaningful state changes
-    if (input.liked === true) {
+    // Only a false -> true flip is news: resending `liked: true` for a movie
+    // that is already liked must not add another feed row (#79).
+    if (input.liked === true && !previous?.liked) {
       ActivityRecorder.recordMedia({
         userId,
         subject: { kind: "movie", movie },
@@ -60,7 +62,7 @@ export class InteractionsService {
       });
     }
 
-    if (input.watchlisted === true) {
+    if (input.watchlisted === true && !previous?.watchlisted) {
       ActivityRecorder.recordMedia({
         userId,
         subject: { kind: "movie", movie },
