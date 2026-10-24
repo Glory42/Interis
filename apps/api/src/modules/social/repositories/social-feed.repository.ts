@@ -225,4 +225,29 @@ export class SocialFeedRepository {
       .from(movies)
       .where(inArray(movies.id, movieIds));
   }
+
+  // Live rating/rewatch for diary_entry activities. Movie and series logs
+  // live in separate tables; their ids are UUIDs, so one map holds both.
+  static async getDiaryEntriesByIds(entryIds: string[]) {
+    if (entryIds.length === 0) return [];
+    const [movieEntries, serialEntries] = await Promise.all([
+      db
+        .select({
+          id: diaryEntries.id,
+          rating: diaryEntries.rating,
+          rewatch: diaryEntries.rewatch,
+        })
+        .from(diaryEntries)
+        .where(inArray(diaryEntries.id, entryIds)),
+      db
+        .select({
+          id: serialDiaryEntries.id,
+          rating: serialDiaryEntries.rating,
+          rewatch: serialDiaryEntries.rewatch,
+        })
+        .from(serialDiaryEntries)
+        .where(inArray(serialDiaryEntries.id, entryIds)),
+    ]);
+    return [...movieEntries, ...serialEntries];
+  }
 }

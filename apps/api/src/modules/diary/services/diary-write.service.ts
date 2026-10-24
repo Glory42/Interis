@@ -69,21 +69,35 @@ export class DiaryWriteService {
   }
 
   static async update(entryId: string, userId: string, input: UpdateDiaryDto) {
-    return DiaryRepository.updateByIdAndUser({
+    const updated = await DiaryRepository.updateByIdAndUser({
       entryId,
       userId,
       watchedDate: input.watchedDate,
       rating: input.rating,
       rewatch: input.rewatch,
     });
+    if (updated) ActivityRecorder.invalidateFeeds(userId);
+    return updated;
   }
 
   static async delete(entryId: string, userId: string) {
-    return DiaryRepository.deleteByIdAndUser(entryId, userId);
+    const deleted = await DiaryRepository.deleteByIdAndUser(entryId, userId);
+    if (deleted) await DiaryWriteService.retractLog(deleted);
+    return deleted;
   }
 
   // No ownership check — admin moderation only.
   static async deleteById(entryId: string) {
-    return DiaryRepository.deleteById(entryId);
+    const deleted = await DiaryRepository.deleteById(entryId);
+    if (deleted) await DiaryWriteService.retractLog(deleted);
+    return deleted;
+  }
+
+  private static async retractLog(deleted: { id: string; userId: string }) {
+    await ActivityRecorder.retract({
+      userId: deleted.userId,
+      type: "diary_entry",
+      entityId: deleted.id,
+    });
   }
 }

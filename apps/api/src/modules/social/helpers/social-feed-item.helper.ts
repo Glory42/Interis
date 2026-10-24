@@ -16,8 +16,8 @@ import type {
   ReviewContext,
 } from "../types/social-feed.types";
 
-// Returns null when the review or post the activity is about no longer
-// exists (deleted by its author or a moderator). Metadata keeps a copy of
+// Returns null when the review, post or diary log the activity is about no
+// longer exists (deleted by its author or a moderator). Metadata keeps a copy of
 // the text from when the activity was recorded, but it must never stand in
 // for deleted content.
 export const toFeedItem = (
@@ -39,6 +39,14 @@ export const toFeedItem = (
       ? reviewContext.byDiaryEntryId.get(row.activity.entityId) ?? null
       : null;
   const reviewDetails = reviewById ?? reviewByDiaryEntry;
+
+  // Rating and rewatch come from the live log, so an edit shows up too.
+  const diaryEntry = isDiaryEntry
+    ? fallbackMedia.diaryEntriesById.get(row.activity.entityId) ?? null
+    : null;
+  if (isDiaryEntry && !diaryEntry) {
+    return null;
+  }
 
   // A diary entry outlives its review, so it stays in the feed without it.
   if (reviewId && !reviewById && !isDiaryEntry) {
@@ -78,6 +86,7 @@ export const toFeedItem = (
   const metadataWithReviewContext = {
     ...metadata,
     ...reviewMetadata,
+    ...(diaryEntry && { rating: diaryEntry.rating, rewatch: diaryEntry.rewatch }),
     targetUsername:
       metadata.targetUsername ?? reviewDetails?.reviewAuthorUsername ?? null,
     listId: row.activity.type === "created_list" ? row.activity.entityId : null,
