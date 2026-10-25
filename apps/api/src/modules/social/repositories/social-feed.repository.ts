@@ -261,4 +261,14 @@ export class SocialFeedRepository {
       .from(lists)
       .where(inArray(lists.id, listIds));
   }
+
+  // Live usernames for followed_user activities; a missing id is a deleted
+  // account.
+  static async getUsersByIds(userIds: string[]) {
+    if (userIds.length === 0) return [];
+    return db
+      .select({ id: user.id, username: user.username })
+      .from(user)
+      .where(inArray(user.id, userIds));
+  }
 }

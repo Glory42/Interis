@@ -8,6 +8,7 @@ import {
 } from "@/features/auth/api";
 import { authKeys, useAuth } from "@/features/auth/hooks/useAuth";
 import { isApiError } from "@/lib/api-client";
+import { SettingsDeleteAccountCard } from "./SettingsDeleteAccountCard";
 
 export const SettingsAuthSection = () => {
   const queryClient = useQueryClient();
@@ -125,197 +126,201 @@ export const SettingsAuthSection = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-      <div className="border p-5 space-y-4 settings-shell-border settings-shell-panel">
-        <div>
-          <p className="mb-1 text-base font-bold text-foreground">Email</p>
-          <p className="mb-4 text-sm settings-shell-muted">Update your account email.</p>
-        </div>
-
-        <form className="space-y-4" onSubmit={handleChangeEmail}>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="border p-5 space-y-4 settings-shell-border settings-shell-panel">
           <div>
-            <label className="mb-1 block text-xs font-medium settings-shell-muted">Current email</label>
-            <p className="mb-4 text-sm settings-shell-dim-text">{user.email}</p>
-
-            <label
-              className="mb-2 block text-xs font-medium settings-shell-muted"
-              htmlFor="settings-new-email"
-            >
-              New email
-            </label>
-            <input
-              id="settings-new-email"
-              className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
-              placeholder="new@mail.com"
-              type="email"
-              value={newEmail}
-              onChange={(event) => setNewEmail(event.target.value)}
-              required
-            />
-
-            <label
-              className="mb-2 mt-4 block text-xs font-medium settings-shell-muted"
-              htmlFor="settings-email-security-answer"
-            >
-              Security question answer
-            </label>
-            <input
-              id="settings-email-security-answer"
-              className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
-              type="text"
-              value={securityAnswer}
-              onChange={(event) => setSecurityAnswer(event.target.value)}
-              required
-            />
+            <p className="mb-1 text-base font-bold text-foreground">Email</p>
+            <p className="mb-4 text-sm settings-shell-muted">Update your account email.</p>
           </div>
 
-          {authEmailError ? (
-            <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              {authEmailError}
-            </p>
-          ) : null}
+          <form className="space-y-4" onSubmit={handleChangeEmail}>
+            <div>
+              <label className="mb-1 block text-xs font-medium settings-shell-muted">Current email</label>
+              <p className="mb-4 text-sm settings-shell-dim-text">{user.email}</p>
 
-          {authEmailSuccess ? (
-            <p role="status" className="border px-3 py-2 text-sm settings-shell-border settings-shell-accent settings-shell-active-pill">
-              {authEmailSuccess}
-            </p>
-          ) : null}
-
-          <button
-            type="submit"
-            disabled={changeEmailMutation.isPending}
-            className="rounded-full px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ background: "var(--settings-shell-accent)", color: "var(--primary-foreground)" }}
-          >
-            {changeEmailMutation.isPending ? "Updating..." : "Update email"}
-          </button>
-        </form>
-      </div>
-
-      <div className="border p-5 space-y-4 settings-shell-border settings-shell-panel">
-        <div>
-          <p className="mb-1 text-base font-bold text-foreground">Password</p>
-          <p className="mb-4 text-sm settings-shell-muted">Change your account password.</p>
-        </div>
-
-        <form className="space-y-4" onSubmit={handleChangePassword}>
-          <div>
-            <label
-              className="mb-2 block text-xs font-medium settings-shell-muted"
-              htmlFor="settings-current-password"
-            >
-              Current password
-            </label>
-
-            <div className="relative">
+              <label
+                className="mb-2 block text-xs font-medium settings-shell-muted"
+                htmlFor="settings-new-email"
+              >
+                New email
+              </label>
               <input
-                id="settings-current-password"
-                className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
-                placeholder="••••••••"
-                type={showCurrentPassword ? "text" : "password"}
-                value={currentPassword}
-                onChange={(event) => setCurrentPassword(event.target.value)}
-                autoComplete="current-password"
+                id="settings-new-email"
+                className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+                placeholder="new@mail.com"
+                type="email"
+                value={newEmail}
+                onChange={(event) => setNewEmail(event.target.value)}
                 required
               />
-              {renderPasswordToggle(showCurrentPassword, () => {
-                setShowCurrentPassword((prev) => !prev);
-              }, "Toggle current password visibility")}
-            </div>
-          </div>
 
-          <div>
-            <label
-              className="mb-2 block text-xs font-medium settings-shell-muted"
-              htmlFor="settings-new-password"
-            >
-              New password
-            </label>
-
-            <div className="relative">
+              <label
+                className="mb-2 mt-4 block text-xs font-medium settings-shell-muted"
+                htmlFor="settings-email-security-answer"
+              >
+                Security question answer
+              </label>
               <input
-                id="settings-new-password"
-                className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
-                placeholder="••••••••"
-                type={showNewPassword ? "text" : "password"}
-                value={newPassword}
-                onChange={(event) => setNewPassword(event.target.value)}
-                autoComplete="new-password"
-                minLength={8}
+                id="settings-email-security-answer"
+                className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+                type="text"
+                value={securityAnswer}
+                onChange={(event) => setSecurityAnswer(event.target.value)}
                 required
               />
-              {renderPasswordToggle(showNewPassword, () => {
-                setShowNewPassword((prev) => !prev);
-              }, "Toggle new password visibility")}
             </div>
-          </div>
 
-          <div>
-            <label
-              className="mb-2 block text-xs font-medium settings-shell-muted"
-              htmlFor="settings-confirm-password"
-            >
-              Confirm new password
-            </label>
+            {authEmailError ? (
+              <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {authEmailError}
+              </p>
+            ) : null}
 
-            <div className="relative">
-              <input
-                id="settings-confirm-password"
-                className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
-                placeholder="••••••••"
-                type={showConfirmPassword ? "text" : "password"}
-                value={confirmPassword}
-                onChange={(event) => setConfirmPassword(event.target.value)}
-                autoComplete="new-password"
-                minLength={8}
-                required
-              />
-              {renderPasswordToggle(showConfirmPassword, () => {
-                setShowConfirmPassword((prev) => !prev);
-              }, "Toggle confirm password visibility")}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center settings-shell-row-border">
-            <button
-              type="button"
-              className={
-                "flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition-colors " +
-                (revokeOtherSessions
-                  ? "settings-shell-danger-option"
-                  : "settings-shell-border settings-shell-dim-text")
-              }
-              onClick={() => {
-                setRevokeOtherSessions((prev) => !prev);
-              }}
-            >
-              <LogOut className="h-3 w-3" aria-hidden="true" />
-              <span>Sign out from other sessions</span>
-            </button>
+            {authEmailSuccess ? (
+              <p role="status" className="border px-3 py-2 text-sm settings-shell-border settings-shell-accent settings-shell-active-pill">
+                {authEmailSuccess}
+              </p>
+            ) : null}
 
             <button
               type="submit"
-              disabled={changePasswordMutation.isPending}
+              disabled={changeEmailMutation.isPending}
               className="rounded-full px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               style={{ background: "var(--settings-shell-accent)", color: "var(--primary-foreground)" }}
             >
-              {changePasswordMutation.isPending ? "Updating..." : "Change password"}
+              {changeEmailMutation.isPending ? "Updating..." : "Update email"}
             </button>
+          </form>
+        </div>
+
+        <div className="border p-5 space-y-4 settings-shell-border settings-shell-panel">
+          <div>
+            <p className="mb-1 text-base font-bold text-foreground">Password</p>
+            <p className="mb-4 text-sm settings-shell-muted">Change your account password.</p>
           </div>
 
-          {authPasswordError ? (
-            <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              {authPasswordError}
-            </p>
-          ) : null}
+          <form className="space-y-4" onSubmit={handleChangePassword}>
+            <div>
+              <label
+                className="mb-2 block text-xs font-medium settings-shell-muted"
+                htmlFor="settings-current-password"
+              >
+                Current password
+              </label>
 
-          {authPasswordSuccess ? (
-            <p role="status" className="border px-3 py-2 text-sm settings-shell-border settings-shell-accent settings-shell-active-pill">
-              {authPasswordSuccess}
-            </p>
-          ) : null}
-        </form>
+              <div className="relative">
+                <input
+                  id="settings-current-password"
+                  className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+                  placeholder="••••••••"
+                  type={showCurrentPassword ? "text" : "password"}
+                  value={currentPassword}
+                  onChange={(event) => setCurrentPassword(event.target.value)}
+                  autoComplete="current-password"
+                  required
+                />
+                {renderPasswordToggle(showCurrentPassword, () => {
+                  setShowCurrentPassword((prev) => !prev);
+                }, "Toggle current password visibility")}
+              </div>
+            </div>
+
+            <div>
+              <label
+                className="mb-2 block text-xs font-medium settings-shell-muted"
+                htmlFor="settings-new-password"
+              >
+                New password
+              </label>
+
+              <div className="relative">
+                <input
+                  id="settings-new-password"
+                  className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+                  placeholder="••••••••"
+                  type={showNewPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                  autoComplete="new-password"
+                  minLength={8}
+                  required
+                />
+                {renderPasswordToggle(showNewPassword, () => {
+                  setShowNewPassword((prev) => !prev);
+                }, "Toggle new password visibility")}
+              </div>
+            </div>
+
+            <div>
+              <label
+                className="mb-2 block text-xs font-medium settings-shell-muted"
+                htmlFor="settings-confirm-password"
+              >
+                Confirm new password
+              </label>
+
+              <div className="relative">
+                <input
+                  id="settings-confirm-password"
+                  className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+                  placeholder="••••••••"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  autoComplete="new-password"
+                  minLength={8}
+                  required
+                />
+                {renderPasswordToggle(showConfirmPassword, () => {
+                  setShowConfirmPassword((prev) => !prev);
+                }, "Toggle confirm password visibility")}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center settings-shell-row-border">
+              <button
+                type="button"
+                className={
+                  "flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition-colors " +
+                  (revokeOtherSessions
+                    ? "settings-shell-danger-option"
+                    : "settings-shell-border settings-shell-dim-text")
+                }
+                onClick={() => {
+                  setRevokeOtherSessions((prev) => !prev);
+                }}
+              >
+                <LogOut className="h-3 w-3" aria-hidden="true" />
+                <span>Sign out from other sessions</span>
+              </button>
+
+              <button
+                type="submit"
+                disabled={changePasswordMutation.isPending}
+                className="rounded-full px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                style={{ background: "var(--settings-shell-accent)", color: "var(--primary-foreground)" }}
+              >
+                {changePasswordMutation.isPending ? "Updating..." : "Change password"}
+              </button>
+            </div>
+
+            {authPasswordError ? (
+              <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {authPasswordError}
+              </p>
+            ) : null}
+
+            {authPasswordSuccess ? (
+              <p role="status" className="border px-3 py-2 text-sm settings-shell-border settings-shell-accent settings-shell-active-pill">
+                {authPasswordSuccess}
+              </p>
+            ) : null}
+          </form>
+        </div>
       </div>
+
+      <SettingsDeleteAccountCard username={user.username} />
     </div>
   );
 };

@@ -154,6 +154,12 @@ export const changeCurrentUserPassword = async (input: {
   unknownAuthResponseSchema.parse(response);
 };
 
+// Deletes the signed-in account and everything it owns; the server clears
+// the auth cookies.
+export const deleteCurrentUserAccount = async (): Promise<void> => {
+  await apiRequest<unknown>("/api/auth/account", { method: "DELETE" });
+};
+
 export const changeCurrentUserEmail = async (input: {
   newEmail: string;
   answer: string;

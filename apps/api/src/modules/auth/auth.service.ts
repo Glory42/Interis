@@ -8,6 +8,7 @@ import {
   ConflictError,
   UnauthorizedError,
 } from "../../commons/errors/app-error";
+import { ActivityRecorder } from "../social/services/activity-recorder.service";
 import { AuthUsersRepository } from "./repositories/auth-users.repository";
 import { AuthCredentialsRepository } from "./repositories/auth-credentials.repository";
 import { SecurityAnswersRepository } from "./repositories/security-answers.repository";
@@ -269,6 +270,8 @@ export class AuthService {
   }
 
   static async deleteAccount(userId: string): Promise<void> {
+    // Other users' "followed" rows about this account don't cascade.
+    await ActivityRecorder.retractAllAbout("followed_user", userId);
     await SessionService.revokeAllSessionsForUser(userId);
     await AuthUsersRepository.deleteById(userId);
     await UploadsService.deleteAllForUser(userId);
