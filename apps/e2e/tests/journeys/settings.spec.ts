@@ -90,3 +90,32 @@ test("edits profile, theme, Top4 favorites, and manages blocked users from setti
     await otherContext.close();
   }
 });
+
+// #102: an account can be deleted from Settings > Auth, guarded by typing
+// the username, and is really gone afterwards.
+test("deletes the account from settings", async ({ page }) => {
+  const user = buildTestUser("e2edel");
+
+  try {
+    await test.step("sign up and open auth settings", async () => {
+      await registerUser(page, user);
+      await page.goto("/settings/auth");
+    });
+
+    await test.step("confirms by typing the username and lands home signed out", async () => {
+      await page.getByRole("button", { name: "Delete account" }).click();
+      const confirm = page.getByRole("button", { name: "Delete forever" });
+      await expect(confirm).toBeDisabled();
+
+      await page.getByRole("textbox", { name: "Your username" }).fill(user.username);
+      await confirm.click();
+      await page.waitForURL("/", { timeout: 15_000 });
+
+      const profile = await page.request.get(`/api/users/${user.username}`);
+      expect(profile.status()).toBe(404);
+    });
+  } finally {
+    // Already gone when the journey passes; cleans up when it doesn't.
+    await deleteTestUser(page);
+  }
+});

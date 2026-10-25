@@ -42,6 +42,15 @@ export class SocialRepository {
     });
   }
 
+  // Every user's activities about one entity, e.g. all follows of an account
+  // being deleted. Returns whose rows went, to refresh their feeds.
+  static async deleteActivitiesAbout(type: ActivityType, entityId: string) {
+    return db
+      .delete(activities)
+      .where(and(eq(activities.type, type), eq(activities.entityId, entityId)))
+      .returning({ userId: activities.userId });
+  }
+
   static async deleteActivities(input: {
     userId: string;
     type: ActivityType;

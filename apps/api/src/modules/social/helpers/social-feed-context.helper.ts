@@ -166,8 +166,12 @@ export const buildFeedFallbackMediaContext = async (
   const movieIds = new Set<number>();
   const diaryEntryIds = new Set<string>();
   const listIds = new Set<string>();
+  const followedUserIds = new Set<string>();
 
   for (const row of rows) {
+    if (row.activity.type === "followed_user") {
+      followedUserIds.add(row.activity.entityId);
+    }
     if (row.activity.type === "diary_entry" && isUuid(row.activity.entityId)) {
       diaryEntryIds.add(row.activity.entityId);
     }
@@ -198,11 +202,12 @@ export const buildFeedFallbackMediaContext = async (
     }
   }
 
-  const [postRows, movieRows, diaryEntryRows, listRows] = await Promise.all([
+  const [postRows, movieRows, diaryEntryRows, listRows, userRows] = await Promise.all([
     SocialFeedRepository.getPostsByIds([...postIds]),
     SocialFeedRepository.getMoviesByIds([...movieIds]),
     SocialFeedRepository.getDiaryEntriesByIds([...diaryEntryIds]),
     SocialFeedRepository.getListsByIds([...listIds]),
+    SocialFeedRepository.getUsersByIds([...followedUserIds]),
   ]);
 
   return {
@@ -210,6 +215,7 @@ export const buildFeedFallbackMediaContext = async (
     moviesById: new Map(movieRows.map((movie) => [movie.id, movie])),
     diaryEntriesById: new Map(diaryEntryRows.map((entry) => [entry.id, entry])),
     listsById: new Map(listRows.map((list) => [list.id, list])),
+    usersById: new Map(userRows.map((row) => [row.id, row])),
   };
 };
 

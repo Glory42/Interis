@@ -193,6 +193,20 @@ export class ActivityRecorder {
     }
   }
 
+  // Retracts every user's activities about one entity that is going away
+  // without cascading them, e.g. follows of a deleted account (#102). Never
+  // fails the caller: feeds also drop these at read time.
+  static async retractAllAbout(type: ActivityType, entityId: string): Promise<void> {
+    try {
+      const deleted = await SocialRepository.deleteActivitiesAbout(type, entityId);
+      for (const userId of new Set(deleted.map((row) => row.userId))) {
+        ActivityRecorder.invalidateFeeds(userId);
+      }
+    } catch {
+      // Swallowed on purpose, see above.
+    }
+  }
+
   // The actor's activity changed, or the thing an activity is about was
   // edited in place (e.g. a log's rating): both cached views of it are stale,
   // the following feeds and the public activity view.

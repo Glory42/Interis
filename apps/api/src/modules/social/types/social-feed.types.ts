@@ -143,9 +143,15 @@ export type FeedListRow = {
   isPublic: boolean;
 };
 
+export type FeedUserRow = {
+  id: string;
+  username: string;
+};
+
 export type FeedFallbackMediaContext = {
   postsById: Map<string, FeedFallbackPostRow>;
   moviesById: Map<number, FeedFallbackMovieRow>;
   diaryEntriesById: Map<string, FeedDiaryEntryRow>;
   listsById: Map<string, FeedListRow>;
+  usersById: Map<string, FeedUserRow>;
 };
