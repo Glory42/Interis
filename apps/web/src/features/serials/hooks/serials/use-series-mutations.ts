@@ -1,21 +1,23 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, type QueryKey } from "@tanstack/react-query";
+import { authKeys } from "@/features/auth/hooks/useAuth";
 import {
   createSeriesLog,
-  deleteSerialLog,
-  updateSerialLog,
   updateSeriesInteraction,
   type CreateSeriesLogInput,
-  type SerialDiaryEntry,
   type SerialInteraction,
   type UpdateSerialInteractionInput,
-  type UpdateSerialLogInput,
 } from "@/features/serials/api";
 import {
   patchEpisodesInSeasonDetailCache,
   patchSeasonsInDetailViewCache,
   restoreQueries,
 } from "@/features/serials/hooks/serials-cache.helper";
-import { invalidateViewerCurrentlyWatching } from "@/features/profile/hooks/useProfile";
+import {
+  invalidateViewerCurrentlyWatching,
+  profileKeys,
+} from "@/features/profile/hooks/useProfile";
+import { profileStatsKeys } from "@/features/profile/hooks/useProfileStats";
+import type { MeProfile } from "@/types/api";
 import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
 import { serialKeys } from "./query-keys";
 
@@ -104,46 +106,39 @@ export const useUpdateSeriesInteraction = (tmdbId: number) => {
   });
 };
 
+// Editing and deleting a series log go through useOwnLogActions.
 export const useCreateSeriesLog = (tmdbId: number) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (input: CreateSeriesLogInput) => createSeriesLog(tmdbId, input),
+    // Logging marks the series and every episode watched, a rated log sets
+    // "Your rating", and the log lands in the viewer's diary, stats and
+    // the feed (#97).
     onSuccess: async () => {
+      const me = queryClient.getQueryData<MeProfile | null>(authKeys.me);
+      const keys: QueryKey[] = [
+        serialKeys.detailViewRoot(tmdbId),
+        serialKeys.detail(tmdbId),
+        serialKeys.interaction(tmdbId),
+        serialKeys.seasonDetailRoot(tmdbId),
+        serialKeys.logs(tmdbId),
+        serialKeys.myLogs,
+      ];
+      if (me?.username) {
+        keys.push(
+          profileKeys.detail(me.username),
+          profileKeys.diary(me.username),
+          profileKeys.recentActivity(me.username, 20),
+          profileStatsKeys.detail(me.username),
+        );
+      }
+
       await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: serialKeys.detailViewRoot(tmdbId),
-        }),
-        queryClient.invalidateQueries({ queryKey: serialKeys.detail(tmdbId) }),
-        // Logging marks the series watched and a rated log sets "Your rating".
-        queryClient.invalidateQueries({ queryKey: serialKeys.interaction(tmdbId) }),
+        ...keys.map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+        invalidateViewerCurrentlyWatching(queryClient),
+        invalidateFollowingFeed(queryClient),
       ]);
-    },
-  });
-};
-
-export const useUpdateSerialLog = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ entryId, input }: { entryId: string; input: UpdateSerialLogInput }) =>
-      updateSerialLog(entryId, input),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: serialKeys.myLogs });
-    },
-  });
-};
-
-export const useDeleteSerialLog = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (entryId: string) => deleteSerialLog(entryId),
-    onSuccess: (_data, entryId) => {
-      queryClient.invalidateQueries({ queryKey: serialKeys.myLogs });
-      queryClient.setQueryData<SerialDiaryEntry[]>(serialKeys.myLogs, (prev) =>
-        prev ? prev.filter((e) => e.id !== entryId) : prev,
-      );
     },
   });
 };
