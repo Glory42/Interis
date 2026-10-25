@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import { buildAuthCredentials } from "../../support/factories/auth.factory";
-import { createCookieJar, getSetCookies } from "../../support/app/cookie-jar";
+import { createCookieJar, getSetCookies, type CookieJar } from "../../support/app/cookie-jar";
 import {
   startTestServer,
   type RunningTestServer,
@@ -222,15 +222,36 @@ describe("auth account management", () => {
       expect(response.status).toBe(401);
     });
 
-    it("deletes the account, invalidating the session and freeing the username", async () => {
-      const { jar, username, email } = await signUpTestUser(getServer().baseUrl, "aacdelete");
-
-      const deleteResponse = await apiRequest(
+    const deleteAccount = (jar: CookieJar, body?: unknown) =>
+      apiRequest(
         getServer().baseUrl,
         "/api/auth/account",
-        { method: "DELETE" },
+        {
+          method: "DELETE",
+          headers: body === undefined ? {} : { "content-type": "application/json" },
+          body: body === undefined ? undefined : JSON.stringify(body),
+        },
         jar,
       );
+
+    // A session alone isn't enough to delete an account (#136).
+    it("keeps the account without the right current password", async () => {
+      const { jar } = await signUpTestUser(getServer().baseUrl, "aacdelpw");
+
+      expect((await deleteAccount(jar)).status).toBe(400);
+      expect((await deleteAccount(jar, { currentPassword: "wrong-password" })).status).toBe(401);
+
+      const stillThere = await apiRequest(getServer().baseUrl, "/api/users/me", {}, jar);
+      expect(stillThere.status).toBe(200);
+    });
+
+    it("deletes the account, invalidating the session and freeing the username", async () => {
+      const { jar, username, email, password } = await signUpTestUser(
+        getServer().baseUrl,
+        "aacdelete",
+      );
+
+      const deleteResponse = await deleteAccount(jar, { currentPassword: password });
       expect(deleteResponse.status).toBe(200);
 
       const afterDelete = await apiRequest(getServer().baseUrl, "/api/users/me", {}, jar);

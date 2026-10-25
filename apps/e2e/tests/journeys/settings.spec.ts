@@ -91,8 +91,8 @@ test("edits profile, theme, Top4 favorites, and manages blocked users from setti
   }
 });
 
-// #102: an account can be deleted from Settings > Auth, guarded by typing
-// the username, and is really gone afterwards.
+// #102, #136: an account can be deleted from Settings > Auth, guarded by the
+// current password, and is really gone afterwards.
 test("deletes the account from settings", async ({ page }) => {
   const user = buildTestUser("e2edel");
 
@@ -102,12 +102,18 @@ test("deletes the account from settings", async ({ page }) => {
       await page.goto("/settings/auth");
     });
 
-    await test.step("confirms by typing the username and lands home signed out", async () => {
+    await test.step("confirms with the password and lands home signed out", async () => {
       await page.getByRole("button", { name: "Delete account" }).click();
       const confirm = page.getByRole("button", { name: "Delete forever" });
       await expect(confirm).toBeDisabled();
 
-      await page.getByRole("textbox", { name: "Your username" }).fill(user.username);
+      await page.getByLabel("Password to delete your account").fill("not-my-password");
+      await confirm.click();
+      await expect(page.getByText("Current password is incorrect")).toBeVisible({
+        timeout: 10_000,
+      });
+
+      await page.getByLabel("Password to delete your account").fill(user.password);
       await confirm.click();
       await page.waitForURL("/", { timeout: 15_000 });
 

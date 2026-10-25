@@ -26,7 +26,8 @@ export const SettingsAuthSection = () => {
   });
 
   const [newEmail, setNewEmail] = useState(() => user?.email ?? "");
-  const [securityAnswer, setSecurityAnswer] = useState("");
+  const [emailPassword, setEmailPassword] = useState("");
+  const [showEmailPassword, setShowEmailPassword] = useState(false);
   const [authEmailError, setAuthEmailError] = useState<string | null>(null);
   const [authEmailSuccess, setAuthEmailSuccess] = useState<string | null>(null);
 
@@ -64,10 +65,10 @@ export const SettingsAuthSection = () => {
     try {
       await changeEmailMutation.mutateAsync({
         newEmail: normalizedEmail,
-        answer: securityAnswer,
+        currentPassword: emailPassword,
       });
       setNewEmail(normalizedEmail);
-      setSecurityAnswer("");
+      setEmailPassword("");
       setAuthEmailSuccess("Email updated.");
     } catch (error) {
       setAuthEmailError(
@@ -157,18 +158,25 @@ export const SettingsAuthSection = () => {
 
               <label
                 className="mb-2 mt-4 block text-xs font-medium settings-shell-muted"
-                htmlFor="settings-email-security-answer"
+                htmlFor="settings-email-current-password"
               >
-                Security question answer
+                Current password
               </label>
-              <input
-                id="settings-email-security-answer"
-                className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
-                type="text"
-                value={securityAnswer}
-                onChange={(event) => setSecurityAnswer(event.target.value)}
-                required
-              />
+              <div className="relative">
+                <input
+                  id="settings-email-current-password"
+                  className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+                  placeholder="••••••••"
+                  type={showEmailPassword ? "text" : "password"}
+                  value={emailPassword}
+                  onChange={(event) => setEmailPassword(event.target.value)}
+                  autoComplete="current-password"
+                  required
+                />
+                {renderPasswordToggle(showEmailPassword, () => {
+                  setShowEmailPassword((prev) => !prev);
+                }, "Toggle email current password visibility")}
+              </div>
             </div>
 
             {authEmailError ? (
@@ -320,7 +328,7 @@ export const SettingsAuthSection = () => {
         </div>
       </div>
 
-      <SettingsDeleteAccountCard username={user.username} />
+      <SettingsDeleteAccountCard />
     </div>
   );
 };

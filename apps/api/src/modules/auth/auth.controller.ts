@@ -11,6 +11,7 @@ import { AuthService } from "./auth.service";
 import {
   ChangeEmailSchema,
   ChangePasswordSchema,
+  DeleteAccountSchema,
   ForgotPasswordSchema,
   ResetPasswordSchema,
   SecurityQuestionSchema,
@@ -138,7 +139,7 @@ export class AuthController {
       const user = await AuthService.changeEmail(
         req.user.id,
         parsed.data.newEmail,
-        parsed.data.answer,
+        parsed.data.currentPassword,
       );
       res.status(200).json({ user });
     } catch (error) {
@@ -150,7 +151,18 @@ export class AuthController {
   // account and everything FK-cascaded from it (diary, reviews, follows,
   // lists, etc.), then clears their session.
   static async deleteAccount(req: Request, res: Response): Promise<void> {
-    await AuthService.deleteAccount(req.user.id);
+    const parsed = DeleteAccountSchema.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    try {
+      await AuthService.deleteAccount(req.user.id, parsed.data.currentPassword);
+    } catch (error) {
+      handleAuthError(res, error);
+      return;
+    }
     clearAuthCookies(res);
     res.status(200).json({ success: true });
   }
@@ -163,8 +175,12 @@ export class AuthController {
       return;
     }
 
-    await AuthService.setSecurityQuestion(req.user.id, parsed.data.question, parsed.data.answer);
-    res.status(200).json({ success: true });
+    try {
+      await AuthService.setSecurityQuestion(req.user.id, parsed.data);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      handleAuthError(res, error);
+    }
   }
 
   // POST /api/auth/forgot-password — looks up the account's security

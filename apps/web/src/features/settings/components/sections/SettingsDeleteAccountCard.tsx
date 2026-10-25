@@ -6,16 +6,12 @@ import { deleteCurrentUserAccount } from "@/features/auth/api";
 import { authKeys } from "@/features/auth/hooks/useAuth";
 import { isApiError } from "@/lib/api-client";
 
-type SettingsDeleteAccountCardProps = {
-  username: string;
-};
-
-// Typing the username guards the one action here that can't be undone (#102).
-export const SettingsDeleteAccountCard = ({ username }: SettingsDeleteAccountCardProps) => {
+// The server checks the current password before deleting anything (#136).
+export const SettingsDeleteAccountCard = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [isConfirming, setIsConfirming] = useState(false);
-  const [typedUsername, setTypedUsername] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
 
   const deleteMutation = useMutation({
     mutationFn: deleteCurrentUserAccount,
@@ -29,7 +25,7 @@ export const SettingsDeleteAccountCard = ({ username }: SettingsDeleteAccountCar
 
   const closeDialog = () => {
     setIsConfirming(false);
-    setTypedUsername("");
+    setCurrentPassword("");
     deleteMutation.reset();
   };
 
@@ -55,13 +51,13 @@ export const SettingsDeleteAccountCard = ({ username }: SettingsDeleteAccountCar
         isOpen={isConfirming}
         variant="panel"
         title="Delete account"
-        description={`Type your username, ${username}, to confirm.`}
+        description="Enter your current password to confirm."
         confirmLabel="Delete forever"
         loadingLabel="Deleting"
         isDestructive
         isConfirming={deleteMutation.isPending}
-        isConfirmDisabled={typedUsername.trim() !== username}
-        onConfirm={() => deleteMutation.mutate()}
+        isConfirmDisabled={currentPassword.length === 0}
+        onConfirm={() => deleteMutation.mutate(currentPassword)}
         onClose={closeDialog}
         error={
           deleteMutation.isError
@@ -72,11 +68,12 @@ export const SettingsDeleteAccountCard = ({ username }: SettingsDeleteAccountCar
         }
       >
         <input
-          aria-label="Your username"
+          type="password"
+          aria-label="Password to delete your account"
           className="w-full rounded-lg border border-border/70 bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-destructive/60"
-          value={typedUsername}
-          onChange={(event) => setTypedUsername(event.target.value)}
-          autoComplete="off"
+          value={currentPassword}
+          onChange={(event) => setCurrentPassword(event.target.value)}
+          autoComplete="current-password"
         />
       </ConfirmDialog>
     </div>

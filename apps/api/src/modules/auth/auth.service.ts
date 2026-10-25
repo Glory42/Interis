@@ -134,13 +134,38 @@ export class AuthService {
     await SessionService.revokeSessionByRefreshToken(refreshToken);
   }
 
+  // Password reset relies on the question, so replacing one takes the
+  // current password. The first one, set right after sign-up, doesn't (#136).
   static async setSecurityQuestion(
     userId: string,
-    question: string,
-    answer: string,
+    input: { question: string; answer: string; currentPassword?: string },
   ): Promise<void> {
-    const answerHash = await PasswordService.hash(normalizeSecurityAnswer(answer));
-    await SecurityAnswersRepository.upsert(userId, question, answerHash);
+    const existing = await SecurityAnswersRepository.findByUserId(userId);
+    if (existing) {
+      await AuthService.assertCurrentPassword(userId, input.currentPassword);
+    }
+
+    const answerHash = await PasswordService.hash(normalizeSecurityAnswer(input.answer));
+    await SecurityAnswersRepository.upsert(userId, input.question, answerHash);
+  }
+
+  // Guards account changes a stolen session must not be able to make (#136).
+  private static async assertCurrentPassword(
+    userId: string,
+    currentPassword: string | undefined,
+  ) {
+    const credential = await AuthCredentialsRepository.findPasswordCredential(userId);
+    if (!credential || !credential.passwordHash) {
+      throw new UnauthorizedError("No password set for this account");
+    }
+
+    const check = currentPassword
+      ? await PasswordService.verify(currentPassword, credential.passwordHash)
+      : { matches: false };
+    if (!check.matches) {
+      throw new UnauthorizedError("Current password is incorrect");
+    }
+    return credential;
   }
 
   // Public lookup for the forgot-password flow — necessarily reveals whether
@@ -220,18 +245,7 @@ export class AuthService {
     currentSessionId: string,
     input: ChangePasswordInput,
   ): Promise<void> {
-    const credential = await AuthCredentialsRepository.findPasswordCredential(userId);
-    if (!credential || !credential.passwordHash) {
-      throw new UnauthorizedError("No password set for this account");
-    }
-
-    const currentPasswordCheck = await PasswordService.verify(
-      input.currentPassword,
-      credential.passwordHash,
-    );
-    if (!currentPasswordCheck.matches) {
-      throw new UnauthorizedError("Current password is incorrect");
-    }
+    const credential = await AuthService.assertCurrentPassword(userId, input.currentPassword);
 
     if (!isPasswordValid(input.newPassword)) {
       throw new BadRequestError("Invalid password");
@@ -269,7 +283,8 @@ export class AuthService {
     return toAuthUser(updated);
   }
 
-  static async deleteAccount(userId: string): Promise<void> {
+  static async deleteAccount(userId: string, currentPassword: string): Promise<void> {
+    await AuthService.assertCurrentPassword(userId, currentPassword);
     // Other users' "followed" rows about this account don't cascade.
     await ActivityRecorder.retractAllAbout("followed_user", userId);
     await SessionService.revokeAllSessionsForUser(userId);
@@ -280,28 +295,9 @@ export class AuthService {
   static async changeEmail(
     userId: string,
     newEmail: string,
-    answer: string,
+    currentPassword: string,
   ): Promise<AuthUser> {
-    const securityAnswer = await SecurityAnswersRepository.findByUserId(userId);
-    if (!securityAnswer) {
-      throw new BadRequestError("Set up a security question before changing your email");
-    }
-
-    const answerCheck = await PasswordService.verify(
-      normalizeSecurityAnswer(answer),
-      securityAnswer.answerHash,
-    );
-    if (!answerCheck.matches) {
-      throw new UnauthorizedError("Incorrect answer");
-    }
-
-    if (answerCheck.upgradedHash) {
-      await SecurityAnswersRepository.upsert(
-        userId,
-        securityAnswer.question,
-        answerCheck.upgradedHash,
-      );
-    }
+    await AuthService.assertCurrentPassword(userId, currentPassword);
 
     const existing = await AuthUsersRepository.findByEmail(newEmail);
     if (existing && existing.id !== userId) {

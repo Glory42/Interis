@@ -6,6 +6,9 @@ export type TestUser = {
   password: string;
 };
 
+// Every test account signs up with this password.
+export const E2E_TEST_PASSWORD = "password1234";
+
 export const buildTestUser = (prefix: string): TestUser => {
   const seed = `${Date.now()}${Math.floor(Math.random() * 10_000)}`.slice(-10);
   const username = `${prefix}${seed}`.toLowerCase().slice(0, 20);
@@ -13,7 +16,7 @@ export const buildTestUser = (prefix: string): TestUser => {
   return {
     username,
     email: `${username}@example.com`,
-    password: "password1234",
+    password: E2E_TEST_PASSWORD,
   };
 };
 
@@ -43,7 +46,11 @@ export const registerUser = async (page: Page, user: TestUser): Promise<void> =>
 
 // Call at the end of every journey that registers a test account, or e2e
 // runs permanently inflate TOTAL_USERS. page.request rides the same
-// session cookies as the browser context.
-export const deleteTestUser = async (page: Page): Promise<void> => {
-  await page.request.delete("/api/auth/account");
+// session cookies as the browser context. Deleting an account needs its
+// current password (#136); pass it if the journey changed it.
+export const deleteTestUser = async (
+  page: Page,
+  password: string = E2E_TEST_PASSWORD,
+): Promise<void> => {
+  await page.request.delete("/api/auth/account", { data: { currentPassword: password } });
 };
