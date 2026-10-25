@@ -1,6 +1,6 @@
 // A series' stored watch status (serial_interaction.watch_status). `null`
 // means "no status": nothing watched yet, or every episode unchecked.
-// `completed` replaces the old is_watched flag as the single "watched" truth.
+// `completed` is the single "watched" truth (the old is_watched column is gone, #105).
 export const SERIAL_WATCH_STATUSES = ["watching", "paused", "dropped", "completed"] as const;
 
 export type SerialWatchStatus = (typeof SERIAL_WATCH_STATUSES)[number];

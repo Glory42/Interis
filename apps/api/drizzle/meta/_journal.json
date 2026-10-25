@@ -414,6 +414,13 @@
       "when": 1792927591162,
       "tag": "0058_puzzling_rocket_raccoon",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1792953622098,
+      "tag": "0059_drop_serial_is_watched",
+      "breakpoints": true
     }
   ]
 }

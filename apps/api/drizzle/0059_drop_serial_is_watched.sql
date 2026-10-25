@@ -1,0 +1,1 @@
+ALTER TABLE "serial_interaction" DROP COLUMN "is_watched";

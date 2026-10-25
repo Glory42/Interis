@@ -87,9 +87,6 @@ export const serialInteractions = pgTable(
       .references(() => tvSeries.id, { onDelete: "cascade" }),
     liked: boolean("liked").default(false).notNull(),
     watchlisted: boolean("watchlisted").default(false).notNull(),
-    // Legacy: superseded by watchStatus and no longer read for series. Still
-    // written by the shared movie/series interaction adapter until dropped.
-    isWatched: boolean("is_watched").default(false).notNull(),
     watchStatus: serialWatchStatusEnum("watch_status"),
     rating: real("rating"),
     updatedAt: timestamp("updated_at")
