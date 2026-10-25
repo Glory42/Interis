@@ -245,6 +245,7 @@ export class SerialsActivityService {
     await Promise.all([
       SerialsWatchStatusService.setStatus(userId, series.id, "completed"),
       SerialsActivityService.cascadeSeasonsWatched(userId, series, seasonEpisodeNumbers),
+      rating !== null ? SerialsActivityService.syncRatingFromLog(userId, series.id, entry.id) : null,
     ]);
 
     return { entry, series, review };
@@ -260,8 +261,22 @@ export class SerialsActivityService {
       rating: input.rating,
       rewatch: input.rewatch,
     });
-    if (updated) ActivityRecorder.invalidateFeeds(userId);
+    if (!updated) return null;
+
+    ActivityRecorder.invalidateFeeds(userId);
+    if (updated.rating !== null && (input.rating !== undefined || input.watchedDate !== undefined)) {
+      await SerialsActivityService.syncRatingFromLog(userId, updated.seriesId, updated.id);
+    }
     return updated;
+  }
+
+  // "Your rating" follows the latest rated log (#91). A log only sets it
+  // when it is that log, so logging or editing an older watch leaves it.
+  private static async syncRatingFromLog(userId: string, seriesId: number, entryId: string) {
+    const latest = await SerialsInteractionsRepository.findLatestRatedLog(userId, seriesId);
+    if (latest?.id === entryId && latest.rating !== null) {
+      await SerialsInteractionsRepository.setRating(userId, seriesId, latest.rating);
+    }
   }
 
   // `unwatch` also unmarks the series and every episode, but only once no

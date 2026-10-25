@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authKeys } from "@/features/auth/hooks/useAuth";
 import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
 import { createDiaryEntry, getMyMovieLogs } from "@/features/diary/api";
+import { interactionKeys } from "@/features/interactions/hooks/useInteractions";
 import { movieKeys } from "@/features/movies/hooks/useMovies";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import type { CreateDiaryEntryInput, MeProfile, MovieLog } from "@/types/api";
@@ -74,6 +75,8 @@ export const useCreateDiaryEntry = () => {
         queryClient.invalidateQueries({
           queryKey: movieKeys.detailViewRoot(variables.tmdbId),
         }),
+        // Logging marks the movie watched and a rated log sets "Your rating".
+        queryClient.invalidateQueries({ queryKey: interactionKeys.detail(variables.tmdbId) }),
         invalidateFollowingFeed(queryClient),
       ];
 

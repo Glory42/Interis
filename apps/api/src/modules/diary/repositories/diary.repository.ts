@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNotNull } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
@@ -113,6 +113,24 @@ export class DiaryRepository {
       .returning();
 
     return updated ?? null;
+  }
+
+  // The log "Your rating" follows: the most recently watched one with a
+  // rating, the later-created on a tie (#91).
+  static async findLatestRatedLog(userId: string, movieId: number) {
+    const [row] = await db
+      .select({ id: diaryEntries.id, rating: diaryEntries.rating })
+      .from(diaryEntries)
+      .where(
+        and(
+          eq(diaryEntries.userId, userId),
+          eq(diaryEntries.movieId, movieId),
+          isNotNull(diaryEntries.rating),
+        ),
+      )
+      .orderBy(desc(diaryEntries.watchedDate), desc(diaryEntries.createdAt))
+      .limit(1);
+    return row ?? null;
   }
 
   static async existsByUserAndMovie(userId: string, movieId: number): Promise<boolean> {

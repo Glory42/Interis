@@ -115,6 +115,8 @@ export const useCreateSeriesLog = (tmdbId: number) => {
           queryKey: serialKeys.detailViewRoot(tmdbId),
         }),
         queryClient.invalidateQueries({ queryKey: serialKeys.detail(tmdbId) }),
+        // Logging marks the series watched and a rated log sets "Your rating".
+        queryClient.invalidateQueries({ queryKey: serialKeys.interaction(tmdbId) }),
       ]);
     },
   });
