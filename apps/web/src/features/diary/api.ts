@@ -48,6 +48,14 @@ export const updateDiaryEntry = async (
   });
 };
 
-export const deleteDiaryEntry = async (entryId: string): Promise<void> => {
-  await apiRequest<unknown>(`/api/diary/${encodeURIComponent(entryId)}`, { method: "DELETE" });
+// `unwatch` also marks the movie not watched when this is the user's last
+// log of it; the server leaves it watched while another log remains.
+export const deleteDiaryEntry = async (
+  entryId: string,
+  options: { unwatch?: boolean } = {},
+): Promise<void> => {
+  const query = options.unwatch ? "?unwatch=true" : "";
+  await apiRequest<unknown>(`/api/diary/${encodeURIComponent(entryId)}${query}`, {
+    method: "DELETE",
+  });
 };

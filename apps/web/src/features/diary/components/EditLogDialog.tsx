@@ -40,6 +40,7 @@ const EditLogDialogContent = ({ onClose, log }: Omit<EditLogDialogProps, "isOpen
   const [rating, setRating] = useState(log.rating);
   const [rewatch, setRewatch] = useState(log.rewatch);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [unwatch, setUnwatch] = useState(false);
   const updateMutation = useUpdateOwnLog();
   const deleteMutation = useDeleteOwnLog();
 
@@ -59,7 +60,7 @@ const EditLogDialogContent = ({ onClose, log }: Omit<EditLogDialogProps, "isOpen
 
   const handleDelete = () =>
     runDialogSubmit(async () => {
-      await deleteMutation.mutateAsync(log);
+      await deleteMutation.mutateAsync({ log, unwatch });
       onClose();
     });
 
@@ -150,6 +151,22 @@ const EditLogDialogContent = ({ onClose, log }: Omit<EditLogDialogProps, "isOpen
         }}
         onClose={() => setIsConfirmingDelete(false)}
       >
+        {log.mediaType === "movie" ? (
+          <label className="mt-3 flex cursor-pointer items-start gap-2.5">
+            <input
+              type="checkbox"
+              checked={unwatch}
+              onChange={(event) => setUnwatch(event.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 border-border bg-input accent-primary"
+            />
+            <span className="text-sm text-foreground">
+              Also mark as not watched
+              <span className="block text-xs text-muted-foreground">
+                Only if this is your last log of it. Your like and rating stay.
+              </span>
+            </span>
+          </label>
+        ) : null}
         {deleteMutation.isError ? (
           <p className="mt-2 text-xs text-destructive">
             {errorMessage(deleteMutation.error, "Could not delete log.")}

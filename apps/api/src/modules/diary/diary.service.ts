@@ -1,4 +1,4 @@
-import type { CreateDiaryDto, UpdateDiaryDto } from "./dto/diary.dto";
+import type { CreateDiaryDto, DeleteDiaryQueryDto, UpdateDiaryDto } from "./dto/diary.dto";
 import { DiaryRepository } from "./repositories/diary.repository";
 import { DiaryWriteService } from "./services/diary-write.service";
 
@@ -19,8 +19,8 @@ export class DiaryService {
     return DiaryWriteService.update(entryId, userId, input);
   }
 
-  static async delete(entryId: string, userId: string) {
-    return DiaryWriteService.delete(entryId, userId);
+  static async delete(entryId: string, userId: string, options?: DeleteDiaryQueryDto) {
+    return DiaryWriteService.delete(entryId, userId, options);
   }
 
   static async deleteById(entryId: string) {

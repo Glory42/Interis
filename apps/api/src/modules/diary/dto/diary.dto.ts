@@ -34,6 +34,13 @@ export const DiaryQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).optional(),
 });
 
+// DELETE /api/diary/:id?unwatch=true also marks the movie not watched when
+// this was the user's last log of it (#86).
+export const DeleteDiaryQuerySchema = z.object({
+  unwatch: z.stringbool().optional(),
+});
+
 export type CreateDiaryDto = z.infer<typeof CreateDiarySchema>;
 export type UpdateDiaryDto = z.infer<typeof UpdateDiarySchema>;
+export type DeleteDiaryQueryDto = z.infer<typeof DeleteDiaryQuerySchema>;
 export type DiaryQueryDto = z.infer<typeof DiaryQuerySchema>;
