@@ -11,6 +11,8 @@ const SERIAL_COMMUNITY_RATING_SOURCE: CommunityRatingAggregateSource = {
   diaryEntityIdColumn: serialDiaryEntries.seriesId,
   diaryRatingColumn: serialDiaryEntries.rating,
   diaryUserIdColumn: serialDiaryEntries.userId,
+  diaryWatchedDateColumn: serialDiaryEntries.watchedDate,
+  diaryCreatedAtColumn: serialDiaryEntries.createdAt,
   interactionTableName: "serial_interaction",
   interactionEntityIdColumn: serialInteractions.seriesId,
   interactionRatingColumn: serialInteractions.rating,

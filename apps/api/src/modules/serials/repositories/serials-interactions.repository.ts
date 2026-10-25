@@ -30,7 +30,7 @@ export class SerialsInteractionsRepository {
       .limit(1);
   }
 
-  // See mergeCommunityRatings for the diary-vs-interaction precedence rule.
+  // See mergeCommunityRatings for the one-rating-per-user rule.
   static async getCommunityRatingsBySeriesId(seriesId: number): Promise<{ rating: number }[]> {
     const [diaryRatingRows, interactionRatingRows] = await Promise.all([
       db
@@ -38,7 +38,8 @@ export class SerialsInteractionsRepository {
         .from(serialDiaryEntries)
         .where(
           and(eq(serialDiaryEntries.seriesId, seriesId), isNotNull(serialDiaryEntries.rating)),
-        ),
+        )
+        .orderBy(desc(serialDiaryEntries.watchedDate), desc(serialDiaryEntries.createdAt)),
       db
         .select({ userId: serialInteractions.userId, rating: serialInteractions.rating })
         .from(serialInteractions)
