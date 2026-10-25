@@ -18,12 +18,13 @@ export class SocialFeedRepository {
       return [];
     }
 
-    const whereClause =
+    // Movie and series reviews keep their log id in separate columns.
+    const whereClause = (logColumn: typeof reviews.diaryEntryId | typeof reviews.serialDiaryEntryId) =>
       reviewIds.length > 0 && diaryEntryIds.length > 0
-        ? or(inArray(reviews.id, reviewIds), inArray(reviews.diaryEntryId, diaryEntryIds))
+        ? or(inArray(reviews.id, reviewIds), inArray(logColumn, diaryEntryIds))
         : reviewIds.length > 0
           ? inArray(reviews.id, reviewIds)
-          : inArray(reviews.diaryEntryId, diaryEntryIds);
+          : inArray(logColumn, diaryEntryIds);
 
     const [movieRows, tvReviewRows, seasonEpisodeTvRows] = await Promise.all([
       db
@@ -43,11 +44,11 @@ export class SocialFeedRepository {
         .innerJoin(user, eq(reviews.userId, user.id))
         .innerJoin(movies, eq(reviews.movieId, movies.id))
         .leftJoin(diaryEntries, eq(reviews.diaryEntryId, diaryEntries.id))
-        .where(and(eq(reviews.mediaType, "movie"), whereClause)),
+        .where(and(eq(reviews.mediaType, "movie"), whereClause(reviews.diaryEntryId))),
       db
         .select({
           id: reviews.id,
-          diaryEntryId: reviews.diaryEntryId,
+          diaryEntryId: reviews.serialDiaryEntryId,
           reviewAuthorUsername: user.username,
           content: reviews.content,
           containsSpoilers: reviews.containsSpoilers,
@@ -56,8 +57,8 @@ export class SocialFeedRepository {
         })
         .from(reviews)
         .innerJoin(user, eq(reviews.userId, user.id))
-        .leftJoin(serialDiaryEntries, eq(reviews.diaryEntryId, serialDiaryEntries.id))
-        .where(and(eq(reviews.mediaType, "tv"), whereClause)),
+        .leftJoin(serialDiaryEntries, eq(reviews.serialDiaryEntryId, serialDiaryEntries.id))
+        .where(and(eq(reviews.mediaType, "tv"), whereClause(reviews.serialDiaryEntryId))),
       // Season/episode reviews are only ever looked up by review id (they're
       // never linked to a diary entry, so diaryEntryIds can't match them).
       SocialFeedSerialReviewRepository.getSeasonEpisodeReviewRows(reviewIds),

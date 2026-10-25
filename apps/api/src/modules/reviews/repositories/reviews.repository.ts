@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
@@ -71,6 +71,8 @@ export class ReviewsRepository {
   // (SerialsSeasonEpisodeReviewsRepository) all go through here.
   // `mediaSourceId` is pre-composed by the caller (a bare tmdbId for
   // movie/tv, a `tmdb:season[:episode]` key for the nested serial levels).
+  // `diaryEntryId` is the log the review was written with: a movie log for
+  // movie reviews, a series log otherwise, each stored in its own column.
   static async insertReviewRow(input: {
     userId: string;
     mediaType: ReviewRowMediaType;
@@ -89,7 +91,8 @@ export class ReviewsRepository {
         mediaSource: input.mediaSource ?? "tmdb",
         mediaSourceId: input.mediaSourceId,
         movieId: input.movieId ?? null,
-        diaryEntryId: input.diaryEntryId ?? null,
+        diaryEntryId: input.mediaType === "movie" ? (input.diaryEntryId ?? null) : null,
+        serialDiaryEntryId: input.mediaType === "movie" ? null : (input.diaryEntryId ?? null),
         content: input.content,
         containsSpoilers: input.containsSpoilers,
       })
@@ -125,9 +128,35 @@ export class ReviewsRepository {
     const [row] = await db
       .select({ id: reviews.id })
       .from(reviews)
-      .where(eq(reviews.diaryEntryId, diaryEntryId))
+      .where(or(eq(reviews.diaryEntryId, diaryEntryId), eq(reviews.serialDiaryEntryId, diaryEntryId)))
       .limit(1);
     return Boolean(row);
+  }
+
+  // The TMDB id of the title a user's own log is for, or null when the log
+  // doesn't exist or belongs to someone else.
+  static async findOwnLogTmdbId(
+    userId: string,
+    mediaType: MediaType,
+    diaryEntryId: string,
+  ): Promise<number | null> {
+    const [row] =
+      mediaType === "movie"
+        ? await db
+            .select({ tmdbId: movies.tmdbId })
+            .from(diaryEntries)
+            .innerJoin(movies, eq(movies.id, diaryEntries.movieId))
+            .where(and(eq(diaryEntries.id, diaryEntryId), eq(diaryEntries.userId, userId)))
+            .limit(1)
+        : await db
+            .select({ tmdbId: tvSeries.tmdbId })
+            .from(serialDiaryEntries)
+            .innerJoin(tvSeries, eq(tvSeries.id, serialDiaryEntries.seriesId))
+            .where(
+              and(eq(serialDiaryEntries.id, diaryEntryId), eq(serialDiaryEntries.userId, userId)),
+            )
+            .limit(1);
+    return row?.tmdbId ?? null;
   }
 
   // One user's reviews of one title, newest first, each with the rating and
@@ -143,7 +172,9 @@ export class ReviewsRepository {
         id: reviews.id,
         content: reviews.content,
         containsSpoilers: reviews.containsSpoilers,
-        diaryEntryId: reviews.diaryEntryId,
+        diaryEntryId: sql<
+          string | null
+        >`coalesce(${reviews.diaryEntryId}, ${reviews.serialDiaryEntryId})`,
         createdAt: reviews.createdAt,
         updatedAt: reviews.updatedAt,
         rating: sql<number | null>`coalesce(${diaryEntries.rating}, ${serialDiaryEntries.rating})`,
@@ -158,7 +189,7 @@ export class ReviewsRepository {
       )
       .leftJoin(
         serialDiaryEntries,
-        and(eq(reviews.mediaType, "tv"), eq(serialDiaryEntries.id, reviews.diaryEntryId)),
+        and(eq(reviews.mediaType, "tv"), eq(serialDiaryEntries.id, reviews.serialDiaryEntryId)),
       )
       .where(
         and(
