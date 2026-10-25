@@ -16,6 +16,7 @@ import { PasswordService } from "./services/password.service";
 import { SessionService } from "./services/session.service";
 import { isPasswordValid } from "./policies/password.policy";
 import { toAuthUser } from "./helpers/auth-user-mapper.helper";
+import { UploadsService } from "../uploads/uploads.service";
 import type { AuthUser, IssuedSession, SessionDeviceInfo } from "./types/auth.types";
 
 export type SignupInput = { username: string; email: string; password: string };
@@ -270,6 +271,7 @@ export class AuthService {
   static async deleteAccount(userId: string): Promise<void> {
     await SessionService.revokeAllSessionsForUser(userId);
     await AuthUsersRepository.deleteById(userId);
+    await UploadsService.deleteAllForUser(userId);
   }
 
   static async changeEmail(

@@ -2,6 +2,8 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  DeleteObjectsCommand,
+  ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { randomUUID } from "node:crypto";
@@ -108,11 +110,13 @@ const getPublicBaseUrl = (config: R2Config): URL => {
   return new URL(trimTrailingSlash(config.publicUrl));
 };
 
-export const isOwnedUploadPublicUrl = (
+// The object key behind one of the user's own upload URLs, or null when the
+// URL isn't one (another user's, another host, or not an upload at all).
+export const ownedUploadKeyFromPublicUrl = (
   userId: string,
   uploadType: UploadType,
   publicUrl: string,
-): boolean => {
+): string | null => {
   const config = getConfig();
 
   try {
@@ -120,7 +124,7 @@ export const isOwnedUploadPublicUrl = (
     const configuredBase = getPublicBaseUrl(config);
 
     if (uploadedUrl.origin !== configuredBase.origin) {
-      return false;
+      return null;
     }
 
     const basePath = trimTrailingSlash(configuredBase.pathname);
@@ -128,14 +132,20 @@ export const isOwnedUploadPublicUrl = (
     const uploadPathPrefix = `${basePath}/${getUploadPathPrefix(uploadType, userId)}`;
     const legacyPathPrefix = `${basePath}/${uploadType}s/${userId}.`;
 
-    return (
+    const owned =
       normalizedPath.startsWith(`${uploadPathPrefix}/`) ||
-      normalizedPath.startsWith(legacyPathPrefix)
-    );
+      normalizedPath.startsWith(legacyPathPrefix);
+    return owned ? normalizedPath.slice(basePath.length + 1) : null;
   } catch {
-    return false;
+    return null;
   }
 };
+
+export const isOwnedUploadPublicUrl = (
+  userId: string,
+  uploadType: UploadType,
+  publicUrl: string,
+): boolean => ownedUploadKeyFromPublicUrl(userId, uploadType, publicUrl) !== null;
 
 export const generateUploadUrl = async (
   userId: string,
@@ -173,4 +183,40 @@ export const deleteObject = async (key: string) => {
   await client.send(
     new DeleteObjectCommand({ Bucket: config.bucket, Key: key }),
   );
+};
+
+// Every object a user uploaded of one type, confirmed or not, including the
+// legacy flat `avatars/<userId>.<ext>` key. The listing prefix has no
+// separator, so keys of a user whose id merely starts with this one are
+// filtered back out.
+export const deleteAllUserUploads = async (userId: string, uploadType: UploadType) => {
+  const config = getConfig();
+  const client = getClient(config);
+  const prefix = getUploadPathPrefix(uploadType, userId);
+
+  let continuationToken: string | undefined;
+  do {
+    const page = await client.send(
+      new ListObjectsV2Command({
+        Bucket: config.bucket,
+        Prefix: prefix,
+        ContinuationToken: continuationToken,
+      }),
+    );
+    const keys = (page.Contents ?? [])
+      .map((object) => object.Key)
+      .filter(
+        (key): key is string =>
+          key !== undefined && (key.startsWith(`${prefix}/`) || key.startsWith(`${prefix}.`)),
+      );
+    if (keys.length > 0) {
+      await client.send(
+        new DeleteObjectsCommand({
+          Bucket: config.bucket,
+          Delete: { Objects: keys.map((key) => ({ Key: key })), Quiet: true },
+        }),
+      );
+    }
+    continuationToken = page.IsTruncated ? page.NextContinuationToken : undefined;
+  } while (continuationToken);
 };
