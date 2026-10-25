@@ -9,6 +9,7 @@ import { LogMovieModal } from "@/features/diary/components/LogMovieModal";
 import { MovieDetailsMainSection } from "@/features/movies/components/movie-detail/MovieDetailsMainSection";
 import { MediaDetailStatusPanel } from "@/features/media/detail/MediaDetailStatusPanel";
 import { MovieReviewsSection } from "@/features/movies/components/movie-detail/MovieReviewsSection";
+import { UnwatchMovieDialog } from "@/features/movies/components/movie-detail/UnwatchMovieDialog";
 import { MOVIE_MODULE_STYLES } from "@/features/media/styles";
 import { getBackdropUrl, getPosterUrl } from "@/features/movies/components/utils";
 import { movieKeys, useMovieDetailView } from "@/features/movies/hooks/useMovies";
@@ -31,6 +32,7 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
   const isValidTmdbId = Number.isInteger(tmdbId) && tmdbId > 0;
   const [reviewsSort, setReviewsSort] =
     useState<MovieDetailReviewSort>("popular");
+  const [isConfirmingUnwatch, setIsConfirmingUnwatch] = useState(false);
 
   const detailQuery = useMovieDetailView(tmdbId, reviewsSort, isValidTmdbId);
 
@@ -90,8 +92,21 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
     void updateInteractionMutation.mutateAsync({ liked: !liked });
   };
 
+  // A liked or rated movie asks first whether the like and rating go too,
+  // so it isn't left "liked, rated, not watched" by accident (#93).
   const handleToggleWatched = () => {
+    if (watched && (liked || interactionRating !== null)) {
+      setIsConfirmingUnwatch(true);
+      return;
+    }
     void updateInteractionMutation.mutateAsync({ watched: !watched });
+  };
+
+  const handleConfirmUnwatch = (clearLikeAndRating: boolean) => {
+    setIsConfirmingUnwatch(false);
+    void updateInteractionMutation.mutateAsync(
+      clearLikeAndRating ? { watched: false, liked: false, rating: null } : { watched: false },
+    );
   };
 
   const handleRatingChange = (nextRating: number | null) => {
@@ -221,6 +236,13 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
         </div>
 
         <MediaReviewChooser chooser={reviewChooser} onReviewEdited={handleReviewEdited} />
+
+        {isConfirmingUnwatch ? (
+          <UnwatchMovieDialog
+            onConfirm={handleConfirmUnwatch}
+            onClose={() => setIsConfirmingUnwatch(false)}
+          />
+        ) : null}
 
         <MovieReviewsSection
           key={reviewsSort}
