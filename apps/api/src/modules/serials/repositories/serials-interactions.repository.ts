@@ -270,6 +270,24 @@ export class SerialsInteractionsRepository {
     return updated ?? null;
   }
 
+  // The log "Your rating" follows: the most recently watched one with a
+  // rating, the later-created on a tie (#91).
+  static async findLatestRatedLog(userId: string, seriesId: number) {
+    const [row] = await db
+      .select({ id: serialDiaryEntries.id, rating: serialDiaryEntries.rating })
+      .from(serialDiaryEntries)
+      .where(
+        and(
+          eq(serialDiaryEntries.userId, userId),
+          eq(serialDiaryEntries.seriesId, seriesId),
+          isNotNull(serialDiaryEntries.rating),
+        ),
+      )
+      .orderBy(desc(serialDiaryEntries.watchedDate), desc(serialDiaryEntries.createdAt))
+      .limit(1);
+    return row ?? null;
+  }
+
   static async deleteDiaryEntry(entryId: string, userId: string) {
     const [deleted] = await db
       .delete(serialDiaryEntries)

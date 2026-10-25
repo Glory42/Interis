@@ -50,7 +50,10 @@ export class DiaryWriteService {
       });
     }
 
-    await InteractionsService.setWatched(userId, movie.id);
+    await Promise.all([
+      InteractionsService.setWatched(userId, movie.id),
+      rating !== null ? DiaryWriteService.syncRatingFromLog(userId, movie.id, entry.id) : null,
+    ]);
 
     ActivityRecorder.recordMedia({
       userId,
@@ -76,8 +79,22 @@ export class DiaryWriteService {
       rating: input.rating,
       rewatch: input.rewatch,
     });
-    if (updated) ActivityRecorder.invalidateFeeds(userId);
+    if (!updated) return null;
+
+    ActivityRecorder.invalidateFeeds(userId);
+    if (updated.rating !== null && (input.rating !== undefined || input.watchedDate !== undefined)) {
+      await DiaryWriteService.syncRatingFromLog(userId, updated.movieId, updated.id);
+    }
     return updated;
+  }
+
+  // "Your rating" follows the latest rated log (#91). A log only sets it
+  // when it is that log, so logging or editing an older watch leaves it.
+  private static async syncRatingFromLog(userId: string, movieId: number, entryId: string) {
+    const latest = await DiaryRepository.findLatestRatedLog(userId, movieId);
+    if (latest?.id === entryId && latest.rating !== null) {
+      await InteractionsService.setRating(userId, movieId, latest.rating);
+    }
   }
 
   // Deleting a log keeps the movie watched, as Letterboxd does, unless the
