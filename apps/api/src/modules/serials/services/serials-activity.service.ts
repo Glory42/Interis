@@ -1,5 +1,6 @@
 import type {
   CreateSerialLogDto,
+  DeleteSerialLogQueryDto,
   UpdateSerialInteractionDto,
   UpdateSerialLogDto,
 } from "../dto/serials.dto";
@@ -263,12 +264,33 @@ export class SerialsActivityService {
     return updated;
   }
 
-  static async deleteLog(entryId: string, userId: string) {
+  // `unwatch` also unmarks the series and every episode, but only once no
+  // log of it is left: another log still says it was watched (#88).
+  static async deleteLog(entryId: string, userId: string, options: DeleteSerialLogQueryDto = {}) {
     const deleted = await SerialsInteractionsRepository.deleteDiaryEntry(entryId, userId);
-    if (deleted) {
-      await ActivityRecorder.retract({ userId, type: "diary_entry", entityId: deleted.id });
-    }
-    return deleted;
+    if (!deleted) return null;
+
+    const unwatch =
+      options.unwatch === true &&
+      !(await SerialsInteractionsRepository.hasLogOfSeries(userId, deleted.seriesId));
+    await Promise.all([
+      ActivityRecorder.retract({ userId, type: "diary_entry", entityId: deleted.id }),
+      unwatch ? SerialsActivityService.unwatchSeries(userId, deleted.seriesId) : null,
+    ]);
+    return { ...deleted, unwatched: unwatch };
+  }
+
+  // The same end state as the sidebar "Watch" toggle turned off: no season or
+  // episode marked, no watch status. Like and rating stay.
+  private static async unwatchSeries(userId: string, seriesId: number) {
+    await Promise.all([
+      SerialsEpisodeInteractionsRepository.unwatchAllForSeries(userId, seriesId),
+      SerialsSeasonInteractionsRepository.unwatchAllForSeries(userId, seriesId),
+    ]);
+    await Promise.all([
+      SerialsInteractionsRepository.upsertInteraction({ userId, seriesId, watched: false }),
+      SerialsWatchStatusService.setStatus(userId, seriesId, null),
+    ]);
   }
 
   static async getLogs(seriesId: number, limit?: number, offset?: number) {

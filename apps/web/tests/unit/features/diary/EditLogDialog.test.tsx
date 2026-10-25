@@ -51,10 +51,12 @@ describe("EditLogDialog", () => {
 
   it("deletes a series log after confirming, keeping its review", async () => {
     let deleted = false;
+    let requestUrl = "";
     server.use(
-      http.delete("*/api/serials/logs/entry-2", () => {
+      http.delete("*/api/serials/logs/entry-2", ({ request }) => {
         deleted = true;
-        return HttpResponse.json({ success: true });
+        requestUrl = request.url;
+        return HttpResponse.json({ success: true, unwatched: false });
       }),
     );
     const user = userEvent.setup();
@@ -70,6 +72,7 @@ describe("EditLogDialog", () => {
     await user.click(screen.getByRole("button", { name: "Delete" }));
     await waitFor(() => expect(closed).toBe(true));
     expect(deleted).toBe(true);
+    expect(requestUrl).not.toContain("unwatch");
   });
 
   it("asks the server to mark the movie not watched when that box is ticked", async () => {
@@ -90,12 +93,22 @@ describe("EditLogDialog", () => {
     await waitFor(() => expect(requestUrl).toContain("?unwatch=true"));
   });
 
-  it("offers no watched option for a series log", async () => {
+  it("asks the server to unmark the series and its episodes when that box is ticked", async () => {
+    let requestUrl = "";
+    server.use(
+      http.delete("*/api/serials/logs/entry-2", ({ request }) => {
+        requestUrl = request.url;
+        return HttpResponse.json({ success: true, unwatched: true });
+      }),
+    );
     const user = userEvent.setup();
-    renderDialog({ ...movieLog, mediaType: "tv" }, () => {});
+    renderDialog({ ...movieLog, id: "entry-2", mediaType: "tv", title: "Dark" }, () => {});
 
     await user.click(screen.getByRole("button", { name: /delete log/i }));
-    expect(screen.queryByRole("checkbox", { name: /also mark as not watched/i })).toBeNull();
+    await user.click(screen.getByRole("checkbox", { name: /unmark the series and its episodes/i }));
+    await user.click(screen.getByRole("button", { name: "Delete" }));
+
+    await waitFor(() => expect(requestUrl).toContain("?unwatch=true"));
   });
 
   it("stays open and shows the error when the delete fails", async () => {

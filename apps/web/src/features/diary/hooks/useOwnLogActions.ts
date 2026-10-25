@@ -43,6 +43,8 @@ export const invalidateOwnLogQueries = async (queryClient: QueryClient, log: Own
           serialKeys.logs(log.tmdbId),
           serialKeys.detailViewRoot(log.tmdbId),
           serialKeys.detail(log.tmdbId),
+          serialKeys.interaction(log.tmdbId),
+          serialKeys.seasonDetailRoot(log.tmdbId),
         ];
 
   if (me?.username) {
@@ -78,11 +80,12 @@ export const useDeleteOwnLog = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    // `unwatch`: also mark the title not watched if this was its last log.
+    // `unwatch`: also mark the title (and a series' episodes) not watched if
+    // this was its last log.
     mutationFn: ({ log, unwatch = false }: { log: OwnLog; unwatch?: boolean }) =>
       log.mediaType === "movie"
         ? deleteDiaryEntry(log.id, { unwatch })
-        : deleteSerialLog(log.id),
+        : deleteSerialLog(log.id, { unwatch }),
     onSuccess: (_data, { log }) => invalidateOwnLogQueries(queryClient, log),
   });
 };

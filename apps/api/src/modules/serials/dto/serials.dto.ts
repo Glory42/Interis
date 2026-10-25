@@ -250,9 +250,16 @@ export const UpdateSerialLogSchema = z.object({
   rewatch: z.boolean().optional(),
 });
 
+// DELETE /api/serials/logs/:id?unwatch=true also unmarks the series and its
+// episodes when this was the user's last log of it (#88).
+export const DeleteSerialLogQuerySchema = z.object({
+  unwatch: z.stringbool().optional(),
+});
+
 export type UpdateSerialInteractionDto = z.infer<typeof UpdateSerialInteractionSchema>;
 export type CreateSerialLogDto = z.infer<typeof CreateSerialLogSchema>;
 export type UpdateSerialLogDto = z.infer<typeof UpdateSerialLogSchema>;
+export type DeleteSerialLogQueryDto = z.infer<typeof DeleteSerialLogQuerySchema>;
 
 const DEFAULT_LOGS_LIMIT = 50;
 

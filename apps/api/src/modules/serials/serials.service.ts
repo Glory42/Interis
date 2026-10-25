@@ -16,6 +16,7 @@ import {
 import type {
   NormalizedSerialArchiveQuery,
   CreateSerialLogDto,
+  DeleteSerialLogQueryDto,
   SerialDetailReviewSort,
   UpdateSerialInteractionDto,
   UpdateSerialLogDto,
@@ -115,8 +116,8 @@ export class SerialsService {
     return SerialsActivityService.updateLog(entryId, userId, input);
   }
 
-  static async deleteLog(entryId: string, userId: string) {
-    return SerialsActivityService.deleteLog(entryId, userId);
+  static async deleteLog(entryId: string, userId: string, options?: DeleteSerialLogQueryDto) {
+    return SerialsActivityService.deleteLog(entryId, userId, options);
   }
 
   static async getLogs(tmdbId: number, limit?: number, offset?: number) {
