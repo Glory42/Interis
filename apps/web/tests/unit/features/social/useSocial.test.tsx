@@ -7,8 +7,11 @@ import { server } from "../../../support/msw/server";
 import {
   socialKeys,
   useFollowUser,
+  useRemoveFollowerFromList,
   useUnfollowFromList,
+  useUnfollowUser,
 } from "@/features/social/hooks/useSocial";
+import { authKeys } from "@/features/auth/hooks/useAuth";
 import { feedKeys } from "@/features/feed/hooks/useFeed";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import type { FollowState, FollowUser } from "@/features/social/api";
@@ -169,5 +172,92 @@ describe("useUnfollowFromList", () => {
     expect(queryClient.getQueryData<FollowUser[]>(socialKeys.following("viewer"))).toEqual(
       followingList,
     );
+  });
+});
+
+// A follow shows on both ends, so both users' counts and lists refresh (#98).
+describe("follow changes refresh both users", () => {
+  const seedBothEnds = (queryClient: QueryClient, follower: string, followed: string) => {
+    queryClient.setQueryData(profileKeys.detail(follower), { username: follower });
+    queryClient.setQueryData(profileKeys.detail(followed), { username: followed });
+    queryClient.setQueryData<FollowUser[]>(socialKeys.following(follower), []);
+    queryClient.setQueryData<FollowUser[]>(socialKeys.followers(followed), []);
+  };
+
+  const expectBothEndsInvalidated = (
+    queryClient: QueryClient,
+    follower: string,
+    followed: string,
+  ) => {
+    for (const key of [
+      profileKeys.detail(follower),
+      socialKeys.following(follower),
+      profileKeys.detail(followed),
+      socialKeys.followers(followed),
+    ]) {
+      expect(queryClient.getQueryState(key)?.isInvalidated, JSON.stringify(key)).toBe(true);
+    }
+  };
+
+  it("following refreshes the viewer's following and the target's followers", async () => {
+    server.use(http.post("*/api/social/follow/target", () => HttpResponse.json({ success: true })));
+    const queryClient = createTestQueryClient();
+    queryClient.setQueryData(authKeys.me, { username: "viewer" });
+    seedBothEnds(queryClient, "viewer", "target");
+
+    const { result } = renderHook(() => useFollowUser("target"), {
+      wrapper: wrapperFor(queryClient),
+    });
+    result.current.mutate();
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expectBothEndsInvalidated(queryClient, "viewer", "target");
+  });
+
+  it("unfollowing refreshes the viewer's following and the target's followers", async () => {
+    server.use(
+      http.delete("*/api/social/follow/target", () => HttpResponse.json({ success: true })),
+    );
+    const queryClient = createTestQueryClient();
+    queryClient.setQueryData(authKeys.me, { username: "viewer" });
+    seedBothEnds(queryClient, "viewer", "target");
+
+    const { result } = renderHook(() => useUnfollowUser("target"), {
+      wrapper: wrapperFor(queryClient),
+    });
+    result.current.mutate();
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expectBothEndsInvalidated(queryClient, "viewer", "target");
+  });
+
+  it("unfollowing from the list refreshes the target's followers", async () => {
+    server.use(http.delete("*/api/social/follow/bob", () => HttpResponse.json({ success: true })));
+    const queryClient = createTestQueryClient();
+    seedBothEnds(queryClient, "viewer", "bob");
+
+    const { result } = renderHook(() => useUnfollowFromList("viewer"), {
+      wrapper: wrapperFor(queryClient),
+    });
+    result.current.mutate("bob");
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expectBothEndsInvalidated(queryClient, "viewer", "bob");
+  });
+
+  it("removing a follower refreshes that follower's following", async () => {
+    server.use(
+      http.delete("*/api/social/follower/fan", () => HttpResponse.json({ success: true })),
+    );
+    const queryClient = createTestQueryClient();
+    seedBothEnds(queryClient, "fan", "viewer");
+
+    const { result } = renderHook(() => useRemoveFollowerFromList("viewer"), {
+      wrapper: wrapperFor(queryClient),
+    });
+    result.current.mutate("fan");
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expectBothEndsInvalidated(queryClient, "fan", "viewer");
   });
 });

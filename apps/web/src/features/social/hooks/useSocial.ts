@@ -4,6 +4,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { authKeys } from "@/features/auth/hooks/useAuth";
 import { feedKeys } from "@/features/feed/hooks/useFeed";
 import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
@@ -17,6 +18,7 @@ import {
   type FollowState,
   type FollowUser,
 } from "@/features/social/api";
+import type { MeProfile } from "@/types/api";
 
 export const socialKeys = {
   all: ["social"] as const,
@@ -36,6 +38,28 @@ const invalidateSocialDependents = async (
     queryClient.invalidateQueries({ queryKey: feedKeys.meSummary }),
   ]);
 };
+
+// A follow shows on both ends: the followed user's follower count and list,
+// and the follower's following count and list (#98).
+const invalidateFollowEdge = async (
+  queryClient: QueryClient,
+  followerUsername: string | undefined,
+  followedUsername: string,
+): Promise<void> => {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: profileKeys.detail(followedUsername) }),
+    queryClient.invalidateQueries({ queryKey: socialKeys.followers(followedUsername) }),
+    ...(followerUsername
+      ? [
+          queryClient.invalidateQueries({ queryKey: profileKeys.detail(followerUsername) }),
+          queryClient.invalidateQueries({ queryKey: socialKeys.following(followerUsername) }),
+        ]
+      : []),
+  ]);
+};
+
+const viewerUsername = (queryClient: QueryClient) =>
+  queryClient.getQueryData<MeProfile | null>(authKeys.me)?.username;
 
 export const useFollowState = (username: string, enabled = true) =>
   useQuery({
@@ -78,7 +102,10 @@ export const useFollowUser = (username: string) => {
       }
     },
     onSuccess: async () => {
-      await invalidateSocialDependents(queryClient);
+      await Promise.all([
+        invalidateSocialDependents(queryClient),
+        invalidateFollowEdge(queryClient, viewerUsername(queryClient), username),
+      ]);
     },
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: followStateKey });
@@ -106,7 +133,10 @@ export const useUnfollowUser = (username: string) => {
       }
     },
     onSuccess: async () => {
-      await invalidateSocialDependents(queryClient);
+      await Promise.all([
+        invalidateSocialDependents(queryClient),
+        invalidateFollowEdge(queryClient, viewerUsername(queryClient), username),
+      ]);
     },
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: followStateKey });
@@ -137,7 +167,7 @@ export const useUnfollowFromList = (profileUsername: string) => {
     onSuccess: async (_, targetUsername) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: socialKeys.followState(targetUsername) }),
-        queryClient.invalidateQueries({ queryKey: profileKeys.detail(profileUsername) }),
+        invalidateFollowEdge(queryClient, profileUsername, targetUsername),
         invalidateSocialDependents(queryClient),
       ]);
     },
@@ -167,8 +197,8 @@ export const useRemoveFollowerFromList = (profileUsername: string) => {
         queryClient.setQueryData(followersKey, context.prev);
       }
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: profileKeys.detail(profileUsername) });
+    onSuccess: async (_, followerUsername) => {
+      await invalidateFollowEdge(queryClient, followerUsername, profileUsername);
     },
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: followersKey });
