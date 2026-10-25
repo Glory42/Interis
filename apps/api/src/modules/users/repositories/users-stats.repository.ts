@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { diaryEntries } from "../../diary/diary.entity";
@@ -6,7 +6,7 @@ import { lists } from "../../lists/lists.entity";
 import { movies } from "../../movies/movies.entity";
 import { reviews } from "../../reviews/reviews.entity";
 import { serialDiaryEntries } from "../../serials/serials.entity";
-import { activities, follows } from "../../social/social.entity";
+import { follows } from "../../social/social.entity";
 
 export class UsersStatsRepository {
   static async getTotalUsersCount(): Promise<number> {
@@ -22,33 +22,27 @@ export class UsersStatsRepository {
     logsToday: number;
     liveReviews: number;
   }> {
-    const [totalUsersRows, todayActivityRows] = await Promise.all([
+    // Counted from the logs and reviews themselves, not their feed rows, so
+    // deleted content and stale feed metadata never inflate the numbers.
+    const countToday = (table: typeof diaryEntries | typeof serialDiaryEntries | typeof reviews) =>
+      db
+        .select({ count: sql<number>`count(*)`.mapWith(Number) })
+        .from(table)
+        .where(gte(table.createdAt, sql`current_date`));
+
+    const [totalUsersRows, movieLogRows, serialLogRows, reviewRows] = await Promise.all([
       db
         .select({ count: sql<number>`count(*)`.mapWith(Number) })
         .from(user),
-      db
-        .select({
-          logsToday:
-            sql<number>`count(*) filter (where ${activities.type} = 'diary_entry')`.mapWith(
-              Number,
-            ),
-          liveReviews:
-            sql<number>`count(*) filter (
-              where ${activities.type} = 'review'
-                or (
-                  ${activities.type} = 'diary_entry'
-                  and coalesce(((${activities.metadata})::jsonb ->> 'hasReview')::boolean, false)
-                )
-            )`.mapWith(Number),
-        })
-        .from(activities)
-        .where(sql`${activities.createdAt}::date = current_date`),
+      countToday(diaryEntries),
+      countToday(serialDiaryEntries),
+      countToday(reviews),
     ]);
 
     return {
       totalUsers: totalUsersRows[0]?.count ?? 0,
-      logsToday: todayActivityRows[0]?.logsToday ?? 0,
-      liveReviews: todayActivityRows[0]?.liveReviews ?? 0,
+      logsToday: (movieLogRows[0]?.count ?? 0) + (serialLogRows[0]?.count ?? 0),
+      liveReviews: reviewRows[0]?.count ?? 0,
     };
   }
 

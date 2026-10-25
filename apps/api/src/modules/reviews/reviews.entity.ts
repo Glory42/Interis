@@ -45,6 +45,8 @@ export const reviews = pgTable(
       table.createdAt,
     ),
     index("review_movie_id_idx").on(table.movieId),
+    // Backs the network stats' reviews-today count.
+    index("review_created_at_idx").on(table.createdAt),
     // One review per log: logs find their review by this column (#73).
     uniqueIndex("review_diary_entry_id_unique").on(table.diaryEntryId),
     // Backs lookups by these three columns without userId.
