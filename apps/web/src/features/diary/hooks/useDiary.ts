@@ -5,6 +5,7 @@ import { createDiaryEntry, getMyMovieLogs } from "@/features/diary/api";
 import { interactionKeys } from "@/features/interactions/hooks/useInteractions";
 import { movieKeys } from "@/features/movies/hooks/useMovies";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
+import { profileStatsKeys } from "@/features/profile/hooks/useProfileStats";
 import type { CreateDiaryEntryInput, MeProfile, MovieLog } from "@/types/api";
 
 export const diaryKeys = {
@@ -80,10 +81,17 @@ export const useCreateDiaryEntry = () => {
         invalidateFollowingFeed(queryClient),
       ];
 
+      // The log shows in the viewer's diary and stats, and logging takes the
+      // movie off their watchlist (#95).
       if (me?.username) {
         tasks.push(
-          queryClient.invalidateQueries({ queryKey: profileKeys.detail(me.username) }),
-          queryClient.invalidateQueries({ queryKey: profileKeys.recentActivity(me.username, 20) }),
+          ...[
+            profileKeys.detail(me.username),
+            profileKeys.diary(me.username),
+            profileKeys.watchlist(me.username),
+            profileKeys.recentActivity(me.username, 20),
+            profileStatsKeys.detail(me.username),
+          ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
         );
       }
 
