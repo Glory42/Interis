@@ -156,8 +156,8 @@ export const buildPostEngagementContext = async (
 
 // Batches the per-row post/movie fallback lookups (used when an activity's
 // metadata doesn't already embed the full movie/post data) and the live
-// diary entries behind diary_entry rows into one round of queries instead
-// of one query per feed row.
+// diary entries and lists behind diary_entry / created_list rows into one
+// round of queries instead of one query per feed row.
 export const buildFeedFallbackMediaContext = async (
   rows: ActivityRow[],
   reviewContext: ReviewContext,
@@ -165,10 +165,14 @@ export const buildFeedFallbackMediaContext = async (
   const postIds = new Set<string>();
   const movieIds = new Set<number>();
   const diaryEntryIds = new Set<string>();
+  const listIds = new Set<string>();
 
   for (const row of rows) {
     if (row.activity.type === "diary_entry" && isUuid(row.activity.entityId)) {
       diaryEntryIds.add(row.activity.entityId);
+    }
+    if (row.activity.type === "created_list" && isUuid(row.activity.entityId)) {
+      listIds.add(row.activity.entityId);
     }
 
     const rawMetadata = parseMetadata(row.activity.metadata);
@@ -194,16 +198,18 @@ export const buildFeedFallbackMediaContext = async (
     }
   }
 
-  const [postRows, movieRows, diaryEntryRows] = await Promise.all([
+  const [postRows, movieRows, diaryEntryRows, listRows] = await Promise.all([
     SocialFeedRepository.getPostsByIds([...postIds]),
     SocialFeedRepository.getMoviesByIds([...movieIds]),
     SocialFeedRepository.getDiaryEntriesByIds([...diaryEntryIds]),
+    SocialFeedRepository.getListsByIds([...listIds]),
   ]);
 
   return {
     postsById: new Map(postRows.map((post) => [post.id, post])),
     moviesById: new Map(movieRows.map((movie) => [movie.id, movie])),
     diaryEntriesById: new Map(diaryEntryRows.map((entry) => [entry.id, entry])),
+    listsById: new Map(listRows.map((list) => [list.id, list])),
   };
 };
 
