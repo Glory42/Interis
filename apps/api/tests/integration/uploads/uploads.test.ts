@@ -1,4 +1,10 @@
-import { afterAll, beforeAll, describe, expect, it } from "bun:test";
+import { afterAll, afterEach, beforeAll, describe, expect, it, spyOn } from "bun:test";
+import {
+  DeleteObjectCommand,
+  DeleteObjectsCommand,
+  ListObjectsV2Command,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import {
@@ -282,6 +288,99 @@ describe("uploads", () => {
         jar,
       );
       expect(response.status).toBe(400);
+    });
+
+    // Replaced avatars and a deleted account's uploads are removed from R2,
+    // best-effort (#101). S3 calls are captured instead of sent.
+    describe("cleanup", () => {
+      let sendSpy: ReturnType<typeof spyOn> | null = null;
+      const sent: unknown[] = [];
+
+      const captureS3 = (respond: (command: unknown) => unknown = () => ({})) => {
+        sendSpy = spyOn(S3Client.prototype, "send").mockImplementation((async (
+          command: unknown,
+        ) => {
+          sent.push(command);
+          return respond(command);
+        }) as never);
+      };
+
+      afterEach(() => {
+        sendSpy?.mockRestore();
+        sendSpy = null;
+        sent.length = 0;
+      });
+
+      const confirm = (jar: Awaited<ReturnType<typeof signUpTestUser>>["jar"], publicUrl: string) =>
+        apiRequest(
+          getServer().baseUrl,
+          "/api/uploads/confirm",
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ uploadType: "avatar", publicUrl }),
+          },
+          jar,
+        );
+
+      const deletedKeys = () =>
+        sent
+          .filter((command) => command instanceof DeleteObjectCommand)
+          .map((command) => (command as DeleteObjectCommand).input.Key);
+
+      it("deletes the previous avatar once a new one is confirmed", async () => {
+        captureS3();
+        const { jar } = await signUpTestUser(getServer().baseUrl, "upclean1");
+        const userId = await getUserId(jar);
+
+        expect((await confirm(jar, `https://assets.test.local/avatars/${userId}/first.png`)).status).toBe(200);
+        expect(deletedKeys()).toEqual([]);
+
+        expect((await confirm(jar, `https://assets.test.local/avatars/${userId}/second.png`)).status).toBe(200);
+        expect(deletedKeys()).toEqual([`avatars/${userId}/first.png`]);
+      });
+
+      it("still saves the new avatar when deleting the old one fails", async () => {
+        const { jar } = await signUpTestUser(getServer().baseUrl, "upclean2");
+        const userId = await getUserId(jar);
+        expect((await confirm(jar, `https://assets.test.local/avatars/${userId}/first.png`)).status).toBe(200);
+
+        captureS3(() => {
+          throw new Error("R2 is down");
+        });
+        const response = await confirm(jar, `https://assets.test.local/avatars/${userId}/second.png`);
+        expect(response.status).toBe(200);
+        expect(((await response.json()) as { avatarUrl: string }).avatarUrl).toEndWith("/second.png");
+      });
+
+      it("deletes every upload of a deleted account, and only theirs", async () => {
+        const { jar } = await signUpTestUser(getServer().baseUrl, "upclean3");
+        const userId = await getUserId(jar);
+        captureS3((command) =>
+          command instanceof ListObjectsV2Command
+            ? {
+                Contents: [
+                  { Key: `avatars/${userId}/current.png` },
+                  { Key: `avatars/${userId}/never-confirmed.webp` },
+                  { Key: `avatars/${userId}.png` },
+                  { Key: `avatars/${userId}0/someone-else.png` },
+                ],
+              }
+            : {},
+        );
+
+        const response = await apiRequest(getServer().baseUrl, "/api/auth/account", { method: "DELETE" }, jar);
+        expect(response.status).toBeLessThan(300);
+
+        const batch = sent.find((command) => command instanceof DeleteObjectsCommand) as
+          | DeleteObjectsCommand
+          | undefined;
+        expect(batch?.input.Delete?.Objects?.map((object) => object.Key)).toEqual([
+          `avatars/${userId}/current.png`,
+          `avatars/${userId}/never-confirmed.webp`,
+          `avatars/${userId}.png`,
+        ]);
+      });
     });
   });
 });
