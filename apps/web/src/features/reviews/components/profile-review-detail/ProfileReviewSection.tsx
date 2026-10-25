@@ -95,7 +95,13 @@ export const ProfileReviewSection = ({
 
         {ownerActions ? (
           <div className="ml-auto flex items-center gap-1">
-            <Button type="button" variant="ghost" size="sm" onClick={ownerActions.onEdit}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-label="Edit review"
+              onClick={ownerActions.onEdit}
+            >
               <Pencil className="h-3.5 w-3.5" />
               Edit
             </Button>
@@ -104,6 +110,7 @@ export const ProfileReviewSection = ({
               variant="ghost"
               size="sm"
               className="text-muted-foreground hover:text-destructive"
+              aria-label="Delete review"
               onClick={ownerActions.onDelete}
             >
               <Trash2 className="h-3.5 w-3.5" />
