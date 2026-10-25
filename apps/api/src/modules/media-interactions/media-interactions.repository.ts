@@ -15,6 +15,14 @@ type InteractionAdapterConfig = {
   table: InteractionTable;
   fkColumn: AnyPgColumn;
   fkKey: "movieId" | "seriesId";
+  // Series have no watched column: watch_status is their watched truth
+  // (#65), so `isWatched` is derived from it and never written (#105).
+  watchedFromStatus: boolean;
+};
+
+type StoredRow = Omit<InteractionStateRow, "isWatched"> & {
+  isWatched?: boolean;
+  watchStatus?: string | null;
 };
 
 export type MediaInteractionAdapter = {
@@ -30,23 +38,41 @@ export type MediaInteractionAdapter = {
   hasRating: (userId: string, mediaId: number) => Promise<boolean>;
 };
 
-// The two tables (movie_interaction, serial_interaction) have identical
-// column shape - userId, <fk>Id, liked, watchlisted, rating, isWatched - so
-// one generic implementation drives both adapters. The table/column typing
+// The two tables (movie_interaction, serial_interaction) share the column
+// shape - userId, <fk>Id, liked, watchlisted, rating - so one generic
+// implementation drives both adapters; only movies store isWatched. The table/column typing
 // gets loose inside this factory (Drizzle can't express "same shape, two
 // tables" cleanly); MediaInteractionAdapter above is the fully-typed surface
 // every caller actually sees.
-function makeInteractionAdapter({ table, fkColumn, fkKey }: InteractionAdapterConfig): MediaInteractionAdapter {
+function makeInteractionAdapter({
+  table,
+  fkColumn,
+  fkKey,
+  watchedFromStatus,
+}: InteractionAdapterConfig): MediaInteractionAdapter {
   const userIdColumn = table.userId;
+
+  const toStateRow = (row: StoredRow | undefined): InteractionStateRow | null => {
+    if (!row) return null;
+    return watchedFromStatus
+      ? { ...row, isWatched: row.watchStatus === "completed" }
+      : (row as InteractionStateRow);
+  };
+
+  const withoutWatched = <T extends Partial<InteractionStateRow>>(values: T) => {
+    if (!watchedFromStatus) return values;
+    const { isWatched: _isWatched, ...rest } = values;
+    return rest;
+  };
 
   async function find(userId: string, mediaId: number): Promise<InteractionStateRow | null> {
     const rows = (await db
       .select()
       .from(table as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .where(and(eq(userIdColumn, userId), eq(fkColumn, mediaId)))
-      .limit(1)) as unknown as InteractionStateRow[];
+      .limit(1)) as unknown as StoredRow[];
 
-    return rows[0] ?? null;
+    return toStateRow(rows[0]);
   }
 
   async function upsertState(
@@ -55,17 +81,20 @@ function makeInteractionAdapter({ table, fkColumn, fkKey }: InteractionAdapterCo
     input: InteractionStateInput,
   ): Promise<InteractionStateRow | null> {
     const { insertValues, updateSet } = resolveInteractionUpdate(input);
+    const set = withoutWatched(updateSet);
 
     const rows = (await db
       .insert(table as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-      .values({ userId, [fkKey]: mediaId, ...insertValues })
+      .values({ userId, [fkKey]: mediaId, ...withoutWatched(insertValues) })
       .onConflictDoUpdate({
         target: [userIdColumn, fkColumn],
-        set: updateSet,
+        // A series `watched` toggle changes no column here, but the upsert
+        // still has to return the row.
+        set: Object.keys(set).length > 0 ? set : { updatedAt: new Date() },
       })
-      .returning()) as unknown as InteractionStateRow[];
+      .returning()) as unknown as StoredRow[];
 
-    return rows[0] ?? null;
+    return toStateRow(rows[0]);
   }
 
   async function markWatched(userId: string, mediaId: number): Promise<void> {
@@ -94,11 +123,13 @@ export const MediaInteractions = {
       table: movieInteractions,
       fkColumn: movieInteractions.movieId,
       fkKey: "movieId",
+      watchedFromStatus: false,
     }),
   forSeries: (): MediaInteractionAdapter =>
     makeInteractionAdapter({
       table: serialInteractions,
       fkColumn: serialInteractions.seriesId,
       fkKey: "seriesId",
+      watchedFromStatus: true,
     }),
 };

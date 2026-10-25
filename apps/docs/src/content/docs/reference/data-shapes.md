@@ -152,4 +152,4 @@ An array of fully watched series (`mediaType` always `"tv"`). Key fields per ite
 - series info: `tmdbId`, `title`, `posterPath`, `backdropPath`, `firstAirYear`, `numberOfSeasons`, `numberOfEpisodes`
 - `lastInteractionAt`: when the series was completed (or last touched since).
 
-No episode-level progress fields — this reflects the series-level `isWatched` flag only, not derived from per-episode completion. For per-episode detail on one series, use [Serials Progress](/api/endpoints/serials-progress/).
+No episode-level progress fields — this lists series whose watch status is `completed`: marked watched, logged, or finished episode by episode. For per-episode detail on one series, use [Serials Progress](/api/endpoints/serials-progress/).
