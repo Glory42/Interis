@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { server } from "../../../support/msw/server";
 import {
@@ -9,6 +9,9 @@ import {
   useUpdateMovieInteraction,
 } from "@/features/interactions/hooks/useInteractions";
 import { movieKeys } from "@/features/movies/hooks/useMovies";
+import { authKeys } from "@/features/auth/hooks/useAuth";
+import { profileKeys } from "@/features/profile/hooks/useProfile";
+import { profileStatsKeys } from "@/features/profile/hooks/useProfileStats";
 import type { MovieInteraction } from "@/features/interactions/api";
 
 const createTestQueryClient = (): QueryClient =>
@@ -164,5 +167,32 @@ describe("useUpdateMovieInteraction", () => {
 
     expect(queryClient.getQueryState(interactionKeys.detail(999))?.isInvalidated).toBe(false);
     expect(queryClient.getQueryState(movieKeys.detail(999))?.isInvalidated).toBe(false);
+  });
+
+  it("refreshes the viewer's profile pages the change shows up on (#96)", async () => {
+    server.use(
+      http.put("*/api/interactions/550", () =>
+        HttpResponse.json({ ...baseInteraction, liked: true, watched: true }),
+      ),
+    );
+    const queryClient = createTestQueryClient();
+    queryClient.setQueryData(authKeys.me, { username: "cinefan" });
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+
+    const { result } = renderHook(() => useUpdateMovieInteraction(550), {
+      wrapper: wrapperFor(queryClient),
+    });
+    await act(() => result.current.mutateAsync({ liked: true }));
+
+    const invalidatedKeys = invalidate.mock.calls.map(([filters]) => filters?.queryKey);
+    for (const key of [
+      profileKeys.detail("cinefan"),
+      profileKeys.likes("cinefan"),
+      profileKeys.watchlist("cinefan"),
+      profileKeys.recentActivity("cinefan", 20),
+      profileStatsKeys.detail("cinefan"),
+    ]) {
+      expect(invalidatedKeys).toContainEqual(key);
+    }
   });
 });
