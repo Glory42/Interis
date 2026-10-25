@@ -7,6 +7,8 @@ const KNOWN_MOVIE_TITLE = "Fight Club";
 test("toggling watchlist/watch/like/rating on a movie reflects on the profile tabs", async ({
   page,
 }) => {
+  // Longer than the default: this journey walks through every toggle.
+  test.setTimeout(120_000);
   const user = buildTestUser("e2eh");
 
   try {
@@ -71,6 +73,14 @@ test("toggling watchlist/watch/like/rating on a movie reflects on the profile ta
       // 20% down a 160px-tall track lands on rating 8.
       await slider.click({ position: { x: 12, y: 32 } });
       await expect(slider).toHaveAttribute("aria-valuenow", "8", { timeout: 10_000 });
+      // The sidebar slider only saves on its Save button.
+      const ratingSaved = page.waitForResponse(
+        (response) =>
+          response.url().includes(`/api/interactions/${KNOWN_MOVIE_TMDB_ID}`) &&
+          response.request().method() === "PUT",
+      );
+      await page.getByRole("button", { name: "Save", exact: true }).click();
+      await ratingSaved;
     });
 
     await test.step("the movie shows up on the liked profile tab, but not the watchlist tab anymore", async () => {
@@ -94,6 +104,27 @@ test("toggling watchlist/watch/like/rating on a movie reflects on the profile ta
 
       await page.goto(`/profile/${user.username}/liked`);
       await expect(page.getByText(KNOWN_MOVIE_TITLE)).toHaveCount(0, { timeout: 10_000 });
+    });
+
+    // A rated movie asks before going back to not watched, and can take the
+    // rating with it (#93).
+    await test.step("unwatching the rated movie asks first and can clear the rating", async () => {
+      await page.goto(`/movies/${KNOWN_MOVIE_TMDB_ID}`);
+      const slider = page.getByRole("slider", { name: "Rating out of 10" });
+      await expect(slider).toHaveAttribute("aria-valuenow", "8", { timeout: 10_000 });
+
+      await page.getByRole("button", { name: "Watched", exact: true }).click();
+      await page.getByRole("checkbox", { name: /remove your like and rating/i }).check();
+      await page.getByRole("button", { name: "Mark not watched" }).click();
+      await expect(page.getByRole("button", { name: "Watch", exact: true })).toBeVisible({
+        timeout: 10_000,
+      });
+
+      await page.reload();
+      await expect(page.getByRole("button", { name: "Watch", exact: true })).toBeVisible({
+        timeout: 15_000,
+      });
+      await expect(slider).not.toHaveAttribute("aria-valuenow", "8", { timeout: 10_000 });
     });
   } finally {
     await deleteTestUser(page);
