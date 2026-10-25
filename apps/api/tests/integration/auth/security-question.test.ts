@@ -118,10 +118,9 @@ describe("security question setup and password reset", () => {
     expect(newPasswordLogin.ok).toBe(true);
   });
 
-  it("requires a correct security answer to change email", async () => {
-    const auth = buildAuthCredentials("secemail");
+  const signUp = async (prefix: string) => {
+    const auth = buildAuthCredentials(prefix);
     const jar = createCookieJar();
-
     await apiRequest(
       getServer().baseUrl,
       "/api/auth/sign-up/email",
@@ -132,58 +131,77 @@ describe("security question setup and password reset", () => {
       },
       jar,
     );
+    const post = (path: string, body: unknown) =>
+      apiRequest(
+        getServer().baseUrl,
+        path,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        },
+        jar,
+      );
+    return { auth, post };
+  };
 
-    const noQuestionResponse = await apiRequest(
-      getServer().baseUrl,
-      "/api/auth/change-email",
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ newEmail: `changed-${randomUUID()}@example.com`, answer: "anything" }),
-      },
-      jar,
-    );
-    expect(noQuestionResponse.status).toBe(400);
+  // Changing the email needs the current password, not just a session (#136).
+  it("requires the current password to change email", async () => {
+    const { auth, post } = await signUp("secemail");
 
-    await apiRequest(
-      getServer().baseUrl,
-      "/api/auth/security-question",
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ question: "Best director?", answer: "Miyazaki" }),
-      },
-      jar,
-    );
-
-    const wrongAnswerResponse = await apiRequest(
-      getServer().baseUrl,
-      "/api/auth/change-email",
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ newEmail: `changed-${randomUUID()}@example.com`, answer: "wrong" }),
-      },
-      jar,
-    );
-    expect(wrongAnswerResponse.status).toBe(401);
+    const wrongPasswordResponse = await post("/api/auth/change-email", {
+      newEmail: `changed-${randomUUID()}@example.com`,
+      currentPassword: "wrong-password",
+    });
+    expect(wrongPasswordResponse.status).toBe(401);
 
     const newEmail = `changed-${randomUUID()}@example.com`;
-    const correctAnswerResponse = await apiRequest(
-      getServer().baseUrl,
-      "/api/auth/change-email",
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ newEmail, answer: "Miyazaki" }),
-      },
-      jar,
-    );
-    expect(correctAnswerResponse.ok).toBe(true);
-    const correctAnswerBody = (await correctAnswerResponse.json()) as {
-      user: { email: string };
-    };
-    expect(correctAnswerBody.user.email).toBe(newEmail);
+    const correctResponse = await post("/api/auth/change-email", {
+      newEmail,
+      currentPassword: auth.password,
+    });
+    expect(correctResponse.ok).toBe(true);
+    const correctBody = (await correctResponse.json()) as { user: { email: string } };
+    expect(correctBody.user.email).toBe(newEmail);
+  });
+
+  // Password reset relies on the question, so replacing an existing one
+  // needs the current password; setting the first one right after sign-up
+  // doesn't (#136).
+  it("requires the current password to replace an existing security question", async () => {
+    const { auth, post } = await signUp("secreplace");
+
+    const first = await post("/api/auth/security-question", {
+      question: "Best director?",
+      answer: "Miyazaki",
+    });
+    expect(first.ok).toBe(true);
+
+    const withoutPassword = await post("/api/auth/security-question", {
+      question: "Attacker's question?",
+      answer: "attacker",
+    });
+    expect(withoutPassword.status).toBe(401);
+    const wrongPassword = await post("/api/auth/security-question", {
+      question: "Attacker's question?",
+      answer: "attacker",
+      currentPassword: "wrong-password",
+    });
+    expect(wrongPassword.status).toBe(401);
+
+    const lookup = await apiRequest(getServer().baseUrl, "/api/auth/forgot-password", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: auth.email }),
+    });
+    expect(((await lookup.json()) as { question: string }).question).toBe("Best director?");
+
+    const withPassword = await post("/api/auth/security-question", {
+      question: "Favorite composer?",
+      answer: "Hisaishi",
+      currentPassword: auth.password,
+    });
+    expect(withPassword.ok).toBe(true);
   });
 
   it("admin can force-reset a password without a security question", async () => {

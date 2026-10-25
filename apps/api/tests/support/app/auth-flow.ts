@@ -6,6 +6,7 @@ export type SignedUpTestUser = {
   jar: CookieJar;
   username: string;
   email: string;
+  password: string;
 };
 
 export const signUpTestUser = async (
@@ -30,5 +31,10 @@ export const signUpTestUser = async (
     throw new Error(`Failed to sign up test user: ${response.status}`);
   }
 
-  return { jar, username: credentials.username, email: credentials.email };
+  return {
+    jar,
+    username: credentials.username,
+    email: credentials.email,
+    password: credentials.password,
+  };
 };

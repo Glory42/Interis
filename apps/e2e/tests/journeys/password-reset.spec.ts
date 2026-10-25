@@ -71,6 +71,6 @@ test("resets a forgotten password via the security question and signs in with it
       await page.waitForURL("/");
     });
   } finally {
-    await deleteTestUser(page);
+    await deleteTestUser(page, NEW_PASSWORD);
   }
 });

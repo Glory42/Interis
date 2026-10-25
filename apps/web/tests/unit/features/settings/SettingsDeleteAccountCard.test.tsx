@@ -9,11 +9,11 @@ import { authKeys } from "@/features/auth/hooks/useAuth";
 import { SettingsDeleteAccountCard } from "@/features/settings/components/sections/SettingsDeleteAccountCard";
 
 describe("SettingsDeleteAccountCard", () => {
-  it("deletes the account only once the username is typed, then signs out and goes home", async () => {
-    let deleted = false;
+  it("sends the current password, then signs out and goes home", async () => {
+    let body: unknown = null;
     server.use(
-      http.delete("*/api/auth/account", () => {
-        deleted = true;
+      http.delete("*/api/auth/account", async ({ request }) => {
+        body = await request.json();
         return HttpResponse.json({ success: true });
       }),
     );
@@ -22,7 +22,7 @@ describe("SettingsDeleteAccountCard", () => {
     const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
     queryClient.setQueryData(authKeys.me, { username: "cinefan" });
     queryClient.setQueryData(["profile", "detail", "cinefan"], { username: "cinefan" });
-    const { router } = renderWithProviders(<SettingsDeleteAccountCard username="cinefan" />, {
+    const { router } = renderWithProviders(<SettingsDeleteAccountCard />, {
       routePath: "/settings/auth",
       queryClient,
     });
@@ -31,33 +31,31 @@ describe("SettingsDeleteAccountCard", () => {
     const confirm = screen.getByRole("button", { name: "Delete forever" });
     expect(confirm).toBeDisabled();
 
-    await user.type(screen.getByRole("textbox", { name: "Your username" }), "cinefa");
-    expect(confirm).toBeDisabled();
-    await user.type(screen.getByRole("textbox", { name: "Your username" }), "n");
+    await user.type(screen.getByLabelText("Password to delete your account"), "password1234");
     await user.click(confirm);
 
     await waitFor(() => expect(router.state.location.pathname).toBe("/"));
-    expect(deleted).toBe(true);
+    expect(body).toEqual({ currentPassword: "password1234" });
     expect(queryClient.getQueryData(authKeys.me)).toBeNull();
     expect(queryClient.getQueryData(["profile", "detail", "cinefan"])).toBeUndefined();
   });
 
-  it("stays open and shows the error when the delete fails", async () => {
+  it("stays open and shows the error for a wrong password", async () => {
     server.use(
       http.delete("*/api/auth/account", () =>
-        HttpResponse.json({ error: "Something broke" }, { status: 500 }),
+        HttpResponse.json({ error: "Current password is incorrect" }, { status: 401 }),
       ),
     );
     const user = userEvent.setup();
-    const { router } = renderWithProviders(<SettingsDeleteAccountCard username="cinefan" />, {
+    const { router } = renderWithProviders(<SettingsDeleteAccountCard />, {
       routePath: "/settings/auth",
     });
 
     await user.click(await screen.findByRole("button", { name: "Delete account" }));
-    await user.type(screen.getByRole("textbox", { name: "Your username" }), "cinefan");
+    await user.type(screen.getByLabelText("Password to delete your account"), "wrong");
     await user.click(screen.getByRole("button", { name: "Delete forever" }));
 
-    expect(await screen.findByText("Something broke")).toBeInTheDocument();
+    expect(await screen.findByText("Current password is incorrect")).toBeInTheDocument();
     expect(router.state.location.pathname).toBe("/settings/auth");
   });
 });

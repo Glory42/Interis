@@ -29,8 +29,22 @@ describe("activities about a deleted account", () => {
     testServer = null;
   });
 
-  const send = async (jar: CookieJar | undefined, method: string, path: string) => {
-    const response = await apiRequest(getServer().baseUrl, path, { method }, jar);
+  const send = async (
+    jar: CookieJar | undefined,
+    method: string,
+    path: string,
+    body?: unknown,
+  ) => {
+    const response = await apiRequest(
+      getServer().baseUrl,
+      path,
+      {
+        method,
+        headers: body === undefined ? {} : { "content-type": "application/json" },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      },
+      jar,
+    );
     expect(response.status).toBeLessThan(300);
     return JSON.stringify(await response.json().catch(() => null));
   };
@@ -60,7 +74,7 @@ describe("activities about a deleted account", () => {
       gone.username,
     );
 
-    await send(gone.jar, "DELETE", "/api/auth/account");
+    await send(gone.jar, "DELETE", "/api/auth/account", { currentPassword: gone.password });
 
     expect(await followRowsAbout(goneId)).toHaveLength(0);
     expect(await send(fan.jar, "GET", "/api/social/feed")).not.toContain(gone.username);

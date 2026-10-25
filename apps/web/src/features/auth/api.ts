@@ -21,7 +21,7 @@ const changePasswordInputSchema = z.object({
 
 const changeEmailInputSchema = z.object({
   newEmail: z.email(),
-  answer: z.string().min(1).max(200),
+  currentPassword: z.string().min(1).max(256),
 });
 
 const securityQuestionInputSchema = z.object({
@@ -154,15 +154,18 @@ export const changeCurrentUserPassword = async (input: {
   unknownAuthResponseSchema.parse(response);
 };
 
-// Deletes the signed-in account and everything it owns; the server clears
-// the auth cookies.
-export const deleteCurrentUserAccount = async (): Promise<void> => {
-  await apiRequest<unknown>("/api/auth/account", { method: "DELETE" });
+// Deletes the signed-in account and everything it owns; the server checks
+// the current password (#136) and clears the auth cookies.
+export const deleteCurrentUserAccount = async (currentPassword: string): Promise<void> => {
+  await apiRequest<unknown, { currentPassword: string }>("/api/auth/account", {
+    method: "DELETE",
+    body: { currentPassword },
+  });
 };
 
 export const changeCurrentUserEmail = async (input: {
   newEmail: string;
-  answer: string;
+  currentPassword: string;
 }): Promise<void> => {
   const payload = changeEmailInputSchema.parse(input);
 

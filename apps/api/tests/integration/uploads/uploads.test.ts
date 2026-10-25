@@ -354,7 +354,7 @@ describe("uploads", () => {
       });
 
       it("deletes every upload of a deleted account, and only theirs", async () => {
-        const { jar } = await signUpTestUser(getServer().baseUrl, "upclean3");
+        const { jar, password } = await signUpTestUser(getServer().baseUrl, "upclean3");
         const userId = await getUserId(jar);
         captureS3((command) =>
           command instanceof ListObjectsV2Command
@@ -369,7 +369,16 @@ describe("uploads", () => {
             : {},
         );
 
-        const response = await apiRequest(getServer().baseUrl, "/api/auth/account", { method: "DELETE" }, jar);
+        const response = await apiRequest(
+          getServer().baseUrl,
+          "/api/auth/account",
+          {
+            method: "DELETE",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ currentPassword: password }),
+          },
+          jar,
+        );
         expect(response.status).toBeLessThan(300);
 
         const batch = sent.find((command) => command instanceof DeleteObjectsCommand) as
