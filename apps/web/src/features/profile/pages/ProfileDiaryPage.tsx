@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { BookOpen } from "lucide-react";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import { DiaryRow } from "@/features/profile/components/diary/DiaryRow";
 import { DiaryRowSkeleton } from "@/features/profile/components/diary/DiaryRowSkeleton";
@@ -12,6 +13,8 @@ type ProfileDiaryPageProps = {
 };
 
 export const ProfileDiaryPage = ({ username }: ProfileDiaryPageProps) => {
+  const { user } = useAuth();
+  const isOwner = Boolean(user) && user?.username.toLowerCase() === username.toLowerCase();
   const diaryQuery = useUserDiary(username);
   const likedQuery = useUserLikedMovies(username);
 
@@ -58,9 +61,9 @@ export const ProfileDiaryPage = ({ username }: ProfileDiaryPageProps) => {
 
       {rows.length > 0 ? (
         <div className="space-y-0">
-          <DiaryTableHeader />
+          <DiaryTableHeader isOwner={isOwner} />
           {rows.map((row) => (
-            <DiaryRow key={row.id} row={row} username={username} />
+            <DiaryRow key={row.id} row={row} username={username} isOwner={isOwner} />
           ))}
         </div>
       ) : null}

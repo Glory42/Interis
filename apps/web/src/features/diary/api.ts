@@ -31,3 +31,23 @@ export const createDiaryEntry = async (
 
   return createDiaryEntryResponseSchema.parse(response);
 };
+
+export type UpdateDiaryEntryInput = {
+  watchedDate?: string;
+  rating?: number | null;
+  rewatch?: boolean;
+};
+
+export const updateDiaryEntry = async (
+  entryId: string,
+  input: UpdateDiaryEntryInput,
+): Promise<void> => {
+  await apiRequest<unknown, UpdateDiaryEntryInput>(`/api/diary/${encodeURIComponent(entryId)}`, {
+    method: "PUT",
+    body: input,
+  });
+};
+
+export const deleteDiaryEntry = async (entryId: string): Promise<void> => {
+  await apiRequest<unknown>(`/api/diary/${encodeURIComponent(entryId)}`, { method: "DELETE" });
+};

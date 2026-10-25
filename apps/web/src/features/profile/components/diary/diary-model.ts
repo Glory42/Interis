@@ -26,6 +26,13 @@ export type DiaryRow = {
   showMonthCell: boolean;
 };
 
+// Desktop columns shared by the header and rows; the owner's diary has an
+// extra column for the edit button. Written out in full so Tailwind sees them.
+export const diaryGridColumns = (isOwner: boolean): string =>
+  isOwner
+    ? "md:grid-cols-[80px_48px_56px_1fr_80px_120px_32px_32px_32px_32px]"
+    : "md:grid-cols-[80px_48px_56px_1fr_80px_120px_32px_32px_32px]";
+
 export const channelDisplayLabel: Record<FeedChannel, string> = {
   movie: "Movie",
   serial: "Serial",
