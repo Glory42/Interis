@@ -20,12 +20,9 @@ const getUserIdByUsername = async (username: string): Promise<string> => {
   return row.id;
 };
 
-// Regression coverage for the "diary rating wins, dedupe by user" rule that
-// buildCommunityRatingAggregateSql now implements once for both archive
-// queries below (previously hand-duplicated as raw correlated-subquery SQL
-// in each). Locks in the exact bug class commit 6a2fa88 fixed: a user's
-// stale interaction-widget rating must never be double-counted alongside
-// their diary rating for the same item.
+// Each user counts once, with what their own "Your rating" shows: the star
+// rating, else their latest rated log. The detail page (merged in JS) and
+// both archive queries (SQL) must agree (#92).
 describe("movies community rating aggregate", () => {
   let testServer: RunningTestServer | null = null;
 
@@ -39,50 +36,46 @@ describe("movies community rating aggregate", () => {
     testServer = null;
   });
 
-  it("counts a user's diary rating once even when they also have a differing interaction rating, and counts interaction-only raters separately", async () => {
+  const signUp = async (prefix: string) =>
+    getUserIdByUsername((await signUpTestUser(testServer!.baseUrl, prefix)).username);
+
+  it("counts each user once, star rating first, and agrees across detail and archive", async () => {
     const movie = await seedTestMovie();
-    const dualRater = await signUpTestUser(testServer!.baseUrl, "dualrater");
-    const interactionOnlyRater = await signUpTestUser(testServer!.baseUrl, "intonly");
+    const [starAndLogs, logsOnly, unratedLogAndStar] = await Promise.all([
+      signUp("crastar"),
+      signUp("cralogs"),
+      signUp("craunrated"),
+    ]);
 
-    const dualUserId = await getUserIdByUsername(dualRater.username);
-    const interactionOnlyUserId = await getUserIdByUsername(interactionOnlyRater.username);
+    await db.insert(diaryEntries).values([
+      // Two rated logs and a star rating: the star rating counts.
+      { userId: starAndLogs, movieId: movie.id, watchedDate: "2026-01-01", rating: 9 },
+      { userId: starAndLogs, movieId: movie.id, watchedDate: "2026-03-01", rating: 5 },
+      // Two rated logs, no star rating: the latest watch counts.
+      { userId: logsOnly, movieId: movie.id, watchedDate: "2026-03-01", rating: 8 },
+      { userId: logsOnly, movieId: movie.id, watchedDate: "2026-01-01", rating: 6 },
+      // A log without a rating doesn't hide the star rating.
+      { userId: unratedLogAndStar, movieId: movie.id, watchedDate: "2026-01-01", rating: null },
+    ]);
+    await db.insert(movieInteractions).values([
+      { userId: starAndLogs, movieId: movie.id, rating: 3 },
+      { userId: logsOnly, movieId: movie.id, liked: true },
+      { userId: unratedLogAndStar, movieId: movie.id, rating: 7 },
+    ]);
 
-    // dualRater: logged a diary rating of 9, but also has a stale
-    // interaction-widget rating of 3 for the same movie (e.g. rated via the
-    // star widget before logging, or vice versa).
-    await db.insert(diaryEntries).values({
-      userId: dualUserId,
-      movieId: movie.id,
-      watchedDate: "2026-01-01",
-      rating: 9,
-    });
-    await db.insert(movieInteractions).values({
-      userId: dualUserId,
-      movieId: movie.id,
-      rating: 3,
-    });
-
-    // interactionOnlyRater: rated via the star widget only, never logged a
-    // diary entry for this movie.
-    await db.insert(movieInteractions).values({
-      userId: interactionOnlyUserId,
-      movieId: movie.id,
-      rating: 7,
-    });
+    const expectedRatings = [3, 7, 8];
+    const detailRatings = await MoviesRepository.getCommunityRatingsByMovieId(movie.id);
+    expect(detailRatings.map((row) => row.rating).sort()).toEqual(expectedRatings);
 
     const [aggregateRow] = await MoviesRepository.getLocalArchiveAggregateRowsByTmdbIds([
       movie.tmdbId,
     ]);
-
-    expect(aggregateRow).toBeDefined();
-    expect(aggregateRow!.ratedLogCount).toBe(2);
-    expect(aggregateRow!.avgRatingOutOfTen).toBeCloseTo((9 + 7) / 2, 5);
-
     const [listingRow] = (await MoviesRepository.getLocalArchiveRows()).filter(
       (row) => row.tmdbId === movie.tmdbId,
     );
-    expect(listingRow).toBeDefined();
-    expect(listingRow!.ratedLogCount).toBe(2);
-    expect(listingRow!.avgRatingOutOfTen).toBeCloseTo((9 + 7) / 2, 5);
+    for (const row of [aggregateRow, listingRow]) {
+      expect(row!.ratedLogCount).toBe(3);
+      expect(row!.avgRatingOutOfTen).toBeCloseTo((3 + 7 + 8) / 3, 5);
+    }
   });
 });

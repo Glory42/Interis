@@ -10,6 +10,7 @@ import { db } from "../../../src/infrastructure/database/db";
 import { user } from "../../../src/infrastructure/database/auth.entity";
 import { serialDiaryEntries, serialInteractions } from "../../../src/modules/serials/serials.entity";
 import { SerialsArchiveRepository } from "../../../src/modules/serials/repositories/serials-archive.repository";
+import { SerialsInteractionsRepository } from "../../../src/modules/serials/repositories/serials-interactions.repository";
 
 const getUserIdByUsername = async (username: string): Promise<string> => {
   const [row] = await db.select({ id: user.id }).from(user).where(eq(user.username, username));
@@ -19,10 +20,9 @@ const getUserIdByUsername = async (username: string): Promise<string> => {
   return row.id;
 };
 
-// Same rule as tests/integration/movies/community-rating-aggregate.test.ts,
-// exercised against the serials side of buildCommunityRatingAggregateSql -
-// both repositories now share one implementation, so this locks in that the
-// shared builder behaves identically for the "series_id"-keyed tables too.
+// Each user counts once, with what their own "Your rating" shows: the star
+// rating, else their latest rated log. The detail page (merged in JS) and
+// both archive queries (SQL) must agree (#92). Same scenario as the movies test.
 describe("serials community rating aggregate", () => {
   let testServer: RunningTestServer | null = null;
 
@@ -36,45 +36,46 @@ describe("serials community rating aggregate", () => {
     testServer = null;
   });
 
-  it("counts a user's diary rating once even when they also have a differing interaction rating, and counts interaction-only raters separately", async () => {
+  const signUp = async (prefix: string) =>
+    getUserIdByUsername((await signUpTestUser(testServer!.baseUrl, prefix)).username);
+
+  it("counts each user once, star rating first, and agrees across detail and archive", async () => {
     const serial = await seedTestSerial();
-    const dualRater = await signUpTestUser(testServer!.baseUrl, "serdualrate");
-    const interactionOnlyRater = await signUpTestUser(testServer!.baseUrl, "serintonly");
+    const [starAndLogs, logsOnly, unratedLogAndStar] = await Promise.all([
+      signUp("crsstar"),
+      signUp("crslogs"),
+      signUp("crsunrated"),
+    ]);
 
-    const dualUserId = await getUserIdByUsername(dualRater.username);
-    const interactionOnlyUserId = await getUserIdByUsername(interactionOnlyRater.username);
+    await db.insert(serialDiaryEntries).values([
+      // Two rated logs and a star rating: the star rating counts.
+      { userId: starAndLogs, seriesId: serial.id, watchedDate: "2026-01-01", rating: 9 },
+      { userId: starAndLogs, seriesId: serial.id, watchedDate: "2026-03-01", rating: 5 },
+      // Two rated logs, no star rating: the latest watch counts.
+      { userId: logsOnly, seriesId: serial.id, watchedDate: "2026-03-01", rating: 8 },
+      { userId: logsOnly, seriesId: serial.id, watchedDate: "2026-01-01", rating: 6 },
+      // A log without a rating doesn't hide the star rating.
+      { userId: unratedLogAndStar, seriesId: serial.id, watchedDate: "2026-01-01", rating: null },
+    ]);
+    await db.insert(serialInteractions).values([
+      { userId: starAndLogs, seriesId: serial.id, rating: 3 },
+      { userId: logsOnly, seriesId: serial.id, liked: true },
+      { userId: unratedLogAndStar, seriesId: serial.id, rating: 7 },
+    ]);
 
-    await db.insert(serialDiaryEntries).values({
-      userId: dualUserId,
-      seriesId: serial.id,
-      watchedDate: "2026-01-01",
-      rating: 9,
-    });
-    await db.insert(serialInteractions).values({
-      userId: dualUserId,
-      seriesId: serial.id,
-      rating: 3,
-    });
-
-    await db.insert(serialInteractions).values({
-      userId: interactionOnlyUserId,
-      seriesId: serial.id,
-      rating: 7,
-    });
+    const expectedRatings = [3, 7, 8];
+    const detailRatings = await SerialsInteractionsRepository.getCommunityRatingsBySeriesId(serial.id);
+    expect(detailRatings.map((row) => row.rating).sort()).toEqual(expectedRatings);
 
     const [aggregateRow] = await SerialsArchiveRepository.getLocalArchiveAggregateRowsByTmdbIds([
       serial.tmdbId,
     ]);
-
-    expect(aggregateRow).toBeDefined();
-    expect(aggregateRow!.ratedLogCount).toBe(2);
-    expect(aggregateRow!.avgRatingOutOfTen).toBeCloseTo((9 + 7) / 2, 5);
-
     const [listingRow] = (await SerialsArchiveRepository.getLocalArchiveRows()).filter(
       (row) => row.tmdbId === serial.tmdbId,
     );
-    expect(listingRow).toBeDefined();
-    expect(listingRow!.ratedLogCount).toBe(2);
-    expect(listingRow!.avgRatingOutOfTen).toBeCloseTo((9 + 7) / 2, 5);
+    for (const row of [aggregateRow, listingRow]) {
+      expect(row!.ratedLogCount).toBe(3);
+      expect(row!.avgRatingOutOfTen).toBeCloseTo((3 + 7 + 8) / 3, 5);
+    }
   });
 });

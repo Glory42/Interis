@@ -18,6 +18,8 @@ const MOVIE_COMMUNITY_RATING_SOURCE: CommunityRatingAggregateSource = {
   diaryEntityIdColumn: diaryEntries.movieId,
   diaryRatingColumn: diaryEntries.rating,
   diaryUserIdColumn: diaryEntries.userId,
+  diaryWatchedDateColumn: diaryEntries.watchedDate,
+  diaryCreatedAtColumn: diaryEntries.createdAt,
   interactionTableName: "movie_interaction",
   interactionEntityIdColumn: movieInteractions.movieId,
   interactionRatingColumn: movieInteractions.rating,
@@ -108,13 +110,14 @@ export class MoviesRepository {
     return row?.count ?? 0;
   }
 
-  // See mergeCommunityRatings for the diary-vs-interaction precedence rule.
+  // See mergeCommunityRatings for the one-rating-per-user rule.
   static async getCommunityRatingsByMovieId(movieId: number): Promise<{ rating: number }[]> {
     const [diaryRatingRows, interactionRatingRows] = await Promise.all([
       db
         .select({ userId: diaryEntries.userId, rating: diaryEntries.rating })
         .from(diaryEntries)
-        .where(and(eq(diaryEntries.movieId, movieId), isNotNull(diaryEntries.rating))),
+        .where(and(eq(diaryEntries.movieId, movieId), isNotNull(diaryEntries.rating)))
+        .orderBy(desc(diaryEntries.watchedDate), desc(diaryEntries.createdAt)),
       db
         .select({ userId: movieInteractions.userId, rating: movieInteractions.rating })
         .from(movieInteractions)

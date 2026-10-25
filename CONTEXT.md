@@ -50,6 +50,13 @@ _Avoid_: reply
 A user's standing relationship to one Movie or Serial — liked, watchlisted, watched, and rating — held as one row per user+media pair and updated in place, never a history of events. Season- and episode-level variants exist for Serials.
 _Avoid_: reaction, status
 
+**Your Rating**:
+A user's current rating of a Movie or Serial: the Interaction rating, else their latest rated Diary Entry. Logging or editing their latest rated Diary Entry sets the Interaction rating to match.
+
+**Community Rating**:
+The average of every user's Your Rating for a Movie or Serial, one rating per user however many Diary Entries they have. The detail page and archive listings use the same rule.
+_Avoid_: average log rating
+
 ### Lists
 
 **List**:

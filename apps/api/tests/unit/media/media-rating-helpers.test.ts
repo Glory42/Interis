@@ -65,23 +65,23 @@ describe("sortByWeightedTmdbRatingDesc", () => {
 });
 
 describe("mergeCommunityRatings", () => {
-  it("includes both diary and interaction-only ratings", () => {
+  it("includes both log-only and star-only raters", () => {
     const merged = mergeCommunityRatings(
       [{ userId: "u1", rating: 8 }],
       [{ userId: "u2", rating: 6 }],
     );
-    expect(merged).toEqual([{ rating: 8 }, { rating: 6 }]);
+    expect(merged).toEqual([{ rating: 6 }, { rating: 8 }]);
   });
 
-  it("prefers a user's diary rating over their interaction rating (no double-count)", () => {
+  it("prefers a user's star rating over their logs (no double-count)", () => {
     const merged = mergeCommunityRatings(
       [{ userId: "u1", rating: 9 }],
       [{ userId: "u1", rating: 3 }],
     );
-    expect(merged).toEqual([{ rating: 9 }]);
+    expect(merged).toEqual([{ rating: 3 }]);
   });
 
-  it("includes multiple diary ratings from the same user (per-log averaging)", () => {
+  it("counts only the latest of a user's rated logs", () => {
     const merged = mergeCommunityRatings(
       [
         { userId: "u1", rating: 9 },
@@ -89,7 +89,15 @@ describe("mergeCommunityRatings", () => {
       ],
       [],
     );
-    expect(merged).toEqual([{ rating: 9 }, { rating: 7 }]);
+    expect(merged).toEqual([{ rating: 9 }]);
+  });
+
+  it("falls back to the logs when the star rating is empty", () => {
+    const merged = mergeCommunityRatings(
+      [{ userId: "u1", rating: 7 }],
+      [{ userId: "u1", rating: null }],
+    );
+    expect(merged).toEqual([{ rating: 7 }]);
   });
 });
 
