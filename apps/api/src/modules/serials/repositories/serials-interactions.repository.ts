@@ -274,9 +274,18 @@ export class SerialsInteractionsRepository {
     const [deleted] = await db
       .delete(serialDiaryEntries)
       .where(and(eq(serialDiaryEntries.id, entryId), eq(serialDiaryEntries.userId, userId)))
-      .returning({ id: serialDiaryEntries.id });
+      .returning({ id: serialDiaryEntries.id, seriesId: serialDiaryEntries.seriesId });
 
     return deleted ?? null;
+  }
+
+  static async hasLogOfSeries(userId: string, seriesId: number): Promise<boolean> {
+    const [row] = await db
+      .select({ id: serialDiaryEntries.id })
+      .from(serialDiaryEntries)
+      .where(and(eq(serialDiaryEntries.userId, userId), eq(serialDiaryEntries.seriesId, seriesId)))
+      .limit(1);
+    return Boolean(row);
   }
 
   static async getLogsBySeriesId(seriesId: number, limit?: number, offset?: number) {

@@ -218,8 +218,12 @@ export const updateSerialLog = async (
   });
 };
 
-export const deleteSerialLog = async (entryId: string): Promise<void> => {
-  await apiRequest<unknown>(`/api/serials/logs/${entryId}`, { method: "DELETE" });
+export const deleteSerialLog = async (
+  entryId: string,
+  options: { unwatch?: boolean } = {},
+): Promise<void> => {
+  const query = options.unwatch ? "?unwatch=true" : "";
+  await apiRequest<unknown>(`/api/serials/logs/${entryId}${query}`, { method: "DELETE" });
 };
 
 export const getSeriesLogs = async (

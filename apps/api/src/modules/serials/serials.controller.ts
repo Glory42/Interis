@@ -12,6 +12,7 @@ import type {
 } from "./dto/serials.dto";
 import {
   CreateSerialLogSchema,
+  DeleteSerialLogQuerySchema,
   normalizeSerialArchiveQuery,
   normalizeSerialDetailQuery,
   normalizeSerialLogsQuery,
@@ -299,12 +300,18 @@ export class SerialsController {
     req: Request<{ id: string }>,
     res: Response,
   ): Promise<void> {
-    const deleted = await SerialsService.deleteLog(req.params.id, req.user.id);
+    const parsed = DeleteSerialLogQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    const deleted = await SerialsService.deleteLog(req.params.id, req.user.id, parsed.data);
     if (!deleted) {
       sendNotFound(res, "Serial log not found");
       return;
     }
 
-    res.status(200).json({ success: true });
+    res.status(200).json({ success: true, unwatched: deleted.unwatched });
   }
 }
