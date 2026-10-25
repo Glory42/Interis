@@ -1,7 +1,10 @@
-export const DiaryTableHeader = () => {
+import { cn } from "@/lib/utils";
+import { diaryGridColumns } from "./diary-model";
+
+export const DiaryTableHeader = ({ isOwner = false }: { isOwner?: boolean }) => {
   return (
     <div
-      className="hidden items-center gap-3 border-b px-2 pb-2 md:grid md:grid-cols-[80px_48px_56px_1fr_80px_120px_32px_32px_32px]"
+      className={cn("hidden items-center gap-3 border-b px-2 pb-2 md:grid", diaryGridColumns(isOwner))}
       style={{ borderColor: "var(--profile-shell-border)" }}
     >
       <p className="font-mono text-[9px] uppercase tracking-widest profile-shell-muted">Month</p>
@@ -19,6 +22,7 @@ export const DiaryTableHeader = () => {
       <p className="text-center font-mono text-[9px] uppercase tracking-widest profile-shell-muted">
         Rev.
       </p>
+      {isOwner ? <span /> : null}
     </div>
   );
 };

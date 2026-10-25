@@ -220,6 +220,10 @@ export const updateReview = async (
   return updatedReviewSchema.parse(response);
 };
 
+export const deleteReview = async (reviewId: string): Promise<void> => {
+  await apiRequest<unknown>(toReviewBasePath(reviewId), { method: "DELETE" });
+};
+
 // The viewer's own reviews of one title, newest first.
 export const getMyTitleReviews = async (
   query: MyTitleReviewsQuery,

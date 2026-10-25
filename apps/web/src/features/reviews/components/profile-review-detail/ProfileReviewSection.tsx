@@ -1,4 +1,4 @@
-import { Flag, Heart, Loader2, MessageSquare, TriangleAlert } from "lucide-react";
+import { Flag, Heart, Loader2, MessageSquare, Pencil, Trash2, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ReviewDetail } from "@/features/reviews/api";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,8 @@ type ProfileReviewSectionProps = {
   onToggleLike: () => void;
   showReportAction: boolean;
   onReport: () => void;
+  // Set on the viewer's own review.
+  ownerActions?: { onEdit: () => void; onDelete: () => void };
 };
 
 export const ProfileReviewSection = ({
@@ -21,6 +23,7 @@ export const ProfileReviewSection = ({
   onToggleLike,
   showReportAction,
   onReport,
+  ownerActions,
 }: ProfileReviewSectionProps) => {
   return (
     <section className="rounded-2xl border border-border/60 bg-card/35 p-5 sm:p-6">
@@ -88,6 +91,32 @@ export const ProfileReviewSection = ({
             <Flag className="h-3.5 w-3.5" />
             Report
           </Button>
+        ) : null}
+
+        {ownerActions ? (
+          <div className="ml-auto flex items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-label="Edit review"
+              onClick={ownerActions.onEdit}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Edit
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-destructive"
+              aria-label="Delete review"
+              onClick={ownerActions.onDelete}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Delete
+            </Button>
+          </div>
         ) : null}
       </div>
     </section>

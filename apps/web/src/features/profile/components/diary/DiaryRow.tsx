@@ -1,22 +1,47 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { AlignLeft, Heart, RefreshCw } from "lucide-react";
+import { AlignLeft, Heart, Pencil, RefreshCw } from "lucide-react";
+import { EditLogDialog } from "@/features/diary/components/EditLogDialog";
 import { feedChannelMeta } from "@/features/feed/components/feed-row.utils";
+import { cn } from "@/lib/utils";
 import { DiaryMediaLink } from "./DiaryMediaLink";
 import { DiaryPosterCell } from "./DiaryPosterCell";
 import { DiaryRatingStars } from "./DiaryRatingStars";
-import { channelDisplayLabel, type DiaryRow as DiaryRowModel } from "./diary-model";
+import {
+  channelDisplayLabel,
+  diaryGridColumns,
+  type DiaryRow as DiaryRowModel,
+} from "./diary-model";
 
 type DiaryRowProps = {
   row: DiaryRowModel;
   username: string;
+  // The viewer's own diary: each row can be edited or deleted.
+  isOwner?: boolean;
 };
 
-export const DiaryRow = ({ row, username }: DiaryRowProps) => {
+export const DiaryRow = ({ row, username, isOwner = false }: DiaryRowProps) => {
   const channelMeta = feedChannelMeta[row.channel];
+  const [isEditing, setIsEditing] = useState(false);
+  const canEdit = isOwner && row.tmdbId !== null;
+
+  const editButton = canEdit ? (
+    <button
+      type="button"
+      onClick={() => setIsEditing(true)}
+      className="inline-flex text-muted-foreground transition-colors hover:text-foreground"
+      aria-label={`Edit log of ${row.title}`}
+    >
+      <Pencil className="h-3 w-3" />
+    </button>
+  ) : null;
 
   return (
     <div
-      className="group grid grid-cols-[1fr] items-center gap-3 border-b px-2 py-3 transition-colors hover:bg-white/[0.015] md:grid-cols-[80px_48px_56px_1fr_80px_120px_32px_32px_32px]"
+      className={cn(
+        "group grid grid-cols-[1fr] items-center gap-3 border-b px-2 py-3 transition-colors hover:bg-white/[0.015]",
+        diaryGridColumns(isOwner),
+      )}
       style={{ borderColor: "var(--profile-shell-row-border)" }}
     >
       <div className="hidden md:flex">
@@ -83,6 +108,7 @@ export const DiaryRow = ({ row, username }: DiaryRowProps) => {
               Review
             </Link>
           ) : null}
+          {editButton ? <span className="ml-auto">{editButton}</span> : null}
         </div>
       </div>
 
@@ -127,6 +153,25 @@ export const DiaryRow = ({ row, username }: DiaryRowProps) => {
           <div className="h-3 w-3" />
         )}
       </div>
+
+      {isOwner ? <div className="hidden justify-center md:flex">{editButton}</div> : null}
+
+      {canEdit && row.tmdbId !== null ? (
+        <EditLogDialog
+          isOpen={isEditing}
+          onClose={() => setIsEditing(false)}
+          log={{
+            id: row.id,
+            mediaType: row.channel === "movie" ? "movie" : "tv",
+            tmdbId: row.tmdbId,
+            title: row.title,
+            watchedDate: row.createdAt,
+            rating: row.rating,
+            rewatch: row.rewatch,
+            hasReview: row.hasReview,
+          }}
+        />
+      ) : null}
     </div>
   );
 };

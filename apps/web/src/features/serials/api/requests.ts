@@ -30,7 +30,6 @@ import type {
   SerialArchiveResponse,
   SerialDetailInput,
   SerialDetailResponse,
-  SerialDiaryEntry,
   SerialDiaryList,
   SerialInteraction,
   SerialLogsList,
@@ -206,16 +205,17 @@ export const getMySerialLogs = async (): Promise<SerialDiaryList> => {
   return serialDiaryListSchema.parse(response);
 };
 
+// The server answers with the bare log row, not a diary-list entry, so
+// callers refetch what they show instead of reading the response.
 export const updateSerialLog = async (
   entryId: string,
   input: UpdateSerialLogInput,
-): Promise<SerialDiaryEntry> => {
+): Promise<void> => {
   const payload = updateSerialLogInputSchema.parse(input);
-  const response = await apiRequest<unknown, UpdateSerialLogInput>(
-    `/api/serials/logs/${entryId}`,
-    { method: "PUT", body: payload },
-  );
-  return serialDiaryListSchema.element.parse(response);
+  await apiRequest<unknown, UpdateSerialLogInput>(`/api/serials/logs/${entryId}`, {
+    method: "PUT",
+    body: payload,
+  });
 };
 
 export const deleteSerialLog = async (entryId: string): Promise<void> => {
