@@ -37,6 +37,8 @@ export const diaryEntries = pgTable(
   },
   (table) => [
     index("diary_entry_movie_id_idx").on(table.movieId),
+    // Backs the network stats' logs-today count.
+    index("diary_entry_created_at_idx").on(table.createdAt),
     // Backs the diary page query: WHERE user_id = X ORDER BY watched_date DESC, created_at DESC
     index("diary_entry_user_watched_created_idx").on(
       table.userId,

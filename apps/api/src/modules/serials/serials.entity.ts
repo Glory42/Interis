@@ -62,6 +62,8 @@ export const serialDiaryEntries = pgTable("serial_diary_entry", {
     .notNull(),
 }, (table) => [
   index("serial_diary_entry_series_id_idx").on(table.seriesId),
+  // Backs the network stats' logs-today count.
+  index("serial_diary_entry_created_at_idx").on(table.createdAt),
   // Backs the diary page query: WHERE user_id = X ORDER BY watched_date DESC, created_at DESC
   index("serial_diary_entry_user_watched_created_idx").on(
     table.userId,
