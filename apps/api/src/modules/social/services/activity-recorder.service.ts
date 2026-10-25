@@ -119,8 +119,8 @@ const buildSubjectFilter = (subject: ActivitySubject, rated: boolean): ActivityM
 };
 
 export class ActivityRecorder {
-  // Awaited write: insert the row, then invalidate the actor's following
-  // feed. Used by the write paths that already await their activity insert
+  // Awaited write: insert the row, then invalidate the actor's cached
+  // feeds. Used by the write paths that already await their activity insert
   // inside a Promise.all alongside a notification.
   static async record(input: {
     userId: string;
@@ -134,7 +134,7 @@ export class ActivityRecorder {
       entityId: input.entityId,
       metadata: JSON.stringify(input.metadata),
     });
-    SocialFeedService.invalidateFollowingFeed(input.userId);
+    ActivityRecorder.invalidateFeeds(input.userId);
   }
 
   // Fire-and-forget: an activity-feed write must never block or fail the
@@ -193,8 +193,9 @@ export class ActivityRecorder {
     }
   }
 
-  // The thing an activity is about was edited in place (e.g. a log's
-  // rating): the row stays, but cached feeds showing it are now stale.
+  // The actor's activity changed, or the thing an activity is about was
+  // edited in place (e.g. a log's rating): both cached views of it are stale,
+  // the following feeds and the public activity view.
   static invalidateFeeds(userId: string): void {
     SocialFeedService.invalidateFollowingFeed(userId);
     SocialFeedService.invalidateUserActivityFeed(userId);

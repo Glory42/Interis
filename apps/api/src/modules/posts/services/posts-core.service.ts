@@ -1,5 +1,4 @@
 import { ActivityRecorder } from "../../social/services/activity-recorder.service";
-import { SocialFeedService } from "../../social/services/social-feed.service";
 import type { CreatePostDto, UpdatePostDto } from "../dto/posts.dto";
 import { buildPostCreatedActivityMetadata } from "../helpers/posts-activity.helper";
 import { PostsRepository } from "../repositories/posts.repository";
@@ -57,7 +56,7 @@ export class PostsCoreService {
 
   static async delete(postId: string, userId: string) {
     const deleted = await PostsRepository.deleteByIdAndUser(postId, userId);
-    SocialFeedService.invalidateFollowingFeed(userId);
+    ActivityRecorder.invalidateFeeds(userId);
     if (deleted) {
       await ActivityRecorder.retract({ userId, type: "post", entityId: postId });
     }
@@ -78,7 +77,7 @@ export class PostsCoreService {
 
   static async update(postId: string, userId: string, input: UpdatePostDto) {
     const updated = await PostsRepository.updateByIdAndUser(postId, userId, input.content);
-    SocialFeedService.invalidateFollowingFeed(userId);
+    ActivityRecorder.invalidateFeeds(userId);
     return updated;
   }
 }

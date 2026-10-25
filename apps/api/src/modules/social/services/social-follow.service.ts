@@ -46,7 +46,6 @@ export class SocialFollowService {
   static async unfollow(followerId: string, followingId: string) {
     await SocialRepository.deleteFollow(followerId, followingId);
     await SocialFollowService.retractFollow(followerId, followingId);
-    SocialFeedService.invalidateFollowingFeed(followerId);
     return { success: true } as const;
   }
 
@@ -69,8 +68,10 @@ export class SocialFollowService {
   }
 
   // The follow is gone either way (unfollowed, or removed by the person
-  // followed), so its feed row and notification go too.
+  // followed), so its feed row and notification go too, and the follower's
+  // cached feed must stop showing the account.
   private static async retractFollow(followerId: string, followingId: string) {
+    SocialFeedService.invalidateFollowingFeed(followerId);
     await Promise.all([
       ActivityRecorder.retract({
         userId: followerId,
