@@ -6,7 +6,6 @@ import {
   type ActivitySubject,
 } from "../../social/services/activity-recorder.service";
 import { InteractionsService } from "../../interactions/interactions.service";
-import { SocialFeedService } from "../../social/services/social-feed.service";
 import { ReviewsRepository } from "../repositories/reviews.repository";
 import { buildReviewCreatedActivityMetadata } from "../helpers/reviews-activity.helper";
 import type { CreateReviewDto, MyTitleReviewsQueryDto, UpdateReviewDto } from "../dto/reviews.dto";
@@ -130,13 +129,13 @@ export class ReviewsCoreService {
 
   static async update(reviewId: string, userId: string, input: UpdateReviewDto) {
     const updated = await ReviewsRepository.updateByIdAndUser(reviewId, userId, input);
-    SocialFeedService.invalidateFollowingFeed(userId);
+    ActivityRecorder.invalidateFeeds(userId);
     return updated;
   }
 
   static async delete(reviewId: string, userId: string) {
     const deleted = await ReviewsRepository.deleteByIdAndUser(reviewId, userId);
-    SocialFeedService.invalidateFollowingFeed(userId);
+    ActivityRecorder.invalidateFeeds(userId);
     if (deleted) {
       await ActivityRecorder.retract({ userId, type: "review", entityId: reviewId });
     }
