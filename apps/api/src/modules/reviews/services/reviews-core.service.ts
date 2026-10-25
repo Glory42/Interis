@@ -65,9 +65,20 @@ export class ReviewsCoreService {
     input: CreateReviewDto,
     adapter: ReviewMediaAdapter<TMedia, TResult>,
   ): Promise<TResult> {
-    // Each review is its own row (#72), but a log holds at most one.
-    if (input.diaryEntryId && (await ReviewsRepository.existsForDiaryEntry(input.diaryEntryId))) {
-      throw new ConflictError("This log already has a review. Edit that one instead.");
+    if (input.diaryEntryId) {
+      // Only the author's own log of this title (#87).
+      const logTmdbId = await ReviewsRepository.findOwnLogTmdbId(
+        userId,
+        input.mediaType,
+        input.diaryEntryId,
+      );
+      if (logTmdbId !== input.tmdbId) {
+        throw new NotFoundError("Log not found");
+      }
+      // Each review is its own row (#72), but a log holds at most one.
+      if (await ReviewsRepository.existsForDiaryEntry(input.diaryEntryId)) {
+        throw new ConflictError("This log already has a review. Edit that one instead.");
+      }
     }
 
     const media = await adapter.findOrCreateMedia(input.tmdbId);

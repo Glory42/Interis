@@ -241,7 +241,7 @@ export class SerialsInteractionsRepository {
         reviews,
         and(
           eq(reviews.userId, serialDiaryEntries.userId),
-          eq(reviews.diaryEntryId, serialDiaryEntries.id),
+          eq(reviews.serialDiaryEntryId, serialDiaryEntries.id),
           eq(reviews.mediaType, "tv"),
         ),
       )
@@ -301,7 +301,7 @@ export class SerialsInteractionsRepository {
         reviews,
         and(
           eq(reviews.userId, serialDiaryEntries.userId),
-          eq(reviews.diaryEntryId, serialDiaryEntries.id),
+          eq(reviews.serialDiaryEntryId, serialDiaryEntries.id),
           eq(reviews.mediaType, "tv"),
         ),
       )

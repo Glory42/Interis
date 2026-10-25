@@ -35,7 +35,7 @@ _Avoid_: actor, cast member (too narrow — Person covers crew too)
 ### Watching & reviewing
 
 **Diary Entry**:
-A record that a user watched a Movie or Serial on a given date — a watch log. Stored per media type (`diary_entry` for movies, `serial_diary_entry` for serials). May optionally have a Review attached (`Review.diaryEntryId`).
+A record that a user watched a Movie or Serial on a given date — a watch log. Stored per media type (`diary_entry` for movies, `serial_diary_entry` for serials). May optionally have a Review attached (`Review.diaryEntryId` for movie logs, `Review.serialDiaryEntryId` for serial logs). Deleting the log keeps the Review, unattached.
 _Avoid_: watch, log
 
 **Review**:

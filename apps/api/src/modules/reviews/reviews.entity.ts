@@ -10,7 +10,9 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { user } from "../../infrastructure/database/auth.entity";
+import { diaryEntries } from "../diary/diary.entity";
 import { movies } from "../movies/movies.entity";
+import { serialDiaryEntries } from "../serials/serials.entity";
 
 // mediaSource/mediaSourceId identify the external media record (e.g. TMDB id).
 export const reviews = pgTable(
@@ -26,7 +28,14 @@ export const reviews = pgTable(
     mediaSource: text("media_source").notNull().default("tmdb"),
     mediaSourceId: text("media_source_id").notNull(),
     movieId: integer("movie_id").references(() => movies.id, { onDelete: "cascade" }),
-    diaryEntryId: uuid("diary_entry_id"),
+    // The log the review was written with: a movie log for movie reviews, a
+    // series log for tv reviews. Deleting the log keeps the review (#87).
+    diaryEntryId: uuid("diary_entry_id").references(() => diaryEntries.id, {
+      onDelete: "set null",
+    }),
+    serialDiaryEntryId: uuid("serial_diary_entry_id").references(() => serialDiaryEntries.id, {
+      onDelete: "set null",
+    }),
     content: text("content").notNull(),
     containsSpoilers: boolean("contains_spoilers").default(false).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -49,6 +58,7 @@ export const reviews = pgTable(
     index("review_created_at_idx").on(table.createdAt),
     // One review per log: logs find their review by this column (#73).
     uniqueIndex("review_diary_entry_id_unique").on(table.diaryEntryId),
+    uniqueIndex("review_serial_diary_entry_id_unique").on(table.serialDiaryEntryId),
     // Backs lookups by these three columns without userId.
     index("review_media_source_idx").on(
       table.mediaType,
