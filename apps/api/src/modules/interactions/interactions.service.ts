@@ -107,6 +107,10 @@ export class InteractionsService {
     await movieInteractionStore.markWatched(userId, movieId);
   }
 
+  static async setUnwatched(userId: string, movieId: number): Promise<void> {
+    await movieInteractionStore.upsertState(userId, movieId, { watched: false });
+  }
+
   static async setWatchlisted(userId: string, movieId: number): Promise<void> {
     await movieInteractionStore.setWatchlisted(userId, movieId);
   }

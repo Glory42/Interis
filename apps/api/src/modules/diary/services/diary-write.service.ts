@@ -4,7 +4,7 @@ import { ActivityRecorder } from "../../social/services/activity-recorder.servic
 import { ReviewsRepository } from "../../reviews/repositories/reviews.repository";
 import { buildDiaryEntryActivityMetadata } from "../helpers/diary-activity.helper";
 import { DiaryRepository } from "../repositories/diary.repository";
-import type { CreateDiaryDto, UpdateDiaryDto } from "../dto/diary.dto";
+import type { CreateDiaryDto, DeleteDiaryQueryDto, UpdateDiaryDto } from "../dto/diary.dto";
 import { NotFoundError } from "../../../commons/errors/app-error";
 
 export class DiaryWriteService {
@@ -80,10 +80,19 @@ export class DiaryWriteService {
     return updated;
   }
 
-  static async delete(entryId: string, userId: string) {
+  // Deleting a log keeps the movie watched, as Letterboxd does, unless the
+  // user asks otherwise and no other log of it is left (#86).
+  static async delete(entryId: string, userId: string, options: DeleteDiaryQueryDto = {}) {
     const deleted = await DiaryRepository.deleteByIdAndUser(entryId, userId);
-    if (deleted) await DiaryWriteService.retractLog(deleted);
-    return deleted;
+    if (!deleted) return null;
+
+    const unwatch =
+      options.unwatch === true && !(await DiaryRepository.hasLogOfMovie(userId, deleted.movieId));
+    await Promise.all([
+      DiaryWriteService.retractLog(deleted),
+      unwatch ? InteractionsService.setUnwatched(userId, deleted.movieId) : null,
+    ]);
+    return { ...deleted, unwatched: unwatch };
   }
 
   // No ownership check — admin moderation only.

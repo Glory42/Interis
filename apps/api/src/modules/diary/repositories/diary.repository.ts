@@ -147,9 +147,22 @@ export class DiaryRepository {
     const [deleted] = await db
       .delete(diaryEntries)
       .where(and(eq(diaryEntries.id, entryId), eq(diaryEntries.userId, userId)))
-      .returning({ id: diaryEntries.id, userId: diaryEntries.userId });
+      .returning({
+        id: diaryEntries.id,
+        userId: diaryEntries.userId,
+        movieId: diaryEntries.movieId,
+      });
 
     return deleted ?? null;
+  }
+
+  static async hasLogOfMovie(userId: string, movieId: number): Promise<boolean> {
+    const [row] = await db
+      .select({ id: diaryEntries.id })
+      .from(diaryEntries)
+      .where(and(eq(diaryEntries.userId, userId), eq(diaryEntries.movieId, movieId)))
+      .limit(1);
+    return Boolean(row);
   }
 
   // No ownership check — admin moderation only.

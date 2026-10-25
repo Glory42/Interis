@@ -42,7 +42,7 @@ describe("EditLogDialog", () => {
     });
 
     expect(screen.getByRole("button", { name: "save" })).toBeDisabled();
-    await user.click(screen.getByRole("checkbox"));
+    await user.click(screen.getByRole("checkbox", { name: /watched this before/i }));
     await user.click(screen.getByRole("button", { name: "save" }));
 
     await waitFor(() => expect(closed).toBe(true));
@@ -70,6 +70,32 @@ describe("EditLogDialog", () => {
     await user.click(screen.getByRole("button", { name: "Delete" }));
     await waitFor(() => expect(closed).toBe(true));
     expect(deleted).toBe(true);
+  });
+
+  it("asks the server to mark the movie not watched when that box is ticked", async () => {
+    let requestUrl = "";
+    server.use(
+      http.delete("*/api/diary/entry-1", ({ request }) => {
+        requestUrl = request.url;
+        return HttpResponse.json({ success: true, unwatched: true });
+      }),
+    );
+    const user = userEvent.setup();
+    renderDialog(movieLog, () => {});
+
+    await user.click(screen.getByRole("button", { name: /delete log/i }));
+    await user.click(screen.getByRole("checkbox", { name: /also mark as not watched/i }));
+    await user.click(screen.getByRole("button", { name: "Delete" }));
+
+    await waitFor(() => expect(requestUrl).toContain("?unwatch=true"));
+  });
+
+  it("offers no watched option for a series log", async () => {
+    const user = userEvent.setup();
+    renderDialog({ ...movieLog, mediaType: "tv" }, () => {});
+
+    await user.click(screen.getByRole("button", { name: /delete log/i }));
+    expect(screen.queryByRole("checkbox", { name: /also mark as not watched/i })).toBeNull();
   });
 
   it("stays open and shows the error when the delete fails", async () => {
