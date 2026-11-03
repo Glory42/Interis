@@ -35,5 +35,12 @@ Disallow: /login
 Disallow: /register
 Disallow: /forgot-password
 Disallow: /setup-security-question
+# TMDB mirror pages: an endless link graph, and the API refuses crawlers there anyway
+# (blockCrawlers.ts). Only the landing page and /profile/* are meant to be indexed.
+Disallow: /movies
+Disallow: /serials
+Disallow: /actor/
+Disallow: /director/
+Disallow: /reviews/
 Disallow: /*?
 Crawl-delay: 10
