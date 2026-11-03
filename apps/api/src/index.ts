@@ -11,6 +11,7 @@ import { env } from "./infrastructure/config/env";
 import { AppError } from "./commons/errors/app-error";
 import { securityHeaders } from "./commons/middlewares/securityHeaders";
 import { helmetMiddleware } from "./commons/middlewares/helmet";
+import { blockCrawlers } from "./commons/middlewares/blockCrawlers";
 import { requireTrustedOriginForMutations } from "./commons/middlewares/requireTrustedOriginForMutations";
 import {
   createAuthLimiter,
@@ -90,6 +91,7 @@ export const createApp = (options: CreateAppOptions = {}) => {
     }),
   );
 
+  app.use(blockCrawlers);
   app.use("/api", apiLimiter);
   app.use("/api", mutationLimiter);
   app.use(requireTrustedOriginForMutations(trustedOrigins));
