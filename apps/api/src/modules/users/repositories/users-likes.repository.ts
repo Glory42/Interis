@@ -3,6 +3,7 @@ import { db } from "../../../infrastructure/database/db";
 import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
+import { tvSeries } from "../../serials/serials.entity";
 import { reviews, reviewLikes } from "../../reviews/reviews.entity";
 import { lists, listLikes, listEntries } from "../../lists/lists.entity";
 import type { MediaType } from "../../media/constants/media-type.constant";
@@ -37,21 +38,50 @@ export class UsersLikesRepository {
 
     const rows = await applyOptionalPagination(baseQuery, limit, offset);
 
-    return rows.map((row) => ({
-      id: row.id,
-      content: row.content,
-      containsSpoilers: row.containsSpoilers,
-      createdAt: row.createdAt.toISOString(),
-      likedAt: row.likedAt.toISOString(),
-      mediaType: row.mediaType as MediaType,
-      mediaSourceId: row.mediaSourceId,
-      reviewerUsername: row.reviewerUsername,
-      reviewerDisplayUsername: row.reviewerDisplayUsername,
-      mediaTitle: row.movieTitle ?? null,
-      mediaPosterPath: row.moviePosterPath ?? null,
-      mediaTmdbId: row.movieTmdbId ?? (row.mediaType === "tv" ? Number(row.mediaSourceId) : null),
-      mediaReleaseYear: row.movieReleaseYear ?? null,
-    }));
+    // Season/episode reviews store "{tmdbId}:{season}[:{episode}]"; all tv rows surface as the series.
+    const seriesTmdbIdOf = (row: (typeof rows)[number]) => {
+      if (row.mediaType === "movie") return null;
+      const tmdbId = Number(row.mediaSourceId.split(":")[0]);
+      return Number.isInteger(tmdbId) && tmdbId > 0 ? tmdbId : null;
+    };
+
+    const seriesTmdbIds = [
+      ...new Set(rows.map(seriesTmdbIdOf).filter((id): id is number => id !== null)),
+    ];
+    const seriesRows = seriesTmdbIds.length
+      ? await db
+          .select({
+            tmdbId: tvSeries.tmdbId,
+            title: tvSeries.title,
+            posterPath: tvSeries.posterPath,
+            releaseYear: tvSeries.firstAirYear,
+          })
+          .from(tvSeries)
+          .where(inArray(tvSeries.tmdbId, seriesTmdbIds))
+      : [];
+    const seriesByTmdbId = new Map(seriesRows.map((row) => [row.tmdbId, row]));
+
+    return rows.map((row) => {
+      const seriesTmdbId = seriesTmdbIdOf(row);
+      const series = seriesTmdbId !== null ? seriesByTmdbId.get(seriesTmdbId) : undefined;
+      const isMovie = row.mediaType === "movie";
+
+      return {
+        id: row.id,
+        content: row.content,
+        containsSpoilers: row.containsSpoilers,
+        createdAt: row.createdAt.toISOString(),
+        likedAt: row.likedAt.toISOString(),
+        mediaType: (isMovie ? "movie" : "tv") as MediaType,
+        mediaSourceId: row.mediaSourceId,
+        reviewerUsername: row.reviewerUsername,
+        reviewerDisplayUsername: row.reviewerDisplayUsername,
+        mediaTitle: (isMovie ? row.movieTitle : series?.title) ?? null,
+        mediaPosterPath: (isMovie ? row.moviePosterPath : series?.posterPath) ?? null,
+        mediaTmdbId: (isMovie ? row.movieTmdbId : seriesTmdbId) ?? null,
+        mediaReleaseYear: (isMovie ? row.movieReleaseYear : series?.releaseYear) ?? null,
+      };
+    });
   }
 
   static async getLikedLists(userId: string, limit?: number, offset?: number) {

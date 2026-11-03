@@ -1,7 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
+import { eq } from "drizzle-orm";
+import { db } from "../../../src/infrastructure/database/db";
+import { user } from "../../../src/infrastructure/database/auth.entity";
+import { reviews } from "../../../src/modules/reviews/reviews.entity";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
-import { seedTestMovie } from "../../support/factories/media.factory";
+import { seedTestMovie, seedTestSerial } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -199,6 +203,49 @@ describe("users profile-list endpoints", () => {
     );
     const likedLists = (await likedListsResponse.json()) as Array<{ id: string }>;
     expect(likedLists.some((l) => l.id === list.id)).toBe(true);
+  });
+
+  it("surfaces a liked episode review as its series under liked-reviews", async () => {
+    const author = await signUpTestUser(getServer().baseUrl, "upliepauthor");
+    const liker = await signUpTestUser(getServer().baseUrl, "upliepliker");
+    const serial = await seedTestSerial("Liked Episode Serial");
+    const [authorRow] = await db
+      .select({ id: user.id })
+      .from(user)
+      .where(eq(user.username, author.username));
+
+    const [review] = await db
+      .insert(reviews)
+      .values({
+        userId: authorRow!.id,
+        mediaType: "tv_episode",
+        mediaSourceId: `${serial.tmdbId}:1:2`,
+        content: "Great episode",
+      })
+      .returning({ id: reviews.id });
+    await apiRequest(
+      getServer().baseUrl,
+      `/api/reviews/${review!.id}/like`,
+      { method: "POST" },
+      liker.jar,
+    );
+
+    const response = await apiRequest(
+      getServer().baseUrl,
+      `/api/users/${liker.username}/liked-reviews`,
+    );
+    const likedReviews = (await response.json()) as Array<{
+      id: string;
+      mediaType: string;
+      mediaTmdbId: number | null;
+      mediaTitle: string | null;
+    }>;
+    const liked = likedReviews.find((r) => r.id === review!.id);
+    expect(liked).toMatchObject({
+      mediaType: "tv",
+      mediaTmdbId: serial.tmdbId,
+      mediaTitle: "Liked Episode Serial",
+    });
   });
 
   it("searches users by query", async () => {
