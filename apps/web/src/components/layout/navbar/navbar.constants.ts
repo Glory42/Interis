@@ -16,22 +16,22 @@ export type PrimaryNavItem = {
 export const primaryNavItems: PrimaryNavItem[] = [
   {
     to: "/",
-    label: "FEED",
+    label: "Feed",
     icon: Rss,
     exact: true,
-    activeColor: "var(--foreground)",
+    activeColor: "var(--fg)",
   },
   {
     to: "/movies",
-    label: "MOVIE",
+    label: "Films",
     icon: Film,
-    activeColor: "var(--module-movie)",
+    activeColor: "var(--film)",
   },
   {
     to: "/serials",
-    label: "SERIAL",
+    label: "TV",
     icon: Tv,
-    activeColor: "var(--module-serial)",
+    activeColor: "var(--series)",
   },
 ];
 
