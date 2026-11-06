@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ModalShell } from "@/components/ui/ModalShell";
 import { Textarea } from "@/components/ui/textarea";
-import { SpaceRatingInput } from "@/features/movies/components/SpaceRating";
+import { LaunchTrack } from "@/components/film/rating/LaunchTrack";
 import { CalendarPicker } from "@/components/ui/CalendarPicker";
 import { todayAsLocalDateInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
@@ -189,10 +189,9 @@ export const LogMediaDialog = ({
                         <span>Rating</span>
                       </span>
                     </label>
-                    <SpaceRatingInput
+                    <LaunchTrack
                       value={rating}
-                      onChange={onRatingChange}
-                      autoSave
+                      onCommit={onRatingChange}
                       accentColor={accentColor}
                     />
                   </section>

@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowLeft, Film, Tv } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { type ReviewDetail } from "@/features/reviews/api";
-import { SpaceRatingDisplay } from "@/features/movies/components/SpaceRating";
+import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
 import { getPosterUrl } from "@/features/movies/components/utils";
 import { formatRelativeTime } from "@/features/reviews/components/profile-review-detail/utils";
 
@@ -135,7 +135,7 @@ export const ProfileReviewDetailHero = ({
               </div>
 
               <div className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-secondary/40 px-2.5 py-1 text-xs font-semibold text-foreground">
-                <SpaceRatingDisplay rating={detail.rating} size="sm" />
+                <RocketDisplay rating={detail.rating} size="sm" />
                 <span>{ratingLabel ?? "Unrated"}</span>
               </div>
             </div>

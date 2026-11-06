@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { AddToListDialog } from "@/features/lists/components/AddToListDialog";
-import { SpaceRatingInput } from "@/features/movies/components/SpaceRating";
+import { LaunchTrack } from "@/components/film/rating/LaunchTrack";
 import { RatingPanelStarfield } from "@/features/media/detail/RatingPanelStarfield";
 import type { MediaModuleStyles } from "@/features/media/styles";
 
@@ -170,11 +170,12 @@ export const MediaActionsSidebar = ({
           </p>
           <div className="relative flex items-center gap-3">
             {isAuthenticated ? (
-              <SpaceRatingInput
+              <LaunchTrack
                 value={currentRating}
-                onChange={onRatingChange}
+                onCommit={onRatingChange}
                 disabled={isRatingSaving}
                 accentColor={moduleStyles.accent}
+                confirmSaves
               />
             ) : (
               <Link

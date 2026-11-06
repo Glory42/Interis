@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { SpaceRatingDisplay } from "@/features/movies/components/SpaceRating";
+import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
 import { formatRatingLabel } from "@/lib/rating";
 import { useMovieLogs } from "@/features/movies/hooks/useMovies";
 import { formatDateOnlyLabel } from "@/lib/time";
@@ -82,7 +82,7 @@ export const MovieLogs = ({ tmdbId }: MovieLogsProps) => {
                 <div className="flex flex-wrap items-center gap-2">
                   {log.rating !== null ? (
                     <span className="inline-flex items-center gap-1  border border-border/65 bg-secondary/40 px-2 py-1 text-xs text-foreground">
-                      <SpaceRatingDisplay
+                      <RocketDisplay
                         rating={log.rating}
                         size="sm"
                       />

@@ -56,7 +56,7 @@ test("toggling watchlist/watch/like/rating on a movie reflects on the profile ta
     });
 
     await test.step("sets a rating via the slider", async () => {
-      // Only one SpaceRatingInput matching this aria-label exists on this
+      // Only one LaunchTrack matching this aria-label exists on this
       // page as long as it's freshly loaded (confirmed via direct DOM
       // inspection) - the sidebar's own widget.
       const slider = page.getByRole("slider", { name: "Rating out of 10" });
@@ -68,18 +68,16 @@ test("toggling watchlist/watch/like/rating on a movie reflects on the profile ta
       // widget (tabindex="-1", where clicks silently no-op). Wait for it
       // to re-enable first.
       await expect(slider).toHaveAttribute("tabindex", "0", { timeout: 10_000 });
-      // The track maps clientY linearly to a 0-10 rating (10 at the top,
-      // 0 at the bottom, see SpaceRating.tsx's snapRating) - clicking at
-      // 20% down a 160px-tall track lands on rating 8.
-      await slider.click({ position: { x: 12, y: 32 } });
-      await expect(slider).toHaveAttribute("aria-valuenow", "8", { timeout: 10_000 });
-      // The sidebar slider only saves on its Save button.
+      // The launch track maps clientX to 0–10 left to right and saves on
+      // release - clicking 80% along it lands on 8.
       const ratingSaved = page.waitForResponse(
         (response) =>
           response.url().includes(`/api/interactions/${KNOWN_MOVIE_TMDB_ID}`) &&
           response.request().method() === "PUT",
       );
-      await page.getByRole("button", { name: "Save", exact: true }).click();
+      const box = await slider.boundingBox();
+      await slider.click({ position: { x: box!.width * 0.8, y: box!.height / 2 } });
+      await expect(slider).toHaveAttribute("aria-valuenow", "8", { timeout: 10_000 });
       await ratingSaved;
     });
 

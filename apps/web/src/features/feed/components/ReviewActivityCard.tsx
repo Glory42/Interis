@@ -1,7 +1,7 @@
 import { memo, useState, type MouseEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { TriangleAlert } from "lucide-react";
-import { SpaceRatingDisplay } from "@/features/movies/components/SpaceRating";
+import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
 import {
   CommentButton,
   EditButton,
@@ -155,7 +155,7 @@ export const ReviewActivityCard = memo(function ReviewActivityCard({
                 {rating}
                 <span className="text-xs font-normal text-muted-foreground">/10</span>
               </span>
-              <SpaceRatingDisplay rating={ratingValue} size="sm" />
+              <RocketDisplay rating={ratingValue} size="sm" />
             </div>
           ) : null}
 

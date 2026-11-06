@@ -581,10 +581,6 @@
     border-color: var(--module-serial) !important;
   }
 
-  .space-rating-save-button:hover {
-    background: color-mix(in srgb, var(--space-rating-accent) 20%, transparent);
-  }
-
   .theme-navbar-shell {
     background: var(--theme-navbar-bg) !important;
     border-bottom-color: var(--theme-navbar-border) !important;

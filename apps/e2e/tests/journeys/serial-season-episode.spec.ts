@@ -50,14 +50,12 @@ test("toggles episode/season/series watch state and rating, and writes a season 
         timeout: 10_000,
       });
 
-      // RatingSelect is a themed dropdown, not a native <select> - its
-      // option list is portaled to document.body (to escape the season
-      // accordion's overflow-hidden clipping), so the trigger is scoped to
-      // episode1 but the opened option is a page-wide lookup.
-      const episodeRatingTrigger = episode1.getByRole("button", { name: "Episode rating" });
-      await episodeRatingTrigger.click();
-      await page.getByRole("button", { name: "9.0", exact: true }).click();
-      await expect(episodeRatingTrigger).toHaveAccessibleName(/9\.0/, { timeout: 10_000 });
+      // Episode and season rows rate with a small launch track (0–10, left
+      // to right, saves on release) - clicking 90% along it lands on 9.
+      const episodeRating = episode1.getByRole("slider", { name: "Episode rating out of 10" });
+      const episodeBox = await episodeRating.boundingBox();
+      await episodeRating.click({ position: { x: episodeBox!.width * 0.9, y: episodeBox!.height / 2 } });
+      await expect(episodeRating).toHaveAttribute("aria-valuenow", "9", { timeout: 10_000 });
     });
 
     await test.step("toggles season 1 watched and sets its rating", async () => {
@@ -66,10 +64,10 @@ test("toggles episode/season/series watch state and rating, and writes a season 
         timeout: 10_000,
       });
 
-      const seasonRatingTrigger = season1Row.getByRole("button", { name: "Season rating" });
-      await seasonRatingTrigger.click();
-      await page.getByRole("button", { name: "8.0", exact: true }).click();
-      await expect(seasonRatingTrigger).toHaveAccessibleName(/8\.0/, { timeout: 10_000 });
+      const seasonRating = season1Row.getByRole("slider", { name: "Season rating out of 10" });
+      const seasonBox = await seasonRating.boundingBox();
+      await seasonRating.click({ position: { x: seasonBox!.width * 0.8, y: seasonBox!.height / 2 } });
+      await expect(seasonRating).toHaveAttribute("aria-valuenow", "8", { timeout: 10_000 });
     });
 
     await test.step("writes a season review", async () => {
@@ -77,7 +75,7 @@ test("toggles episode/season/series watch state and rating, and writes a season 
 
       // LogMediaDialog sets role="dialog" (unlike the feed's review-edit
       // dialog built on the plain ModalShell pattern) - but it embeds its
-      // own SpaceRatingInput, which shares the sidebar's generic
+      // own LaunchTrack, which shares the sidebar's generic
       // "Rating out of 10" aria-label. Scoping to the dialog picks the
       // modal's own slider, not the still-mounted sidebar's.
       const dialog = page.getByRole("dialog");
@@ -87,9 +85,7 @@ test("toggles episode/season/series watch state and rating, and writes a season 
       await page
         .getByPlaceholder("Share your thoughts about this season...")
         .fill(SEASON_REVIEW_TEXT);
-      // The dialog also contains a separate, disabled "Save" button
-      // belonging to the embedded rating widget's own (non-autoSave)
-      // controls - scope to the dialog's real submit button.
+      // Scope to the dialog's own submit button.
       await dialog.getByRole("button", { name: "Save", exact: true }).click();
       await expect(dialog).not.toBeVisible({ timeout: 10_000 });
 
@@ -155,7 +151,8 @@ test("toggles episode/season/series watch state and rating, and writes a season 
       // settles - wait for it to re-enable before interacting.
       const slider = sidebar.getByRole("slider", { name: "Rating out of 10" });
       await expect(slider).toHaveAttribute("tabindex", "0", { timeout: 10_000 });
-      await slider.click({ position: { x: 12, y: 32 } });
+      const box = await slider.boundingBox();
+      await slider.click({ position: { x: box!.width * 0.8, y: box!.height / 2 } });
       await expect(slider).toHaveAttribute("aria-valuenow", "8", { timeout: 10_000 });
     });
 

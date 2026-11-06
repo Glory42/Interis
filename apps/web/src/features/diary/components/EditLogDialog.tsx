@@ -9,7 +9,7 @@ import {
   useUpdateOwnLog,
   type OwnLog,
 } from "@/features/diary/hooks/useOwnLogActions";
-import { SpaceRatingInput } from "@/features/movies/components/SpaceRating";
+import { LaunchTrack } from "@/components/film/rating/LaunchTrack";
 import { runDialogSubmit } from "@/lib/fire-and-forget";
 import { todayAsLocalDateInput } from "@/lib/time";
 import { TickLoader } from "@/components/ui/tick-loader";
@@ -88,7 +88,7 @@ const EditLogDialogContent = ({ onClose, log }: Omit<EditLogDialogProps, "isOpen
 
             <section className="space-y-2">
               <p className="text-sm font-semibold text-foreground">Rating</p>
-              <SpaceRatingInput value={rating} onChange={setRating} autoSave />
+              <LaunchTrack value={rating} onCommit={setRating} />
             </section>
 
             <div className="flex items-center justify-between gap-2 border-t border-border/60 pt-3">
