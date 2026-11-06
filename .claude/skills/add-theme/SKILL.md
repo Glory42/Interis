@@ -40,49 +40,11 @@ Both whitelists (backend and frontend) must be in sync — a theme ID present in
 
 ## Step 3 — Registry data file
 
-**File:** `apps/web/public/theme-registry.js`
-
-This is a plain JS file loaded as a `<script>` before React hydrates. It populates `window.__THIS_IS_CINEMA_THEME_REGISTRY__`.
-
-Add a new entry to the registry object. Required shape:
-
-```js
-"your-theme-id": {
-  id: "your-theme-id",
-  label: "Human Readable Name",
-  description: "One sentence describing the vibe.",
-  preview: {
-    background: "#...",
-    foreground: "#...",
-    primary: "#...",
-    secondary: "#...",
-    accent: "#...",
-    muted: "#...",
-  },
-  tokens: {
-    "--background": "#...",
-    "--foreground": "#...",
-    "--primary": "#...",
-    // ... all required tokens (see ADDING-THEMES.md for the full list)
-  },
-}
-```
-
-The `preview` object drives the swatch shown in the settings picker — use the most representative colours.
-
-If the user has provided a colour palette, generate all token values from it. If not, ask the user for at minimum: background, foreground, primary accent, and secondary accent colours, then derive the remaining tokens from those.
-
----
+`apps/web/public/theme-registry.js`: add `id`, `label`, `description` and `preview` (`mode`, four `swatches`: bg, surface, primary, film). No colour tokens go here.
 
 ## Step 4 — CSS token block
 
-**File:** `apps/web/src/index.css`
-
-Add a `:root[data-theme-id="your-theme-id"]` block with all CSS custom properties. This is the runtime token source; `theme-registry.js` tokens are applied via JS on boot, but the CSS block acts as the fallback and SSR baseline.
-
-Copy the structure from an existing theme block in the file as a template. The full token list is in `ADDING-THEMES.md` — every group (core, aura, shell, hero, modal, navbar, UI elements, typography, button effects, radius, module colors) must be present.
-
----
+`apps/web/src/index.css`: copy an existing `:root[data-theme-id="…"]` block and set every role: `--bg`, `--surface`, `--raised`, `--fg`, `--muted-foreground`, `--faint`, `--line`, `--line-strong`, `--primary`, `--primary-foreground`, `--film`, `--series`, `--like`, `--danger`, `--warning`, `--success`, `--grain`. Update the derived library names in the same block to match. Light themes add `color-scheme: light;`. The theme contrast test must pass (4.5:1 for text roles on bg and surface).
 
 ## Step 5 — TypeScript type
 

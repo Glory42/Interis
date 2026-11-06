@@ -10,7 +10,6 @@ type ThemeRegistryEntry = {
   label: string;
   description?: string;
   preview?: ThemeRegistryPreview;
-  tokens: Record<string, string>;
 };
 
 declare global {
