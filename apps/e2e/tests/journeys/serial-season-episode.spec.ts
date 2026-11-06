@@ -50,14 +50,12 @@ test("toggles episode/season/series watch state and rating, and writes a season 
         timeout: 10_000,
       });
 
-      // RatingSelect is a themed dropdown, not a native <select> - its
-      // option list is portaled to document.body (to escape the season
-      // accordion's overflow-hidden clipping), so the trigger is scoped to
-      // episode1 but the opened option is a page-wide lookup.
-      const episodeRatingTrigger = episode1.getByRole("button", { name: "Episode rating" });
-      await episodeRatingTrigger.click();
-      await page.getByRole("button", { name: "9.0", exact: true }).click();
-      await expect(episodeRatingTrigger).toHaveAccessibleName(/9\.0/, { timeout: 10_000 });
+      // Episode and season rows rate with a small launch track (0–10, left
+      // to right, saves on release) - clicking 90% along it lands on 9.
+      const episodeRating = episode1.getByRole("slider", { name: "Episode rating out of 10" });
+      const episodeBox = await episodeRating.boundingBox();
+      await episodeRating.click({ position: { x: episodeBox!.width * 0.9, y: episodeBox!.height / 2 } });
+      await expect(episodeRating).toHaveAttribute("aria-valuenow", "9", { timeout: 10_000 });
     });
 
     await test.step("toggles season 1 watched and sets its rating", async () => {
@@ -66,10 +64,10 @@ test("toggles episode/season/series watch state and rating, and writes a season 
         timeout: 10_000,
       });
 
-      const seasonRatingTrigger = season1Row.getByRole("button", { name: "Season rating" });
-      await seasonRatingTrigger.click();
-      await page.getByRole("button", { name: "8.0", exact: true }).click();
-      await expect(seasonRatingTrigger).toHaveAccessibleName(/8\.0/, { timeout: 10_000 });
+      const seasonRating = season1Row.getByRole("slider", { name: "Season rating out of 10" });
+      const seasonBox = await seasonRating.boundingBox();
+      await seasonRating.click({ position: { x: seasonBox!.width * 0.8, y: seasonBox!.height / 2 } });
+      await expect(seasonRating).toHaveAttribute("aria-valuenow", "8", { timeout: 10_000 });
     });
 
     await test.step("writes a season review", async () => {
