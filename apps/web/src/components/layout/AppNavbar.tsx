@@ -34,21 +34,14 @@ export const AppNavbar = () => {
 
   return (
     <>
-      <header className="theme-navbar-shell sticky top-0 z-40 border-b border-border/70">
-        <div
-          className="pointer-events-none h-px w-full"
-          style={{
-            background:
-              "linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 30%, transparent), transparent)",
-          }}
-        />
+      <header className="theme-navbar-shell sticky top-0 z-40 border-b border-[color:var(--line)]">
 
         <div className="mx-auto grid h-14 w-full max-w-400 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4">
           <div className="col-start-1 flex min-w-0 items-center">
             <NavbarBrand />
           </div>
 
-          <nav className="relative col-start-2 hidden min-w-0 items-center justify-center gap-1 md:flex">
+          <nav aria-label="Main" className="relative col-start-2 hidden min-w-0 items-center justify-center gap-4 md:flex">
             <PrimaryNavLinks items={visiblePrimaryNavItems} pathname={pathname} />
           </nav>
 
