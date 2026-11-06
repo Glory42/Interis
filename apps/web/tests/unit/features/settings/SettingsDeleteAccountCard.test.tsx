@@ -31,7 +31,7 @@ describe("SettingsDeleteAccountCard", () => {
     const confirm = screen.getByRole("button", { name: "Delete forever" });
     expect(confirm).toBeDisabled();
 
-    await user.type(screen.getByLabelText("Password to delete your account"), "password1234");
+    await user.type(screen.getByLabelText("Current password"), "password1234");
     await user.click(confirm);
 
     await waitFor(() => expect(router.state.location.pathname).toBe("/"));
@@ -52,7 +52,7 @@ describe("SettingsDeleteAccountCard", () => {
     });
 
     await user.click(await screen.findByRole("button", { name: "Delete account" }));
-    await user.type(screen.getByLabelText("Password to delete your account"), "wrong");
+    await user.type(screen.getByLabelText("Current password"), "wrong");
     await user.click(screen.getByRole("button", { name: "Delete forever" }));
 
     expect(await screen.findByText("Current password is incorrect")).toBeInTheDocument();

@@ -104,16 +104,18 @@ test("deletes the account from settings", async ({ page }) => {
 
     await test.step("confirms with the password and lands home signed out", async () => {
       await page.getByRole("button", { name: "Delete account" }).click();
-      const confirm = page.getByRole("button", { name: "Delete forever" });
+      // The settings page has its own "Current password" fields; use the dialog's.
+      const dialog = page.getByRole("dialog", { name: "Delete account" });
+      const confirm = dialog.getByRole("button", { name: "Delete forever" });
       await expect(confirm).toBeDisabled();
 
-      await page.getByLabel("Password to delete your account").fill("not-my-password");
+      await dialog.getByLabel("Current password").fill("not-my-password");
       await confirm.click();
       await expect(page.getByText("Current password is incorrect")).toBeVisible({
         timeout: 10_000,
       });
 
-      await page.getByLabel("Password to delete your account").fill(user.password);
+      await dialog.getByLabel("Current password").fill(user.password);
       await confirm.click();
       await page.waitForURL("/", { timeout: 15_000 });
 

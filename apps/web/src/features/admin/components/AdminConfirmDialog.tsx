@@ -22,11 +22,9 @@ export const AdminConfirmDialog = ({
 }: AdminConfirmDialogProps) => (
   <ConfirmDialog
     {...props}
-    variant="panel"
     maxWidthClassName="max-w-md"
     cancelLabel="cancel"
     isDestructive={variant === "danger"}
     isConfirming={isLoading}
-    loadingLabel="working"
   />
 );

@@ -38,6 +38,8 @@
 
 :root {
   color-scheme: dark;
+  /* Dialog and card slates stay black like film stock in every theme. */
+  --slate: #000000;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 
   /* Roles: every theme defines the same set. */
@@ -545,9 +547,9 @@
     z-index: 12;
   }
 
+  /* Custom modal backdrops: the theme scrim, no blur. ModalShell overrides it per layout. */
   .theme-modal-overlay {
-    background: var(--theme-modal-overlay) !important;
-    backdrop-filter: blur(4px);
+    background: var(--theme-modal-overlay);
   }
 
   .theme-modal-panel {

@@ -143,7 +143,6 @@ const EditLogDialogContent = ({ onClose, log }: Omit<EditLogDialogProps, "isOpen
             : "This can't be undone."
         }
         confirmLabel="Delete"
-        loadingLabel="Deleting"
         isDestructive
         isConfirming={deleteMutation.isPending}
         onConfirm={() => {
