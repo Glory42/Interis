@@ -136,6 +136,18 @@ export const ProfileListQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).optional(),
 });
 
+export const profileShelfTypeValues = ["all", "movie", "tv"] as const;
+export const profileShelfSortValues = ["recent", "oldest", "release"] as const;
+
+// Likes and watchlist also filter by media type and sort on the server.
+export const ProfileShelfQuerySchema = z.object({
+  type: z.enum(profileShelfTypeValues).catch("all"),
+  sort: z.enum(profileShelfSortValues).catch("recent"),
+});
+
+export type ProfileShelfType = (typeof profileShelfTypeValues)[number];
+export type ProfileShelfSort = (typeof profileShelfSortValues)[number];
+
 export type UpdateProfileDto = z.infer<typeof UpdateProfileSchema>;
 
 export type SearchUsersQueryDto = z.infer<typeof SearchUsersQuerySchema>;

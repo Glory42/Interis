@@ -1,6 +1,8 @@
 import {
   QueryClient,
+  keepPreviousData,
   useInfiniteQuery,
+  type InfiniteData,
   useMutation,
   useQuery,
   useQueryClient,
@@ -18,6 +20,8 @@ import {
   getUserRecentActivity,
   getUserTopPicks,
   updateMyProfile,
+  type UserMediaShelfPage,
+  type UserMediaShelfType,
 } from "@/features/profile/api";
 import { authKeys } from "@/features/auth/hooks/useAuth";
 import type { MeProfile, UpdateProfileInput } from "@/types/api";
@@ -93,23 +97,49 @@ export const PROFILE_LIST_PAGE_SIZE = 60;
 const getNextProfileListPageParam = <T>(lastPage: T[], allPages: T[][]): number | undefined =>
   lastPage.length === PROFILE_LIST_PAGE_SIZE ? allPages.length * PROFILE_LIST_PAGE_SIZE : undefined;
 
-export const useUserLikedMovies = (username: string) =>
+const getNextShelfPageParam = (
+  lastPage: UserMediaShelfPage,
+  allPages: UserMediaShelfPage[],
+): number | undefined => {
+  const loaded = allPages.reduce((sum, page) => sum + page.items.length, 0);
+  return loaded < lastPage.total ? loaded : undefined;
+};
+
+// Every page carries the full counts; read them from the newest one.
+const selectShelf = (data: InfiniteData<UserMediaShelfPage>) => ({
+  items: data.pages.flatMap((page) => page.items),
+  counts: data.pages[data.pages.length - 1]?.counts ?? { movie: 0, tv: 0 },
+});
+
+export const useUserLikedMovies = (username: string, type: UserMediaShelfType = "all") =>
   useInfiniteQuery({
-    queryKey: profileKeys.likes(username),
+    queryKey: [...profileKeys.likes(username), type],
     queryFn: ({ signal, pageParam }) =>
-      getUserLikedMovies(username, PROFILE_LIST_PAGE_SIZE, pageParam, { signal }),
+      getUserLikedMovies(
+        username,
+        { type, limit: PROFILE_LIST_PAGE_SIZE, offset: pageParam },
+        { signal },
+      ),
     initialPageParam: 0,
-    getNextPageParam: getNextProfileListPageParam,
+    getNextPageParam: getNextShelfPageParam,
+    select: selectShelf,
+    placeholderData: keepPreviousData,
     enabled: username.trim().length > 0,
   });
 
-export const useUserWatchlist = (username: string) =>
+export const useUserWatchlist = (username: string, type: UserMediaShelfType = "all") =>
   useInfiniteQuery({
-    queryKey: profileKeys.watchlist(username),
+    queryKey: [...profileKeys.watchlist(username), type],
     queryFn: ({ signal, pageParam }) =>
-      getUserWatchlist(username, PROFILE_LIST_PAGE_SIZE, pageParam, { signal }),
+      getUserWatchlist(
+        username,
+        { type, limit: PROFILE_LIST_PAGE_SIZE, offset: pageParam },
+        { signal },
+      ),
     initialPageParam: 0,
-    getNextPageParam: getNextProfileListPageParam,
+    getNextPageParam: getNextShelfPageParam,
+    select: selectShelf,
+    placeholderData: keepPreviousData,
     enabled: username.trim().length > 0,
   });
 

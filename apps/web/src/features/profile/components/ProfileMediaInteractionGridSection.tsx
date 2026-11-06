@@ -1,4 +1,3 @@
-import { useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { MediaPosterGridItem } from "@/features/profile/components/MediaPosterGridItem";
 import {
@@ -10,30 +9,12 @@ import {
   type ProfileTabEmptyStateCta,
 } from "@/features/profile/components/ProfileTabEmptyState";
 import type { UserInteractionMovie } from "@/features/profile/api";
-
-type FavoritesFilter = "all" | "movie" | "serial";
-
-const filterTabs: Array<{ key: FavoritesFilter; label: string }> = [
-  { key: "all", label: "All" },
-  { key: "movie", label: "Movie" },
-  { key: "serial", label: "Serial" },
-];
-
-const filterMatches = (item: UserInteractionMovie, filter: FavoritesFilter): boolean => {
-  if (filter === "all") {
-    return true;
-  }
-
-  if (filter === "movie") {
-    return item.mediaType === "movie";
-  }
-
-  if (filter === "serial") {
-    return item.mediaType === "tv";
-  }
-
-  return false;
-};
+import {
+  mediaShelfCount,
+  mediaShelfFilters,
+  type MediaShelfCounts,
+  type MediaShelfFilter,
+} from "@/features/profile/components/media-shelf-filter";
 
 type ProfileMediaInteractionGridSectionProps = {
   errorLabel: string;
@@ -48,6 +29,9 @@ type ProfileMediaInteractionGridSectionProps = {
   isPending: boolean;
   isError: boolean;
   items: UserInteractionMovie[];
+  counts: MediaShelfCounts;
+  activeFilter: MediaShelfFilter;
+  onFilterChange: (filter: MediaShelfFilter) => void;
   hasMore?: boolean;
   isLoadingMore?: boolean;
   onLoadMore?: () => void;
@@ -61,15 +45,14 @@ export const ProfileMediaInteractionGridSection = ({
   isPending,
   isError,
   items,
+  counts,
+  activeFilter,
+  onFilterChange,
   hasMore = false,
   isLoadingMore = false,
   onLoadMore,
 }: ProfileMediaInteractionGridSectionProps) => {
-  const [activeFilter, setActiveFilter] = useState<FavoritesFilter>("all");
-
-  const filteredItems = useMemo(() => {
-    return items.filter((item) => filterMatches(item, activeFilter));
-  }, [items, activeFilter]);
+  const isShelfEmpty = mediaShelfCount("all", counts) === 0;
 
   return (
     <>
@@ -81,7 +64,7 @@ export const ProfileMediaInteractionGridSection = ({
         </div>
       ) : null}
 
-      {!isPending && !isError && items.length === 0 ? (
+      {!isPending && !isError && isShelfEmpty ? (
         <ProfileTabEmptyState
           icon={emptyState.icon}
           title={emptyState.title}
@@ -90,14 +73,14 @@ export const ProfileMediaInteractionGridSection = ({
         />
       ) : null}
 
-      {!isPending && !isError && items.length > 0 ? (
+      {!isPending && !isError && !isShelfEmpty ? (
         <div>
           <div className="mb-3 flex items-center justify-between gap-3">
             <h3 className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
               {sectionTitle}
             </h3>
             <div className="flex flex-wrap justify-end gap-1">
-              {filterTabs.map((filterTab) => {
+              {mediaShelfFilters.map((filterTab) => {
                 const isActive = activeFilter === filterTab.key;
 
                 return (
@@ -120,23 +103,23 @@ export const ProfileMediaInteractionGridSection = ({
                           }
                     }
                     onClick={() => {
-                      setActiveFilter(filterTab.key);
+                      onFilterChange(filterTab.key);
                     }}
                   >
-                    {filterTab.label}
+                    {filterTab.label} ({mediaShelfCount(filterTab.key, counts)})
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {filteredItems.length === 0 ? (
+          {items.length === 0 ? (
             <div className="border px-3 py-2 text-xs profile-shell-border profile-shell-muted profile-shell-panel">
               No {activeFilter === "all" ? "items" : activeFilter} {interactionVerb} yet.
             </div>
           ) : (
             <div className={PROFILE_MEDIA_GRID_CLASSES}>
-              {filteredItems.map((item) => (
+              {items.map((item) => (
                 <MediaPosterGridItem
                   key={`${sectionTitle}-${item.mediaType}-${item.tmdbId}`}
                   item={item}
