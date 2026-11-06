@@ -106,4 +106,9 @@ export class MoviesService {
   static async deleteForAdmin(id: number) {
     return MoviesRepository.deleteById(id);
   }
+
+  static async findCachedDirectors(tmdbIds: number[]): Promise<Map<number, string>> {
+    const rows = await MoviesRepository.findDirectorsByTmdbIds(tmdbIds);
+    return new Map(rows.flatMap((row) => (row.director ? [[row.tmdbId, row.director] as const] : [])));
+  }
 }

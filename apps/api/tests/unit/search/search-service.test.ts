@@ -2,12 +2,14 @@ import { describe, expect, it, mock } from "bun:test";
 
 const searchMoviesMock = mock(() => Promise.resolve<unknown[]>([]));
 const searchSeriesMock = mock(() => Promise.resolve<unknown[]>([]));
+const directorsMock = mock(() => Promise.resolve(new Map<number, string>()));
+const creatorsMock = mock(() => Promise.resolve(new Map<number, string>()));
 
 mock.module("../../../src/modules/movies/movies.service", () => ({
-  MoviesService: { search: searchMoviesMock },
+  MoviesService: { search: searchMoviesMock, findCachedDirectors: directorsMock },
 }));
 mock.module("../../../src/modules/serials/serials.service", () => ({
-  SerialsService: { search: searchSeriesMock },
+  SerialsService: { search: searchSeriesMock, findCachedCreators: creatorsMock },
 }));
 
 const { SearchService } = await import("../../../src/modules/search/search.service");
@@ -65,5 +67,27 @@ describe("SearchService.searchTitles (unit)", () => {
     const results = await SearchService.searchTitles("query");
 
     expect(results).toHaveLength(20);
+  });
+
+  it("adds the director or creator from cached titles and leaves uncached ones null", async () => {
+    searchMoviesMock.mockResolvedValueOnce([
+      { id: 1, title: "Cached Film", poster_path: null, release_date: "", popularity: 9 },
+      { id: 3, title: "Uncached Film", poster_path: null, release_date: "", popularity: 1 },
+    ]);
+    searchSeriesMock.mockResolvedValueOnce([
+      { id: 2, name: "Cached Show", poster_path: null, first_air_date: null, popularity: 5 },
+    ]);
+    directorsMock.mockResolvedValueOnce(new Map([[1, "Jane Director"]]));
+    creatorsMock.mockResolvedValueOnce(new Map([[2, "Sam Creator"]]));
+
+    const results = await SearchService.searchTitles("query");
+
+    expect(results.map((result) => [result.title, result.credit])).toEqual([
+      ["Cached Film", "Jane Director"],
+      ["Cached Show", "Sam Creator"],
+      ["Uncached Film", null],
+    ]);
+    expect(directorsMock).toHaveBeenLastCalledWith([1, 3]);
+    expect(creatorsMock).toHaveBeenLastCalledWith([2]);
   });
 });

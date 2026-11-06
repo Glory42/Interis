@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, inArray, isNull } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, isNotNull, isNull } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { tvSeries } from "../serials.entity";
 
@@ -155,5 +155,14 @@ export class SerialsCacheRepository {
       .where(eq(tvSeries.id, id))
       .returning({ id: tvSeries.id });
     return deleted ?? null;
+  }
+
+  // Creator of already-cached series, for search results; uncached ids are absent.
+  static async findCreatorsByTmdbIds(tmdbIds: number[]) {
+    if (tmdbIds.length === 0) return [];
+    return db
+      .select({ tmdbId: tvSeries.tmdbId, creator: tvSeries.creator })
+      .from(tvSeries)
+      .where(and(inArray(tvSeries.tmdbId, tmdbIds), isNotNull(tvSeries.creator)));
   }
 }
