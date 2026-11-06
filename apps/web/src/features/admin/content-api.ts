@@ -1,13 +1,15 @@
 import { z } from "zod";
+import { appendPageParams, type AdminPage } from "@/features/admin/pagination";
 import { apiRequest } from "@/lib/api-client";
 import { mediaTypeSchema, successResponseSchema as actionResponseSchema } from "@/types/api";
 
 export type AdminContentFilters = { username?: string; movieId?: number };
 
-const buildContentQuery = (filters: AdminContentFilters): string => {
+const buildContentQuery = (filters: AdminContentFilters, page?: AdminPage): string => {
   const params = new URLSearchParams();
   if (filters.username) params.set("username", filters.username);
   if (filters.movieId) params.set("movieId", String(filters.movieId));
+  appendPageParams(params, page);
   const query = params.toString();
   return query ? `?${query}` : "";
 };
@@ -25,8 +27,11 @@ const adminReviewSchema = z.object({
 });
 export type AdminReview = z.infer<typeof adminReviewSchema>;
 
-export const listAdminReviews = async (filters: AdminContentFilters): Promise<AdminReview[]> => {
-  const response = await apiRequest<unknown>(`/api/admin/reviews${buildContentQuery(filters)}`, {
+export const listAdminReviews = async (
+  filters: AdminContentFilters,
+  page?: AdminPage,
+): Promise<AdminReview[]> => {
+  const response = await apiRequest<unknown>(`/api/admin/reviews${buildContentQuery(filters, page)}`, {
     method: "GET",
   });
   return z.array(adminReviewSchema).parse(response);
@@ -52,8 +57,9 @@ export type AdminDiaryEntry = z.infer<typeof adminDiaryEntrySchema>;
 
 export const listAdminDiaryEntries = async (
   filters: AdminContentFilters,
+  page?: AdminPage,
 ): Promise<AdminDiaryEntry[]> => {
-  const response = await apiRequest<unknown>(`/api/admin/diary${buildContentQuery(filters)}`, {
+  const response = await apiRequest<unknown>(`/api/admin/diary${buildContentQuery(filters, page)}`, {
     method: "GET",
   });
   return z.array(adminDiaryEntrySchema).parse(response);
@@ -77,8 +83,9 @@ export type AdminPost = z.infer<typeof adminPostSchema>;
 
 export const listAdminPosts = async (
   filters: Pick<AdminContentFilters, "username">,
+  page?: AdminPage,
 ): Promise<AdminPost[]> => {
-  const response = await apiRequest<unknown>(`/api/admin/posts${buildContentQuery(filters)}`, {
+  const response = await apiRequest<unknown>(`/api/admin/posts${buildContentQuery(filters, page)}`, {
     method: "GET",
   });
   return z.array(adminPostSchema).parse(response);

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { appendPageParams, type AdminPage } from "@/features/admin/pagination";
 import { apiRequest } from "@/lib/api-client";
 import { reportReasonSchema, reportTargetTypeSchema } from "@/features/reports/api";
 import { successResponseSchema, userSummarySchema } from "@/types/api";
@@ -31,9 +32,17 @@ export type AdminUser = z.infer<typeof adminUserSchema>;
 
 const actionResponseSchema = successResponseSchema;
 
-export const listReports = async (status?: ReportStatus): Promise<ReportItem[]> => {
-  const query = status ? `?status=${status}` : "";
-  const response = await apiRequest<unknown>(`/api/reports${query}`, { method: "GET" });
+export const listReports = async (
+  status?: ReportStatus,
+  page?: AdminPage,
+): Promise<ReportItem[]> => {
+  const params = new URLSearchParams();
+  if (status) params.set("status", status);
+  appendPageParams(params, page);
+  const query = params.toString();
+  const response = await apiRequest<unknown>(`/api/reports${query ? `?${query}` : ""}`, {
+    method: "GET",
+  });
   return z.array(reportItemSchema).parse(response);
 };
 
@@ -54,9 +63,14 @@ export const removeReportedContent = async (id: string): Promise<void> => {
   actionResponseSchema.parse(response);
 };
 
-export const listAdminUsers = async (query?: string): Promise<AdminUser[]> => {
-  const params = query ? `?query=${encodeURIComponent(query)}` : "";
-  const response = await apiRequest<unknown>(`/api/admin/users${params}`, { method: "GET" });
+export const listAdminUsers = async (query?: string, page?: AdminPage): Promise<AdminUser[]> => {
+  const params = new URLSearchParams();
+  if (query) params.set("query", query);
+  appendPageParams(params, page);
+  const search = params.toString();
+  const response = await apiRequest<unknown>(`/api/admin/users${search ? `?${search}` : ""}`, {
+    method: "GET",
+  });
   return z.array(adminUserSchema).parse(response);
 };
 

@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAdminPagedList } from "@/features/admin/hooks/useAdminPagedList";
 import {
   deleteAdminDiaryEntry,
   deleteAdminPost,
@@ -26,22 +27,15 @@ const adminContentAllKeys = {
 } as const;
 
 export const useAdminReviews = (filters: AdminContentFilters) =>
-  useQuery({
-    queryKey: adminContentKeys.reviews(filters),
-    queryFn: () => listAdminReviews(filters),
-  });
+  useAdminPagedList(adminContentKeys.reviews(filters), (page) => listAdminReviews(filters, page));
 
 export const useAdminDiaryEntries = (filters: AdminContentFilters) =>
-  useQuery({
-    queryKey: adminContentKeys.diary(filters),
-    queryFn: () => listAdminDiaryEntries(filters),
-  });
+  useAdminPagedList(adminContentKeys.diary(filters), (page) =>
+    listAdminDiaryEntries(filters, page),
+  );
 
 export const useAdminPosts = (filters: Pick<AdminContentFilters, "username">) =>
-  useQuery({
-    queryKey: adminContentKeys.posts(filters),
-    queryFn: () => listAdminPosts(filters),
-  });
+  useAdminPagedList(adminContentKeys.posts(filters), (page) => listAdminPosts(filters, page));
 
 const useContentDelete = (
   mutationFn: (id: string) => Promise<void>,

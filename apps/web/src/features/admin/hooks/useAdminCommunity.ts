@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAdminPagedList } from "@/features/admin/hooks/useAdminPagedList";
 import {
   deleteAdminActivity,
   deleteAdminList,
@@ -20,16 +21,12 @@ const adminCommunityAllKeys = {
 } as const;
 
 export const useAdminLists = (username?: string) =>
-  useQuery({
-    queryKey: adminCommunityKeys.lists(username),
-    queryFn: () => listAdminLists(username),
-  });
+  useAdminPagedList(adminCommunityKeys.lists(username), (page) => listAdminLists(username, page));
 
 export const useAdminActivities = (filters: AdminActivityFilters) =>
-  useQuery({
-    queryKey: adminCommunityKeys.activities(filters),
-    queryFn: () => listAdminActivities(filters),
-  });
+  useAdminPagedList(adminCommunityKeys.activities(filters), (page) =>
+    listAdminActivities(filters, page),
+  );
 
 const useCommunityDelete = (
   mutationFn: (id: string) => Promise<void>,

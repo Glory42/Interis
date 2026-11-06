@@ -1,8 +1,16 @@
 import type { ReactNode } from "react";
+import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 
 type AdminPanelStateProps<T> = {
-  query: { isPending: boolean; isError: boolean; data: T[] | undefined };
+  query: {
+    isPending: boolean;
+    isError: boolean;
+    data: T[] | undefined;
+    hasNextPage?: boolean;
+    isFetchingNextPage?: boolean;
+    fetchNextPage?: () => unknown;
+  };
   emptyMessage: string;
   errorMessage?: string;
   children: (data: T[]) => ReactNode;
@@ -30,5 +38,22 @@ export const AdminPanelState = <T,>({
     return <p className="py-6 text-center text-sm text-muted-foreground">{emptyMessage}</p>;
   }
 
-  return <>{children(query.data)}</>;
+  return (
+    <>
+      {children(query.data)}
+      {query.hasNextPage && query.fetchNextPage ? (
+        <div className="flex justify-center pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={query.isFetchingNextPage}
+            onClick={() => void query.fetchNextPage?.()}
+          >
+            {query.isFetchingNextPage ? "Loading…" : "Load more"}
+          </Button>
+        </div>
+      ) : null}
+    </>
+  );
 };

@@ -10,18 +10,10 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
+import type { AdminSection } from "@/features/admin/admin-search";
 import { cn } from "@/lib/utils";
 
-export type AdminSection =
-  | "reports"
-  | "users"
-  | "reviews"
-  | "diary"
-  | "posts"
-  | "movies"
-  | "serials"
-  | "lists"
-  | "activities";
+export type { AdminSection } from "@/features/admin/admin-search";
 
 type SectionGroup = {
   label: string;

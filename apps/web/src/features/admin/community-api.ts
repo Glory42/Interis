@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { appendPageParams, type AdminPage } from "@/features/admin/pagination";
 import { apiRequest } from "@/lib/api-client";
 import { successResponseSchema as actionResponseSchema } from "@/types/api";
 
@@ -15,9 +16,14 @@ const adminListSchema = z.object({
 });
 export type AdminList = z.infer<typeof adminListSchema>;
 
-export const listAdminLists = async (username?: string): Promise<AdminList[]> => {
-  const query = username ? `?username=${encodeURIComponent(username)}` : "";
-  const response = await apiRequest<unknown>(`/api/admin/lists${query}`, { method: "GET" });
+export const listAdminLists = async (username?: string, page?: AdminPage): Promise<AdminList[]> => {
+  const params = new URLSearchParams();
+  if (username) params.set("username", username);
+  appendPageParams(params, page);
+  const query = params.toString();
+  const response = await apiRequest<unknown>(`/api/admin/lists${query ? `?${query}` : ""}`, {
+    method: "GET",
+  });
   return z.array(adminListSchema).parse(response);
 };
 
@@ -53,10 +59,12 @@ export type AdminActivityFilters = { username?: string; type?: ActivityType };
 
 export const listAdminActivities = async (
   filters: AdminActivityFilters,
+  page?: AdminPage,
 ): Promise<AdminActivity[]> => {
   const params = new URLSearchParams();
   if (filters.username) params.set("username", filters.username);
   if (filters.type) params.set("type", filters.type);
+  appendPageParams(params, page);
   const query = params.toString();
   const response = await apiRequest<unknown>(`/api/admin/activities${query ? `?${query}` : ""}`, {
     method: "GET",
