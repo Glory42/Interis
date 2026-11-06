@@ -1,9 +1,10 @@
-import { asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { movies } from "../../movies/movies.entity";
-import { tvSeries } from "../../serials/serials.entity";
+import { movieInteractions } from "../../interactions/interactions.entity";
+import { serialInteractions, tvSeries } from "../../serials/serials.entity";
 import { listEntries, lists } from "../lists.entity";
 
 export class ListsReadRepository {
@@ -69,7 +70,8 @@ export class ListsReadRepository {
       .orderBy(asc(listEntries.listId), asc(listEntries.position));
   }
 
-  static async getListItems(listId: string) {
+  // Owner's rating comes from their interaction rows; director/creator from the cached title.
+  static async getListItems(listId: string, ownerId: string) {
     return db
       .select({
         id: listEntries.id,
@@ -80,14 +82,32 @@ export class ListsReadRepository {
         movieTitle: movies.title,
         moviePosterPath: movies.posterPath,
         movieReleaseYear: movies.releaseYear,
+        movieDirector: movies.director,
+        movieOwnerRating: movieInteractions.rating,
         serialTmdbId: tvSeries.tmdbId,
         serialTitle: tvSeries.title,
         serialPosterPath: tvSeries.posterPath,
         serialFirstAirYear: tvSeries.firstAirYear,
+        serialCreator: tvSeries.creator,
+        serialOwnerRating: serialInteractions.rating,
       })
       .from(listEntries)
       .leftJoin(movies, eq(listEntries.movieId, movies.id))
       .leftJoin(tvSeries, eq(listEntries.tvSeriesId, tvSeries.id))
+      .leftJoin(
+        movieInteractions,
+        and(
+          eq(movieInteractions.movieId, listEntries.movieId),
+          eq(movieInteractions.userId, ownerId),
+        ),
+      )
+      .leftJoin(
+        serialInteractions,
+        and(
+          eq(serialInteractions.seriesId, listEntries.tvSeriesId),
+          eq(serialInteractions.userId, ownerId),
+        ),
+      )
       .where(eq(listEntries.listId, listId))
       .orderBy(asc(listEntries.position));
   }
