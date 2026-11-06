@@ -18,6 +18,7 @@ import type { MovieArchivePeriod, MovieArchiveSort } from "@/features/movies/api
 import { useMovieArchive } from "@/features/movies/hooks/useMovies";
 import { ArchiveMediaCard } from "@/features/media/archive/ArchiveMediaCard";
 import { MediaArchivePage } from "@/features/media/archive/MediaArchivePage";
+import { dedupeBy } from "@/lib/dedupe-by";
 
 export const MovieArchivePage = () => {
   const [selectedSort, setSelectedSort] = useState<MovieArchiveSort>("trending");
@@ -48,7 +49,10 @@ export const MovieArchivePage = () => {
       return [];
     }
 
-    return archivePages.flatMap((page) => page.items);
+    return dedupeBy(
+      archivePages.flatMap((page) => page.items),
+      (item) => item.tmdbId,
+    );
   }, [archivePages]);
 
   const backdropUrls = useMemo(() => {

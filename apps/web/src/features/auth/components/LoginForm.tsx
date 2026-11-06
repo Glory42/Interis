@@ -87,7 +87,6 @@ export const LoginForm = ({ redirectTo }: LoginFormProps) => {
             autoComplete="current-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            minLength={8}
             required
           />
         </div>

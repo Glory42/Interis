@@ -67,7 +67,7 @@ export const RegisterForm = () => {
             id="register-username"
             name="username"
             type="text"
-            autoComplete="username"
+            autoComplete="off"
             value={username}
             onChange={(event) => setUsername(event.target.value)}
             minLength={USERNAME_MIN_LENGTH}
@@ -87,7 +87,7 @@ export const RegisterForm = () => {
             id="register-email"
             name="email"
             type="email"
-            autoComplete="email"
+            autoComplete="username"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             required

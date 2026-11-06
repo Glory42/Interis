@@ -33,8 +33,8 @@ export const SetupSecurityQuestionForm = () => {
   return (
     <div className="mx-auto w-full max-w-md">
       <p className="mb-5 text-sm leading-relaxed text-muted-foreground">
-        Write your own security question and answer — this is the only way to reset your
-        password or change your email later, so pick something only you would know.
+        Write your own security question and answer — it&apos;s how you reset your password if
+        you forget it, so pick something only you would know.
       </p>
 
       <form className="space-y-4" onSubmit={handleSubmit}>

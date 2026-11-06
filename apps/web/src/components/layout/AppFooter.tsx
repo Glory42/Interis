@@ -8,9 +8,24 @@ export const AppFooter = () => {
           INTERIS
         </div>
 
-        <p className="font-mono text-[10px] text-muted-foreground">
-          logged, not filtered.
-        </p>
+        <div className="flex flex-col items-center gap-1 text-center">
+          <p className="font-mono text-[10px] text-muted-foreground">logged, not filtered.</p>
+          <p className="font-mono text-[10px] text-muted-foreground">
+            Film and TV data from{" "}
+            <a
+              href="https://www.themoviedb.org"
+              target="_blank"
+              rel="noreferrer"
+              className="underline-offset-2 hover:text-primary hover:underline"
+            >
+              TMDB
+            </a>
+            .
+          </p>
+          <p className="font-mono text-[10px] text-muted-foreground">
+            This product uses the TMDB API but is not endorsed or certified by TMDB.
+          </p>
+        </div>
 
         <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
           <Link to="/developer" className="hover:text-primary" viewTransition>
