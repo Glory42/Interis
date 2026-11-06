@@ -1,5 +1,6 @@
-import type { ReactNode } from "react";
-import { Loader2 } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ModalHeader } from "@/components/ui/ModalHeader";
 import { ModalShell } from "@/components/ui/ModalShell";
 import { cn } from "@/lib/utils";
@@ -7,132 +8,88 @@ import { cn } from "@/lib/utils";
 type ConfirmDialogProps = {
   isOpen: boolean;
   title: string;
+  // Slate label above the title, e.g. "Account · Delete".
+  context?: string;
   description?: string;
   confirmLabel?: string;
   cancelLabel?: string;
   isDestructive?: boolean;
   isConfirming?: boolean;
   isConfirmDisabled?: boolean;
-  loadingLabel?: string;
-  onConfirm: () => void;
+  // Adds a "Current password" field; confirm stays disabled until it's filled.
+  requirePassword?: boolean;
+  onConfirm: (password?: string) => void;
   onClose: () => void;
-  // "simple": h2 title, no header bar (default — comment/item delete popups).
-  // "panel": bordered header bar with an X-close button, plus room for
-  // arbitrary body content and an error message (used by admin actions).
-  variant?: "simple" | "panel";
   maxWidthClassName?: string;
   children?: ReactNode;
   error?: string | null;
 };
 
-// Generic confirm/cancel popup for destructive actions (delete a comment,
-// remove an item, etc.) — reusable across features instead of the browser's
-// native confirm(), following the project's custom modal pattern.
-export const ConfirmDialog = ({
-  isOpen,
+// Confirm/cancel popup for destructive actions, on the custom modal pattern (CLAUDE.md).
+// Mounted only while open, so a typed password never survives a close.
+export const ConfirmDialog = (props: ConfirmDialogProps) =>
+  props.isOpen ? <ConfirmDialogPanel {...props} /> : null;
+
+const ConfirmDialogPanel = ({
   title,
+  context = "Confirm",
   description,
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
   isDestructive = false,
   isConfirming = false,
   isConfirmDisabled = false,
-  loadingLabel,
+  requirePassword = false,
   onConfirm,
   onClose,
-  variant = "simple",
   maxWidthClassName = "max-w-sm",
   children,
   error,
 }: ConfirmDialogProps) => {
-  if (!isOpen) {
-    return null;
-  }
-
-  const confirmButton = (
-    <button
-      type="button"
-      onClick={onConfirm}
-      disabled={isConfirming || isConfirmDisabled}
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-        variant === "panel" && "font-mono text-[10px] uppercase tracking-[0.12em] px-2.5 py-1",
-        isDestructive
-          ? "border-destructive/45 bg-destructive/10 text-destructive hover:bg-destructive/15"
-          : "border-primary/45 bg-primary/10 text-primary hover:bg-primary/15",
-      )}
-    >
-      {isConfirming ? (
-        <>
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          {loadingLabel ?? confirmLabel}
-        </>
-      ) : (
-        confirmLabel
-      )}
-    </button>
-  );
-
-  const cancelButton = (
-    <button
-      type="button"
-      onClick={onClose}
-      disabled={isConfirming}
-      className={cn(
-        "rounded-full border border-border/70 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50",
-        variant === "panel" && "font-mono text-[10px] uppercase tracking-[0.12em] px-2.5 py-1",
-      )}
-    >
-      {cancelLabel}
-    </button>
-  );
-
-  if (variant === "panel") {
-    return (
-      <ModalShell onClose={onClose} containerClassName={maxWidthClassName} ariaCloseLabel={`Close ${title} dialog`}>
-        <section
-          role="dialog"
-          aria-modal="true"
-          aria-label={title}
-          className="theme-modal-panel relative w-full border border-border/80 bg-card/95 p-0 animate-fade-up"
-        >
-          <ModalHeader title={title} onClose={onClose} closeAriaLabel={`Close ${title} dialog`} />
-
-          <div className="space-y-3 px-4 py-4">
-            {description ? <p className="text-sm text-foreground">{description}</p> : null}
-            {children}
-
-            {error ? <p className="text-xs text-destructive">{error}</p> : null}
-
-            <div className="flex items-center justify-end gap-2 pt-1">
-              {cancelButton}
-              {confirmButton}
-            </div>
-          </div>
-        </section>
-      </ModalShell>
-    );
-  }
+  const [password, setPassword] = useState("");
+  const closeLabel = `Close ${title} dialog`;
 
   return (
-    <ModalShell onClose={onClose} containerClassName={maxWidthClassName} overlayClassName="z-150">
+    <ModalShell onClose={onClose} containerClassName={maxWidthClassName} overlayClassName="z-150" ariaCloseLabel={closeLabel}>
       <section
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="theme-modal-panel relative w-full border border-border/80 bg-card/95 p-5 animate-fade-up"
+        className="theme-modal-panel relative w-full overflow-hidden border border-[color:var(--line-strong)] bg-background animate-fade-up"
       >
-        <h2 className="text-sm font-bold text-foreground">{title}</h2>
+        <ModalHeader title={context} onClose={onClose} closeAriaLabel={closeLabel} />
 
-        {description ? (
-          <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-        ) : null}
+        <div className="space-y-3 px-4 py-4">
+          <h2 className="display-4 text-foreground">{title}</h2>
+          {description ? <p className="body-s text-muted-foreground">{description}</p> : null}
+          {children}
+          {requirePassword ? (
+            <label className="block space-y-1.5">
+              <span className="kicker text-muted-foreground">Current password</span>
+              <Input
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
+            </label>
+          ) : null}
+          {error ? <p className="text-xs text-destructive">{error}</p> : null}
+        </div>
 
-        {children}
-
-        <div className="mt-5 flex items-center justify-end gap-2">
-          {cancelButton}
-          {confirmButton}
+        <div className="flex items-center justify-end gap-2 border-t border-[color:var(--line)] px-4 py-2.5">
+          <Button variant="ghost" onClick={onClose} disabled={isConfirming}>
+            {cancelLabel}
+          </Button>
+          <Button
+            variant={isDestructive ? "danger" : "primary"}
+            className={cn(isDestructive && "border-destructive bg-destructive text-background hover:bg-destructive/85")}
+            loading={isConfirming}
+            disabled={isConfirmDisabled || (requirePassword && password.length === 0)}
+            onClick={() => onConfirm(requirePassword ? password : undefined)}
+          >
+            {confirmLabel}
+          </Button>
         </div>
       </section>
     </ModalShell>

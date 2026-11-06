@@ -170,7 +170,6 @@ export function ProfileReviewDetailPage({
             title="Delete this review?"
             description="Its likes and comments go with it. This can't be undone."
             confirmLabel="Delete"
-            loadingLabel="Deleting"
             isDestructive
             isConfirming={deleteReviewMutation.isPending}
             onConfirm={() => {

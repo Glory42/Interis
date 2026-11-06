@@ -5,6 +5,22 @@ import { cn } from "@/lib/utils";
 
 const EXIT_DURATION_MS = 200;
 
+// dialog: centred. sheet: bottom sheet on phones that leaves the page above
+// visible and undimmed, a dialog from sm up. fullscreen: edge to edge.
+export type ModalLayout = "dialog" | "sheet" | "fullscreen";
+
+const overlayByLayout: Record<ModalLayout, string> = {
+  dialog: "bg-[color:var(--theme-modal-overlay)]",
+  sheet: "bg-transparent sm:bg-[color:var(--theme-modal-overlay)]",
+  fullscreen: "bg-background",
+};
+
+const containerByLayout: Record<ModalLayout, string> = {
+  dialog: "items-center p-4",
+  sheet: "items-end p-0 sm:items-center sm:p-4",
+  fullscreen: "items-stretch p-0",
+};
+
 type ModalShellProps = {
   onClose: () => void;
   children: ReactNode;
@@ -14,6 +30,7 @@ type ModalShellProps = {
   closeOnEscape?: boolean;
   closeOnBackdropClick?: boolean;
   portal?: boolean;
+  layout?: ModalLayout;
 };
 
 // Shared chrome for the project's custom modal pattern (see CLAUDE.md): a
@@ -28,6 +45,7 @@ export const ModalShell = ({
   closeOnEscape = true,
   closeOnBackdropClick = true,
   portal = true,
+  layout = "dialog",
 }: ModalShellProps) => {
   const [isClosing, setIsClosing] = useState(false);
 
@@ -63,16 +81,19 @@ export const ModalShell = ({
   const content = (
     <div
       className={cn(
-        "theme-modal-overlay fixed inset-0 z-140 bg-background/70 backdrop-blur-sm transition-opacity duration-200 ease-(--ease-out)",
+        "theme-modal-overlay fixed inset-0 z-140 transition-opacity duration-200 ease-(--ease-out)",
+        overlayByLayout[layout],
         isClosing ? "opacity-0" : "opacity-100",
         overlayClassName,
       )}
+      data-layout={layout}
       aria-label={closeOnBackdropClick ? ariaCloseLabel : undefined}
       onClick={closeOnBackdropClick ? requestClose : undefined}
     >
       <div
         className={cn(
-          "relative mx-auto flex h-full w-full items-center justify-center p-4 transition-[opacity,transform] duration-200 ease-(--ease-out)",
+          "relative mx-auto flex h-full w-full justify-center transition-[opacity,transform] duration-200 ease-(--ease-out)",
+          containerByLayout[layout],
           isClosing ? "translate-y-2 scale-[0.98] opacity-0" : "translate-y-0 scale-100 opacity-100",
           containerClassName,
         )}

@@ -11,7 +11,6 @@ export const SettingsDeleteAccountCard = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [isConfirming, setIsConfirming] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
 
   const deleteMutation = useMutation({
     mutationFn: deleteCurrentUserAccount,
@@ -25,7 +24,6 @@ export const SettingsDeleteAccountCard = () => {
 
   const closeDialog = () => {
     setIsConfirming(false);
-    setCurrentPassword("");
     deleteMutation.reset();
   };
 
@@ -49,15 +47,15 @@ export const SettingsDeleteAccountCard = () => {
 
       <ConfirmDialog
         isOpen={isConfirming}
-        variant="panel"
+        context="Account · Delete"
         title="Delete account"
-        description="Enter your current password to confirm."
+        description="This removes your logs, reviews, lists, posts and comments. It can't be undone."
         confirmLabel="Delete forever"
-        loadingLabel="Deleting"
+        cancelLabel="Keep account"
         isDestructive
+        requirePassword
         isConfirming={deleteMutation.isPending}
-        isConfirmDisabled={currentPassword.length === 0}
-        onConfirm={() => deleteMutation.mutate(currentPassword)}
+        onConfirm={(password) => deleteMutation.mutate(password ?? "")}
         onClose={closeDialog}
         error={
           deleteMutation.isError
@@ -66,16 +64,7 @@ export const SettingsDeleteAccountCard = () => {
               : "Could not delete your account right now."
             : null
         }
-      >
-        <input
-          type="password"
-          aria-label="Password to delete your account"
-          className="w-full rounded-lg border border-border/70 bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-destructive/60"
-          value={currentPassword}
-          onChange={(event) => setCurrentPassword(event.target.value)}
-          autoComplete="current-password"
-        />
-      </ConfirmDialog>
+      />
     </div>
   );
 };

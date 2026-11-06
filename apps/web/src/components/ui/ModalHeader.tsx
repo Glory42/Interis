@@ -9,7 +9,7 @@ type ModalHeaderProps = {
   align?: "start" | "center";
 };
 
-// The title-row + X-close-button header shared by most dialogs built on ModalShell.
+// The slate bar on top of every dialog: black like film stock, mono context, close X.
 export const ModalHeader = ({
   title,
   onClose,
@@ -18,20 +18,18 @@ export const ModalHeader = ({
 }: ModalHeaderProps) => (
   <div
     className={cn(
-      "flex justify-between border-b border-border/70 px-4 py-3",
+      "flex justify-between gap-2 bg-[color:var(--slate)] py-1.5 pr-1.5 pl-2.5 font-mono text-[10px] font-semibold tracking-[0.08em] text-[#8a8a8a] uppercase",
       align === "start" ? "items-start" : "items-center",
     )}
   >
-    <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-      {title}
-    </p>
+    <p>{title}</p>
     <button
       type="button"
       onClick={onClose}
       aria-label={closeAriaLabel}
-      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border/70 text-muted-foreground transition-colors hover:text-foreground"
+      className="inline-flex size-11 shrink-0 items-center justify-center text-[#bbbbbb] transition-colors hover:text-white sm:size-7"
     >
-      <X className="h-4 w-4" />
+      <X className="size-3.5" />
     </button>
   </div>
 );
