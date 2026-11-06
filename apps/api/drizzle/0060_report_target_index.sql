@@ -1,0 +1,1 @@
+CREATE INDEX "reports_target_idx" ON "report" USING btree ("target_type","target_id");

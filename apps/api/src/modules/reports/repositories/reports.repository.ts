@@ -68,4 +68,22 @@ export class ReportsRepository {
       .set({ status, resolvedAt: new Date(), resolvedBy })
       .where(and(eq(reports.id, reportId), eq(reports.status, "pending")));
   }
+
+  // Once content is removed, every open report on it is moot, not just the one acted on.
+  static async resolvePendingForTarget(
+    targetType: ReportTargetType,
+    targetId: string,
+    resolvedBy: string,
+  ) {
+    await db
+      .update(reports)
+      .set({ status: "resolved", resolvedAt: new Date(), resolvedBy })
+      .where(
+        and(
+          eq(reports.targetType, targetType),
+          eq(reports.targetId, targetId),
+          eq(reports.status, "pending"),
+        ),
+      );
+  }
 }

@@ -52,5 +52,6 @@ export const reports = pgTable(
       table.targetId,
     ),
     index("reports_status_created_idx").on(table.status, table.createdAt),
+    index("reports_target_idx").on(table.targetType, table.targetId),
   ],
 );

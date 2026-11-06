@@ -71,7 +71,7 @@ export class ReportsService {
       await PostsService.deleteById(report.targetId);
     }
 
-    await ReportsRepository.updateStatus(reportId, "resolved", adminUserId);
+    await ReportsRepository.resolvePendingForTarget(report.targetType, report.targetId, adminUserId);
     return { success: true };
   }
 }
