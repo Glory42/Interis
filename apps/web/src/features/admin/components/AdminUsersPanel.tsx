@@ -1,7 +1,6 @@
 import { useDeferredValue, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { AdminPanelHeader } from "@/features/admin/components/AdminPanelHeader";
@@ -33,7 +32,7 @@ export const AdminUsersPanel = () => {
 
       <AdminPanelState query={usersQuery} emptyMessage="No users found." errorMessage="Could not load users.">
         {(users) => (
-          <Card>
+          <div className="surface">
             <Table>
               <TableHeader>
                 <TableRow className="border-0 hover:bg-transparent">
@@ -82,7 +81,7 @@ export const AdminUsersPanel = () => {
                 ))}
               </TableBody>
             </Table>
-          </Card>
+          </div>
         )}
       </AdminPanelState>
     </div>
