@@ -24,3 +24,9 @@ export const AdminSuspendUserSchema = z.object({
 export const AdminPasswordConfirmSchema = z.object({
   adminPassword: adminPasswordSchema,
 });
+
+export const AdminAuditQuerySchema = z.object({
+  actor: z.string().trim().min(1).max(64).optional(),
+  cursor: z.string().max(200).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+});

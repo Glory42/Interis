@@ -3,6 +3,7 @@ import { AdminController } from "./admin.controller";
 import { AdminContentController } from "./admin-content.controller";
 import { AdminMediaController } from "./admin-media.controller";
 import { AdminCommunityController } from "./admin-community.controller";
+import { AdminAuditController } from "./admin-audit.controller";
 import { asyncHandler } from "../../commons/utils/asyncHandler";
 import { requireAuth } from "../../commons/middlewares/requireAuth";
 import { requireAdmin } from "../../commons/middlewares/requireAdmin";
@@ -11,6 +12,7 @@ const router = Router();
 
 router.use(requireAuth, requireAdmin);
 
+router.get("/audit", asyncHandler(AdminAuditController.list));
 router.get("/users", asyncHandler(AdminController.listUsers));
 router.post(
   "/users/:username/reset-password",

@@ -5,6 +5,7 @@ import {
   AdminListContentQuerySchema,
   type AdminListContentQuery,
 } from "./dto/admin-content.dto";
+import { AdminAuditService } from "./admin-audit.service";
 
 export class AdminContentController {
   static async listReviews(
@@ -31,6 +32,7 @@ export class AdminContentController {
       sendNotFound(res, "Review not found");
       return;
     }
+    await AdminAuditService.record(req.user, { action: "review.delete", targetType: "review", targetId: req.params.id });
     res.status(200).json({ success: true });
   }
 
@@ -58,6 +60,7 @@ export class AdminContentController {
       sendNotFound(res, "Diary entry not found");
       return;
     }
+    await AdminAuditService.record(req.user, { action: "diary_entry.delete", targetType: "diary_entry", targetId: req.params.id });
     res.status(200).json({ success: true });
   }
 
@@ -85,6 +88,7 @@ export class AdminContentController {
       sendNotFound(res, "Post not found");
       return;
     }
+    await AdminAuditService.record(req.user, { action: "post.delete", targetType: "post", targetId: req.params.id });
     res.status(200).json({ success: true });
   }
 }

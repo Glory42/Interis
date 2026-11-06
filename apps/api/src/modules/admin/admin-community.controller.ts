@@ -7,6 +7,7 @@ import {
   type AdminListActivitiesQuery,
   type AdminListListsQuery,
 } from "./dto/admin-community.dto";
+import { AdminAuditService } from "./admin-audit.service";
 
 export class AdminCommunityController {
   static async listLists(
@@ -33,6 +34,7 @@ export class AdminCommunityController {
       sendNotFound(res, "List not found");
       return;
     }
+    await AdminAuditService.record(req.user, { action: "list.delete", targetType: "list", targetId: req.params.id });
     res.status(200).json({ success: true });
   }
 
@@ -60,6 +62,7 @@ export class AdminCommunityController {
       sendNotFound(res, "Activity not found");
       return;
     }
+    await AdminAuditService.record(req.user, { action: "activity.delete", targetType: "activity", targetId: req.params.id });
     res.status(200).json({ success: true });
   }
 }

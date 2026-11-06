@@ -11,6 +11,7 @@ import {
   type ListReportsQuery,
   type ReportParams,
 } from "./dto/reports.dto";
+import { AdminAuditService } from "../admin/admin-audit.service";
 
 export class ReportsController {
   static async submit(req: Request, res: Response): Promise<void> {
@@ -66,6 +67,7 @@ export class ReportsController {
       sendErrorForStatus(res, result.status, result.error);
       return;
     }
+    await AdminAuditService.record(req.user, { action: "report.resolve", targetType: "report", targetId: parsed.data.id });
     res.status(200).json(result);
   }
 
@@ -81,6 +83,7 @@ export class ReportsController {
       sendErrorForStatus(res, result.status, result.error);
       return;
     }
+    await AdminAuditService.record(req.user, { action: "report.dismiss", targetType: "report", targetId: parsed.data.id });
     res.status(200).json(result);
   }
 
@@ -96,6 +99,7 @@ export class ReportsController {
       sendErrorForStatus(res, result.status, result.error);
       return;
     }
+    await AdminAuditService.record(req.user, { action: "report.remove_content", targetType: "report", targetId: parsed.data.id });
     res.status(200).json(result);
   }
 }
