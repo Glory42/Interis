@@ -12,14 +12,17 @@ const tmdbPersonId = randomInt(1_000_000, 999_000_000);
 const personPathPrefix = `/person/${tmdbPersonId}`;
 const tmdbPersonCalls: string[] = [];
 const realFetchTMDB = RealBaseClient.fetchTMDB;
+const WIKIPEDIA_SOURCE =
+  "Description above from the Wikipedia article Credits Person, licensed under CC-BY-SA, full list of contributors on Wikipedia.";
 
 const crewCredit = (id: number, job: string, department: string, releaseDate: string) => ({
   id,
   media_type: "movie",
   title: `Film ${id}`,
   poster_path: null,
-  backdrop_path: null,
+  backdrop_path: `/backdrop-${id}.jpg`,
   release_date: releaseDate,
+  vote_count: id * 10,
   job,
   department,
 });
@@ -42,7 +45,13 @@ const personFixture = (endpoint: string): unknown => {
   if (endpoint.includes("/combined_credits")) return combinedCredits;
   if (endpoint.includes("/external_ids")) return {};
   if (endpoint.includes("/images")) return { profiles: [] };
-  return { id: tmdbPersonId, name: "Credits Person", profile_path: null, known_for_department: "Directing" };
+  return {
+    id: tmdbPersonId,
+    name: "Credits Person",
+    profile_path: null,
+    known_for_department: "Directing",
+    biography: `Credits Person is a director.\n\n${WIKIPEDIA_SOURCE}`,
+  };
 };
 
 // Only this test's person id is faked; every other TMDB call goes to the real client.
@@ -145,5 +154,18 @@ describe("GET /api/people/:role/:slug/credits", () => {
     ]);
     expect(response.headers.get("cache-control")).toBe("public, max-age=300");
     expect(tmdbPersonCalls.filter((call) => call.includes("/combined_credits"))).toHaveLength(1);
+  });
+
+  it("adds the top 8 titles by votes and splits the Wikipedia source off the biography", async () => {
+    const response = await apiRequest(getServer().baseUrl, `/api/people/director/${slug}`);
+    const detail = (await response.json()) as {
+      person: { biography: string | null; biographySource: string | null };
+      knownFor: { tmdbId: number; backdropPath: string | null }[];
+    };
+
+    expect(detail.knownFor.map((credit) => credit.tmdbId)).toEqual([45, 44, 43, 42, 41, 40, 39, 38]);
+    expect(detail.knownFor[0]!.backdropPath).toBe("/backdrop-45.jpg");
+    expect(detail.person.biography).toBe("Credits Person is a director.");
+    expect(detail.person.biographySource).toBe(WIKIPEDIA_SOURCE);
   });
 });

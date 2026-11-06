@@ -50,6 +50,7 @@ const personDetailResponseSchema = z.object({
     knownForDepartment: z.string().nullable(),
     profilePath: z.string().nullable(),
     biography: z.string().nullable(),
+    biographySource: z.string().nullable(),
     birthday: z.string().nullable(),
     deathday: z.string().nullable(),
     placeOfBirth: z.string().nullable(),
