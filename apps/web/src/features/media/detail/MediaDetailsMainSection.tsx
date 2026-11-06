@@ -1,11 +1,13 @@
 import { useState } from "react";
-import type { ReactNode } from "react";
 import type { PersonLink } from "@/features/people/shared";
 import { PersonRouteLink } from "@/features/people/components/PersonRouteLink";
 import { RatingBreakdownChart } from "@/features/media/detail/RatingBreakdownChart";
-import { MediaFactsGrid, type MediaFactRow } from "@/features/media/detail/MediaFactsGrid";
 import type { MediaModuleStyles } from "@/features/media/styles";
+import { CreditsList, type CreditRow } from "@/components/film/CreditsList";
 import { formatCountLabel } from "@/lib/count-label";
+
+// A fact with no value is left out rather than shown as "Unknown".
+export type MediaFactRow = { label: string; value: string | null };
 
 type CastMember = PersonLink & {
   tmdbPersonId: number;
@@ -22,11 +24,11 @@ type RatingBucket = {
 type MediaDetailsMainSectionProps = {
   moduleStyles: MediaModuleStyles;
   title: string;
-  yearLabel: ReactNode;
+  tagline: string | null;
   genres: { id: number; name: string }[];
+  // "Directed by" / "Created by"; hidden when there's nobody to credit.
   creditRoleLabel: string;
   creditPeople: PersonLink[];
-  creditFallbackName: string;
   communityRatingLabel: string;
   logsCount: number;
   tmdbRatingLabel: string;
@@ -37,14 +39,16 @@ type MediaDetailsMainSectionProps = {
   ratingBuckets: RatingBucket[];
 };
 
+const VISIBLE_CAST = 3;
+
+// Opening-credit header (credit kicker, title, tagline, one score line) and a credits block.
 export const MediaDetailsMainSection = ({
   moduleStyles,
   title,
-  yearLabel,
+  tagline,
   genres,
   creditRoleLabel,
   creditPeople,
-  creditFallbackName,
   communityRatingLabel,
   logsCount,
   tmdbRatingLabel,
@@ -55,143 +59,72 @@ export const MediaDetailsMainSection = ({
   ratingBuckets,
 }: MediaDetailsMainSectionProps) => {
   const [isCastExpanded, setIsCastExpanded] = useState(false);
-  const visibleCast = isCastExpanded ? cast : cast.slice(0, 5);
+  const visibleCast = isCastExpanded ? cast : cast.slice(0, VISIBLE_CAST);
+  const hiddenCastCount = cast.length - VISIBLE_CAST;
+
+  const creditRows: CreditRow[] = [
+    ...visibleCast.map((member) => ({
+      key: `cast-${member.tmdbPersonId}-${member.character ?? ""}`,
+      label: member.character ?? "Cast",
+      value: <PersonRouteLink person={member} className="hover:underline" />,
+    })),
+    ...factRows.map((fact) => ({ key: `fact-${fact.label}`, label: fact.label, value: fact.value })),
+  ];
 
   return (
-    <section>
-      <div className="mb-1 flex flex-wrap items-center gap-2">
-        <span className="font-mono text-[10px]" style={{ color: moduleStyles.faint }}>
-          {yearLabel}
-        </span>
-        {genres.slice(0, 3).map((genre) => (
-          <span
-            key={`detail-genre-${genre.id}`}
-            className="rounded-full border px-2 py-0.5 font-mono text-[9px]"
-            style={{
-              borderColor: moduleStyles.border,
-              color: moduleStyles.muted,
-            }}
-          >
-            {genre.name}
-          </span>
-        ))}
-      </div>
-
-      <h1
-        className="mb-2 font-mono text-3xl font-bold leading-tight md:text-5xl"
-        style={{ color: moduleStyles.text }}
-      >
-        {title}
-      </h1>
-      <p className="mb-6 font-mono text-sm" style={{ color: moduleStyles.muted }}>
-        <span>{creditRoleLabel}</span>
-        {creditPeople.length > 0 ? (
-          creditPeople.map((person, personIndex) => (
+    <section className="md:pt-28">
+      {creditPeople.length > 0 ? (
+        <p className="kicker mb-1.5 text-muted-foreground">
+          <span>{creditRoleLabel}</span>{" "}
+          {creditPeople.map((person, personIndex) => (
             <span key={`detail-credit-${person.tmdbPersonId}-${personIndex}`}>
-              <PersonRouteLink
-                person={person}
-                className="font-mono"
-                style={{ color: moduleStyles.accent }}
-              />
-              {personIndex < creditPeople.length - 1 ? (
-                <span style={{ color: moduleStyles.faint }}>, </span>
-              ) : null}
+              <PersonRouteLink person={person} style={{ color: moduleStyles.accent }} />
+              {personIndex < creditPeople.length - 1 ? ", " : null}
             </span>
-          ))
-        ) : (
-          <span style={{ color: moduleStyles.accent }}>{creditFallbackName}</span>
-        )}
-      </p>
-
-      <div
-        className="mb-8 flex flex-wrap items-center gap-8 border-b pb-8"
-        style={{ borderColor: moduleStyles.borderSoft }}
-      >
-        <div>
-          <p
-            className="mb-1 font-mono text-[9px] uppercase tracking-[0.22em]"
-            style={{ color: moduleStyles.faint }}
-          >
-            Community
-          </p>
-          <div className="flex items-baseline gap-2">
-            <span className="font-mono text-2xl font-bold" style={{ color: moduleStyles.accent }}>
-              {communityRatingLabel}
-            </span>
-            <span className="font-mono text-[10px]" style={{ color: moduleStyles.faint }}>
-              {formatCountLabel(logsCount, "log")}
-            </span>
-          </div>
-        </div>
-
-        <div>
-          <p
-            className="mb-1 font-mono text-[9px] uppercase tracking-[0.22em]"
-            style={{ color: moduleStyles.faint }}
-          >
-            TMDB
-          </p>
-          <span className="font-mono text-2xl font-bold" style={{ color: moduleStyles.muted }}>
-            {tmdbRatingLabel}
-          </span>
-        </div>
-      </div>
-
-      <p className="mb-8 text-sm leading-relaxed">{overview || overviewFallback}</p>
-
-      <div className="mb-8 border-y py-5" style={{ borderColor: moduleStyles.borderSoft }}>
-        <p
-          className="mb-3 font-mono text-[9px] uppercase tracking-[0.22em]"
-          style={{ color: moduleStyles.faint }}
-        >
-          Cast
+          ))}
         </p>
+      ) : null}
 
-        {cast.length === 0 ? (
-          <p className="font-mono text-xs" style={{ color: moduleStyles.muted }}>
-            No cast metadata available.
-          </p>
-        ) : (
-          <>
-            <div className="flex flex-wrap gap-2">
-              {visibleCast.map((castMember) => (
-                <PersonRouteLink
-                  key={`detail-cast-${castMember.tmdbPersonId}-${castMember.character ?? "cast"}`}
-                  person={castMember}
-                  className="rounded-full border px-2 py-1 font-mono text-[10px]"
-                  style={{
-                    borderColor: moduleStyles.border,
-                    color: moduleStyles.muted,
-                    background: moduleStyles.panelSoft,
-                  }}
-                >
-                  {castMember.character
-                    ? `${castMember.name} as ${castMember.character}`
-                    : castMember.name}
-                </PersonRouteLink>
-              ))}
-            </div>
+      <h1 className="display-1 text-foreground md:text-5xl">{title}</h1>
+      {tagline ? <p className="tagline mt-2 text-lg text-muted-foreground">{tagline}</p> : null}
 
-            {cast.length > 5 ? (
-              <button
-                type="button"
-                className="mt-3 rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors"
-                style={{
-                  borderColor: moduleStyles.border,
-                  color: moduleStyles.muted,
-                }}
-                onClick={() => {
-                  setIsCastExpanded((current) => !current);
-                }}
-              >
-                {isCastExpanded ? "Show less" : `Show all (${cast.length})`}
-              </button>
-            ) : null}
-          </>
-        )}
+      <div className="mt-5 mb-6 flex flex-wrap items-baseline gap-x-6 gap-y-2 border-b border-[color:var(--line)] pb-5">
+        <span className="flex items-baseline gap-1.5">
+          <span className="mono-num" style={{ color: moduleStyles.accent }}>
+            {communityRatingLabel}
+          </span>
+          <span className="mono-meta text-muted-foreground uppercase">
+            Interis · {formatCountLabel(logsCount, "log")}
+          </span>
+        </span>
+        <span className="flex items-baseline gap-1.5">
+          <span className="mono-num text-muted-foreground">{tmdbRatingLabel}</span>
+          <span className="mono-meta text-muted-foreground">TMDB</span>
+        </span>
+        {genres.length > 0 ? (
+          <span className="mono-meta text-muted-foreground uppercase">
+            {genres.slice(0, 3).map((genre) => genre.name).join(" / ")}
+          </span>
+        ) : null}
       </div>
 
-      <MediaFactsGrid factRows={factRows} moduleStyles={moduleStyles} />
+      <p className="body mb-8 text-foreground">{overview || overviewFallback}</p>
+
+      {creditRows.some((row) => row.value) ? (
+        <div className="mb-8">
+          <p className="kicker mb-2 text-muted-foreground">Credits</p>
+          <CreditsList rows={creditRows} />
+          {hiddenCastCount > 0 ? (
+            <button
+              type="button"
+              onClick={() => setIsCastExpanded((current) => !current)}
+              className="mono-meta mt-2 text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+            >
+              {isCastExpanded ? "Show less" : `+ ${hiddenCastCount} more cast`}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       <RatingBreakdownChart
         buckets={ratingBuckets}

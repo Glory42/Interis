@@ -1,6 +1,7 @@
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-type CreditRow = { label: string; value: string | null | undefined };
+export type CreditRow = { key?: string; label: string; value: ReactNode };
 
 // Film-credits layout: label, dotted leader, value. Rows without a value are left out.
 export const CreditsList = ({ rows, className }: { rows: CreditRow[]; className?: string }) => (
@@ -8,7 +9,7 @@ export const CreditsList = ({ rows, className }: { rows: CreditRow[]; className?
     {rows
       .filter((row) => row.value)
       .map((row) => (
-        <div key={row.label} className="flex gap-1.5 py-[3px]">
+        <div key={row.key ?? row.label} className="flex gap-1.5 py-[3px]">
           <dt className="text-muted-foreground">{row.label}</dt>
           <span aria-hidden className="flex-1 -translate-y-1 border-b border-dotted border-[color:var(--line-strong)]" />
           <dd className="text-right text-foreground">{row.value}</dd>

@@ -21,7 +21,11 @@ import {
   useSeriesInteraction,
   useUpdateSeriesInteraction,
 } from "@/features/serials/hooks/useSerials";
-import { MediaDetailBackdrop } from "@/features/media/detail/MediaDetailBackdrop";
+import { LetterboxHero } from "@/features/media/detail/LetterboxHero";
+import {
+  formatEpisodeRuntimeLabel,
+  toLanguageLabel as toSeriesLanguageLabel,
+} from "@/features/serials/components/utils";
 import { MediaSimilarSection } from "@/features/media/detail/MediaSimilarSection";
 import { MediaDetailStatusPanel } from "@/features/media/detail/MediaDetailStatusPanel";
 import { MediaActionsSidebar, type MediaAction } from "@/features/media/detail/MediaActionsSidebar";
@@ -174,9 +178,25 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
 
   return (
     <div className="min-h-screen">
-      <div className="relative h-[42vh] max-h-135 min-h-80 w-full overflow-hidden">
-        <MediaDetailBackdrop backdropUrl={backdropUrl} accentColor={SERIAL_MODULE_STYLES.accent} />
-      </div>
+      <LetterboxHero
+        backdropUrl={backdropUrl}
+        slateLeft={[
+          "Interis",
+          "TV",
+          ...(series.firstAirYear
+            ? [
+                series.lastAirDate && !series.inProduction
+                  ? `${series.firstAirYear}–${series.lastAirDate.slice(0, 4)}`
+                  : `${series.firstAirYear}–`,
+              ]
+            : []),
+        ]}
+        slateRight={[
+          series.network,
+          formatEpisodeRuntimeLabel(series.episodeRuntime),
+          toSeriesLanguageLabel(series.languageCode),
+        ].filter((part): part is string => Boolean(part))}
+      />
 
       <main className="relative z-10 mx-auto -mt-20 w-full max-w-5xl px-4 pb-10 sm:-mt-28">
         <Link
@@ -186,7 +206,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
           viewTransition
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          <span>Serials</span>
+          <span>TV</span>
         </Link>
 
         <div className="grid grid-cols-1 gap-10 md:grid-cols-[220px_1fr]">
@@ -211,12 +231,12 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
                 }
                 isTriggerBusy={reviewChooser.isChecking}
                 triggerVariant="outline"
-                triggerLabel="Log"
+                triggerLabel={detail.userRating?.watchedDate ? "Log again" : "Log"}
                 triggerClassName="h-auto rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
                 triggerContent={
                   <>
                     <Check className="h-3 w-3" />
-                    <span>Log</span>
+                    <span>{detail.userRating?.watchedDate ? "Log again" : "Log"}</span>
                   </>
                 }
               />
@@ -229,6 +249,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
             isAuthenticated={Boolean(user)}
             isInteractionBusy={isInteractionBusy}
             actions={actions}
+            lastWatchedDate={detail.userRating?.watchedDate ?? null}
             trailingSlot={
               Boolean(user) && detail.viewerTracking ? (
                 <SerialProgressPanel

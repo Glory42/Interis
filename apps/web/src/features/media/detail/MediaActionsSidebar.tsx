@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
+import { formatWatchedLabel } from "@/features/media/detail/watched-label";
 import { Link } from "@tanstack/react-router";
 import { AddToListDialog } from "@/features/lists/components/AddToListDialog";
 import { LaunchTrack } from "@/components/film/rating/LaunchTrack";
-import { RatingPanelStarfield } from "@/features/media/detail/RatingPanelStarfield";
 import type { MediaModuleStyles } from "@/features/media/styles";
 
 export type MediaAction = {
@@ -31,6 +31,8 @@ type MediaActionsSidebarProps = {
   // First entry sits beside logModalSlot; the rest fill their own row.
   actions: [MediaAction, ...MediaAction[]];
   trailingSlot?: ReactNode;
+  // The viewer's latest watch, shown as "Watched Nov 2" under Log again.
+  lastWatchedDate?: string | null;
 };
 
 const toggleButtonClassName =
@@ -92,6 +94,7 @@ export const MediaActionsSidebar = ({
   moduleStyles,
   posterSlot,
   logModalSlot,
+  lastWatchedDate,
   tmdbId,
   itemType,
   currentRating,
@@ -125,6 +128,10 @@ export const MediaActionsSidebar = ({
             moduleStyles={moduleStyles}
           />
         </div>
+
+        {formatWatchedLabel(lastWatchedDate) ? (
+          <p className="mono-meta text-muted-foreground">{formatWatchedLabel(lastWatchedDate)}</p>
+        ) : null}
 
         {restActions.length > 0 ? (
           <div className="grid grid-cols-2 gap-2">
@@ -160,7 +167,6 @@ export const MediaActionsSidebar = ({
             background: moduleStyles.panelElevated,
           }}
         >
-          <RatingPanelStarfield accentColor={moduleStyles.accent} />
 
           <p
             className="relative mb-2 font-mono text-[9px] uppercase tracking-[0.22em]"
