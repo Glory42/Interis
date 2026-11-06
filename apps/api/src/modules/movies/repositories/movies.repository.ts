@@ -358,4 +358,13 @@ export class MoviesRepository {
 
     return applyOptionalPagination(query, limit, offset);
   }
+
+  // Director of already-cached films, for search results; uncached ids are absent.
+  static async findDirectorsByTmdbIds(tmdbIds: number[]) {
+    if (tmdbIds.length === 0) return [];
+    return db
+      .select({ tmdbId: movies.tmdbId, director: movies.director })
+      .from(movies)
+      .where(and(inArray(movies.tmdbId, tmdbIds), isNotNull(movies.director)));
+  }
 }

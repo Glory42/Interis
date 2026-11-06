@@ -11,6 +11,8 @@ export type UnifiedSearchResult = {
   posterPath: string | null;
   releaseDate: string | null;
   popularity: number;
+  // Director (film) or creator (TV), only when the title is already cached.
+  credit: string | null;
 };
 
 export class SearchService {
@@ -27,6 +29,7 @@ export class SearchService {
       posterPath: movie.poster_path,
       releaseDate: movie.release_date || null,
       popularity: movie.popularity,
+      credit: null,
     }));
 
     const seriesResults: UnifiedSearchResult[] = series.map((show) => ({
@@ -36,10 +39,23 @@ export class SearchService {
       posterPath: show.poster_path,
       releaseDate: show.first_air_date,
       popularity: show.popularity,
+      credit: null,
     }));
 
-    return [...movieResults, ...seriesResults]
+    const results = [...movieResults, ...seriesResults]
       .sort((a, b) => b.popularity - a.popularity)
       .slice(0, MAX_RESULTS);
+
+    const idsOf = (mediaType: MediaType) =>
+      results.filter((result) => result.mediaType === mediaType).map((result) => result.tmdbId);
+    const [directors, creators] = await Promise.all([
+      MoviesService.findCachedDirectors(idsOf("movie")),
+      SerialsService.findCachedCreators(idsOf("tv")),
+    ]);
+
+    return results.map((result) => ({
+      ...result,
+      credit: (result.mediaType === "movie" ? directors : creators).get(result.tmdbId) ?? null,
+    }));
   }
 }

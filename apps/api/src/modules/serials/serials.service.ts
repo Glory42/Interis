@@ -151,4 +151,9 @@ export class SerialsService {
   static async deleteForAdmin(id: number) {
     return SerialsCacheRepository.deleteById(id);
   }
+
+  static async findCachedCreators(tmdbIds: number[]): Promise<Map<number, string>> {
+    const rows = await SerialsCacheRepository.findCreatorsByTmdbIds(tmdbIds);
+    return new Map(rows.flatMap((row) => (row.creator ? [[row.tmdbId, row.creator] as const] : [])));
+  }
 }
