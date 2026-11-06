@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { DuotoneBackdrop } from "@/components/film/DuotoneBackdrop";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_INTERVAL_MS = 5000;
@@ -21,11 +22,10 @@ type RotatingPosterBackdropProps = {
 // one just sits fully opaque, the newer one fades in on top of it
 // (animate-poster-crossfade) - once the fade finishes the older layer is
 // fully covered, so it's dropped on the next tick rather than needing its
-// own fade-out. Scrimmed by a theme-adaptive gradient so title text on top
-// always stays readable.
+// own fade-out. Rendered as a duotone in the module colour.
 export const RotatingPosterBackdrop = ({
   backdropUrls,
-  accentColor = "var(--foreground)",
+  accentColor = "var(--primary)",
   intervalMs = DEFAULT_INTERVAL_MS,
   className,
 }: RotatingPosterBackdropProps) => {
@@ -69,7 +69,7 @@ export const RotatingPosterBackdrop = ({
   }
 
   return (
-    <div className={cn("absolute inset-0 overflow-hidden", className)} aria-hidden="true">
+    <DuotoneBackdrop tintColor={accentColor} className={className}>
       {layers.map((layer, i) => (
         <img
           key={layer.id}
@@ -83,14 +83,6 @@ export const RotatingPosterBackdrop = ({
           )}
         />
       ))}
-
-      <div className="absolute inset-0 bg-background/35" />
-      <div
-        className="absolute inset-0"
-        style={{
-          background: `linear-gradient(180deg, color-mix(in srgb, ${accentColor} 10%, transparent) 0%, transparent 45%, color-mix(in srgb, var(--background) 88%, transparent) 100%)`,
-        }}
-      />
-    </div>
+    </DuotoneBackdrop>
   );
 };
