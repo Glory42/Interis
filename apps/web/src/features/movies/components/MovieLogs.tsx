@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { SpaceRatingDisplay } from "@/features/movies/components/SpaceRating";
 import { formatRatingLabel } from "@/lib/rating";
@@ -34,12 +33,12 @@ export const MovieLogs = ({ tmdbId }: MovieLogsProps) => {
   const logsQuery = useMovieLogs(tmdbId, tmdbId > 0);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Community logs</CardTitle>
-      </CardHeader>
+    <div className="surface">
+      <div className="flex flex-col gap-1.5 p-4">
+        <h3 className="text-lg font-semibold tracking-tight">Community logs</h3>
+      </div>
 
-      <CardContent className="space-y-3">
+      <div className="p-4 pt-0 space-y-3">
         {logsQuery.isPending ? (
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
             <Spinner /> Loading logs...
@@ -109,7 +108,7 @@ export const MovieLogs = ({ tmdbId }: MovieLogsProps) => {
             </div>
           ))}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };

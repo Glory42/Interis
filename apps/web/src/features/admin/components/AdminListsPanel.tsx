@@ -2,7 +2,6 @@ import { useDeferredValue, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminConfirmDialog } from "@/features/admin/components/AdminConfirmDialog";
 import { AdminPanelHeader } from "@/features/admin/components/AdminPanelHeader";
@@ -77,7 +76,7 @@ export const AdminListsPanel = () => {
 
       <AdminPanelState query={listsQuery} emptyMessage="No lists found." errorMessage="Could not load lists.">
         {(lists) => (
-          <Card>
+          <div className="surface">
             <Table>
               <TableHeader>
                 <TableRow className="border-0 hover:bg-transparent">
@@ -108,7 +107,7 @@ export const AdminListsPanel = () => {
                 ))}
               </TableBody>
             </Table>
-          </Card>
+          </div>
         )}
       </AdminPanelState>
     </div>

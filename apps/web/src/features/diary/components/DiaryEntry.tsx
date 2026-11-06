@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { getPosterUrl } from "@/features/movies/components/utils";
 import { formatDateOnlyLabel } from "@/lib/time";
 import { formatRatingLabel } from "@/lib/rating";
@@ -27,8 +26,8 @@ const formatWatchedDate = (value: string): string => formatDateOnlyLabel(value, 
 
 export const DiaryEntryItem = ({ entry }: DiaryEntryProps) => {
   return (
-    <Card className="overflow-hidden">
-      <CardContent className="grid gap-4 p-4 sm:grid-cols-[84px_1fr]">
+    <div className="surface overflow-hidden">
+      <div className="grid gap-4 p-4 sm:grid-cols-[84px_1fr]">
         <img
           src={getPosterUrl(entry.moviePosterPath)}
           alt={`${entry.movieTitle} poster`}
@@ -73,7 +72,7 @@ export const DiaryEntryItem = ({ entry }: DiaryEntryProps) => {
             </div>
           ) : null}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };

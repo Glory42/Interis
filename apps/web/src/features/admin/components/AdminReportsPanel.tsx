@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { AdminConfirmDialog } from "@/features/admin/components/AdminConfirmDialog";
 import { AdminPanelHeader } from "@/features/admin/components/AdminPanelHeader";
 import { AdminPanelState } from "@/features/admin/components/AdminPanelState";
@@ -34,8 +33,8 @@ const ReportRow = ({ report }: { report: ReportItem }) => {
   };
 
   return (
-    <Card>
-      <CardContent className="space-y-3 p-4">
+    <div className="surface">
+      <div className="space-y-3 p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Badge variant="muted">{report.targetType}</Badge>
@@ -97,8 +96,8 @@ const ReportRow = ({ report }: { report: ReportItem }) => {
           isLoading={removeMutation.isPending}
           onConfirm={() => void handleRemove()}
         />
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

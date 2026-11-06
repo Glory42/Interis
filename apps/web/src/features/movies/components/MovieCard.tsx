@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { getPosterUrl, toReleaseYear } from "@/features/movies/components/utils";
 import type { TmdbSearchMovie } from "@/types/api";
 
@@ -12,8 +11,8 @@ export const MovieCard = ({ movie }: MovieCardProps) => {
   const releaseYear = toReleaseYear(movie.release_date);
 
   return (
-    <Card className="overflow-hidden border-border/70">
-      <CardContent className="p-0">
+    <div className="surface overflow-hidden border-border/70">
+      <div className="p-0">
         <Link
           to="/movies/$tmdbId"
           params={{ tmdbId: String(movie.id) }}
@@ -44,7 +43,7 @@ export const MovieCard = ({ movie }: MovieCardProps) => {
             </span>
           </div>
         </Link>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };

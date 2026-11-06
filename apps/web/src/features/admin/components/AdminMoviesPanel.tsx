@@ -1,5 +1,4 @@
 import { useDeferredValue, useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminPanelHeader } from "@/features/admin/components/AdminPanelHeader";
 import { AdminPanelState } from "@/features/admin/components/AdminPanelState";
@@ -36,7 +35,7 @@ export const AdminMoviesPanel = () => {
         errorMessage="Could not load movies."
       >
         {(movies) => (
-          <Card>
+          <div className="surface">
             <Table>
               <TableHeader>
                 <TableRow className="border-0 hover:bg-transparent">
@@ -65,7 +64,7 @@ export const AdminMoviesPanel = () => {
                 ))}
               </TableBody>
             </Table>
-          </Card>
+          </div>
         )}
       </AdminPanelState>
     </div>

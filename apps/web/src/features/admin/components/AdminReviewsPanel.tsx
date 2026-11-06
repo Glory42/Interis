@@ -2,7 +2,6 @@ import { useDeferredValue, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { AdminConfirmDialog } from "@/features/admin/components/AdminConfirmDialog";
 import { AdminPanelHeader } from "@/features/admin/components/AdminPanelHeader";
 import { AdminPanelState } from "@/features/admin/components/AdminPanelState";
@@ -84,8 +83,8 @@ export const AdminReviewsPanel = () => {
         {(reviews) => (
           <div className="space-y-3">
             {reviews.map((review) => (
-              <Card key={review.id}>
-                <CardContent className="space-y-2 p-4">
+              <div key={review.id} className="surface">
+                <div className="space-y-2 p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-foreground">@{review.authorUsername}</span>
@@ -105,8 +104,8 @@ export const AdminReviewsPanel = () => {
                   <p className="line-clamp-3 whitespace-pre-wrap text-sm text-foreground/90">
                     {review.content}
                   </p>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         )}
