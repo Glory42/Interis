@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Interis — archive hero options</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  body { margin: 0; font-family: var(--font-sans, Sora, sans-serif); color: var(--foreground, #e8e3f7); background: var(--background, #100e17); }
+  .doc { max-width: 900px; margin: 0 auto; padding-bottom: 20px; }
+  h1 { font-size: 20px; margin: 0 0 6px; } h2 { font-size: 16px; margin: 0 0 4px; }
+  .lead { color: var(--muted-foreground, #9f98bb); font-size: 13.5px; line-height: 1.55; margin: 0 0 12px; }
+  .lead code { font-family: var(--font-mono, monospace); font-size: 11.5px; color: var(--foreground, #e8e3f7); }
+  section { margin-top: 28px; }
+  .rec { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, #a6e3b8 20%, transparent); color: #a6e3b8; margin-left: 6px; }
+  .app { --bg:#171420; --fg:#e8e3f7; --primary:#d4b5ff; --muted:#9f98bb; --movie:#e0a8a3; --line:rgba(232,227,247,.14);
+    background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 12px; padding: 14px; font-family: Sora, sans-serif; font-size: 13px; overflow: hidden; }
+  .mono { font-family: "JetBrains Mono", monospace; } .display { font-family: "Space Grotesk", sans-serif; letter-spacing: -.02em; }
+  .muted { color: var(--muted); }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .hero { position: relative; border-radius: 12px; border: 1px solid var(--line); overflow: hidden; background-size: cover; background-position: center 30%; }
+  .chip { display: inline-flex; gap: 4px; border: 1px solid var(--line); background: rgba(23,20,32,.85); backdrop-filter: blur(6px); border-radius: 999px; padding: 4px 10px; font-size: 11.5px; }
+  .poster { aspect-ratio: 2/3; border-radius: 8px; background: center/cover; border: 1px solid var(--line); }
+  .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  .dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.3); display: inline-block; }
+  .dots i.on { background: var(--movie); width: 16px; border-radius: 3px; }
+  .note { font-size: 12.5px; line-height: 1.55; color: var(--muted-foreground, #b3acd0); margin: 8px 0 0; padding-left: 18px; }
+</style>
+</head>
+<body>
+<div class="doc">
+  <h1>Films / TV pages: hero options</h1>
+  <p class="lead">Keep the hero, but make it about 230px tall instead of 288–384px, and have it show something (which film is on screen, why, and where it links), not just decoration. All three options reuse the trending data the page already loads, so they need no new API.</p>
+
+  <!-- A -->
+  <section>
+    <h2>A · Spotlight hero <span class="rec">recommended</span></h2>
+    <div class="app">
+      <div class="hero" style="height:230px;background-image:linear-gradient(90deg,rgba(23,20,32,.92) 0%,rgba(23,20,32,.55) 45%,rgba(23,20,32,.1) 75%),linear-gradient(0deg,rgba(23,20,32,.95) 0%,transparent 45%),url(https://image.tmdb.org/t/p/w780/oqrYIDH4tvfEzPe1yqT4jzmAWHQ.jpg)">
+        <div style="position:absolute;left:20px;top:20px">
+          <div class="display" style="font-size:34px;font-weight:700;line-height:1">Films</div>
+          <div class="muted" style="font-size:13px;margin-top:4px">What everyone's watching this week</div>
+        </div>
+        <div style="position:absolute;right:18px;bottom:52px;text-align:right">
+          <div class="mono" style="font-size:10.5px;color:var(--movie)">#1 TRENDING</div>
+          <div class="display" style="font-size:20px;font-weight:700">Godzilla Minus Zero</div>
+          <div class="muted" style="font-size:11.5px">2026 · Takashi Yamazaki · TMDB <span class="mono" style="color:var(--fg)">8.3</span></div>
+          <div class="row" style="justify-content:flex-end;gap:10px;margin-top:6px"><span class="dots row" style="gap:4px"><i class="on"></i><i></i><i></i><i></i><i></i></span><span style="font-size:12px;color:var(--primary)">View →</span></div>
+        </div>
+        <div class="row" style="position:absolute;left:20px;bottom:14px;gap:6px;flex-wrap:wrap">
+          <span class="chip">Genre ▾</span><span class="chip">Trending · week ▾</span><span class="chip">Any language ▾</span>
+        </div>
+      </div>
+      <div class="grid" style="margin-top:12px">
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/gAgWJhUSQWCgtKR8170nMkYlBda.jpg)"></div>
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/6sYemVUn79UPKz1ZsSG6kPU4RVy.jpg)"></div>
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/1ERGPNiKtnEcsvJS1ywsmqmcIDO.jpg)"></div>
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/lmrulvLbmaejTix1YaMxo1oGhH1.jpg)"></div>
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/hSmIJluOJmTWvJs4d7kHRxjc8s8.jpg)"></div>
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/9l1NuFjel2j89hiuiJbsxfblqjy.jpg)"></div>
+      </div>
+    </div>
+    <ul class="note">
+      <li>Keeps the rotating backdrop you have now, but the caption changes with it: rank, title, year, director and score, plus a link to the film. The dots show where you are in the rotation, and hovering pauses it.</li>
+      <li>The filters sit on the hero's bottom edge, so they don't need a row of their own. The grid starts about 150px higher than it does today.</li>
+      <li>On TV, the label becomes "#1 TRENDING SHOW" and uses the <code>--module-serial</code> colour.</li>
+    </ul>
+  </section>
+
+  <!-- B -->
+  <section>
+    <h2>B · Poster shelf</h2>
+    <div class="app">
+      <div class="hero" style="height:210px;background:radial-gradient(500px 220px at 80% 50%,rgba(224,168,163,.18),transparent 70%),linear-gradient(180deg,#1d1828,#141120)">
+        <div style="position:absolute;left:20px;top:22px;max-width:46%">
+          <div class="display" style="font-size:34px;font-weight:700;line-height:1">Films</div>
+          <div class="muted" style="font-size:13px;margin:4px 0 14px">This week's top 5, then everything else below.</div>
+          <div class="row" style="gap:6px;flex-wrap:wrap"><span class="chip">Genre ▾</span><span class="chip">Trending ▾</span><span class="chip">Language ▾</span></div>
+        </div>
+        <div style="position:absolute;right:26px;top:26px;width:320px;height:160px;perspective:700px">
+          <div class="poster" style="position:absolute;width:86px;left:0;top:22px;transform:rotateY(18deg) rotate(-6deg);opacity:.75;background-image:url(https://image.tmdb.org/t/p/w185/lmrulvLbmaejTix1YaMxo1oGhH1.jpg)"></div>
+          <div class="poster" style="position:absolute;width:92px;left:52px;top:12px;transform:rotateY(12deg) rotate(-3deg);opacity:.88;background-image:url(https://image.tmdb.org/t/p/w185/1ERGPNiKtnEcsvJS1ywsmqmcIDO.jpg)"></div>
+          <div class="poster" style="position:absolute;width:104px;left:108px;top:0;z-index:3;box-shadow:0 18px 40px -12px rgba(0,0,0,.8);background-image:url(https://image.tmdb.org/t/p/w185/hSmIJluOJmTWvJs4d7kHRxjc8s8.jpg)"><span class="mono" style="position:absolute;left:6px;top:6px;font-size:10px;background:var(--movie);color:#171420;border-radius:4px;padding:0 5px;font-weight:700">#1</span></div>
+          <div class="poster" style="position:absolute;width:92px;left:176px;top:12px;z-index:2;transform:rotateY(-12deg) rotate(3deg);opacity:.88;background-image:url(https://image.tmdb.org/t/p/w185/gAgWJhUSQWCgtKR8170nMkYlBda.jpg)"></div>
+          <div class="poster" style="position:absolute;width:86px;left:234px;top:22px;z-index:1;transform:rotateY(-18deg) rotate(6deg);opacity:.75;background-image:url(https://image.tmdb.org/t/p/w185/6sYemVUn79UPKz1ZsSG6kPU4RVy.jpg)"></div>
+        </div>
+      </div>
+    </div>
+    <ul class="note">
+      <li>Shows real, clickable posters instead of a blurred backdrop, with a small rank badge on each. It works even when a backdrop image is missing.</li>
+      <li>On phones the fan becomes a horizontal scroll strip under the title.</li>
+    </ul>
+  </section>
+
+  <!-- C -->
+  <section>
+    <h2>C · Collapsing hero</h2>
+    <div class="app">
+      <div class="row" style="align-items:flex-start;gap:14px;flex-wrap:wrap">
+        <div style="flex:1;min-width:260px">
+          <div class="mono muted" style="font-size:10.5px;margin-bottom:6px">AT THE TOP OF THE PAGE</div>
+          <div class="hero" style="height:170px;background-image:linear-gradient(0deg,rgba(23,20,32,.95),transparent 60%),url(https://image.tmdb.org/t/p/w780/xSDoxv4pHvs4xZjvTb0Iqg1A6ro.jpg)">
+            <div style="position:absolute;left:16px;bottom:14px"><div class="display" style="font-size:28px;font-weight:700">Films</div><div class="muted" style="font-size:12px">Trending this week</div></div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:260px">
+          <div class="mono muted" style="font-size:10.5px;margin-bottom:6px">AFTER SCROLLING (STICKY)</div>
+          <div class="hero" style="height:52px;background-image:linear-gradient(90deg,rgba(23,20,32,.95) 30%,rgba(23,20,32,.6)),url(https://image.tmdb.org/t/p/w780/xSDoxv4pHvs4xZjvTb0Iqg1A6ro.jpg)">
+            <div class="row" style="position:absolute;inset:0;padding:0 12px;justify-content:space-between"><b class="display" style="font-size:16px">Films</b><span class="row" style="gap:5px"><span class="chip">Genre ▾</span><span class="chip">Trending ▾</span></span></div>
+          </div>
+          <div class="grid" style="grid-template-columns:repeat(4,1fr);margin-top:8px">
+            <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/gAgWJhUSQWCgtKR8170nMkYlBda.jpg)"></div>
+            <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/6sYemVUn79UPKz1ZsSG6kPU4RVy.jpg)"></div>
+            <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/1ERGPNiKtnEcsvJS1ywsmqmcIDO.jpg)"></div>
+            <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/lmrulvLbmaejTix1YaMxo1oGhH1.jpg)"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ul class="note">
+      <li>Keeps a large hero when the page first loads. As you scroll, it shrinks into a 52px sticky bar that holds the title and filters, so you can change filters while deep in the grid.</li>
+      <li>Can be done with a CSS scroll-driven animation (no JavaScript) in Chromium-based browsers, falling back to a static compact bar elsewhere. It combines well with A.</li>
+    </ul>
+  </section>
+
+  <p class="lead" style="margin-top:22px"><b>Extra idea for signed-in users:</b> when someone is signed in, make the hero personal: the backdrop from the last film they logged, with "142 films this year · last: Clayface". Guests still see the trending spotlight.</p>
+</div>
+</body>
+</html>

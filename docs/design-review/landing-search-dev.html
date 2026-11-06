@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Interis — landing, search, developer, 404</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet" />
+<style>
+body { margin: 0; font-family: var(--font-sans, Sora, sans-serif); color: var(--foreground, #e8e3f7); background: var(--background, #0c0b10); }
+.doc { max-width: 900px; margin: 0 auto; padding-bottom: 24px; }
+h1 { font-size: 20px; margin: 0 0 6px; } h2 { font-size: 16px; margin: 0 0 4px; }
+.lead, .note { color: var(--muted-foreground, #9f98bb); font-size: 13.5px; line-height: 1.55; margin: 0 0 12px; }
+.note { font-size: 12px; margin: 8px 0 0; }
+.why { margin: 6px 0 12px; padding-left: 18px; font-size: 12.5px; line-height: 1.6; color: var(--muted-foreground, #b3acd0); }
+code { font-family: var(--font-mono, monospace); font-size: 11.5px; color: var(--foreground, #e8e3f7); }
+section { margin-top: 30px; }
+.cap, .tag { font: 600 10.5px var(--font-mono, monospace); letter-spacing: .08em; color: #7dffc0; text-align: center; margin-bottom: 6px; }
+.tag { display: block; text-align: left; margin: 16px 0 6px; }
+.phones { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+
+.df { --bg:#171420; --fg:#e8e3f7; --muted:#9f98bb; --line:rgba(232,227,247,.13); --primary:#d4b5ff; --pfg:#181422; --movie:#e0a8a3; --serial:#9fd4df; }
+.nl { --bg:#000; --fg:#e6e6e6; --muted:#8d8d8d; --line:rgba(255,255,255,.11); --primary:#00ff88; --pfg:#020202; --movie:#00ff88; --serial:#00cfff; }
+.app { background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; font-family: Sora, sans-serif; font-size: 13px; overflow: hidden; position: relative; }
+.mono { font-family: "JetBrains Mono", monospace; } .display { font-family: "Space Grotesk", sans-serif; letter-spacing: -.03em; font-weight: 700; line-height: 1.02; }
+.serif { font-family: "Instrument Serif", Georgia, serif; font-style: italic; }
+.muted { color: var(--muted); } .faint { color: color-mix(in srgb, var(--fg) 38%, transparent); }
+.sm { font: 9.5px "JetBrains Mono", monospace; color: var(--muted); }
+.row { display: flex; gap: 8px; align-items: center; } .sp { justify-content: space-between; }
+.slate { display: flex; justify-content: space-between; gap: 8px; padding: 7px 12px; background: #000; font: 600 10px "JetBrains Mono", monospace; letter-spacing: .08em; color: #8a8a8a; }
+.ph .slate { font-size: 8.5px; padding: 5px 10px; }
+.poster { aspect-ratio: 2/3; width: 22px; background: center/cover; border-radius: 2px; flex: none; }
+.blank { display: grid; place-items: end start; padding: 4px; box-sizing: border-box; font: 600 7.5px "JetBrains Mono", monospace; color: var(--muted); background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--fg) 8%, transparent) 0 5px, transparent 5px 10px); border: 1px solid var(--line); }
+.kick { font: 600 9.5px "JetBrains Mono", monospace; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; }
+.btn, .ghost { display: inline-flex; justify-content: center; align-items: center; gap: 6px; border-radius: 3px; padding: 9px 14px; font-weight: 600; font-size: 12px; background: var(--primary); color: var(--pfg); white-space: nowrap; }
+.ghost { background: none; font-weight: 400; padding: 8px 13px; border: 1px solid var(--line); color: var(--fg); }
+.kbd { font: 600 9.5px "JetBrains Mono", monospace; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 3px; padding: 1px 5px; color: var(--muted); }
+.credits { font: 11px "JetBrains Mono", monospace; }
+.credits div { display: flex; gap: 6px; padding: 3px 0; }
+.credits div::after { content: attr(data-v); color: var(--muted); order: 2; }
+.credits div::before { content: ""; flex: 1; min-width: 10px; border-bottom: 1px dotted var(--line); transform: translateY(-4px); order: 1; }
+.rk { width: 11px; height: 11px; fill: var(--primary); stroke: var(--primary); transform: rotate(45deg); }
+.score { font: 700 11px "JetBrains Mono", monospace; color: var(--primary); display: inline-flex; align-items: center; gap: 3px; }
+.cells { display: flex; gap: 2px; margin-top: 3px; } .cells i { width: 6px; height: 9px; background: color-mix(in srgb, var(--fg) 13%, transparent); border-radius: 1px; } .cells i.w { background: var(--serial); }
+.divider { display: flex; align-items: center; gap: 10px; font: 600 9.5px "JetBrains Mono", monospace; letter-spacing: .1em; color: var(--muted); margin: 10px 14px 4px; }
+.divider b { flex: 1; border-top: 1px solid var(--line); }
+u { text-decoration: none; border-bottom: 1px dashed var(--primary); color: var(--fg); }
+.outline { font: 700 24px/1 "Space Grotesk", sans-serif; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,.75); position: absolute; }
+.frame { position: relative; overflow: hidden; }
+.frame .img { position: absolute; inset: 0; background: center 30%/cover; filter: grayscale(1) contrast(1.2) brightness(.9); }
+.frame .tint { position: absolute; inset: 0; background: var(--movie); mix-blend-mode: color; opacity: .85; }
+.grain { position: absolute; inset: 0; opacity: .22; mix-blend-mode: overlay; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+.dl { display: grid; grid-template-columns: 34px 22px 1fr auto; gap: 9px; align-items: center; padding: 6px 12px; border-bottom: 1px solid var(--line); font-size: 11.5px; }
+.dl .d { font: 8.5px/1.2 "JetBrains Mono", monospace; color: var(--muted); } .dl .d b { color: var(--fg); font-size: 13px; }
+.res { display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 6px 14px; border-left: 2px solid transparent; font-size: 12px; }
+.res.on { background: color-mix(in srgb, var(--primary) 10%, transparent); border-left-color: var(--primary); }
+.res .s { font-size: 10.5px; color: var(--muted); }
+.dag { color: #ff9ab0; font: 700 9px "JetBrains Mono", monospace; vertical-align: super; }
+.code { background: #050505; color: #cfcfcf; font: 10.5px/1.6 "JetBrains Mono", monospace; padding: 10px 12px; white-space: pre; overflow: hidden; margin: 0; }
+.k { color: #c792ea; } .s2 { color: #a6e3b8; } .c { color: #6b6b6b; }
+.scrim { background: rgba(8,7,12,.85); padding: 20px 14px; border-radius: 4px; }
+.pal { max-width: 600px; margin: 0 auto; background: var(--bg); color: var(--fg); border: 1px solid color-mix(in srgb, var(--primary) 40%, var(--line)); border-radius: 4px; overflow: hidden; font-size: 12.5px; box-shadow: 0 40px 80px -40px #000; }
+.inp { display: flex; gap: 10px; align-items: center; padding: 11px 14px; border-bottom: 1px solid var(--line); font-size: 15px; }
+.inp > span:nth-child(2) { flex: 1; } .car { color: var(--primary); }
+.sk { height: 8px; border-radius: 1px; background: color-mix(in srgb, var(--fg) 10%, transparent); margin-bottom: 9px; }
+.ph { width: 300px; height: 620px; border-radius: 34px; border: 6px solid #1c1c1c; background: var(--bg); color: var(--fg); overflow: hidden; position: relative; font-family: Sora, sans-serif; font-size: 12px; box-sizing: border-box; }
+.pnav { height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid var(--line); font: 700 12px "JetBrains Mono", monospace; }
+.dock { position: absolute; left: 0; right: 0; bottom: 0; border-top: 1px solid var(--line); background: var(--bg); padding: 8px 12px 18px; display: flex; gap: 8px; }
+.dock > * { flex: 1; }
+.keys { position: absolute; left: 0; right: 0; bottom: 0; height: 200px; background: #1e1e1e; border-top: 1px solid #2a2a2a; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><symbol id="rk" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol></svg>
+<div class="doc">
+<h1>Landing, search, developer and 404</h1>
+<p class="lead">The first pages a newcomer or developer sees, in the approved slate, credits and rocket style. ISO week 45 of 2026 runs <b>Nov 2–8</b>.</p>
+
+<section>
+<h2>1 · Guest landing</h2>
+<ul class="why">
+<li>The hero is a centred headline over a blurred poster wall (<code>LandingHero.tsx:13-64</code>, <code>PosterWallBackdrop.tsx:19-26</code>). Nothing shows the diary, rockets or reels.</li>
+<li>"Browse the archive without an account" is a 10px kicker at 70% opacity (<code>LandingHero.tsx:55-61</code>).</li>
+<li>The navbar is hidden for guests on "/" (<code>__root.tsx:40,47</code>), so search and Films/TV aren't reachable.</li>
+<li>The trending rails are infinite marquees that repeat every poster (<code>TrendingPosterRow.tsx:79-80</code>, <code>[...items, ...items]</code>). Screen readers read each title twice.</li>
+</ul>
+<span class="tag">DESKTOP · DEFAULT THEME</span>
+<div class="app df">
+<div class="row sp" style="padding:9px 16px;border-bottom:1px solid var(--line)">
+<span class="mono" style="font-weight:700">◓ Interis &nbsp; <span class="muted" style="font-weight:400;font-size:11.5px">Films &nbsp; TV</span></span>
+<span class="row"><span class="ghost" style="padding:5px 9px;font-size:11px">⌕ Search <span class="kbd">⌘K</span></span><span class="muted" style="font-size:12px;margin:0 4px">Log in</span><span class="btn" style="padding:6px 11px">Sign up</span></span>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1.08fr;gap:22px;padding:22px 18px 18px">
+<div>
+<div class="kick">A diary for films and TV</div>
+<div class="display" style="font-size:38px;margin:8px 0 10px">Every watch, remembered.</div>
+<div class="muted" style="font-size:12.5px;line-height:1.55">Log what you watch, give it a rocket rating from 1 to 10, track shows one episode at a time, and see what the people you follow are watching.</div>
+<div class="row" style="margin-top:16px"><span class="btn">Start your diary, free</span><span class="ghost">Log in</span></div>
+<div style="margin-top:12px;font-size:12.5px"><u>Browse films and TV without an account</u> →</div>
+<div class="credits" style="margin-top:16px"><div data-v="every watch, dated">Diary</div><div data-v="1–10, half steps">Rockets</div><div data-v="one cell per episode">Reels</div><div data-v="people you follow">Feed</div></div>
+</div>
+<div style="border:1px solid var(--line);align-self:start">
+<div class="slate"><span>YOUR DIARY</span><span>WK 45 · NOV 2–8</span></div>
+<div id="diary"></div>
+<div class="divider" style="margin:10px 12px 4px"><span>FROM PEOPLE YOU FOLLOW</span><b></b></div>
+<div style="font-size:11.5px;line-height:1.5;padding:0 12px 10px"><b>glory42</b> <span class="muted">rated</span> Clayface <span class="score"><svg class="rk"><use href="#rk"/></svg>8.0</span><br><span class="serif muted" style="font-size:14px">"Dc character when someone is not happly married"</span></div>
+</div>
+</div>
+<div style="padding:0 18px 16px">
+<div class="slate"><span>TRENDING ON TMDB · FILMS</span><span>WK 45 · NOV 2–8</span></div>
+<div id="trend" style="display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;margin-top:10px"></div>
+<div class="divider" style="margin:14px 0 6px"><span style="color:var(--serial)">TRENDING · TV</span><b></b></div>
+<div class="mono" style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px 18px;font-size:11.5px" id="tv"></div>
+</div>
+<div class="row sp sm" style="border-top:1px solid var(--line);padding:10px 16px;letter-spacing:.1em"><span>INTERIS</span><span style="letter-spacing:0">logged, not filtered.</span><span>DEVELOPER · DOCS</span></div>
+</div>
+<p class="note">The diary specimen is <b>illustrative</b>, except for glory42's Clayface log and review. Trending is a static grid of 8 films with outlined ranks, no duplicates and no marquee. Shows become a numbered list. Guests get a slim navbar back.</p>
+
+<div class="phones nl">
+<div><div class="cap">PHONE · FIRST SCREEN</div>
+<div class="ph">
+<div class="pnav"><span>◓ Interis</span><span style="font:400 12px Sora">⌕ &nbsp; Log in</span></div>
+<div style="padding:16px 14px 0">
+<div class="kick">A diary for films and TV</div>
+<div class="display" style="font-size:30px;margin:6px 0 8px">Every watch, remembered.</div>
+<div class="muted" style="font-size:11.5px;line-height:1.5">Log it, rate it 1–10 with a rocket, track shows one episode at a time, and follow people whose taste you trust.</div>
+</div>
+<div style="margin:14px 14px 0;border:1px solid var(--line)"><div class="slate"><span>YOUR DIARY</span><span>WK 45</span></div><div id="diarym"></div></div>
+<div style="padding:12px 14px;font-size:12px"><u>Browse films and TV without an account</u> →</div>
+<div class="dock"><span class="btn" style="flex:1.6">Start your diary, free</span><span class="ghost">Log in</span></div>
+</div>
+</div>
+<div><div class="cap">PHONE · SCROLLED TO TRENDING</div>
+<div class="ph">
+<div class="pnav"><span>◓ Interis</span><span style="font:400 12px Sora">⌕ &nbsp; Log in</span></div>
+<div class="slate"><span>TRENDING · FILMS</span><span>WK 45 · NOV 2–8</span></div>
+<div class="frame" style="height:150px"><div class="img" style="background-image:url(https://image.tmdb.org/t/p/w780/oqrYIDH4tvfEzPe1yqT4jzmAWHQ.jpg)"></div><div class="tint"></div><div class="grain"></div><div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.75),transparent 60%)"></div>
+<div style="position:absolute;left:12px;bottom:10px;color:#fff"><div class="mono" style="font-size:8.5px;letter-spacing:.12em;opacity:.8">DIR. TAKASHI YAMAZAKI · TMDB 8.3</div><div class="display" style="font-size:19px">Godzilla Minus Zero</div></div>
+<div class="outline" style="right:10px;bottom:6px;font-size:44px">01</div></div>
+<div id="trendm" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:10px 14px 0"></div>
+<div class="dock"><span class="btn" style="flex:1.6">Start your diary, free</span><span class="ghost">Log in</span></div>
+</div>
+</div>
+</div>
+<p class="note">Sign up stays in a sticky bottom bar, and search is in the top bar. Trending is a 3-column grid that doesn't move on its own.</p>
+</section>
+
+<section>
+<h2>2 · Global search (⌘K)</h2>
+<ul class="why">
+<li>Each result only says "Movie · 2014" or "Serials · 2021" (<code>SearchResultRow.tsx:300-303</code>). <code>/api/search</code> returns only <code>mediaType, tmdbId, title, posterPath, releaseDate, popularity</code> (<code>search.service.ts:7-14</code>), with no director, creator or watched status.</li>
+<li>Films and TV are merged into one "Titles" list (<code>useGlobalSearchState.ts:139-153</code>). There's no people search. Before you type, you see three round icon cards (<code>GlobalSearchResults.tsx:49-87</code>).</li>
+<li>The green/cyan gradient line and the <code>NULL://SEARCH</code> label are hard-coded (<code>GlobalSearchDialog.tsx:186-192,274</code>) in every theme. The placeholder reads "Search among movie". The input is 12px, so iOS zooms in when it's focused. ⌘K exists (<code>useAppNavbarController.ts:72</code>), but nothing in the dialog shows it.</li>
+</ul>
+<span class="tag">DESKTOP · RESULTS · DEFAULT THEME</span>
+<div class="scrim df">
+<div class="pal">
+<div class="inp"><span class="muted">⌕</span><span>godzilla<span class="car">|</span></span><span class="muted" style="font-size:11.5px">in <u>everything</u> ▾</span><span class="kbd">esc</span></div>
+<div id="sr"></div>
+<div class="slate" style="margin-top:8px"><span>↑↓ MOVE · ↵ OPEN · ⇥ NEXT SECTION · ⌘1–4 SCOPE</span><span>5 RESULTS</span></div>
+</div>
+</div>
+<p class="note"><span class="dag">†</span> marks data <code>/api/search</code> doesn't return yet. Films and TV are split on the client using <code>mediaType</code>. Empty sections collapse into one line. Labels use <code>--module-movie</code>/<code>--module-serial</code>, so the colours follow the theme. The statuses shown are illustrative.</p>
+
+<span class="tag">DESKTOP · EMPTY · LOADING · NO RESULTS</span>
+<div class="scrim df" style="display:grid;grid-template-columns:1.25fr 1fr;gap:12px;align-items:start">
+<div class="pal" style="margin:0">
+<div class="inp" style="font-size:13px"><span class="muted">⌕</span><span class="muted">Films, shows, people, members</span><span class="kbd">esc</span></div>
+<div class="divider"><span>RECENT</span><b></b><span style="font-weight:400">CLEAR</span></div>
+<div class="res on"><span class="muted">↺</span><span>godzilla minus zero</span><span class="kbd">↵</span></div>
+<div class="res"><span class="muted">@</span><span>glory42</span><span class="sm">MEMBER</span></div>
+<div class="res"><span class="muted">↺</span><span>MobLand</span><span class="sm">TV</span></div>
+<div class="muted" style="padding:10px 14px;font-size:11.5px;line-height:1.8;border-top:1px solid var(--line);margin-top:8px">Search only <u>films</u> <span class="kbd">⌘1</span> <u>TV</u> <span class="kbd">⌘2</span> <u>people</u> <span class="kbd">⌘3</span> <u>members</u> <span class="kbd">⌘4</span></div>
+</div>
+<div style="display:grid;gap:12px">
+<div class="pal" style="margin:0"><div class="inp" style="font-size:13px"><span class="muted">⌕</span><span>clayf<span class="car">|</span></span></div><div class="divider"><span>SEARCHING TMDB</span><b></b></div><div style="padding:4px 14px 4px 46px"><div class="sk" style="width:60%"></div><div class="sk" style="width:35%"></div><div class="sk" style="width:48%"></div></div></div>
+<div class="pal" style="margin:0"><div class="inp" style="font-size:13px"><span class="muted">⌕</span><span>godzila mnus</span></div><div style="padding:12px 14px"><div class="display" style="font-size:15px">Nothing in the reel for "godzila mnus".</div><div class="muted" style="font-size:11px;margin-top:4px">Titles come from TMDB. Check the spelling, or try the original title.</div></div></div>
+</div>
+</div>
+<p class="note">Recent searches are kept in <code>localStorage</code> (up to 8, no backend). The first one is pre-selected, so ↵ repeats it. Skeleton rows keep the panel from jumping in height.</p>
+
+<div class="phones nl">
+<div><div class="cap">PHONE · OPEN, KEYBOARD UP</div>
+<div class="ph">
+<div class="row" style="padding:10px 12px;border-bottom:1px solid var(--line)"><div class="row" style="flex:1;border:1px solid var(--primary);border-radius:3px;padding:7px 9px"><span class="muted">⌕</span><span style="font-size:16px">gl<span class="car">|</span></span></div><span style="font-size:13px">Cancel</span></div>
+<div class="muted" style="padding:8px 14px;font-size:11.5px">in <u>everything</u> ▾</div>
+<div class="divider"><span>RECENT</span><b></b></div>
+<div class="res" style="padding:9px 14px"><span class="muted">↺</span><span>godzilla minus zero</span><span class="muted">↖</span></div>
+<div class="res" style="padding:9px 14px"><span class="muted">@</span><span>glory42</span><span class="muted">↖</span></div>
+<div class="res" style="padding:9px 14px"><span class="muted">↺</span><span>MobLand</span><span class="muted">↖</span></div>
+<div class="muted" style="padding:6px 14px;font-size:10.5px">Type 2 or more letters to search.</div>
+<div class="keys"></div>
+</div>
+</div>
+<div><div class="cap">PHONE · RESULTS, KEYBOARD DISMISSED</div>
+<div class="ph">
+<div class="row" style="padding:10px 12px;border-bottom:1px solid var(--line)"><div class="row" style="flex:1;border:1px solid var(--line);border-radius:3px;padding:7px 9px"><span class="muted">⌕</span><span style="font-size:16px;flex:1">glory</span><span class="muted">✕</span></div><span style="font-size:13px">Cancel</span></div>
+<div class="muted" style="padding:8px 14px;font-size:11.5px">in <u>everything</u> ▾ · <span class="sm">4 RESULTS</span></div>
+<div id="srm"></div>
+</div>
+</div>
+</div>
+<p class="note">On a phone, search is a full-screen <code>100dvh</code> overlay. The 16px input and Cancel stay at the top, and scrolling closes the keyboard. ↖ copies a recent search into the input. The scope sentence opens a bottom sheet. The Glory's rating is illustrative.</p>
+</section>
+
+<section>
+<h2>3 · Developer page</h2>
+<ul class="why">
+<li>The page reads as marketing: rounded icon cards for "Portfolio Widget" and similar (<code>DeveloperPage.tsx:66-97</code>), and two buttons that both open the external docs.</li>
+<li>The endpoint table (<code>DeveloperApiSurface.tsx:17-36</code>) leaves out the base URL, that no key is needed, the 60 req/min per IP limit and 5-minute cache (<code>public.routes.ts:12-29</code>), and each endpoint's <code>limit</code> default and maximum (<code>public-query-normalizer.helper.ts:3-11</code>).</li>
+<li>The examples use <code>your_username</code> and relative <code>/api/public/…</code> URLs (<code>developer-content.ts:96-130</code>), which break when pasted onto another site. Nothing shows what a widget would look like.</li>
+</ul>
+<span class="tag">DESKTOP · NULL-LOG THEME</span>
+<div class="app nl">
+<div class="slate"><span>INTERIS · PUBLIC API</span><span>GET ONLY · NO KEY · 60 REQ/MIN/IP · CACHED 5 MIN</span></div>
+<div style="padding:18px 18px 4px">
+<div class="display" style="font-size:30px">Your diary, on your own site.</div>
+<div class="muted" style="font-size:12.5px;line-height:1.55;margin-top:6px">Every public profile can be read as JSON. No key, no sign-up, open CORS.</div>
+<div class="row mono" style="margin-top:12px;border:1px solid var(--line);padding:7px 10px;font-size:12px"><span class="muted">BASE</span><span style="flex:1">https://api.interis.gorkemkaryol.dev/api/public/<span class="car">:username</span></span><span class="ghost" style="padding:3px 8px;font-size:10.5px">⧉ Copy</span></div>
+<div class="divider" style="margin:14px 0 6px"><span>ENDPOINTS · 13</span><b></b><span>DEFAULT / MAX LIMIT</span></div>
+<div class="credits" id="ep" style="display:grid;grid-template-columns:1fr 1fr;gap:0 22px"></div>
+<div class="divider" style="margin:14px 0 6px"><span>TRY IT</span><b></b></div>
+<div class="muted" style="font-size:13px">Show <u>glory42</u>'s <u>recently watched</u> ▾, <u>4</u> entries, in the <u>null-log</u> ▾ theme.</div>
+</div>
+<div style="display:grid;grid-template-columns:1.25fr 1fr;gap:14px;padding:12px 18px 18px">
+<div style="border:1px solid var(--line)"><div class="slate"><span><span style="color:#fff">FETCH</span> &nbsp; CURL &nbsp; HTML</span><span class="car">⧉ COPY</span></div>
+<pre class="code" id="code"></pre></div>
+<div><div class="kick" style="margin-bottom:6px">Live preview</div><div class="wid" style="border:1px solid var(--line)"></div></div>
+</div>
+</div>
+<p class="note">Endpoints are written as credits, with <code>limit</code> defaults and maximums taken from the normalizer. The sentence controls the snippet and the preview together. The preview is styled with the <code>themeId</code> from <code>/profile</code>, and the snippet only uses fields <code>/diary</code> already returns. Widget rows other than Clayface are illustrative. The "What you can do" cards are cut.</p>
+
+<div class="phones df">
+<div><div class="cap">PHONE · REFERENCE</div>
+<div class="ph">
+<div class="pnav"><span>◓ Interis</span><span class="muted" style="font-weight:400">⌕ &nbsp; ☰</span></div>
+<div class="slate"><span>PUBLIC API</span><span>NO KEY · 60/MIN</span></div>
+<div style="padding:14px">
+<div class="display" style="font-size:24px">Your diary, on your own site.</div>
+<div class="muted" style="font-size:11px;line-height:1.5;margin-top:6px">Public profiles as JSON. GET only, open CORS, cached for 5 minutes.</div>
+<div class="mono" style="margin-top:10px;border:1px solid var(--line);padding:7px 8px;font-size:9.5px;white-space:nowrap;overflow:hidden">api.interis.gorkemkaryol.dev/api/public/<span class="car">:user…</span></div>
+<div class="divider" style="margin:12px 0 4px"><span>ENDPOINTS · 13</span><b></b></div>
+<div class="credits" id="epm" style="font-size:10px"></div>
+<div class="mono car" style="font-size:10px;margin-top:3px">+ 4 more: movies, serials ›</div>
+</div>
+<div class="dock"><span class="btn">Try it ↓</span><span class="ghost">Full docs ↗</span></div>
+</div>
+</div>
+<div><div class="cap">PHONE · TRY IT</div>
+<div class="ph">
+<div class="pnav"><span>◓ Interis</span><span class="muted" style="font-weight:400">⌕ &nbsp; ☰</span></div>
+<div style="padding:12px 14px 0">
+<div class="muted" style="font-size:12px;line-height:1.7">Show <u>glory42</u>'s <u>recently watched</u> ▾, <u>4</u> entries.</div>
+<div style="border:1px solid var(--line);margin-top:10px"><div class="slate"><span><span style="color:#fff">FETCH</span> · CURL · HTML</span><span>⇆ SCROLL</span></div><pre class="code" id="codem" style="font-size:9.5px;height:84px"></pre></div>
+<div class="kick" style="margin:12px 0 5px">Preview</div>
+<div class="wid" data-n="3" style="border:1px solid var(--line)"></div>
+</div>
+<div class="dock"><span class="btn">⧉ Copy snippet</span><span class="ghost" style="flex:.6">Docs ↗</span></div>
+</div>
+</div>
+</div>
+<p class="note">On a phone the code scrolls sideways, and Copy stays in the sticky bar.</p>
+</section>
+
+<section>
+<h2>4 · 404, "Cut to black."</h2>
+<ul class="why"><li><code>__root.tsx:21-35</code> is centred text with one "Return home" button (the className even starts with a stray space, <code>" bg-primary"</code>). It doesn't show which URL failed and offers no way to search.</li></ul>
+<div class="app df" style="background:#000;color:#eee">
+<div class="slate" style="border-bottom:1px solid #1a1a1a"><span>REEL 404 · SCENE MISSING</span><span>00:00:00:00</span></div>
+<div class="row" style="gap:26px;padding:24px;position:relative">
+<div class="grain" style="opacity:.3"></div>
+<svg width="116" height="116" viewBox="0 0 120 120" style="flex:none"><circle cx="60" cy="60" r="54" fill="none" stroke="#333" stroke-width="1.5"/><circle cx="60" cy="60" r="42" fill="none" stroke="#333"/><path d="M60 0V120M0 60H120" stroke="#2a2a2a"/><path d="M60 6A54 54 0 0 1 114 60L60 60Z" fill="#d4b5ff" opacity=".2"/><text x="60" y="71" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="34" fill="#eee">404</text></svg>
+<div style="position:relative">
+<div class="mono" style="font-size:10.5px;color:#777">/movies/godzila-minus-zero</div>
+<div class="display" style="font-size:34px;margin:4px 0 6px">Cut to black.</div>
+<div style="font-size:12.5px;color:#9a9a9a;line-height:1.5">That frame isn't in the reel. The link may be mistyped, or the page may have been cut.</div>
+<div class="row" style="margin-top:14px"><span class="btn">Back to home</span><span class="ghost" style="border-color:#333;color:#ddd">⌕ Search <span class="kbd" style="border-color:#333">⌘K</span></span><u style="font-size:12px;margin-left:6px;color:#ddd">Browse films</u></div>
+</div>
+</div>
+</div>
+<p class="note">The page is black in every theme. Only the countdown wedge and the button use <code>--primary</code>. The path comes from <code>useRouterState</code>, which <code>__root.tsx</code> already reads. On a phone the actions stack full-width.</p>
+</section>
+
+<section>
+<h2>Needs backend work</h2>
+<ul class="why">
+<li><b>Search · director/creator:</b> TMDB search returns no credits. Add a <code>credit</code> field for the top 6 per type, taken from cached detail rows or from a cached credits call through <code>createCachedTmdbFetcher</code>. Never fetch one per result uncached, and never write to the DB on a read.</li>
+<li><b>Search · your status:</b> one optional-auth batch query per type, using <code>inArray(tmdbIds)</code> on interactions, diary and serial progress, that returns watched, rating, watchlist and episodes watched.</li>
+<li><b>Search · people:</b> a new cached TMDB <code>/search/person</code> call. There are no person pages yet. TV episode counts appear only when the title is already cached.</li>
+<li><b>Developer, landing, 404:</b> none. They use the existing <code>/diary</code>, <code>/profile</code> and trending endpoints.</li>
+</ul>
+</section>
+</div>
+<script>
+const T = 'https://image.tmdb.org/t/p/w185/', $ = id => document.getElementById(id);
+const P = (p, w) => `<div class="poster${p ? '' : ' blank'}" style="${w ? 'width:' + w + ';' : ''}${p ? `background-image:url(${T}${p}.jpg)` : ''}">${p || !w ? '' : 'NO POSTER PATH'}</div>`;
+const R = (n, c = '') => `<span class="score"${c}><svg class="rk"><use href="#rk"/></svg>${n}</span>`;
+const C = (n, w) => `<div class="cells">${'<i class="w"></i>'.repeat(w)}${'<i></i>'.repeat(n - w)}</div>`;
+const GZ = 'hSmIJluOJmTWvJs4d7kHRxjc8s8', CF = '9l1NuFjel2j89hiuiJbsxfblqjy';
+const D = [['FRI', '06', GZ, '<b>Godzilla Minus Zero</b><br><span class="sm">2026 · TAKASHI YAMAZAKI</span>', R('9.0') + ' <span style="color:#f17fa0">♥</span>'],
+['WED', '04', '', '<b>MobLand</b> <span class="sm">S01E06</span>' + C(10, 6), '<span class="sm">6/10</span>'],
+['MON', '02', CF, '<b>Clayface</b> <span class="sm">✎ REVIEW</span><br><span class="sm">2026 · JAMES WATKINS</span>', R('8.0')]];
+const dl = (d, m) => `<div class="dl"${m ? ' style="padding:6px 10px"' : ''}><span class="d">${d[0]}<br><b>${d[1]}</b></span>${P(d[2])}<span>${m ? d[3].replace(/<br>.*$/, '') : d[3]}</span><span>${d[4]}</span></div>`;
+$('diary').innerHTML = D.map(d => dl(d)).join(''); $('diarym').innerHTML = D.map(d => dl(d, 1)).join('');
+const F = [['Godzilla Minus Zero', GZ], ['Resident Evil', 'gAgWJhUSQWCgtKR8170nMkYlBda'], ['Clayface', CF], ['Heart of the Beast', '6sYemVUn79UPKz1ZsSG6kPU4RVy'], ['Possible Love', '1ERGPNiKtnEcsvJS1ywsmqmcIDO'], ['Primetime', 'lmrulvLbmaejTix1YaMxo1oGhH1'], ['The Mongoose', ''], ['Model Citizen', '']];
+const tile = ([t, p], i, s) => `<div style="position:relative">${P(p, '100%')}<span class="outline" style="left:3px;top:${s ? 'auto;bottom:3px' : '4px'};font-size:${s ? 18 : 22}px">${String(i + 1).padStart(2, '0')}</span>${s ? '' : `<div style="font-size:10px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t}</div>`}</div>`;
+$('trend').innerHTML = F.map((f, i) => tile(f, i)).join(''); $('trendm').innerHTML = F.slice(1, 7).map((f, i) => tile(f, i + 1, 1)).join('');
+$('tv').innerHTML = ['MobLand', 'VisionQuest', 'Campus Drivers', 'Dexter: Resurrection', 'Dead-End Job', 'Black Doves'].map((t, i) => `<span><span class="faint">0${i + 1}</span> ${t}</span>`).join('');
+const dag = '<span class="dag">†</span>', div = (l, c = '') => `<div class="divider"><span${c}>${l}</span><b></b></div>`;
+const res = (p, t, y, sub, right = '', on) => `<div class="res${on ? ' on' : ''}">${p === '@' ? '<span style="width:22px;height:22px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font:700 10px JetBrains Mono">G</span>' : P(p)}<span><b>${t}</b> <span class="sm">${y}</span><br><span class="s">${sub}</span></span>${right}</div>`;
+const mv = ' style="color:var(--movie)"', tv = ' style="color:var(--serial)"';
+$('sr').innerHTML = div('FILMS · 4', mv)
++ res(GZ, 'Godzilla Minus Zero', 2026, 'dir. Takashi Yamazaki' + dag, `<span class="row"><span class="sm">◷ ON WATCHLIST${dag}</span><span class="kbd">↵</span></span>`, 1)
++ res('', 'Godzilla Minus One', 2023, 'dir. Takashi Yamazaki' + dag, '<span class="row"><span class="sm">◉ WATCHED</span>' + R('9.0' + dag) + '</span>')
++ res('', 'Godzilla x Kong: The New Empire', 2024, 'dir. Adam Wingard' + dag) + res('', 'Godzilla', 2014, 'dir. Gareth Edwards' + dag)
++ div('TV · 1', tv) + res('', 'Godzilla Singular Point', 2021, '1 season · 13 episodes' + dag, `<span class="row">${C(13, 4)}<span class="sm">4/13${dag}</span></span>`)
++ div('PEOPLE' + dag + ' · MEMBERS') + '<div class="muted" style="padding:0 14px;font-size:11.5px">No people or members named "godzilla".</div>';
+$('srm').innerHTML = div('MEMBERS · 1') + res('@', 'glory42', '', '@glory42', '<span class="muted">›</span>')
++ div('FILMS · 2', mv) + res('', 'Glory', 1989, 'dir. Edward Zwick' + dag, '<span class="muted">›</span>') + res('', 'Glory Road', 2006, 'dir. James Gartner' + dag, '<span class="muted">›</span>')
++ div('TV · 1', tv) + res('', 'The Glory', 2022, 'by Kim Eun-sook' + dag + ' · 16 eps', R('8.5' + dag))
++ div('PEOPLE' + dag) + '<div class="muted" style="padding:0 14px;font-size:10.5px">Shown once person search ships.</div>';
+const EP = [['/profile', 'bio + 7 counts'], ['/reviews', '50 / 200'], ['/top4', 'top 4 picks'], ['/lists', '50 / 200'], ['/recent', '10 / 20'], ['/likes', '50 / 200'], ['/activity', '30 / 100'], ['/watchlist', '50 / 200'], ['/diary', '50 / 200 · offset'], ['/movies/watched', '50 / 200'], ['/serials/:tmdbId', 'episode progress'], ['/serials/watched', '50 / 200'], ['/serials/currently-watching', '10 / 30']];
+const ep = e => `<div data-v="${e[1]}"${e[0] === '/diary' ? ' class="car"' : ''}>${e[0]}</div>`;
+$('ep').innerHTML = EP.map(ep).join(''); $('epm').innerHTML = EP.slice(0, 9).map(ep).join('');
+const code = `<span class="k">const</span> url = <span class="s2">"https://api.interis.gorkemkaryol.dev</span>
+  <span class="s2">/api/public/glory42/diary?limit=4"</span>;
+<span class="k">const</span> diary = <span class="k">await</span> (<span class="k">await</span> fetch(url)).json();
+
+list.innerHTML = diary.map((e) =&gt;
+  <span class="s2">\`&lt;li&gt;\${e.media.title} (\${e.media.releaseYear})</span>
+<span class="s2">   \${e.rating ?? "–"}/10 · \${e.watchedDate}&lt;/li&gt;\`</span>
+).join(<span class="s2">""</span>);
+<span class="c">// 200 → PublicDiaryItem[] · 404 → unknown user</span>`;
+$('code').innerHTML = code; $('codem').innerHTML = code;
+const W = [['Godzilla Minus Zero', 2026, GZ, '9.0', 'NOV 06'], ['Clayface', 2026, CF, '8.0', 'NOV 02'], ['Bleach', 2004, '2EewmxXe72ogD0EaWM8gqa0ccIw', '8.5', 'OCT 30'], ['Primetime', 2026, 'lmrulvLbmaejTix1YaMxo1oGhH1', '6.5', 'OCT 27']];
+document.querySelectorAll('.wid').forEach(el => {
+el.innerHTML = '<div class="slate"><span>GLORY42 · RECENTLY WATCHED</span><span>◓</span></div>' + W.slice(0, +el.dataset.n || 4).map(r => `<div style="display:grid;grid-template-columns:22px 1fr auto;gap:9px;align-items:center;padding:6px 10px;border-bottom:1px solid #1a1a1a;font-size:11px">${P(r[2])}<span><b>${r[0]}</b><br><span class="sm">${r[1]} · ${r[4]}</span></span>${R(r[3])}</div>`).join('') + '<div class="row sp sm" style="padding:6px 10px;font-size:9px"><span>INTERIS</span><span>logged, not filtered.</span></div>';
+el.classList.add('nl'); el.style.background = '#050505'; el.style.color = '#e6e6e6';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Interis — component system</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+body{margin:0;font-family:Sora,sans-serif;color:#e8e3f7;background:#0c0b10}
+.doc{max-width:728px;margin:0 auto;padding:0 8px 24px;box-sizing:border-box}
+h1{font-size:20px;margin:0 0 6px}h2{font-size:16px;margin:0 0 4px}
+.lead{color:#9f98bb;font-size:12.5px;line-height:1.55;margin:8px 0}
+.why{margin:4px 0 10px;padding-left:18px;font-size:12.5px;line-height:1.55;color:#b3acd0}
+code{font:11.5px "JetBrains Mono",monospace;color:#e8e3f7}
+section{margin-top:28px}
+.cap{font:600 10px "JetBrains Mono",monospace;letter-spacing:.08em;color:#7dffc0;margin:14px 0 6px}
+.df{--bg:#171420;--surface:#1c1828;--fg:#e8e3f7;--muted:#9f98bb;--faint:rgba(232,227,247,.4);--line:rgba(232,227,247,.13);--line2:rgba(232,227,247,.26);--primary:#d4b5ff;--pfg:#181422;--accent:#f4c2bf;--movie:#e0a8a3;--serial:#9fd4df;--danger:#f17fa0;--like:#f17fa0;--warn:#e8c27a;--ok:#9be3b4;--slate:#000}
+.nl{--bg:#000;--surface:#0b0b0b;--fg:#e6e6e6;--muted:#8d8d8d;--faint:rgba(230,230,230,.4);--line:rgba(255,255,255,.11);--line2:rgba(255,255,255,.24);--primary:#00ff88;--pfg:#020202;--accent:#00cfff;--movie:#00ff88;--serial:#00cfff;--danger:#ff6b85;--like:#ff6b85;--warn:#ffcc66;--ok:#00ff88;--slate:#000}
+.app{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:4px;padding:14px;font-size:13px;position:relative;overflow:hidden}
+.p0{padding:0}.pd{padding:12px 14px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.mt{margin-top:10px}
+.mono{font-family:"JetBrains Mono",monospace}.display{font-family:"Space Grotesk",sans-serif;letter-spacing:-.03em}
+.t15{font-size:15px;font-weight:600}.f10{font-size:10.5px}.f11{font-size:11px}.f12{font-size:12.5px}
+.muted{color:var(--muted)}.faint{color:var(--faint)}
+.row{display:flex;gap:8px;align-items:center}.sb{justify-content:space-between}.wrap{flex-wrap:wrap}.top{align-items:flex-start}
+.kick{font:600 10px "JetBrains Mono",monospace;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+.slate{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;background:var(--slate);font:600 10px "JetBrains Mono",monospace;letter-spacing:.08em;color:#8a8a8a}
+.poster{aspect-ratio:2/3;background:center/cover;border-radius:2px;flex:none;border:1px solid var(--line);position:relative;overflow:hidden}
+.credits{font:12px "JetBrains Mono",monospace}.credits div{display:flex;gap:6px;padding:3px 0}.credits b{flex:1;border-bottom:1px dotted var(--line2);transform:translateY(-4px)}
+.r{width:var(--rz,12px);height:var(--rz,12px);flex:none}.r.on{fill:var(--primary);stroke:var(--primary)}.r.off{fill:none;stroke:color-mix(in srgb,var(--fg) 25%,transparent)}
+.rh{position:relative;display:inline-flex}.rh i{position:absolute;left:0;top:0;width:50%;overflow:hidden}
+.cells{display:flex;flex-wrap:wrap;gap:2px}.cells i{width:7px;height:10px;background:color-mix(in srgb,var(--fg) 12%,transparent);border-radius:1px}.cells i.w{background:var(--accent)}
+.outline{font:700 26px/1 "Space Grotesk",sans-serif;color:transparent;-webkit-text-stroke:1px color-mix(in srgb,var(--fg) 55%,transparent)}
+.sentence{font-size:13px;line-height:1.7}.sentence u{text-decoration:none;border-bottom:1px dashed var(--accent);color:var(--fg)}
+.sw{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:center;font-size:11.5px;padding:3px 0}.sw b{height:14px;border:1px solid var(--line2);border-radius:2px}
+.ts{display:grid;grid-template-columns:1.15fr 1fr;gap:4px 14px;align-items:baseline}
+.b{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 12px;border-radius:3px;font:600 12px Sora,sans-serif;border:1px solid transparent;white-space:nowrap;box-sizing:border-box;color:var(--fg)}
+.b.p{background:var(--primary);color:var(--pfg)}.b.p.hov{background:color-mix(in srgb,var(--primary) 82%,#fff)}
+.b.s{border-color:var(--line2)}.b.s.hov{background:color-mix(in srgb,var(--fg) 6%,transparent);border-color:color-mix(in srgb,var(--fg) 45%,transparent)}
+.b.g{color:var(--muted)}.b.g.hov{color:var(--fg);background:color-mix(in srgb,var(--fg) 6%,transparent)}
+.b.d{border-color:color-mix(in srgb,var(--danger) 55%,transparent);color:var(--danger)}.b.d.hov,.b.df{background:var(--danger);color:var(--bg);border-color:var(--danger)}
+.b.l{height:auto;padding:0 0 1px;border:0;border-bottom:1px solid var(--line2);border-radius:0;font-weight:500}.b.l.hov{color:var(--primary);border-color:var(--primary)}
+.b.i{width:32px;padding:0;color:var(--muted);border-color:var(--line);font-size:15px}.b.i.hov{color:var(--fg);border-color:var(--line2)}
+.foc{outline:2px solid var(--primary);outline-offset:2px}.dis{opacity:.38}
+.ld{display:inline-flex;gap:2px}.ld i{width:3px;height:10px;background:currentColor;opacity:.25;animation:ld .9s infinite}.ld i:nth-child(2){animation-delay:.15s}.ld i:nth-child(3){animation-delay:.3s}
+@keyframes ld{30%{opacity:1}}
+.bm{display:grid;grid-template-columns:70px repeat(5,1fr);gap:8px 6px;align-items:center;justify-items:start}
+.in{display:flex;align-items:center;justify-content:space-between;height:36px;padding:0 10px;border:1px solid var(--line2);border-radius:3px;background:color-mix(in srgb,var(--fg) 3%,transparent);font-size:14px;box-sizing:border-box}
+.in.f{border-color:var(--primary)}.in.e{border-color:var(--danger)}
+.lbl{display:flex;justify-content:space-between;margin:10px 0 5px}
+.cb{width:14px;height:14px;border:1px solid var(--line2);border-radius:2px;display:inline-grid;place-items:center;font-size:10px;flex:none}.cb.on{background:var(--primary);border-color:var(--primary);color:var(--pfg)}
+.tg{width:28px;height:16px;border:1px solid var(--line2);border-radius:2px;position:relative;flex:none;box-sizing:border-box}.tg::after{content:"";position:absolute;left:2px;top:2px;width:10px;height:10px;background:var(--muted);border-radius:1px}
+.tg.on{border-color:var(--primary);background:color-mix(in srgb,var(--primary) 20%,transparent)}.tg.on::after{left:14px;background:var(--primary)}
+.menu{background:var(--surface);border:1px solid var(--line2);border-radius:4px;padding:4px 0;box-shadow:0 18px 40px -20px #000;font-size:12.5px}
+.menu div{padding:7px 12px;display:flex;justify-content:space-between;gap:12px}.menu .on{box-shadow:inset 2px 0 var(--primary);background:color-mix(in srgb,var(--fg) 5%,transparent)}.menu hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+.tabs{display:flex;gap:16px;border-bottom:1px solid var(--line);font-size:12.5px;white-space:nowrap;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent)}
+.tabs span{padding:8px 0;color:var(--muted)}.tabs .on{color:var(--fg);box-shadow:inset 0 -2px var(--primary)}.tabs small{font:10.5px "JetBrains Mono",monospace;color:var(--faint);margin-left:4px}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:3px;overflow:hidden}.seg span{padding:6px 12px;font:600 11px "JetBrains Mono",monospace;letter-spacing:.08em;color:var(--muted);border-left:1px solid var(--line)}
+.seg span:first-child{border:0}.seg .on{color:var(--fg);background:color-mix(in srgb,var(--c) 14%,transparent);box-shadow:inset 0 -2px var(--c)}
+.chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line2);border-radius:3px;padding:4px 8px;font-size:11.5px}
+.bdg{display:inline-flex;align-items:center;gap:4px;font:600 10px "JetBrains Mono",monospace;letter-spacing:.08em;padding:2px 6px;border:1px solid currentColor;border-radius:2px}
+.modal{background:var(--bg);border:1px solid var(--line2);border-radius:4px;overflow:hidden;box-shadow:0 40px 80px -40px #000}
+.mf{display:flex;gap:8px;justify-content:flex-end;padding:10px 14px;border-top:1px solid var(--line)}
+.scrim{background:rgba(8,6,14,.8);padding:16px 12px;border-radius:4px;flex:1}
+.ph{width:280px;height:450px;border-radius:30px;border:6px solid #1c1c1c;background:var(--bg);color:var(--fg);overflow:hidden;position:relative;font-size:12px;box-sizing:border-box;flex:none}
+.pbar{height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid var(--line)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line2);border-radius:12px 12px 0 0;padding:8px 0 16px}
+.grab{width:36px;height:4px;border-radius:2px;background:#333;margin:0 auto 8px}.sheet .it{padding:12px 16px;font-size:14px;border-top:1px solid var(--line)}
+.toast{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--line2);box-shadow:inset 2px 0 var(--c);border-radius:3px;padding:10px 12px;font-size:12.5px}
+.pst{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:center;padding:3px 5px;background:rgba(0,0,0,.82);font:600 10px "JetBrains Mono",monospace;color:#ddd}
+.track{position:relative;height:36px}.track .base{position:absolute;left:0;right:0;top:16px;border-top:2px solid var(--line)}
+.track .tk{position:absolute;left:0;right:0;top:10px;height:14px;background:repeating-linear-gradient(90deg,var(--line2) 0 1px,transparent 1px calc(10% - .1px))}
+.track .fill{position:absolute;left:0;top:14px;height:6px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--primary))}
+.track svg{position:absolute;width:24px;height:24px;fill:var(--primary);stroke:var(--primary);transform:rotate(45deg);top:5px}
+.bub{position:absolute;top:-18px;font:700 11px "JetBrains Mono",monospace;background:var(--primary);color:var(--pfg);padding:1px 5px;border-radius:2px}
+.frame{position:relative;height:150px;overflow:hidden}.frame>div{position:absolute;inset:0}
+.frame .img{background:url(https://image.tmdb.org/t/p/w780/xSDoxv4pHvs4xZjvTb0Iqg1A6ro.jpg) center 30%/cover;filter:grayscale(1) contrast(1.2)}
+.frame .tint{background:var(--c);mix-blend-mode:color;opacity:.85}
+.frame .grain{opacity:.22;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.frame .rank{inset:auto 10px 2px auto;font:700 56px/1 "Space Grotesk",sans-serif;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.75)}
+.sk{background:color-mix(in srgb,var(--fg) 8%,transparent);border-radius:2px;animation:pu 1.6s ease-in-out infinite}@keyframes pu{50%{opacity:.45}}
+.nav{display:flex;align-items:center;gap:14px;height:48px;padding:0 14px;border-bottom:1px solid var(--line);font:600 11px "JetBrains Mono",monospace;letter-spacing:.1em}
+.nav .on{box-shadow:inset 0 -2px var(--c);color:var(--fg);padding:16px 0 15px}
+.tabbar{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);background:#000;padding:0 0 14px;text-align:center;font:600 10px "JetBrains Mono",monospace;letter-spacing:.06em;color:var(--muted)}.tabbar span{padding-top:8px}
+table.map{width:100%;border-collapse:collapse;font-size:11.5px}.map td,.map th{padding:5px 6px;border-top:1px solid #2c2840;vertical-align:top;line-height:1.4;text-align:left}
+.map th{font:600 10px "JetBrains Mono",monospace;letter-spacing:.08em;color:#9f98bb}.map td:first-child{color:#f9a8bf;font:10.5px "JetBrains Mono",monospace;width:34%}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><symbol id="rk" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol></svg>
+<div class="doc">
+<h1>Interis component system</h1>
+<p class="lead">This sheet covers every shared piece in <code>components/ui</code> and <code>components/layout</code>, plus the patterns features keep rebuilding by hand. Each one is redrawn with the slate, credits and rocket rules. The table at the end lists which file changes and how.</p>
+
+<!-- 1 TOKENS -->
+<section>
+<h2>1 · Tokens</h2>
+<ul class="why">
+  <li><b>Type:</b> four display sizes, three body sizes and two mono roles. Uppercase is only for kickers and slates. Kickers use <code>.12em</code> tracking and slates <code>.08em</code>, replacing the 7 tracking values in use today.</li>
+  <li><b>Radius:</b> <code>--radius</code> drops from <code>0.75rem</code> to <code>3px</code>. The scale becomes fixed values instead of a <code>calc()</code> on it (today <code>rounded-2xl</code> is 20px). Delete the per-theme overrides.</li>
+</ul>
+<div class="app df ts" id="ts"></div>
+<div class="g2 mt">
+  <div class="app df"><div class="kick">Spacing · 4px base</div><div class="row mt" style="align-items:flex-end;gap:10px" id="sp"></div></div>
+  <div class="app df"><div class="kick">Radius</div><div class="row mt" style="align-items:flex-end;gap:10px" id="rd"></div><div class="muted f11 mt">Fully round only for avatars and the sheet grab handle.</div></div>
+</div>
+<div class="g2 mt">
+  <div class="app df"><div class="kick">Default · colour roles</div><div class="mt" data-sw></div></div>
+  <div class="app nl"><div class="kick">Null-log · same roles</div><div class="mt" data-sw></div></div>
+</div>
+<p class="lead"><b>Tokyo-night</b> uses the same roles (movie <code>#7aa2f7</code>, serial <code>#bb9af7</code>, surface <code>#1f2335</code>). Raise its muted text from <code>#565f89</code> (about 2.8:1) to <code>#737aa2</code>. <b>Marquee</b> is a light theme: the slate stays black like film stock, the duotone is crimson <code>#b8123a</code> with grain at .12, lines are <code>rgba(43,33,26,.14)</code>, and Playfair stays its display face. <code>warning</code>, <code>success</code> and <code>like</code> are new tokens. They replace the hardcoded <code>amber-500</code>, <code>green-500</code>, <code>rose-500</code> and <code>#ef4444</code>.</p>
+</section>
+
+<!-- 2 PRIMITIVES -->
+<section>
+<h2>2 · Primitives</h2>
+<ul class="why">
+  <li><b>Buttons:</b> 3px corners and no glow shadows. Press is a 1px shift, not <code>scale(.97)</code>. Height is 32px on desktop and 44px on phones. <b>Loading</b> keeps the width and shows three reel ticks instead of a spinner.</li>
+</ul>
+<div class="app df"><div class="bm" id="bm"></div></div>
+
+
+<div class="cap">INPUTS · CHECKBOX · SWITCH · DATE AS SENTENCE</div>
+<div class="g2">
+  <div class="app df">
+    <div class="lbl" style="margin-top:0"><span class="kick">Display name</span><span class="mono faint f10">FOCUS</span></div><div class="in f">Görkem<span style="color:var(--primary)">|</span></div>
+    <div class="lbl"><span class="kick">Email</span></div><div class="in e">glory42@</div><div class="f11" style="color:var(--danger);margin-top:4px">Add the part after @, like glory42@proton.me</div>
+    <div class="lbl"><span class="kick">Sort</span></div><div class="in">Recently logged<span class="muted">▾</span></div>
+    <div class="muted f11 mt">Selects stay native. Inputs are 16px below 640px so iOS doesn't zoom.</div>
+  </div>
+  <div class="app df">
+    <div class="lbl" style="margin-top:0"><span class="kick">Bio</span><span class="mono faint f10">62 / 300</span></div>
+    <div class="in" style="height:62px;align-items:flex-start;padding-top:8px;font-size:13px">Watching every Toho film in order. Shōwa era now.</div>
+    <div class="row mt f12"><span class="cb on">✓</span>Rewatch<span class="cb" style="margin-left:14px"></span><span class="muted">Private log</span></div>
+    <div class="row sb mt f12">Contains spoilers<span class="tg on"></span></div>
+    <div class="row sb f12" style="margin-top:6px"><span class="muted">Show on feed</span><span class="tg"></span></div>
+    <div class="sentence muted mt">Watched <u>today, Nov 6</u> ▾ · <u>first watch</u> ↻</div>
+  </div>
+</div>
+
+<div class="cap">SENTENCE FILTER · MENUS (hairline, 4px, no blur)</div>
+<div class="app df">
+  <div class="sentence muted">Showing <u>every genre</u> ▾, <u>trending this week</u> ▾, in <u>any language</u> ▾.</div>
+  <div class="row top" style="gap:14px;margin-top:6px">
+    <div class="menu" style="width:190px;margin-left:120px"><div class="on">Trending this week<span style="color:var(--primary)">✓</span></div><div>Trending today</div><div>Most logged on Interis</div><div>Highest rated</div></div>
+    <div class="menu" style="width:180px"><div class="muted mono f10">@GLORY42</div><hr><div>Profile</div><div>Settings</div><div>Theme<span class="muted">Null-log ›</span></div><hr><div style="color:var(--danger)">Sign out</div></div>
+  </div>
+</div>
+
+<div class="cap">TABS · SEGMENTED · CHIPS · BADGES</div>
+<div class="app df">
+  <div class="tabs"><span class="on">Overview</span><span>Diary<small>1,563</small></span><span>Watching<small>3</small></span><span>Reviews<small>85</small></span><span>Likes<small>88</small></span><span>Watchlist<small>12</small></span><span>Lists<small>4</small></span><span>Stats</span></div>
+  <div class="row wrap mt" style="gap:12px">
+    <span class="seg"><span class="on" style="--c:var(--primary)">ALL</span><span>FILMS</span><span>SERIES</span></span>
+    <span class="seg"><span>ALL</span><span class="on" style="--c:var(--serial)">SERIES</span></span>
+    <span class="chip">Horror <span class="faint">×</span></span><span class="chip">1990s <span class="faint">×</span></span>
+    <span class="bdg" style="color:var(--serial)">WATCHING</span><span class="bdg" style="color:var(--ok)">COMPLETED</span><span class="bdg" style="color:var(--warn)">SPOILERS</span><span class="bdg muted">REWATCH ×3</span>
+  </div>
+  <div class="muted f11 mt">Tabs are text with mono counts and no icons, so the <code>Star</code> on Reviews goes. On phones they scroll, with an edge fade. The active segment uses the module colour.</div>
+</div>
+</section>
+
+<!-- 3 OVERLAYS -->
+<section>
+<h2>3 · Overlays</h2>
+<ul class="why">
+  <li>Every overlay stays on <code>ModalShell</code> (controlled <code>isOpen</code>, <code>theme-modal-overlay</code>, <code>theme-modal-panel</code> + <code>animate-fade-up</code>). It gains <code>layout</code>: <b>dialog</b> on desktop, <b>sheet</b> for ⋯ menus on phones, <b>fullscreen</b> for forms on phones.</li>
+  <li>The header becomes a slate. <code>ConfirmDialog</code> merges its two variants into one and adds <code>requirePassword</code>.</li>
+</ul>
+<div class="row top" style="gap:12px">
+  <div class="scrim df">
+    <div class="modal">
+      <div class="slate"><span>ACCOUNT · <span style="color:var(--danger)">DELETE</span></span><span style="font-size:13px;color:#bbb">✕</span></div>
+      <div class="pd"><div class="display t15">Delete glory42?</div>
+        <p class="muted f12" style="line-height:1.5;margin:6px 0 0">This removes 1,563 diary entries and 85 reviews. It can't be undone.</p>
+        <div class="lbl"><span class="kick">Current password</span></div><div class="in f" style="font-size:13px">••••••••••<span style="color:var(--primary)">|</span></div></div>
+      <div class="mf"><span class="b g">Keep account</span><span class="b df">Delete account</span></div>
+    </div>
+    <div class="modal mt">
+      <div class="pd"><div class="display t15">Delete this log?</div><p class="muted f12" style="margin:6px 0 0">Clayface · watched Nov 2. Your 8.0 and review go with it.</p></div>
+      <div class="mf"><span class="b g">Cancel</span><span class="b d"><span class="ld"><i></i><i></i><i></i></span>Deleting</span></div>
+    </div>
+  </div>
+  <div class="ph nl">
+    <div class="pbar"><b class="mono f11">REVIEW</b><span class="muted">⋯</span></div>
+    <div class="pd" style="opacity:.35"><div class="row"><div class="poster" style="width:40px;background-image:url(https://image.tmdb.org/t/p/w92/9l1NuFjel2j89hiuiJbsxfblqjy.jpg)"></div><div><b>Clayface</b><div class="mono muted f10">GLORY42 · NOV 2</div></div></div><p style="line-height:1.5">The body horror in the last act is gross in the best way.</p></div>
+    <div style="position:absolute;inset:0;background:rgba(0,0,0,.55)"></div>
+    <div class="sheet"><div class="grab"></div><div class="kick" style="padding:0 16px 8px">Your review · Clayface</div>
+      <div class="it">Edit review</div><div class="it">Copy link</div><div class="it">Add to list</div><div class="it" style="color:var(--danger)">Delete review</div>
+      <div style="padding:10px 16px 0"><span class="b s" style="width:100%;height:44px">Cancel</span></div></div>
+  </div>
+</div>
+<div class="cap">TOASTS · bottom centre on desktop, above the sticky action bar on phones</div>
+<div class="g3 df">
+  <div class="toast" style="--c:var(--danger)"><div style="flex:1"><b>Couldn't save rating</b><div class="muted f11">TMDB timed out. Your 8.0 is kept on this device.</div></div><span class="muted">✕</span></div>
+  <div class="toast" style="--c:var(--ok)"><div style="flex:1"><b>Logged Clayface</b><div class="muted f11">Nov 6 · 8.0</div></div><span class="b l">Undo</span></div>
+  <div class="toast" style="--c:var(--primary)"><div style="flex:1"><b>Link copied</b><div class="muted mono f10">interis.app/r/8kq2</div></div></div>
+</div>
+</section>
+
+<!-- 4 MEDIA -->
+<section>
+<h2>4 · Media</h2>
+<ul class="why">
+  <li><b>Poster card</b> marks sit on a slate strip: <span class="mono">◉</span> watched, <span class="mono">♥</span> liked, and a rocket with your score. TMDB scores are shown muted and labelled, and only the owner sees their own marks. With no art, the title is typeset in its place.</li>
+  <li>The <b>launch track</b> saves on release, with no Save button. Arrow keys move it 0.5, and <code>role="slider"</code> reads "8 of 10".</li>
+</ul>
+<div class="app df">
+  <div class="row" style="align-items:flex-end;gap:14px">
+    <div style="width:150px"><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w342/9l1NuFjel2j89hiuiJbsxfblqjy.jpg)"><div class="pst"><span>◉ <span style="color:var(--like)">♥</span></span><span class="row" style="gap:3px;color:var(--primary)"><svg class="r on" style="--rz:10px" viewBox="0 0 24 24" stroke-width="2"><use href="#rk"/></svg>8.0</span></div></div><div class="display t15" style="margin-top:6px">Clayface</div><div class="mono muted f10">2026 · JAMES WATKINS</div></div>
+    <div style="width:104px"><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/hSmIJluOJmTWvJs4d7kHRxjc8s8.jpg)"><div class="pst"><span class="faint">TMDB</span><span>8.3</span></div></div><div class="f12" style="font-weight:600;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Godzilla Minus Zero</div><div class="mono muted f10">2026 · T. YAMAZAKI</div></div>
+    <div style="width:72px"><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/2EewmxXe72ogD0EaWM8gqa0ccIw.jpg)"><div class="pst"><span>◉</span><span style="color:var(--primary)">9.0</span></div></div><div class="f11" style="font-weight:600;margin-top:4px">Bleach</div><div class="mono muted f10">LIKED 2D</div></div>
+    <div style="width:72px"><div class="poster" style="background:var(--surface);display:flex;align-items:flex-end;padding:6px;box-sizing:border-box"><span class="display" style="font-size:13px;font-weight:700;line-height:1.05">The Last Reel Office</span></div><div class="mono muted f10" style="margin-top:4px">NO ART</div></div>
+    <div style="width:34px"><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w92/gAgWJhUSQWCgtKR8170nMkYlBda.jpg)"></div><div class="mono faint f10" style="margin-top:4px">XS</div></div>
+  </div>
+  <div class="mono faint f10" style="margin-top:6px">L 150 DETAIL · M 104 ARCHIVE · S 72 PROFILE (3-UP ON PHONE) · FALLBACK · XS 34 ROWS</div>
+</div>
+<div class="g2 mt">
+  <div class="app df p0">
+    <div class="slate"><span>INTERIS · FILM · 2026</span><span>1H 49M · EN · USA</span></div>
+    <div class="pd"><div class="kick">Credits</div>
+      <div class="credits" style="margin-top:4px"><div><span class="muted">Directed by</span><b></b><span>James Watkins</span></div><div><span class="muted">Matt Hagen</span><b></b><span>Tom Rhys Harries</span></div><div><span class="muted">Caitlyn Corr</span><b></b><span>Naomi Ackie</span></div></div>
+      <div class="muted f11" style="margin-top:6px">Rows with no value are dropped. Never "Unknown".</div></div>
+    <div class="slate"><span>REEL 01/05</span><span>WK 45 · NOV 2–8</span></div>
+  </div>
+  <div class="app df">
+    <div class="kick">Rocket display · 12 / 16px</div>
+    <div class="row" style="margin-top:6px"><span class="row" style="gap:1px" data-rockets="8"></span><span class="mono" style="font-size:12px;color:var(--primary)">8.0</span></div>
+    <div class="row" style="margin-top:4px"><span class="row" style="gap:2px" data-rockets="7.5" data-z="16"></span><span class="mono" style="font-size:12px;color:var(--primary)">7.5</span></div>
+    <div class="kick" style="margin:12px 0 18px">Launch track · dragging</div>
+    <div class="track"><div class="base"></div><div class="tk"></div><div class="fill" style="width:75%"></div><svg style="left:calc(75% - 12px)"><use href="#rk"/></svg><span class="bub" style="left:calc(75% - 14px)">7.5</span></div>
+    <div class="row sb mono muted f10" style="margin-top:-4px"><span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span></div>
+    <div class="row sb f11" style="margin-top:8px"><span class="muted">Not rated · drag to launch</span><span class="mono" style="color:var(--ok)">SAVED 7.5 ✓</span></div>
+  </div>
+</div>
+<div class="g2 mt">
+  <div class="app nl">
+    <div class="kick">Reel ticks · one per episode</div>
+    <div class="row sb mt"><span class="row"><span class="outline">01</span><b>Season 1</b></span><span class="mono f11" style="color:var(--accent)">17/20</span></div>
+    <div class="cells" style="margin:6px 0 0 34px" data-cells="20" data-watched="17"></div>
+    <div class="row sb mt"><span class="row"><span class="outline">02</span><b>Season 2</b></span><span class="mono muted f11">0/22</span></div>
+    <div class="cells" style="margin:6px 0 0 34px" data-cells="22" data-watched="0"></div>
+  </div>
+  <div class="g2" style="gap:6px">
+    <div class="app df p0"><div class="frame" style="--c:var(--movie)"><div class="img"></div><div class="tint"></div><div class="grain"></div><div class="rank">01</div></div><div class="slate"><span>DEFAULT</span><span>MOVIE</span></div></div>
+    <div class="app nl p0"><div class="frame" style="--c:var(--serial)"><div class="img"></div><div class="tint"></div><div class="grain"></div><div class="rank">02</div></div><div class="slate"><span>NULL-LOG</span><span>SERIAL</span></div></div>
+  </div>
+</div>
+<p class="lead"><b>Duotone</b> = grayscale image + module tint + grain. It replaces <code>PosterWallBackdrop</code>'s blur and its four overlay layers. Outlined numerals mark ranks and seasons.</p>
+</section>
+
+<!-- 5 FEEDBACK -->
+<section>
+<h2>5 · Feedback</h2>
+<div class="g2">
+  <div class="app df p0">
+    <div class="slate"><span>INTERIS · FILMS</span><span class="ld" style="color:var(--primary)"><i></i><i></i><i></i></span></div>
+    <div class="pd"><div class="sk" style="height:22px;width:40%"></div><div class="row mt" style="gap:6px" id="skp"></div><div class="sk mt" style="height:9px;width:80%"></div><div class="sk" style="height:9px;width:55%;margin-top:6px"></div></div>
+  </div>
+  <div class="app df p0">
+    <div class="slate"><span>ERR 503 · TMDB</span><span>NOV 6 · 21:14</span></div>
+    <div class="pd"><div class="display t15">Cast didn't load</div><p class="muted f12" style="line-height:1.5;margin:6px 0 10px">TMDB didn't answer within 8 seconds. Your log and rating are saved; only the credits are missing.</p><span class="b s">Try again</span></div>
+  </div>
+</div>
+<div class="g2 mt">
+  <div class="app nl"><div class="kick">Empty · visitor</div><p class="muted f12" style="margin:10px 0 0">glory42 hasn't liked any films or series yet.</p><div class="muted f11 mt" style="border-top:1px solid var(--line);padding-top:8px">No icon and no button. Visitors don't see empty tabs at all, so this only appears through a direct link.</div></div>
+  <div class="app nl"><div class="kick">Empty · owner</div><p class="f12" style="margin:10px 0">Films and episodes you ♥ collect here.</p><span class="b p">Browse this week's films</span><div class="muted f11 mt">One CTA, phrased as the next step.</div></div>
+</div>
+<p class="lead"><b>Loading:</b> the slate shows whatever metadata is already known, plus the tick loader. Skeletons match the final layout's shape. Infinite lists end in a <span class="mono">LOADING 20 MORE</span> row. The round <code>Spinner</code> and <code>Loader2</code> (in 22 files) are retired.</p>
+</section>
+
+<!-- 6 NAVIGATION -->
+<section>
+<h2>6 · Navigation</h2>
+<div class="app df p0">
+  <div class="nav"><span class="row" style="color:var(--fg)"><span style="width:14px;height:14px;background:var(--primary);border-radius:7px 7px 2px 2px"></span>INTERIS</span>
+    <span class="muted">FEED</span><span class="on" style="--c:var(--movie)">FILMS</span><span class="muted">SERIES</span>
+    <span class="in" style="margin-left:auto;height:30px;width:150px;font:12px Sora;color:var(--faint);white-space:nowrap">Search Interis<span class="mono f10" style="border:1px solid var(--line2);padding:0 4px;border-radius:2px">/</span></span>
+    <span class="muted">🔔<sup class="mono" style="font-size:9px;color:var(--primary)">3</sup></span>
+    <span class="row" style="gap:6px;color:var(--fg)"><span style="width:20px;height:20px;border-radius:50%;background:#3a2f55;display:grid;place-items:center;font-size:10px">g</span>GLORY42 ▾</span></div>
+  <div class="slate" style="padding:9px 14px"><span>INTERIS · LOGGED, NOT FILTERED.</span><span>DEVELOPER · DOCS · DATA FROM TMDB</span></div>
+</div>
+<div class="row top mt" style="gap:14px">
+  <div class="ph nl" style="height:330px">
+    <div class="pbar"><b class="mono f11">◓ INTERIS</b><span class="muted">🔔</span></div>
+    <div class="pd">
+      <span class="seg"><span class="on" style="--c:var(--primary)">ALL</span><span>FILMS</span><span>SERIES</span></span>
+      <div class="row top mt"><div class="poster" style="width:46px;background-image:url(https://image.tmdb.org/t/p/w92/hSmIJluOJmTWvJs4d7kHRxjc8s8.jpg)"></div><div style="flex:1"><b>glory42</b> <span class="muted">· 2h</span><div class="display" style="font-size:14px;font-weight:600">Godzilla Minus Zero</div><span class="row" style="gap:1px;margin-top:3px" data-rockets="9"></span></div><span class="b i" style="width:44px;height:44px">⋯</span></div>
+      
+    </div>
+    <div class="tabbar"><span style="color:var(--fg);box-shadow:inset 0 2px var(--primary)">▤<br>FEED</span><span>◫<br>FILMS</span><span>▣<br>SERIES</span><span>⌕<br>SEARCH</span><span>◍<br>YOU</span></div>
+  </div>
+  <ul class="why" style="margin:0;flex:1">
+<li><b>Desktop:</b> a flat bar. No gradient hairline, blur or pill links. The active link gets an underline in its module colour. Labels become FILMS/SERIES, and search has a <span class="mono">/</span> shortcut.</li>
+<li><b>Phone:</b> a 44px top bar with only the brand and bell. The ☰ dropdown becomes the optional tab bar (five 44px targets) or a bottom sheet. Detail pages hide the tab bar so their sticky action bar can use the space.</li>
+<li><b>Footer:</b> one slate line, adding the TMDB attribution that TMDB's terms require. <b>PageWrapper</b> titles change from mono to display-1.</li>
+</ul>
+</div>
+</section>
+
+<!-- MAPPING -->
+<section>
+<h2>Mapping · current file → change</h2>
+<table class="map" id="map"><tr><th>FILE</th><th>CHANGE</th></tr></table>
+</section>
+<section>
+<h2>Inconsistencies found</h2>
+<ul class="why">
+<li><b>Three shells, one surface:</b> the <code>--profile/settings/developer-shell-*</code> sets repeat each other. Their muted text is 36% or 30% (both under 4.5:1), and the panel/bio classes are copies. Collapse them into <code>.shell*</code> + <code>.surface</code>.</li>
+<li><b>Dead CSS:</b> <code>.theme-nav-pill-active</code>, <code>.theme-segment-*</code>, <code>.theme-menu-item-active</code>, <code>.theme-shell-*</code> classes and <code>--theme-modal-gradient/pattern</code>.</li>
+<li><b>Inline kickers:</b> 113 <code>font-mono uppercase tracking-[…]</code> strings with 7 tracking values, and 80 uses of 7–9px text. <b>Hardcoded colours:</b> <code>#ef4444</code>, <code>amber-*</code>, <code>green-500</code>, <code>rose-500</code>, and <code>::selection{color:#000}</code>, which breaks marquee.</li>
+<li><b>Radius and blur:</b> <code>rounded-full</code> ×137, <code>-lg</code> ×84, <code>-xl</code> ×36, plus 44 hand-rolled pill buttons and 9 <code>backdrop-blur</code>s. About 18 "Unknown" fallbacks, and <code>Star</code> icons in 3 files.</li>
+</ul>
+</section>
+</div>
+<script>
+const $=id=>document.getElementById(id),R=c=>`<svg class="r ${c}" viewBox="0 0 24 24" stroke-width="2"><use href="#rk"/></svg>`;
+document.querySelectorAll('[data-rockets]').forEach(e=>{const n=+e.dataset.rockets;let h='';for(let i=0;i<10;i++){const f=Math.max(0,Math.min(1,n-i));h+=f>=1?R('on'):f>0?`<span class="rh">${R('off')}<i>${R('on')}</i></span>`:R('off')}e.innerHTML=h;if(e.dataset.z)e.style.setProperty('--rz',e.dataset.z+'px')});
+document.querySelectorAll('[data-cells]').forEach(e=>{const n=+e.dataset.cells,w=+e.dataset.watched;e.innerHTML=Array.from({length:n},(_,i)=>`<i class="${i<w?'w':''}"></i>`).join('')});
+const SW='bg surface line line2:line-strong fg muted faint primary accent movie:module-movie serial:module-serial danger like warn:warning ok:success slate';
+document.querySelectorAll('[data-sw]').forEach(e=>{const cs=getComputedStyle(e);e.innerHTML=SW.split(' ').map(k=>{const[n,u]=k.split(':');return`<div class="sw"><b style="background:var(--${n})"></b><span>${u||n}</span><span class="mono faint f10">${cs.getPropertyValue('--'+n).trim()}</span></div>`}).join('')});
+const TS=[['display" style="font-size:30px;font-weight:700;line-height:1.05','Films','display-1 · 30/1.05 · page title'],['display" style="font-size:22px;font-weight:700','Godzilla Minus Zero','display-2 · 22 · hero, detail title'],['display" style="font-size:18px;font-weight:600','Seasons','display-3 · 18 · section head'],['display t15','Clayface','display-4 · 15 · card, modal title'],['" style="font-size:14px;line-height:1.6','Matt Hagen\'s rise ends when a mobster disfigures him.','body · 14/1.6 · reviews (16 in phone inputs)'],['muted f12','Watched 3 times · last on Nov 2','body-s · 12.5 · secondary lines'],['muted f11','Spoilers hidden for visitors','caption · 11 · smallest real text'],['mono" style="font-size:20px;font-weight:700;color:var(--primary)','8.0','mono-num · 20/700 · scores, counts'],['mono f11','1H 49M · ENGLISH · USA','mono-meta · 11 · metadata'],['kick','Rating','kicker · 10/600 · .12em · ≤3 words']];
+$('ts').innerHTML=TS.map(([c,t,d])=>`<span class="${c}">${t}</span><span class="mono muted f10">${d}</span>`).join('');
+$('sp').innerHTML=[4,8,12,16,24,32,48].map(v=>`<div style="text-align:center"><div style="width:${v}px;height:${v}px;background:var(--primary);opacity:.6"></div><div class="mono faint f10">${v}</div></div>`).join('');
+$('rd').innerHTML=[['0','slate','0;background:#000'],['2','poster','2px'],['3','control','3px'],['4','panel','4px'],['12','sheet','10px 10px 0 0']].map(([v,n,r])=>`<div style="text-align:center"><div style="width:36px;height:24px;border:1px solid var(--line2);border-radius:${r}"></div><div class="mono faint f10">${v} ${n}</div></div>`).join('');
+$('skp').innerHTML='<div class="sk" style="flex:1;aspect-ratio:2/3"></div>'.repeat(5);
+let bm='<span></span>'+['Default','Hover','Focus','Disabled','Loading'].map(s=>`<span class="kick">${s}</span>`).join('');
+[['p','Primary','Log film'],['s','Secondary','Add to list'],['g','Ghost','Cancel'],['d','Danger','Delete log'],['l','Text link','See all 85'],['i','Icon','⋯']].forEach(([c,n,t])=>{bm+=`<span class="mono muted f11">${n}</span>`+['','hov','foc','dis','load'].map(s=>s=='load'?`<span class="b ${c}"><span class="ld"><i></i><i></i><i></i></span>${c=='i'?'':c=='l'?'Loading':'Saving'}</span>`:`<span class="b ${c} ${s}">${t}</span>`).join('')});
+$('bm').innerHTML=bm;
+const C=s=>s.replace(/`([^`]+)`/g,'<code>$1</code>');
+$('map').innerHTML+=[
+['ui/button.tsx','Pill → 3px. Remove glow and `active:scale`. Add `link` variant, `icon` size and `loading` (ticks, width kept). `outline` merges into `secondary`.'],
+['ui/badge.tsx','Pill → 2px mono badge with tone variants.'],
+['ui/card.tsx','Delete. Its 13 users move to `.surface` (hairline, 4px, no shadow).'],
+['ui/input · textarea','3px. `text-base sm:text-sm`. Focus shows as a border, not a ring. Add `error` state and a counter slot.'],
+['ui/CalendarPicker','Trigger becomes a sentence phrase. Popover becomes a `.menu` with square days. Phones use the native date input.'],
+['ui/ModalShell','Same logic. Add `layout: dialog | sheet | fullscreen`.'],
+['ui/ModalHeader','Becomes a slate bar.'],
+['ui/ConfirmDialog','`simple`/`panel` merge into one layout. Add `requirePassword`. Use `Button`.'],
+['ui/Toaster','Always-red border → `tone` plus an action slot. On phones it sits above the sticky bar.'],
+['ui/Skeleton · spinner','Foreground tint, 2px, presets. `Spinner`/`Loader2` → `TickLoader`.'],
+['ui/table.tsx','Remove `rounded-xl`, zebra rows and blurred header. Use hairline rows.'],
+['movies/SpaceRating','Vertical 160px input + Save → horizontal track that saves on release, with `role=slider`.'],
+['serials/RatingSelect','Star dropdown → small rocket input.'],
+['AppNavbar · navbar.constants','Flat bar, underline in module colour, no tinted pill. Labels FILMS/SERIES.'],
+['navbar/MobileMenu','Dropdown → bottom sheet or tab bar.'],
+['ProfileMenu · NotificationsBell','Blurred `rounded-xl` popovers → `.menu`.'],
+['AppFooter · PageWrapper','Footer becomes a slate line with TMDB credit. Titles change from mono to display.'],
+['PosterWallBackdrop','→ `DuotoneBackdrop`.'],
+['ArchiveMediaCard','→ `PosterCard` M with a typeset no-art fallback. Remove "Unknown director".'],
+['MediaPosterGridItem','→ `PosterCard` S with marks and `memo`. Remove "Unknown year".'],
+['ProfileTabEmptyState · MediaReviewsEmptyState','→ one `EmptyState` with `viewer: visitor | owner`.'],
+['ProfileTabs · FeedFilterTabs','Text tabs with counts and no `Star`. Square segmented control.'],
+['FeedCardHeader','Inline `fontFamily` → `.display`.']
+].map(([f,c])=>`<tr><td>${f}</td><td>${C(c)}</td></tr>`).join('');
+</script>
+</body>
+</html>

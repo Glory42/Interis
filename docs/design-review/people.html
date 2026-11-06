@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Interis — person pages (actors and directors)</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+body{margin:0;font-family:Sora,sans-serif;color:#e8e3f7;background:#0c0b10}
+.doc{max-width:728px;margin:0 auto;padding:0 8px 24px;box-sizing:border-box}
+h1{font-size:20px;margin:0 0 6px}h2{font-size:16px;margin:0 0 4px}
+.lead{color:#9f98bb;font-size:12.5px;line-height:1.55;margin:8px 0}
+.why{margin:4px 0 10px;padding-left:18px;font-size:12.5px;line-height:1.55;color:#b3acd0}
+code{font:11.5px "JetBrains Mono",monospace;color:#e8e3f7}
+section{margin-top:28px}
+.cap{font:600 10px "JetBrains Mono",monospace;letter-spacing:.08em;color:#7dffc0;margin:14px 0 6px}
+.df{--bg:#171420;--surface:#1c1828;--fg:#e8e3f7;--muted:#9f98bb;--faint:rgba(232,227,247,.4);--line:rgba(232,227,247,.13);--line2:rgba(232,227,247,.26);--primary:#d4b5ff;--pfg:#181422;--accent:#f4c2bf;--movie:#e0a8a3;--serial:#9fd4df}
+.nl{--bg:#000;--surface:#0b0b0b;--fg:#e6e6e6;--muted:#8d8d8d;--faint:rgba(230,230,230,.4);--line:rgba(255,255,255,.11);--line2:rgba(255,255,255,.24);--primary:#00ff88;--pfg:#020202;--accent:#00cfff;--movie:#00ff88;--serial:#00cfff}
+.app{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:4px;font-size:13px;position:relative;overflow:hidden}
+.pd{padding:0 16px 14px}
+.mono{font-family:"JetBrains Mono",monospace}.display{font-family:"Space Grotesk",sans-serif;letter-spacing:-.03em}
+.muted{color:var(--muted)}.faint{color:var(--faint)}
+.row{display:flex;gap:8px;align-items:center}.top{align-items:flex-start}
+.kick{font:600 10px "JetBrains Mono",monospace;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+.slate{display:flex;justify-content:space-between;gap:8px;padding:7px 10px;background:#000;font:600 10px "JetBrains Mono",monospace;letter-spacing:.08em;color:#8a8a8a}
+.poster{aspect-ratio:2/3;background:center/cover;border-radius:2px;flex:none;border:1px solid var(--line);box-sizing:border-box}
+.na{background:var(--surface);display:flex;align-items:flex-end;padding:3px;font:700 6px/1.05 "Space Grotesk",sans-serif;overflow:hidden;overflow-wrap:anywhere}
+.credits{font:11.5px "JetBrains Mono",monospace}.credits div{display:flex;gap:6px;padding:2px 0}.credits b{flex:1;border-bottom:1px dotted var(--line2);transform:translateY(-4px)}
+.credits a{color:var(--fg);text-decoration:none;border-bottom:1px solid var(--line2)}
+.r{width:11px;height:11px;flex:none;fill:var(--primary);stroke:var(--primary)}
+.cells{display:flex;flex-wrap:wrap;gap:2px}.cells i{width:7px;height:10px;background:color-mix(in srgb,var(--fg) 12%,transparent);border-radius:1px}.cells i.w{background:var(--accent)}
+.outline{font:700 26px/1 "Space Grotesk",sans-serif;color:transparent;-webkit-text-stroke:1px color-mix(in srgb,var(--fg) 55%,transparent)}
+.sentence{font-size:13px;line-height:1.7}.sentence u{text-decoration:none;border-bottom:1px dashed var(--accent);color:var(--fg)}
+.tabs{display:flex;gap:16px;border-bottom:1px solid var(--line);font-size:12.5px;white-space:nowrap;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent)}
+.tabs span{padding:8px 0;color:var(--muted)}.tabs .on{color:var(--fg);box-shadow:inset 0 -2px var(--primary)}.tabs small{font:10.5px "JetBrains Mono",monospace;color:var(--faint);margin-left:4px}
+.bdg{display:inline-flex;font:600 9px "JetBrains Mono",monospace;letter-spacing:.08em;padding:1px 5px;border:1px solid currentColor;border-radius:2px;vertical-align:1px}
+.divider{display:flex;align-items:center;gap:10px;font:600 10px "JetBrains Mono",monospace;letter-spacing:.1em;color:var(--muted);margin:12px 0 2px}.divider b{flex:1;border-top:1px solid var(--line)}
+.frame{position:relative;overflow:hidden}.frame>div{position:absolute;inset:0}
+.frame .img{background:url(https://image.tmdb.org/t/p/w780/oqrYIDH4tvfEzPe1yqT4jzmAWHQ.jpg) center 30%/cover;filter:grayscale(1) contrast(1.2)}
+.frame .tint{background:var(--c);mix-blend-mode:color;opacity:.85}
+.frame .grain{opacity:.22;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.frame .fade{background:linear-gradient(0deg,var(--bg),transparent 60%)}
+.fr{display:grid;grid-template-columns:34px 24px 1fr 44px 34px;gap:10px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.fr .t{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fr .s{font-size:11px;color:var(--muted)}
+.me{display:flex;justify-content:flex-end;gap:3px;color:var(--primary)!important}
+.fr .y,.fr .n{font:11px "JetBrains Mono",monospace;color:var(--muted)}.fr .n{text-align:right}
+.kf{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:8px}
+.kf>div{position:relative}.kf .outline{position:absolute;left:-4px;top:-6px;font-size:28px;-webkit-text-stroke:1.2px #fff;text-shadow:0 0 1px #000}
+.kf .tt{font-size:11.5px;font-weight:600;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ann{position:absolute;border:1.5px dashed #ff6b85;border-radius:4px;pointer-events:none}
+.ann span{position:absolute;top:-9px;right:8px;background:#ff6b85;color:#1a0a0d;font:700 10px "JetBrains Mono",monospace;padding:1px 6px;border-radius:3px;white-space:nowrap}
+.phones{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.ph{--bg:#000;--surface:#0d0d0d;--fg:#e6e6e6;--muted:#8d8d8d;--faint:rgba(230,230,230,.4);--line:rgba(255,255,255,.11);--line2:rgba(255,255,255,.24);--primary:#00ff88;--pfg:#020202;--accent:#00cfff;--movie:#00ff88;
+ width:300px;height:620px;border-radius:34px;border:6px solid #1c1c1c;background:var(--bg);color:var(--fg);overflow:hidden;position:relative;font-size:12px;box-sizing:border-box;flex:none}
+.ph .kick,.ph .slate{font-size:8.5px}.ph .credits{font-size:10.5px}
+.nav{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid var(--line);font:700 12px "JetBrains Mono",monospace}
+.dock{position:absolute;left:0;right:0;bottom:0;border-top:1px solid var(--line);background:rgba(0,0,0,.96);padding:8px 10px 18px;display:flex;gap:8px;align-items:center}
+.btn{display:flex;justify-content:center;align-items:center;gap:5px;border-radius:3px;padding:9px 6px;font-weight:600;font-size:11.5px;background:var(--primary);color:var(--pfg)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid rgba(0,255,136,.3);border-radius:14px 14px 0 0;padding:8px 0 18px}
+.grab{width:36px;height:4px;border-radius:2px;background:#333;margin:0 auto 8px}
+.opt{display:flex;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--line);font-size:13px}
+.po{position:absolute;left:-2px;bottom:-6px;font-size:24px;-webkit-text-stroke:1.2px #fff}
+.ph .fr{grid-template-columns:30px 22px 1fr 20px;font-size:12px;padding:7px 0}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><symbol id="rk" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol></svg>
+<div class="doc">
+<h1>Person pages: actors and directors</h1>
+<p class="lead">One layout for <code>/actor/$slug</code> and <code>/director/$slug</code>, with role-aware labels. The page is built like an end-credits roll: slate, portrait, facts with leaders, then a dated filmography you can filter with a sentence.</p>
+
+<section>
+<h2>What's wrong now</h2>
+<ul class="why">
+<li><b>Placeholder copy:</b> "Unknown" birthday and place (<code>PersonDetailHeader.tsx:41,49</code>), "Died -" for the living (<code>:45</code>), aliases shown as a bare count (<code>:53</code>), "No biography is available…" (<code>:58</code>), "Year unknown" (<code>PersonCreditsGrid.tsx:66</code>), and placehold.co "No Poster" images (<code>helpers.ts:7,15</code>).</li>
+<li><b>Developer data:</b> TMDB ID and Popularity in the sidebar (<code>PersonDetailSidebar.tsx:42,51</code>). The pills at <code>Header:14</code> show route hints, not the jobs the person did.</li>
+<li><b>Off-language:</b> the name and titles are mono (<code>Header:29</code>, <code>Grid:60</code>). There are <code>rounded-xl</code>/<code>rounded-full</code> cards and pills (<code>Grid:44</code>, <code>Tabs:35,56</code>), a glass breadcrumb (<code>PersonDetailPage.tsx:97</code>), and Lucide icons on every card (<code>Grid:69,73</code>).</li>
+<li><b>Broken breadcrumb:</b> "Directors" links to <code>/serials</code> and "Actors" to <code>/movies</code> (<code>Page:101–106</code>). <code>styles.ts:4</code> gives directors the serial accent.</li>
+<li><b>Crew is one pile:</b> Director sits next to Key Animation (<code>types.ts:10</code>). The dedupe key includes <code>job</code> (<code>people-credit-normalization.service.ts:87–93</code>), so Godzilla Minus One appears once per job. "Combined (n)" counts those duplicates (<code>Page:79–83</code>).</li>
+<li><b>Credits silently cut:</b> credits are sorted newest-first and then sliced to 120 combined and 100 per medium (<code>normalization.service.ts:18–19,197</code>). Kamiki has 76 films and 75 TV credits, so the default view drops his earliest work. Undated credits sink to the end (<code>:61–66</code>), and upcoming titles look the same as released ones.</li>
+<li><b>No hierarchy:</b> no known-for section, no year grouping, and up to 120 vote-count cards rendered at once with no paging or <code>memo</code> (<code>Grid:36,85–91</code>). <code>episodeCount</code> and the 24 <code>images.profiles</code> are fetched but never used.</li>
+<li><b>Biography:</b> one full-length <code>&lt;p&gt;</code> (<code>Header:57</code>). Line breaks collapse, and the trailing Wikipedia/CC-BY-SA line reads as body text.</li>
+<li><b>Backend:</b> six uncached TMDB calls per view. Details is awaited before the other five (<code>people-detail.service.ts:31,36</code>), movie and TV credits duplicate the combined call, and the response is sent with <code>no-store</code> (<code>people.controller.ts:34</code>).</li>
+</ul>
+</section>
+
+<section>
+<h2>1 · Director, desktop (default theme)</h2>
+<ul class="why">
+<li><b>Slate</b> carries role and life facts. The <b>duotone backdrop</b> (grayscale, movie tint, grain) comes from the top known-for credit's <code>backdropPath</code> and is captioned as a still. Minus Zero is used because it's the only backdrop in the sample.</li>
+<li>The <b>portrait</b> is a tall 2:3 frame overlapping the backdrop. Facts and links below it are <b>credits with leaders</b>, and empty rows are dropped.</li>
+<li>The kicker shows the top three jobs and the stat line real counts. The bio is cut to three lines, with the Wikipedia licence as a footnote.</li>
+<li><b>Known for</b>: outlined ranks by TMDB vote count. The order here is illustrative because the sample has no vote counts.</li>
+<li><b>Filmography</b>: job tabs with counts, then the filter sentence, then decades. There's <b>one row per title</b> with its other jobs merged in, upcoming titles get a badge, and a title without a poster is typeset.</li>
+</ul>
+<div class="app df">
+  <div class="slate"><span>INTERIS · PERSON · DIRECTOR</span><span>B. JUN 12 1964 · MATSUMOTO, NAGANO, JAPAN</span></div>
+  <div class="frame" style="--c:var(--movie);height:150px"><div class="img"></div><div class="tint"></div><div class="grain"></div><div class="fade"></div>
+    <span class="mono" style="position:absolute;right:12px;bottom:8px;font-size:9.5px;letter-spacing:.1em;color:rgba(255,255,255,.75)">STILL · GODZILLA MINUS ZERO · 2026</span></div>
+  <div class="row top pd" style="gap:18px;margin-top:-66px;position:relative">
+    <div style="width:132px;flex:none">
+      <div class="poster" style="width:132px;background-image:url(https://image.tmdb.org/t/p/w342/aRxPJuOij3DUUGojtBmjAAxfL9x.jpg);box-shadow:0 20px 40px -18px #000"></div>
+      <div class="credits" style="margin-top:10px;font-size:10.5px">
+        <div><span class="muted">Born</span><b></b><span>Jun 12 1964</span></div>
+        <div><span class="muted">Age</span><b></b><span>62</span></div>
+        <div><span class="muted">IMDb</span><b></b><a>nm0945724 ↗</a></div>
+        <div><span class="muted">Blog</span><b></b><a>lineblog.me ↗</a></div>
+        <div><span class="muted">X</span><b></b><a>@nostoro ↗</a></div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:0;padding-top:74px">
+      <div class="kick">Director · Screenwriter · VFX supervisor</div>
+      <div class="display" style="font-size:34px;font-weight:700;line-height:1.05">Takashi Yamazaki</div>
+      <div class="row mono" style="gap:14px;margin:8px 0 10px;font-size:10.5px;flex-wrap:wrap"><span><b style="font-size:16px">25</b> <span class="muted">DIRECTED</span></span><span><b style="font-size:16px">17</b> <span class="muted">SCREENPLAYS</span></span><span><b style="font-size:16px">9</b> <span class="muted">VFX SUPERVISOR</span></span></div>
+      <div class="muted" style="font-size:12.5px;line-height:1.55">Japanese filmmaker and visual effects supervisor. He joined Shirogumi in 1986, and his first features were Juvenile (2000) and Returner (2002). Godzilla Minus One (2023) became the most successful Japanese Godzilla film… <span style="color:var(--fg);border-bottom:1px solid var(--line2)">more</span></div>
+      <div class="faint" style="font-size:10px;margin-top:4px">Biography from Wikipedia, CC BY-SA, via TMDB</div>
+      <div style="margin-top:12px;border:1px solid var(--line);padding:8px 10px">
+        <div class="row" style="justify-content:space-between"><span class="kick">You've seen <span style="color:var(--fg)">6</span> of the 25 he directed</span><span class="mono faint" style="font-size:9px">ILLUSTRATIVE</span></div>
+        <div class="cells" style="margin-top:6px" data-cells="25" data-watched="6"></div>
+        <div class="mono faint" style="font-size:9.5px;margin-top:4px">OLDEST → NEWEST · ONE CELL PER FILM</div>
+      </div>
+    </div>
+  </div>
+  <div class="pd">
+    <div class="kick">Known for · most voted on TMDB</div>
+    <div class="kf">
+      <div><span class="outline">1</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/2E2WTX0TJEflAged6kzErwqX1kt.jpg)"></div><div class="tt">Godzilla Minus One</div><div class="mono muted" style="font-size:10px">2023</div></div>
+      <div><span class="outline">2</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/wc7XQbfx6EIQqCuvmBMt3aisb2Y.jpg)"></div><div class="tt">Stand by Me Doraemon</div><div class="mono muted" style="font-size:10px">2014</div></div>
+      <div><span class="outline">3</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/lNzCFguC8wEyJWP89ewQYK8d2nJ.jpg)"></div><div class="tt">Parasyte: Part 1</div><div class="mono muted" style="font-size:10px">2014</div></div>
+      <div><span class="outline">4</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/jw4aoqckCNARJqtWyvRlH7cQkWE.jpg)"></div><div class="tt">The Eternal Zero</div><div class="mono muted" style="font-size:10px">2013</div></div>
+      <div><span class="outline">5</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/20lchzT4J5v8VwEIud6CicAwBoZ.jpg)"></div><div class="tt">Always – Sunset on Third Street</div><div class="mono muted" style="font-size:10px">2005</div></div>
+    </div>
+    <div class="display" style="font-size:20px;font-weight:700;margin-top:20px">Filmography</div>
+    <div class="tabs"><span class="on">Director<small>25</small></span><span>Screenplay<small>17</small></span><span>VFX supervisor<small>9</small></span><span>Writer<small>7</small></span><span>Visual effects<small>3</small></span><span>Acting<small>2</small></span><span>Key animation<small>2</small></span><span>Producer<small>1</small></span></div>
+    <div class="sentence muted" style="margin-top:8px">Showing <u>films and TV</u> ▾, <u>newest first</u> ▾, grouped by <u>decade</u> ▾.</div>
+    <div class="fr kick" style="font-size:9px;border-bottom:0;padding-bottom:0"><span>Year</span><span></span><span>Title</span><span style="text-align:right">You</span><span style="text-align:right">TMDB</span></div>
+    <div class="divider"><span>2020s</span><b></b><span>6</span></div>
+    <div class="fr"><span class="y">2028</span><div class="poster na">Grandgear</div><div class="t">Grandgear <span class="bdg" style="color:var(--serial)">UPCOMING</span></div><span></span><span></span></div>
+    <div class="fr"><span class="y">2026</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w92/hSmIJluOJmTWvJs4d7kHRxjc8s8.jpg)"></div><div class="t">Godzilla Minus Zero</div><span></span><span class="n">8.0</span></div>
+    <div class="fr"><span class="y">2024</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w92/d2ohItJVQIstbuziFGrIjAbSNt9.jpg)"></div><div class="t">Foodlosslla</div><span></span><span></span></div>
+    <div class="fr" style="position:relative"><span class="y">2023</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w92/2E2WTX0TJEflAged6kzErwqX1kt.jpg)"></div><div class="t">Godzilla Minus One <div class="s">also Screenplay · VFX supervisor</div></div><span class="n me"><svg class="r" viewBox="0 0 24 24"><use href="#rk"/></svg>9</span><span class="n">7.6</span>
+      <div class="ann" style="inset:1px -4px"><span>one row per title · jobs merged</span></div></div>
+    <div class="fr"><span class="y">2022</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w92/AiW2QXuWBVrY2hmtaWGk95Uvt0V.jpg)"></div><div class="t">Ghost Book</div><span class="n" style="color:var(--primary)">◉</span><span class="n">6.1</span></div>
+    <div class="fr"><span class="y">2020</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w92/vBv8iOFPLnXmtELUjcFc7OKHsR4.jpg)"></div><div class="t">Stand by Me Doraemon 2</div><span></span><span class="n">7.8</span></div>
+    <div class="divider"><span>2010s</span><b></b><span>11</span></div>
+    <div class="mono" style="font-size:10.5px;color:var(--accent);padding:7px 0;border-bottom:1px solid var(--line)">11 IN THE 2010s · SHOW ▸</div>
+    <div class="divider"><span>2000s</span><b></b><span>8 · SHOW ▸</span></div>
+    <div class="faint" style="font-size:10.5px;margin-top:8px">◉ = watched, rocket = your score (both illustrative). Empty cells stay empty: Foodlosslla has no TMDB score, and Grandgear has neither a poster nor a score.</div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2>2 · Actor, desktop (null-log)</h2>
+<ul class="why">
+<li>Same markup with actor labels. Films and TV are counted separately, so the 120 cap can't hide anything.</li>
+<li>Rows read <b>"as Koichi Shikishima"</b>, and a <span class="bdg muted">VOICE</span> badge replaces "(voice)". A sentence phrase filters voice vs on-screen roles. TV rows add <span class="mono">12 EP</span> from <code>episodeCount</code>.</li>
+<li>Credits load 40 at a time. The page never renders 151 rows at once.</li>
+</ul>
+<div class="app nl">
+  <div class="slate"><span>INTERIS · PERSON · ACTOR</span><span>B. MAY 19 1993 · SAITAMA PREFECTURE, JAPAN</span></div>
+  <div class="frame" style="--c:var(--movie);height:110px"><div class="img"></div><div class="tint"></div><div class="grain"></div><div class="fade"></div></div>
+  <div class="row top pd" style="gap:18px;margin-top:-56px;position:relative">
+    <div class="poster" style="width:104px;background-image:url(https://image.tmdb.org/t/p/w342/ut7ewXjdgUmgkhJ1EtbOo9tbc7s.jpg);box-shadow:0 20px 40px -18px #000"></div>
+    <div style="flex:1;min-width:0;padding-top:62px">
+      <div class="kick">Actor · on screen since 1995</div>
+      <div class="display" style="font-size:30px;font-weight:700;line-height:1.05">Ryunosuke Kamiki</div>
+      <div class="row mono" style="gap:14px;margin-top:6px;font-size:10.5px"><span><b style="font-size:15px">76</b> <span class="muted">FILMS</span></span><span><b style="font-size:15px">75</b> <span class="muted">TV</span></span><span class="muted">AGE 33</span></div>
+      <div class="muted" style="font-size:12.5px;line-height:1.55;margin-top:6px">Started acting at the age of two and voiced Bao in Spirited Away… <span style="color:var(--fg);border-bottom:1px solid var(--line2)">more</span></div>
+    </div>
+  </div>
+  <div class="pd">
+    <div class="kick">Known for · most voted on TMDB</div>
+    <div class="kf">
+      <div><span class="outline">1</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/vfJFJPepRKapMd5G2ro7klIRysq.jpg)"></div><div class="tt">Your Name.</div><div class="muted" style="font-size:10px">Taki Tachibana</div></div>
+      <div><span class="outline">2</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/2E2WTX0TJEflAged6kzErwqX1kt.jpg)"></div><div class="tt">Godzilla Minus One</div><div class="muted" style="font-size:10px">Koichi Shikishima</div></div>
+      <div><span class="outline">3</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/qgrk7r1fV4IjuoeiGS5HOhXNdLJ.jpg)"></div><div class="tt">Weathering with You</div><div class="muted" style="font-size:10px">Taki Tachibana</div></div>
+      <div><span class="outline">4</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/yStW1TXF5s7Tbtu9KjIZEaWl6HL.jpg)"></div><div class="tt">Suzume</div><div class="muted" style="font-size:10px">Tomoya Serizawa</div></div>
+      <div><span class="outline">5</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/3lSRaSjDp2nkXMQkzzjpRi3035O.jpg)"></div><div class="tt">Arrietty</div><div class="muted" style="font-size:10px">Sho</div></div>
+    </div>
+    <div class="tabs" style="margin-top:18px"><span class="on">Acting<small>151</small></span></div>
+    <div class="sentence muted" style="margin-top:8px">Showing <u>films and TV</u> ▾, <u>voice and on-screen</u> ▾, <u>newest first</u> ▾.</div>
+    <div class="divider"><span>2020s</span><b></b></div>
+    <div class="fr"><span class="y">2026</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w92/hSmIJluOJmTWvJs4d7kHRxjc8s8.jpg)"></div><div class="t">Godzilla Minus Zero <span class="s">as Koichi Shikishima</span></div><span></span><span class="n">8.0</span></div>
+    <div class="fr"><span class="y">2023</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w92/2E2WTX0TJEflAged6kzErwqX1kt.jpg)"></div><div class="t">Godzilla Minus One <span class="s">as Koichi Shikishima</span></div><span class="n me"><svg class="r" viewBox="0 0 24 24"><use href="#rk"/></svg>8</span><span class="n">7.6</span></div>
+    <div class="fr"><span class="y">2022</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w92/yStW1TXF5s7Tbtu9KjIZEaWl6HL.jpg)"></div><div class="t">Suzume <span class="s">as Tomoya Serizawa</span> <span class="bdg muted">VOICE</span></div><span></span><span></span></div>
+    <div class="fr"><span class="y">2021</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w92/7bbEASVf9XWtfxWiuWUMY3uyhTb.jpg)"></div><div class="t">Rurouni Kenshin: The Final <span class="s">as Sojiro Seta</span></div><span></span><span></span></div>
+    <div class="fr"><span class="y">2021</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w92/md5wZRRj8biHrGtyitgBZo7674t.jpg)"></div><div class="t">Evangelion: 3.0+1.0 Thrice Upon a Time <span class="s">as Shinji Ikari</span> <span class="bdg muted">VOICE</span></div><span></span><span></span></div>
+    <div class="mono" style="font-size:10.5px;color:var(--accent);padding:8px 0">LOAD 40 MORE · 5 OF 151 SHOWN ▾</div>
+    <div class="faint" style="font-size:10.5px">Rows are real credits, but the mockup skips some in between. The score is illustrative, and TMDB scores show only where the sample includes them.</div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2>3 · Phone browser (390px, null-log)</h2>
+<ul class="why">
+<li><b>First screen:</b> slate, duotone strip, an 84px portrait beside the name, stats, a 3-line bio and known-for all fit above the fold. A sticky bar jumps to the filmography and holds <b>⋯</b> (share, TMDB, IMDb).</li>
+<li><b>Filmography:</b> rows show year, poster, title and a <b>⋯</b> button that opens the poster card's quick-actions sheet. Tapping a sentence phrase opens a short options sheet. The rows above it stay visible, with a light scrim only over the lower part.</li>
+</ul>
+<div class="phones">
+  <div><div class="cap" style="text-align:center">ACTOR · FIRST SCREEN</div>
+    <div class="ph">
+      <div class="nav"><span>◓ Interis</span><span class="muted" style="font-weight:400">⌕ &nbsp; ☰</span></div>
+      <div class="slate"><span>ACTOR · B. MAY 19 1993</span><span>SAITAMA, JAPAN</span></div>
+      <div class="frame" style="--c:var(--movie);height:96px"><div class="img"></div><div class="tint"></div><div class="grain"></div><div class="fade"></div></div>
+      <div style="padding:0 14px">
+        <div class="row" style="align-items:flex-end;gap:12px;margin-top:-44px;position:relative">
+          <div class="poster" style="width:84px;background-image:url(https://image.tmdb.org/t/p/w185/ut7ewXjdgUmgkhJ1EtbOo9tbc7s.jpg);box-shadow:0 14px 30px -12px #000"></div>
+          <div style="min-width:0"><div class="kick">Actor · since 1995</div><div class="display" style="font-size:23px;font-weight:700;line-height:1">Ryunosuke Kamiki</div></div>
+        </div>
+        <div class="row mono" style="gap:12px;margin:10px 0 6px;font-size:9.5px"><span><b style="font-size:14px">76</b> <span class="muted">FILMS</span></span><span><b style="font-size:14px">75</b> <span class="muted">TV</span></span><span class="muted">AGE 33</span></div>
+        <div class="muted" style="font-size:11.5px;line-height:1.5">Started acting at the age of two and voiced Bao in Spirited Away… <span style="color:var(--fg)">more</span></div>
+        <div class="kick" style="margin:12px 0 6px">Known for</div>
+        <div class="row" style="gap:8px">
+          <div style="position:relative"><div class="poster" style="width:62px;background-image:url(https://image.tmdb.org/t/p/w185/vfJFJPepRKapMd5G2ro7klIRysq.jpg)"></div><span class="outline po">1</span></div>
+          <div style="position:relative"><div class="poster" style="width:62px;background-image:url(https://image.tmdb.org/t/p/w185/2E2WTX0TJEflAged6kzErwqX1kt.jpg)"></div><span class="outline po">2</span></div>
+          <div style="position:relative"><div class="poster" style="width:62px;background-image:url(https://image.tmdb.org/t/p/w185/qgrk7r1fV4IjuoeiGS5HOhXNdLJ.jpg)"></div><span class="outline po">3</span></div>
+          <div style="position:relative"><div class="poster" style="width:62px;background-image:url(https://image.tmdb.org/t/p/w185/yStW1TXF5s7Tbtu9KjIZEaWl6HL.jpg)"></div><span class="outline po">4</span></div>
+        </div>
+        <div class="credits" style="margin-top:12px"><div><span class="muted">Born</span><b></b><span>May 19 1993</span></div><div><span class="muted">Birthplace</span><b></b><span>Saitama Prefecture</span></div></div>
+      </div>
+      <div class="dock"><span class="btn" style="flex:1">Filmography · 151 ↓</span><span class="muted" style="width:40px;height:34px;border:1px solid var(--line2);border-radius:3px;display:grid;place-items:center;font-size:15px">⋯</span></div>
+    </div>
+  </div>
+  <div><div class="cap" style="text-align:center">DIRECTOR · TAP "NEWEST FIRST"</div>
+    <div class="ph">
+      <div class="nav"><span class="muted" style="font-weight:400">‹ Takashi Yamazaki</span><span class="mono" style="font-weight:400;font-size:10px;color:var(--accent)">6/25 SEEN</span></div>
+      <div style="padding:0 14px">
+        <div class="tabs" style="font-size:12px"><span class="on">Director<small>25</small></span><span>Screenplay<small>17</small></span><span>VFX supervisor<small>9</small></span><span>Writer<small>7</small></span></div>
+        <div class="sentence muted" style="font-size:12px;margin-top:6px">Showing <u>films and TV</u> ▾, <u style="background:rgba(0,207,255,.12)">newest first</u> ▾.</div>
+        <div class="divider" style="font-size:8.5px"><span>2020s</span><b></b><span>6</span></div>
+        <div class="fr"><span class="y">2028</span><div class="poster na" style="font-size:6px">Grandgear</div><div class="t">Grandgear <span class="bdg" style="color:var(--accent);font-size:8px">UPCOMING</span></div><span class="muted">⋯</span></div>
+        <div class="fr"><span class="y">2026</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w92/hSmIJluOJmTWvJs4d7kHRxjc8s8.jpg)"></div><div class="t">Godzilla Minus Zero</div><span class="muted">⋯</span></div>
+        <div class="fr"><span class="y">2024</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w92/d2ohItJVQIstbuziFGrIjAbSNt9.jpg)"></div><div class="t">Foodlosslla</div><span class="muted">⋯</span></div>
+        <div class="fr"><span class="y">2023</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w92/2E2WTX0TJEflAged6kzErwqX1kt.jpg)"></div><div class="t">Godzilla Minus One<div class="s" style="font-size:10px">also Screenplay · VFX</div></div><span class="muted">⋯</span></div>
+        <div class="fr"><span class="y">2022</span><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w92/AiW2QXuWBVrY2hmtaWGk95Uvt0V.jpg)"></div><div class="t">Ghost Book</div><span class="muted">⋯</span></div>
+      </div>
+      <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.55) 58%)"></div>
+      <div class="sheet">
+        <div class="grab"></div>
+        <div class="kick" style="padding:0 16px 8px">Order credits</div>
+        <div class="opt"><span>Newest first</span><span style="color:var(--primary)">✓</span></div>
+        <div class="opt"><span>Oldest first</span></div>
+        <div class="opt"><span>Most voted on TMDB</span></div>
+        <div class="opt"><span>Your rating</span><span class="mono muted" style="font-size:10px">6 RATED</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="lead" style="font-size:11.5px">"6/25 seen" and "6 rated" are illustrative and show only to signed-in viewers. Visitors who aren't signed in don't see the counter or the "Your rating" option.</p>
+</section>
+
+<section>
+<h2>Needs backend work</h2>
+<ul class="why">
+<li><b>Merged credits:</b> crew credits carry <code>jobs[]</code> (one per <code>mediaType:tmdbId</code>), plus <code>jobCounts</code> computed over the full list.</li>
+<li><b>Page, don't truncate:</b> drop the 120/100 caps, return <code>total</code>, and accept <code>job/media/order/limit=40/offset</code>. Add <code>knownFor</code> (top 8 by <code>voteCount</code>, with backdrops).</li>
+<li><b>Cache TMDB</b> with <code>createCachedTmdbFetcher</code> keyed by person id. Run one <code>Promise.all</code> and derive movie/TV credits from the combined call.</li>
+<li><b>Batch viewer status:</b> one <code>inArray</code> query for watched, rating and watchlist over the visible credit ids. It powers "seen 6 of 25", the row marks and the "Your rating" order.</li>
+<li><b>Biography source:</b> split off the Wikipedia/CC-BY-SA trailer into <code>biographySource</code>. <code>isVoice</code> and <code>isUpcoming</code> can be derived on the client.</li>
+</ul>
+</section>
+</div>
+<script>
+document.querySelectorAll('[data-cells]').forEach(el=>{const n=+el.dataset.cells,w=+el.dataset.watched;el.innerHTML=Array.from({length:n},(_,i)=>`<i class="${[2,5,9,12,18,20].includes(i)&&i<n?'w':''}"></i>`).join('');el.dataset.w=w;});
+</script>
+</body>
+</html>

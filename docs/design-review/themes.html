@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Interis — themes for the new design</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+<style>
+  body { margin: 0; font-family: Sora, sans-serif; color: var(--foreground, #e8e3f7); background: var(--background, #0c0b10); }
+  .doc { max-width: 900px; margin: 0 auto; padding-bottom: 24px; }
+  h1 { font-size: 20px; margin: 0 0 6px; } h2 { font-size: 16px; margin: 0 0 4px; display: flex; gap: 10px; align-items: baseline; }
+  .lead { color: var(--muted-foreground, #9f98bb); font-size: 13px; line-height: 1.55; margin: 0 0 12px; }
+  .why { margin: 6px 0 12px; padding-left: 18px; font-size: 12.5px; line-height: 1.6; color: var(--muted-foreground, #b3acd0); }
+  code { font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--foreground, #e8e3f7); }
+  section { margin-top: 30px; }
+  table.roles { width: 100%; border-collapse: collapse; font-size: 11.5px; margin: 6px 0 12px; }
+  .roles td, .roles th { padding: 4px 6px; border-top: 1px solid rgba(128,128,128,.25); text-align: left; vertical-align: middle; }
+  .roles th { font: 600 9.5px "JetBrains Mono", monospace; letter-spacing: .08em; color: var(--muted-foreground, #9f98bb); }
+  .roles td:first-child { font-family: "JetBrains Mono", monospace; }
+  .chip { display: inline-block; width: 13px; height: 13px; border-radius: 2px; vertical-align: -2px; margin-right: 5px; border: 1px solid rgba(128,128,128,.4); }
+  .dim { color: var(--muted-foreground, #9f98bb); } .ok { color: #7dffc0; } .bad { color: #ff8fa3; } .old { color: var(--muted-foreground, #9f98bb); text-decoration: line-through; }
+
+  /* proposed theme tokens (the only thing that differs between specimens) */
+  .t-rp { --bg:#191724; --surface:#1f1d2e; --raised:#26233a; --fg:#e0def4; --muted:#908caa; --faint:#6e6a86; --line:rgba(224,222,244,.12); --line2:rgba(224,222,244,.24); --primary:#c4a7e7; --pfg:#191724; --film:#ebbcba; --series:#9ccfd8; --like:#eb6f92; --danger:#eb6f92; --warning:#f6c177; --success:#9ccfd8; --grain:.18; --dfont:"Space Grotesk"; --glow:none; }
+  .t-nl { --bg:#000000; --surface:#0a0a0a; --raised:#111111; --fg:#e6e6e6; --muted:#9a9a9a; --faint:#555555; --line:rgba(255,255,255,.11); --line2:rgba(255,255,255,.24); --primary:#00ff88; --pfg:#001a0d; --film:#ffb000; --series:#00cfff; --like:#ff4d6d; --danger:#ff4d6d; --warning:#ffd84d; --success:#00ff88; --grain:.22; --dfont:"Space Grotesk"; --glow:0 0 10px rgba(0,255,136,.55); }
+  .t-nt { --bg:#14100c; --surface:#1c1712; --raised:#251e17; --fg:#efe4d2; --muted:#ab9c86; --faint:#6b5d4c; --line:rgba(239,228,210,.12); --line2:rgba(239,228,210,.24); --primary:#f2a33a; --pfg:#1a1108; --film:#e2765a; --series:#7fb8ad; --like:#f0708a; --danger:#f0708a; --warning:#e3c46b; --success:#9cc27a; --grain:.3; --dfont:"Space Grotesk"; --glow:none; }
+  .t-nt .slate { border-top: 4px solid; border-bottom: 4px solid; border-image: repeating-linear-gradient(90deg, #000 0 7px, #3d3024 7px 12px) 4 0; }
+  .t-mq { --bg:#faf6ee; --surface:#ffffff; --raised:#fffaf0; --fg:#2b211a; --muted:#6b5b4a; --faint:#b3a48c; --line:rgba(43,33,26,.12); --line2:rgba(43,33,26,.26); --primary:#b8123a; --pfg:#fffaf0; --film:#9a5b12; --series:#0f766e; --like:#b8123a; --danger:#c2410c; --warning:#9a5b12; --success:#0f766e; --grain:.12; --dfont:"Playfair Display"; --glow:none; }
+
+  .spec { background: var(--bg); color: var(--fg); border: 1px solid var(--line2); border-radius: 4px; overflow: hidden; font-size: 12.5px; position: relative; }
+  .slate { display: flex; justify-content: space-between; padding: 6px 10px; background: #000; font: 600 9.5px "JetBrains Mono", monospace; letter-spacing: .08em; color: #8a8a8a; }
+  .frame { position: relative; height: 92px; overflow: hidden; }
+  .frame > div { position: absolute; inset: 0; }
+  .frame .img { background: url(https://image.tmdb.org/t/p/w780/oqrYIDH4tvfEzPe1yqT4jzmAWHQ.jpg) center 30%/cover; filter: grayscale(1) contrast(1.2); }
+  .frame .tint { background: var(--film); mix-blend-mode: color; opacity: .85; }
+  .frame .grain { opacity: var(--grain); mix-blend-mode: overlay; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+  .frame .fade { background: linear-gradient(0deg, var(--bg), transparent 70%); }
+  .t-nl .frame::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 1px, transparent 1px 3px); }
+  .body { display: flex; gap: 12px; padding: 0 12px 12px; margin-top: -40px; position: relative; }
+  .poster { width: 58px; aspect-ratio: 2/3; flex: none; border-radius: 2px; border: 1px solid var(--line2); background: url(https://image.tmdb.org/t/p/w185/9l1NuFjel2j89hiuiJbsxfblqjy.jpg) center/cover; }
+  .kick { font: 600 9px "JetBrains Mono", monospace; letter-spacing: .12em; text-transform: uppercase; }
+  .title { font-family: var(--dfont), sans-serif; font-weight: 700; font-size: 21px; letter-spacing: -.02em; line-height: 1.05; }
+  .muted { color: var(--muted); } .faint { color: var(--faint); }
+  .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .r { width: 10px; height: 10px; } .r.on { fill: var(--primary); stroke: var(--primary); filter: drop-shadow(var(--glow)); } .r.off { fill: none; stroke: var(--line2); }
+  .cells { display: flex; gap: 2px; } .cells i { width: 6px; height: 9px; border-radius: 1px; background: var(--line); } .cells i.w { background: var(--series); }
+  .btn { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 3px; font-weight: 600; font-size: 11.5px; background: var(--primary); color: var(--pfg); box-shadow: var(--glow); }
+  .gh { display: inline-flex; padding: 5px 9px; border-radius: 3px; font-size: 11.5px; border: 1px solid var(--line2); }
+  .bdg { font: 600 8.5px "JetBrains Mono", monospace; letter-spacing: .08em; padding: 1px 5px; border: 1px solid currentColor; border-radius: 2px; }
+  .surf { background: var(--surface); border-top: 1px solid var(--line); padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .toast { border-left: 2px solid var(--success); padding-left: 8px; font-size: 11.5px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><symbol id="rk" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol></svg>
+<div class="doc">
+  <h1>Themes for the new design</h1>
+  <p class="lead">Rose Pine, NULL://LOG and Marquee keep their names and personalities, and Tokyo Night is replaced by Nitrate. In every theme, each colour now has one job. Every theme defines the same roles, which are checked for contrast below. The specimen on each card is the same markup; only the colour values change.</p>
+
+  <section>
+    <h2>What's wrong with the themes today</h2>
+    <ul class="why">
+      <li><b>Two sources that disagree.</b> Every theme is defined in both <code>public/theme-registry.js</code> and <code>index.css</code>. The registry's values are written inline at startup (<code>index.html:73</code>, <code>theme-runtime.ts:42</code>), so they override the CSS. The two have already drifted apart: Rose Pine's border is <code>#655c8e</code> in one and <code>#3f3958</code> in the other.</li>
+      <li><b>Colours doing two jobs.</b> Film uses the same colour as buttons and rockets in null-log (<code>#00ff88</code>), Tokyo Night (<code>#7aa2f7</code>) and Marquee (<code>#b8123a</code>), so "this is a film" and "press this" look the same. Rose Pine's film colour <code>#e0a8a3</code> and accent <code>#f4c2bf</code> are nearly identical.</li>
+      <li><b>Missing roles.</b> There's no like, warning or success colour, so the code hardcodes <code>rose-500</code>, <code>amber-*</code>, <code>green-500</code> and <code>#ef4444</code>, which ignore the theme.</li>
+      <li><b>Contrast.</b> Tokyo Night's secondary text <code>#565f89</code> is about 2.8:1 against its background, below the 4.5:1 needed for small text (Tokyo Night is replaced below). Text selection is hardcoded black text (<code>::selection{color:#000}</code>), which breaks Marquee.</li>
+      <li><b>Leftovers from the old look.</b> Each theme has glow shadows, background gradients and patterns, vignettes and its own corner radius. The new design removes all of these.</li>
+      <li><b>"Rose Pine" isn't quite Rose Pine.</b> The default is loosely based on it (<code>#171420</code> instead of the real base <code>#191724</code>). Either use the real palette, which the name promises, or rename it. I've used the real palette below.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>The roles every theme defines</h2>
+    <table class="roles"><tr><th>ROLE</th><th>USED FOR</th></tr>
+      <tr><td>bg · surface · raised</td><td>Page, cards and sheets, menus and popovers</td></tr>
+      <tr><td>fg · muted · faint</td><td>Text, secondary text (≥4.5:1), decoration only (never text)</td></tr>
+      <tr><td>line · line-strong</td><td>Hairlines, input borders and dotted leaders</td></tr>
+      <tr><td>primary · primary-fg</td><td>Rockets, the Log button, focus rings, the active tab</td></tr>
+      <tr><td>film · series</td><td>Kickers, backdrop tint, reel ticks (series)</td></tr>
+      <tr><td>like · danger · warning · success</td><td>♥, delete and errors, spoilers, saved / logged</td></tr>
+      <tr><td>slate (#000 in every theme) · grain · display font · flourish</td><td>The film identity, plus one signature touch per theme</td></tr>
+    </table>
+  </section>
+
+  <div id="themes"></div>
+
+  <section>
+    <h2>How it gets built</h2>
+    <ul class="why">
+      <li><b>One source of truth.</b> All theme colours live only in <code>index.css</code> under <code>:root[data-theme-id]</code>. The startup script in <code>index.html</code> only sets <code>data-theme-id</code> (and <code>color-scheme</code> for Marquee) before the app loads, so there's still no flash of the wrong theme. The registry keeps just the id, label, description and preview swatches for the settings picker.</li>
+      <li><b>Remove:</b> per-theme <code>--radius</code>, button glow shadows, <code>--theme-shell-gradient/pattern/vignette</code>, and the modal gradient and pattern tokens.</li>
+      <li><b>Keep one flourish per theme,</b> drawn only by shared components: null-log scanlines on backdrops and a phosphor glow on the primary colour; Nitrate sprocket-edged slates and heavy grain; Marquee serif titles and lighter grain. Rose Pine stays plain.</li>
+      <li><b>Selection</b> becomes <code>background: var(--primary); color: var(--primary-foreground)</code>.</li>
+      <li><b>Adding a theme</b> (the <code>add-theme</code> skill and <code>ADDING-THEMES.md</code>) becomes "fill in these roles in one place". A contrast check over all four themes can run in the frontend tests, so a new theme can't ship unreadable text.</li>
+      <li><b>Tokyo Night → Nitrate migration.</b> Add <code>nitrate</code> to the backend theme whitelist (<code>users/constants/theme.constants.ts</code>), run one data migration that moves users from <code>tokyo-night</code> to <code>nitrate</code>, then remove <code>tokyo-night</code>. Until that migration runs, the startup script should treat an unknown saved id as the default theme rather than leaving the page unstyled. The other three ids stay the same.</li>
+    </ul>
+  </section>
+</div>
+<script>
+const T = [
+  ['t-rp', 'Rose Pine', 'DEFAULT · DARK', 'The real Rosé Pine palette: base, iris, rose, foam, love, gold.', [
+    ['bg', '#191724', '#171420'], ['muted', '#908caa', '#9f98bb'], ['primary', '#c4a7e7', '#d4b5ff'], ['film', '#ebbcba', '#e0a8a3'], ['series', '#9ccfd8', '#9fd4df'], ['like', '#eb6f92', 'none'], ['warning', '#f6c177', 'none'], ['danger', '#eb6f92', '#f17fa0']],
+    'Iris is the action colour, rose means film, foam means TV. Like and delete share love, which is normal for a heart and a delete button. The context tells them apart.'],
+  ['t-nl', 'NULL://LOG', 'DARK · AMOLED', 'Green phosphor for actions, amber phosphor for films, cyan for TV.', [
+    ['bg', '#000000', '#000000'], ['muted', '#9a9a9a', '#8d8d8d'], ['primary', '#00ff88', '#00ff88'], ['film', '#ffb000', '#00ff88'], ['series', '#00cfff', '#00cfff'], ['like', '#ff4d6d', 'none'], ['warning', '#ffd84d', 'none'], ['danger', '#ff4d6d', '#ff6b85']],
+    'Film moves off green to amber, so green only ever means "do this". Flourish: scanlines on backdrops and a phosphor glow on rockets and the primary button. This is the one theme allowed to glow.'],
+  ['t-nt', 'Nitrate', 'NEW · DARK · REPLACES TOKYO NIGHT', 'Old nitrate film stock: brown-black like aged celluloid, amber projector light for actions, nitrate red-orange for films, verdigris for TV.', [
+    ['bg', '#14100c', '#1a1b26'], ['muted', '#ab9c86', '#565f89'], ['primary', '#f2a33a', '#7aa2f7'], ['film', '#e2765a', '#7aa2f7'], ['series', '#7fb8ad', '#bb9af7'], ['like', '#f0708a', 'none'], ['warning', '#e3c46b', 'none'], ['danger', '#f0708a', '#f7768e']],
+    'Why replace Tokyo Night: it was a second cool blue-purple dark theme next to Rose Pine, it was a code-editor palette with no link to film, and its secondary text failed contrast (2.8:1). Nitrate fills the missing warm dark slot. Flourish: sprocket-hole edges on every slate and the heaviest grain of the four (.30). Rockets glow amber like a projector lamp without needing a glow effect.'],
+  ['t-mq', 'Marquee', 'LIGHT', 'Cream paper, theatre red and ink. The one light theme.', [
+    ['bg', '#faf6ee', '#faf6ee'], ['muted', '#6b5b4a', '#7a6a58'], ['primary', '#b8123a', '#b8123a'], ['film', '#9a5b12', '#b8123a'], ['series', '#0f766e', '#0f766e'], ['like', '#b8123a', 'none'], ['warning', '#9a5b12', 'none'], ['danger', '#c2410c', '#c2410c']],
+    'Film becomes a dark marquee-bulb brass that stays readable on cream. Delete is burnt orange, so it doesn\'t clash with the red heart. Flourish: Playfair titles, lighter grain, and slates that stay black like film stock.']
+];
+const hex = h => { h = h.replace('#', ''); return [0, 2, 4].map(i => parseInt(h.substr(i, 2), 16) / 255); };
+const lum = h => { const [r, g, b] = hex(h).map(c => c <= .03928 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4); return .2126 * r + .7152 * g + .0722 * b; };
+const cr = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return (x + .05) / (y + .05); };
+const R = c => `<svg class="r ${c}" viewBox="0 0 24 24" stroke-width="2"><use href="#rk"/></svg>`;
+const spec = (cls) => `<div class="spec ${cls}">
+  <div class="slate"><span>INTERIS · FILM · 2026</span><span>1H 49M · WK 45</span></div>
+  <div class="frame"><div class="img"></div><div class="tint"></div><div class="grain"></div><div class="fade"></div></div>
+  <div class="body"><div class="poster"></div><div style="min-width:0;padding-top:38px">
+    <div class="kick" style="color:var(--film)">Film · dir. James Watkins</div>
+    <div class="title">Clayface</div>
+    <div class="row" style="margin-top:5px">${Array.from({length: 10}, (_, i) => R(i < 8 ? 'on' : 'off')).join('')}<span style="font:700 11px 'JetBrains Mono';color:var(--primary)">8.0</span><span style="color:var(--like)">♥</span><span class="bdg" style="color:var(--warning)">SPOILERS</span></div>
+    <div class="row muted" style="margin-top:6px;font-size:11px"><span class="kick" style="color:var(--series)">Series</span> Bleach <span class="cells">${Array.from({length: 12}, (_, i) => `<i class="${i < 9 ? 'w' : ''}"></i>`).join('')}</span></div>
+  </div></div>
+  <div class="surf"><span class="toast">Logged Clayface · <span class="muted">Nov 2</span></span><span class="row"><span class="gh" style="color:var(--danger);border-color:var(--danger)">Delete</span><span class="btn">✎ Log</span></span></div>
+</div>`;
+document.getElementById('themes').innerHTML = T.map(([cls, name, tag, line, rows, note]) => {
+  const bg = rows[0][1];
+  const table = `<table class="roles"><tr><th>ROLE</th><th>NEW</th><th>CONTRAST ON BG</th><th>WAS</th></tr>` + rows.map(([role, nu, old]) => {
+    const c = role === 'bg' ? '' : cr(nu, bg).toFixed(1) + ':1';
+    const pass = role === 'bg' ? '' : cr(nu, bg) >= 4.5 ? 'ok' : 'bad';
+    return `<tr><td>${role}</td><td><span class="chip" style="background:${nu}"></span>${nu}</td><td class="${pass}">${c}${pass === 'ok' ? ' ✓' : pass === 'bad' ? ' ✗' : ''}</td><td>${old === nu ? '<span class="dim">same</span>' : old === 'none' ? '<span class="dim">hardcoded</span>' : `<span class="old">${old}</span>`}</td></tr>`;
+  }).join('') + '</table>';
+  return `<section><h2>${name} <span style="font:600 10px 'JetBrains Mono';letter-spacing:.08em;color:var(--muted-foreground,#9f98bb)">${tag}</span></h2>
+    <p class="lead" style="margin-bottom:6px">${line} ${note}</p>
+    <div class="pair">${table}${spec(cls)}</div></section>`;
+}).join('');
+</script>
+</body>
+</html>

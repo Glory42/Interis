@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Interis — signed-in design review</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; font-family: var(--font-sans, Sora, system-ui, sans-serif); color: var(--foreground, #e6e6e6); background: var(--background, #050505); }
+  .doc { max-width: 1180px; margin: 0 auto; padding: 0 0 24px; }
+  .doc h1 { font-size: 20px; margin: 0 0 6px; }
+  .doc h2 { font-size: 16px; margin: 0 0 4px; display: flex; gap: 10px; align-items: baseline; }
+  .lead { color: var(--muted-foreground, #9a9a9a); font-size: 13.5px; line-height: 1.55; margin: 0 0 14px; }
+  .num { font-family: var(--font-mono, monospace); font-size: 12px; color: var(--muted-foreground, #9a9a9a); }
+  .prio { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+  .p1 { background: color-mix(in srgb, #ff6b85 22%, transparent); color: #ff9aac; }
+  .p2 { background: color-mix(in srgb, #00ff88 16%, transparent); color: #7dffc0; }
+  section { margin-top: 30px; }
+  .why { margin: 6px 0 14px; padding-left: 18px; font-size: 13px; line-height: 1.6; color: var(--muted-foreground, #a8a8a8); }
+  .why code { font-family: var(--font-mono, monospace); font-size: 11.5px; color: var(--foreground, #e6e6e6); }
+  .pair { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); }
+  .tag { font-family: var(--font-mono, monospace); font-size: 11px; letter-spacing: .08em; margin-bottom: 6px; display: block; }
+  .tag.now { color: #ff9aac; } .tag.new { color: #7dffc0; }
+
+  /* null-log theme canvas */
+  .app {
+    --bg: #000; --fg: #e6e6e6; --card: #0d0d0d; --primary: #00ff88; --primary-fg: #020202; --accent: #00cfff;
+    --muted-fg: #8d8d8d; --line: rgba(255,255,255,.1); --line-g: rgba(0,255,136,.28);
+    background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 12px; padding: 14px;
+    overflow: hidden; font-family: Sora, sans-serif; font-size: 13px; position: relative;
+  }
+  .mono { font-family: "JetBrains Mono", monospace; }
+  .display { font-family: "Space Grotesk", sans-serif; letter-spacing: -0.02em; }
+  .muted { color: var(--muted-fg); } .faint { color: #5c5c5c; }
+  .poster { border-radius: 6px; background-size: cover; background-position: center; border: 1px solid var(--line); aspect-ratio: 2/3; flex: none; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+  .row { display: flex; gap: 10px; align-items: center; }
+  .av { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg,#7a1020,#1b1b1b); flex: none; border: 1px solid var(--line); }
+  .pill { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 999px; border: 1px solid var(--line-g); padding: 7px 12px; font-size: 12px; }
+  .pill.on { border-color: var(--primary); color: var(--primary); }
+  .pill.primary { background: var(--primary); color: var(--primary-fg); border-color: transparent; font-weight: 600; box-shadow: 0 0 24px rgba(0,255,136,.28); }
+  .kick-old { font-family: "JetBrains Mono", monospace; font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase; font-weight: 700; }
+  .stars { color: var(--primary); letter-spacing: 2px; }
+  .chip { font: 600 10px "JetBrains Mono", monospace; border: 1px solid var(--line-g); color: var(--primary); border-radius: 999px; padding: 1px 7px; }
+  .ann { position: absolute; border: 1.5px dashed #ff6b85; border-radius: 8px; pointer-events: none; }
+  .ann span { position: absolute; top: -9px; left: 8px; background: #ff6b85; color: #1a0a0d; font: 700 10px "JetBrains Mono", monospace; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+  .phone { width: 220px; margin: 0 auto; border: 1px solid var(--line); border-radius: 22px; padding: 10px 10px 0; height: 430px; overflow: hidden; position: relative; background: #000; }
+</style>
+</head>
+<body>
+<div class="doc">
+  <h1>Signed in as glory42: live-site review</h1>
+  <p class="lead">I signed in on <code>interis.gorkemkaryol.dev</code> (I only browsed; nothing was changed) and checked the feed, your profile and a movie you've logged (Clayface), on desktop and on a 390px phone. With real data, the profile looks great: favourite posters, genre line and stats all work. Three issues only show up with real activity, and the mockups below use your <code>null-log</code> theme. The six earlier sections in <code>index.html</code> still apply.</p>
+
+  <!-- A -->
+  <section>
+    <h2><span class="num">A</span> One watch shows up as four entries <span class="prio p1">P1</span></h2>
+    <ul class="why">
+      <li>Logging Clayface with a rating, review and like produced <b>four</b> entries in Recent Activity (<i>logged, reviewed, rated, liked</i>) and several separate feed cards. Third Star and Bleach did the same, so 3 watches took up 11 rows.</li>
+      <li>The feed card for "Liked a title" or "Logged a watch" is 160px tall to show one line of information, plus a small media box with a lot of empty space around it.</li>
+      <li>The feed also shows <i>"Liked @glory42's review"</i> to glory42, which is your own like on your own review. Hide self-likes from the feed.</li>
+      <li><b>Fix:</b> when building the feed and recent activity, group activities by <code>(user, media)</code> within a short window (for example, the same day). Show one card that combines everything: rating, liked, rewatch and a review excerpt. Grouping can happen entirely when the feed is read, so the <code>activities</code> table doesn't need to change.</li>
+    </ul>
+    <div class="pair">
+      <div><span class="tag now">NOW: profile · recent activity</span>
+        <div class="app" style="padding:6px 14px">
+          <div class="row" style="padding:9px 0;border-bottom:1px solid var(--line)"><span class="mono muted" style="font-size:11px;width:72px">logged</span><b class="mono" style="font-size:12px;flex:1">Clayface</b><span class="chip">Movie</span><span class="mono faint" style="font-size:10px">4 days ago</span></div>
+          <div class="row" style="padding:9px 0;border-bottom:1px solid var(--line)"><span class="mono muted" style="font-size:11px;width:72px">reviewed</span><b class="mono" style="font-size:12px;flex:1">Clayface</b><span class="chip">Movie</span><span class="mono faint" style="font-size:10px">4 days ago</span></div>
+          <div class="row" style="padding:9px 0;border-bottom:1px solid var(--line)"><span class="mono muted" style="font-size:11px;width:72px">rated</span><b class="mono" style="font-size:12px;flex:1">Clayface <span class="muted" style="font-weight:400">· 8/10</span></b><span class="chip">Movie</span><span class="mono faint" style="font-size:10px">4 days ago</span></div>
+          <div class="row" style="padding:9px 0"><span class="mono muted" style="font-size:11px;width:72px">liked</span><b class="mono" style="font-size:12px;flex:1">Clayface</b><span class="chip">Movie</span><span class="mono faint" style="font-size:10px">4 days ago</span></div>
+          <div class="ann" style="left:6px;top:4px;right:6px;bottom:4px"><span>1 watch → 4 rows</span></div>
+        </div>
+      </div>
+      <div><span class="tag new">PROPOSED: one grouped entry</span>
+        <div class="app">
+          <div class="row" style="align-items:flex-start;gap:12px">
+            <div class="poster" style="width:58px;background-image:url(https://image.tmdb.org/t/p/w185/9l1NuFjel2j89hiuiJbsxfblqjy.jpg)"></div>
+            <div style="flex:1;min-width:0">
+              <div class="row" style="gap:6px;font-size:12px"><span class="av" style="width:18px;height:18px"></span><b>glory42</b><span class="muted">watched</span><span class="faint" style="margin-left:auto;font-size:11px">Nov 2</span></div>
+              <div class="display" style="font-size:16px;font-weight:600;margin-top:4px">Clayface <span class="muted mono" style="font-size:11px;font-weight:400">2026</span></div>
+              <div class="row" style="gap:8px;margin-top:3px;font-size:12px"><span style="display:inline-flex;gap:1px;align-items:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--primary)" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--primary)" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--primary)" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--primary)" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--primary)" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--primary)" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--primary)" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--primary)" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3a3a3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3a3a3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></span><span class="mono muted" style="font-size:11px">8/10</span><span style="color:#ff6b85">♥</span><span class="muted" style="font-size:11px">✎ review</span></div>
+              <div style="margin-top:8px;font-size:12.5px;line-height:1.45;border-left:2px solid var(--line-g);padding-left:8px" class="muted">“Dc character when someone is not happly married”</div>
+              <div class="row faint" style="gap:14px;margin-top:8px;font-size:11px"><span>♡ 0</span><span>💬 0</span></div>
+            </div>
+          </div>
+        </div>
+        <p class="lead" style="margin:8px 0 0;font-size:12px">In the profile's Recent Activity list, use the same grouping as a single row: <span class="mono">Clayface · 🚀 8/10 ♥ ✎ · 4 days ago</span>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- B -->
+  <section>
+    <h2><span class="num">B</span> Mobile movie page: the title is about 900px down <span class="prio p1">P1</span></h2>
+    <ul class="why">
+      <li>At 390px the sidebar stacks first: a full-width poster (520px tall), then five action buttons, then the 208px rating panel. The title "Clayface" only appears at about y=920, more than a full screen below the top.</li>
+      <li><b>Fix:</b> below <code>md</code>, put a small poster (about 110px) next to the title, year and scores. Move the actions into a sticky bottom bar (Log, Watched, Like, Watchlist, ⋯) so they stay within thumb reach while scrolling through cast and reviews.</li>
+    </ul>
+    <div class="pair">
+      <div><span class="tag now">NOW · 390px, first screen</span>
+        <div class="app"><div class="phone">
+          <div class="row mono" style="justify-content:space-between;font-size:10px;padding:0 4px 8px;border-bottom:1px solid var(--line)"><b>◓ Interis</b><span class="muted">MENU</span></div>
+          <div class="poster" style="margin-top:10px;width:100%;background-image:url(https://image.tmdb.org/t/p/w342/9l1NuFjel2j89hiuiJbsxfblqjy.jpg)"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:8px"><span class="pill kick-old" style="font-size:7px;padding:5px">✓ Log</span><span class="pill kick-old" style="font-size:7px;padding:5px">+ Watchlist</span></div>
+          <div class="ann" style="left:16px;right:16px;top:330px;height:24px"><span>title is still ~600px below</span></div>
+        </div></div>
+      </div>
+      <div><span class="tag new">PROPOSED · 390px, first screen</span>
+        <div class="app"><div class="phone">
+          <div class="row mono" style="justify-content:space-between;font-size:10px;padding:0 4px 8px;border-bottom:1px solid var(--line)"><b>◓ Interis</b><span class="muted">☰</span></div>
+          <div style="margin:0 -10px;height:90px;background:linear-gradient(180deg,transparent 30%,#000),url(https://image.tmdb.org/t/p/w780/xSDoxv4pHvs4xZjvTb0Iqg1A6ro.jpg) center/cover"></div>
+          <div class="row" style="align-items:flex-end;gap:10px;margin-top:-40px;position:relative">
+            <div class="poster" style="width:72px;background-image:url(https://image.tmdb.org/t/p/w185/9l1NuFjel2j89hiuiJbsxfblqjy.jpg)"></div>
+            <div><div class="display" style="font-size:19px;font-weight:700">Clayface</div><div class="muted" style="font-size:10px">2026 · 1h 49m · James Watkins</div></div>
+          </div>
+          <div class="row" style="gap:14px;margin-top:10px;font-size:10px"><span><b class="mono" style="color:var(--primary);font-size:13px">8.0</b> <span class="muted">Interis · 1 log</span></span><span><b class="mono" style="font-size:13px">7.4</b> <span class="muted">TMDB</span></span></div>
+          <div style="font-size:10.5px;line-height:1.45;margin-top:8px" class="muted">Matt Hagen's meteoric rise from Gotham street kid to Hollywood leading man is tragically cut short…</div>
+          <div class="mono muted" style="font-size:9px;margin-top:10px">CAST</div>
+          <div class="row" style="gap:8px;margin-top:4px;font-size:9.5px"><span>Tom Rhys Harries</span><span>Naomi Ackie</span><span>Eddie Marsan</span></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;border-top:1px solid var(--line);background:rgba(0,0,0,.94);padding:8px 10px 12px;display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:4px;text-align:center;font-size:9px">
+            <span class="pill primary" style="padding:6px 4px;font-size:10px">✎ Log</span>
+            <span style="color:var(--primary)">◉<br>Watched</span><span style="color:#ff6b85">♥<br>Liked</span><span class="muted">⊕<br>List</span>
+          </div>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- C -->
+  <section>
+    <h2><span class="num">C</span> Signed-in actions and rating <span class="prio p2">P2</span></h2>
+    <ul class="why">
+      <li>The rating control is a vertical rocket slider, 160px tall, with a <b>Save</b> button. It takes up as much room as the poster, and the extra Save step makes rating slower. It's a fun idea, but it doesn't belong in the sidebar.</li>
+      <li><b>Log</b> still says "Log" after you've watched the film. Show your last watch date ("Watched Nov 2") and change the button to "Log again".</li>
+      <li>Small fixes: "<code>1 logs</code>" should read "1 log", and "+ watchlist" is lowercase while the other buttons are uppercase.</li>
+      <li><b>Fix:</b> keep the rocket and the 1–10 scale; they're what makes Interis different from star-based apps. Turn the launch track sideways: a 0–10 horizontal track (still in 0.5 steps) where the rocket flies to your score and leaves a glowing exhaust trail. It saves when you let go, so the Save button goes. <code>SpaceRatingInput</code> already does this with <code>autoSave</code>, which commits on pointer-up rather than on every drag frame. Tapping the same value again still clears the rating.</li>
+      <li>Keep the row of 10 rockets (<code>SpaceRatingDisplay</code>) for showing ratings elsewhere (reviews, feed, grouped activity). Rocket ratings then look the same everywhere.</li>
+    </ul>
+    <div class="pair">
+      <div><span class="tag now">NOW</span>
+        <div class="app" style="width:220px;margin:0 auto">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><span class="pill kick-old" style="font-size:8.5px">✓ Log</span><span class="pill kick-old" style="font-size:8.5px">+ watchlist</span><span class="pill on kick-old" style="font-size:8.5px">✓ Watched</span><span class="pill on kick-old" style="font-size:8.5px">♡ Liked</span></div>
+          <span class="pill kick-old" style="font-size:8.5px;width:100%;box-sizing:border-box;margin-top:6px">☰ Lists</span>
+          <div class="card" style="margin-top:6px;height:150px;position:relative">
+            <div class="kick-old faint" style="font-size:8px">Your rating</div>
+            <div style="position:absolute;left:22px;top:30px;bottom:12px;border-left:1px solid var(--line-g)"></div>
+            <div style="position:absolute;left:14px;top:46px;color:var(--primary)">🚀</div>
+            <div class="mono" style="position:absolute;left:52px;top:78px;font-size:16px;font-weight:700">8/10</div>
+            <div style="position:absolute;left:52px;top:104px" class="row"><span class="pill kick-old" style="font-size:7px;padding:3px 7px;opacity:.5">Save</span><span class="pill kick-old" style="font-size:7px;padding:3px 7px">Clear</span></div>
+          </div>
+          <div class="ann" style="left:10px;right:10px;top:150px;height:160px"><span>208px rating panel</span></div>
+        </div>
+      </div>
+      <div><span class="tag new">PROPOSED</span>
+        <div class="app" style="width:220px;margin:0 auto">
+          <span class="pill primary" style="width:100%;box-sizing:border-box">✎ Log again</span>
+          <div class="muted" style="text-align:center;font-size:11px;margin-top:5px">Watched Nov 2 · <span style="color:var(--primary)">view diary</span></div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);margin-top:10px;border:1px solid var(--line);border-radius:10px;text-align:center;font-size:10px;overflow:hidden">
+            <div style="padding:8px 0;color:var(--primary)">◉<br>Watched</div>
+            <div style="padding:8px 0;border-left:1px solid var(--line);color:#ff6b85">♥<br>Liked</div>
+            <div style="padding:8px 0;border-left:1px solid var(--line)" class="muted">⊕<br>Watchlist</div>
+            <div style="padding:8px 0;border-left:1px solid var(--line)" class="muted">☰<br>Lists</div>
+          </div>
+          <div class="card" style="margin-top:10px;padding:10px 12px">
+          <div style="text-align:left">
+            <div class="row" style="justify-content:space-between;align-items:baseline"><span class="mono muted" style="font-size:10.5px;letter-spacing:.06em">Your rating</span><span class="mono" style="font-size:18px;font-weight:700;color:var(--primary)">8<span class="muted" style="font-size:11px;font-weight:400">/10</span></span></div>
+            <div style="position:relative;height:28px;margin-top:4px">
+              <div style="position:absolute;left:0;right:0;top:12px;height:2px;background:var(--line)"></div>
+              <div style="position:absolute;left:0;right:0;top:9px;height:8px;background:repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px calc(10% - 0.1px));opacity:.9"></div>
+              <div style="position:absolute;left:0;width:80%;top:11px;height:4px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--primary));box-shadow:0 0 10px color-mix(in srgb,var(--primary) 60%,transparent)"></div>
+              <div style="position:absolute;left:calc(80% - 11px);top:2px"><svg width="22" height="22" viewBox="0 0 24 24" fill="var(--primary)" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;transform:rotate(45deg);display:block"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></div>
+            </div>
+            <div class="row mono" style="justify-content:space-between;font-size:9px;color:color-mix(in srgb,currentColor 40%,transparent)"><span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span></div>
+            <div style="font-size:10px;margin-top:6px;color:color-mix(in srgb,currentColor 45%,transparent)">Drag or tap · saves on release · tap 8 again to clear</div>
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>
