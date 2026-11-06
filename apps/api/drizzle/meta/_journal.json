@@ -435,6 +435,13 @@
       "when": 1793993704224,
       "tag": "0061_nitrate_theme",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1794006258259,
+      "tag": "0062_admin_audit_log",
+      "breakpoints": true
     }
   ]
 }

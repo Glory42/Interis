@@ -8,6 +8,7 @@ import {
   AdminUpdateSerialSchema,
   type AdminListMediaQuery,
 } from "./dto/admin-media.dto";
+import { AdminAuditService } from "./admin-audit.service";
 
 export class AdminMediaController {
   static async listMovies(
@@ -45,6 +46,7 @@ export class AdminMediaController {
       sendNotFound(res, "Movie not found");
       return;
     }
+    await AdminAuditService.record(req.user, { action: "movie.update", targetType: "movie", targetId: String(params.data.id) });
     res.status(200).json(updated);
   }
 
@@ -60,6 +62,7 @@ export class AdminMediaController {
       sendNotFound(res, "Movie not found");
       return;
     }
+    await AdminAuditService.record(req.user, { action: "movie.refresh", targetType: "movie", targetId: String(params.data.id) });
     res.status(200).json(refreshed);
   }
 
@@ -75,6 +78,7 @@ export class AdminMediaController {
       sendNotFound(res, "Movie not found");
       return;
     }
+    await AdminAuditService.record(req.user, { action: "movie.delete", targetType: "movie", targetId: String(params.data.id) });
     res.status(200).json({ success: true });
   }
 
@@ -113,6 +117,7 @@ export class AdminMediaController {
       sendNotFound(res, "Series not found");
       return;
     }
+    await AdminAuditService.record(req.user, { action: "serial.update", targetType: "serial", targetId: String(params.data.id) });
     res.status(200).json(updated);
   }
 
@@ -128,6 +133,7 @@ export class AdminMediaController {
       sendNotFound(res, "Series not found");
       return;
     }
+    await AdminAuditService.record(req.user, { action: "serial.refresh", targetType: "serial", targetId: String(params.data.id) });
     res.status(200).json(refreshed);
   }
 
@@ -143,6 +149,7 @@ export class AdminMediaController {
       sendNotFound(res, "Series not found");
       return;
     }
+    await AdminAuditService.record(req.user, { action: "serial.delete", targetType: "serial", targetId: String(params.data.id) });
     res.status(200).json({ success: true });
   }
 }
