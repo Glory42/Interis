@@ -43,6 +43,7 @@ test("an admin suspends, promotes, resets the password of, and deletes a user", 
         hasText: "Suspend account",
       });
       await expect(suspendDialog).toBeVisible({ timeout: 10_000 });
+      await suspendDialog.getByLabel("Your password").fill(admin.password);
       await suspendDialog.getByRole("button", { name: "Suspend", exact: true }).click();
       await expect(suspendDialog).not.toBeVisible({ timeout: 10_000 });
       await expect(targetRow.getByText("Suspended")).toBeVisible({ timeout: 10_000 });
@@ -63,6 +64,7 @@ test("an admin suspends, promotes, resets the password of, and deletes a user", 
         hasText: "Grant admin access",
       });
       await expect(promoteDialog).toBeVisible({ timeout: 10_000 });
+      await promoteDialog.getByLabel("Your password").fill(admin.password);
       await promoteDialog.getByRole("button", { name: "Promote", exact: true }).click();
       await expect(promoteDialog).not.toBeVisible({ timeout: 10_000 });
       await expect(targetRow.getByText("Admin", { exact: true })).toBeVisible({
@@ -74,6 +76,7 @@ test("an admin suspends, promotes, resets the password of, and deletes a user", 
         hasText: "Remove admin access",
       });
       await expect(demoteDialog).toBeVisible({ timeout: 10_000 });
+      await demoteDialog.getByLabel("Your password").fill(admin.password);
       await demoteDialog.getByRole("button", { name: "Demote", exact: true }).click();
       await expect(demoteDialog).not.toBeVisible({ timeout: 10_000 });
       await expect(targetRow.getByText("Admin", { exact: true })).not.toBeVisible({
@@ -87,7 +90,8 @@ test("an admin suspends, promotes, resets the password of, and deletes a user", 
         hasText: "Reset password",
       });
       await expect(resetDialog).toBeVisible({ timeout: 10_000 });
-      await resetDialog.getByPlaceholder("New password").fill("admin-reset-password-9999");
+      await resetDialog.getByLabel("New password").fill("admin-reset-password-9999");
+      await resetDialog.getByLabel("Your password").fill(admin.password);
       await resetDialog.getByRole("button", { name: "Reset password", exact: true }).click();
       await expect(resetDialog).not.toBeVisible({ timeout: 10_000 });
     });
@@ -99,6 +103,7 @@ test("an admin suspends, promotes, resets the password of, and deletes a user", 
       });
       await expect(deleteDialog).toBeVisible({ timeout: 10_000 });
       await deleteDialog.getByPlaceholder(target.username).fill(target.username);
+      await deleteDialog.getByLabel("Your password").fill(admin.password);
       await deleteDialog.getByRole("button", { name: "Delete", exact: true }).click();
       await expect(deleteDialog).not.toBeVisible({ timeout: 10_000 });
       await expect(targetRow).not.toBeVisible({ timeout: 10_000 });
