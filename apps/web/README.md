@@ -147,7 +147,7 @@ feature/
 | `serials/` | TV series |
 | `settings/` | Settings pages |
 | `social/` | Follow graph, feed |
-| `theme/` | Theme system (rose-pine, null-log, tokyo-night, marquee) |
+| `theme/` | Theme system (rose-pine, null-log, nitrate, marquee) |
 | `uploads/` | Avatar uploads |
 
 ## Data flow conventions
@@ -172,4 +172,4 @@ feature/
 
 - In local dev, keep `VITE_API_BASE_URL` empty so `/api` calls go through Vite proxy.
 - If routes change, run `bun run routes:generate` (also included in build/typecheck scripts).
-- Supported themes: rose-pine, null-log, tokyo-night, marquee.
+- Supported themes: rose-pine, null-log, nitrate, marquee.

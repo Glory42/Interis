@@ -36,12 +36,12 @@ test("edits profile, theme, Top4 favorites, and manages blocked users from setti
 
     await test.step("switches theme and it persists across reload", async () => {
       await page.goto("/settings/theme");
-      await page.getByRole("button", { name: /Tokyo Night/ }).click();
+      await page.getByRole("button", { name: /Nitrate/ }).click();
       await expect(page.getByText("Theme saved.")).toBeVisible({ timeout: 10_000 });
-      await expect(page.locator("html")).toHaveAttribute("data-theme-id", "tokyo-night");
+      await expect(page.locator("html")).toHaveAttribute("data-theme-id", "nitrate");
 
       await page.reload();
-      await expect(page.locator("html")).toHaveAttribute("data-theme-id", "tokyo-night", {
+      await expect(page.locator("html")).toHaveAttribute("data-theme-id", "nitrate", {
         timeout: 10_000,
       });
     });

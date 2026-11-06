@@ -166,6 +166,27 @@ describe("users /me", () => {
       expect(body.themeId).toBe("rose-pine");
     });
 
+    it("saves Nitrate and moves a stale Tokyo Night id to it", async () => {
+      const { jar } = await signUpTestUser(getServer().baseUrl, "umenitrate");
+      const putTheme = async (themeId: string) => {
+        const response = await apiRequest(
+          getServer().baseUrl,
+          "/api/users/me/theme",
+          {
+            method: "PUT",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ themeId }),
+          },
+          jar,
+        );
+        expect(response.status).toBe(200);
+        return ((await response.json()) as { themeId: string }).themeId;
+      };
+
+      expect(await putTheme("nitrate")).toBe("nitrate");
+      expect(await putTheme("tokyo-night")).toBe("nitrate");
+    });
+
     it("updates the theme", async () => {
       const { jar } = await signUpTestUser(getServer().baseUrl, "umetheme");
       const response = await apiRequest(

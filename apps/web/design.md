@@ -8,7 +8,7 @@ file when the system needs to grow.
 
 Interis ships a full user-facing multi-theme system (`public/theme-registry.js`
 + `src/index.css` `:root[data-theme-id="..."]` blocks — Rose Pine, NULL://LOG,
-Tokyo Night, AMOLED, and more added over time). Themes are switched live by the
+Nitrate and Marquee). Themes are switched live by the
 user and validated full-stack (see root `CLAUDE.md` → Theme system). This is a
 product feature, not incidental styling.
 

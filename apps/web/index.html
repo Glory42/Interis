@@ -37,9 +37,12 @@
             ? configuredDefault.toLowerCase()
             : "rose-pine";
 
+        var renamedThemeIds = { "tokyo-night": "nitrate" };
+
         var resolveThemeId = function (rawThemeId) {
           if (typeof rawThemeId === "string") {
             var normalizedThemeId = rawThemeId.trim().toLowerCase();
+            normalizedThemeId = renamedThemeIds[normalizedThemeId] || normalizedThemeId;
             if (registry[normalizedThemeId]) {
               return normalizedThemeId;
             }
