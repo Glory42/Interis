@@ -6,6 +6,11 @@ import { routeTree } from "./routeTree.gen";
 import { queryClient } from "./lib/query-client";
 import { installSafeViewTransitions } from "./lib/view-transition";
 import { bootstrapStoredTheme } from "@/features/theme/theme-runtime";
+import "@fontsource-variable/sora";
+import "@fontsource-variable/space-grotesk";
+import "@fontsource-variable/jetbrains-mono";
+import "@fontsource-variable/playfair-display";
+import "@fontsource/instrument-serif";
 import "./index.css";
 
 const router = createRouter({
