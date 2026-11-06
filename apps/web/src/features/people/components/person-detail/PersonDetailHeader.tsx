@@ -54,9 +54,14 @@ export const PersonDetailHeader = ({ person, styles }: PersonDetailHeaderProps) 
         </p>
       </div>
 
-      <p className="mb-8 text-sm leading-relaxed">
+      <p className={person.biographySource ? "mb-2 text-sm leading-relaxed" : "mb-8 text-sm leading-relaxed"}>
         {person.biography ?? "No biography is available from TMDB for this person."}
       </p>
+      {person.biographySource ? (
+        <p className="mb-8 text-[11px]" style={{ color: styles.muted }}>
+          {person.biographySource}
+        </p>
+      ) : null}
     </>
   );
 };

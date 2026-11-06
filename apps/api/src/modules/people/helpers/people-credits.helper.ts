@@ -55,3 +55,32 @@ export const selectPersonCredits = (
 
   return query.order === "popular" ? [...selected].sort(compareByPopularity) : selected;
 };
+
+const KNOWN_FOR_LIMIT = 8;
+
+// One row per title across cast and crew, most-voted first.
+export const selectKnownFor = (credits: NormalizedPersonCredits): PersonCreditItem[] => {
+  const byTitle = new Map<string, PersonCreditItem>();
+  for (const credit of [...credits.cast, ...credits.crew]) {
+    const key = `${credit.mediaType}:${credit.tmdbId}`;
+    if (!byTitle.has(key)) byTitle.set(key, credit);
+  }
+
+  return [...byTitle.values()].sort(compareByPopularity).slice(0, KNOWN_FOR_LIMIT);
+};
+
+// TMDB biographies often end with a Wikipedia attribution line; it's shown separately.
+const BIOGRAPHY_SOURCE_PATTERN =
+  /\s*((?:Description above from the Wikipedia article|From Wikipedia, the free encyclopedia)[^\n]*)\s*$/i;
+
+export const splitBiographySource = (
+  biography: string | null,
+): { biography: string | null; biographySource: string | null } => {
+  if (!biography) return { biography, biographySource: null };
+
+  const match = BIOGRAPHY_SOURCE_PATTERN.exec(biography);
+  if (!match) return { biography, biographySource: null };
+
+  const text = biography.slice(0, match.index).trim();
+  return { biography: text.length > 0 ? text : null, biographySource: match[1]!.trim() };
+};

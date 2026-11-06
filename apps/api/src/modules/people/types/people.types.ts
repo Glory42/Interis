@@ -49,6 +49,7 @@ export type PersonDetailResponse = {
     knownForDepartment: string | null;
     profilePath: string | null;
     biography: string | null;
+    biographySource: string | null;
     birthday: string | null;
     deathday: string | null;
     placeOfBirth: string | null;
@@ -82,6 +83,7 @@ export type PersonDetailResponse = {
       isCanonicalSlug: boolean;
     };
   };
+  knownFor: PersonCreditItem[];
   credits: {
     counts: Record<PersonCreditMedia, Record<PersonCreditType, number>>;
     jobCounts: { job: string; count: number }[];

@@ -9,7 +9,9 @@ import type { PersonCreditsQuery } from "../dto/people.dto";
 import {
   countPersonCredits,
   countPersonJobs,
+  selectKnownFor,
   selectPersonCredits,
+  splitBiographySource,
   type NormalizedPersonCredits,
 } from "../helpers/people-credits.helper";
 import { normalizeKnownForDepartment } from "../helpers/people-slug.helper";
@@ -104,7 +106,7 @@ export class PeopleDetailService {
         name: cachedPerson.name,
         knownForDepartment: cachedPerson.knownForDepartment,
         profilePath: cachedPerson.profilePath,
-        biography: toNullableTrimmed(detail.biography),
+        ...splitBiographySource(toNullableTrimmed(detail.biography)),
         birthday: toIsoDateOrNull(detail.birthday),
         deathday: toIsoDateOrNull(detail.deathday),
         placeOfBirth: toNullableTrimmed(detail.place_of_birth),
@@ -143,6 +145,7 @@ export class PeopleDetailService {
           isCanonicalSlug: input.slug === cachedPerson.slug,
         },
       },
+      knownFor: selectKnownFor(credits),
       credits: {
         counts: countPersonCredits(credits),
         jobCounts: countPersonJobs(credits.crew),

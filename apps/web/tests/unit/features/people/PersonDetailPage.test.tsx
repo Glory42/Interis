@@ -12,7 +12,8 @@ const person = {
   name: "Christopher Nolan",
   knownForDepartment: "Directing",
   profilePath: null,
-  biography: null,
+  biography: "A director.",
+  biographySource: "From Wikipedia, the free encyclopedia",
   birthday: null,
   deathday: null,
   placeOfBirth: null,
@@ -91,6 +92,7 @@ describe("PersonDetailPage", () => {
 
     expect(await screen.findByRole("button", { name: "Crew (41)" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Films" })).toHaveAttribute("href", "/movies");
+    expect(screen.getByText("From Wikipedia, the free encyclopedia")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Combined (43)" })).toBeInTheDocument();
     expect(await screen.findByText("Director, Writer")).toBeInTheDocument();
 
