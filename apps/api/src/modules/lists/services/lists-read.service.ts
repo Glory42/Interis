@@ -106,7 +106,7 @@ export class ListsReadService {
     }
 
     const [itemRows, likeCount, likedByViewer] = await Promise.all([
-      ListsReadRepository.getListItems(listId),
+      ListsReadRepository.getListItems(listId, list.userId),
       ListsWriteRepository.getListLikeCount(listId),
       viewerUserId ? ListsWriteRepository.hasUserLikedList(viewerUserId, listId) : Promise.resolve(false),
     ]);
@@ -122,6 +122,8 @@ export class ListsReadService {
           title: row.movieTitle,
           posterPath: row.moviePosterPath,
           releaseYear: row.movieReleaseYear,
+          ownerRating: row.movieOwnerRating ?? null,
+          credit: row.movieDirector ?? null,
         };
       }
 
@@ -134,6 +136,8 @@ export class ListsReadService {
         title: row.serialTitle,
         posterPath: row.serialPosterPath,
         releaseYear: row.serialFirstAirYear,
+        ownerRating: row.serialOwnerRating ?? null,
+        credit: row.serialCreator ?? null,
       };
     });
 
