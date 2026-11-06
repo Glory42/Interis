@@ -8,8 +8,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Spinner } from "@/components/ui/spinner";
 import { useDetailedStats } from "@/features/profile/hooks/useProfileStats";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type ProfileStatsPageProps = {
   username: string;
@@ -59,7 +59,7 @@ export const ProfileStatsPage = ({ username }: ProfileStatsPageProps) => {
   if (statsQuery.isPending) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Spinner />
+        <TickLoader />
       </div>
     );
   }

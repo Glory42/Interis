@@ -1,9 +1,9 @@
 import { Badge } from "@/components/ui/badge";
-import { Spinner } from "@/components/ui/spinner";
 import { SpaceRatingDisplay } from "@/features/movies/components/SpaceRating";
 import { formatRatingLabel } from "@/lib/rating";
 import { useMovieLogs } from "@/features/movies/hooks/useMovies";
 import { formatDateOnlyLabel } from "@/lib/time";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type MovieLogsProps = {
   tmdbId: number;
@@ -41,7 +41,7 @@ export const MovieLogs = ({ tmdbId }: MovieLogsProps) => {
       <div className="p-4 pt-0 space-y-3">
         {logsQuery.isPending ? (
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Spinner /> Loading logs...
+            <TickLoader /> Loading logs...
           </p>
         ) : null}
 

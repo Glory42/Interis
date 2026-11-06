@@ -1,11 +1,12 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Heart, Loader2 } from "lucide-react";
+import { Heart } from "lucide-react";
 import { memo, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { SpaceRatingDisplay } from "@/features/movies/components/SpaceRating";
 import { formatRatingLabel } from "@/lib/rating";
 import { useLikeReview, useUnlikeReview } from "@/features/reviews/hooks/useReviews";
 import type { ReviewCardModuleStyles } from "@/features/media/types";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 export type MediaReview = {
   id: string;
@@ -169,7 +170,7 @@ export const MediaReviewCard = memo(function MediaReviewCard({
           }
         >
           {isLikePending ? (
-            <Loader2 className="h-3 w-3 animate-spin" />
+            <TickLoader />
           ) : (
             <Heart className={viewerHasLiked ? "h-3 w-3 fill-current" : "h-3 w-3"} />
           )}

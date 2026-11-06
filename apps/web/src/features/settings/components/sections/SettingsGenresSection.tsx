@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { X } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useUpdateMyProfile } from "@/features/profile/hooks/useProfile";
 import {
@@ -9,6 +8,7 @@ import {
 } from "@/features/settings/model/settings.constants";
 import { isApiError } from "@/lib/api-client";
 import type { FavoriteGenre } from "@/types/api";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 const toUniqueKnownGenres = (
   genres: FavoriteGenre[] | null | undefined,
@@ -47,7 +47,7 @@ export const SettingsGenresSection = () => {
     return (
       <div className="border px-4 py-3 text-sm shell-border shell-muted surface">
         <p className="flex items-center gap-2">
-          <Spinner /> Loading genre settings...
+          <TickLoader /> Loading genre settings...
         </p>
       </div>
     );

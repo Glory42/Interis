@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff, LogOut } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 import {
   changeCurrentUserEmail,
   changeCurrentUserPassword,
@@ -9,6 +8,7 @@ import {
 import { authKeys, useAuth } from "@/features/auth/hooks/useAuth";
 import { isApiError } from "@/lib/api-client";
 import { SettingsDeleteAccountCard } from "./SettingsDeleteAccountCard";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 export const SettingsAuthSection = () => {
   const queryClient = useQueryClient();
@@ -45,7 +45,7 @@ export const SettingsAuthSection = () => {
     return (
       <div className="border px-4 py-3 text-sm shell-border shell-muted surface">
         <p className="flex items-center gap-2">
-          <Spinner /> Loading auth settings...
+          <TickLoader /> Loading auth settings...
         </p>
       </div>
     );

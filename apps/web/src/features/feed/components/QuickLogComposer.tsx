@@ -1,11 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { useState, type KeyboardEvent } from "react";
-import { Loader2, SendHorizontal } from "lucide-react";
+import { SendHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreatePost } from "@/features/posts/hooks/usePosts";
 import type { MeProfile } from "@/types/api";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type QuickLogComposerProps = {
   user: MeProfile | null;
@@ -78,7 +79,7 @@ export const QuickLogComposer = ({ user }: QuickLogComposerProps) => {
             }}
           >
             {createPostMutation.isPending ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <TickLoader />
             ) : (
               <SendHorizontal className="h-3.5 w-3.5" />
             )}

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, GripVertical, X } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 import type { ListItem } from "@/features/lists/api";
 import type { SearchResult } from "@/features/lists/components/ListItemSearch";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p";
 const getPosterUrl = (path: string | null) =>
@@ -159,7 +159,7 @@ export const ListItemsEditor = ({
                 className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border/50 text-muted-foreground/60 transition-colors hover:border-destructive/50 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-30"
               >
                 {isThisItemRemoving ? (
-                  <Spinner className="h-3 w-3" />
+                  <TickLoader />
                 ) : (
                   <X className="h-3.5 w-3.5" />
                 )}

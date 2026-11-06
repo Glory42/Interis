@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 import { useListFormSearchMovies, useListFormSearchSeries } from "@/features/lists/hooks/useLists";
 import type { TmdbSearchMovie } from "@/types/api";
 import type { TmdbSearchSeries } from "@/features/serials/api/types";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p";
 const getPosterUrl = (path: string | null) =>
@@ -97,7 +97,7 @@ export const ListItemSearch = ({ existingTmdbIds, onSelect }: ListItemSearchProp
             className="w-full rounded-lg border border-border/75 bg-background/45 py-2 pl-9 pr-3 font-mono text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/40"
           />
           {isSearchPending ? (
-            <Spinner className="absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2" />
+            <TickLoader className="absolute right-3 top-1/2 -translate-y-1/2" />
           ) : null}
         </div>
 

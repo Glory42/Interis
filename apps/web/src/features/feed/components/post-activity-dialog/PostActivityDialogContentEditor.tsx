@@ -1,5 +1,6 @@
-import { Loader2 } from "lucide-react";
+
 import { Textarea } from "@/components/ui/textarea";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type PostActivityDialogContentEditorProps = {
   isEditing: boolean;
@@ -56,7 +57,7 @@ export const PostActivityDialogContentEditor = ({
             >
               {isSaving ? (
                 <span className="inline-flex items-center gap-1">
-                  <Loader2 className="h-3 w-3 animate-spin" /> saving
+                  <TickLoader /> saving
                 </span>
               ) : (
                 "save"

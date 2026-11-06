@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useUpdateMyTheme } from "@/features/theme/hooks/useTheme";
 import { listThemes, resolveThemeId } from "@/features/theme/theme-registry";
 import { applyAndPersistTheme } from "@/features/theme/theme-runtime";
 import { isApiError } from "@/lib/api-client";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 export const SettingsThemeSection = () => {
   const { user, isUserLoading } = useAuth();
@@ -22,7 +22,7 @@ export const SettingsThemeSection = () => {
     return (
       <div className="border px-4 py-3 text-sm shell-border shell-muted surface">
         <p className="flex items-center gap-2">
-          <Spinner /> Loading theme settings...
+          <TickLoader /> Loading theme settings...
         </p>
       </div>
     );

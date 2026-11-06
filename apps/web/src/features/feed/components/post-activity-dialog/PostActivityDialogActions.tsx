@@ -1,4 +1,5 @@
-import { Heart, Loader2, MessageSquare, PenSquare } from "lucide-react";
+import { Heart, MessageSquare, PenSquare } from "lucide-react";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type PostActivityDialogActionsProps = {
   likeCount: number;
@@ -32,7 +33,7 @@ export const PostActivityDialogActions = ({
         aria-pressed={viewerHasLiked}
       >
         {isLikePending ? (
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          <TickLoader />
         ) : (
           <Heart
             className={`h-3.5 w-3.5 ${viewerHasLiked ? "fill-current text-primary" : ""}`}

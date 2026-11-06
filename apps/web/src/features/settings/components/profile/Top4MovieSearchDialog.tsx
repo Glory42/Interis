@@ -2,10 +2,10 @@ import { useDeferredValue } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ModalShell } from "@/components/ui/ModalShell";
-import { Spinner } from "@/components/ui/spinner";
 import { getPosterUrl, toReleaseYear } from "@/features/movies/components/utils";
 import { useMovieSearch } from "@/features/movies/hooks/useMovies";
 import type { TmdbSearchMovie } from "@/types/api";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type Top4MovieSearchDialogProps = {
   isOpen: boolean;
@@ -73,7 +73,7 @@ export const Top4MovieSearchDialog = ({
 
             {query.trim().length >= 2 && searchQuery.isFetching ? (
               <p className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
-                <Spinner /> Finding movies...
+                <TickLoader /> Finding movies...
               </p>
             ) : null}
 

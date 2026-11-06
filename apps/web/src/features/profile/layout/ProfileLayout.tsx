@@ -1,7 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { Settings } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { ProfileHeaderCompact } from "@/features/profile/components/ProfileHeaderCompact";
 import {
@@ -24,6 +23,7 @@ import {
 } from "@/features/moderation/hooks/useModeration";
 import { isApiError } from "@/lib/api-client";
 import type { PublicProfile } from "@/types/api";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type ProfileLayoutProps = {
   username: string;
@@ -70,7 +70,7 @@ export const ProfileLayout = ({
     return (
       <div className="mx-auto flex min-h-[55vh] w-full max-w-6xl items-center px-4 py-8">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Spinner /> Loading profile...
+          <TickLoader /> Loading profile...
         </div>
       </div>
     );

@@ -1,15 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import {
-  ArrowLeft,
-  Globe,
-  Heart,
-  Lock,
-  Pencil,
-  Trash2,
-} from "lucide-react";
+import { ArrowLeft, Globe, Heart, Lock, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import {
   useDeleteList,
@@ -17,6 +9,7 @@ import {
   useListDetail,
   useUnlikeList,
 } from "@/features/lists/hooks/useLists";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p";
 
@@ -76,7 +69,7 @@ export const ProfileListDetailPage = ({
   if (detailQuery.isPending) {
     return (
       <div className="flex items-center gap-2 py-10 text-sm text-muted-foreground">
-        <Spinner /> Loading list...
+        <TickLoader /> Loading list...
       </div>
     );
   }
@@ -196,7 +189,7 @@ export const ProfileListDetailPage = ({
                   className="inline-flex items-center gap-1.5 rounded-full border border-destructive/40 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-destructive/70 transition-colors hover:border-destructive hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {deletePending ? (
-                    <Spinner className="h-3 w-3" />
+                    <TickLoader />
                   ) : (
                     <Trash2 className="h-3 w-3" />
                   )}

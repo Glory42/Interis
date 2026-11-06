@@ -2,10 +2,10 @@ import { useDeferredValue } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ModalShell } from "@/components/ui/ModalShell";
-import { Spinner } from "@/components/ui/spinner";
 import { getPosterUrl } from "@/features/movies/components/utils";
 import { useSerialSearch } from "@/features/serials/hooks/useSerials";
 import type { TmdbSearchSeries } from "@/features/serials/api";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type Top4SeriesSearchDialogProps = {
   isOpen: boolean;
@@ -83,7 +83,7 @@ export const Top4SeriesSearchDialog = ({
 
             {query.trim().length >= 2 && searchQuery.isFetching ? (
               <p className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
-                <Spinner /> Finding series...
+                <TickLoader /> Finding series...
               </p>
             ) : null}
 

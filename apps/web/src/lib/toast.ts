@@ -1,9 +1,15 @@
 import { useSyncExternalStore } from "react";
 
+export type ToastTone = "neutral" | "success" | "danger";
+
+export type ToastAction = { label: string; onClick: () => void };
+
 export type Toast = {
   id: number;
   title: string;
   detail: string | null;
+  tone: ToastTone;
+  action: ToastAction | null;
 };
 
 const TOAST_DURATION_MS = 6_000;
@@ -33,7 +39,11 @@ export const clearToasts = (): void => {
 
 // The same failure repeated (a user retrying a toggle while the API is down)
 // replaces its earlier toast instead of stacking copies of it.
-export const showToast = (title: string, detail: string | null = null): void => {
+export const showToast = (
+  title: string,
+  detail: string | null = null,
+  options: { tone?: ToastTone; action?: ToastAction } = {},
+): void => {
   const repeated = toasts.find((toast) => toast.title === title && toast.detail === detail);
   if (repeated) {
     dismissToast(repeated.id);
@@ -43,7 +53,13 @@ export const showToast = (title: string, detail: string | null = null): void => 
     dismissToast(toasts[0].id);
   }
 
-  const toast: Toast = { id: nextId++, title, detail };
+  const toast: Toast = {
+    id: nextId++,
+    title,
+    detail,
+    tone: options.tone ?? "neutral",
+    action: options.action ?? null,
+  };
   emit([...toasts, toast]);
   timers.set(
     toast.id,
