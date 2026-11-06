@@ -22,3 +22,20 @@ export const ReportParamsSchema = z.object({
 });
 
 export type ReportParams = z.input<typeof ReportParamsSchema>;
+
+export const GroupedReportsQuerySchema = z.object({
+  status: z.enum(["pending", "resolved", "dismissed"]).default("pending"),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+
+export const ReportTargetParamsSchema = z.object({
+  targetType: z.enum(["review", "post"]),
+  targetId: z.string().uuid(),
+});
+
+export type ReportTargetParams = z.input<typeof ReportTargetParamsSchema>;
+
+export const CloseReportTargetSchema = z.object({
+  note: z.string().trim().max(500).optional(),
+});

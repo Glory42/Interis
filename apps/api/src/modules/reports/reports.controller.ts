@@ -5,11 +5,15 @@ import {
 } from "../../commons/http/validation-response.helper";
 import { ReportsService } from "./reports.service";
 import {
+  CloseReportTargetSchema,
+  GroupedReportsQuerySchema,
   ListReportsQuerySchema,
   ReportParamsSchema,
+  ReportTargetParamsSchema,
   SubmitReportSchema,
   type ListReportsQuery,
   type ReportParams,
+  type ReportTargetParams,
 } from "./dto/reports.dto";
 import { AdminAuditService } from "../admin/admin-audit.service";
 
@@ -101,5 +105,58 @@ export class ReportsController {
     }
     await AdminAuditService.record(req.user, { action: "report.remove_content", targetType: "report", targetId: parsed.data.id });
     res.status(200).json(result);
+  }
+
+  static async listGrouped(req: Request, res: Response): Promise<void> {
+    const parsed = GroupedReportsQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    const rows = await ReportsService.listGrouped(parsed.data.status, parsed.data.limit, parsed.data.offset);
+    res.status(200).json(rows);
+  }
+
+  static async resolveTarget(req: Request<ReportTargetParams>, res: Response): Promise<void> {
+    await ReportsController.closeTarget(req, res, "resolved");
+  }
+
+  static async dismissTarget(req: Request<ReportTargetParams>, res: Response): Promise<void> {
+    await ReportsController.closeTarget(req, res, "dismissed");
+  }
+
+  private static async closeTarget(
+    req: Request<ReportTargetParams>,
+    res: Response,
+    status: "resolved" | "dismissed",
+  ): Promise<void> {
+    const params = ReportTargetParamsSchema.safeParse(req.params);
+    const body = CloseReportTargetSchema.safeParse(req.body ?? {});
+    if (!params.success || !body.success) {
+      sendValidationError(res, (params.error ?? body.error)!);
+      return;
+    }
+
+    const note = body.data.note || null;
+    const closed = await ReportsService.closeTarget({
+      targetType: params.data.targetType,
+      targetId: params.data.targetId,
+      status,
+      adminUserId: req.user.id,
+      note,
+    });
+    if (closed === 0) {
+      sendErrorForStatus(res, 404, "No open reports on this item");
+      return;
+    }
+
+    await AdminAuditService.record(req.user, {
+      action: status === "resolved" ? "report.resolve_all" : "report.dismiss_all",
+      targetType: params.data.targetType,
+      targetId: params.data.targetId,
+      reason: note,
+    });
+    res.status(200).json({ closed });
   }
 }

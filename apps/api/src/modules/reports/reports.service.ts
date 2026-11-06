@@ -74,4 +74,24 @@ export class ReportsService {
     await ReportsRepository.resolvePendingForTarget(report.targetType, report.targetId, adminUserId);
     return { success: true };
   }
+
+  static async listGrouped(status: ReportStatus, limit: number, offset: number) {
+    return ReportsRepository.listGrouped(status, limit, offset);
+  }
+
+  static async closeTarget(input: {
+    targetType: ReportTargetType;
+    targetId: string;
+    status: "resolved" | "dismissed";
+    adminUserId: string;
+    note: string | null;
+  }): Promise<number> {
+    return ReportsRepository.closePendingForTarget({
+      targetType: input.targetType,
+      targetId: input.targetId,
+      status: input.status,
+      resolvedBy: input.adminUserId,
+      note: input.note,
+    });
+  }
 }
