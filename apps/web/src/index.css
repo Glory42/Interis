@@ -682,6 +682,29 @@
 }
 
 @layer utilities {
+  /* Black clapperboard strip (components.html .slate). */
+  .slate {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 7px 10px;
+    background: var(--slate);
+    color: #8a8a8a;
+    font-family: var(--theme-kicker-font);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Nitrate's signature: sprocket holes along every slate. */
+  :root[data-theme-id="nitrate"] .slate {
+    border-top: 4px solid;
+    border-bottom: 4px solid;
+    border-image: repeating-linear-gradient(90deg, #000 0 7px, #3d3024 7px 12px) 4 0;
+  }
+
   /* Type scale (components.html): display for titles, mono only for numbers and metadata. */
   .display-1 {
     font-family: var(--theme-display-font);
