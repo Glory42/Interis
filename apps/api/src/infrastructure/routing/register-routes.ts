@@ -18,10 +18,12 @@ import notificationsRouter from "../../modules/notifications/notifications.route
 import reportsRouter from "../../modules/reports/reports.routes";
 import adminRouter from "../../modules/admin/admin.routes";
 import authRouter from "../../modules/auth/auth.routes";
+import viewerStatusRouter from "../../modules/viewer-status/viewer-status.routes";
 
 export const registerRoutes = (app: Express): void => {
   app.use("/api/auth", authRouter);
   app.use("/api/search", searchRouter);
+  app.use("/api/viewer-status", viewerStatusRouter);
   app.use("/api/moderation", moderationRouter);
   app.use("/api/notifications", notificationsRouter);
   app.use("/api/reports", reportsRouter);
