@@ -4,6 +4,14 @@ export const personRouteRoleValues = ["actor", "director"] as const;
 
 export type PersonRouteRole = (typeof personRouteRoleValues)[number];
 
+export const personCreditMediaValues = ["combined", "movies", "tv"] as const;
+export const personCreditTypeValues = ["cast", "crew"] as const;
+export const personCreditOrderValues = ["recent", "popular"] as const;
+
+export type PersonCreditMedia = (typeof personCreditMediaValues)[number];
+export type PersonCreditType = (typeof personCreditTypeValues)[number];
+export type PersonCreditOrder = (typeof personCreditOrderValues)[number];
+
 export type PersonLinkItem = {
   tmdbPersonId: number;
   slug: string;
@@ -26,7 +34,7 @@ export type PersonCreditItem = {
   releaseDate: string | null;
   releaseYear: number | null;
   character: string | null;
-  job: string | null;
+  jobs: string[];
   department: string | null;
   episodeCount: number | null;
   voteAverage: number | null;
@@ -75,17 +83,12 @@ export type PersonDetailResponse = {
     };
   };
   credits: {
-    combined: {
-      cast: PersonCreditItem[];
-      crew: PersonCreditItem[];
-    };
-    movies: {
-      cast: PersonCreditItem[];
-      crew: PersonCreditItem[];
-    };
-    tv: {
-      cast: PersonCreditItem[];
-      crew: PersonCreditItem[];
-    };
+    counts: Record<PersonCreditMedia, Record<PersonCreditType, number>>;
+    jobCounts: { job: string; count: number }[];
   };
+};
+
+export type PersonCreditsPage = {
+  items: PersonCreditItem[];
+  total: number;
 };

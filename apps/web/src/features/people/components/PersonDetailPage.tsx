@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { usePersonDetail } from "@/features/people/hooks/usePeople";
+import { usePersonCredits, usePersonDetail } from "@/features/people/hooks/usePeople";
 import { getPersonModuleStyles } from "@/features/people/components/styles";
 import type { PersonRouteRole } from "@/features/people/shared";
 import { buildPersonExternalLinks } from "./person-detail/external-links";
@@ -25,6 +25,7 @@ export const PersonDetailPage = ({ role, slug }: PersonDetailPageProps) => {
   );
 
   const detailQuery = usePersonDetail(role, slug, isValidSlug);
+  const creditsQuery = usePersonCredits(role, slug, mediaTab, roleTab, isValidSlug);
 
   if (!isValidSlug) {
     return (
@@ -73,19 +74,16 @@ export const PersonDetailPage = ({ role, slug }: PersonDetailPageProps) => {
 
   const detail = detailQuery.data;
   const person = detail.person;
-  const selectedCredits = detail.credits[mediaTab][roleTab];
+  const counts = detail.credits.counts;
   const externalLinks = buildPersonExternalLinks(person);
 
   const totalByMediaTab: Record<CreditMediaTab, number> = {
-    combined: detail.credits.combined.cast.length + detail.credits.combined.crew.length,
-    movies: detail.credits.movies.cast.length + detail.credits.movies.crew.length,
-    tv: detail.credits.tv.cast.length + detail.credits.tv.crew.length,
+    combined: counts.combined.cast + counts.combined.crew,
+    movies: counts.movies.cast + counts.movies.crew,
+    tv: counts.tv.cast + counts.tv.crew,
   };
 
-  const totalByRoleTab: Record<CreditRoleTab, number> = {
-    cast: detail.credits[mediaTab].cast.length,
-    crew: detail.credits[mediaTab].crew.length,
-  };
+  const totalByRoleTab: Record<CreditRoleTab, number> = counts[mediaTab];
 
   return (
     <div className="min-h-screen">
@@ -139,8 +137,12 @@ export const PersonDetailPage = ({ role, slug }: PersonDetailPageProps) => {
 
             <PersonCreditsGrid
               styles={styles}
-              credits={selectedCredits}
+              credits={creditsQuery.data ?? []}
               roleTab={roleTab}
+              isLoading={creditsQuery.isPending}
+              hasMore={creditsQuery.hasNextPage}
+              isLoadingMore={creditsQuery.isFetchingNextPage}
+              onLoadMore={() => void creditsQuery.fetchNextPage()}
             />
           </section>
         </div>

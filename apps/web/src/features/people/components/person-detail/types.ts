@@ -1,5 +1,6 @@
-export type CreditMediaTab = "combined" | "movies" | "tv";
-export type CreditRoleTab = "cast" | "crew";
+import type { CreditMediaTab, CreditRoleTab } from "@/features/people/shared";
+
+export type { CreditMediaTab, CreditRoleTab };
 
 export const mediaTabLabelMap: Record<CreditMediaTab, string> = {
   combined: "Combined",
