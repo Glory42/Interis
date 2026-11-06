@@ -2,13 +2,19 @@
 @import "tw-animate-css";
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
+  /* Corners are 2–4px everywhere; rounded-full stays for avatars and dots. */
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-xl: 4px;
+  --radius-2xl: 4px;
+  --radius-3xl: 4px;
+  --radius-4xl: 4px;
+
+  --font-sans: var(--theme-body-font);
+  --font-display: var(--theme-display-font);
+  --font-mono: var(--theme-kicker-font);
+  --font-serif: "Instrument Serif", Georgia, serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -51,7 +57,7 @@
   --grain: 0.18;
 
   /* Library and legacy names, derived from the roles above. */
-  --radius: 0.75rem;
+  --radius: 3px;
   --background: #191724;
   --foreground: #e0def4;
   --card: #1f1d2e;
@@ -96,11 +102,11 @@
   --theme-navbar-border: rgba(212, 181, 255, 0.2);
   --theme-navbar-shadow: 0 14px 30px -26px rgba(0, 0, 0, 0.75);
   --theme-navbar-overlay: rgba(16, 14, 24, 0.6);
-  --theme-body-font: "Sora", "Space Grotesk", "Segoe UI", sans-serif;
-  --theme-display-font: "Space Grotesk", "Sora", "Segoe UI", sans-serif;
+  --theme-body-font: "Sora Variable", "Sora", "Segoe UI", sans-serif;
+  --theme-display-font: "Space Grotesk Variable", "Space Grotesk", "Segoe UI", sans-serif;
   --theme-display-letter-spacing: -0.02em;
   --theme-display-shadow: none;
-  --theme-kicker-font: "JetBrains Mono", "Fira Code", monospace;
+  --theme-kicker-font: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
   --theme-kicker-tracking: 0.18em;
   --theme-kicker-weight: 700;
   --module-movie: #ebbcba;
@@ -183,11 +189,11 @@
   --theme-navbar-border: rgba(255, 255, 255, 0.08);
   --theme-navbar-shadow: 0 14px 28px -24px rgba(0, 0, 0, 0.9);
   --theme-navbar-overlay: rgba(0, 0, 0, 0.8);
-  --theme-body-font: "Sora", "Space Grotesk", "Segoe UI", sans-serif;
-  --theme-display-font: "Space Grotesk", "Sora", "Segoe UI", sans-serif;
+  --theme-body-font: "Sora Variable", "Sora", "Segoe UI", sans-serif;
+  --theme-display-font: "Space Grotesk Variable", "Space Grotesk", "Segoe UI", sans-serif;
   --theme-display-letter-spacing: -0.02em;
   --theme-display-shadow: none;
-  --theme-kicker-font: "JetBrains Mono", "Fira Code", monospace;
+  --theme-kicker-font: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
   --theme-kicker-tracking: 0.18em;
   --theme-kicker-weight: 700;
   --module-movie: #ffb000;
@@ -263,11 +269,11 @@
   --theme-navbar-border: rgba(242, 163, 58, 0.22);
   --theme-navbar-shadow: 0 14px 30px -26px rgba(0, 0, 0, 0.78);
   --theme-navbar-overlay: rgba(12, 9, 6, 0.6);
-  --theme-body-font: "Sora", "Space Grotesk", "Segoe UI", sans-serif;
-  --theme-display-font: "Space Grotesk", "Sora", "Segoe UI", sans-serif;
+  --theme-body-font: "Sora Variable", "Sora", "Segoe UI", sans-serif;
+  --theme-display-font: "Space Grotesk Variable", "Space Grotesk", "Segoe UI", sans-serif;
   --theme-display-letter-spacing: -0.02em;
   --theme-display-shadow: none;
-  --theme-kicker-font: "JetBrains Mono", "Fira Code", monospace;
+  --theme-kicker-font: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
   --theme-kicker-tracking: 0.18em;
   --theme-kicker-weight: 700;
   --module-movie: #e2765a;
@@ -335,11 +341,11 @@
   --theme-navbar-border: rgba(226, 213, 192, 0.8);
   --theme-navbar-shadow: 0 14px 30px -26px rgba(43, 33, 26, 0.2);
   --theme-navbar-overlay: rgba(255, 250, 240, 0.5);
-  --theme-body-font: "Sora", "Segoe UI", sans-serif;
-  --theme-display-font: "Playfair Display", Georgia, "Times New Roman", serif;
+  --theme-body-font: "Sora Variable", "Sora", "Segoe UI", sans-serif;
+  --theme-display-font: "Playfair Display Variable", "Playfair Display", Georgia, serif;
   --theme-display-letter-spacing: 0em;
   --theme-display-shadow: none;
-  --theme-kicker-font: "JetBrains Mono", "Fira Code", monospace;
+  --theme-kicker-font: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
   --theme-kicker-tracking: 0.18em;
   --theme-kicker-weight: 700;
   --module-movie: #9a5b12;
@@ -674,6 +680,78 @@
 }
 
 @layer utilities {
+  /* Type scale (components.html): display for titles, mono only for numbers and metadata. */
+  .display-1 {
+    font-family: var(--theme-display-font);
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  .display-2 {
+    font-family: var(--theme-display-font);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .display-3 {
+    font-family: var(--theme-display-font);
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .display-4 {
+    font-family: var(--theme-display-font);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .body {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .body-s {
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+
+  .caption {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .mono-num {
+    font-family: var(--theme-kicker-font);
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mono-meta {
+    font-family: var(--theme-kicker-font);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+
+  .kicker {
+    font-family: var(--theme-kicker-font);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .tagline {
+    font-family: "Instrument Serif", Georgia, serif;
+    font-style: italic;
+  }
+
   .animate-route-enter {
     animation: route-enter 280ms cubic-bezier(0.2, 0.75, 0.2, 1) both;
   }
