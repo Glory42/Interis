@@ -1,8 +1,7 @@
+import { Search } from "lucide-react";
 import {
   DesktopGuestActions,
   DesktopSearchButton,
-  MobileMenu,
-  MobileMenuToggle,
   NavbarBrand,
   NotificationsBell,
   PrimaryNavLinks,
@@ -16,18 +15,15 @@ export const AppNavbar = () => {
     isUserLoading,
     isLogoutPending,
     isSearchDialogOpen,
-    isMobileMenuOpen,
     isProfileMenuOpen,
     visiblePrimaryNavItems,
     pathname,
     profileMenuRef,
     profileImageUrl,
     profileInitial,
-    closeMobileMenu,
     closeProfileMenu,
     openProfileMenu,
     toggleProfileMenu,
-    toggleMobileMenu,
     openSearchDialog,
     handleSignOut,
   } = useAppNavbarController();
@@ -36,7 +32,7 @@ export const AppNavbar = () => {
     <>
       <header className="theme-navbar-shell sticky top-0 z-40 border-b border-[color:var(--line)]">
 
-        <div className="mx-auto grid h-14 w-full max-w-400 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4">
+        <div className="mx-auto grid h-11 md:h-14 w-full max-w-400 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4">
           <div className="col-start-1 flex min-w-0 items-center">
             <NavbarBrand />
           </div>
@@ -50,6 +46,14 @@ export const AppNavbar = () => {
               isSearchDialogOpen={isSearchDialogOpen}
               onOpen={openSearchDialog}
             />
+            <button
+              type="button"
+              onClick={openSearchDialog}
+              aria-label="Search"
+              className="inline-flex size-11 items-center justify-center text-muted-foreground transition-colors hover:text-foreground sm:hidden"
+            >
+              <Search className="size-4" />
+            </button>
 
             {isUserLoading ? (
               <span className="hidden font-mono text-[10px] text-muted-foreground lg:inline">
@@ -75,34 +79,9 @@ export const AppNavbar = () => {
             ) : null}
 
             {!isUserLoading && !user ? <DesktopGuestActions /> : null}
-
-            <MobileMenuToggle
-              isOpen={isMobileMenuOpen}
-              onToggle={toggleMobileMenu}
-            />
           </div>
         </div>
-
-        <MobileMenu
-          isOpen={isMobileMenuOpen}
-          isUserLoading={isUserLoading}
-          user={user}
-          visiblePrimaryNavItems={visiblePrimaryNavItems}
-          isLogoutPending={isLogoutPending}
-          onClose={closeMobileMenu}
-          onOpenSearch={openSearchDialog}
-          onSignOut={handleSignOut}
-        />
       </header>
-
-      {isMobileMenuOpen ? (
-        <button
-          type="button"
-          onClick={closeMobileMenu}
-          className="theme-navbar-overlay fixed inset-0 top-14 z-30 bg-black/45 md:hidden"
-          aria-label="Close navigation overlay"
-        />
-      ) : null}
     </>
   );
 };
