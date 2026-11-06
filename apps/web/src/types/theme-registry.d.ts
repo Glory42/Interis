@@ -1,4 +1,4 @@
-type ThemeRegistryId = "rose-pine" | "null-log" | "tokyo-night" | "marquee";
+type ThemeRegistryId = "rose-pine" | "null-log" | "nitrate" | "marquee";
 
 type ThemeRegistryPreview = {
   mode: "light" | "dark";

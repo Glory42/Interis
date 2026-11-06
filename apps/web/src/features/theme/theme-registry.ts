@@ -13,12 +13,17 @@ export type ThemeDefinition = {
 
 const DEFAULT_THEME_ID = "rose-pine";
 
-const SUPPORTED_THEME_IDS = ["rose-pine", "null-log", "tokyo-night", "marquee"] as const;
+const SUPPORTED_THEME_IDS = ["rose-pine", "null-log", "nitrate", "marquee"] as const;
 
 const SUPPORTED_THEME_ID_SET = new Set<string>(SUPPORTED_THEME_IDS);
 
 const isSupportedThemeId = (themeId: string): boolean => {
   return SUPPORTED_THEME_ID_SET.has(themeId);
+};
+
+// Retired ids that have a direct successor rather than the default.
+const RENAMED_THEME_IDS: Record<string, string> = {
+  "tokyo-night": "nitrate",
 };
 
 const LEGACY_THEME_IDS = new Set([
@@ -54,7 +59,11 @@ const normalizeThemeIdInput = (rawThemeId: unknown): string | null => {
   }
 
   const normalizedThemeId = rawThemeId.trim().toLowerCase();
-  return normalizedThemeId.length > 0 ? normalizedThemeId : null;
+  if (normalizedThemeId.length === 0) {
+    return null;
+  }
+
+  return RENAMED_THEME_IDS[normalizedThemeId] ?? normalizedThemeId;
 };
 
 const fallbackTheme: ThemeDefinition = {
