@@ -9,10 +9,13 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { AppFooter } from "@/components/layout/AppFooter";
 import { AppNavbar } from "@/components/layout/AppNavbar";
 import { NotFoundPage } from "@/components/layout/NotFoundPage";
+import { MobileTabBar } from "@/components/layout/navbar/parts/MobileTabBar";
+import { shouldShowTabBar } from "@/components/layout/navbar/navbar.constants";
 import { Toaster } from "@/components/ui/Toaster";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { GlobalSearchDialogProvider } from "@/features/search/components/GlobalSearchDialogProvider";
 import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
+import { cn } from "@/lib/utils";
 
 type RouterContext = {
   queryClient: QueryClient;
@@ -22,6 +25,7 @@ const RootLayout = () => {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { user } = useAuth();
   const isGuestLanding = pathname === "/" && !user;
+  const showTabBar = shouldShowTabBar(pathname, !isGuestLanding);
 
   return (
     <>
@@ -29,12 +33,13 @@ const RootLayout = () => {
       <GlobalSearchDialogProvider>
         <div className="relative z-10 flex min-h-screen flex-col">
           {isGuestLanding ? null : <AppNavbar />}
-          <main className="min-w-0 flex-1 pb-10">
+          <main className={cn("min-w-0 flex-1 pb-10", showTabBar && "pb-24 md:pb-10")}>
             <div className="animate-route-enter motion-reduce:animate-none">
               <Outlet />
             </div>
           </main>
           <AppFooter />
+          {showTabBar ? <MobileTabBar username={user?.username ?? null} /> : null}
         </div>
       </GlobalSearchDialogProvider>
       <Toaster />

@@ -19,7 +19,6 @@ const isEditableElement = (target: EventTarget | null): boolean => {
 };
 
 export const useAppNavbarController = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const { user, isUserLoading, logout, isLogoutPending } = useAuth();
   const { isOpen: isSearchDialogOpen, open: openGlobalSearch } =
@@ -33,7 +32,6 @@ export const useAppNavbarController = () => {
   const visiblePrimaryNavItems = primaryNavItems;
 
   useEffect(() => {
-    setIsMobileMenuOpen(false);
     setIsProfileMenuOpen(false);
   }, [pathname]);
 
@@ -72,16 +70,14 @@ export const useAppNavbarController = () => {
       if ((event.metaKey || event.ctrlKey) && loweredKey === "k") {
         event.preventDefault();
         openGlobalSearch();
-        setIsMobileMenuOpen(false);
-        setIsProfileMenuOpen(false);
+            setIsProfileMenuOpen(false);
         return;
       }
 
       if (event.key === "/") {
         event.preventDefault();
         openGlobalSearch();
-        setIsMobileMenuOpen(false);
-        setIsProfileMenuOpen(false);
+            setIsProfileMenuOpen(false);
       }
     };
 
@@ -90,10 +86,6 @@ export const useAppNavbarController = () => {
       window.removeEventListener("keydown", handleGlobalShortcuts);
     };
   }, [openGlobalSearch]);
-
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
 
   const closeProfileMenu = () => {
     setIsProfileMenuOpen(false);
@@ -107,14 +99,8 @@ export const useAppNavbarController = () => {
     setIsProfileMenuOpen((current) => !current);
   };
 
-  const toggleMobileMenu = () => {
-    setIsProfileMenuOpen(false);
-    setIsMobileMenuOpen((current) => !current);
-  };
-
   const openSearchDialog = () => {
     openGlobalSearch();
-    setIsMobileMenuOpen(false);
     setIsProfileMenuOpen(false);
   };
 
@@ -122,7 +108,6 @@ export const useAppNavbarController = () => {
     try {
       await logout();
     } finally {
-      closeMobileMenu();
       setIsProfileMenuOpen(false);
     }
   };
@@ -135,18 +120,15 @@ export const useAppNavbarController = () => {
     isUserLoading,
     isLogoutPending,
     isSearchDialogOpen,
-    isMobileMenuOpen,
     isProfileMenuOpen,
     visiblePrimaryNavItems,
     pathname,
     profileMenuRef,
     profileImageUrl,
     profileInitial,
-    closeMobileMenu,
     closeProfileMenu,
     openProfileMenu,
     toggleProfileMenu,
-    toggleMobileMenu,
     openSearchDialog,
     handleSignOut,
   };
