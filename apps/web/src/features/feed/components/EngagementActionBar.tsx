@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
-import { Flag, Heart, Loader2, MessageSquare, PenSquare } from "lucide-react";
+import { Flag, Heart, MessageSquare, PenSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type EngagementActionBarProps = {
   className?: string;
@@ -33,7 +34,7 @@ export const LikeButton = ({ count, isLiked, isPending, disabled, onToggle }: Li
     )}
   >
     {isPending ? (
-      <Loader2 className="h-4 w-4 animate-spin" />
+      <TickLoader />
     ) : (
       <Heart className={cn("h-4 w-4", isLiked ? "fill-current animate-like-pop" : "")} />
     )}

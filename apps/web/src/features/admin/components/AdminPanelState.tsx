@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type AdminPanelStateProps<T> = {
   query: {
@@ -25,7 +25,7 @@ export const AdminPanelState = <T,>({
   if (query.isPending) {
     return (
       <div className="flex items-center justify-center py-10">
-        <Spinner />
+        <TickLoader />
       </div>
     );
   }

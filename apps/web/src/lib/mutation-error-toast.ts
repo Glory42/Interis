@@ -24,5 +24,5 @@ export const showMutationErrorToast = (
     return;
   }
 
-  showToast(title, isApiError(error) ? error.message : null);
+  showToast(title, isApiError(error) ? error.message : null, { tone: "danger" });
 };

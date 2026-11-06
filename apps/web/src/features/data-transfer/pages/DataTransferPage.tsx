@@ -1,9 +1,10 @@
 import { useRef, useState } from "react";
-import { Download, Upload, Loader2 } from "lucide-react";
+import { Download, Upload } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { ImportDialog } from "../components/ImportDialog";
 import { useImportStream } from "../hooks/useImportStream";
 import { exportDiary } from "../api";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 export const DataTransferPage = () => {
   const exportMutation = useMutation({ mutationFn: exportDiary });
@@ -58,7 +59,7 @@ export const DataTransferPage = () => {
             className="flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors shell-border shell-muted hover:text-foreground disabled:opacity-50"
           >
             {exportMutation.isPending ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <TickLoader />
             ) : (
               <Download className="h-3.5 w-3.5" />
             )}
@@ -89,7 +90,7 @@ export const DataTransferPage = () => {
           {isImportRunning && !dialogOpen && (
             <div className="flex items-center justify-between border px-3 py-2 shell-border shell-active-pill">
               <div className="flex items-center gap-2 text-sm shell-accent">
-                <Loader2 className="h-3 w-3 animate-spin" />
+                <TickLoader />
                 <span>
                   Import running — {importState.processed} / {importState.total} processed
                 </span>

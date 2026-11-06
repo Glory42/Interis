@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 import { addListItem, type ListDetail } from "@/features/lists/api";
 import {
   useAddListItem,
@@ -14,6 +13,7 @@ import {
 import { ListMetadataFields } from "@/features/lists/components/ListMetadataFields";
 import { ListItemSearch, type SearchResult } from "@/features/lists/components/ListItemSearch";
 import { ListItemsEditor } from "@/features/lists/components/ListItemsEditor";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type PendingItem = SearchResult;
 
@@ -31,7 +31,7 @@ export const ListFormPage = (props: ListFormPageProps) => {
   if (mode === "edit" && detailQuery.isPending) {
     return (
       <div className="flex items-center gap-2 py-10 text-sm text-muted-foreground">
-        <Spinner /> Loading list...
+        <TickLoader /> Loading list...
       </div>
     );
   }
@@ -211,7 +211,7 @@ const ListFormPageContent = ({
           >
             {isSaving ? (
               <span className="inline-flex items-center gap-1.5">
-                <Spinner className="h-3 w-3" /> Saving
+                <TickLoader /> Saving
               </span>
             ) : (
               "Save"

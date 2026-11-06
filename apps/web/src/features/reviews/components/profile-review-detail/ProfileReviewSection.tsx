@@ -1,7 +1,8 @@
-import { Flag, Heart, Loader2, MessageSquare, Pencil, Trash2, TriangleAlert } from "lucide-react";
+import { Flag, Heart, MessageSquare, Pencil, Trash2, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ReviewDetail } from "@/features/reviews/api";
 import { cn } from "@/lib/utils";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type ProfileReviewSectionProps = {
   detail: ReviewDetail;
@@ -63,7 +64,7 @@ export const ProfileReviewSection = ({
           }}
         >
           {likeBusy ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            <TickLoader />
           ) : (
             <Heart
               className={cn(

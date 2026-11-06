@@ -1,5 +1,4 @@
 import { ArrowRight } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 import { MIN_QUERY_LENGTH, quickLinks, scopedEmptyPrompt } from "./constants";
 import { SearchResultRow } from "./SearchResultRow";
 import type {
@@ -7,6 +6,7 @@ import type {
   SearchResultEntry,
   SearchSectionOffset,
 } from "./types";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type GlobalSearchResultsProps = {
   inputId: string;
@@ -99,7 +99,7 @@ export const GlobalSearchResults = ({
     <div className="space-y-3 px-2 pb-2">
       {isAnyLoading && suggestionsCount === 0 ? (
         <p className="mx-1 flex items-center gap-2 rounded-lg border border-border/70 px-3 py-3 font-mono text-xs text-muted-foreground">
-          <Spinner /> Searching...
+          <TickLoader /> Searching...
         </p>
       ) : null}
 

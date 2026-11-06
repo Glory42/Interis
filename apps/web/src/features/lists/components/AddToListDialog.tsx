@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Check, List, Plus } from "lucide-react";
 import { ModalHeader } from "@/components/ui/ModalHeader";
 import { ModalShell } from "@/components/ui/ModalShell";
-import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import {
   useCreateList,
@@ -10,6 +9,7 @@ import {
   useUserListsForItem,
 } from "@/features/lists/hooks/useLists";
 import { runDialogSubmit } from "@/lib/fire-and-forget";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type AddToListDialogProps = {
   tmdbId: number;
@@ -77,7 +77,7 @@ export const AddToListDialog = ({
             <div className="max-h-[360px] overflow-y-auto">
                     {listsQuery.isPending ? (
                       <div className="flex items-center justify-center py-8">
-                        <Spinner />
+                        <TickLoader />
                       </div>
                     ) : listsQuery.isError ? (
                       <p className="py-8 text-center font-mono text-xs text-muted-foreground">

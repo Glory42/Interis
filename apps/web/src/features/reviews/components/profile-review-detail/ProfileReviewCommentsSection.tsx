@@ -1,4 +1,4 @@
-import { Loader2, PenSquare, Trash2, X } from "lucide-react";
+import { PenSquare, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { ReviewComment, ReviewDetail } from "@/features/reviews/api";
 import { useDeleteReviewComment, useUpdateReviewComment } from "@/features/reviews/hooks/useReviews";
 import { formatRelativeTime } from "@/features/reviews/components/profile-review-detail/utils";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type ProfileReviewCommentsSectionProps = {
   detail: ReviewDetail;
@@ -162,7 +163,7 @@ export const ProfileReviewCommentsSection = ({
                           }}
                         >
                           {updateCommentMutation.isPending ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <TickLoader />
                           ) : null}
                           Save
                         </Button>
@@ -195,7 +196,7 @@ export const ProfileReviewCommentsSection = ({
               void onSubmitComment();
             }}
           >
-            {addCommentPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+            {addCommentPending ? <TickLoader /> : null}
             Add Comment
           </Button>
         </div>

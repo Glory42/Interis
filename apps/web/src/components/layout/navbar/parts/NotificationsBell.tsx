@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Bell } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
 import type { NotificationItem, NotificationType } from "@/features/notifications/api";
@@ -12,6 +11,7 @@ import {
   useUnreadNotificationCount,
 } from "@/features/notifications/hooks/useNotifications";
 import { formatRelativeTime } from "@/lib/time";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 const messageByType: Record<NotificationType, string> = {
   follow: "started following you",
@@ -123,7 +123,7 @@ export const NotificationsBell = () => {
           <div className="max-h-96 overflow-y-auto">
             {listQuery.isPending ? (
               <div className="flex items-center justify-center py-8">
-                <Spinner />
+                <TickLoader />
               </div>
             ) : notifications.length === 0 ? (
               <p className="py-8 text-center font-mono text-xs text-muted-foreground">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { CalendarPicker } from "@/components/ui/CalendarPicker";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ModalHeader } from "@/components/ui/ModalHeader";
@@ -12,6 +12,7 @@ import {
 import { SpaceRatingInput } from "@/features/movies/components/SpaceRating";
 import { runDialogSubmit } from "@/lib/fire-and-forget";
 import { todayAsLocalDateInput } from "@/lib/time";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 export type EditableLog = OwnLog & {
   title: string;
@@ -116,7 +117,7 @@ const EditLogDialogContent = ({ onClose, log }: Omit<EditLogDialogProps, "isOpen
                 >
                   {updateMutation.isPending ? (
                     <span className="inline-flex items-center gap-1">
-                      <Loader2 className="h-3 w-3 animate-spin" /> saving
+                      <TickLoader /> saving
                     </span>
                   ) : (
                     "save"

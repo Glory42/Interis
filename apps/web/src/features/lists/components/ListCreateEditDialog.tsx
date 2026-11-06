@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { ModalHeader } from "@/components/ui/ModalHeader";
 import { ModalShell } from "@/components/ui/ModalShell";
-import { Spinner } from "@/components/ui/spinner";
 import { useCreateList, useUpdateList } from "@/features/lists/hooks/useLists";
 import type { ListSummary } from "@/features/lists/api";
 import { runDialogSubmit } from "@/lib/fire-and-forget";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type CreateMode = {
   mode: "create";
@@ -207,7 +207,7 @@ const ListCreateEditDialogContent = (props: ListCreateEditDialogProps) => {
               >
                 {isPending ? (
                   <span className="inline-flex items-center gap-1.5">
-                    <Spinner className="h-3 w-3" /> Saving
+                    <TickLoader /> Saving
                   </span>
                 ) : props.mode === "create" ? (
                   "Create"

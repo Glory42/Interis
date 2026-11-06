@@ -1,9 +1,9 @@
 import { Film, Tv } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { FavoritesPickerDialogs } from "./favorites/FavoritesPickerDialogs";
 import { FavoritesSlotList } from "./favorites/FavoritesSlotList";
 import { useSettingsFavoritesController } from "./favorites/useSettingsFavoritesController";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 export const SettingsFavoritesSection = () => {
   const { user, isUserLoading } = useAuth();
@@ -13,7 +13,7 @@ export const SettingsFavoritesSection = () => {
     return (
       <div className="border px-4 py-3 text-sm shell-border shell-muted surface">
         <p className="flex items-center gap-2">
-          <Spinner /> Loading favorites settings...
+          <TickLoader /> Loading favorites settings...
         </p>
       </div>
     );
@@ -71,7 +71,7 @@ export const SettingsFavoritesSection = () => {
 
         {controller.topPicksQuery.isPending ? (
           <p className="mt-4 flex items-center gap-2 text-sm shell-muted">
-            <Spinner className="h-3.5 w-3.5" /> Loading saved favorites...
+            <TickLoader /> Loading saved favorites...
           </p>
         ) : null}
 

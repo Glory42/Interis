@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+
 import { ModalHeader } from "@/components/ui/ModalHeader";
 import { ModalShell } from "@/components/ui/ModalShell";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,7 @@ import type { ReportReason, ReportTargetType } from "@/features/reports/api";
 import { isApiError } from "@/lib/api-client";
 import { runDialogSubmit } from "@/lib/fire-and-forget";
 import { cn } from "@/lib/utils";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type ReportContentDialogProps = {
   isOpen: boolean;
@@ -132,7 +133,7 @@ const ReportContentDialogContent = ({
                 >
                   {submitReportMutation.isPending ? (
                     <span className="inline-flex items-center gap-1">
-                      <Loader2 className="h-3 w-3 animate-spin" /> submitting
+                      <TickLoader /> submitting
                     </span>
                   ) : (
                     "submit report"

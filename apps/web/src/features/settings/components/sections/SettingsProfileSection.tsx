@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from "react";
 import { Camera, Globe } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import {
   USERNAME_MAX_LENGTH,
@@ -11,6 +10,7 @@ import {
 import { useUpdateMyProfile } from "@/features/profile/hooks/useProfile";
 import { useProfileImageUpload } from "@/features/settings/hooks/useProfileImageUpload";
 import { isApiError } from "@/lib/api-client";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 export const SettingsProfileSection = () => {
   const { user, isUserLoading, updateIdentity, isUpdateIdentityPending } = useAuth();
@@ -37,7 +37,7 @@ export const SettingsProfileSection = () => {
     return (
       <div className="border px-4 py-3 text-sm shell-border shell-muted surface">
         <p className="flex items-center gap-2">
-          <Spinner /> Loading profile settings...
+          <TickLoader /> Loading profile settings...
         </p>
       </div>
     );

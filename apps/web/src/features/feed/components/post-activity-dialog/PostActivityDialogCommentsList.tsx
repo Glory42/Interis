@@ -1,10 +1,11 @@
-import { Loader2, PenSquare, Trash2, X } from "lucide-react";
+import { PenSquare, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { getRelativeTime } from "@/features/feed/components/feed-row.utils";
 import type { PostComment } from "@/features/posts/api";
 import { useDeletePostComment, useUpdatePostComment } from "@/features/posts/hooks/usePosts";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type PostActivityDialogCommentsListProps = {
   postId: string;
@@ -135,7 +136,7 @@ export const PostActivityDialogCommentsList = ({
                     className="inline-flex items-center gap-1 border border-primary/45 bg-primary/10 px-2 py-1 text-primary disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {updateCommentMutation.isPending ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
+                      <TickLoader />
                     ) : null}
                     save
                   </button>

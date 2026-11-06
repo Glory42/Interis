@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { Spinner } from "@/components/ui/spinner";
 import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
 import type { ModeratedUser } from "@/features/moderation/api";
 import {
@@ -8,6 +7,7 @@ import {
   useUnblockUser,
   useUnmuteUser,
 } from "@/features/moderation/hooks/useModeration";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 const rowClass =
   "flex items-center gap-3 border-b px-4 py-2.5 last:border-0 shell-row-border";
@@ -121,7 +121,7 @@ export const SettingsBlockedSection = () => {
 
         {blockedQuery.isPending ? (
           <div className="flex items-center justify-center py-10">
-            <Spinner />
+            <TickLoader />
           </div>
         ) : blockedQuery.isError ? (
           <p className="py-10 text-center text-sm shell-muted">
@@ -157,7 +157,7 @@ export const SettingsBlockedSection = () => {
 
         {mutedQuery.isPending ? (
           <div className="flex items-center justify-center py-10">
-            <Spinner />
+            <TickLoader />
           </div>
         ) : mutedQuery.isError ? (
           <p className="py-10 text-center text-sm shell-muted">

@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+
 import { ModalHeader } from "@/components/ui/ModalHeader";
 import { ModalShell } from "@/components/ui/ModalShell";
 import { Textarea } from "@/components/ui/textarea";
 import { useUpdateReview } from "@/features/reviews/hooks/useReviews";
 import { runDialogSubmit } from "@/lib/fire-and-forget";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type FeedReviewEditDialogProps = {
   isOpen: boolean;
@@ -92,7 +93,7 @@ const FeedReviewEditDialogContent = ({
                 >
                   {updateReviewMutation.isPending ? (
                     <span className="inline-flex items-center gap-1">
-                      <Loader2 className="h-3 w-3 animate-spin" /> saving
+                      <TickLoader /> saving
                     </span>
                   ) : (
                     "save"

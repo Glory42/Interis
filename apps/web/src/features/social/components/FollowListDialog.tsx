@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ModalHeader } from "@/components/ui/ModalHeader";
 import { ModalShell } from "@/components/ui/ModalShell";
-import { Spinner } from "@/components/ui/spinner";
 import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
 import {
   useFollowers,
@@ -9,6 +8,7 @@ import {
   useUnfollowFromList,
   useRemoveFollowerFromList,
 } from "@/features/social/hooks/useSocial";
+import { TickLoader } from "@/components/ui/tick-loader";
 
 type FollowListDialogProps = {
   isOpen: boolean;
@@ -48,7 +48,7 @@ export const FollowListDialog = ({
         <div className="max-h-[420px] overflow-y-auto">
             {query.isPending ? (
               <div className="flex items-center justify-center py-10">
-                <Spinner />
+                <TickLoader />
               </div>
             ) : query.isError ? (
               <p className="py-10 text-center font-mono text-xs text-muted-foreground">
