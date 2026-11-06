@@ -7,7 +7,7 @@
 | `apps/api/` | Render (Web Service, native Bun runtime) | Push to `master` → Render's GitHub integration auto-builds and deploys |
 | `apps/web/` | Cloudflare Pages | Already set up (project `interis`) — push to `master` auto-builds and deploys |
 | `apps/docs/` | Cloudflare Pages | Already set up (project `interis-docs`) — push to `master` auto-builds and deploys |
-| DB migrations | Neon | Runs as Render's Pre-Deploy Command, before each deploy |
+| DB migrations | Neon | Runs in Render's Build Command, before each deploy |
 
 **Never run `bun run start` against production from your own machine.** Push to GitHub and let Render's Git integration pick it up.
 
@@ -26,10 +26,12 @@ Render Web Service, native runtime (not Docker — `apps/api/Dockerfile` still e
 | Field | Value |
 |---|---|
 | Root Directory | `apps/api` |
-| Build Command | `bun install` |
+| Build Command | `bun install && bunx drizzle-kit migrate` |
 | Start Command | `bun run start` |
 | Health Check Path | `/api/health` |
-| Pre-Deploy Command | `bunx drizzle-kit migrate` |
+
+Migrations run in the Build Command because Render's Pre-Deploy Command is
+paid-only; on the free instance it silently never runs (0048–0059 piled up, 2026-11-01).
 
 Don't use `bun run scripts/docker-migrate.ts` here — that script is hardcoded to `DIRECT_DATABASE_URL` specifically for docker-compose's local Postgres proxy, and doesn't apply to a direct Neon connection. Plain `drizzle-kit migrate` (using `DATABASE_URL` and the neon-serverless driver) is correct for Render.
 
