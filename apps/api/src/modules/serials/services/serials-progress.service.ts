@@ -4,7 +4,10 @@ import {
   normalizeTmdbSeriesDetail,
   toNormalizedSeasonItems,
 } from "../helpers/serials-normalization.helper";
-import { calculateViewerTracking } from "../helpers/serials-tracking.helper";
+import {
+  calculateViewerTracking,
+  countWatchedEpisodesBySeason,
+} from "../helpers/serials-tracking.helper";
 import { SerialsCacheService } from "./serials-cache.service";
 
 // Just the series' seasons + one user's watch progress, for the public progress widget.
@@ -32,6 +35,7 @@ export class SerialsProgressService {
     );
 
     const normalizedTmdbDetail = tmdbDetail ? normalizeTmdbSeriesDetail(tmdbDetail) : null;
+    const watchedCountBySeason = countWatchedEpisodesBySeason(viewerTracking.watchedEpisodes);
     const interactionBySeason = new Map(
       userSeasonInteractions.map((interaction) => [interaction.seasonNumber, interaction]),
     );
@@ -59,6 +63,7 @@ export class SerialsProgressService {
             liked: interaction?.liked ?? false,
             rating: interaction?.rating ?? null,
             hasReview: interaction?.hasReview ?? false,
+            watchedEpisodeCount: watchedCountBySeason.get(season.seasonNumber) ?? 0,
           },
         };
       }),

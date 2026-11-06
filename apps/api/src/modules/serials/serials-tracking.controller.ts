@@ -2,12 +2,14 @@ import type { Request, Response } from "express";
 import { sendBadRequest, sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
 import { parseTmdbIdParam } from "../../commons/validation/params.helper";
 import { SerialsTrackingService } from "./services/serials-tracking.service";
+import { SerialsWatchedThroughService } from "./services/serials-watched-through.service";
 import {
   SerialEpisodeParamsSchema,
   SerialSeasonParamsSchema,
   UpdateSeasonInteractionSchema,
   SeasonReviewInputSchema,
   SeasonReviewDeleteQuerySchema,
+  WatchedThroughParamsSchema,
 } from "./dto/serials.dto";
 import type {
   SerialEpisodeParams,
@@ -15,6 +17,28 @@ import type {
 } from "./dto/serials.dto";
 
 export class SerialsTrackingController {
+  static async markWatchedThrough(req: Request<SerialEpisodeParams>, res: Response): Promise<void> {
+    const tmdbId = parseTmdbIdParam(req.params.tmdbId);
+    const params = WatchedThroughParamsSchema.safeParse(req.params);
+    if (tmdbId === null || !params.success) {
+      sendBadRequest(res, "Invalid series, season or episode");
+      return;
+    }
+
+    const result = await SerialsWatchedThroughService.markWatchedThrough(
+      req.user.id,
+      tmdbId,
+      params.data.seasonNumber,
+      params.data.episodeNumber,
+    );
+    if (!result) {
+      sendNotFound(res, "Series not found");
+      return;
+    }
+
+    res.status(200).json(result);
+  }
+
   static async updateSeasonInteraction(req: Request<SerialSeasonParams>, res: Response): Promise<void> {
     const tmdbId = parseTmdbIdParam(req.params.tmdbId);
     if (tmdbId === null) {

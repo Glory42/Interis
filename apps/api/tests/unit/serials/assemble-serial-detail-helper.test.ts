@@ -181,6 +181,7 @@ describe("assembleSerialDetail", () => {
         liked: false,
         rating: 7,
         hasReview: true,
+        watchedEpisodeCount: 0,
       });
     });
 
