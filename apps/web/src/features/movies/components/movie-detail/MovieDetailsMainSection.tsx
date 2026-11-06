@@ -5,6 +5,7 @@ import {
   type MediaFactRow,
 } from "@/features/media/detail/MediaDetailsMainSection";
 import { formatMoneyLabel } from "@/features/movies/components/movie-detail/utils";
+import { getPosterUrl } from "@/features/movies/components/utils";
 
 type MovieDetailsMainSectionProps = {
   detail: MovieDetailResponse;
@@ -47,6 +48,7 @@ export const MovieDetailsMainSection = ({ detail }: MovieDetailsMainSectionProps
       cast={movie.cast}
       factRows={buildFactRows(detail)}
       ratingBuckets={detail.ratingBreakdown.buckets}
+      posterUrl={movie.posterPath ? getPosterUrl(movie.posterPath) : null}
     />
   );
 };

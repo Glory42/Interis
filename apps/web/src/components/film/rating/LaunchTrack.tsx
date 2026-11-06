@@ -17,6 +17,7 @@ type LaunchTrackProps = {
   ariaLabel?: string;
   // Show "Saved 7.5 ✓" after a commit, for controls that write straight to the API.
   confirmSaves?: boolean;
+  className?: string;
 };
 
 const snap = (ratio: number): number =>
@@ -31,6 +32,7 @@ export const LaunchTrack = ({
   size = "md",
   ariaLabel = "Rating out of 10",
   confirmSaves = false,
+  className,
 }: LaunchTrackProps) => {
   const trackRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -111,7 +113,7 @@ export const LaunchTrack = ({
   const isSmall = size === "sm";
 
   return (
-    <div className={cn("select-none", isSmall ? "w-32" : "w-full max-w-72")}>
+    <div className={cn("select-none", isSmall ? "w-32" : "w-full max-w-72", className)}>
       <div
         ref={trackRef}
         role="slider"

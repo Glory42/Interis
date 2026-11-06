@@ -37,6 +37,8 @@ type MediaDetailsMainSectionProps = {
   cast: CastMember[];
   factRows: MediaFactRow[];
   ratingBuckets: RatingBucket[];
+  // Phones show a small poster beside the title; desktop has it in the sidebar.
+  posterUrl?: string | null;
 };
 
 const VISIBLE_CAST = 3;
@@ -57,6 +59,7 @@ export const MediaDetailsMainSection = ({
   cast,
   factRows,
   ratingBuckets,
+  posterUrl,
 }: MediaDetailsMainSectionProps) => {
   const [isCastExpanded, setIsCastExpanded] = useState(false);
   const visibleCast = isCastExpanded ? cast : cast.slice(0, VISIBLE_CAST);
@@ -68,25 +71,49 @@ export const MediaDetailsMainSection = ({
       label: member.character ?? "Cast",
       value: <PersonRouteLink person={member} className="hover:underline" />,
     })),
-    ...factRows.map((fact) => ({ key: `fact-${fact.label}`, label: fact.label, value: fact.value })),
+    ...factRows.map((fact) => ({
+      key: `fact-${fact.label}`,
+      label: fact.label,
+      value: fact.value,
+    })),
   ];
 
   return (
     <section className="md:pt-28">
-      {creditPeople.length > 0 ? (
-        <p className="kicker mb-1.5 text-muted-foreground">
-          <span>{creditRoleLabel}</span>{" "}
-          {creditPeople.map((person, personIndex) => (
-            <span key={`detail-credit-${person.tmdbPersonId}-${personIndex}`}>
-              <PersonRouteLink person={person} style={{ color: moduleStyles.accent }} />
-              {personIndex < creditPeople.length - 1 ? ", " : null}
-            </span>
-          ))}
-        </p>
-      ) : null}
+      <div className="flex items-end gap-3">
+        {posterUrl ? (
+          <img
+            src={posterUrl}
+            alt=""
+            className="aspect-[2/3] w-[84px] shrink-0 rounded-sm border border-[color:var(--line-strong)] object-cover md:hidden"
+          />
+        ) : null}
+        <div className="min-w-0">
+          {creditPeople.length > 0 ? (
+            <p className="kicker mb-1.5 text-muted-foreground">
+              <span>{creditRoleLabel}</span>{" "}
+              {creditPeople.map((person, personIndex) => (
+                <span
+                  key={`detail-credit-${person.tmdbPersonId}-${personIndex}`}
+                >
+                  <PersonRouteLink
+                    person={person}
+                    style={{ color: moduleStyles.accent }}
+                  />
+                  {personIndex < creditPeople.length - 1 ? ", " : null}
+                </span>
+              ))}
+            </p>
+          ) : null}
 
-      <h1 className="display-1 text-foreground md:text-5xl">{title}</h1>
-      {tagline ? <p className="tagline mt-2 text-lg text-muted-foreground">{tagline}</p> : null}
+          <h1 className="display-1 text-foreground md:text-5xl">{title}</h1>
+          {tagline ? (
+            <p className="tagline mt-2 text-lg text-muted-foreground">
+              {tagline}
+            </p>
+          ) : null}
+        </div>
+      </div>
 
       <div className="mt-5 mb-6 flex flex-wrap items-baseline gap-x-6 gap-y-2 border-b border-[color:var(--line)] pb-5">
         <span className="flex items-baseline gap-1.5">
@@ -98,17 +125,24 @@ export const MediaDetailsMainSection = ({
           </span>
         </span>
         <span className="flex items-baseline gap-1.5">
-          <span className="mono-num text-muted-foreground">{tmdbRatingLabel}</span>
+          <span className="mono-num text-muted-foreground">
+            {tmdbRatingLabel}
+          </span>
           <span className="mono-meta text-muted-foreground">TMDB</span>
         </span>
         {genres.length > 0 ? (
           <span className="mono-meta text-muted-foreground uppercase">
-            {genres.slice(0, 3).map((genre) => genre.name).join(" / ")}
+            {genres
+              .slice(0, 3)
+              .map((genre) => genre.name)
+              .join(" / ")}
           </span>
         ) : null}
       </div>
 
-      <p className="body mb-8 text-foreground">{overview || overviewFallback}</p>
+      <p className="body mb-8 text-foreground">
+        {overview || overviewFallback}
+      </p>
 
       {creditRows.some((row) => row.value) ? (
         <div className="mb-8">

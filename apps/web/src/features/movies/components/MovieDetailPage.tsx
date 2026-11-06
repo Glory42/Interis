@@ -11,8 +11,14 @@ import { MediaDetailStatusPanel } from "@/features/media/detail/MediaDetailStatu
 import { MovieReviewsSection } from "@/features/movies/components/movie-detail/MovieReviewsSection";
 import { UnwatchMovieDialog } from "@/features/movies/components/movie-detail/UnwatchMovieDialog";
 import { MOVIE_MODULE_STYLES } from "@/features/media/styles";
-import { getBackdropUrl, getPosterUrl } from "@/features/movies/components/utils";
-import { movieKeys, useMovieDetailView } from "@/features/movies/hooks/useMovies";
+import {
+  getBackdropUrl,
+  getPosterUrl,
+} from "@/features/movies/components/utils";
+import {
+  movieKeys,
+  useMovieDetailView,
+} from "@/features/movies/hooks/useMovies";
 import { diaryKeys } from "@/features/diary/hooks/useDiary";
 import { useReviewChooser } from "@/features/reviews/hooks/useReviewChooser";
 import { MediaReviewChooser } from "@/features/media/detail/MediaReviewChooser";
@@ -21,10 +27,17 @@ import {
   useUpdateMovieInteraction,
 } from "@/features/interactions/hooks/useInteractions";
 import { LetterboxHero } from "@/features/media/detail/LetterboxHero";
+import {
+  logTriggerProps,
+  type LogTriggerVariant,
+} from "@/features/media/detail/log-trigger";
 import { toLanguageLabel } from "@/features/movies/components/movie-detail/utils";
 import { formatRuntimeLabel } from "@/features/movies/components/utils";
 import { MediaSimilarSection } from "@/features/media/detail/MediaSimilarSection";
-import { MediaActionsSidebar, type MediaAction } from "@/features/media/detail/MediaActionsSidebar";
+import {
+  MediaActionsSidebar,
+  type MediaAction,
+} from "@/features/media/detail/MediaActionsSidebar";
 
 type MovieDetailPageProps = {
   tmdbId: number;
@@ -48,27 +61,44 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
   const queryClient = useQueryClient();
 
   if (!isValidTmdbId) {
-    return <MediaDetailStatusPanel message="Invalid movie id." moduleStyles={MOVIE_MODULE_STYLES} />;
+    return (
+      <MediaDetailStatusPanel
+        message="Invalid movie id."
+        moduleStyles={MOVIE_MODULE_STYLES}
+      />
+    );
   }
 
   if (detailQuery.isPending) {
-    return <MediaDetailStatusPanel message="Loading..." moduleStyles={MOVIE_MODULE_STYLES} loading />;
+    return (
+      <MediaDetailStatusPanel
+        message="Loading..."
+        moduleStyles={MOVIE_MODULE_STYLES}
+        loading
+      />
+    );
   }
 
   if (detailQuery.isError || !detailQuery.data) {
-    return <MediaDetailStatusPanel message="Could not load this movie right now." moduleStyles={MOVIE_MODULE_STYLES} />;
+    return (
+      <MediaDetailStatusPanel
+        message="Could not load this movie right now."
+        moduleStyles={MOVIE_MODULE_STYLES}
+      />
+    );
   }
 
   const detail = detailQuery.data;
   const movie = detail.movie;
-  const backdropUrl = movie.backdropPath ? getBackdropUrl(movie.backdropPath) : null;
+  const backdropUrl = movie.backdropPath
+    ? getBackdropUrl(movie.backdropPath)
+    : null;
 
   const watchlisted = interactionQuery.data?.watchlisted ?? false;
   const liked = interactionQuery.data?.liked ?? false;
   const watched = interactionQuery.data?.watched ?? false;
   const interactionRating = interactionQuery.data?.rating ?? null;
-  const currentRating =
-    interactionRating ?? detail.userRating?.rating ?? null;
+  const currentRating = interactionRating ?? detail.userRating?.rating ?? null;
   const isInteractionLoading = Boolean(user) && interactionQuery.isLoading;
   const isInteractionBusy =
     interactionQuery.isPending || updateInteractionMutation.isPending;
@@ -80,7 +110,9 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
 
   const handleReviewEdited = () => {
     void Promise.all([
-      queryClient.invalidateQueries({ queryKey: movieKeys.detailViewRoot(tmdbId) }),
+      queryClient.invalidateQueries({
+        queryKey: movieKeys.detailViewRoot(tmdbId),
+      }),
       queryClient.invalidateQueries({ queryKey: movieKeys.logs(tmdbId) }),
       queryClient.invalidateQueries({ queryKey: diaryKeys.myLogs }),
     ]);
@@ -107,7 +139,9 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
   const handleConfirmUnwatch = (clearLikeAndRating: boolean) => {
     setIsConfirmingUnwatch(false);
     void updateInteractionMutation.mutateAsync(
-      clearLikeAndRating ? { watched: false, liked: false, rating: null } : { watched: false },
+      clearLikeAndRating
+        ? { watched: false, liked: false, rating: null }
+        : { watched: false },
     );
   };
 
@@ -154,11 +188,33 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
     },
   ];
 
+  const logModal = (variant: LogTriggerVariant) => (
+    <LogMovieModal
+      tmdbId={movie.tmdbId}
+      movieTitle={movie.title}
+      movieReleaseYear={movie.releaseYear}
+      moviePosterPath={movie.posterPath}
+      initialState={modalInitialState}
+      onRequestOpen={(openLog) =>
+        reviewChooser.start(
+          { mediaType: "movie", tmdbId: movie.tmdbId },
+          openLog,
+        )
+      }
+      isTriggerBusy={reviewChooser.isChecking}
+      {...logTriggerProps(variant, Boolean(detail.userRating?.watchedDate))}
+    />
+  );
+
   return (
     <div className="min-h-screen">
       <LetterboxHero
         backdropUrl={backdropUrl}
-        slateLeft={["Interis", "Film", ...(movie.releaseYear ? [String(movie.releaseYear)] : [])]}
+        slateLeft={[
+          "Interis",
+          "Film",
+          ...(movie.releaseYear ? [String(movie.releaseYear)] : []),
+        ]}
         slateRight={[
           formatRuntimeLabel(movie.runtime),
           toLanguageLabel(movie.languageCode),
@@ -166,7 +222,7 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
         ].filter((part): part is string => Boolean(part))}
       />
 
-      <main className="relative z-10 mx-auto -mt-20 w-full max-w-5xl px-4 pb-10 sm:-mt-28">
+      <main className="relative z-10 mx-auto -mt-20 w-full max-w-5xl px-4 pb-24 sm:-mt-28 md:pb-10">
         <Link
           to="/movies"
           className="mb-4 inline-flex items-center gap-1.5 font-mono text-[11px]"
@@ -196,7 +252,10 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
                     className="flex h-8 w-8 items-center justify-center"
                     style={{ background: MOVIE_MODULE_STYLES.panelStrong }}
                   >
-                    <Award className="h-4 w-4" style={{ color: MOVIE_MODULE_STYLES.accent }} />
+                    <Award
+                      className="h-4 w-4"
+                      style={{ color: MOVIE_MODULE_STYLES.accent }}
+                    />
                   </div>
                   <span
                     className="font-mono text-[8px] uppercase tracking-[0.22em]"
@@ -207,28 +266,9 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
                 </div>
               )
             }
-            logModalSlot={
-              <LogMovieModal
-                tmdbId={movie.tmdbId}
-                movieTitle={movie.title}
-                movieReleaseYear={movie.releaseYear}
-                moviePosterPath={movie.posterPath}
-                initialState={modalInitialState}
-                onRequestOpen={(openLog) =>
-                  reviewChooser.start({ mediaType: "movie", tmdbId: movie.tmdbId }, openLog)
-                }
-                isTriggerBusy={reviewChooser.isChecking}
-                triggerVariant="outline"
-                triggerLabel={detail.userRating?.watchedDate ? "Log again" : "Log"}
-                triggerClassName="h-auto flex-1 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
-                triggerContent={
-                  <>
-                    <Check className="h-3 w-3" />
-                    <span>{detail.userRating?.watchedDate ? "Log again" : "Log"}</span>
-                  </>
-                }
-              />
-            }
+            logModalSlot={logModal("sidebar")}
+            mobileLogSlot={logModal("bar")}
+            mobileReviewSlot={logModal("review")}
             tmdbId={movie.tmdbId}
             itemType="movie"
             currentRating={currentRating}
@@ -244,7 +284,10 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
           <MovieDetailsMainSection detail={detail} />
         </div>
 
-        <MediaReviewChooser chooser={reviewChooser} onReviewEdited={handleReviewEdited} />
+        <MediaReviewChooser
+          chooser={reviewChooser}
+          onReviewEdited={handleReviewEdited}
+        />
 
         {isConfirmingUnwatch ? (
           <UnwatchMovieDialog
@@ -265,7 +308,10 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
 
         <MediaSimilarSection
           heading="Similar Movies"
-          items={detail.similar.map((item) => ({ ...item, year: item.releaseYear }))}
+          items={detail.similar.map((item) => ({
+            ...item,
+            year: item.releaseYear,
+          }))}
           moduleStyles={MOVIE_MODULE_STYLES}
           getPosterUrl={getPosterUrl}
           detailRoute="/movies/$tmdbId"

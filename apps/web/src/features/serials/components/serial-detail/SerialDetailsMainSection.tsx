@@ -3,6 +3,7 @@ import { buildSerialFactRows } from "@/features/serials/components/serial-detail
 import { MediaDetailsMainSection } from "@/features/media/detail/MediaDetailsMainSection";
 import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
 import { toDateLabel } from "@/features/serials/components/serial-detail/utils";
+import { getPosterUrl } from "@/features/serials/components/utils";
 
 type SerialDetailsMainSectionProps = {
   detail: SerialDetailResponse;
@@ -42,6 +43,7 @@ export const SerialDetailsMainSection = ({
       cast={series.cast}
       factRows={factRows}
       ratingBuckets={detail.ratingBreakdown.buckets}
+      posterUrl={series.posterPath ? getPosterUrl(series.posterPath) : null}
     />
   );
 };
