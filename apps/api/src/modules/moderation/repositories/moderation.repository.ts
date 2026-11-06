@@ -1,4 +1,4 @@
-import { and, eq, or } from "drizzle-orm";
+import { and, desc, eq, or } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { profiles } from "../../users/users.entity";
@@ -48,7 +48,7 @@ export class ModerationRepository {
     return rows.map((row) => row.blockerId);
   }
 
-  static async listBlocked(blockerId: string) {
+  static async listBlocked(blockerId: string, limit: number, offset: number) {
     return db
       .select({
         id: user.id,
@@ -60,7 +60,10 @@ export class ModerationRepository {
       .from(userBlocks)
       .innerJoin(user, eq(userBlocks.blockedId, user.id))
       .leftJoin(profiles, eq(user.id, profiles.userId))
-      .where(eq(userBlocks.blockerId, blockerId));
+      .where(eq(userBlocks.blockerId, blockerId))
+      .orderBy(desc(userBlocks.createdAt))
+      .limit(limit)
+      .offset(offset);
   }
 
   static async muteUser(muterId: string, mutedId: string) {
@@ -92,7 +95,7 @@ export class ModerationRepository {
     return rows.map((row) => row.mutedId);
   }
 
-  static async listMuted(muterId: string) {
+  static async listMuted(muterId: string, limit: number, offset: number) {
     return db
       .select({
         id: user.id,
@@ -104,6 +107,9 @@ export class ModerationRepository {
       .from(userMutes)
       .innerJoin(user, eq(userMutes.mutedId, user.id))
       .leftJoin(profiles, eq(user.id, profiles.userId))
-      .where(eq(userMutes.muterId, muterId));
+      .where(eq(userMutes.muterId, muterId))
+      .orderBy(desc(userMutes.createdAt))
+      .limit(limit)
+      .offset(offset);
   }
 }

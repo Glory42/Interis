@@ -83,6 +83,28 @@ const UserRow = ({
   );
 };
 
+const LoadMoreRow = ({
+  label,
+  isLoading,
+  onLoadMore,
+}: {
+  label: string;
+  isLoading: boolean;
+  onLoadMore: () => void;
+}) => (
+  <div className="flex justify-center px-5 py-3">
+    <button
+      type="button"
+      aria-label={label}
+      disabled={isLoading}
+      onClick={onLoadMore}
+      className="text-sm settings-shell-muted underline-offset-4 hover:underline disabled:opacity-60"
+    >
+      {isLoading ? "Loading…" : "Load more"}
+    </button>
+  </div>
+);
+
 export const SettingsBlockedSection = () => {
   const blockedQuery = useBlockedUsers();
   const mutedQuery = useMutedUsers();
@@ -116,6 +138,13 @@ export const SettingsBlockedSection = () => {
             ))}
           </ul>
         )}
+        {blockedQuery.hasNextPage ? (
+          <LoadMoreRow
+            label="Load more blocked users"
+            isLoading={blockedQuery.isFetchingNextPage}
+            onLoadMore={() => void blockedQuery.fetchNextPage()}
+          />
+        ) : null}
       </div>
 
       <div className="border settings-shell-border settings-shell-panel">
@@ -145,6 +174,13 @@ export const SettingsBlockedSection = () => {
             ))}
           </ul>
         )}
+        {mutedQuery.hasNextPage ? (
+          <LoadMoreRow
+            label="Load more muted users"
+            isLoading={mutedQuery.isFetchingNextPage}
+            onLoadMore={() => void mutedQuery.fetchNextPage()}
+          />
+        ) : null}
       </div>
     </div>
   );
