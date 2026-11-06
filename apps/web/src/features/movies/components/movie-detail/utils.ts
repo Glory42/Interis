@@ -11,9 +11,9 @@ export const toLanguageLabel = (languageCode: string | null): string | null => {
   }
 };
 
-export const formatMoneyLabel = (value: number | null): string => {
+export const formatMoneyLabel = (value: number | null): string | null => {
   if (value === null || !Number.isFinite(value) || value <= 0) {
-    return "Unknown";
+    return null;
   }
 
   return new Intl.NumberFormat("en-US", {

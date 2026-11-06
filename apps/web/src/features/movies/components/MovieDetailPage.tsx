@@ -20,7 +20,9 @@ import {
   useMovieInteraction,
   useUpdateMovieInteraction,
 } from "@/features/interactions/hooks/useInteractions";
-import { MediaDetailBackdrop } from "@/features/media/detail/MediaDetailBackdrop";
+import { LetterboxHero } from "@/features/media/detail/LetterboxHero";
+import { toLanguageLabel } from "@/features/movies/components/movie-detail/utils";
+import { formatRuntimeLabel } from "@/features/movies/components/utils";
 import { MediaSimilarSection } from "@/features/media/detail/MediaSimilarSection";
 import { MediaActionsSidebar, type MediaAction } from "@/features/media/detail/MediaActionsSidebar";
 
@@ -154,9 +156,15 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
 
   return (
     <div className="min-h-screen">
-      <div className="relative h-[42vh] max-h-135 min-h-80 w-full overflow-hidden">
-        <MediaDetailBackdrop backdropUrl={backdropUrl} accentColor={MOVIE_MODULE_STYLES.accent} />
-      </div>
+      <LetterboxHero
+        backdropUrl={backdropUrl}
+        slateLeft={["Interis", "Film", ...(movie.releaseYear ? [String(movie.releaseYear)] : [])]}
+        slateRight={[
+          formatRuntimeLabel(movie.runtime),
+          toLanguageLabel(movie.languageCode),
+          movie.productionCountries[0] ?? null,
+        ].filter((part): part is string => Boolean(part))}
+      />
 
       <main className="relative z-10 mx-auto -mt-20 w-full max-w-5xl px-4 pb-10 sm:-mt-28">
         <Link
@@ -166,7 +174,7 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
           viewTransition
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          <span>Movie</span>
+          <span>Films</span>
         </Link>
 
         <div className="grid grid-cols-1 gap-10 md:grid-cols-[220px_1fr]">
@@ -211,12 +219,12 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
                 }
                 isTriggerBusy={reviewChooser.isChecking}
                 triggerVariant="outline"
-                triggerLabel="Log"
+                triggerLabel={detail.userRating?.watchedDate ? "Log again" : "Log"}
                 triggerClassName="h-auto flex-1 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
                 triggerContent={
                   <>
                     <Check className="h-3 w-3" />
-                    <span>Log</span>
+                    <span>{detail.userRating?.watchedDate ? "Log again" : "Log"}</span>
                   </>
                 }
               />
@@ -230,6 +238,7 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
             isInteractionBusy={isInteractionBusy}
             isInteractionLoading={isInteractionLoading}
             actions={actions}
+            lastWatchedDate={detail.userRating?.watchedDate ?? null}
           />
 
           <MovieDetailsMainSection detail={detail} />

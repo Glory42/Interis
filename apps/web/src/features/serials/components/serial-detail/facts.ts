@@ -1,79 +1,23 @@
-import {
-  BookText,
-  CalendarDays,
-  Clock3,
-  Languages,
-  RadioTower,
-  Rows3,
-  Star,
-} from "lucide-react";
 import type { SerialDetailResponse } from "@/features/serials/api";
-import type { MediaFactRow } from "@/features/media/detail/MediaFactsGrid";
+import type { MediaFactRow } from "@/features/media/detail/MediaDetailsMainSection";
 
+// Runtime, language and network sit on the hero slate; these round out the credits.
 export const buildSerialFactRows = (
   detail: SerialDetailResponse,
-  runtimeLabel: string | null,
-  languageLabel: string | null,
   firstAirDateLabel: string | null,
   lastAirDateLabel: string | null,
 ): MediaFactRow[] => {
   const series = detail.series;
+  const seasons = series.numberOfSeasons ? `${series.numberOfSeasons}` : null;
+  const episodes = series.numberOfEpisodes ? `${series.numberOfEpisodes}` : null;
 
   return [
     {
-      label: "Creator",
-      value: series.creator ?? "Unknown",
-      icon: BookText,
+      label: "Seasons / Episodes",
+      value: seasons || episodes ? `${seasons ?? "—"} / ${episodes ?? "—"}` : null,
     },
-    {
-      label: "Runtime",
-      value: runtimeLabel ?? "Unknown",
-      icon: Clock3,
-    },
-    {
-      label: "Language",
-      value: languageLabel ?? "Unknown",
-      icon: Languages,
-    },
-    {
-      label: "Network",
-      value: series.network ?? "Unknown",
-      icon: RadioTower,
-    },
-    {
-      label: "First Air",
-      value: firstAirDateLabel ?? "Unknown",
-      icon: CalendarDays,
-    },
-    {
-      label: "Last Air",
-      value: lastAirDateLabel ?? "Unknown",
-      icon: CalendarDays,
-    },
-    {
-      label: "Seasons",
-      value: series.numberOfSeasons ? String(series.numberOfSeasons) : "Unknown",
-      icon: Rows3,
-    },
-    {
-      label: "Episodes",
-      value: series.numberOfEpisodes ? String(series.numberOfEpisodes) : "Unknown",
-      icon: Rows3,
-    },
-    {
-      label: "Status",
-      value: series.status ?? "Unknown",
-      icon: Star,
-    },
-    {
-      label: "In Production",
-      value:
-        series.inProduction === null
-          ? "Unknown"
-          : series.inProduction
-            ? "Yes"
-            : "No",
-      icon: RadioTower,
-    },
+    { label: "First aired", value: firstAirDateLabel },
+    { label: "Last aired", value: series.inProduction ? null : lastAirDateLabel },
+    { label: "Status", value: series.status || null },
   ];
 };
