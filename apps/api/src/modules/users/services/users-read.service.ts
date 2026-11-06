@@ -73,7 +73,19 @@ export class UsersReadService {
   }
 
   static async getDetailedStats(userId: string) {
-    return UsersStatsRepository.getDetailedStats(userId);
+    const { minutesWatched, ...stats } = await UsersStatsRepository.getDetailedStats(userId);
+    const ratedLogCount = stats.ratingDistribution.reduce((sum, row) => sum + row.count, 0);
+    const ratingTotal = stats.ratingDistribution.reduce(
+      (sum, row) => sum + row.rating * row.count,
+      0,
+    );
+
+    return {
+      ...stats,
+      averageRating: ratedLogCount > 0 ? Math.round((ratingTotal / ratedLogCount) * 100) / 100 : null,
+      ratedLogCount,
+      hoursWatched: Math.round((minutesWatched / 60) * 10) / 10,
+    };
   }
 
   static async getMeSummary(userId: string) {

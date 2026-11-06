@@ -106,8 +106,14 @@ export class UsersStatsRepository {
   }
 
   static async getDetailedStats(userId: string) {
-    const [entriesPerMonthRows, ratingDistributionRows, topGenreRows, topDirectorRows] =
-      await Promise.all([
+    const [
+      entriesPerMonthRows,
+      ratingDistributionRows,
+      topGenreRows,
+      topDirectorRows,
+      minutesWatchedRows,
+      logsPerWeekRows,
+    ] = await Promise.all([
         db.execute<{ month: string; count: number }>(sql`
           SELECT to_char(watched_date, 'YYYY-MM') AS month, count(*)::int AS count
           FROM (
@@ -163,6 +169,29 @@ export class UsersStatsRepository {
           ) p ON true
           ORDER BY dc.count DESC
         `),
+        // Film runtime per log (rewatches count again) plus runtime per watched episode.
+        db.execute<{ minutes: number }>(sql`
+          SELECT (
+            SELECT coalesce(sum(m.runtime), 0)
+            FROM diary_entry d JOIN movie m ON m.id = d.movie_id
+            WHERE d.user_id = ${userId}
+          ) + (
+            SELECT coalesce(sum(s.episode_runtime), 0)
+            FROM serial_episode_interaction e JOIN tv_series s ON s.id = e.series_id
+            WHERE e.user_id = ${userId} AND e.watched
+          ) AS minutes
+        `),
+        db.execute<{ week: number; count: number }>(sql`
+          SELECT extract(week FROM watched_date)::int AS week, count(*)::int AS count
+          FROM (
+            SELECT watched_date FROM diary_entry WHERE user_id = ${userId}
+            UNION ALL
+            SELECT watched_date FROM serial_diary_entry WHERE user_id = ${userId}
+          ) combined
+          WHERE extract(isoyear FROM watched_date) = extract(isoyear FROM current_date)
+          GROUP BY week
+          ORDER BY week
+        `),
       ]);
 
     return {
@@ -170,6 +199,8 @@ export class UsersStatsRepository {
       ratingDistribution: ratingDistributionRows.rows,
       topGenres: topGenreRows.rows,
       topDirectors: topDirectorRows.rows,
+      minutesWatched: Number(minutesWatchedRows.rows[0]?.minutes ?? 0),
+      logsPerWeek: logsPerWeekRows.rows,
     };
   }
 
