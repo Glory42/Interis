@@ -125,6 +125,64 @@ describe("admin", () => {
     expect(pendingAfter.find((item) => item.id === report!.id)).toBeUndefined();
   });
 
+  it("removing reported content resolves every pending report on it", async () => {
+    const admin = await signUpTestUser(getServer().baseUrl, "admrm");
+    await promoteToAdmin(admin.username);
+    const postAuthor = await signUpTestUser(getServer().baseUrl, "admrma");
+    const firstReporter = await signUpTestUser(getServer().baseUrl, "admrmb");
+    const secondReporter = await signUpTestUser(getServer().baseUrl, "admrmc");
+
+    const createPost = await apiRequest(
+      getServer().baseUrl,
+      "/api/posts",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ content: "reported twice" }),
+      },
+      postAuthor.jar,
+    );
+    const post = (await createPost.json()) as { id: string };
+
+    for (const reporter of [firstReporter, secondReporter]) {
+      const response = await apiRequest(
+        getServer().baseUrl,
+        "/api/reports",
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ targetType: "post", targetId: post.id, reason: "spam" }),
+        },
+        reporter.jar,
+      );
+      expect(response.status).toBe(201);
+    }
+
+    const pendingFor = async () => {
+      const response = await apiRequest(
+        getServer().baseUrl,
+        "/api/reports?status=pending&limit=100",
+        {},
+        admin.jar,
+      );
+      const items = (await response.json()) as { id: string; targetId: string }[];
+      return items.filter((item) => item.targetId === post.id);
+    };
+
+    const before = await pendingFor();
+    expect(before).toHaveLength(2);
+
+    const removeResponse = await apiRequest(
+      getServer().baseUrl,
+      `/api/reports/${before[0]!.id}/remove-content`,
+      { method: "POST" },
+      admin.jar,
+    );
+    expect(removeResponse.status).toBe(200);
+
+    expect(await pendingFor()).toHaveLength(0);
+  });
+
   it("rejects a non-admin resetting another user's password", async () => {
     const nonAdmin = await signUpTestUser(getServer().baseUrl, "admg");
     const target = await signUpTestUser(getServer().baseUrl, "admh");
