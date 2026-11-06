@@ -44,6 +44,9 @@ export const reports = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     resolvedAt: timestamp("resolved_at"),
     resolvedBy: text("resolved_by").references(() => user.id, { onDelete: "set null" }),
+    // "resolved", "dismissed" or "content_removed", plus the admin's optional note.
+    resolutionAction: text("resolution_action"),
+    resolutionNote: text("resolution_note"),
   },
   (table) => [
     unique("reports_reporter_target_unique").on(

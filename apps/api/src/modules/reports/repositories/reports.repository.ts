@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import {
@@ -65,7 +65,7 @@ export class ReportsRepository {
   ) {
     await db
       .update(reports)
-      .set({ status, resolvedAt: new Date(), resolvedBy })
+      .set({ status, resolvedAt: new Date(), resolvedBy, resolutionAction: status })
       .where(and(eq(reports.id, reportId), eq(reports.status, "pending")));
   }
 
@@ -77,7 +77,7 @@ export class ReportsRepository {
   ) {
     await db
       .update(reports)
-      .set({ status: "resolved", resolvedAt: new Date(), resolvedBy })
+      .set({ status: "resolved", resolvedAt: new Date(), resolvedBy, resolutionAction: "content_removed" })
       .where(
         and(
           eq(reports.targetType, targetType),
@@ -85,5 +85,66 @@ export class ReportsRepository {
           eq(reports.status, "pending"),
         ),
       );
+  }
+
+  // One row per reported item: busiest first, then oldest first.
+  static async listGrouped(status: ReportStatus, limit: number, offset: number) {
+    const rows = await db.execute<{
+      targetType: ReportTargetType;
+      targetId: string;
+      reportCount: number;
+      reasons: ReportReason[];
+      contentSnapshot: string;
+      authorUsername: string | null;
+      oldestReportAt: Date;
+      latestReportAt: Date;
+    }>(sql`
+      SELECT
+        r.target_type AS "targetType",
+        r.target_id AS "targetId",
+        count(*)::int AS "reportCount",
+        array_agg(DISTINCT r.reason::text) AS "reasons",
+        (array_agg(r.content_snapshot ORDER BY r.created_at DESC))[1] AS "contentSnapshot",
+        min(u.username) AS "authorUsername",
+        min(r.created_at) AS "oldestReportAt",
+        max(r.created_at) AS "latestReportAt"
+      FROM report r
+      LEFT JOIN review rv ON r.target_type = 'review' AND rv.id::text = r.target_id
+      LEFT JOIN post p ON r.target_type = 'post' AND p.id::text = r.target_id
+      LEFT JOIN "user" u ON u.id = coalesce(rv.user_id, p.user_id)
+      WHERE r.status = ${status}
+      GROUP BY r.target_type, r.target_id
+      ORDER BY count(*) DESC, min(r.created_at) ASC
+      LIMIT ${limit} OFFSET ${offset}
+    `);
+    return rows.rows;
+  }
+
+  // Closes every pending report on one item at once.
+  static async closePendingForTarget(input: {
+    targetType: ReportTargetType;
+    targetId: string;
+    status: "resolved" | "dismissed";
+    resolvedBy: string;
+    note: string | null;
+  }): Promise<number> {
+    const updated = await db
+      .update(reports)
+      .set({
+        status: input.status,
+        resolvedAt: new Date(),
+        resolvedBy: input.resolvedBy,
+        resolutionAction: input.status,
+        resolutionNote: input.note,
+      })
+      .where(
+        and(
+          eq(reports.targetType, input.targetType),
+          eq(reports.targetId, input.targetId),
+          eq(reports.status, "pending"),
+        ),
+      )
+      .returning({ id: reports.id });
+    return updated.length;
   }
 }
