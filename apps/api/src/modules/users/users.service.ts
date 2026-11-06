@@ -68,12 +68,18 @@ export class UsersService {
     return UsersReadService.getWatchedMovies(userId, limit, offset);
   }
 
-  static async getLikedMovies(userId: string, limit?: number, offset?: number) {
-    return UsersReadService.getLikedMovies(userId, limit, offset);
+  static async getLikedMovies(userId: string, limit: number) {
+    return UsersReadService.getLikedMovies(userId, limit);
   }
 
-  static async getWatchlistedMovies(userId: string, limit?: number, offset?: number) {
-    return UsersReadService.getWatchlistedMovies(userId, limit, offset);
+  static async getWatchlistedMovies(userId: string, limit: number) {
+    return UsersReadService.getWatchlistedMovies(userId, limit);
+  }
+
+  static async getMediaShelf(
+    ...args: Parameters<typeof UsersReadService.getMediaShelf>
+  ) {
+    return UsersReadService.getMediaShelf(...args);
   }
 
   static async getStats(userId: string) {

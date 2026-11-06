@@ -64,15 +64,15 @@ describe("users profile-list endpoints", () => {
       getServer().baseUrl,
       `/api/users/${username}/likes?limit=2`,
     );
-    const firstPage = (await firstPageResponse.json()) as unknown[];
-    expect(firstPage.length).toBe(2);
+    const firstPage = (await firstPageResponse.json()) as { items: unknown[] };
+    expect(firstPage.items.length).toBe(2);
 
     const secondPageResponse = await apiRequest(
       getServer().baseUrl,
       `/api/users/${username}/likes?limit=2&offset=2`,
     );
-    const secondPage = (await secondPageResponse.json()) as unknown[];
-    expect(secondPage.length).toBe(1);
+    const secondPage = (await secondPageResponse.json()) as { items: unknown[] };
+    expect(secondPage.items.length).toBe(1);
   });
 
   it("surfaces a liked movie under likes and a watchlisted movie under watchlist", async () => {
@@ -102,14 +102,16 @@ describe("users profile-list endpoints", () => {
     );
 
     const likesResponse = await apiRequest(getServer().baseUrl, `/api/users/${username}/likes`);
-    const likes = (await likesResponse.json()) as Array<{ tmdbId: number }>;
+    const { items: likes } = (await likesResponse.json()) as { items: { tmdbId: number }[] };
     expect(likes.some((m) => m.tmdbId === liked.tmdbId)).toBe(true);
 
     const watchlistResponse = await apiRequest(
       getServer().baseUrl,
       `/api/users/${username}/watchlist`,
     );
-    const watchlist = (await watchlistResponse.json()) as Array<{ tmdbId: number }>;
+    const { items: watchlist } = (await watchlistResponse.json()) as {
+      items: { tmdbId: number }[];
+    };
     expect(watchlist.some((m) => m.tmdbId === watchlisted.tmdbId)).toBe(true);
   });
 

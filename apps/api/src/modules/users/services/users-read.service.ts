@@ -1,9 +1,15 @@
 import { dedupeRecentPosters } from "../helpers/users-summary.helper";
-import { UsersMediaInteractionsRepository } from "../repositories/users-media-interactions.repository";
+import type { ProfileShelfSort, ProfileShelfType } from "../dto/users.dto";
+import {
+  UsersMediaInteractionsRepository,
+  type MediaInteractionFlag,
+} from "../repositories/users-media-interactions.repository";
 import { UsersProfileRepository } from "../repositories/users-profile.repository";
 import { UsersReviewsListRepository, UsersReviewsRepository } from "../repositories/users-reviews.repository";
 import { UsersStatsRepository } from "../repositories/users-stats.repository";
 import { UsersProfileService } from "./users-profile.service";
+
+const NEWEST_SHELF_QUERY = { type: "all", sort: "recent", offset: 0 } as const;
 
 export class UsersReadService {
   static async getTotalUsersCount() {
@@ -34,12 +40,32 @@ export class UsersReadService {
     return UsersMediaInteractionsRepository.getWatchedMovies(userId, limit, offset);
   }
 
-  static async getLikedMovies(userId: string, limit?: number, offset?: number) {
-    return UsersMediaInteractionsRepository.getMoviesByFlag(userId, "liked", limit, offset);
+  static async getLikedMovies(userId: string, limit: number) {
+    return UsersMediaInteractionsRepository.getMediaByFlag(userId, "liked", {
+      ...NEWEST_SHELF_QUERY,
+      limit,
+    });
   }
 
-  static async getWatchlistedMovies(userId: string, limit?: number, offset?: number) {
-    return UsersMediaInteractionsRepository.getMoviesByFlag(userId, "watchlisted", limit, offset);
+  static async getWatchlistedMovies(userId: string, limit: number) {
+    return UsersMediaInteractionsRepository.getMediaByFlag(userId, "watchlisted", {
+      ...NEWEST_SHELF_QUERY,
+      limit,
+    });
+  }
+
+  static async getMediaShelf(
+    userId: string,
+    flag: MediaInteractionFlag,
+    query: { type: ProfileShelfType; sort: ProfileShelfSort; limit: number; offset: number },
+  ) {
+    const [items, counts] = await Promise.all([
+      UsersMediaInteractionsRepository.getMediaByFlag(userId, flag, query),
+      UsersMediaInteractionsRepository.countMediaByFlag(userId, flag),
+    ]);
+    const total = query.type === "all" ? counts.movie + counts.tv : counts[query.type];
+
+    return { items, total, counts };
   }
 
   static async getStats(userId: string) {

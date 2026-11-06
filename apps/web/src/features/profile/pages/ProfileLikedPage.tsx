@@ -6,6 +6,11 @@ import { LikedListCard } from "@/features/profile/components/LikedListCard";
 import { LikedReviewCard } from "@/features/profile/components/LikedReviewCard";
 import { ProfileMediaGridSkeleton } from "@/features/profile/components/ProfileMediaGridSkeleton";
 import {
+  mediaShelfCount,
+  mediaShelfFilters,
+  toMediaShelfType,
+} from "@/features/profile/components/media-shelf-filter";
+import {
   useUserLikedMovies,
   useUserLikedLists,
   useUserLikedReviews,
@@ -18,12 +23,6 @@ const topTabs: Array<{ key: LikedTab; label: string }> = [
   { key: "medias", label: "Medias" },
   { key: "reviews", label: "Reviews" },
   { key: "lists", label: "Lists" },
-];
-
-const mediaSubFilters: Array<{ key: MediaFilter; label: string }> = [
-  { key: "all", label: "All" },
-  { key: "movie", label: "Movie" },
-  { key: "serial", label: "Serial" },
 ];
 
 const listSubFilters: Array<{ key: ListFilter; label: string }> = [
@@ -56,11 +55,18 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
   const [reviewFilter, setReviewFilter] = useState<MediaFilter>("all");
   const [listFilter, setListFilter] = useState<ListFilter>("all");
 
-  const mediasQuery = useUserLikedMovies(username);
+  const mediasQuery = useUserLikedMovies(username, toMediaShelfType(mediaFilter));
   const reviewsQuery = useUserLikedReviews(username);
   const listsQuery = useUserLikedLists(username);
 
-  const mediaItems = mediasQuery.data?.pages.flat() ?? [];
+  const mediaItems = mediasQuery.data?.items ?? [];
+  const mediaCounts = mediasQuery.data?.counts ?? { movie: 0, tv: 0 };
+  const mediaTotal = mediaShelfCount("all", mediaCounts);
+  const mediaSubFilters = mediaShelfFilters.map((filter) => ({
+    ...filter,
+    label: `${filter.label} (${mediaShelfCount(filter.key, mediaCounts)})`,
+  }));
+  const reviewSubFilters = mediaShelfFilters;
   const reviewItems = useMemo(
     () => reviewsQuery.data?.pages.flat() ?? [],
     [reviewsQuery.data],
@@ -83,7 +89,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
   }, [listItems, listFilter]);
 
   const countByTab: Record<LikedTab, number | undefined> = {
-    medias: mediasQuery.isPending ? undefined : mediaItems.length,
+    medias: mediasQuery.isPending ? undefined : mediaTotal,
     reviews: reviewsQuery.isPending ? undefined : reviewItems.length,
     lists: listsQuery.isPending ? undefined : listItems.length,
   };
@@ -92,7 +98,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
     activeTab === "medias"
       ? { filters: mediaSubFilters, active: mediaFilter, onChange: setMediaFilter as (k: string) => void }
       : activeTab === "reviews"
-        ? { filters: mediaSubFilters, active: reviewFilter, onChange: setReviewFilter as (k: string) => void }
+        ? { filters: reviewSubFilters, active: reviewFilter, onChange: setReviewFilter as (k: string) => void }
         : { filters: listSubFilters, active: listFilter, onChange: setListFilter as (k: string) => void };
 
   return (
@@ -145,7 +151,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
             <div className="rounded-lg border border-border/60 bg-card/30 p-4 text-sm text-destructive">
               Could not load liked media.
             </div>
-          ) : mediaItems.length === 0 ? (
+          ) : mediaTotal === 0 ? (
             <ProfileTabEmptyState
               icon={Heart}
               title="No liked media yet"

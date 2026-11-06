@@ -15,7 +15,10 @@ import {
   type ProfileListQueryDto,
   type SearchUsersQueryDto,
 } from "./dto/users.dto";
-import { parseProfileListPagination } from "./helpers/users-pagination.helper";
+import {
+  parseProfileListPagination,
+  parseProfileShelfQuery,
+} from "./helpers/users-pagination.helper";
 
 export class UsersController {
   static async getNetworkStats(_req: Request, res: Response): Promise<void> {
@@ -115,9 +118,12 @@ export class UsersController {
     if (!profile) {
       return;
     }
-    const { limit, offset } = parseProfileListPagination(req.query);
-    const liked = await UsersService.getLikedMovies(profile.id, limit, offset);
-    res.status(200).json(liked);
+    const shelf = await UsersService.getMediaShelf(
+      profile.id,
+      "liked",
+      parseProfileShelfQuery(req.query),
+    );
+    res.status(200).json(shelf);
   }
 
   static async getUserLikedReviews(
@@ -161,9 +167,12 @@ export class UsersController {
       return;
     }
 
-    const { limit, offset } = parseProfileListPagination(req.query);
-    const watchlist = await UsersService.getWatchlistedMovies(profile.id, limit, offset);
-    res.status(200).json(watchlist);
+    const shelf = await UsersService.getMediaShelf(
+      profile.id,
+      "watchlisted",
+      parseProfileShelfQuery(req.query),
+    );
+    res.status(200).json(shelf);
   }
 
   static async getMe(req: Request, res: Response): Promise<void> {

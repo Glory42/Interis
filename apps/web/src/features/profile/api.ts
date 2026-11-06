@@ -53,7 +53,36 @@ const userInteractionMovieSchema = z
   })
   .passthrough();
 
-const userInteractionMovieListSchema = z.array(userInteractionMovieSchema);
+const userMediaShelfSchema = z.object({
+  items: z.array(userInteractionMovieSchema),
+  total: z.number().int().nonnegative(),
+  counts: z.object({
+    movie: z.number().int().nonnegative(),
+    tv: z.number().int().nonnegative(),
+  }),
+});
+
+export type UserMediaShelfPage = z.infer<typeof userMediaShelfSchema>;
+export type UserMediaShelfType = "all" | "movie" | "tv";
+
+const getUserMediaShelf = async (
+  path: "likes" | "watchlist",
+  username: string,
+  query: { type: UserMediaShelfType; limit: number; offset: number },
+  options: QueryRequestOptions,
+): Promise<UserMediaShelfPage> => {
+  const params = new URLSearchParams({
+    type: query.type,
+    limit: String(query.limit),
+    offset: String(query.offset),
+  });
+  const response = await apiRequest<unknown>(
+    `/api/users/${encodePathSegment(username)}/${path}?${params.toString()}`,
+    { method: "GET", signal: options.signal },
+  );
+
+  return userMediaShelfSchema.parse(response);
+};
 
 const userSearchResultSchema = userSummarySchema;
 
@@ -114,22 +143,11 @@ export const getUserReviews = async (
   return userReviewListSchema.parse(response);
 };
 
-export const getUserLikedMovies = async (
+export const getUserLikedMovies = (
   username: string,
-  limit: number,
-  offset: number,
+  query: { type: UserMediaShelfType; limit: number; offset: number },
   options: QueryRequestOptions = {},
-): Promise<UserInteractionMovie[]> => {
-  const response = await apiRequest<unknown>(
-    `/api/users/${encodePathSegment(username)}/likes?${toPaginationParams(limit, offset)}`,
-    {
-      method: "GET",
-      signal: options.signal,
-    },
-  );
-
-  return userInteractionMovieListSchema.parse(response);
-};
+): Promise<UserMediaShelfPage> => getUserMediaShelf("likes", username, query, options);
 
 const likedReviewSchema = z.object({
   id: z.string(),
@@ -192,22 +210,11 @@ export const getUserLikedLists = async (
   return z.array(likedListSchema).parse(response);
 };
 
-export const getUserWatchlist = async (
+export const getUserWatchlist = (
   username: string,
-  limit: number,
-  offset: number,
+  query: { type: UserMediaShelfType; limit: number; offset: number },
   options: QueryRequestOptions = {},
-): Promise<UserInteractionMovie[]> => {
-  const response = await apiRequest<unknown>(
-    `/api/users/${encodePathSegment(username)}/watchlist?${toPaginationParams(limit, offset)}`,
-    {
-      method: "GET",
-      signal: options.signal,
-    },
-  );
-
-  return userInteractionMovieListSchema.parse(response);
-};
+): Promise<UserMediaShelfPage> => getUserMediaShelf("watchlist", username, query, options);
 
 export const getUserDiary = async (
   username: string,

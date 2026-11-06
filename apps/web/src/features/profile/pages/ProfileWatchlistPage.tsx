@@ -1,5 +1,10 @@
+import { useState } from "react";
 import { Bookmark } from "lucide-react";
 import { ProfileMediaInteractionGridSection } from "@/features/profile/components/ProfileMediaInteractionGridSection";
+import {
+  toMediaShelfType,
+  type MediaShelfFilter,
+} from "@/features/profile/components/media-shelf-filter";
 import { useUserWatchlist } from "@/features/profile/hooks/useProfile";
 
 type ProfileWatchlistPageProps = {
@@ -9,8 +14,8 @@ type ProfileWatchlistPageProps = {
 export const ProfileWatchlistPage = ({
   username,
 }: ProfileWatchlistPageProps) => {
-  const watchlistQuery = useUserWatchlist(username);
-  const items = watchlistQuery.data?.pages.flat() ?? [];
+  const [filter, setFilter] = useState<MediaShelfFilter>("all");
+  const watchlistQuery = useUserWatchlist(username, toMediaShelfType(filter));
 
   return (
     <ProfileMediaInteractionGridSection
@@ -25,7 +30,10 @@ export const ProfileWatchlistPage = ({
       }}
       isPending={watchlistQuery.isPending}
       isError={watchlistQuery.isError}
-      items={items}
+      items={watchlistQuery.data?.items ?? []}
+      counts={watchlistQuery.data?.counts ?? { movie: 0, tv: 0 }}
+      activeFilter={filter}
+      onFilterChange={setFilter}
       hasMore={Boolean(watchlistQuery.hasNextPage)}
       isLoadingMore={watchlistQuery.isFetchingNextPage}
       onLoadMore={() => { void watchlistQuery.fetchNextPage(); }}
