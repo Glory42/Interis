@@ -63,18 +63,23 @@ export const listAdminUsers = async (query?: string): Promise<AdminUser[]> => {
 export const resetUserPassword = async (
   username: string,
   newPassword: string,
+  adminPassword: string,
 ): Promise<void> => {
-  const response = await apiRequest<unknown, { newPassword: string }>(
+  const response = await apiRequest<unknown, { newPassword: string; adminPassword: string }>(
     `/api/admin/users/${encodeURIComponent(username)}/reset-password`,
-    { method: "POST", body: { newPassword } },
+    { method: "POST", body: { newPassword, adminPassword } },
   );
   actionResponseSchema.parse(response);
 };
 
-export const suspendUser = async (username: string, reason?: string): Promise<void> => {
-  const response = await apiRequest<unknown, { reason?: string }>(
+export const suspendUser = async (
+  username: string,
+  adminPassword: string,
+  reason?: string,
+): Promise<void> => {
+  const response = await apiRequest<unknown, { reason?: string; adminPassword: string }>(
     `/api/admin/users/${encodeURIComponent(username)}/suspend`,
-    { method: "POST", body: { reason } },
+    { method: "POST", body: { reason, adminPassword } },
   );
   actionResponseSchema.parse(response);
 };
@@ -87,26 +92,26 @@ export const unsuspendUser = async (username: string): Promise<void> => {
   actionResponseSchema.parse(response);
 };
 
-export const promoteUser = async (username: string): Promise<void> => {
-  const response = await apiRequest<unknown>(
+export const promoteUser = async (username: string, adminPassword: string): Promise<void> => {
+  const response = await apiRequest<unknown, { adminPassword: string }>(
     `/api/admin/users/${encodeURIComponent(username)}/promote`,
-    { method: "POST" },
+    { method: "POST", body: { adminPassword } },
   );
   actionResponseSchema.parse(response);
 };
 
-export const demoteUser = async (username: string): Promise<void> => {
-  const response = await apiRequest<unknown>(
+export const demoteUser = async (username: string, adminPassword: string): Promise<void> => {
+  const response = await apiRequest<unknown, { adminPassword: string }>(
     `/api/admin/users/${encodeURIComponent(username)}/demote`,
-    { method: "POST" },
+    { method: "POST", body: { adminPassword } },
   );
   actionResponseSchema.parse(response);
 };
 
-export const deleteUser = async (username: string): Promise<void> => {
-  const response = await apiRequest<unknown>(
+export const deleteUser = async (username: string, adminPassword: string): Promise<void> => {
+  const response = await apiRequest<unknown, { adminPassword: string }>(
     `/api/admin/users/${encodeURIComponent(username)}`,
-    { method: "DELETE" },
+    { method: "DELETE", body: { adminPassword } },
   );
   actionResponseSchema.parse(response);
 };

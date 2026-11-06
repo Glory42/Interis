@@ -103,7 +103,7 @@ describe("user mutations", () => {
     const { result } = renderHook(() => useSuspendUser(), {
       wrapper: wrapperFor(queryClient),
     });
-    result.current.mutate({ username: "alice", reason: "spam" });
+    result.current.mutate({ username: "alice", reason: "spam", adminPassword: "pw" });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(isInvalidated(queryClient, adminKeys.users())).toBe(true);
@@ -124,7 +124,7 @@ describe("user mutations", () => {
     const { result } = renderHook(() => usePromoteUser(), {
       wrapper: wrapperFor(queryClient),
     });
-    result.current.mutate("alice");
+    result.current.mutate({ username: "alice", adminPassword: "pw" });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(isInvalidated(queryClient, adminKeys.users())).toBe(true);
@@ -141,7 +141,7 @@ describe("user mutations", () => {
     const { result } = renderHook(() => useDeleteUser(), {
       wrapper: wrapperFor(queryClient),
     });
-    result.current.mutate("alice");
+    result.current.mutate({ username: "alice", adminPassword: "pw" });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(isInvalidated(queryClient, adminKeys.users())).toBe(true);
@@ -160,7 +160,7 @@ describe("user mutations", () => {
     const { result } = renderHook(() => useResetUserPassword(), {
       wrapper: wrapperFor(queryClient),
     });
-    result.current.mutate({ username: "alice", newPassword: "hunter22" });
+    result.current.mutate({ username: "alice", newPassword: "hunter22", adminPassword: "pw" });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(isInvalidated(queryClient, adminKeys.users())).toBe(false);

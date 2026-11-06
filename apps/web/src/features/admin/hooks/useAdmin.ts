@@ -50,8 +50,15 @@ export const useRemoveReportedContent = () => useReportAction(removeReportedCont
 
 export const useResetUserPassword = () => {
   return useMutation({
-    mutationFn: ({ username, newPassword }: { username: string; newPassword: string }) =>
-      resetUserPassword(username, newPassword),
+    mutationFn: ({
+      username,
+      newPassword,
+      adminPassword,
+    }: {
+      username: string;
+      newPassword: string;
+      adminPassword: string;
+    }) => resetUserPassword(username, newPassword, adminPassword),
   });
 };
 
@@ -67,11 +74,23 @@ const useUserAction = <TInput>(mutationFn: (input: TInput) => Promise<void>) => 
 };
 
 export const useSuspendUser = () =>
-  useUserAction(({ username, reason }: { username: string; reason?: string }) =>
-    suspendUser(username, reason),
+  useUserAction(
+    ({ username, reason, adminPassword }: { username: string; reason?: string; adminPassword: string }) =>
+      suspendUser(username, adminPassword, reason),
   );
 
 export const useUnsuspendUser = () => useUserAction(unsuspendUser);
-export const usePromoteUser = () => useUserAction(promoteUser);
-export const useDemoteUser = () => useUserAction(demoteUser);
-export const useDeleteUser = () => useUserAction(deleteUser);
+type ConfirmedUserAction = { username: string; adminPassword: string };
+
+export const usePromoteUser = () =>
+  useUserAction(({ username, adminPassword }: ConfirmedUserAction) =>
+    promoteUser(username, adminPassword),
+  );
+export const useDemoteUser = () =>
+  useUserAction(({ username, adminPassword }: ConfirmedUserAction) =>
+    demoteUser(username, adminPassword),
+  );
+export const useDeleteUser = () =>
+  useUserAction(({ username, adminPassword }: ConfirmedUserAction) =>
+    deleteUser(username, adminPassword),
+  );
