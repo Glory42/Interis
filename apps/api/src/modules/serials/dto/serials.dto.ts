@@ -295,6 +295,11 @@ export const SerialEpisodeParamsSchema = z.object({
 
 export type SerialEpisodeParams = z.input<typeof SerialEpisodeParamsSchema>;
 
+// A season holds at most a few hundred episodes; cap the batch the upsert builds.
+export const WatchedThroughParamsSchema = SerialEpisodeParamsSchema.extend({
+  episodeNumber: z.coerce.number().int().min(1).max(500),
+});
+
 export const UpdateSeasonInteractionSchema = z.object({
   watched: z.boolean().optional(),
   liked: z.boolean().optional(),

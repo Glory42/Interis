@@ -27,6 +27,16 @@ export function findNextUnwatchedEpisode(
   return null;
 }
 
+export const countWatchedEpisodesBySeason = (
+  watchedEpisodes: { seasonNumber: number }[],
+): Map<number, number> => {
+  const counts = new Map<number, number>();
+  for (const { seasonNumber } of watchedEpisodes) {
+    counts.set(seasonNumber, (counts.get(seasonNumber) ?? 0) + 1);
+  }
+  return counts;
+};
+
 export async function calculateViewerTracking(
   viewerUserId: string,
   seriesId: number,

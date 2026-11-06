@@ -79,6 +79,7 @@ export type SerialDetailSeason = {
     liked: boolean;
     rating: number | null;
     hasReview: boolean;
+    watchedEpisodeCount: number;
   } | null;
 };
 

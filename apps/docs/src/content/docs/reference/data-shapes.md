@@ -129,7 +129,7 @@ Key fields:
   - `watchedEpisodes[]` list: `{ seasonNumber, episodeNumber }` mappings.
   - `currentEpisode` (Up Next): `{ seasonNumber, episodeNumber, name }` or `null` if series completed.
   - interaction aggregations: `ratingsCount`, `likesCount`, `reviewsCount`.
-- `seasons[]` array list: `seasonNumber`, `name`, `episodeCount`, and season-level `viewerInteraction` object (`watched`, `liked`, `rating`, `hasReview`).
+- `seasons[]` array list: `seasonNumber`, `name`, `episodeCount`, and season-level `viewerInteraction` object (`watched`, `liked`, `rating`, `hasReview`, `watchedEpisodeCount`: regular episodes watched in that season).
 
 ## Currently Watching payload (`/serials/currently-watching`)
 

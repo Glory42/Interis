@@ -16,7 +16,7 @@ import type { SerialsCacheService } from "../services/serials-cache.service";
 import type { SerialsReviewsRepository } from "../repositories/serials-reviews.repository";
 import type { SerialsInteractionsRepository } from "../repositories/serials-interactions.repository";
 import type { SerialsSeasonInteractionsRepository } from "../repositories/serials-season-interactions.repository";
-import type { calculateViewerTracking } from "./serials-tracking.helper";
+import { countWatchedEpisodesBySeason, type calculateViewerTracking } from "./serials-tracking.helper";
 import type { SerialDetailReviewSort } from "../dto/serials.dto";
 import type {
   SerialDetailRatingBreakdownBucket,
@@ -141,6 +141,10 @@ export const assembleSerialDetail = (inputs: SerialDetailInputs): SerialDetailRe
     inputs.userSeasonInteractions.map((interaction) => [interaction.seasonNumber, interaction]),
   );
 
+  const watchedCountBySeason = countWatchedEpisodesBySeason(
+    inputs.viewerTracking?.watchedEpisodes ?? [],
+  );
+
   const mappedSeasons = (tmdbDetail ? toNormalizedSeasonItems(tmdbDetail) : []).map((season) => {
     const interaction = userSeasonInteractionsMap.get(season.seasonNumber);
     return {
@@ -151,6 +155,7 @@ export const assembleSerialDetail = (inputs: SerialDetailInputs): SerialDetailRe
             liked: interaction?.liked ?? false,
             rating: interaction?.rating ?? null,
             hasReview: interaction?.hasReview ?? false,
+            watchedEpisodeCount: watchedCountBySeason.get(season.seasonNumber) ?? 0,
           }
         : null,
     };

@@ -59,7 +59,8 @@ None.
         "watched": false,
         "liked": true,
         "rating": 4.5,
-        "hasReview": true
+        "hasReview": true,
+        "watchedEpisodeCount": 3
       }
     }
   ]

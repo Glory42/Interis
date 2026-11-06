@@ -20,6 +20,11 @@ router.get(
   "/:tmdbId/seasons/:seasonNumber",
   asyncHandler(SerialsController.getSeasonByTmdbId),
 );
+router.post(
+  "/:tmdbId/seasons/:seasonNumber/watched-through/:episodeNumber",
+  requireAuth,
+  asyncHandler(SerialsTrackingController.markWatchedThrough),
+);
 router.put(
   "/:tmdbId/seasons/:seasonNumber/interaction",
   requireAuth,
