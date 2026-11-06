@@ -41,7 +41,7 @@ export const SettingsTabs = () => {
 
   return (
     <nav
-      className="relative flex gap-0 overflow-x-auto border-b settings-shell-row-border"
+      className="relative flex gap-0 overflow-x-auto border-b shell-row-border"
       aria-label="Settings sections"
     >
       {indicator ? (
@@ -50,7 +50,7 @@ export const SettingsTabs = () => {
           style={{
             transform: `translateX(${indicator.left}px)`,
             width: indicator.width,
-            background: "var(--settings-shell-accent)",
+            background: "var(--shell-accent)",
           }}
         />
       ) : null}
@@ -70,7 +70,7 @@ export const SettingsTabs = () => {
             to={section.to}
             className={tabClass}
             style={{
-              color: isActive ? "var(--settings-shell-accent)" : "var(--settings-shell-muted)",
+              color: isActive ? "var(--shell-accent)" : "var(--shell-muted)",
             }}
             aria-current={isActive ? "page" : undefined}
           >

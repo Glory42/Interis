@@ -12,7 +12,7 @@ export const ReviewCardSkeleton = () => {
       <div className="grid gap-3 p-3 sm:p-4" style={{ gridTemplateColumns: "68px 1fr" }}>
         <Skeleton
           className="border bg-card/25"
-          style={{ width: 68, height: 102, borderColor: "var(--profile-shell-row-border)" }}
+          style={{ width: 68, height: 102, borderColor: "var(--shell-row-border)" }}
         />
 
         <div className="min-w-0 space-y-2.5">

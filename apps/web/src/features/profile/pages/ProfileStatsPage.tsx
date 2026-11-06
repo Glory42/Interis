@@ -41,12 +41,12 @@ const ChartSection = ({
   emptyLabel: string;
   children: React.ReactNode;
 }) => (
-  <section className="border profile-shell-border p-5">
-    <h2 className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] profile-shell-muted">
+  <section className="border shell-border p-5">
+    <h2 className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] shell-muted">
       {title}
     </h2>
     {isEmpty ? (
-      <p className="py-8 text-center font-mono text-xs profile-shell-muted">{emptyLabel}</p>
+      <p className="py-8 text-center font-mono text-xs shell-muted">{emptyLabel}</p>
     ) : (
       children
     )}
@@ -66,7 +66,7 @@ export const ProfileStatsPage = ({ username }: ProfileStatsPageProps) => {
 
   if (statsQuery.isError || !statsQuery.data) {
     return (
-      <div className="border profile-shell-border p-4 font-mono text-sm profile-shell-muted">
+      <div className="border shell-border p-4 font-mono text-sm shell-muted">
         Could not load stats right now.
       </div>
     );
@@ -144,7 +144,7 @@ export const ProfileStatsPage = ({ username }: ProfileStatsPageProps) => {
             {topGenres.map((row) => (
               <li key={row.genre} className="flex items-center justify-between text-sm">
                 <span className="text-foreground/90">{row.genre}</span>
-                <span className="font-mono text-xs profile-shell-accent">{row.count}</span>
+                <span className="font-mono text-xs shell-accent">{row.count}</span>
               </li>
             ))}
           </ul>
@@ -170,7 +170,7 @@ export const ProfileStatsPage = ({ username }: ProfileStatsPageProps) => {
                 ) : (
                   <span className="text-foreground/90">{row.director}</span>
                 )}
-                <span className="font-mono text-xs profile-shell-accent">{row.count}</span>
+                <span className="font-mono text-xs shell-accent">{row.count}</span>
               </li>
             ))}
           </ul>

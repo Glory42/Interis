@@ -6,7 +6,7 @@ export const DeveloperApiSurface = () => (
     <h2 className="mb-1 text-lg font-semibold tracking-tight text-foreground">
       Public API surface
     </h2>
-    <p className="mb-5 text-sm developer-shell-muted">
+    <p className="mb-5 text-sm shell-muted">
       Response size depends on user data. Empty collections return{" "}
       <code className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
         []
@@ -14,7 +14,7 @@ export const DeveloperApiSurface = () => (
       .
     </p>
 
-    <div className="overflow-hidden rounded-2xl border developer-shell-border developer-shell-panel">
+    <div className="overflow-hidden rounded-2xl border shell-border surface">
       {publicSurface.map((endpoint) => (
         <div
           key={endpoint.path}
@@ -28,7 +28,7 @@ export const DeveloperApiSurface = () => (
               {endpoint.path}
             </code>
           </div>
-          <p className="text-xs leading-relaxed developer-shell-muted sm:flex-1">
+          <p className="text-xs leading-relaxed shell-muted sm:flex-1">
             {endpoint.description}
           </p>
         </div>

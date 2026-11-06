@@ -35,7 +35,7 @@ export const DiaryRatingStars = ({
         return (
           <span
             key={`diary-rating-empty-${index}`}
-            style={{ color: "var(--profile-shell-muted)", fontSize: 11 }}
+            style={{ color: "var(--shell-muted)", fontSize: 11 }}
           >
             ★
           </span>

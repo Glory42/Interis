@@ -30,10 +30,10 @@ export const SettingsDeleteAccountCard = () => {
   };
 
   return (
-    <div className="border p-5 space-y-4 settings-shell-border settings-shell-panel">
+    <div className="border p-5 space-y-4 shell-border surface">
       <div>
         <p className="mb-1 text-base font-bold text-foreground">Delete account</p>
-        <p className="text-sm settings-shell-muted">
+        <p className="text-sm shell-muted">
           Permanently deletes your account with its logs, reviews, lists, posts and comments.
           This can't be undone.
         </p>

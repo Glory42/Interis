@@ -35,13 +35,13 @@ const listSubFilters: Array<{ key: ListFilter; label: string }> = [
 const tabButtonStyle = (isActive: boolean): React.CSSProperties =>
   isActive
     ? {
-        borderColor: "var(--profile-shell-accent)",
-        color: "var(--profile-shell-accent)",
-        background: "color-mix(in srgb, var(--profile-shell-accent) 8%, transparent)",
+        borderColor: "var(--shell-accent)",
+        color: "var(--shell-accent)",
+        background: "color-mix(in srgb, var(--shell-accent) 8%, transparent)",
       }
     : {
-        borderColor: "var(--profile-shell-border)",
-        color: "var(--profile-shell-muted)",
+        borderColor: "var(--shell-border)",
+        color: "var(--shell-muted)",
         background: "transparent",
       };
 
@@ -107,7 +107,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
       <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
         Likes
         {countByTab[activeTab] !== undefined ? (
-          <span className="ml-1 profile-shell-accent">({countByTab[activeTab]})</span>
+          <span className="ml-1 shell-accent">({countByTab[activeTab]})</span>
         ) : null}
       </p>
 
@@ -194,7 +194,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
               description="This profile has not liked any reviews yet."
             />
           ) : filteredReviews.length === 0 ? (
-            <div className="border px-3 py-2 text-xs profile-shell-border profile-shell-muted profile-shell-panel">
+            <div className="border px-3 py-2 text-xs shell-border shell-muted surface">
               No {reviewFilter === "all" ? "reviews" : reviewFilter} liked yet.
             </div>
           ) : (
@@ -237,7 +237,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
               description="This profile has not liked any lists yet."
             />
           ) : filteredLists.length === 0 ? (
-            <div className="border px-3 py-2 text-xs profile-shell-border profile-shell-muted profile-shell-panel">
+            <div className="border px-3 py-2 text-xs shell-border shell-muted surface">
               No {listFilter === "all" ? "lists" : listFilter} liked yet.
             </div>
           ) : (

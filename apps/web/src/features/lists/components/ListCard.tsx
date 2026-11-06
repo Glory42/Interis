@@ -94,7 +94,7 @@ export const ListCard = memo(function ListCard({ list, username }: ListCardProps
           </p>
         ) : null}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-mono text-[11px] font-semibold profile-shell-accent">
+          <span className="font-mono text-[11px] font-semibold shell-accent">
             {list.itemCount}
           </span>
           <span className="font-mono text-[11px] text-muted-foreground">

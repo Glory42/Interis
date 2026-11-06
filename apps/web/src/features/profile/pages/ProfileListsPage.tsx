@@ -48,7 +48,7 @@ export const ProfileListsPage = ({ username }: ProfileListsPageProps) => {
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           Lists{" "}
           {!listsQuery.isPending ? (
-            <span className="profile-shell-accent">({lists.length})</span>
+            <span className="shell-accent">({lists.length})</span>
           ) : null}
         </p>
         {!listsQuery.isPending && lists.length > 0 ? (
@@ -63,14 +63,14 @@ export const ProfileListsPage = ({ username }: ProfileListsPageProps) => {
                   style={
                     isActive
                       ? {
-                          borderColor: "var(--profile-shell-accent)",
-                          color: "var(--profile-shell-accent)",
+                          borderColor: "var(--shell-accent)",
+                          color: "var(--shell-accent)",
                           background:
-                            "color-mix(in srgb, var(--profile-shell-accent) 8%, transparent)",
+                            "color-mix(in srgb, var(--shell-accent) 8%, transparent)",
                         }
                       : {
-                          borderColor: "var(--profile-shell-border)",
-                          color: "var(--profile-shell-muted)",
+                          borderColor: "var(--shell-border)",
+                          color: "var(--shell-muted)",
                           background: "transparent",
                         }
                   }

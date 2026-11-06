@@ -91,14 +91,14 @@ export const ProfileMediaInteractionGridSection = ({
                     style={
                       isActive
                         ? {
-                            borderColor: "var(--profile-shell-accent)",
-                            color: "var(--profile-shell-accent)",
+                            borderColor: "var(--shell-accent)",
+                            color: "var(--shell-accent)",
                             background:
-                              "color-mix(in srgb, var(--profile-shell-accent) 8%, transparent)",
+                              "color-mix(in srgb, var(--shell-accent) 8%, transparent)",
                           }
                         : {
-                            borderColor: "var(--profile-shell-border)",
-                            color: "var(--profile-shell-muted)",
+                            borderColor: "var(--shell-border)",
+                            color: "var(--shell-muted)",
                             background: "transparent",
                           }
                     }
@@ -114,7 +114,7 @@ export const ProfileMediaInteractionGridSection = ({
           </div>
 
           {items.length === 0 ? (
-            <div className="border px-3 py-2 text-xs profile-shell-border profile-shell-muted profile-shell-panel">
+            <div className="border px-3 py-2 text-xs shell-border shell-muted surface">
               No {activeFilter === "all" ? "items" : activeFilter} {interactionVerb} yet.
             </div>
           ) : (

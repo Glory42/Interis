@@ -15,7 +15,7 @@ export const LikedMediaGrid = ({
 }) => {
   if (items.length === 0) {
     return (
-      <div className="border px-3 py-2 text-xs profile-shell-border profile-shell-muted profile-shell-panel">
+      <div className="border px-3 py-2 text-xs shell-border shell-muted surface">
         No {filter === "all" ? "items" : filter} liked yet.
       </div>
     );

@@ -106,23 +106,13 @@
   --module-movie: #ebbcba;
   --module-serial: #9ccfd8;
   --module-neutral: #908caa;
-  --profile-shell-bg: color-mix(in srgb, var(--background) 88%, black);
-  --profile-shell-fg: var(--foreground);
-  --profile-shell-muted: color-mix(in srgb, var(--foreground) 36%, transparent);
-  --profile-shell-accent: var(--primary);
-  --profile-shell-border: color-mix(in srgb, var(--primary) 24%, transparent);
-  --profile-shell-row-border: color-mix(in srgb, var(--primary) 12%, transparent);
-  --settings-shell-bg: var(--profile-shell-bg);
-  --settings-shell-fg: var(--profile-shell-fg);
-  --settings-shell-muted: color-mix(in srgb, var(--foreground) 30%, transparent);
-  --settings-shell-dim: color-mix(in srgb, var(--foreground) 58%, transparent);
-  --settings-shell-accent: var(--primary);
-  --settings-shell-border: color-mix(in srgb, var(--primary) 22%, transparent);
-  --settings-shell-row-border: color-mix(in srgb, var(--primary) 12%, transparent);
-  --developer-shell-bg: var(--profile-shell-bg);
-  --developer-shell-fg: var(--profile-shell-fg);
-  --developer-shell-muted: color-mix(in srgb, var(--foreground) 30%, transparent);
-  --developer-shell-border: color-mix(in srgb, var(--primary) 22%, transparent);
+  /* Page shells (profile, settings, developer) share one set. */
+  --shell-bg: color-mix(in srgb, var(--background) 88%, black);
+  --shell-fg: var(--fg);
+  --shell-muted: var(--muted-foreground);
+  --shell-accent: var(--primary);
+  --shell-border: var(--line-strong);
+  --shell-row-border: var(--line);
   --surface-card-bg: color-mix(in srgb, var(--card) 55%, var(--background) 45%);
   --surface-card-border: color-mix(in srgb, var(--foreground) 14%, transparent);
   --surface-card-border-hover: color-mix(in srgb, var(--foreground) 24%, transparent);
@@ -614,35 +604,61 @@
     text-shadow: var(--theme-display-shadow);
   }
 
-  .profile-shell {
-    background: var(--profile-shell-bg);
-    color: var(--profile-shell-fg);
+  .shell {
+    background: var(--shell-bg);
+    color: var(--shell-fg);
   }
 
-  .profile-shell-muted {
-    color: var(--profile-shell-muted);
+  .shell-muted {
+    color: var(--shell-muted);
   }
 
-  .profile-shell-accent {
-    color: var(--profile-shell-accent);
+  .shell-accent {
+    color: var(--shell-accent);
   }
 
-  .profile-shell-border {
-    border-color: var(--profile-shell-border);
+  .shell-border {
+    border-color: var(--shell-border);
   }
 
-  .profile-shell-row-border {
-    border-color: var(--profile-shell-row-border);
+  .shell-row-border {
+    border-color: var(--shell-row-border);
   }
 
-  .profile-shell-panel {
-    background: var(--surface-card-bg);
-    border: 1px solid var(--surface-card-border);
+  .shell-bio {
+    font-family: Georgia, "Times New Roman", serif;
+  }
+
+  .shell-input {
+    background: var(--shell-bg);
+  }
+
+  .shell-dot {
+    background: var(--shell-accent);
+  }
+
+  .shell-active-pill {
+    background: color-mix(in srgb, var(--shell-accent) 9%, transparent);
     border-radius: var(--radius-xl);
   }
 
-  .profile-shell-bio {
-    font-family: Georgia, "Times New Roman", serif;
+  .shell-active-option {
+    border-color: var(--shell-accent);
+    background: color-mix(in srgb, var(--shell-accent) 7%, transparent);
+    border-radius: var(--radius-lg);
+  }
+
+  .shell-danger-option {
+    border-color: color-mix(in srgb, var(--destructive) 48%, transparent);
+    color: var(--destructive);
+    background: color-mix(in srgb, var(--destructive) 8%, transparent);
+    border-radius: var(--radius-lg);
+  }
+
+  .surface {
+    background: var(--surface-card-bg);
+    border: 1px solid var(--surface-card-border);
+    border-radius: var(--radius-xl);
   }
 
   .surface-card {
@@ -654,100 +670,6 @@
 
   .surface-card:hover {
     border-color: var(--surface-card-border-hover);
-  }
-
-  .settings-shell {
-    background: var(--settings-shell-bg);
-    color: var(--settings-shell-fg);
-  }
-
-  .settings-shell-muted {
-    color: var(--settings-shell-muted);
-  }
-
-  .settings-shell-dim-text {
-    color: var(--settings-shell-dim);
-  }
-
-  .settings-shell-accent {
-    color: var(--settings-shell-accent);
-  }
-
-  .settings-shell-border {
-    border-color: var(--settings-shell-border);
-  }
-
-  .settings-shell-row-border {
-    border-color: var(--settings-shell-row-border);
-  }
-
-  .settings-shell-panel {
-    background: var(--surface-card-bg);
-    border: 1px solid var(--surface-card-border);
-    border-radius: var(--radius-xl);
-  }
-
-  .settings-shell-input {
-    background: var(--settings-shell-bg);
-  }
-
-  .settings-shell-bio {
-    font-family: Georgia, "Times New Roman", serif;
-  }
-
-  .settings-shell-dot {
-    background: var(--settings-shell-accent);
-  }
-
-  .settings-shell-active-pill {
-    background: color-mix(in srgb, var(--settings-shell-accent) 9%, transparent);
-    border-radius: var(--radius-xl);
-  }
-
-  .developer-shell {
-    background: var(--developer-shell-bg);
-    color: var(--developer-shell-fg);
-  }
-
-  .developer-shell-muted {
-    color: var(--developer-shell-muted);
-  }
-
-  .developer-shell-border {
-    border-color: var(--developer-shell-border);
-  }
-
-  .developer-shell-panel {
-    background: var(--surface-card-bg);
-    border: 1px solid var(--surface-card-border);
-    border-radius: var(--radius-xl);
-  }
-
-  .settings-shell-nav-idle {
-    border-color: var(--settings-shell-row-border) var(--settings-shell-row-border)
-      var(--settings-shell-row-border) transparent;
-    background: transparent;
-    color: var(--settings-shell-dim);
-  }
-
-  .settings-shell-nav-active {
-    border-color: var(--settings-shell-row-border) var(--settings-shell-row-border)
-      var(--settings-shell-row-border) var(--settings-shell-accent);
-    background: color-mix(in srgb, var(--settings-shell-accent) 10%, transparent);
-    color: var(--settings-shell-accent);
-  }
-
-  .settings-shell-active-option {
-    border-color: var(--settings-shell-accent);
-    background: color-mix(in srgb, var(--settings-shell-accent) 7%, transparent);
-    border-radius: var(--radius-lg);
-  }
-
-  .settings-shell-danger-option {
-    border-color: color-mix(in srgb, var(--destructive) 48%, transparent);
-    color: var(--destructive);
-    background: color-mix(in srgb, var(--destructive) 8%, transparent);
-    border-radius: var(--radius-lg);
   }
 }
 

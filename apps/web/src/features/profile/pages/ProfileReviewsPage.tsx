@@ -76,9 +76,9 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
 
       <div className="space-y-3">
         <div className="mb-4 flex items-center justify-between">
-          <p className="font-mono text-[10px] uppercase tracking-widest profile-shell-accent">
+          <p className="font-mono text-[10px] uppercase tracking-widest shell-accent">
             <span>Reviews </span>
-            <span className="profile-shell-muted">({reviews.length})</span>
+            <span className="shell-muted">({reviews.length})</span>
           </p>
         </div>
 
@@ -104,8 +104,8 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
                     style={{
                       width: 68,
                       height: 102,
-                      borderColor: "var(--profile-shell-row-border)",
-                      background: "color-mix(in srgb, var(--profile-shell-bg) 85%, black)",
+                      borderColor: "var(--shell-row-border)",
+                      background: "color-mix(in srgb, var(--shell-bg) 85%, black)",
                     }}
                   >
                     <img
@@ -128,8 +128,8 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
                     style={{
                       width: 68,
                       height: 102,
-                      borderColor: "var(--profile-shell-row-border)",
-                      background: "color-mix(in srgb, var(--profile-shell-bg) 85%, black)",
+                      borderColor: "var(--shell-row-border)",
+                      background: "color-mix(in srgb, var(--shell-bg) 85%, black)",
                     }}
                   >
                     <img
@@ -148,12 +148,12 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
                     to="/reviews/$username/$reviewId"
                     params={{ username, reviewId: entry.id }}
                     className="font-sans text-sm font-semibold leading-snug hover:underline"
-                    style={{ color: "var(--profile-shell-fg)" }}
+                    style={{ color: "var(--shell-fg)" }}
                     viewTransition
                   >
                     {entry.title}
                     {entry.releaseYear ? (
-                      <span className="profile-shell-muted"> ({entry.releaseYear})</span>
+                      <span className="shell-muted"> ({entry.releaseYear})</span>
                     ) : null}
                   </Link>
 
@@ -173,7 +173,7 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
                     rating={entry.rating ?? null}
                     color={mediaMetaByType[entry.mediaType].color}
                   />
-                  <span className="font-mono text-[9px] profile-shell-muted">
+                  <span className="font-mono text-[9px] shell-muted">
                     Reviewed on {formatDate(entry.createdAt)}
                   </span>
                 </div>
@@ -199,7 +199,7 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
                     to="/reviews/$username/$reviewId"
                     params={{ username, reviewId: entry.id }}
                     className="block whitespace-pre-wrap font-mono text-xs leading-relaxed transition-colors"
-                    style={{ color: "color-mix(in srgb, var(--profile-shell-fg) 58%, transparent)" }}
+                    style={{ color: "color-mix(in srgb, var(--shell-fg) 58%, transparent)" }}
                     viewTransition
                   >
                     {entry.content}

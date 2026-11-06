@@ -42,22 +42,22 @@ export const DiaryRow = ({ row, username, isOwner = false }: DiaryRowProps) => {
         "group grid grid-cols-[1fr] items-center gap-3 border-b px-2 py-3 transition-colors hover:bg-white/[0.015]",
         diaryGridColumns(isOwner),
       )}
-      style={{ borderColor: "var(--profile-shell-row-border)" }}
+      style={{ borderColor: "var(--shell-row-border)" }}
     >
       <div className="hidden md:flex">
         {row.showMonthCell ? (
           <div
             className="flex h-14 w-16 flex-col items-center justify-center rounded-lg border"
             style={{
-              borderColor: "var(--profile-shell-border)",
+              borderColor: "var(--shell-border)",
               background:
-                "color-mix(in srgb, var(--profile-shell-accent) 12%, var(--profile-shell-bg))",
+                "color-mix(in srgb, var(--shell-accent) 12%, var(--shell-bg))",
             }}
           >
-            <span className="font-mono text-[9px] font-bold uppercase tracking-widest profile-shell-accent">
+            <span className="font-mono text-[9px] font-bold uppercase tracking-widest shell-accent">
               {row.dateParts.month}
             </span>
-            <span className="font-mono text-[10px] profile-shell-muted">{row.dateParts.year}</span>
+            <span className="font-mono text-[10px] shell-muted">{row.dateParts.year}</span>
           </div>
         ) : (
           <div className="h-14 w-16" />
@@ -65,7 +65,7 @@ export const DiaryRow = ({ row, username, isOwner = false }: DiaryRowProps) => {
       </div>
 
       <div className="hidden md:block">
-        <span className="font-mono text-xl font-bold profile-shell-muted">{row.dateParts.day}</span>
+        <span className="font-mono text-xl font-bold shell-muted">{row.dateParts.day}</span>
       </div>
 
       <div className="hidden md:block">
@@ -76,7 +76,7 @@ export const DiaryRow = ({ row, username, isOwner = false }: DiaryRowProps) => {
 
       <div className="min-w-0">
         <div className="mb-1 flex items-center gap-2 md:hidden">
-          <span className="font-mono text-[9px] uppercase tracking-widest profile-shell-accent">
+          <span className="font-mono text-[9px] uppercase tracking-widest shell-accent">
             {row.dateParts.month} {row.dateParts.day}
           </span>
           <span
@@ -91,12 +91,12 @@ export const DiaryRow = ({ row, username, isOwner = false }: DiaryRowProps) => {
         </div>
 
         <DiaryMediaLink row={row} className="block truncate font-sans text-sm font-medium">
-          <span style={{ color: "var(--profile-shell-fg)" }}>{row.title}</span>
+          <span style={{ color: "var(--shell-fg)" }}>{row.title}</span>
         </DiaryMediaLink>
 
         <div className="mt-1 flex items-center gap-3 md:hidden">
           <DiaryRatingStars rating={row.rating} color={channelMeta.color} />
-          <span className="font-mono text-[9px] profile-shell-muted">{row.releaseYear ?? "----"}</span>
+          <span className="font-mono text-[9px] shell-muted">{row.releaseYear ?? "----"}</span>
           {row.reviewId ? (
             <Link
               to="/reviews/$username/$reviewId"
@@ -113,7 +113,7 @@ export const DiaryRow = ({ row, username, isOwner = false }: DiaryRowProps) => {
       </div>
 
       <div className="hidden md:block">
-        <span className="font-mono text-xs profile-shell-muted">{row.releaseYear ?? "----"}</span>
+        <span className="font-mono text-xs shell-muted">{row.releaseYear ?? "----"}</span>
       </div>
 
       <div className="hidden items-center md:flex">
@@ -124,8 +124,8 @@ export const DiaryRow = ({ row, username, isOwner = false }: DiaryRowProps) => {
         <Heart
           className="h-3.5 w-3.5 transition-colors"
           style={{
-            color: row.isLiked ? "var(--profile-shell-accent)" : "var(--profile-shell-muted)",
-            fill: row.isLiked ? "var(--profile-shell-accent)" : "none",
+            color: row.isLiked ? "var(--shell-accent)" : "var(--shell-muted)",
+            fill: row.isLiked ? "var(--shell-accent)" : "none",
           }}
           aria-label={row.isLiked ? "Liked" : "Like"}
         />

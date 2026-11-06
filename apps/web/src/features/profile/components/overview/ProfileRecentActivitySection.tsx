@@ -28,7 +28,7 @@ const ActivityThumbnail = ({ item }: { item: ProfileRecentActivityItem }) => {
       className="h-10 w-7 shrink-0 overflow-hidden rounded-md border"
       style={{
         borderColor: `color-mix(in srgb, ${accentColor} 30%, transparent)`,
-        background: "color-mix(in srgb, var(--profile-shell-bg) 85%, black)",
+        background: "color-mix(in srgb, var(--shell-bg) 85%, black)",
       }}
     >
       {showPoster ? (
@@ -54,25 +54,25 @@ export const ProfileRecentActivitySection = ({
 }: ProfileRecentActivitySectionProps) => {
   return (
     <section>
-      <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] profile-shell-accent">
+      <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] shell-accent">
         Recent Activity
       </p>
 
       <div className="space-y-0">
         {isPending && activities.length === 0 ? (
-          <div className="border-b py-3 font-mono text-xs profile-shell-row-border profile-shell-muted">
+          <div className="border-b py-3 font-mono text-xs shell-row-border shell-muted">
             Loading recent activity...
           </div>
         ) : null}
 
         {isError && activities.length === 0 ? (
-          <div className="border-b py-3 font-mono text-xs text-destructive profile-shell-row-border">
+          <div className="border-b py-3 font-mono text-xs text-destructive shell-row-border">
             Could not load recent activity.
           </div>
         ) : null}
 
         {!isPending && !isError && activities.length === 0 ? (
-          <div className="border-b py-3 font-mono text-xs profile-shell-row-border profile-shell-muted">
+          <div className="border-b py-3 font-mono text-xs shell-row-border shell-muted">
             No recent activity yet.
           </div>
         ) : null}
@@ -95,14 +95,14 @@ export const ProfileRecentActivitySection = ({
               <ActivityThumbnail item={item} />
 
               <div className="min-w-0 flex-1">
-                <span className="font-mono text-xs profile-shell-muted">
+                <span className="font-mono text-xs shell-muted">
                   {formatActionLabel(item.actionLabel)}{" "}
                 </span>
                 <span className="font-mono text-xs font-bold text-foreground">
                   {item.mediaTitle}
                 </span>
                 {item.ratingLabel ? (
-                  <span className="font-mono text-xs profile-shell-muted">
+                  <span className="font-mono text-xs shell-muted">
                     {" "}
                     · {item.ratingLabel}
                   </span>
@@ -119,7 +119,7 @@ export const ProfileRecentActivitySection = ({
                 {mediaLabel}
               </span>
 
-              <span className="shrink-0 font-mono text-[10px] profile-shell-muted">
+              <span className="shrink-0 font-mono text-[10px] shell-muted">
                 {getRelativeTime(item.createdAt)}
               </span>
             </>
@@ -130,7 +130,7 @@ export const ProfileRecentActivitySection = ({
               key={item.id}
               to="/serials/$tmdbId"
               params={{ tmdbId: String(item.tmdbId) }}
-              className="flex items-center gap-4 border-b py-3 transition-colors hover:bg-background/25 profile-shell-row-border"
+              className="flex items-center gap-4 border-b py-3 transition-colors hover:bg-background/25 shell-row-border"
               viewTransition
             >
               {rowInner}
@@ -140,7 +140,7 @@ export const ProfileRecentActivitySection = ({
               key={item.id}
               to="/movies/$tmdbId"
               params={{ tmdbId: String(item.tmdbId) }}
-              className="flex items-center gap-4 border-b py-3 transition-colors hover:bg-background/25 profile-shell-row-border"
+              className="flex items-center gap-4 border-b py-3 transition-colors hover:bg-background/25 shell-row-border"
               viewTransition
             >
               {rowInner}

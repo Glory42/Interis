@@ -83,8 +83,8 @@ const TopPickSlot = ({
     <div
       className="aspect-[2/3] overflow-hidden rounded-lg border"
       style={{
-        borderColor: "var(--profile-shell-row-border)",
-        background: "color-mix(in srgb, var(--profile-shell-bg) 85%, black)",
+        borderColor: "var(--shell-row-border)",
+        background: "color-mix(in srgb, var(--shell-bg) 85%, black)",
       }}
     >
       {showPoster ? (
@@ -103,7 +103,7 @@ const TopPickSlot = ({
             style={{ color: meta.color, opacity: 0.4 }}
             aria-hidden="true"
           />
-          <p className="line-clamp-2 text-center text-[10px] leading-tight profile-shell-muted">
+          <p className="line-clamp-2 text-center text-[10px] leading-tight shell-muted">
             {title}
           </p>
         </div>

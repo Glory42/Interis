@@ -31,11 +31,11 @@ const StatItem = ({
   const content = (
     <>
       <p className="text-xl font-bold text-foreground">{value}</p>
-      <p className="text-[10px] uppercase tracking-wide profile-shell-muted">{label}</p>
+      <p className="text-[10px] uppercase tracking-wide shell-muted">{label}</p>
     </>
   );
   const className = `px-4 text-center first:pl-0 last:pr-0 ${onClick ? "transition-opacity hover:opacity-70" : ""}`;
-  const style = isFirst ? undefined : { borderColor: "var(--profile-shell-row-border)" };
+  const style = isFirst ? undefined : { borderColor: "var(--shell-row-border)" };
 
   if (!onClick) {
     return (
@@ -89,7 +89,7 @@ export const ProfileHeaderCompact = ({
             <img
               src={avatarUrl}
               alt="Profile avatar"
-              className="h-28 w-28 rounded-full border-2 object-cover profile-shell-border"
+              className="h-28 w-28 rounded-full border-2 object-cover shell-border"
               onError={() => {
                 if (rawAvatarUrl) {
                   setFailedAvatarUrl(rawAvatarUrl);
@@ -101,7 +101,7 @@ export const ProfileHeaderCompact = ({
             />
           ) : (
             <span
-              className="inline-flex h-28 w-28 items-center justify-center rounded-full border-2 font-mono text-3xl font-bold profile-shell-accent profile-shell-border"
+              className="inline-flex h-28 w-28 items-center justify-center rounded-full border-2 font-mono text-3xl font-bold shell-accent shell-border"
               style={{
                 backgroundColor: "color-mix(in srgb, var(--primary) 8%, transparent)",
               }}
@@ -114,7 +114,7 @@ export const ProfileHeaderCompact = ({
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-bold text-foreground">{displayName}</h1>
-            <span className="text-sm profile-shell-accent">@{profile.username}</span>
+            <span className="text-sm shell-accent">@{profile.username}</span>
             {headerAction}
           </div>
 
@@ -124,18 +124,18 @@ export const ProfileHeaderCompact = ({
             </p>
           ) : null}
 
-          <p className="profile-shell-bio profile-shell-muted mt-2 max-w-md text-sm leading-relaxed">
+          <p className="shell-bio shell-muted mt-2 max-w-md text-sm leading-relaxed">
             {profile.bio?.trim().length ? profile.bio : "No bio yet."}
           </p>
 
-          <p className="mt-2.5 flex items-center gap-1 text-xs profile-shell-muted">
+          <p className="mt-2.5 flex items-center gap-1 text-xs shell-muted">
             <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
             {locationLabel}
           </p>
 
           {favoriteGenres.length > 0 ? (
-            <p className="mt-2.5 text-xs profile-shell-muted">
-              <span className="profile-shell-accent">Enjoys</span> {favoriteGenres.join(" · ")}
+            <p className="mt-2.5 text-xs shell-muted">
+              <span className="shell-accent">Enjoys</span> {favoriteGenres.join(" · ")}
             </p>
           ) : null}
         </div>

@@ -110,7 +110,7 @@ export const ProfileTabs = ({ username, activeTab }: ProfileTabsProps) => {
           style={{
             transform: `translateX(${indicator.left}px)`,
             width: indicator.width,
-            background: "var(--profile-shell-accent)",
+            background: "var(--shell-accent)",
           }}
         />
       ) : null}
@@ -130,7 +130,7 @@ export const ProfileTabs = ({ username, activeTab }: ProfileTabsProps) => {
             to={tab.to}
             params={{ username }}
             className={tabClass}
-            style={{ color: isActive ? "var(--profile-shell-accent)" : "var(--profile-shell-muted)" }}
+            style={{ color: isActive ? "var(--shell-accent)" : "var(--shell-muted)" }}
             resetScroll={false}
             aria-label={tab.label}
           >
