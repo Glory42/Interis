@@ -9,10 +9,16 @@ import {
 import { dedupeReviewFeedItems } from "../helpers/social-feed-dedupe.helper";
 import { inferFeedItemMediaType } from "../helpers/social-feed-channel.helper";
 import { toFeedItem } from "../helpers/social-feed-item.helper";
+import { groupFeedItems, toUtcDayKey } from "../helpers/social-feed-grouping.helper";
 import { decodeFeedCursor, encodeFeedCursor } from "../helpers/social-feed-cursor.helper";
 import { SocialRepository } from "../repositories/social.repository";
 import { ModerationRepository } from "../../moderation/repositories/moderation.repository";
-import type { ActivityRow, FeedItem, FeedMediaType } from "../types/social-feed.types";
+import type {
+  ActivityRow,
+  FeedItem,
+  FeedMediaType,
+  GroupedFeedEntry,
+} from "../types/social-feed.types";
 
 // Safety cap on how many raw activity rows a single filtered request will
 // scan looking for matches (e.g. a viewer whose followed users have logged
@@ -171,6 +177,52 @@ const getFollowingFeedUncached = async (
   return { items: collected, nextCursor };
 };
 
+export type GroupedFeedPage = {
+  items: GroupedFeedEntry[];
+  nextCursor: string | null;
+};
+
+// Pages end on a day boundary when the next row is from the same day, so a
+// title's same-day group never splits across two pages.
+const getGroupedFollowingFeedUncached = async (
+  userId: string,
+  limit?: number,
+  cursor?: string,
+): Promise<GroupedFeedPage> => {
+  const fetchLimit = normalizeLimit(limit) * 2;
+  const feedUserIds = await getFeedUserIds(userId);
+  const rows = await SocialRepository.getFeedActivityRows(
+    feedUserIds,
+    fetchLimit + 1,
+    decodeFeedCursor(cursor),
+  );
+
+  const peekRow = rows.length > fetchLimit ? rows[fetchLimit] : undefined;
+  let pageRows = rows.slice(0, fetchLimit);
+  const lastDay = pageRows.at(-1) ? toUtcDayKey(pageRows.at(-1)!.activity.createdAt) : null;
+  const firstDay = pageRows[0] ? toUtcDayKey(pageRows[0].activity.createdAt) : null;
+  if (peekRow && lastDay !== firstDay && toUtcDayKey(peekRow.activity.createdAt) === lastDay) {
+    pageRows = pageRows.filter((row) => toUtcDayKey(row.activity.createdAt) !== lastDay);
+  }
+
+  const items = groupFeedItems(await buildFeedItems(pageRows, userId));
+  const lastRow = pageRows.at(-1);
+
+  return {
+    items,
+    nextCursor:
+      peekRow && lastRow
+        ? encodeFeedCursor({ createdAt: lastRow.activity.createdAt, id: lastRow.activity.id })
+        : null,
+  };
+};
+
+const cachedGetGroupedFollowingFeed = createTtlCache(getGroupedFollowingFeedUncached, {
+  ttlMs: FEED_CACHE_TTL_MS,
+  keyFn: (userId: string, limit?: number, cursor?: string) =>
+    `${userId}:${limit ?? ""}:${cursor ?? ""}`,
+});
+
 const cachedGetFollowingFeed = createTtlCache(getFollowingFeedUncached, {
   ttlMs: FEED_CACHE_TTL_MS,
   keyFn: (userId: string, limit?: number, cursor?: string, mediaType?: FeedMediaType) =>
@@ -209,6 +261,14 @@ export class SocialFeedService {
     return cachedGetFollowingFeed(userId, limit, cursor, mediaType);
   }
 
+  static async getGroupedFollowingFeed(
+    userId: string,
+    limit?: number,
+    cursor?: string,
+  ): Promise<GroupedFeedPage> {
+    return cachedGetGroupedFollowingFeed(userId, limit, cursor);
+  }
+
   static async getUserActivityFeed(userId: string, limit?: number): Promise<FeedItem[]> {
     return cachedGetUserActivityFeed(userId, limit);
   }
@@ -220,6 +280,7 @@ export class SocialFeedService {
   // not serve meaningfully stale data" premise.
   static invalidateFollowingFeed(userId: string): void {
     cachedGetFollowingFeed.invalidatePrefix(`${userId}:`);
+    cachedGetGroupedFollowingFeed.invalidatePrefix(`${userId}:`);
   }
 
   // The public profile's activity list, cached per actor.
