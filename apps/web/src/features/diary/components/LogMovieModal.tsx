@@ -56,6 +56,7 @@ export const LogMovieModal = ({
     likedFromInteraction: interactionQuery.data?.liked ?? false,
     submitLog: (input) => createDiaryMutation.mutateAsync({ tmdbId, ...input }),
     updateLiked: (liked) => updateInteractionMutation.mutateAsync({ liked }),
+    draftKey: `movie:${tmdbId}`,
   });
 
   if (!user) {
@@ -89,7 +90,6 @@ export const LogMovieModal = ({
               accent="movie"
               title={movieTitle}
               year={movieReleaseYear}
-              yearDescriptionLabel="Released in"
               posterUrl={getPosterUrl(moviePosterPath)}
               watchedDate={submission.watchedDate}
               rating={submission.rating}

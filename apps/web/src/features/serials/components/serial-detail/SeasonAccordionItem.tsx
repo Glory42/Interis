@@ -271,7 +271,7 @@ export const SeasonAccordionItem = ({
         <LogMediaDialog
           accent="serial"
           title={season.name || `Season ${season.seasonNumber}`}
-          subtitle="Season Review"
+          subtitle={`S${String(season.seasonNumber).padStart(2, "0")}`}
           posterUrl={getPosterUrl(season.posterPath)}
           review={reviewDraft.content}
           onReviewChange={reviewDraft.onContentChange}
@@ -304,8 +304,8 @@ export const SeasonAccordionItem = ({
         return createPortal(
           <LogMediaDialog
             accent="serial"
-            title={season.name || `Season ${season.seasonNumber}`}
-            subtitle={`Episode ${activeReviewModal.episodeNumber}: ${activeReviewModal.episodeName}`}
+            title={activeReviewModal.episodeName || `Episode ${activeReviewModal.episodeNumber}`}
+            subtitle={`S${String(season.seasonNumber).padStart(2, "0")} · E${String(activeReviewModal.episodeNumber).padStart(2, "0")}`}
             posterUrl={getPosterUrl(season.posterPath)}
             review={reviewDraft.content}
             onReviewChange={reviewDraft.onContentChange}

@@ -37,6 +37,38 @@ describe("useMediaLogSubmission", () => {
     expect(onOpenChange).toHaveBeenCalledWith(true);
   });
 
+  it("keeps a half-written review across a reload until it's posted", async () => {
+    const renderLogForm = () =>
+      renderHook(() =>
+        useMediaLogSubmission({
+          isOpen: true,
+          onOpenChange: vi.fn(),
+          likedFromInteraction: false,
+          submitLog: vi.fn().mockResolvedValue(undefined),
+          updateLiked: vi.fn().mockResolvedValue(undefined),
+          draftKey: "movie:550",
+        }),
+      );
+
+    const first = renderLogForm();
+    act(() => first.result.current.openModal());
+    act(() => first.result.current.setReview("Half a thought"));
+    first.unmount();
+
+    const second = renderLogForm();
+    act(() => second.result.current.openModal());
+    expect(second.result.current.review).toBe("Half a thought");
+
+    await act(async () => {
+      await second.result.current.handleSubmit(buildEvent());
+    });
+    second.unmount();
+
+    const third = renderLogForm();
+    act(() => third.result.current.openModal());
+    expect(third.result.current.review).toBe("");
+  });
+
   it("falls back to likedFromInteraction until the user manually overrides it", () => {
     const { result, rerender } = renderHook(
       ({ likedFromInteraction }) =>
