@@ -154,7 +154,7 @@ describe("admin", () => {
       {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ newPassword }),
+        body: JSON.stringify({ newPassword, adminPassword: admin.password }),
       },
       admin.jar,
     );
