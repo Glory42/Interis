@@ -21,6 +21,8 @@ const API_LIMIT_PRODUCTION = 300;
 const API_LIMIT_TEST = 5000;
 const MUTATION_LIMIT_PRODUCTION = 60;
 const MUTATION_LIMIT_TEST = 1000;
+const ADMIN_REAUTH_LIMIT_PRODUCTION = 10;
+const ADMIN_REAUTH_LIMIT_TEST = 1000;
 
 const resolveMax = (production: number, test: number, override?: number): number => {
   if (override !== undefined) {
@@ -67,4 +69,17 @@ export const createMutationLimiter = (max?: number): RateLimitRequestHandler =>
     legacyHeaders: false,
     message: RATE_LIMIT_MESSAGE,
     skip: (req) => SAFE_METHODS.has(req.method),
+  });
+
+// Caps wrong admin-password attempts on admin account actions, so a stolen
+// admin session can't brute-force its way past the password check.
+export const createAdminReauthLimiter = (max?: number): RateLimitRequestHandler =>
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: resolveMax(ADMIN_REAUTH_LIMIT_PRODUCTION, ADMIN_REAUTH_LIMIT_TEST, max),
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: RATE_LIMIT_MESSAGE,
+    skip: (req) => SAFE_METHODS.has(req.method),
+    skipSuccessfulRequests: true,
   });

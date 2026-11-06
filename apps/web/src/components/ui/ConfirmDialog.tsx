@@ -90,7 +90,12 @@ export const ConfirmDialog = ({
   if (variant === "panel") {
     return (
       <ModalShell onClose={onClose} containerClassName={maxWidthClassName} ariaCloseLabel={`Close ${title} dialog`}>
-        <section className="theme-modal-panel relative w-full border border-border/80 bg-card/95 p-0 animate-fade-up">
+        <section
+          role="dialog"
+          aria-modal="true"
+          aria-label={title}
+          className="theme-modal-panel relative w-full border border-border/80 bg-card/95 p-0 animate-fade-up"
+        >
           <ModalHeader title={title} onClose={onClose} closeAriaLabel={`Close ${title} dialog`} />
 
           <div className="space-y-3 px-4 py-4">
@@ -111,7 +116,12 @@ export const ConfirmDialog = ({
 
   return (
     <ModalShell onClose={onClose} containerClassName={maxWidthClassName} overlayClassName="z-150">
-      <section className="theme-modal-panel relative w-full border border-border/80 bg-card/95 p-5 animate-fade-up">
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className="theme-modal-panel relative w-full border border-border/80 bg-card/95 p-5 animate-fade-up"
+      >
         <h2 className="text-sm font-bold text-foreground">{title}</h2>
 
         {description ? (

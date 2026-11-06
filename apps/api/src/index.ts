@@ -14,6 +14,7 @@ import { helmetMiddleware } from "./commons/middlewares/helmet";
 import { blockCrawlers } from "./commons/middlewares/blockCrawlers";
 import { requireTrustedOriginForMutations } from "./commons/middlewares/requireTrustedOriginForMutations";
 import {
+  createAdminReauthLimiter,
   createAuthLimiter,
   createApiLimiter,
   createMutationLimiter,
@@ -28,6 +29,7 @@ export type RateLimiterOverrides = {
   auth?: number;
   api?: number;
   mutation?: number;
+  adminReauth?: number;
 };
 
 export type CreateAppOptions = {
@@ -40,6 +42,7 @@ export const createApp = (options: CreateAppOptions = {}) => {
   const authLimiter = createAuthLimiter(options.rateLimiterOverrides?.auth);
   const apiLimiter = createApiLimiter(options.rateLimiterOverrides?.api);
   const mutationLimiter = createMutationLimiter(options.rateLimiterOverrides?.mutation);
+  const adminReauthLimiter = createAdminReauthLimiter(options.rateLimiterOverrides?.adminReauth);
 
   app.disable("x-powered-by");
   app.use(helmetMiddleware);
@@ -96,6 +99,7 @@ export const createApp = (options: CreateAppOptions = {}) => {
   app.use("/api", mutationLimiter);
   app.use(requireTrustedOriginForMutations(trustedOrigins));
   app.use("/api/auth", authLimiter);
+  app.use("/api/admin/users", adminReauthLimiter);
   // Tighter body-size limit for auth payloads than the rest of the API.
   app.use("/api/auth", express.json({ limit: "20kb" }));
 

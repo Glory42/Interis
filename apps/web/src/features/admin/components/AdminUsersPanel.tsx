@@ -7,12 +7,7 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { AdminPanelHeader } from "@/features/admin/components/AdminPanelHeader";
 import { AdminPanelState } from "@/features/admin/components/AdminPanelState";
 import { AdminSearchInput } from "@/features/admin/components/AdminSearchInput";
-import {
-  DeleteUserAction,
-  ResetPasswordAction,
-  RoleAction,
-  SuspendAction,
-} from "@/features/admin/components/AdminUserRowActions";
+import { UserRowActions } from "@/features/admin/components/AdminUserRowActions";
 import { useAdminUsers } from "@/features/admin/hooks/useAdmin";
 import { formatRelativeTime } from "@/lib/time";
 
@@ -81,16 +76,7 @@ export const AdminUsersPanel = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1">
-                        <ResetPasswordAction username={adminUser.username} />
-                        {viewer?.username !== adminUser.username ? (
-                          <>
-                            <RoleAction user={adminUser} />
-                            <SuspendAction user={adminUser} />
-                            <DeleteUserAction username={adminUser.username} />
-                          </>
-                        ) : null}
-                      </div>
+                      <UserRowActions user={adminUser} viewerUsername={viewer?.username} />
                     </TableCell>
                   </TableRow>
                 ))}

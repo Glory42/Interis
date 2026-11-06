@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { sendBadRequest, sendValidationError } from "../../commons/http/validation-response.helper";
 import { AdminService } from "./admin.service";
 import {
+  AdminPasswordConfirmSchema,
   AdminResetPasswordSchema,
   AdminSuspendUserSchema,
   ListUsersQuerySchema,
@@ -37,13 +38,23 @@ export class AdminController {
     req: Request<{ username: string }>,
     res: Response,
   ): Promise<void> {
+    if (isSelfTarget(req)) {
+      sendBadRequest(res, "Change your own password from account settings");
+      return;
+    }
+
     const parsed = AdminResetPasswordSchema.safeParse(req.body);
     if (!parsed.success) {
       sendValidationError(res, parsed.error);
       return;
     }
 
-    await AdminService.resetUserPassword(req.params.username, parsed.data.newPassword);
+    await AdminService.resetUserPassword(
+      req.user.id,
+      parsed.data.adminPassword,
+      req.params.username,
+      parsed.data.newPassword,
+    );
     res.status(200).json({ success: true });
   }
 
@@ -63,7 +74,12 @@ export class AdminController {
       return;
     }
 
-    await AdminService.suspendUser(req.params.username, parsed.data.reason);
+    await AdminService.suspendUser(
+      req.user.id,
+      parsed.data.adminPassword,
+      req.params.username,
+      parsed.data.reason,
+    );
     res.status(200).json({ success: true });
   }
 
@@ -81,7 +97,18 @@ export class AdminController {
     req: Request<{ username: string }>,
     res: Response,
   ): Promise<void> {
-    await AdminService.promoteUser(req.params.username);
+    if (isSelfTarget(req)) {
+      sendBadRequest(res, "You cannot change your own role");
+      return;
+    }
+
+    const parsed = AdminPasswordConfirmSchema.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    await AdminService.promoteUser(req.user.id, parsed.data.adminPassword, req.params.username);
     res.status(200).json({ success: true });
   }
 
@@ -95,7 +122,13 @@ export class AdminController {
       return;
     }
 
-    await AdminService.demoteUser(req.params.username);
+    const parsed = AdminPasswordConfirmSchema.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    await AdminService.demoteUser(req.user.id, parsed.data.adminPassword, req.params.username);
     res.status(200).json({ success: true });
   }
 
@@ -109,7 +142,13 @@ export class AdminController {
       return;
     }
 
-    await AdminService.deleteUser(req.params.username);
+    const parsed = AdminPasswordConfirmSchema.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    await AdminService.deleteUser(req.user.id, parsed.data.adminPassword, req.params.username);
     res.status(200).json({ success: true });
   }
 }

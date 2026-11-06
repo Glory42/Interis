@@ -149,8 +149,9 @@ export class AuthService {
     await SecurityAnswersRepository.upsert(userId, input.question, answerHash);
   }
 
-  // Guards account changes a stolen session must not be able to make (#136).
-  private static async assertCurrentPassword(
+  // Guards account changes a stolen session must not be able to make (#136),
+  // including admin actions taken on other accounts.
+  static async assertCurrentPassword(
     userId: string,
     currentPassword: string | undefined,
   ) {

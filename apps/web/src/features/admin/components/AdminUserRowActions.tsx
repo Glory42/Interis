@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Ban, CheckCircle2, KeyRound, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
+import { Ban, CheckCircle2, KeyRound, ShieldCheck, ShieldOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AdminConfirmDialog } from "@/features/admin/components/AdminConfirmDialog";
+import { AdminDeleteUserAction } from "@/features/admin/components/AdminDeleteUserAction";
+import { AdminPasswordField } from "@/features/admin/components/AdminPasswordField";
 import type { AdminUser } from "@/features/admin/api";
 import {
-  useDeleteUser,
   useDemoteUser,
   usePromoteUser,
   useResetUserPassword,
@@ -18,14 +19,16 @@ export const ResetPasswordAction = ({ username }: { username: string }) => {
   const { mutateAsync: resetPassword, isPending } = useResetUserPassword();
   const [isOpen, setIsOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const handleConfirm = async () => {
     setError(null);
     try {
-      await resetPassword({ username, newPassword });
+      await resetPassword({ username, newPassword, adminPassword });
       setIsOpen(false);
       setNewPassword("");
+      setAdminPassword("");
     } catch (submitError) {
       setError(isApiError(submitError) ? submitError.message : "Could not reset password.");
     }
@@ -52,23 +55,28 @@ export const ResetPasswordAction = ({ username }: { username: string }) => {
         onClose={() => {
           setIsOpen(false);
           setNewPassword("");
+          setAdminPassword("");
           setError(null);
         }}
         title="Reset password"
         description={`Set a new password for @${username}. All of their sessions will be revoked.`}
         confirmLabel="Reset password"
         isLoading={isPending}
-        isConfirmDisabled={newPassword.length < 8}
+        isConfirmDisabled={newPassword.length < 8 || adminPassword.length === 0}
         error={error}
         onConfirm={() => void handleConfirm()}
       >
-        <Input
-          value={newPassword}
-          onChange={(event) => setNewPassword(event.target.value)}
-          placeholder="New password"
-          type="text"
-          className="h-8 text-sm"
-        />
+        <label className="block space-y-1 text-xs text-muted-foreground">
+          <span>New password</span>
+          <Input
+            value={newPassword}
+            onChange={(event) => setNewPassword(event.target.value)}
+            type="password"
+            autoComplete="new-password"
+            className="h-8 text-sm"
+          />
+        </label>
+        <AdminPasswordField value={adminPassword} onChange={setAdminPassword} />
       </AdminConfirmDialog>
     </>
   );
@@ -78,17 +86,20 @@ export const RoleAction = ({ user }: { user: AdminUser }) => {
   const { mutateAsync: promote, isPending: isPromoting } = usePromoteUser();
   const { mutateAsync: demote, isPending: isDemoting } = useDemoteUser();
   const [isOpen, setIsOpen] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const handleConfirm = async () => {
     setError(null);
     try {
+      const input = { username: user.username, adminPassword };
       if (user.isAdmin) {
-        await demote(user.username);
+        await demote(input);
       } else {
-        await promote(user.username);
+        await promote(input);
       }
       setIsOpen(false);
+      setAdminPassword("");
     } catch (submitError) {
       setError(isApiError(submitError) ? submitError.message : "Could not update role.");
     }
@@ -116,7 +127,11 @@ export const RoleAction = ({ user }: { user: AdminUser }) => {
       </Button>
       <AdminConfirmDialog
         isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
+        onClose={() => {
+          setIsOpen(false);
+          setAdminPassword("");
+          setError(null);
+        }}
         title={user.isAdmin ? "Remove admin access" : "Grant admin access"}
         description={
           user.isAdmin
@@ -126,9 +141,12 @@ export const RoleAction = ({ user }: { user: AdminUser }) => {
         confirmLabel={user.isAdmin ? "Demote" : "Promote"}
         variant={user.isAdmin ? "danger" : "default"}
         isLoading={isPromoting || isDemoting}
+        isConfirmDisabled={adminPassword.length === 0}
         error={error}
         onConfirm={() => void handleConfirm()}
-      />
+      >
+        <AdminPasswordField value={adminPassword} onChange={setAdminPassword} />
+      </AdminConfirmDialog>
     </>
   );
 };
@@ -138,6 +156,7 @@ export const SuspendAction = ({ user }: { user: AdminUser }) => {
   const { mutateAsync: unsuspend, isPending: isUnsuspending } = useUnsuspendUser();
   const [isOpen, setIsOpen] = useState(false);
   const [reason, setReason] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   if (user.isSuspended) {
@@ -184,9 +203,10 @@ export const SuspendAction = ({ user }: { user: AdminUser }) => {
   const handleSuspend = async () => {
     setError(null);
     try {
-      await suspend({ username: user.username, reason: reason.trim() || undefined });
+      await suspend({ username: user.username, reason: reason.trim() || undefined, adminPassword });
       setIsOpen(false);
       setReason("");
+      setAdminPassword("");
     } catch (submitError) {
       setError(isApiError(submitError) ? submitError.message : "Could not suspend user.");
     }
@@ -213,6 +233,7 @@ export const SuspendAction = ({ user }: { user: AdminUser }) => {
         onClose={() => {
           setIsOpen(false);
           setReason("");
+          setAdminPassword("");
           setError(null);
         }}
         title="Suspend account"
@@ -220,6 +241,7 @@ export const SuspendAction = ({ user }: { user: AdminUser }) => {
         confirmLabel="Suspend"
         variant="danger"
         isLoading={isSuspending}
+        isConfirmDisabled={adminPassword.length === 0}
         error={error}
         onConfirm={() => void handleSuspend()}
       >
@@ -230,74 +252,30 @@ export const SuspendAction = ({ user }: { user: AdminUser }) => {
           type="text"
           className="h-8 text-sm"
         />
+        <AdminPasswordField value={adminPassword} onChange={setAdminPassword} />
       </AdminConfirmDialog>
     </>
   );
 };
 
-export const DeleteUserAction = ({ username }: { username: string }) => {
-  const { mutateAsync: deleteUser, isPending } = useDeleteUser();
-  const [isOpen, setIsOpen] = useState(false);
-  const [confirmText, setConfirmText] = useState("");
-  const [error, setError] = useState<string | null>(null);
-
-  const handleDelete = async () => {
-    if (confirmText !== username) return;
-
-    setError(null);
-    try {
-      await deleteUser(username);
-      setIsOpen(false);
-    } catch (submitError) {
-      setError(isApiError(submitError) ? submitError.message : "Could not delete user.");
-    }
-  };
+export const UserRowActions = ({
+  user,
+  viewerUsername,
+}: {
+  user: AdminUser;
+  viewerUsername: string | undefined;
+}) => {
+  // Your own account is managed from settings, never from the admin panel.
+  if (viewerUsername === user.username) {
+    return null;
+  }
 
   return (
-    <>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        title="Delete"
-        aria-label="Delete"
-        className="h-7 w-7 p-0 text-destructive/80 hover:text-destructive"
-        onClick={() => {
-          setIsOpen(true);
-          setError(null);
-        }}
-      >
-        <Trash2 className="h-3.5 w-3.5" />
-      </Button>
-      <AdminConfirmDialog
-        isOpen={isOpen}
-        onClose={() => {
-          setIsOpen(false);
-          setConfirmText("");
-          setError(null);
-        }}
-        title="Delete account"
-        description={`This permanently deletes @${username} and all of their diary entries, reviews, posts, and lists. This cannot be undone.`}
-        confirmLabel="Delete"
-        variant="danger"
-        isLoading={isPending}
-        isConfirmDisabled={confirmText !== username}
-        error={error}
-        onConfirm={() => void handleDelete()}
-      >
-        <div className="space-y-1">
-          <p className="text-xs text-muted-foreground">
-            Type <span className="font-mono">{username}</span> to confirm:
-          </p>
-          <Input
-            value={confirmText}
-            onChange={(event) => setConfirmText(event.target.value)}
-            placeholder={username}
-            type="text"
-            className="h-8 text-sm"
-          />
-        </div>
-      </AdminConfirmDialog>
-    </>
+    <div className="flex items-center gap-1">
+      <ResetPasswordAction username={user.username} />
+      <RoleAction user={user} />
+      <SuspendAction user={user} />
+      <AdminDeleteUserAction username={user.username} />
+    </div>
   );
 };
