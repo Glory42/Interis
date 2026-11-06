@@ -36,18 +36,15 @@ export const applyThemeToDom = (rawThemeId: unknown): string => {
     return theme.id;
   }
 
-  const root = document.documentElement;
-  const applyTokens = (): void => {
-    for (const [token, value] of Object.entries(theme.tokens)) {
-      root.style.setProperty(token, value);
-    }
-    root.dataset.themeId = theme.id;
+  // Colours come from the :root[data-theme-id] blocks in index.css.
+  const applyThemeId = (): void => {
+    document.documentElement.dataset.themeId = theme.id;
   };
 
   if (canUseViewTransition()) {
-    document.startViewTransition(applyTokens);
+    document.startViewTransition(applyThemeId);
   } else {
-    applyTokens();
+    applyThemeId();
   }
 
   return theme.id;

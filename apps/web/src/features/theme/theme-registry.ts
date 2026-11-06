@@ -8,7 +8,6 @@ export type ThemeDefinition = {
   label: string;
   description?: string;
   preview?: ThemePreview;
-  tokens: Record<string, string>;
 };
 
 const DEFAULT_THEME_ID = "rose-pine";
@@ -69,33 +68,10 @@ const normalizeThemeIdInput = (rawThemeId: unknown): string | null => {
 const fallbackTheme: ThemeDefinition = {
   id: DEFAULT_THEME_ID,
   label: "Rose Pine",
-  description: "Soft dark elegance with mauve, rose, and iris accents.",
+  description: "The real Rosé Pine palette: iris for actions, rose for films, foam for TV.",
   preview: {
     mode: "dark",
-    swatches: ["#171420", "#1f1b2b", "#d4b5ff", "#f4c2bf"],
-  },
-  tokens: {
-    "--background": "#171420",
-    "--foreground": "#e8e3f7",
-    "--card": "#1f1b2b",
-    "--card-foreground": "#e8e3f7",
-    "--popover": "#1c1927",
-    "--popover-foreground": "#e8e3f7",
-    "--primary": "#d4b5ff",
-    "--primary-foreground": "#181422",
-    "--secondary": "#26213a",
-    "--secondary-foreground": "#e8e3f7",
-    "--muted": "#151220",
-    "--muted-foreground": "#9f98bb",
-    "--accent": "#f4c2bf",
-    "--accent-foreground": "#171420",
-    "--border": "#3f3958",
-    "--input": "#26213a",
-    "--ring": "#9fd4df",
-    "--destructive": "#f17fa0",
-    "--aura-primary": "#d4b5ff",
-    "--aura-secondary": "#9fd4df",
-    "--aura-muted": "#6f6789",
+    swatches: ["#191724", "#1f1d2e", "#c4a7e7", "#ebbcba"],
   },
 };
 

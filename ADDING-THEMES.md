@@ -10,43 +10,41 @@ This guide walks through every change required to add a new theme to Interis. Th
 User selects theme in Settings
          |
          v
-Frontend applies CSS tokens immediately (optimistic update)
+Frontend sets <html data-theme-id="…"> (optimistic update)
          |
          v
-PUT /api/users/me/theme  ->  Backend validates themeId
-         |                        |
-         v                        v
-Frontend persists to localStorage   Backend updates profile.themeId in DB
-         |                        |
-         v                        v
-On next page load: bootstrapStoredTheme() reads localStorage, resolves against registry, applies tokens
+PUT /api/users/me/theme  ->  Backend validates themeId and stores profile.theme
+         |
+         v
+Frontend persists the id to localStorage; on the next load the startup
+script in index.html sets data-theme-id before React renders
 ```
 
 ### Key concepts
 
 - **Theme ID**: A kebab-case string (e.g., `rose-pine`, `null-log`, `nitrate`) that identifies a theme.
-- **Theme registry**: A JavaScript object (`window.__THIS_IS_CINEMA_THEME_REGISTRY__`) that maps theme IDs to their full definitions (label, description, preview swatches, CSS tokens). Loaded from `public/theme-registry.js` before React hydrates to prevent flash of unstyled content.
-- **CSS tokens**: Custom properties (e.g., `--background`, `--primary`, `--theme-shell-gradient`) applied to `:root` via `document.documentElement.style.setProperty()`.
+- **Colours live in one place**: `src/index.css`. `:root` holds Rose Pine (the default) and every other theme is a `:root[data-theme-id="…"]` block. Nothing sets colours inline.
+- **Theme registry**: `public/theme-registry.js` defines `window.__THIS_IS_CINEMA_THEME_REGISTRY__` with each theme's id, label, description and preview swatches for the picker. It holds no colour tokens.
 - **Supported themes**: A whitelist on both backend and frontend. Only themes in both lists are selectable.
-- **Legacy themes**: Retired theme IDs that get silently mapped to the default theme. This prevents users with old saved themes from breaking.
+- **Legacy and renamed themes**: retired ids map to the default theme; renamed ids (`RENAMED_THEME_IDS`) map to their successor.
 
-### Token categories
+### Colour roles
 
-Every theme must define these token groups:
+Every theme block defines the same roles. Components should use these.
 
-| Group | Purpose |
+| Role | Meaning |
 | --- | --- |
-| **Core colors** | `--background`, `--foreground`, `--card`, `--card-foreground`, `--popover`, `--popover-foreground`, `--primary`, `--primary-foreground`, `--secondary`, `--secondary-foreground`, `--muted`, `--muted-foreground`, `--accent`, `--accent-foreground`, `--border`, `--input`, `--ring`, `--destructive` |
-| **Aura tokens** | `--aura-primary`, `--aura-secondary`, `--aura-muted` (used for glow effects, badges, highlights) |
-| **Shell decorations** | `--theme-shell-gradient`, `--theme-shell-pattern`, `--theme-shell-pattern-size`, `--theme-shell-pattern-position`, `--theme-shell-pattern-opacity`, `--theme-shell-vignette`, `--theme-shell-vignette-opacity` |
-| **Hero decorations** | `--theme-hero-gradient`, `--theme-hero-gradient-opacity`, `--theme-hero-pattern`, `--theme-hero-pattern-size`, `--theme-hero-pattern-position`, `--theme-hero-pattern-opacity` |
-| **Modal decorations** | `--theme-modal-overlay`, `--theme-modal-gradient`, `--theme-modal-pattern`, `--theme-modal-pattern-size`, `--theme-modal-pattern-position`, `--theme-modal-pattern-opacity`, `--theme-modal-border`, `--theme-modal-shadow` |
-| **Navbar** | `--theme-navbar-bg`, `--theme-navbar-border`, `--theme-navbar-shadow`, `--theme-navbar-overlay` |
-| **UI elements** | `--theme-pill-bg`, `--theme-pill-border`, `--theme-pill-text`, `--theme-pill-shadow`, `--theme-segment-bg`, `--theme-segment-border` |
-| **Typography** | `--theme-body-font`, `--theme-display-font`, `--theme-display-letter-spacing`, `--theme-display-shadow`, `--theme-kicker-font`, `--theme-kicker-tracking`, `--theme-kicker-weight` |
-| **Button effects** | `--theme-button-primary-shadow`, `--theme-button-primary-shadow-hover`, `--theme-button-danger-shadow`, `--theme-button-danger-shadow-hover` |
-| **Radius** | `--radius` (base border radius, used to calculate sm/md/lg/xl/2xl/3xl/4xl) |
-| **Module colors** | `--module-movie`, `--module-serial`, `--module-neutral` |
+| `--bg`, `--surface`, `--raised` | page, cards and panels, popovers and inputs |
+| `--fg`, `--muted-foreground`, `--faint` | body text, secondary text, decorative only (not for text) |
+| `--line`, `--line-strong` | hairlines and stronger borders |
+| `--primary`, `--primary-foreground` | the action colour and text on it |
+| `--film`, `--series` | film and TV identity |
+| `--like`, `--danger`, `--warning`, `--success` | states |
+| `--grain` | grain opacity for backdrops |
+
+Each block also sets the shadcn/library names (`--background`, `--card`, `--border`, `--module-movie`, …) from those roles, plus the navbar, hero, modal and typography tokens.
+
+`tests/unit/features/theme/theme-registry.test.ts` reads `index.css` and checks that every text role reaches 4.5:1 on `--bg` and `--surface` in every theme.
 
 ---
 
@@ -97,169 +95,29 @@ If retiring an existing theme, add it to the `LEGACY_THEME_IDS` set (lines 24-47
 
 **File:** `apps/web/public/theme-registry.js`
 
-This file is loaded as a plain `<script>` tag before React hydrates. It populates `window.__THIS_IS_CINEMA_THEME_REGISTRY__`. Add your theme definition:
+Add the picker metadata only:
 
 ```javascript
-window.__THIS_IS_CINEMA_THEME_REGISTRY__ = {
-  // ... existing themes ...
-
   "your-theme-id": {
     id: "your-theme-id",
     label: "Your Theme Name",
-    description: "A brief description of the theme's aesthetic.",
+    description: "One line on the palette and what each colour means.",
     preview: {
-      mode: "dark",  // or "light"
-      swatches: ["#bg-hex", "#card-hex", "#primary-hex", "#accent-hex"],
-    },
-    tokens: {
-      // Core colors (required)
-      "--background": "#...",
-      "--foreground": "#...",
-      "--card": "#...",
-      "--card-foreground": "#...",
-      "--popover": "#...",
-      "--popover-foreground": "#...",
-      "--primary": "#...",
-      "--primary-foreground": "#...",
-      "--secondary": "#...",
-      "--secondary-foreground": "#...",
-      "--muted": "#...",
-      "--muted-foreground": "#...",
-      "--accent": "#...",
-      "--accent-foreground": "#...",
-      "--border": "#...",
-      "--input": "#...",
-      "--ring": "#...",
-      "--destructive": "#...",
-
-      // Aura tokens (required)
-      "--aura-primary": "#...",
-      "--aura-secondary": "#...",
-      "--aura-muted": "#...",
+      mode: "dark", // or "light"
+      swatches: ["#bg", "#surface", "#primary", "#film"],
     },
   },
-};
-```
-
-**Important:** Only the core colors and aura tokens go here. The shell/hero/modal/navbar/pill/segment/button tokens are defined in `index.css` (Step 4). The registry tokens are applied directly via JavaScript at boot time for FOUC prevention.
-
-If you want this theme to be the default, also update the last line:
-
-```javascript
-window.__THIS_IS_CINEMA_DEFAULT_THEME_ID__ = "your-theme-id";
 ```
 
 ---
 
-### Step 4: Frontend — add full CSS token overrides
+### Step 4: Frontend — add the CSS block
 
 **File:** `apps/web/src/index.css`
 
-Add a `:root[data-theme-id="your-theme-id"]` block with ALL tokens. Use an existing theme block (e.g., `:root[data-theme-id="nitrate"]`) as a template.
+Copy an existing `:root[data-theme-id="…"]` block (e.g. `nitrate`), rename it, and set every role. Light themes also set `color-scheme: light;`. Keep the derived library names in step with the roles (`--background: <bg>`, `--card: <surface>`, `--border: <line-strong over bg>`, `--module-movie: <film>`, `--module-serial: <series>`, …).
 
-You must define every token that appears in the `:root` default block. Tokens not overridden will inherit from `:root`.
-
-```css
-:root[data-theme-id="your-theme-id"] {
-  --radius: 0.5rem;  /* adjust for roundedness preference */
-
-  /* Core colors */
-  --background: #...;
-  --foreground: #...;
-  --card: #...;
-  --card-foreground: #...;
-  --popover: #...;
-  --popover-foreground: #...;
-  --primary: #...;
-  --primary-foreground: #...;
-  --secondary: #...;
-  --secondary-foreground: #...;
-  --muted: #...;
-  --muted-foreground: #...;
-  --accent: #...;
-  --accent-foreground: #...;
-  --border: #...;
-  --input: #...;
-  --ring: #...;
-  --destructive: #...;
-
-  /* Aura tokens */
-  --aura-primary: #...;
-  --aura-secondary: #...;
-  --aura-muted: #...;
-
-  /* Shell decorations */
-  --theme-shell-gradient: ...;
-  --theme-shell-pattern: ...;
-  --theme-shell-pattern-size: auto;
-  --theme-shell-pattern-position: center;
-  --theme-shell-pattern-opacity: ...;
-  --theme-shell-vignette: ...;
-  --theme-shell-vignette-opacity: ...;
-
-  /* Hero decorations */
-  --theme-hero-gradient: ...;
-  --theme-hero-gradient-opacity: 1;
-  --theme-hero-pattern: none;
-  --theme-hero-pattern-size: auto;
-  --theme-hero-pattern-position: center;
-  --theme-hero-pattern-opacity: 0;
-
-  /* Modal decorations */
-  --theme-modal-overlay: rgba(...);
-  --theme-modal-gradient: ...;
-  --theme-modal-pattern: none;
-  --theme-modal-pattern-size: auto;
-  --theme-modal-pattern-position: center;
-  --theme-modal-pattern-opacity: 0;
-  --theme-modal-border: rgba(...);
-  --theme-modal-shadow: ...;
-
-  /* Navbar */
-  --theme-navbar-bg: rgba(...);
-  --theme-navbar-border: rgba(...);
-  --theme-navbar-shadow: ...;
-  --theme-navbar-overlay: rgba(...);
-
-  /* UI elements */
-  --theme-pill-bg: rgba(...);
-  --theme-pill-border: rgba(...);
-  --theme-pill-text: #...;
-  --theme-pill-shadow: ...;
-  --theme-segment-bg: rgba(...);
-  --theme-segment-border: rgba(...);
-
-  /* Typography */
-  --theme-body-font: "...", "...", sans-serif;
-  --theme-display-font: "...", "...", sans-serif;
-  --theme-display-letter-spacing: -0.02em;
-  --theme-display-shadow: none;
-  --theme-kicker-font: "...", monospace;
-  --theme-kicker-tracking: 0.18em;
-  --theme-kicker-weight: 700;
-
-  /* Button effects */
-  --theme-button-primary-shadow: ...;
-  --theme-button-primary-shadow-hover: ...;
-  --theme-button-danger-shadow: ...;
-  --theme-button-danger-shadow-hover: ...;
-
-  /* Module colors */
-  --module-movie: #...;
-  --module-serial: #...;
-  --module-neutral: #...;
-}
-```
-
-**Tips for designing tokens:**
-
-- **Core colors** should have sufficient contrast (WCAG AA minimum). Use tools like [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/).
-- **`--primary`** is the main accent color used for links, active states, and highlights.
-- **`--destructive`** is used for error states and danger actions.
-- **`--aura-*`** tokens drive glow effects, badge backgrounds, and subtle highlights.
-- **Shell/hero/modal gradients** create the atmospheric background layers. Use radial gradients with low opacity for subtle effects.
-- **`--theme-navbar-bg`** should be semi-transparent (use `rgba`) for the blur effect.
-- **Typography**: You can change the entire font personality — monospace for terminal vibes, serif for elegance, etc.
+Run `bun run test` from `apps/web`; the contrast test fails if a text role is too faint.
 
 ---
 
@@ -330,8 +188,8 @@ Every file that needs modification when adding a theme:
 | --- | --- | --- |
 | 1 | `apps/api/src/modules/users/constants/theme.constants.ts` | Add to `SUPPORTED_THEME_IDS` |
 | 2 | `apps/web/src/features/theme/theme-registry.ts` | Add to `SUPPORTED_THEME_IDS` |
-| 3 | `apps/web/public/theme-registry.js` | Add full theme definition (core + aura tokens) |
-| 4 | `apps/web/src/index.css` | Add `:root[data-theme-id="..."]` block with all tokens |
+| 3 | `apps/web/public/theme-registry.js` | Add id, label, description and preview swatches |
+| 4 | `apps/web/src/index.css` | Add a `:root[data-theme-id="..."]` block with every colour role |
 | 5 | `apps/web/src/types/theme-registry.d.ts` | Add to `ThemeRegistryId` union |
 | 6 | `apps/web/src/features/settings/components/sections/SettingsThemeSection.tsx` | Update description text |
 

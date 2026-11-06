@@ -51,7 +51,7 @@ export const ProfileMenu = ({
             src={profileImageUrl ?? undefined}
             alt={`${user.username} avatar`}
             className="h-4 w-4 rounded-full border object-cover"
-            style={{ borderColor: "var(--theme-pill-border)" }}
+            style={{ borderColor: "var(--line-strong)" }}
             onError={() => {
               setFailedProfileImageUrl(profileImageUrl);
             }}
@@ -60,9 +60,9 @@ export const ProfileMenu = ({
           <span
             className="inline-flex h-4 w-4 items-center justify-center rounded-full border text-[9px] font-bold"
             style={{
-              borderColor: "var(--theme-pill-border)",
-              background: "var(--theme-pill-bg)",
-              color: "var(--theme-pill-text)",
+              borderColor: "var(--line-strong)",
+              background: "color-mix(in srgb, var(--primary) 14%, transparent)",
+              color: "var(--fg)",
             }}
           >
             {profileInitial}

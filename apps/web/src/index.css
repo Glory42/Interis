@@ -31,62 +31,49 @@
 }
 
 :root {
-  --radius: 0.75rem;
+  color-scheme: dark;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 
-  --background: #171420;
-  --foreground: #e8e3f7;
-  --card: #1f1b2b;
-  --card-foreground: #e8e3f7;
-  --popover: #1c1927;
-  --popover-foreground: #e8e3f7;
-  --primary: #d4b5ff;
-  --primary-foreground: #181422;
-  --secondary: #26213a;
-  --secondary-foreground: #e8e3f7;
-  --muted: #151220;
-  --muted-foreground: #9f98bb;
-  --accent: #f4c2bf;
-  --accent-foreground: #171420;
-  --border: #3f3958;
-  --input: #26213a;
-  --ring: #9fd4df;
-  --destructive: #f17fa0;
-  --aura-primary: #d4b5ff;
-  --aura-secondary: #9fd4df;
-  --aura-muted: #6f6789;
+  /* Roles: every theme defines the same set. */
+  --bg: #191724;
+  --surface: #1f1d2e;
+  --raised: #26233a;
+  --fg: #e0def4;
+  --faint: #6e6a86;
+  --line: rgba(224, 222, 244, 0.12);
+  --line-strong: rgba(224, 222, 244, 0.24);
+  --film: #ebbcba;
+  --series: #9ccfd8;
+  --like: #eb6f92;
+  --danger: #eb6f92;
+  --warning: #f6c177;
+  --success: #9ccfd8;
+  --grain: 0.18;
 
-  --theme-shell-gradient:
-    radial-gradient(
-      900px 420px at 12% -12%,
-      rgba(212, 181, 255, 0.16),
-      transparent 62%
-    ),
-    radial-gradient(
-      740px 340px at 90% 112%,
-      rgba(244, 194, 191, 0.12),
-      transparent 70%
-    ),
-    linear-gradient(180deg, #171420 0%, #181524 48%, #120f1c 100%);
-  --theme-shell-pattern: repeating-linear-gradient(
-    0deg,
-    rgba(255, 255, 255, 0.035) 0,
-    rgba(255, 255, 255, 0.035) 1px,
-    transparent 1px,
-    transparent 4px
-  );
-  --theme-shell-pattern-size: auto;
-  --theme-shell-pattern-position: center;
-  --theme-shell-pattern-opacity: 0.16;
-  --theme-shell-vignette: radial-gradient(
-    140% 95% at 50% -10%,
-    transparent 52%,
-    rgba(0, 0, 0, 0.62) 100%
-  );
-  --theme-shell-vignette-opacity: 0.8;
-
-  --theme-hero-gradient:
-    radial-gradient(
+  /* Library and legacy names, derived from the roles above. */
+  --radius: 0.75rem;
+  --background: #191724;
+  --foreground: #e0def4;
+  --card: #1f1d2e;
+  --card-foreground: #e0def4;
+  --popover: #26233a;
+  --popover-foreground: #e0def4;
+  --primary: #c4a7e7;
+  --primary-foreground: #191724;
+  --secondary: #26233a;
+  --secondary-foreground: #e0def4;
+  --muted: #16141f;
+  --muted-foreground: #908caa;
+  --accent: #ebbcba;
+  --accent-foreground: #191724;
+  --border: #494756;
+  --input: #26233a;
+  --ring: #c4a7e7;
+  --destructive: #eb6f92;
+  --aura-primary: #c4a7e7;
+  --aura-secondary: #9ccfd8;
+  --aura-muted: #6e6a86;
+  --theme-hero-gradient: radial-gradient(
       92% 76% at 10% 0%,
       rgba(212, 181, 255, 0.2),
       transparent 62%
@@ -101,34 +88,14 @@
   --theme-hero-pattern-size: auto;
   --theme-hero-pattern-position: center;
   --theme-hero-pattern-opacity: 0;
-
   --theme-modal-overlay: rgba(16, 14, 24, 0.84);
-  --theme-modal-gradient: linear-gradient(
-    180deg,
-    rgba(33, 28, 49, 0.98),
-    rgba(22, 18, 34, 0.98)
-  );
-  --theme-modal-pattern: none;
-  --theme-modal-pattern-size: auto;
-  --theme-modal-pattern-position: center;
-  --theme-modal-pattern-opacity: 0;
   --theme-modal-border: rgba(212, 181, 255, 0.26);
-  --theme-modal-shadow:
-    0 32px 70px -42px rgba(0, 0, 0, 0.82),
+  --theme-modal-shadow: 0 32px 70px -42px rgba(0, 0, 0, 0.82),
     0 16px 28px -24px rgba(212, 181, 255, 0.26);
-
   --theme-navbar-bg: rgba(24, 20, 35, 0.94);
   --theme-navbar-border: rgba(212, 181, 255, 0.2);
   --theme-navbar-shadow: 0 14px 30px -26px rgba(0, 0, 0, 0.75);
   --theme-navbar-overlay: rgba(16, 14, 24, 0.6);
-
-  --theme-pill-bg: rgba(212, 181, 255, 0.16);
-  --theme-pill-border: rgba(212, 181, 255, 0.34);
-  --theme-pill-text: #f4ecff;
-  --theme-pill-shadow: inset 0 0 0 1px rgba(212, 181, 255, 0.2);
-  --theme-segment-bg: rgba(40, 34, 60, 0.76);
-  --theme-segment-border: rgba(116, 104, 148, 0.42);
-
   --theme-body-font: "Sora", "Space Grotesk", "Segoe UI", sans-serif;
   --theme-display-font: "Space Grotesk", "Sora", "Segoe UI", sans-serif;
   --theme-display-letter-spacing: -0.02em;
@@ -136,25 +103,15 @@
   --theme-kicker-font: "JetBrains Mono", "Fira Code", monospace;
   --theme-kicker-tracking: 0.18em;
   --theme-kicker-weight: 700;
-
-  --theme-button-primary-shadow: 0 10px 24px -15px rgba(212, 181, 255, 0.58);
-  --theme-button-primary-shadow-hover: 0 14px 30px -16px
-    rgba(212, 181, 255, 0.74);
-  --theme-button-danger-shadow: 0 10px 24px -15px rgba(241, 127, 160, 0.62);
-  --theme-button-danger-shadow-hover: 0 14px 30px -16px
-    rgba(241, 127, 160, 0.78);
-
-  --module-movie: #e0a8a3;
-  --module-serial: #9fd4df;
-  --module-neutral: #9c94ad;
-
+  --module-movie: #ebbcba;
+  --module-serial: #9ccfd8;
+  --module-neutral: #908caa;
   --profile-shell-bg: color-mix(in srgb, var(--background) 88%, black);
   --profile-shell-fg: var(--foreground);
   --profile-shell-muted: color-mix(in srgb, var(--foreground) 36%, transparent);
   --profile-shell-accent: var(--primary);
   --profile-shell-border: color-mix(in srgb, var(--primary) 24%, transparent);
   --profile-shell-row-border: color-mix(in srgb, var(--primary) 12%, transparent);
-
   --settings-shell-bg: var(--profile-shell-bg);
   --settings-shell-fg: var(--profile-shell-fg);
   --settings-shell-muted: color-mix(in srgb, var(--foreground) 30%, transparent);
@@ -162,74 +119,56 @@
   --settings-shell-accent: var(--primary);
   --settings-shell-border: color-mix(in srgb, var(--primary) 22%, transparent);
   --settings-shell-row-border: color-mix(in srgb, var(--primary) 12%, transparent);
-
   --developer-shell-bg: var(--profile-shell-bg);
   --developer-shell-fg: var(--profile-shell-fg);
   --developer-shell-muted: color-mix(in srgb, var(--foreground) 30%, transparent);
   --developer-shell-border: color-mix(in srgb, var(--primary) 22%, transparent);
-
-  /* Shared "surface card" language: feed, profile, archive, settings. Soft border, no shadow. */
   --surface-card-bg: color-mix(in srgb, var(--card) 55%, var(--background) 45%);
   --surface-card-border: color-mix(in srgb, var(--foreground) 14%, transparent);
   --surface-card-border-hover: color-mix(in srgb, var(--foreground) 24%, transparent);
 }
 
 :root[data-theme-id="null-log"] {
-  --radius: 0.55rem;
 
+  /* Roles: every theme defines the same set. */
+  --bg: #000000;
+  --surface: #0a0a0a;
+  --raised: #111111;
+  --fg: #e6e6e6;
+  --faint: #555555;
+  --line: rgba(255, 255, 255, 0.11);
+  --line-strong: rgba(255, 255, 255, 0.24);
+  --film: #ffb000;
+  --series: #00cfff;
+  --like: #ff4d6d;
+  --danger: #ff4d6d;
+  --warning: #ffd84d;
+  --success: #00ff88;
+  --grain: 0.22;
+
+  /* Library and legacy names, derived from the roles above. */
   --background: #000000;
   --foreground: #e6e6e6;
-  --card: #0d0d0d;
+  --card: #0a0a0a;
   --card-foreground: #e6e6e6;
-  --popover: #0a0a0a;
+  --popover: #111111;
   --popover-foreground: #e6e6e6;
   --primary: #00ff88;
-  --primary-foreground: #020202;
-  --secondary: #141414;
-  --secondary-foreground: #dedede;
+  --primary-foreground: #001a0d;
+  --secondary: #111111;
+  --secondary-foreground: #e6e6e6;
   --muted: #0a0a0a;
-  --muted-foreground: #8d8d8d;
-  --accent: #00cfff;
-  --accent-foreground: #020202;
-  --border: #232323;
-  --input: #141414;
+  --muted-foreground: #9a9a9a;
+  --accent: #ffb000;
+  --accent-foreground: #000000;
+  --border: #3d3d3d;
+  --input: #111111;
   --ring: #00ff88;
-  --destructive: #ff6b85;
+  --destructive: #ff4d6d;
   --aura-primary: #00ff88;
   --aura-secondary: #00cfff;
-  --aura-muted: #2a2a2a;
-
-  --theme-shell-gradient:
-    radial-gradient(
-      880px 360px at 12% -16%,
-      rgba(0, 255, 136, 0.12),
-      transparent 66%
-    ),
-    radial-gradient(
-      760px 320px at 88% 114%,
-      rgba(0, 207, 255, 0.12),
-      transparent 72%
-    ),
-    linear-gradient(180deg, #000000 0%, #030303 52%, #000000 100%);
-  --theme-shell-pattern: repeating-linear-gradient(
-    0deg,
-    rgba(255, 255, 255, 0.03) 0,
-    rgba(255, 255, 255, 0.03) 1px,
-    transparent 1px,
-    transparent 4px
-  );
-  --theme-shell-pattern-size: auto;
-  --theme-shell-pattern-position: center;
-  --theme-shell-pattern-opacity: 0.72;
-  --theme-shell-vignette: radial-gradient(
-    140% 95% at 50% -12%,
-    transparent 50%,
-    rgba(0, 0, 0, 0.74) 100%
-  );
-  --theme-shell-vignette-opacity: 0.86;
-
-  --theme-hero-gradient:
-    radial-gradient(
+  --aura-muted: #555555;
+  --theme-hero-gradient: radial-gradient(
       98% 80% at 10% 0%,
       rgba(0, 255, 136, 0.14),
       transparent 66%
@@ -246,40 +185,14 @@
   --theme-hero-pattern-size: auto;
   --theme-hero-pattern-position: center;
   --theme-hero-pattern-opacity: 0.38;
-
   --theme-modal-overlay: rgba(0, 0, 0, 0.92);
-  --theme-modal-gradient: linear-gradient(
-    180deg,
-    rgba(13, 13, 13, 0.98),
-    rgba(0, 0, 0, 0.98)
-  );
-  --theme-modal-pattern: repeating-linear-gradient(
-    0deg,
-    rgba(255, 255, 255, 0.03) 0,
-    rgba(255, 255, 255, 0.03) 1px,
-    transparent 1px,
-    transparent 4px
-  );
-  --theme-modal-pattern-size: auto;
-  --theme-modal-pattern-position: center;
-  --theme-modal-pattern-opacity: 0.52;
   --theme-modal-border: rgba(0, 255, 136, 0.28);
-  --theme-modal-shadow:
-    0 34px 72px -42px rgba(0, 0, 0, 0.9),
+  --theme-modal-shadow: 0 34px 72px -42px rgba(0, 0, 0, 0.9),
     0 18px 36px -30px rgba(0, 255, 136, 0.22);
-
   --theme-navbar-bg: rgba(0, 0, 0, 0.96);
   --theme-navbar-border: rgba(255, 255, 255, 0.08);
   --theme-navbar-shadow: 0 14px 28px -24px rgba(0, 0, 0, 0.9);
   --theme-navbar-overlay: rgba(0, 0, 0, 0.8);
-
-  --theme-pill-bg: rgba(255, 255, 255, 0.04);
-  --theme-pill-border: rgba(255, 255, 255, 0.24);
-  --theme-pill-text: #ffffff;
-  --theme-pill-shadow: none;
-  --theme-segment-bg: rgba(13, 13, 13, 0.88);
-  --theme-segment-border: rgba(255, 255, 255, 0.08);
-
   --theme-body-font: "Sora", "Space Grotesk", "Segoe UI", sans-serif;
   --theme-display-font: "Space Grotesk", "Sora", "Segoe UI", sans-serif;
   --theme-display-letter-spacing: -0.02em;
@@ -287,22 +200,30 @@
   --theme-kicker-font: "JetBrains Mono", "Fira Code", monospace;
   --theme-kicker-tracking: 0.18em;
   --theme-kicker-weight: 700;
-
-  --theme-button-primary-shadow:
-    0 0 0 1px rgba(0, 255, 136, 0.32) inset, 0 0 24px rgba(0, 255, 136, 0.32);
-  --theme-button-primary-shadow-hover:
-    0 0 0 1px rgba(0, 255, 136, 0.4) inset, 0 0 28px rgba(0, 255, 136, 0.42);
-  --theme-button-danger-shadow: 0 0 0 1px rgba(255, 107, 133, 0.36) inset;
-  --theme-button-danger-shadow-hover: 0 0 0 1px rgba(255, 107, 133, 0.45) inset;
-
-  --module-movie: #00ff88;
+  --module-movie: #ffb000;
   --module-serial: #00cfff;
-  --module-neutral: #9ca3af;
+  --module-neutral: #9a9a9a;
 }
 
 :root[data-theme-id="nitrate"] {
-  --radius: 0.6rem;
 
+  /* Roles: every theme defines the same set. */
+  --bg: #14100c;
+  --surface: #1c1712;
+  --raised: #251e17;
+  --fg: #efe4d2;
+  --faint: #6b5d4c;
+  --line: rgba(239, 228, 210, 0.12);
+  --line-strong: rgba(239, 228, 210, 0.24);
+  --film: #e2765a;
+  --series: #7fb8ad;
+  --like: #f0708a;
+  --danger: #f0708a;
+  --warning: #e3c46b;
+  --success: #9cc27a;
+  --grain: 0.3;
+
+  /* Library and legacy names, derived from the roles above. */
   --background: #14100c;
   --foreground: #efe4d2;
   --card: #1c1712;
@@ -317,45 +238,14 @@
   --muted-foreground: #ab9c86;
   --accent: #e2765a;
   --accent-foreground: #14100c;
-  --border: #4a4239;
+  --border: #49433c;
   --input: #251e17;
   --ring: #f2a33a;
   --destructive: #f0708a;
   --aura-primary: #f2a33a;
   --aura-secondary: #7fb8ad;
   --aura-muted: #6b5d4c;
-
-  --theme-shell-gradient:
-    radial-gradient(
-      900px 420px at 12% -12%,
-      rgba(242, 163, 58, 0.16),
-      transparent 62%
-    ),
-    radial-gradient(
-      740px 340px at 90% 112%,
-      rgba(226, 118, 90, 0.12),
-      transparent 70%
-    ),
-    linear-gradient(180deg, #14100c 0%, #18130e 48%, #0f0c09 100%);
-  --theme-shell-pattern: repeating-linear-gradient(
-    0deg,
-    rgba(239, 228, 210, 0.03) 0,
-    rgba(239, 228, 210, 0.03) 1px,
-    transparent 1px,
-    transparent 4px
-  );
-  --theme-shell-pattern-size: auto;
-  --theme-shell-pattern-position: center;
-  --theme-shell-pattern-opacity: 0.14;
-  --theme-shell-vignette: radial-gradient(
-    140% 95% at 50% -10%,
-    transparent 52%,
-    rgba(0, 0, 0, 0.64) 100%
-  );
-  --theme-shell-vignette-opacity: 0.8;
-
-  --theme-hero-gradient:
-    radial-gradient(
+  --theme-hero-gradient: radial-gradient(
       92% 76% at 10% 0%,
       rgba(242, 163, 58, 0.2),
       transparent 62%
@@ -375,34 +265,14 @@
   --theme-hero-pattern-size: auto;
   --theme-hero-pattern-position: center;
   --theme-hero-pattern-opacity: 0;
-
   --theme-modal-overlay: rgba(12, 9, 6, 0.86);
-  --theme-modal-gradient: linear-gradient(
-    180deg,
-    rgba(28, 23, 18, 0.98),
-    rgba(20, 16, 12, 0.98)
-  );
-  --theme-modal-pattern: none;
-  --theme-modal-pattern-size: auto;
-  --theme-modal-pattern-position: center;
-  --theme-modal-pattern-opacity: 0;
   --theme-modal-border: rgba(242, 163, 58, 0.28);
-  --theme-modal-shadow:
-    0 32px 70px -42px rgba(0, 0, 0, 0.84),
+  --theme-modal-shadow: 0 32px 70px -42px rgba(0, 0, 0, 0.84),
     0 16px 28px -24px rgba(226, 118, 90, 0.22);
-
   --theme-navbar-bg: rgba(20, 16, 12, 0.94);
   --theme-navbar-border: rgba(242, 163, 58, 0.22);
   --theme-navbar-shadow: 0 14px 30px -26px rgba(0, 0, 0, 0.78);
   --theme-navbar-overlay: rgba(12, 9, 6, 0.6);
-
-  --theme-pill-bg: rgba(242, 163, 58, 0.16);
-  --theme-pill-border: rgba(226, 118, 90, 0.36);
-  --theme-pill-text: #f6ead6;
-  --theme-pill-shadow: inset 0 0 0 1px rgba(242, 163, 58, 0.2);
-  --theme-segment-bg: rgba(37, 30, 23, 0.78);
-  --theme-segment-border: rgba(74, 66, 57, 0.5);
-
   --theme-body-font: "Sora", "Space Grotesk", "Segoe UI", sans-serif;
   --theme-display-font: "Space Grotesk", "Sora", "Segoe UI", sans-serif;
   --theme-display-letter-spacing: -0.02em;
@@ -410,22 +280,31 @@
   --theme-kicker-font: "JetBrains Mono", "Fira Code", monospace;
   --theme-kicker-tracking: 0.18em;
   --theme-kicker-weight: 700;
-
-  --theme-button-primary-shadow: 0 10px 24px -15px rgba(242, 163, 58, 0.6);
-  --theme-button-primary-shadow-hover: 0 14px 30px -16px
-    rgba(226, 118, 90, 0.72);
-  --theme-button-danger-shadow: 0 10px 24px -15px rgba(240, 112, 138, 0.6);
-  --theme-button-danger-shadow-hover: 0 14px 30px -16px
-    rgba(240, 112, 138, 0.74);
-
   --module-movie: #e2765a;
   --module-serial: #7fb8ad;
   --module-neutral: #ab9c86;
 }
 
 :root[data-theme-id="marquee"] {
-  --radius: 0.6rem;
+  color-scheme: light;
 
+  /* Roles: every theme defines the same set. */
+  --bg: #faf6ee;
+  --surface: #ffffff;
+  --raised: #fffaf0;
+  --fg: #2b211a;
+  --faint: #b3a48c;
+  --line: rgba(43, 33, 26, 0.12);
+  --line-strong: rgba(43, 33, 26, 0.26);
+  --film: #9a5b12;
+  --series: #0f766e;
+  --like: #b8123a;
+  --danger: #c2410c;
+  --warning: #9a5b12;
+  --success: #0f766e;
+  --grain: 0.12;
+
+  /* Library and legacy names, derived from the roles above. */
   --background: #faf6ee;
   --foreground: #2b211a;
   --card: #ffffff;
@@ -434,48 +313,20 @@
   --popover-foreground: #2b211a;
   --primary: #b8123a;
   --primary-foreground: #fffaf0;
-  --secondary: #f1e4cf;
+  --secondary: #fffaf0;
   --secondary-foreground: #2b211a;
   --muted: #f3ebde;
-  --muted-foreground: #7a6a58;
-  --accent: #c8892c;
-  --accent-foreground: #2b211a;
-  --border: #e2d5c0;
-  --input: #f1e4cf;
+  --muted-foreground: #6b5b4a;
+  --accent: #9a5b12;
+  --accent-foreground: #faf6ee;
+  --border: #c4bfb7;
+  --input: #fffaf0;
   --ring: #b8123a;
   --destructive: #c2410c;
   --aura-primary: #b8123a;
-  --aura-secondary: #c8892c;
-  --aura-muted: #e2d5c0;
-
-  --theme-shell-gradient:
-    radial-gradient(
-      880px 360px at 50% -10%,
-      rgba(200, 137, 44, 0.16),
-      transparent 65%
-    ),
-    radial-gradient(
-      700px 320px at 90% 112%,
-      rgba(184, 18, 58, 0.08),
-      transparent 70%
-    ),
-    linear-gradient(180deg, #fdfaf3 0%, #faf6ee 50%, #f6efe0 100%);
-  --theme-shell-pattern: radial-gradient(
-    rgba(43, 33, 26, 0.06) 1px,
-    transparent 1px
-  );
-  --theme-shell-pattern-size: 10px 10px;
-  --theme-shell-pattern-position: center;
-  --theme-shell-pattern-opacity: 0.5;
-  --theme-shell-vignette: radial-gradient(
-    140% 95% at 50% -12%,
-    transparent 55%,
-    rgba(43, 33, 26, 0.07) 100%
-  );
-  --theme-shell-vignette-opacity: 0.6;
-
-  --theme-hero-gradient:
-    radial-gradient(
+  --aura-secondary: #0f766e;
+  --aura-muted: #b3a48c;
+  --theme-hero-gradient: radial-gradient(
       95% 72% at 50% 0%,
       rgba(184, 18, 58, 0.1),
       transparent 60%
@@ -486,34 +337,14 @@
   --theme-hero-pattern-size: auto;
   --theme-hero-pattern-position: center;
   --theme-hero-pattern-opacity: 0;
-
   --theme-modal-overlay: rgba(43, 33, 26, 0.45);
-  --theme-modal-gradient: linear-gradient(
-    180deg,
-    rgba(255, 250, 240, 0.98),
-    rgba(241, 228, 207, 0.98)
-  );
-  --theme-modal-pattern: none;
-  --theme-modal-pattern-size: auto;
-  --theme-modal-pattern-position: center;
-  --theme-modal-pattern-opacity: 0;
   --theme-modal-border: rgba(184, 18, 58, 0.22);
-  --theme-modal-shadow:
-    0 34px 72px -42px rgba(43, 33, 26, 0.35),
+  --theme-modal-shadow: 0 34px 72px -42px rgba(43, 33, 26, 0.35),
     0 18px 36px -30px rgba(184, 18, 58, 0.15);
-
   --theme-navbar-bg: rgba(255, 250, 240, 0.92);
   --theme-navbar-border: rgba(226, 213, 192, 0.8);
   --theme-navbar-shadow: 0 14px 30px -26px rgba(43, 33, 26, 0.2);
   --theme-navbar-overlay: rgba(255, 250, 240, 0.5);
-
-  --theme-pill-bg: rgba(184, 18, 58, 0.1);
-  --theme-pill-border: rgba(184, 18, 58, 0.34);
-  --theme-pill-text: #7a0d29;
-  --theme-pill-shadow: inset 0 0 0 1px rgba(184, 18, 58, 0.12);
-  --theme-segment-bg: rgba(241, 228, 207, 0.85);
-  --theme-segment-border: rgba(226, 213, 192, 0.7);
-
   --theme-body-font: "Sora", "Segoe UI", sans-serif;
   --theme-display-font: "Playfair Display", Georgia, "Times New Roman", serif;
   --theme-display-letter-spacing: 0em;
@@ -521,15 +352,9 @@
   --theme-kicker-font: "JetBrains Mono", "Fira Code", monospace;
   --theme-kicker-tracking: 0.18em;
   --theme-kicker-weight: 700;
-
-  --theme-button-primary-shadow: 0 10px 24px -15px rgba(184, 18, 58, 0.45);
-  --theme-button-primary-shadow-hover: 0 14px 30px -16px rgba(184, 18, 58, 0.55);
-  --theme-button-danger-shadow: 0 10px 24px -15px rgba(194, 65, 12, 0.4);
-  --theme-button-danger-shadow-hover: 0 14px 30px -16px rgba(194, 65, 12, 0.5);
-
-  --module-movie: #b8123a;
+  --module-movie: #9a5b12;
   --module-serial: #0f766e;
-  --module-neutral: #8a7a68;
+  --module-neutral: #6b5b4a;
 }
 
 @layer base {
@@ -596,7 +421,7 @@
 
   ::selection {
     background: var(--primary);
-    color: #000;
+    color: var(--primary-foreground);
   }
 
   code,
@@ -678,22 +503,6 @@
 }
 
 @layer components {
-  .theme-shell-gradient {
-    background: var(--theme-shell-gradient);
-  }
-
-  .theme-shell-pattern {
-    background-image: var(--theme-shell-pattern);
-    background-size: var(--theme-shell-pattern-size);
-    background-position: var(--theme-shell-pattern-position);
-    background-repeat: repeat;
-    opacity: var(--theme-shell-pattern-opacity);
-  }
-
-  .theme-shell-vignette {
-    background: var(--theme-shell-vignette);
-    opacity: var(--theme-shell-vignette-opacity);
-  }
 
   .theme-hero-shell {
     isolation: isolate;
@@ -794,22 +603,6 @@
     background: var(--theme-navbar-overlay) !important;
   }
 
-  .theme-nav-pill-active,
-  .theme-segment-active,
-  .theme-menu-item-active {
-    background: var(--theme-pill-bg) !important;
-    border-color: var(--theme-pill-border) !important;
-    color: var(--theme-pill-text) !important;
-    box-shadow: var(--theme-pill-shadow);
-    border-radius: 999px;
-  }
-
-  .theme-segment-shell {
-    border-color: var(--theme-segment-border) !important;
-    background: var(--theme-segment-bg) !important;
-    border-radius: 999px;
-  }
-
   .theme-kicker {
     font-family: var(--theme-kicker-font);
     letter-spacing: var(--theme-kicker-tracking);
@@ -819,22 +612,6 @@
   .theme-display-title {
     letter-spacing: var(--theme-display-letter-spacing);
     text-shadow: var(--theme-display-shadow);
-  }
-
-  .theme-button-primary {
-    box-shadow: var(--theme-button-primary-shadow);
-  }
-
-  .theme-button-primary:hover {
-    box-shadow: var(--theme-button-primary-shadow-hover);
-  }
-
-  .theme-button-danger {
-    box-shadow: var(--theme-button-danger-shadow);
-  }
-
-  .theme-button-danger:hover {
-    box-shadow: var(--theme-button-danger-shadow-hover);
   }
 
   .profile-shell {
