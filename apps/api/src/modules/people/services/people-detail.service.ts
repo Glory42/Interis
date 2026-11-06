@@ -3,20 +3,62 @@ import {
   getPersonDetails,
   getPersonExternalIds,
   getPersonImages,
-  getPersonMovieCredits,
-  getPersonTvCredits,
-  type TMDBPersonCombinedCredits,
-  type TMDBPersonMovieCredits,
-  type TMDBPersonTvCredits,
+  type TMDBPersonExternalIds,
 } from "../../../infrastructure/tmdb/people";
+import type { PersonCreditsQuery } from "../dto/people.dto";
+import {
+  countPersonCredits,
+  countPersonJobs,
+  selectPersonCredits,
+  type NormalizedPersonCredits,
+} from "../helpers/people-credits.helper";
 import { normalizeKnownForDepartment } from "../helpers/people-slug.helper";
 import { PeopleRepository } from "../repositories/people.repository";
-import type { PersonDetailResponse, PersonRouteRole } from "../types/people.types";
+import type {
+  PersonCreditsPage,
+  PersonDetailResponse,
+  PersonRouteRole,
+} from "../types/people.types";
 import { PeopleCacheService } from "./people-cache.service";
 import { PeopleCreditNormalizationService } from "./people-credit-normalization.service";
 import { toIsoDateOrNull, toNullableTrimmed } from "./people-text.utils";
 
+const EMPTY_EXTERNAL_IDS: TMDBPersonExternalIds = {
+  imdb_id: null,
+  facebook_id: null,
+  instagram_id: null,
+  twitter_id: null,
+  wikidata_id: null,
+  tiktok_id: null,
+  youtube_id: null,
+};
+
+const loadNormalizedCredits = async (tmdbPersonId: number): Promise<NormalizedPersonCredits> => {
+  const combinedCredits = await getPersonCombinedCredits(tmdbPersonId).catch(() => null);
+  return combinedCredits
+    ? PeopleCreditNormalizationService.normalizeCombinedCredits(combinedCredits)
+    : { cast: [], crew: [] };
+};
+
 export class PeopleDetailService {
+  static async getPersonCredits(
+    slug: string,
+    query: PersonCreditsQuery,
+  ): Promise<PersonCreditsPage | null> {
+    const resolved = await PeopleRepository.findByCanonicalOrAliasSlug(slug);
+    if (!resolved) {
+      return null;
+    }
+
+    const credits = await loadNormalizedCredits(resolved.person.tmdbPersonId);
+    const selected = selectPersonCredits(credits, query);
+
+    return {
+      items: selected.slice(query.offset, query.offset + query.limit),
+      total: selected.length,
+    };
+  }
+
   static async getPersonDetailByRoleAndSlug(input: {
     role: PersonRouteRole;
     slug: string;
@@ -28,33 +70,15 @@ export class PeopleDetailService {
 
     const tmdbPersonId = resolved.person.tmdbPersonId;
 
-    const detail = await getPersonDetails(tmdbPersonId).catch(() => null);
+    const [detail, credits, externalIds, images] = await Promise.all([
+      getPersonDetails(tmdbPersonId).catch(() => null),
+      loadNormalizedCredits(tmdbPersonId),
+      getPersonExternalIds(tmdbPersonId).catch(() => EMPTY_EXTERNAL_IDS),
+      getPersonImages(tmdbPersonId).catch(() => ({ profiles: [] })),
+    ]);
     if (!detail) {
       return null;
     }
-
-    const [combinedCredits, movieCredits, tvCredits, externalIds, images] =
-      await Promise.all([
-        getPersonCombinedCredits(tmdbPersonId).catch(
-          () => ({ cast: [], crew: [] }) as TMDBPersonCombinedCredits,
-        ),
-        getPersonMovieCredits(tmdbPersonId).catch(
-          () => ({ cast: [], crew: [] }) as TMDBPersonMovieCredits,
-        ),
-        getPersonTvCredits(tmdbPersonId).catch(
-          () => ({ cast: [], crew: [] }) as TMDBPersonTvCredits,
-        ),
-        getPersonExternalIds(tmdbPersonId).catch(() => ({
-          imdb_id: detail.imdb_id,
-          facebook_id: null,
-          instagram_id: null,
-          twitter_id: null,
-          wikidata_id: null,
-          tiktok_id: null,
-          youtube_id: null,
-        })),
-        getPersonImages(tmdbPersonId).catch(() => ({ profiles: [] })),
-      ]);
 
     const cachedPerson = await PeopleCacheService.upsertPersonCache({
       tmdbPersonId: detail.id,
@@ -120,9 +144,8 @@ export class PeopleDetailService {
         },
       },
       credits: {
-        combined: PeopleCreditNormalizationService.normalizeCombinedCredits(combinedCredits),
-        movies: PeopleCreditNormalizationService.normalizeMovieCredits(movieCredits),
-        tv: PeopleCreditNormalizationService.normalizeTvCredits(tvCredits),
+        counts: countPersonCredits(credits),
+        jobCounts: countPersonJobs(credits.crew),
       },
     };
   }

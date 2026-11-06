@@ -1,8 +1,4 @@
-import type {
-  TMDBPersonCombinedCredits,
-  TMDBPersonMovieCredits,
-  TMDBPersonTvCredits,
-} from "../../../infrastructure/tmdb/people";
+import type { TMDBPersonCombinedCredits } from "../../../infrastructure/tmdb/people";
 import type { PersonCreditItem } from "../types/people.types";
 import { normalizeVoteAverage } from "../../media/helpers/media-vote-average.helper";
 import type { MediaType } from "../../media/constants/media-type.constant";
@@ -14,9 +10,6 @@ import {
 } from "./people-text.utils";
 
 type CreditMediaType = MediaType;
-
-const MAX_COMBINED_CREDITS = 120;
-const MAX_MEDIA_CREDITS = 100;
 
 const pickTitle = (
   mediaType: CreditMediaType,
@@ -79,28 +72,35 @@ const compareCreditsByRecency = (
   return rightCredit.tmdbId - leftCredit.tmdbId;
 };
 
-const dedupeCredits = (credits: PersonCreditItem[]): PersonCreditItem[] => {
-  const seen = new Set<string>();
-  const deduped: PersonCreditItem[] = [];
+const joinUnique = (values: (string | null)[], separator: string): string | null => {
+  const unique = [...new Set(values.filter((value): value is string => value !== null))];
+  return unique.length > 0 ? unique.join(separator) : null;
+};
+
+// One row per title: TMDB lists a title once per character or job.
+const mergeCreditsByTitle = (credits: PersonCreditItem[]): PersonCreditItem[] => {
+  const byTitle = new Map<string, PersonCreditItem>();
 
   for (const credit of credits) {
-    const key = [
-      credit.mediaType,
-      String(credit.tmdbId),
-      credit.character ?? "",
-      credit.job ?? "",
-      credit.department ?? "",
-    ].join(":");
-
-    if (seen.has(key)) {
+    const key = `${credit.mediaType}:${credit.tmdbId}`;
+    const existing = byTitle.get(key);
+    if (!existing) {
+      byTitle.set(key, credit);
       continue;
     }
 
-    seen.add(key);
-    deduped.push(credit);
+    byTitle.set(key, {
+      ...existing,
+      character: joinUnique([existing.character, credit.character], " / "),
+      jobs: [...new Set([...existing.jobs, ...credit.jobs])],
+      episodeCount:
+        existing.episodeCount === null && credit.episodeCount === null
+          ? null
+          : Math.max(existing.episodeCount ?? 0, credit.episodeCount ?? 0),
+    });
   }
 
-  return deduped;
+  return [...byTitle.values()];
 };
 
 const toCreditItem = (input: {
@@ -141,7 +141,7 @@ const toCreditItem = (input: {
     releaseDate: normalizedReleaseDate,
     releaseYear: toYearOrNull(normalizedReleaseDate),
     character: toNullableTrimmed(input.character),
-    job: toNullableTrimmed(input.job),
+    jobs: [toNullableTrimmed(input.job)].filter((job): job is string => job !== null),
     department: toNullableTrimmed(input.department),
     episodeCount: toNonNegativeIntOrNull(input.episodeCount),
     voteAverage: normalizeVoteAverage(input.voteAverage),
@@ -194,106 +194,8 @@ export class PeopleCreditNormalizationService {
     );
 
     return {
-      cast: dedupeCredits(cast).sort(compareCreditsByRecency).slice(0, MAX_COMBINED_CREDITS),
-      crew: dedupeCredits(crew).sort(compareCreditsByRecency).slice(0, MAX_COMBINED_CREDITS),
-    };
-  }
-
-  static normalizeMovieCredits(movieCredits: TMDBPersonMovieCredits) {
-    const cast = movieCredits.cast.map((credit) =>
-      toCreditItem({
-        mediaType: "movie",
-        tmdbId: credit.id,
-        title: toNullableTrimmed(credit.title),
-        name: null,
-        originalTitle: toNullableTrimmed(credit.original_title),
-        originalName: null,
-        releaseDate: toNullableTrimmed(credit.release_date),
-        firstAirDate: null,
-        posterPath: credit.poster_path,
-        backdropPath: credit.backdrop_path,
-        character: toNullableTrimmed(credit.character),
-        job: null,
-        department: null,
-        episodeCount: null,
-        voteAverage: credit.vote_average,
-        voteCount: credit.vote_count,
-      }),
-    );
-
-    const crew = movieCredits.crew.map((credit) =>
-      toCreditItem({
-        mediaType: "movie",
-        tmdbId: credit.id,
-        title: toNullableTrimmed(credit.title),
-        name: null,
-        originalTitle: toNullableTrimmed(credit.original_title),
-        originalName: null,
-        releaseDate: toNullableTrimmed(credit.release_date),
-        firstAirDate: null,
-        posterPath: credit.poster_path,
-        backdropPath: credit.backdrop_path,
-        character: null,
-        job: toNullableTrimmed(credit.job),
-        department: toNullableTrimmed(credit.department),
-        episodeCount: null,
-        voteAverage: credit.vote_average,
-        voteCount: credit.vote_count,
-      }),
-    );
-
-    return {
-      cast: dedupeCredits(cast).sort(compareCreditsByRecency).slice(0, MAX_MEDIA_CREDITS),
-      crew: dedupeCredits(crew).sort(compareCreditsByRecency).slice(0, MAX_MEDIA_CREDITS),
-    };
-  }
-
-  static normalizeTvCredits(tvCredits: TMDBPersonTvCredits) {
-    const cast = tvCredits.cast.map((credit) =>
-      toCreditItem({
-        mediaType: "tv",
-        tmdbId: credit.id,
-        title: null,
-        name: toNullableTrimmed(credit.name),
-        originalTitle: null,
-        originalName: toNullableTrimmed(credit.original_name),
-        releaseDate: null,
-        firstAirDate: toNullableTrimmed(credit.first_air_date),
-        posterPath: credit.poster_path,
-        backdropPath: credit.backdrop_path,
-        character: toNullableTrimmed(credit.character),
-        job: null,
-        department: null,
-        episodeCount: credit.episode_count,
-        voteAverage: credit.vote_average,
-        voteCount: credit.vote_count,
-      }),
-    );
-
-    const crew = tvCredits.crew.map((credit) =>
-      toCreditItem({
-        mediaType: "tv",
-        tmdbId: credit.id,
-        title: null,
-        name: toNullableTrimmed(credit.name),
-        originalTitle: null,
-        originalName: toNullableTrimmed(credit.original_name),
-        releaseDate: null,
-        firstAirDate: toNullableTrimmed(credit.first_air_date),
-        posterPath: credit.poster_path,
-        backdropPath: credit.backdrop_path,
-        character: null,
-        job: toNullableTrimmed(credit.job),
-        department: toNullableTrimmed(credit.department),
-        episodeCount: credit.episode_count,
-        voteAverage: credit.vote_average,
-        voteCount: credit.vote_count,
-      }),
-    );
-
-    return {
-      cast: dedupeCredits(cast).sort(compareCreditsByRecency).slice(0, MAX_MEDIA_CREDITS),
-      crew: dedupeCredits(crew).sort(compareCreditsByRecency).slice(0, MAX_MEDIA_CREDITS),
+      cast: mergeCreditsByTitle(cast).sort(compareCreditsByRecency),
+      crew: mergeCreditsByTitle(crew).sort(compareCreditsByRecency),
     };
   }
 }

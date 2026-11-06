@@ -71,38 +71,7 @@ export const TMDBPersonCombinedCreditsSchema = z.object({
   crew: z.array(TMDBPersonCombinedCreditCrewSchema).default([]),
 });
 
-const TMDBPersonMovieCreditCastSchema = tmdbCreditBaseSchema.extend({
-  character: z.string().optional().default(""),
-  order: z.number().int().optional().default(0),
-});
-
-const TMDBPersonMovieCreditCrewSchema = tmdbCreditBaseSchema.extend({
-  job: z.string().optional().default(""),
-  department: z.string().optional().default(""),
-});
-
-export const TMDBPersonMovieCreditsSchema = z.object({
-  cast: z.array(TMDBPersonMovieCreditCastSchema).default([]),
-  crew: z.array(TMDBPersonMovieCreditCrewSchema).default([]),
-});
-
-const TMDBPersonTvCreditCastSchema = tmdbCreditBaseSchema.extend({
-  character: z.string().optional().default(""),
-});
-
-const TMDBPersonTvCreditCrewSchema = tmdbCreditBaseSchema.extend({
-  job: z.string().optional().default(""),
-  department: z.string().optional().default(""),
-});
-
-export const TMDBPersonTvCreditsSchema = z.object({
-  cast: z.array(TMDBPersonTvCreditCastSchema).default([]),
-  crew: z.array(TMDBPersonTvCreditCrewSchema).default([]),
-});
-
 export type TMDBPersonDetail = z.infer<typeof TMDBPersonDetailSchema>;
 export type TMDBPersonExternalIds = z.infer<typeof TMDBPersonExternalIdsSchema>;
 export type TMDBPersonImages = z.infer<typeof TMDBPersonImagesSchema>;
 export type TMDBPersonCombinedCredits = z.infer<typeof TMDBPersonCombinedCreditsSchema>;
-export type TMDBPersonMovieCredits = z.infer<typeof TMDBPersonMovieCreditsSchema>;
-export type TMDBPersonTvCredits = z.infer<typeof TMDBPersonTvCreditsSchema>;

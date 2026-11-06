@@ -16,3 +16,6 @@ export const personLinkSchema = z.object({
 
 export type PersonRouteRole = z.infer<typeof personRouteRoleSchema>;
 export type PersonLink = z.infer<typeof personLinkSchema>;
+
+export type CreditMediaTab = "combined" | "movies" | "tv";
+export type CreditRoleTab = "cast" | "crew";
