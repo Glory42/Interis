@@ -155,3 +155,24 @@ export type FeedFallbackMediaContext = {
   listsById: Map<string, FeedListRow>;
   usersById: Map<string, FeedUserRow>;
 };
+
+// One person's actions on one title (or season/episode) on one UTC day.
+export type FeedTitleGroup = {
+  kind: "title";
+  id: string;
+  createdAt: Date;
+  actor: FeedItem["actor"];
+  movie: FeedMovie;
+  seasonNumber: number | null;
+  episodeNumber: number | null;
+  watched: boolean;
+  rewatch: boolean;
+  rating: number | null;
+  liked: boolean;
+  watchlisted: boolean;
+  review: FeedReview | null;
+  engagement: FeedEngagement;
+  itemIds: string[];
+};
+
+export type GroupedFeedEntry = FeedTitleGroup | { kind: "activity"; item: FeedItem };

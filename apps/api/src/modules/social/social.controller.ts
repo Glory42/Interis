@@ -37,6 +37,15 @@ export class SocialController {
     res.status(200).json(feed);
   }
 
+  static async getGroupedFollowingFeed(
+    req: Request<{}, {}, {}, FeedQueryDto>,
+    res: Response,
+  ): Promise<void> {
+    const limit = normalizeSocialFeedLimit(req.query.limit, 20);
+    const feed = await SocialService.getGroupedFollowingFeed(req.user.id, limit, req.query.cursor);
+    res.status(200).json(feed);
+  }
+
   static async follow(
     req: Request<UsernameParamsDto>,
     res: Response,
