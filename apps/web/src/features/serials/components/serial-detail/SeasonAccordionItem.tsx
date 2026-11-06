@@ -131,10 +131,9 @@ export const SeasonAccordionItem = ({
 
   const handleSeasonLikedToggle = () => handleSeasonLikedChange(!(season.viewerInteraction?.liked ?? false));
 
-  // SpaceRatingInput (used inside the review modal) commits on every
-  // click/drag/arrow-key nudge rather than once per gesture - debounce the
-  // actual mutation so dialing in a rating doesn't fire a PATCH (and a
-  // duplicate "Rated" feed activity) per intermediate value.
+  // LaunchTrack commits once per drag but once per arrow-key release, so
+  // debounce the mutation: dialing in a rating shouldn't fire a PATCH (and a
+  // "Rated" feed activity) per intermediate value.
   const seasonRatingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const episodeRatingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 

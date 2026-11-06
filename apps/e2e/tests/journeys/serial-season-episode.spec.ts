@@ -77,7 +77,7 @@ test("toggles episode/season/series watch state and rating, and writes a season 
 
       // LogMediaDialog sets role="dialog" (unlike the feed's review-edit
       // dialog built on the plain ModalShell pattern) - but it embeds its
-      // own SpaceRatingInput, which shares the sidebar's generic
+      // own LaunchTrack, which shares the sidebar's generic
       // "Rating out of 10" aria-label. Scoping to the dialog picks the
       // modal's own slider, not the still-mounted sidebar's.
       const dialog = page.getByRole("dialog");
@@ -87,9 +87,7 @@ test("toggles episode/season/series watch state and rating, and writes a season 
       await page
         .getByPlaceholder("Share your thoughts about this season...")
         .fill(SEASON_REVIEW_TEXT);
-      // The dialog also contains a separate, disabled "Save" button
-      // belonging to the embedded rating widget's own (non-autoSave)
-      // controls - scope to the dialog's real submit button.
+      // Scope to the dialog's own submit button.
       await dialog.getByRole("button", { name: "Save", exact: true }).click();
       await expect(dialog).not.toBeVisible({ timeout: 10_000 });
 
@@ -155,7 +153,8 @@ test("toggles episode/season/series watch state and rating, and writes a season 
       // settles - wait for it to re-enable before interacting.
       const slider = sidebar.getByRole("slider", { name: "Rating out of 10" });
       await expect(slider).toHaveAttribute("tabindex", "0", { timeout: 10_000 });
-      await slider.click({ position: { x: 12, y: 32 } });
+      const box = await slider.boundingBox();
+      await slider.click({ position: { x: box!.width * 0.8, y: box!.height / 2 } });
       await expect(slider).toHaveAttribute("aria-valuenow", "8", { timeout: 10_000 });
     });
 

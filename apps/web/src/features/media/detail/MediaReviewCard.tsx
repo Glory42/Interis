@@ -2,7 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
 import { memo, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { SpaceRatingDisplay } from "@/features/movies/components/SpaceRating";
+import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
 import { formatRatingLabel } from "@/lib/rating";
 import { useLikeReview, useUnlikeReview } from "@/features/reviews/hooks/useReviews";
 import type { ReviewCardModuleStyles } from "@/features/media/types";
@@ -144,7 +144,7 @@ export const MediaReviewCard = memo(function MediaReviewCard({
             {renderContextLabel ? <div className="mt-0.5">{renderContextLabel()}</div> : null}
 
             <div className="mt-0.5 flex items-center gap-2">
-              <SpaceRatingDisplay rating={review.rating} size="sm" />
+              <RocketDisplay rating={review.rating} size="sm" />
               <span className="font-mono text-[10px]" style={{ color: moduleStyles.faint }}>
                 {formatRatingLabel(review.rating) ?? "Unrated"}
               </span>
