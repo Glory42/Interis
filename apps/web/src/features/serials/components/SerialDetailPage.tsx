@@ -14,7 +14,10 @@ import { SerialReviewsSection } from "@/features/serials/components/serial-detai
 import { SerialSeasonsSection } from "@/features/serials/components/serial-detail/SerialSeasonsSection";
 import { SerialProgressPanel } from "@/features/serials/components/serial-detail/SerialProgressPanel";
 import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
-import { getBackdropUrl, getPosterUrl } from "@/features/serials/components/utils";
+import {
+  getBackdropUrl,
+  getPosterUrl,
+} from "@/features/serials/components/utils";
 import {
   serialKeys,
   useSeriesDetailView,
@@ -23,12 +26,19 @@ import {
 } from "@/features/serials/hooks/useSerials";
 import { LetterboxHero } from "@/features/media/detail/LetterboxHero";
 import {
+  logTriggerProps,
+  type LogTriggerVariant,
+} from "@/features/media/detail/log-trigger";
+import {
   formatEpisodeRuntimeLabel,
   toLanguageLabel as toSeriesLanguageLabel,
 } from "@/features/serials/components/utils";
 import { MediaSimilarSection } from "@/features/media/detail/MediaSimilarSection";
 import { MediaDetailStatusPanel } from "@/features/media/detail/MediaDetailStatusPanel";
-import { MediaActionsSidebar, type MediaAction } from "@/features/media/detail/MediaActionsSidebar";
+import {
+  MediaActionsSidebar,
+  type MediaAction,
+} from "@/features/media/detail/MediaActionsSidebar";
 import { MediaReviewChooser } from "@/features/media/detail/MediaReviewChooser";
 import { useReviewChooser } from "@/features/reviews/hooks/useReviewChooser";
 
@@ -56,20 +66,38 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
   const queryClient = useQueryClient();
 
   if (!isValidTmdbId) {
-    return <MediaDetailStatusPanel message="Invalid series id." moduleStyles={SERIAL_MODULE_STYLES} />;
+    return (
+      <MediaDetailStatusPanel
+        message="Invalid series id."
+        moduleStyles={SERIAL_MODULE_STYLES}
+      />
+    );
   }
 
   if (detailQuery.isPending) {
-    return <MediaDetailStatusPanel message="Loading..." moduleStyles={SERIAL_MODULE_STYLES} loading />;
+    return (
+      <MediaDetailStatusPanel
+        message="Loading..."
+        moduleStyles={SERIAL_MODULE_STYLES}
+        loading
+      />
+    );
   }
 
   if (detailQuery.isError || !detailQuery.data) {
-    return <MediaDetailStatusPanel message="Could not load this series right now." moduleStyles={SERIAL_MODULE_STYLES} />;
+    return (
+      <MediaDetailStatusPanel
+        message="Could not load this series right now."
+        moduleStyles={SERIAL_MODULE_STYLES}
+      />
+    );
   }
 
   const detail = detailQuery.data;
   const series = detail.series;
-  const backdropUrl = series.backdropPath ? getBackdropUrl(series.backdropPath) : null;
+  const backdropUrl = series.backdropPath
+    ? getBackdropUrl(series.backdropPath)
+    : null;
 
   const resolvedOpenSeasonNumber =
     openSeasonNumber === undefined
@@ -80,8 +108,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
   const liked = interactionQuery.data?.liked ?? false;
   const watched = interactionQuery.data?.watched ?? false;
   const interactionRating = interactionQuery.data?.rating ?? null;
-  const currentRating =
-    interactionRating ?? detail.userRating?.rating ?? null;
+  const currentRating = interactionRating ?? detail.userRating?.rating ?? null;
   // Only gate on the initial load - once loaded, toggles apply optimistically
   // and shouldn't visually lock while the (TMDB-backed, sometimes
   // multi-second) cascade request is still in flight in the background.
@@ -94,7 +121,9 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
 
   const handleReviewEdited = () => {
     void Promise.all([
-      queryClient.invalidateQueries({ queryKey: serialKeys.detailViewRoot(tmdbId) }),
+      queryClient.invalidateQueries({
+        queryKey: serialKeys.detailViewRoot(tmdbId),
+      }),
       queryClient.invalidateQueries({ queryKey: serialKeys.logs(tmdbId) }),
       queryClient.invalidateQueries({ queryKey: serialKeys.myLogs }),
     ]);
@@ -176,6 +205,21 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
     });
   };
 
+  const logModal = (variant: LogTriggerVariant) => (
+    <LogSeriesModal
+      tmdbId={series.tmdbId}
+      seriesTitle={series.title}
+      seriesFirstAirYear={series.firstAirYear}
+      seriesPosterPath={series.posterPath}
+      initialState={modalInitialState}
+      onRequestOpen={(openLog) =>
+        reviewChooser.start({ mediaType: "tv", tmdbId: series.tmdbId }, openLog)
+      }
+      isTriggerBusy={reviewChooser.isChecking}
+      {...logTriggerProps(variant, Boolean(detail.userRating?.watchedDate))}
+    />
+  );
+
   return (
     <div className="min-h-screen">
       <LetterboxHero
@@ -198,7 +242,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
         ].filter((part): part is string => Boolean(part))}
       />
 
-      <main className="relative z-10 mx-auto -mt-20 w-full max-w-5xl px-4 pb-10 sm:-mt-28">
+      <main className="relative z-10 mx-auto -mt-20 w-full max-w-5xl px-4 pb-24 sm:-mt-28 md:pb-10">
         <Link
           to="/serials"
           className="mb-4 inline-flex items-center gap-1.5 font-mono text-[11px]"
@@ -219,28 +263,9 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
                 className="h-full w-full object-cover"
               />
             }
-            logModalSlot={
-              <LogSeriesModal
-                tmdbId={series.tmdbId}
-                seriesTitle={series.title}
-                seriesFirstAirYear={series.firstAirYear}
-                seriesPosterPath={series.posterPath}
-                initialState={modalInitialState}
-                onRequestOpen={(openLog) =>
-                  reviewChooser.start({ mediaType: "tv", tmdbId: series.tmdbId }, openLog)
-                }
-                isTriggerBusy={reviewChooser.isChecking}
-                triggerVariant="outline"
-                triggerLabel={detail.userRating?.watchedDate ? "Log again" : "Log"}
-                triggerClassName="h-auto rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]"
-                triggerContent={
-                  <>
-                    <Check className="h-3 w-3" />
-                    <span>{detail.userRating?.watchedDate ? "Log again" : "Log"}</span>
-                  </>
-                }
-              />
-            }
+            logModalSlot={logModal("sidebar")}
+            mobileLogSlot={logModal("bar")}
+            mobileReviewSlot={logModal("review")}
             tmdbId={series.tmdbId}
             itemType="serial"
             currentRating={currentRating}
@@ -266,7 +291,10 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
           <SerialDetailsMainSection detail={detail} />
         </div>
 
-        <MediaReviewChooser chooser={reviewChooser} onReviewEdited={handleReviewEdited} />
+        <MediaReviewChooser
+          chooser={reviewChooser}
+          onReviewEdited={handleReviewEdited}
+        />
 
         <SerialReviewsSection
           key={reviewsSort}
@@ -287,7 +315,10 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
 
         <MediaSimilarSection
           heading="Similar Shows"
-          items={detail.similar.map((item) => ({ ...item, year: item.firstAirYear }))}
+          items={detail.similar.map((item) => ({
+            ...item,
+            year: item.firstAirYear,
+          }))}
           moduleStyles={SERIAL_MODULE_STYLES}
           getPosterUrl={getPosterUrl}
           detailRoute="/serials/$tmdbId"

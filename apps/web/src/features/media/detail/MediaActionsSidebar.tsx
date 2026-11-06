@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { formatWatchedLabel } from "@/features/media/detail/watched-label";
 import { Link } from "@tanstack/react-router";
 import { AddToListDialog } from "@/features/lists/components/AddToListDialog";
+import { MobileActionBar } from "@/features/media/detail/MobileActionBar";
 import { LaunchTrack } from "@/components/film/rating/LaunchTrack";
 import type { MediaModuleStyles } from "@/features/media/styles";
 
@@ -33,6 +34,9 @@ type MediaActionsSidebarProps = {
   trailingSlot?: ReactNode;
   // The viewer's latest watch, shown as "Watched Nov 2" under Log again.
   lastWatchedDate?: string | null;
+  // Phone action bar: a Log trigger and a "Write a review" trigger styled for it.
+  mobileLogSlot?: ReactNode;
+  mobileReviewSlot?: ReactNode;
 };
 
 const toggleButtonClassName =
@@ -105,99 +109,124 @@ export const MediaActionsSidebar = ({
   isInteractionLoading = false,
   actions,
   trailingSlot,
+  mobileLogSlot,
+  mobileReviewSlot,
 }: MediaActionsSidebarProps) => {
   const [firstAction, ...restActions] = actions;
 
   return (
-    <aside>
-      <div
-        className="mb-4 aspect-2/3 overflow-hidden rounded-xl border"
-        style={{ borderColor: moduleStyles.border }}
-      >
-        {posterSlot}
-      </div>
-
-      <div className="space-y-2">
-        <div className="grid grid-cols-2 gap-2">
-          {logModalSlot}
-          <ActionButton
-            action={firstAction}
-            isAuthenticated={isAuthenticated}
-            isInteractionBusy={isInteractionBusy}
-            isInteractionLoading={isInteractionLoading}
-            moduleStyles={moduleStyles}
-          />
-        </div>
-
-        {formatWatchedLabel(lastWatchedDate) ? (
-          <p className="mono-meta text-muted-foreground">{formatWatchedLabel(lastWatchedDate)}</p>
-        ) : null}
-
-        {restActions.length > 0 ? (
-          <div className="grid grid-cols-2 gap-2">
-            {restActions.map((action) => (
-              <ActionButton
-                key={action.key}
-                action={action}
-                isAuthenticated={isAuthenticated}
-                isInteractionBusy={isInteractionBusy}
-                isInteractionLoading={isInteractionLoading}
-                moduleStyles={moduleStyles}
-              />
-            ))}
-          </div>
-        ) : null}
-
-        {isAuthenticated ? (
-          <AddToListDialog
-            tmdbId={tmdbId}
-            itemType={itemType}
-            triggerClassName="flex w-full items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors"
-            triggerStyle={{
-              borderColor: moduleStyles.border,
-              color: moduleStyles.muted,
-            }}
-          />
-        ) : null}
-
+    <>
+      <MobileActionBar
+        moduleStyles={moduleStyles}
+        logSlot={mobileLogSlot}
+        listSlot={
+          isAuthenticated ? (
+            <AddToListDialog
+              tmdbId={tmdbId}
+              itemType={itemType}
+              triggerClassName="flex min-h-11 flex-col items-center justify-center gap-0.5 font-mono text-[10px] font-semibold tracking-[0.08em] text-[#8a8a8a] uppercase"
+            />
+          ) : null
+        }
+        actions={actions.filter((action) => action.key !== "watchlist")}
+        currentRating={currentRating}
+        onRatingChange={onRatingChange}
+        isRatingSaving={isRatingSaving}
+        isAuthenticated={isAuthenticated}
+        isInteractionBusy={isInteractionBusy}
+        reviewSlot={mobileReviewSlot}
+      />
+      <aside className="hidden md:block">
         <div
-          className="relative overflow-hidden rounded-xl border p-3"
-          style={{
-            borderColor: moduleStyles.border,
-            background: moduleStyles.panelElevated,
-          }}
+          className="mb-4 aspect-2/3 overflow-hidden rounded-xl border"
+          style={{ borderColor: moduleStyles.border }}
         >
-
-          <p
-            className="relative mb-2 font-mono text-[9px] uppercase tracking-[0.22em]"
-            style={{ color: moduleStyles.faint }}
-          >
-            Your Rating
-          </p>
-          <div className="relative flex items-center gap-3">
-            {isAuthenticated ? (
-              <LaunchTrack
-                value={currentRating}
-                onCommit={onRatingChange}
-                disabled={isRatingSaving}
-                accentColor={moduleStyles.accent}
-                confirmSaves
-              />
-            ) : (
-              <Link
-                to="/login"
-                className="font-mono text-[10px]"
-                style={{ color: moduleStyles.muted }}
-                viewTransition
-              >
-                Sign in to rate
-              </Link>
-            )}
-          </div>
+          {posterSlot}
         </div>
 
-        {trailingSlot}
-      </div>
-    </aside>
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            {logModalSlot}
+            <ActionButton
+              action={firstAction}
+              isAuthenticated={isAuthenticated}
+              isInteractionBusy={isInteractionBusy}
+              isInteractionLoading={isInteractionLoading}
+              moduleStyles={moduleStyles}
+            />
+          </div>
+
+          {formatWatchedLabel(lastWatchedDate) ? (
+            <p className="mono-meta text-muted-foreground">
+              {formatWatchedLabel(lastWatchedDate)}
+            </p>
+          ) : null}
+
+          {restActions.length > 0 ? (
+            <div className="grid grid-cols-2 gap-2">
+              {restActions.map((action) => (
+                <ActionButton
+                  key={action.key}
+                  action={action}
+                  isAuthenticated={isAuthenticated}
+                  isInteractionBusy={isInteractionBusy}
+                  isInteractionLoading={isInteractionLoading}
+                  moduleStyles={moduleStyles}
+                />
+              ))}
+            </div>
+          ) : null}
+
+          {isAuthenticated ? (
+            <AddToListDialog
+              tmdbId={tmdbId}
+              itemType={itemType}
+              triggerClassName="flex w-full items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors"
+              triggerStyle={{
+                borderColor: moduleStyles.border,
+                color: moduleStyles.muted,
+              }}
+            />
+          ) : null}
+
+          <div
+            className="relative overflow-hidden rounded-xl border p-3"
+            style={{
+              borderColor: moduleStyles.border,
+              background: moduleStyles.panelElevated,
+            }}
+          >
+            <p
+              className="relative mb-2 font-mono text-[9px] uppercase tracking-[0.22em]"
+              style={{ color: moduleStyles.faint }}
+            >
+              Your Rating
+            </p>
+            <div className="relative flex items-center gap-3">
+              {isAuthenticated ? (
+                <LaunchTrack
+                  value={currentRating}
+                  onCommit={onRatingChange}
+                  disabled={isRatingSaving}
+                  accentColor={moduleStyles.accent}
+                  confirmSaves
+                />
+              ) : (
+                <Link
+                  to="/login"
+                  className="font-mono text-[10px]"
+                  style={{ color: moduleStyles.muted }}
+                  viewTransition
+                >
+                  Sign in to rate
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {trailingSlot}
+        </div>
+      </aside>
+    </>
   );
 };
