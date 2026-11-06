@@ -8,6 +8,16 @@ import {
 } from "../../support/app/test-server";
 import { db } from "../../../src/infrastructure/database/db";
 import { movies } from "../../../src/modules/movies/movies.entity";
+import { tvSeries } from "../../../src/modules/serials/serials.entity";
+import { eq } from "drizzle-orm";
+import { seedTestSerial } from "../../support/factories/media.factory";
+
+const isoWeekOf = (date: Date): number => {
+  const day = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  day.setUTCDate(day.getUTCDate() + 4 - (day.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(day.getUTCFullYear(), 0, 1));
+  return Math.ceil(((day.getTime() - yearStart.getTime()) / 86_400_000 + 1) / 7);
+};
 
 const seedMovieWithMetadata = async (
   title: string,
@@ -104,5 +114,46 @@ describe("detailed stats", () => {
     expect(stats.topGenres.find((g) => g.genre === "Action")?.count).toBe(2);
 
     expect(stats.topDirectors.find((d) => d.director === "Jane Director")?.count).toBe(3);
+  });
+
+  it("adds average rating, rated logs, hours watched and this year's logs per week", async () => {
+    const { jar, username } = await signUpTestUser(getServer().baseUrl, "statx");
+    const longFilm = await seedMovieWithMetadata("Long Film", "A", ["Drama"]);
+    const shortFilm = await seedMovieWithMetadata("Short Film", "B", ["Drama"]);
+    await db.update(movies).set({ runtime: 120 }).where(eq(movies.id, longFilm.id));
+    await db.update(movies).set({ runtime: 90 }).where(eq(movies.id, shortFilm.id));
+    const serial = await seedTestSerial("Stats Serial");
+    await db.update(tvSeries).set({ episodeRuntime: 45 }).where(eq(tvSeries.id, serial.id));
+
+    const today = new Date().toISOString().slice(0, 10);
+    const send = (path: string, method: string, body: unknown) =>
+      apiRequest(
+        getServer().baseUrl,
+        path,
+        { method, headers: { "content-type": "application/json" }, body: JSON.stringify(body) },
+        jar,
+      );
+    await send("/api/diary", "POST", { tmdbId: longFilm.tmdbId, watchedDate: today, rating: 8 });
+    await send("/api/diary", "POST", { tmdbId: shortFilm.tmdbId, watchedDate: today, rating: 6 });
+    await send("/api/diary", "POST", { tmdbId: shortFilm.tmdbId, watchedDate: today });
+    for (const episode of [1, 2]) {
+      await send(`/api/serials/${serial.tmdbId}/seasons/1/episodes/${episode}/interaction`, "PUT", {
+        watched: true,
+      });
+    }
+
+    const response = await apiRequest(getServer().baseUrl, `/api/users/${username}/stats/detailed`);
+    const stats = (await response.json()) as {
+      averageRating: number | null;
+      ratedLogCount: number;
+      hoursWatched: number;
+      logsPerWeek: { week: number; count: number }[];
+    };
+
+    expect(stats.averageRating).toBe(7);
+    expect(stats.ratedLogCount).toBe(2);
+    // 120 + 90 + 90 film minutes + 2 × 45 episode minutes = 390 minutes.
+    expect(stats.hoursWatched).toBe(6.5);
+    expect(stats.logsPerWeek).toEqual([{ week: isoWeekOf(new Date()), count: 3 }]);
   });
 });
