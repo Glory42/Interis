@@ -156,6 +156,7 @@ export class PublicService {
       watchedDate: entry.watchedDate,
       rating: entry.rating,
       rewatch: entry.rewatch,
+      liked: entry.liked,
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,
       media: {
@@ -180,6 +181,7 @@ export class PublicService {
       watchedDate: entry.watchedDate,
       rating: entry.rating,
       rewatch: entry.rewatch,
+      liked: entry.liked,
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,
       media: {

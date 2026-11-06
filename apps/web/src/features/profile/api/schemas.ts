@@ -7,6 +7,7 @@ export const diaryItemSchema = z.object({
   watchedDate: z.string(),
   rating: z.number().nullable(),
   rewatch: z.boolean(),
+  liked: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
   media: z.object({

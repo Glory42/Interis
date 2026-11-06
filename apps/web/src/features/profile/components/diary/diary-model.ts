@@ -94,10 +94,7 @@ export const toPosterFallbackLabel = (title: string): string => {
   return trimmed.split(/\s+/).slice(0, 2).join(" ");
 };
 
-export const toDiaryRows = (
-  diaryItems: DiaryItem[],
-  likedMovieTmdbIdSet: Set<number>,
-): DiaryRow[] => {
+export const toDiaryRows = (diaryItems: DiaryItem[]): DiaryRow[] => {
   // diaryItems arrives pre-sorted by watchedDate desc, createdAt desc from
   // PublicService.getDiary (the source of getUserDiary), and pages are
   // fetched/flattened in that same offset order, so no re-sort is needed
@@ -118,8 +115,7 @@ export const toDiaryRows = (
       rewatch: item.rewatch,
       reviewId: item.review?.id ?? null,
       hasReview: item.review !== null,
-      isLiked:
-        channel === "movie" && tmdbId !== null && likedMovieTmdbIdSet.has(tmdbId),
+      isLiked: item.liked,
     };
   });
 

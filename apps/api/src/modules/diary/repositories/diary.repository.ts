@@ -1,6 +1,7 @@
-import { and, desc, eq, isNotNull } from "drizzle-orm";
+import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
+import { movieInteractions } from "../../interactions/interactions.entity";
 import { movies } from "../../movies/movies.entity";
 import { reviews } from "../../reviews/reviews.entity";
 import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
@@ -46,6 +47,7 @@ export class DiaryRepository {
         reviewContent: reviews.content,
         reviewContainsSpoilers: reviews.containsSpoilers,
         reviewCreatedAt: reviews.createdAt,
+        liked: sql<boolean>`coalesce(${movieInteractions.liked}, false)`,
       })
       .from(diaryEntries)
       .innerJoin(movies, eq(movies.id, diaryEntries.movieId))
@@ -54,6 +56,13 @@ export class DiaryRepository {
         // A log's review is the one written with it, not any review of the
         // same movie (#73).
         and(eq(reviews.diaryEntryId, diaryEntries.id), eq(reviews.mediaType, "movie")),
+      )
+      .leftJoin(
+        movieInteractions,
+        and(
+          eq(movieInteractions.userId, diaryEntries.userId),
+          eq(movieInteractions.movieId, diaryEntries.movieId),
+        ),
       )
       .where(eq(diaryEntries.userId, userId))
       .orderBy(desc(diaryEntries.watchedDate), desc(diaryEntries.createdAt))
