@@ -1,7 +1,14 @@
 import type { Request, Response } from "express";
-import { sendErrorForStatus } from "../../commons/http/validation-response.helper";
+import {
+  sendErrorForStatus,
+  sendValidationError,
+} from "../../commons/http/validation-response.helper";
 import { ModerationService } from "./services/moderation.service";
-import type { UsernameParams } from "./dto/moderation.dto";
+import {
+  MODERATION_LIST_DEFAULT_LIMIT,
+  ModerationListQuerySchema,
+  type UsernameParams,
+} from "./dto/moderation.dto";
 
 export class ModerationController {
   static async block(req: Request<UsernameParams>, res: Response): Promise<void> {
@@ -48,12 +55,32 @@ export class ModerationController {
   }
 
   static async getBlocked(req: Request, res: Response): Promise<void> {
-    const blocked = await ModerationService.listBlocked(req.user.id);
+    const parsed = ModerationListQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    const blocked = await ModerationService.listBlocked(
+      req.user.id,
+      parsed.data.limit ?? MODERATION_LIST_DEFAULT_LIMIT,
+      parsed.data.offset ?? 0,
+    );
     res.status(200).json(blocked);
   }
 
   static async getMuted(req: Request, res: Response): Promise<void> {
-    const muted = await ModerationService.listMuted(req.user.id);
+    const parsed = ModerationListQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    const muted = await ModerationService.listMuted(
+      req.user.id,
+      parsed.data.limit ?? MODERATION_LIST_DEFAULT_LIMIT,
+      parsed.data.offset ?? 0,
+    );
     res.status(200).json(muted);
   }
 }

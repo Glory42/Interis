@@ -83,11 +83,11 @@ export class ModerationService {
     return { isBlocked, isMuted };
   }
 
-  static async listBlocked(userId: string) {
-    return ModerationRepository.listBlocked(userId);
+  static async listBlocked(userId: string, limit: number, offset: number) {
+    return ModerationRepository.listBlocked(userId, limit, offset);
   }
 
-  static async listMuted(userId: string) {
-    return ModerationRepository.listMuted(userId);
+  static async listMuted(userId: string, limit: number, offset: number) {
+    return ModerationRepository.listMuted(userId, limit, offset);
   }
 }

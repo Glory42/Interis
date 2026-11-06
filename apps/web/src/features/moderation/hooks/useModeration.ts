@@ -1,10 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
 import {
   blockUser,
   getBlockedUsers,
   getMutedUsers,
   getRelationshipState,
+  MODERATION_PAGE_SIZE,
+  type ModeratedUser,
   muteUser,
   unblockUser,
   unmuteUser,
@@ -26,19 +28,26 @@ export const useRelationshipState = (username: string, enabled = true) =>
     enabled: enabled && username.trim().length > 0,
   });
 
-export const useBlockedUsers = (enabled = true) =>
-  useQuery({
-    queryKey: moderationKeys.blocked,
-    queryFn: getBlockedUsers,
+const useModeratedUsersList = (
+  queryKey: readonly string[],
+  fetchPage: (offset: number) => Promise<ModeratedUser[]>,
+  enabled: boolean,
+) =>
+  useInfiniteQuery({
+    queryKey,
+    queryFn: ({ pageParam }) => fetchPage(pageParam),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length < MODERATION_PAGE_SIZE ? undefined : allPages.length * MODERATION_PAGE_SIZE,
+    select: (data) => data.pages.flat(),
     enabled,
   });
 
+export const useBlockedUsers = (enabled = true) =>
+  useModeratedUsersList(moderationKeys.blocked, getBlockedUsers, enabled);
+
 export const useMutedUsers = (enabled = true) =>
-  useQuery({
-    queryKey: moderationKeys.muted,
-    queryFn: getMutedUsers,
-    enabled,
-  });
+  useModeratedUsersList(moderationKeys.muted, getMutedUsers, enabled);
 
 export const useBlockUser = (username: string) => {
   const queryClient = useQueryClient();

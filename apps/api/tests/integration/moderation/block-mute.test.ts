@@ -26,6 +26,36 @@ describe("block and mute", () => {
     testServer = null;
   });
 
+  it("pages the blocked list, newest first", async () => {
+    const blocker = await signUpTestUser(getServer().baseUrl, "blkpg");
+    const blockedUsers: string[] = [];
+    for (const prefix of ["blkpga", "blkpgb", "blkpgc"]) {
+      const target = await signUpTestUser(getServer().baseUrl, prefix);
+      const response = await apiRequest(
+        getServer().baseUrl,
+        `/api/moderation/block/${target.username}`,
+        { method: "POST" },
+        blocker.jar,
+      );
+      expect(response.ok).toBe(true);
+      blockedUsers.push(target.username);
+    }
+
+    const page = async (query: string) => {
+      const response = await apiRequest(
+        getServer().baseUrl,
+        `/api/moderation/blocked${query}`,
+        {},
+        blocker.jar,
+      );
+      expect(response.status).toBe(200);
+      return ((await response.json()) as { username: string }[]).map((row) => row.username);
+    };
+
+    expect(await page("?limit=2")).toEqual([blockedUsers[2]!, blockedUsers[1]!]);
+    expect(await page("?limit=2&offset=2")).toEqual([blockedUsers[0]!]);
+  });
+
   it("requires auth to block a user", async () => {
     const response = await apiRequest(getServer().baseUrl, "/api/moderation/block/nobody", {
       method: "POST",

@@ -59,12 +59,23 @@ export const unmuteUser = async (username: string): Promise<ModerationActionResp
   return moderationActionResponseSchema.parse(response);
 };
 
-export const getBlockedUsers = async (): Promise<ModeratedUser[]> => {
-  const response = await apiRequest<unknown>("/api/moderation/blocked", { method: "GET" });
+export const MODERATION_PAGE_SIZE = 25;
+
+const moderationPageQuery = (offset: number): string =>
+  `?limit=${MODERATION_PAGE_SIZE}&offset=${offset}`;
+
+export const getBlockedUsers = async (offset = 0): Promise<ModeratedUser[]> => {
+  const response = await apiRequest<unknown>(
+    `/api/moderation/blocked${moderationPageQuery(offset)}`,
+    { method: "GET" },
+  );
   return z.array(moderatedUserSchema).parse(response);
 };
 
-export const getMutedUsers = async (): Promise<ModeratedUser[]> => {
-  const response = await apiRequest<unknown>("/api/moderation/muted", { method: "GET" });
+export const getMutedUsers = async (offset = 0): Promise<ModeratedUser[]> => {
+  const response = await apiRequest<unknown>(
+    `/api/moderation/muted${moderationPageQuery(offset)}`,
+    { method: "GET" },
+  );
   return z.array(moderatedUserSchema).parse(response);
 };
