@@ -22,6 +22,7 @@ import {
 import { useSeriesArchive } from "@/features/serials/hooks/useSerials";
 import { ArchiveMediaCard } from "@/features/media/archive/ArchiveMediaCard";
 import { MediaArchivePage } from "@/features/media/archive/MediaArchivePage";
+import { dedupeBy } from "@/lib/dedupe-by";
 
 export const SerialsArchivePage = () => {
   const [selectedGenre, setSelectedGenre] = useState("all");
@@ -46,7 +47,13 @@ export const SerialsArchivePage = () => {
   const firstPage = archivePages?.[0] ?? null;
 
   const archiveItems = useMemo(
-    () => (archivePages ? archivePages.flatMap((page) => page.items) : []),
+    () =>
+      archivePages
+        ? dedupeBy(
+            archivePages.flatMap((page) => page.items),
+            (item) => item.tmdbId,
+          )
+        : [],
     [archivePages],
   );
 

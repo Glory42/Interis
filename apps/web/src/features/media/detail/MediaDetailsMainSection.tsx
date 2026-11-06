@@ -5,6 +5,7 @@ import { PersonRouteLink } from "@/features/people/components/PersonRouteLink";
 import { RatingBreakdownChart } from "@/features/media/detail/RatingBreakdownChart";
 import { MediaFactsGrid, type MediaFactRow } from "@/features/media/detail/MediaFactsGrid";
 import type { MediaModuleStyles } from "@/features/media/styles";
+import { formatCountLabel } from "@/lib/count-label";
 
 type CastMember = PersonLink & {
   tmdbPersonId: number;
@@ -118,7 +119,7 @@ export const MediaDetailsMainSection = ({
               {communityRatingLabel}
             </span>
             <span className="font-mono text-[10px]" style={{ color: moduleStyles.faint }}>
-              {logsCount.toLocaleString()} logs
+              {formatCountLabel(logsCount, "log")}
             </span>
           </div>
         </div>

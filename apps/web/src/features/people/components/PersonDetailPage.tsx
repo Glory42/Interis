@@ -96,13 +96,19 @@ export const PersonDetailPage = ({ role, slug }: PersonDetailPageProps) => {
         }}
       >
         <Link
-          to={role === "director" ? "/serials" : "/movies"}
+          to="/movies"
           className="font-mono text-[11px]"
           style={{ color: styles.muted }}
           viewTransition
         >
-          {role === "director" ? "Directors" : "Actors"}
+          Films
         </Link>
+        <span className="font-mono text-[11px]" style={{ color: styles.faint }}>
+          /
+        </span>
+        <span className="font-mono text-[11px]" style={{ color: styles.muted }}>
+          {role === "director" ? "Director" : "Actor"}
+        </span>
         <span className="font-mono text-[11px]" style={{ color: styles.faint }}>
           /
         </span>
