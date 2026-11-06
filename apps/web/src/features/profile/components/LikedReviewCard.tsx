@@ -64,7 +64,7 @@ export const LikedReviewCard = memo(function LikedReviewCard({
               <Link
                 to="/profile/$username"
                 params={{ username: review.reviewerUsername }}
-                className="profile-shell-accent hover:underline"
+                className="shell-accent hover:underline"
               >
                 {review.reviewerDisplayUsername ?? review.reviewerUsername}
               </Link>

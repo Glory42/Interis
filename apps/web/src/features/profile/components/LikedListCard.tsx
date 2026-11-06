@@ -59,7 +59,7 @@ export const LikedListCard = memo(function LikedListCard({ list }: { list: Liked
       <div className="min-w-0 flex-1">
         <p className="mb-0.5 font-mono text-[10px] text-muted-foreground">
           by{" "}
-          <span className="profile-shell-accent">
+          <span className="shell-accent">
             {list.ownerDisplayUsername ?? list.ownerUsername}
           </span>
         </p>
@@ -72,7 +72,7 @@ export const LikedListCard = memo(function LikedListCard({ list }: { list: Liked
           </p>
         ) : null}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-mono text-[11px] font-semibold profile-shell-accent">
+          <span className="font-mono text-[11px] font-semibold shell-accent">
             {list.itemCount}
           </span>
           <span className="font-mono text-[11px] text-muted-foreground">items</span>

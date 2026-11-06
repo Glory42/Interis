@@ -137,7 +137,7 @@ export const ProfileLayout = ({
   };
 
   const actionClassName =
-    "flex items-center gap-1.5 border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.16em] transition-colors profile-shell-border profile-shell-muted hover:text-foreground";
+    "flex items-center gap-1.5 border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.16em] transition-colors shell-border shell-muted hover:text-foreground";
 
   const profileHeaderAction = isUserLoading ? null : isOwnProfile ? (
     <Link
@@ -202,7 +202,7 @@ export const ProfileLayout = ({
   const followingCount = profile.stats?.followingCount ?? 0;
   const reviewCount = profile.stats?.reviewCount ?? 0;
   return (
-    <div className="min-h-screen profile-shell">
+    <div className="min-h-screen shell">
       <FollowListDialog
         isOpen={followListDialog !== null}
         onClose={() => setFollowListDialog(null)}

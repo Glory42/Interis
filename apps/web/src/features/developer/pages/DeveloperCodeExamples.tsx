@@ -44,7 +44,7 @@ export const DeveloperCodeExamples = () => {
       <h2 className="mb-5 text-lg font-semibold tracking-tight text-foreground">
         Mini examples
       </h2>
-      <div className="overflow-hidden rounded-2xl border developer-shell-border developer-shell-panel">
+      <div className="overflow-hidden rounded-2xl border shell-border surface">
         <div className="no-scrollbar flex overflow-x-auto border-b border-border/40">
           {codeExamples.map((example, index) => {
             const isActive = index === activeExampleIndex;
@@ -60,7 +60,7 @@ export const DeveloperCodeExamples = () => {
                   "shrink-0 whitespace-nowrap border-b-2 px-4 py-3 text-xs font-medium transition-colors",
                   isActive
                     ? "border-primary text-primary"
-                    : "border-transparent developer-shell-muted hover:text-foreground",
+                    : "border-transparent shell-muted hover:text-foreground",
                 )}
               >
                 {example.title}
@@ -87,7 +87,7 @@ export const DeveloperCodeExamples = () => {
                 "flex shrink-0 items-center gap-1 rounded-md border px-2 py-1 text-xs transition-colors",
                 copied
                   ? "border-primary/30 bg-primary/10 text-primary"
-                  : "developer-shell-border developer-shell-muted hover:text-foreground",
+                  : "shell-border shell-muted hover:text-foreground",
               )}
             >
               {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}

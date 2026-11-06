@@ -21,18 +21,18 @@ export const FavoritesSlotList = ({
     <div className="space-y-2">
       {slots.map((slot, index) => (
         <div key={`${category}-slot-${index + 1}`} className="flex items-center gap-3">
-          <span className="w-4 shrink-0 text-right text-xs settings-shell-muted">{index + 1}.</span>
+          <span className="w-4 shrink-0 text-right text-xs shell-muted">{index + 1}.</span>
 
           <button
             type="button"
             onClick={() => onOpenSlotPicker(category, index)}
-            className="flex flex-1 items-center gap-3 rounded-lg border px-3 py-2 text-left focus:outline-none transition-colors settings-shell-border settings-shell-input hover:border-[color:var(--settings-shell-accent)]"
+            className="flex flex-1 items-center gap-3 rounded-lg border px-3 py-2 text-left focus:outline-none transition-colors shell-border shell-input hover:border-[color:var(--shell-accent)]"
             disabled={isBusy}
           >
             {slot ? (
               <span
-                className="h-10 w-7 shrink-0 overflow-hidden rounded-md border settings-shell-border"
-                style={{ background: "color-mix(in srgb, var(--settings-shell-bg) 85%, black)" }}
+                className="h-10 w-7 shrink-0 overflow-hidden rounded-md border shell-border"
+                style={{ background: "color-mix(in srgb, var(--shell-bg) 85%, black)" }}
               >
                 {slot.posterPath ? (
                   <img
@@ -44,14 +44,14 @@ export const FavoritesSlotList = ({
               </span>
             ) : null}
 
-            <span className={"text-sm " + (slot ? "text-foreground" : "settings-shell-muted")}>
+            <span className={"text-sm " + (slot ? "text-foreground" : "shell-muted")}>
               {slot?.title ?? `${category === "movie" ? "Movie" : "Serial"} #${index + 1}`}
             </span>
           </button>
 
           <button
             type="button"
-            className="shrink-0 p-1 settings-shell-muted transition-colors hover:text-foreground disabled:opacity-40"
+            className="shrink-0 p-1 shell-muted transition-colors hover:text-foreground disabled:opacity-40"
             onClick={() => onClearSlot(category, index)}
             disabled={!slot || isBusy}
             aria-label={`Clear ${category} slot ${index + 1}`}

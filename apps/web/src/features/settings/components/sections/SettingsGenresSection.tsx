@@ -45,7 +45,7 @@ export const SettingsGenresSection = () => {
 
   if (isUserLoading || !user) {
     return (
-      <div className="border px-4 py-3 text-sm settings-shell-border settings-shell-muted settings-shell-panel">
+      <div className="border px-4 py-3 text-sm shell-border shell-muted surface">
         <p className="flex items-center gap-2">
           <Spinner /> Loading genre settings...
         </p>
@@ -90,16 +90,16 @@ export const SettingsGenresSection = () => {
   };
 
   return (
-    <div className="border p-6 sm:p-8 space-y-6 settings-shell-border settings-shell-panel">
+    <div className="border p-6 sm:p-8 space-y-6 shell-border surface">
       <div>
         <p className="mb-1 text-lg font-bold text-foreground">Favorite Genres</p>
-        <p className="text-sm settings-shell-muted">
+        <p className="text-sm shell-muted">
           Choose the genres that define your taste. These appear on your public profile.
         </p>
       </div>
 
       <div>
-        <p className="mb-3 text-xs font-medium settings-shell-muted">
+        <p className="mb-3 text-xs font-medium shell-muted">
           Selected ({selectedGenres.length}/{MAX_FAVORITE_GENRES})
         </p>
 
@@ -110,19 +110,19 @@ export const SettingsGenresSection = () => {
                 key={`selected-${genre}`}
                 type="button"
                 onClick={() => toggleGenre(genre)}
-                className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors settings-shell-border settings-shell-accent settings-shell-active-pill"
+                className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors shell-border shell-accent shell-active-pill"
               >
                 <span>{genre}</span>
                 <X className="h-3 w-3" aria-hidden="true" />
               </button>
             ))
           ) : (
-            <p className="text-sm settings-shell-muted">No genres selected.</p>
+            <p className="text-sm shell-muted">No genres selected.</p>
           )}
         </div>
 
-        <div className="border-t pt-4 settings-shell-row-border">
-          <p className="mb-3 text-xs font-medium settings-shell-muted">All genres</p>
+        <div className="border-t pt-4 shell-row-border">
+          <p className="mb-3 text-xs font-medium shell-muted">All genres</p>
 
           <div className="flex flex-wrap gap-2">
             {FAVORITE_GENRE_OPTIONS.map((genre) => {
@@ -136,8 +136,8 @@ export const SettingsGenresSection = () => {
                   className={
                     "rounded-full border px-3 py-1 text-sm transition-colors " +
                     (isSelected
-                      ? "settings-shell-border settings-shell-accent settings-shell-active-pill"
-                      : "settings-shell-border settings-shell-dim-text")
+                      ? "shell-border shell-accent shell-active-pill"
+                      : "shell-border shell-muted")
                   }
                 >
                   {genre}
@@ -155,7 +155,7 @@ export const SettingsGenresSection = () => {
       ) : null}
 
       {saveSuccess ? (
-        <p className="border px-3 py-2 text-sm settings-shell-border settings-shell-accent settings-shell-active-pill">
+        <p className="border px-3 py-2 text-sm shell-border shell-accent shell-active-pill">
           {saveSuccess}
         </p>
       ) : null}
@@ -167,7 +167,7 @@ export const SettingsGenresSection = () => {
         }}
         disabled={updateProfileMutation.isPending}
         className="rounded-full px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-        style={{ background: "var(--settings-shell-accent)", color: "var(--primary-foreground)" }}
+        style={{ background: "var(--shell-accent)", color: "var(--primary-foreground)" }}
       >
         {updateProfileMutation.isPending ? "Saving..." : "Save genres"}
       </button>

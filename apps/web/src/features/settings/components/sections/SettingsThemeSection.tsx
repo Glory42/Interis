@@ -20,7 +20,7 @@ export const SettingsThemeSection = () => {
 
   if (isUserLoading || !user) {
     return (
-      <div className="border px-4 py-3 text-sm settings-shell-border settings-shell-muted settings-shell-panel">
+      <div className="border px-4 py-3 text-sm shell-border shell-muted surface">
         <p className="flex items-center gap-2">
           <Spinner /> Loading theme settings...
         </p>
@@ -58,10 +58,10 @@ export const SettingsThemeSection = () => {
   const themeOptions = listThemes();
 
   return (
-    <div className="border p-6 sm:p-8 space-y-6 settings-shell-border settings-shell-panel">
+    <div className="border p-6 sm:p-8 space-y-6 shell-border surface">
       <div>
         <p className="mb-1 text-lg font-bold text-foreground">Appearance</p>
-        <p className="text-sm settings-shell-muted">
+        <p className="text-sm shell-muted">
           Choose between Rose Pine, NULL://LOG, Nitrate, and Marquee. Selection applies immediately.
         </p>
       </div>
@@ -81,8 +81,8 @@ export const SettingsThemeSection = () => {
               className={
                 "w-full rounded-xl border p-4 text-left transition-all " +
                 (isActive
-                  ? "settings-shell-active-option"
-                  : "settings-shell-border settings-shell-input")
+                  ? "shell-active-option"
+                  : "shell-border shell-input")
               }
             >
               <div className="mb-2 flex items-center justify-between">
@@ -101,7 +101,7 @@ export const SettingsThemeSection = () => {
                   <span
                     className={
                       "text-sm font-semibold " +
-                      (isActive ? "settings-shell-accent" : "text-foreground")
+                      (isActive ? "shell-accent" : "text-foreground")
                     }
                   >
                     {theme.label}
@@ -110,19 +110,19 @@ export const SettingsThemeSection = () => {
                   {isActive ? (
                     <span
                       className="rounded-full px-1.5 py-0.5 text-xs font-medium"
-                      style={{ background: "var(--settings-shell-accent)", color: "var(--primary-foreground)" }}
+                      style={{ background: "var(--shell-accent)", color: "var(--primary-foreground)" }}
                     >
                       Active
                     </span>
                   ) : null}
                 </div>
 
-                <span className="flex h-4 w-4 items-center justify-center rounded-full border settings-shell-border">
-                  {isActive ? <span className="h-2 w-2 rounded-full settings-shell-dot" aria-hidden="true" /> : null}
+                <span className="flex h-4 w-4 items-center justify-center rounded-full border shell-border">
+                  {isActive ? <span className="h-2 w-2 rounded-full shell-dot" aria-hidden="true" /> : null}
                 </span>
               </div>
 
-              <p className="text-xs settings-shell-dim-text">{theme.description}</p>
+              <p className="text-xs shell-muted">{theme.description}</p>
             </button>
           );
         })}
@@ -135,7 +135,7 @@ export const SettingsThemeSection = () => {
       ) : null}
 
       {themeSuccess ? (
-        <p className="border px-3 py-2 text-sm settings-shell-border settings-shell-accent settings-shell-active-pill">
+        <p className="border px-3 py-2 text-sm shell-border shell-accent shell-active-pill">
           {themeSuccess}
         </p>
       ) : null}

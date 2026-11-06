@@ -14,9 +14,9 @@ const handleExploreClick = () => {
 };
 
 export const DeveloperPage = () => (
-  <div className="developer-shell min-h-screen">
+  <div className="shell min-h-screen">
     <div className="mx-auto max-w-5xl px-4 py-10 sm:py-14">
-      <header className="animate-fade-up mb-12 border-b developer-shell-border pb-10">
+      <header className="animate-fade-up mb-12 border-b shell-border pb-10">
         <div className="mb-4 flex items-center gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-primary/25 bg-primary/10">
             <CodeXml className="h-5 w-5 text-primary" />
@@ -32,7 +32,7 @@ export const DeveloperPage = () => (
           </div>
         </div>
 
-        <p className="max-w-2xl text-sm leading-relaxed developer-shell-muted">
+        <p className="max-w-2xl text-sm leading-relaxed shell-muted">
           Build small integrations with your public data. Interis exposes a
           simple public API for profile data, top picks, recent activity,
           reviews, watchlist, diary entries, and more. Use it for personal
@@ -64,7 +64,7 @@ export const DeveloperPage = () => (
             return (
               <article
                 key={item.title}
-                className="flex items-start gap-4 rounded-2xl border developer-shell-border developer-shell-panel p-4"
+                className="flex items-start gap-4 rounded-2xl border shell-border surface p-4"
               >
                 <div
                   className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/70"
@@ -76,7 +76,7 @@ export const DeveloperPage = () => (
                   <h3 className="mb-1 text-sm font-semibold text-foreground">
                     {item.title}
                   </h3>
-                  <p className="text-sm leading-relaxed developer-shell-muted">
+                  <p className="text-sm leading-relaxed shell-muted">
                     {item.description}
                   </p>
                 </div>
@@ -90,14 +90,14 @@ export const DeveloperPage = () => (
       <DeveloperCodeExamples />
 
       <section>
-        <div className="flex flex-col items-start gap-5 rounded-2xl border developer-shell-border developer-shell-panel p-6 sm:flex-row sm:items-center">
+        <div className="flex flex-col items-start gap-5 rounded-2xl border shell-border surface p-6 sm:flex-row sm:items-center">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-accent/30 bg-accent/10">
             <BookOpen className="h-5 w-5 text-accent" />
           </div>
 
           <div className="min-w-0 flex-1">
             <h2 className="mb-1 text-base font-semibold text-foreground">Full docs</h2>
-            <p className="text-sm leading-relaxed developer-shell-muted">
+            <p className="text-sm leading-relaxed shell-muted">
               The complete API documentation is available at{" "}
               <span className="text-foreground">docs.interis.gorkemkaryol.dev</span>{" "}
               with endpoint reference, response notes, and practical examples.

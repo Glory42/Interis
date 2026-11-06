@@ -11,7 +11,7 @@ export const SettingsFavoritesSection = () => {
 
   if (isUserLoading || !user) {
     return (
-      <div className="border px-4 py-3 text-sm settings-shell-border settings-shell-muted settings-shell-panel">
+      <div className="border px-4 py-3 text-sm shell-border shell-muted surface">
         <p className="flex items-center gap-2">
           <Spinner /> Loading favorites settings...
         </p>
@@ -21,9 +21,9 @@ export const SettingsFavoritesSection = () => {
 
   return (
     <div className="space-y-4">
-      <div className="border p-5 settings-shell-border settings-shell-panel">
+      <div className="border p-5 shell-border surface">
         <p className="mb-1 text-base font-bold text-foreground">Top Picks</p>
-        <p className="mb-5 text-sm settings-shell-muted">
+        <p className="mb-5 text-sm shell-muted">
           Set up to 4 favorites for Movie and Serial. These appear as a showcase on your public profile.
         </p>
 
@@ -34,7 +34,7 @@ export const SettingsFavoritesSection = () => {
               <span className="text-sm font-semibold" style={{ color: "var(--module-movie)" }}>
                 Movie
               </span>
-              <span className="text-xs settings-shell-muted">
+              <span className="text-xs shell-muted">
                 ({controller.selectedMovieCount}/4)
               </span>
             </div>
@@ -54,7 +54,7 @@ export const SettingsFavoritesSection = () => {
               <span className="text-sm font-semibold" style={{ color: "var(--module-serial)" }}>
                 Serial
               </span>
-              <span className="text-xs settings-shell-muted">
+              <span className="text-xs shell-muted">
                 ({controller.selectedSerialCount}/4)
               </span>
             </div>
@@ -70,7 +70,7 @@ export const SettingsFavoritesSection = () => {
         </div>
 
         {controller.topPicksQuery.isPending ? (
-          <p className="mt-4 flex items-center gap-2 text-sm settings-shell-muted">
+          <p className="mt-4 flex items-center gap-2 text-sm shell-muted">
             <Spinner className="h-3.5 w-3.5" /> Loading saved favorites...
           </p>
         ) : null}
@@ -88,7 +88,7 @@ export const SettingsFavoritesSection = () => {
         ) : null}
 
         {controller.saveSuccess ? (
-          <p className="mt-4 border px-3 py-2 text-sm settings-shell-border settings-shell-accent settings-shell-active-pill">
+          <p className="mt-4 border px-3 py-2 text-sm shell-border shell-accent shell-active-pill">
             {controller.saveSuccess}
           </p>
         ) : null}
@@ -100,7 +100,7 @@ export const SettingsFavoritesSection = () => {
           }}
           disabled={controller.updateProfileMutation.isPending || !controller.isDirty}
           className="mt-5 px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-          style={{ background: "var(--settings-shell-accent)", color: "var(--primary-foreground)" }}
+          style={{ background: "var(--shell-accent)", color: "var(--primary-foreground)" }}
         >
           {controller.updateProfileMutation.isPending ? "Saving..." : "Save favorites"}
         </button>

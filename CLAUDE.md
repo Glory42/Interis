@@ -144,7 +144,7 @@ src/
 
 **Modals:** use the project's custom modal pattern (not Radix Dialog) — controlled `isOpen` boolean, backdrop `div` with `theme-modal-overlay fixed inset-0 z-140 bg-background/70 backdrop-blur-sm`, content in `theme-modal-panel` with `animate-fade-up`. See `FeedReviewEditDialog.tsx` as reference.
 
-**Styling:** Tailwind CSS v4. Use `cn()` from `@/lib/utils` for conditional classes. Adhere to the theme token system — use `profile-shell-*`, `text-muted-foreground`, `text-foreground`, `border-border/*` etc. rather than hardcoded colors.
+**Styling:** Tailwind CSS v4. Use `cn()` from `@/lib/utils` for conditional classes. Adhere to the theme token system — use the role tokens (`--fg`, `--muted-foreground`, `--line`, `--film`, `--series`, …), the `shell-*` and `surface` classes, `text-muted-foreground`, `text-foreground`, `border-border/*` etc. rather than hardcoded colors.
 
 ## Key domain notes
 

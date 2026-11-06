@@ -22,7 +22,7 @@ function SettingsLayoutRoute() {
   return (
     <SettingsLayout>
       {isUserLoading || !user ? (
-        <div className="border px-4 py-3 text-sm settings-shell-border settings-shell-muted settings-shell-panel">
+        <div className="border px-4 py-3 text-sm shell-border shell-muted surface">
           <p className="flex items-center gap-2">
             <Spinner /> Loading settings...
           </p>

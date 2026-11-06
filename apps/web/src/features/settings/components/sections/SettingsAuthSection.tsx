@@ -43,7 +43,7 @@ export const SettingsAuthSection = () => {
 
   if (isUserLoading || !user) {
     return (
-      <div className="border px-4 py-3 text-sm settings-shell-border settings-shell-muted settings-shell-panel">
+      <div className="border px-4 py-3 text-sm shell-border shell-muted surface">
         <p className="flex items-center gap-2">
           <Spinner /> Loading auth settings...
         </p>
@@ -117,7 +117,7 @@ export const SettingsAuthSection = () => {
     return (
       <button
         type="button"
-        className="absolute right-3 top-1/2 -translate-y-1/2 settings-shell-muted transition-colors hover:text-foreground"
+        className="absolute right-3 top-1/2 -translate-y-1/2 shell-muted transition-colors hover:text-foreground"
         onClick={onToggle}
         aria-label={label}
       >
@@ -129,26 +129,26 @@ export const SettingsAuthSection = () => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="border p-5 space-y-4 settings-shell-border settings-shell-panel">
+        <div className="border p-5 space-y-4 shell-border surface">
           <div>
             <p className="mb-1 text-base font-bold text-foreground">Email</p>
-            <p className="mb-4 text-sm settings-shell-muted">Update your account email.</p>
+            <p className="mb-4 text-sm shell-muted">Update your account email.</p>
           </div>
 
           <form className="space-y-4" onSubmit={handleChangeEmail}>
             <div>
-              <label className="mb-1 block text-xs font-medium settings-shell-muted">Current email</label>
-              <p className="mb-4 text-sm settings-shell-dim-text">{user.email}</p>
+              <label className="mb-1 block text-xs font-medium shell-muted">Current email</label>
+              <p className="mb-4 text-sm shell-muted">{user.email}</p>
 
               <label
-                className="mb-2 block text-xs font-medium settings-shell-muted"
+                className="mb-2 block text-xs font-medium shell-muted"
                 htmlFor="settings-new-email"
               >
                 New email
               </label>
               <input
                 id="settings-new-email"
-                className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+                className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--shell-accent)] shell-border shell-input"
                 placeholder="new@mail.com"
                 type="email"
                 value={newEmail}
@@ -157,7 +157,7 @@ export const SettingsAuthSection = () => {
               />
 
               <label
-                className="mb-2 mt-4 block text-xs font-medium settings-shell-muted"
+                className="mb-2 mt-4 block text-xs font-medium shell-muted"
                 htmlFor="settings-email-current-password"
               >
                 Current password
@@ -165,7 +165,7 @@ export const SettingsAuthSection = () => {
               <div className="relative">
                 <input
                   id="settings-email-current-password"
-                  className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+                  className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--shell-accent)] shell-border shell-input"
                   placeholder="••••••••"
                   type={showEmailPassword ? "text" : "password"}
                   value={emailPassword}
@@ -186,7 +186,7 @@ export const SettingsAuthSection = () => {
             ) : null}
 
             {authEmailSuccess ? (
-              <p role="status" className="border px-3 py-2 text-sm settings-shell-border settings-shell-accent settings-shell-active-pill">
+              <p role="status" className="border px-3 py-2 text-sm shell-border shell-accent shell-active-pill">
                 {authEmailSuccess}
               </p>
             ) : null}
@@ -195,23 +195,23 @@ export const SettingsAuthSection = () => {
               type="submit"
               disabled={changeEmailMutation.isPending}
               className="rounded-full px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-              style={{ background: "var(--settings-shell-accent)", color: "var(--primary-foreground)" }}
+              style={{ background: "var(--shell-accent)", color: "var(--primary-foreground)" }}
             >
               {changeEmailMutation.isPending ? "Updating..." : "Update email"}
             </button>
           </form>
         </div>
 
-        <div className="border p-5 space-y-4 settings-shell-border settings-shell-panel">
+        <div className="border p-5 space-y-4 shell-border surface">
           <div>
             <p className="mb-1 text-base font-bold text-foreground">Password</p>
-            <p className="mb-4 text-sm settings-shell-muted">Change your account password.</p>
+            <p className="mb-4 text-sm shell-muted">Change your account password.</p>
           </div>
 
           <form className="space-y-4" onSubmit={handleChangePassword}>
             <div>
               <label
-                className="mb-2 block text-xs font-medium settings-shell-muted"
+                className="mb-2 block text-xs font-medium shell-muted"
                 htmlFor="settings-current-password"
               >
                 Current password
@@ -220,7 +220,7 @@ export const SettingsAuthSection = () => {
               <div className="relative">
                 <input
                   id="settings-current-password"
-                  className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+                  className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--shell-accent)] shell-border shell-input"
                   placeholder="••••••••"
                   type={showCurrentPassword ? "text" : "password"}
                   value={currentPassword}
@@ -236,7 +236,7 @@ export const SettingsAuthSection = () => {
 
             <div>
               <label
-                className="mb-2 block text-xs font-medium settings-shell-muted"
+                className="mb-2 block text-xs font-medium shell-muted"
                 htmlFor="settings-new-password"
               >
                 New password
@@ -245,7 +245,7 @@ export const SettingsAuthSection = () => {
               <div className="relative">
                 <input
                   id="settings-new-password"
-                  className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+                  className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--shell-accent)] shell-border shell-input"
                   placeholder="••••••••"
                   type={showNewPassword ? "text" : "password"}
                   value={newPassword}
@@ -262,7 +262,7 @@ export const SettingsAuthSection = () => {
 
             <div>
               <label
-                className="mb-2 block text-xs font-medium settings-shell-muted"
+                className="mb-2 block text-xs font-medium shell-muted"
                 htmlFor="settings-confirm-password"
               >
                 Confirm new password
@@ -271,7 +271,7 @@ export const SettingsAuthSection = () => {
               <div className="relative">
                 <input
                   id="settings-confirm-password"
-                  className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--settings-shell-accent)] settings-shell-border settings-shell-input"
+                  className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--shell-accent)] shell-border shell-input"
                   placeholder="••••••••"
                   type={showConfirmPassword ? "text" : "password"}
                   value={confirmPassword}
@@ -286,14 +286,14 @@ export const SettingsAuthSection = () => {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center settings-shell-row-border">
+            <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center shell-row-border">
               <button
                 type="button"
                 className={
                   "flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition-colors " +
                   (revokeOtherSessions
-                    ? "settings-shell-danger-option"
-                    : "settings-shell-border settings-shell-dim-text")
+                    ? "shell-danger-option"
+                    : "shell-border shell-muted")
                 }
                 onClick={() => {
                   setRevokeOtherSessions((prev) => !prev);
@@ -307,7 +307,7 @@ export const SettingsAuthSection = () => {
                 type="submit"
                 disabled={changePasswordMutation.isPending}
                 className="rounded-full px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-                style={{ background: "var(--settings-shell-accent)", color: "var(--primary-foreground)" }}
+                style={{ background: "var(--shell-accent)", color: "var(--primary-foreground)" }}
               >
                 {changePasswordMutation.isPending ? "Updating..." : "Change password"}
               </button>
@@ -320,7 +320,7 @@ export const SettingsAuthSection = () => {
             ) : null}
 
             {authPasswordSuccess ? (
-              <p role="status" className="border px-3 py-2 text-sm settings-shell-border settings-shell-accent settings-shell-active-pill">
+              <p role="status" className="border px-3 py-2 text-sm shell-border shell-accent shell-active-pill">
                 {authPasswordSuccess}
               </p>
             ) : null}

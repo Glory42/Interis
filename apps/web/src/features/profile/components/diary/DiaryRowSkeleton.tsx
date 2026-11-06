@@ -4,7 +4,7 @@ export const DiaryRowSkeleton = () => {
   return (
     <div
       className="grid grid-cols-[1fr] items-center gap-3 border-b px-2 py-3 md:grid-cols-[80px_48px_56px_1fr_80px_120px_32px_32px_32px]"
-      style={{ borderColor: "var(--profile-shell-row-border)" }}
+      style={{ borderColor: "var(--shell-row-border)" }}
     >
       <Skeleton className="hidden h-14 w-16 border border-border/40 bg-card/25 md:block" />
       <Skeleton className="hidden h-5 w-6 md:block" />
