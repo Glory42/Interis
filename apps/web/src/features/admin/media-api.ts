@@ -1,10 +1,14 @@
 import { z } from "zod";
+import { appendPageParams, type AdminPage } from "@/features/admin/pagination";
 import { apiRequest } from "@/lib/api-client";
 import { successResponseSchema as actionResponseSchema } from "@/types/api";
 
-const buildMediaQuery = (query: string | undefined): string => {
-  if (!query) return "";
-  return `?query=${encodeURIComponent(query)}`;
+const buildMediaQuery = (query: string | undefined, page?: AdminPage): string => {
+  const params = new URLSearchParams();
+  if (query) params.set("query", query);
+  appendPageParams(params, page);
+  const search = params.toString();
+  return search ? `?${search}` : "";
 };
 
 const adminMovieSchema = z.object({
@@ -30,8 +34,8 @@ export type AdminUpdateMovieInput = Partial<{
   releaseYear: number | null;
 }>;
 
-export const listAdminMovies = async (query?: string): Promise<AdminMovie[]> => {
-  const response = await apiRequest<unknown>(`/api/admin/movies${buildMediaQuery(query)}`, {
+export const listAdminMovies = async (query?: string, page?: AdminPage): Promise<AdminMovie[]> => {
+  const response = await apiRequest<unknown>(`/api/admin/movies${buildMediaQuery(query, page)}`, {
     method: "GET",
   });
   return z.array(adminMovieSchema).parse(response);
@@ -79,8 +83,8 @@ export type AdminUpdateSerialInput = Partial<{
   backdropPath: string | null;
 }>;
 
-export const listAdminSerials = async (query?: string): Promise<AdminSerial[]> => {
-  const response = await apiRequest<unknown>(`/api/admin/serials${buildMediaQuery(query)}`, {
+export const listAdminSerials = async (query?: string, page?: AdminPage): Promise<AdminSerial[]> => {
+  const response = await apiRequest<unknown>(`/api/admin/serials${buildMediaQuery(query, page)}`, {
     method: "GET",
   });
   return z.array(adminSerialSchema).parse(response);

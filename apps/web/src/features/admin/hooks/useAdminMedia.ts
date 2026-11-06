@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAdminPagedList } from "@/features/admin/hooks/useAdminPagedList";
 import {
   deleteAdminMovie,
   deleteAdminSerial,
@@ -20,10 +21,10 @@ export const adminMediaKeys = {
 };
 
 export const useAdminMovies = (query?: string) =>
-  useQuery({ queryKey: adminMediaKeys.movies(query), queryFn: () => listAdminMovies(query) });
+  useAdminPagedList(adminMediaKeys.movies(query), (page) => listAdminMovies(query, page));
 
 export const useAdminSerials = (query?: string) =>
-  useQuery({ queryKey: adminMediaKeys.serials(query), queryFn: () => listAdminSerials(query) });
+  useAdminPagedList(adminMediaKeys.serials(query), (page) => listAdminSerials(query, page));
 
 const useMovieAction = <TInput>(mutationFn: (input: TInput) => Promise<void>) => {
   const queryClient = useQueryClient();

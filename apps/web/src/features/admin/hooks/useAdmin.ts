@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAdminPagedList } from "@/features/admin/hooks/useAdminPagedList";
 import {
   deleteUser,
   demoteUser,
@@ -22,16 +23,10 @@ export const adminKeys = {
 };
 
 export const useAdminReports = (status?: ReportStatus) =>
-  useQuery({
-    queryKey: adminKeys.reports(status),
-    queryFn: () => listReports(status),
-  });
+  useAdminPagedList(adminKeys.reports(status), (page) => listReports(status, page));
 
 export const useAdminUsers = (query?: string) =>
-  useQuery({
-    queryKey: adminKeys.users(query),
-    queryFn: () => listAdminUsers(query),
-  });
+  useAdminPagedList(adminKeys.users(query), (page) => listAdminUsers(query, page));
 
 const useReportAction = (mutationFn: (id: string) => Promise<void>) => {
   const queryClient = useQueryClient();

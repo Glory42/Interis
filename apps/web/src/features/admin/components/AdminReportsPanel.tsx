@@ -102,8 +102,13 @@ const ReportRow = ({ report }: { report: ReportItem }) => {
   );
 };
 
-export const AdminReportsPanel = () => {
-  const [status, setStatus] = useState<ReportStatus>("pending");
+export const AdminReportsPanel = ({
+  status,
+  onStatusChange,
+}: {
+  status: ReportStatus;
+  onStatusChange: (status: ReportStatus) => void;
+}) => {
   const reportsQuery = useAdminReports(status);
 
   return (
@@ -118,7 +123,7 @@ export const AdminReportsPanel = () => {
           <button
             key={tab.value}
             type="button"
-            onClick={() => setStatus(tab.value)}
+            onClick={() => onStatusChange(tab.value)}
             className={cn(
               "rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors",
               status === tab.value
