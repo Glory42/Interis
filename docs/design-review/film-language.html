@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Interis — reel/slate language: detail, seasons, feed</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet" />
+<style>
+  body { margin: 0; font-family: var(--font-sans, Sora, sans-serif); color: var(--foreground, #e8e3f7); background: var(--background, #0c0b10); }
+  .doc { max-width: 900px; margin: 0 auto; padding-bottom: 24px; }
+  h1 { font-size: 20px; margin: 0 0 6px; } h2 { font-size: 16px; margin: 0 0 4px; }
+  .lead { color: var(--muted-foreground, #9f98bb); font-size: 13.5px; line-height: 1.55; margin: 0 0 12px; }
+  .why { margin: 6px 0 12px; padding-left: 18px; font-size: 12.5px; line-height: 1.6; color: var(--muted-foreground, #b3acd0); }
+  .why code, .lead code { font-family: var(--font-mono, monospace); font-size: 11.5px; color: var(--foreground, #e8e3f7); }
+  section { margin-top: 30px; }
+  .rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+  .rules div { border: 1px solid var(--border, #3f3958); border-radius: 6px; padding: 9px 11px; font-size: 12px; line-height: 1.45; }
+  .rules b { display: block; font-size: 12.5px; margin-bottom: 2px; }
+
+  .app { background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; padding: 16px; font-family: Sora, sans-serif; font-size: 13px; overflow: hidden; position: relative; }
+  .df { --bg:#171420; --fg:#e8e3f7; --muted:#9f98bb; --line:rgba(232,227,247,.13); --accent:#e0a8a3; --primary:#d4b5ff; --pfg:#181422; --card:#1c1828; }
+  .nl { --bg:#000; --fg:#e6e6e6; --muted:#8d8d8d; --line:rgba(255,255,255,.11); --accent:#00cfff; --primary:#00ff88; --pfg:#020202; --card:#0b0b0b; }
+  .mono { font-family: "JetBrains Mono", monospace; } .display { font-family: "Space Grotesk", sans-serif; letter-spacing: -.03em; }
+  .serif { font-family: "Instrument Serif", Georgia, serif; font-style: italic; }
+  .muted { color: var(--muted); } .faint { color: color-mix(in srgb, var(--fg) 38%, transparent); }
+  .row { display: flex; gap: 10px; align-items: center; }
+  .slate { display: flex; justify-content: space-between; padding: 7px 10px; background: #000; font: 600 10px "JetBrains Mono", monospace; letter-spacing: .08em; color: #8a8a8a; }
+  .poster { aspect-ratio: 2/3; background: center/cover; border-radius: 2px; flex: none; }
+  .btn { display: flex; justify-content: center; align-items: center; gap: 6px; border-radius: 3px; padding: 8px; font-weight: 600; font-size: 12px; background: var(--primary); color: var(--pfg); }
+  .kick { font: 600 10px "JetBrains Mono", monospace; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; }
+  .credits { font: 12px "JetBrains Mono", monospace; }
+  .credits div { display: flex; gap: 6px; padding: 3px 0; }
+  .credits .lead-dots { flex: 1; border-bottom: 1px dotted var(--line); transform: translateY(-4px); }
+  .r { width: 12px; height: 12px; flex: none; } .r.on { fill: var(--primary); stroke: var(--primary); } .r.off { fill: none; stroke: color-mix(in srgb, var(--fg) 25%, transparent); }
+  .rk { width: 20px; height: 20px; fill: var(--primary); stroke: var(--primary); }
+  .tick { display: inline-block; border: 1px solid var(--line); border-radius: 2px; }
+  .cells { display: flex; flex-wrap: wrap; gap: 2px; }
+  .cells i { width: 7px; height: 10px; background: color-mix(in srgb, var(--fg) 12%, transparent); display: block; border-radius: 1px; }
+  .cells i.w { background: var(--accent); }
+  .divider { display: flex; align-items: center; gap: 10px; font: 600 10px "JetBrains Mono", monospace; letter-spacing: .1em; color: var(--muted); margin: 14px 0 8px; }
+  .divider::after { content: ""; flex: 1; border-top: 1px solid var(--line); order: 1; }
+  .divider span:last-child { order: 2; }
+  .outline { font: 700 26px/1 "Space Grotesk", sans-serif; color: transparent; -webkit-text-stroke: 1px color-mix(in srgb, var(--fg) 55%, transparent); width: 34px; flex: none; }
+  .sentence u { text-decoration: none; border-bottom: 1px dashed var(--accent); color: var(--fg); }
+  .ann { position: absolute; border: 1.5px dashed #ff6b85; border-radius: 4px; pointer-events: none; }
+  .ann span { position: absolute; top: -9px; left: 8px; background: #ff6b85; color: #1a0a0d; font: 700 10px "JetBrains Mono", monospace; padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><symbol id="rk" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol></svg>
+<div class="doc">
+  <h1>The reel / slate style, applied across the app</h1>
+  <p class="lead">These pages use the same rules as the archive hero you approved. Six rules keep everything consistent:</p>
+  <div class="rules">
+    <div><b>Slate bars</b>Black strips with mono metadata at the top and bottom of an image: format, week, runtime.</div>
+    <div><b>Credits, not icon cards</b>Facts and cast written as end credits, with dotted leaders between label and value.</div>
+    <div><b>Rockets everywhere</b>The 1–10 rocket rating everywhere, including the season and episode ratings that currently use stars.</div>
+    <div><b>Reel ticks for progress</b>One small cell per episode, so you can see progress at a glance.</div>
+    <div><b>Specific copy</b>Week numbers, dates and real counts. Never "Unknown", never placeholder text.</div>
+    <div><b>Nearly square corners</b>2–4px corners and hairline borders instead of rounded cards with glows.</div>
+  </div>
+
+  <!-- 1. DETAIL -->
+  <section>
+    <h2>1 · Movie and TV detail pages</h2>
+    <ul class="why">
+      <li>The backdrop sits inside a letterbox with slate bars, and stays in full colour because it's the film's own art. The poster overlaps the bottom of the frame.</li>
+      <li>The title reads like an opening credit: a director kicker, the title, then the tagline (the API already returns it).</li>
+      <li>The 6-card facts grid (with icons and "Unknown") and the cast chips become one <b>credits</b> block. Missing values simply don't appear, so TV pages never show "created by Unknown".</li>
+    </ul>
+    <div class="app df" style="padding:0">
+      <div class="slate"><span>INTERIS · FILM · 2026</span><span>1H 49M · ENGLISH · USA</span></div>
+      <div style="height:170px;background:linear-gradient(0deg,#171420 0%,transparent 55%),url(https://image.tmdb.org/t/p/w780/xSDoxv4pHvs4xZjvTb0Iqg1A6ro.jpg) center 35%/cover"></div>
+      <div class="row" style="align-items:flex-start;gap:20px;padding:0 18px 18px;margin-top:-70px;position:relative">
+        <div style="width:150px;flex:none">
+          <div class="poster" style="width:150px;background-image:url(https://image.tmdb.org/t/p/w342/9l1NuFjel2j89hiuiJbsxfblqjy.jpg);box-shadow:0 20px 40px -18px #000;border:1px solid var(--line)"></div>
+          <div class="btn" style="margin-top:10px">✎ Log again</div>
+          <div class="muted" style="text-align:center;font-size:10.5px;margin:5px 0 8px">Watched Nov 2</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);font-size:9.5px;text-align:center">
+            <div style="padding:6px 0;color:var(--primary)">◉<br>Watched</div><div style="padding:6px 0;border-left:1px solid var(--line);color:#f17fa0">♥<br>Liked</div><div style="padding:6px 0;border-left:1px solid var(--line)" class="muted">⊕<br>List</div>
+          </div>
+          <div style="margin-top:8px;border:1px solid var(--line);padding:8px">
+            <div class="row" style="justify-content:space-between"><span class="kick" style="letter-spacing:.04em">Your rating</span><b class="mono" style="color:var(--primary)">8<span class="muted" style="font-weight:400;font-size:10px">/10</span></b></div>
+            <div style="position:relative;height:22px"><div style="position:absolute;left:0;right:0;top:10px;border-top:1px solid var(--line)"></div><div style="position:absolute;left:0;width:80%;top:9px;height:3px;background:linear-gradient(90deg,transparent,var(--primary))"></div><svg class="rk" style="position:absolute;left:calc(80% - 10px);top:1px;transform:rotate(45deg);width:18px;height:18px"><use href="#rk"/></svg></div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:0;padding-top:78px">
+          <div class="kick">Directed by James Watkins</div>
+          <div class="display" style="font-size:38px;font-weight:700;line-height:1">Clayface</div>
+          <div class="serif" style="font-size:16px;color:var(--accent);margin-top:4px">Some faces should stay buried.</div>
+          <div class="row mono" style="gap:18px;margin:12px 0;font-size:11px"><span><b style="font-size:18px;color:var(--primary)">8.0</b> <span class="muted">INTERIS · 1 LOG</span></span><span><b style="font-size:18px">7.4</b> <span class="muted">TMDB</span></span><span class="muted">HORROR / THRILLER / SCI-FI</span></div>
+          <div class="muted" style="font-size:12.5px;line-height:1.55">Matt Hagen's meteoric rise from Gotham street kid to Hollywood leading man is tragically cut short when a local crime boss's actions leave him horribly disfigured…</div>
+          <div class="kick" style="margin:14px 0 4px">Credits</div>
+          <div class="credits">
+            <div><span class="muted">Matt Hagen / Clayface</span><span class="lead-dots"></span><span>Tom Rhys Harries</span></div>
+            <div><span class="muted">Caitlyn Corr</span><span class="lead-dots"></span><span>Naomi Ackie</span></div>
+            <div><span class="muted">Frank Fitzpatrick</span><span class="lead-dots"></span><span>Eddie Marsan</span></div>
+            <div><span class="muted">Budget / Box office</span><span class="lead-dots"></span><span>$44M / $89M</span></div>
+            <div style="color:var(--accent)">+ 17 more cast and crew</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:8px;font-size:12px">The tagline shown is a placeholder; the real one comes from TMDB's <code>tagline</code> field. On TV pages the top slate reads <span class="mono">INTERIS · SERIES · 2004–2012 · TV TOKYO</span>, using the serial accent colour.</p>
+  </section>
+
+  <!-- 2. SEASONS -->
+  <section>
+    <h2>2 · TV seasons and episodes</h2>
+    <ul class="why">
+      <li><b>Season row = one reel.</b> One cell per episode, filled when watched. It replaces the generic "WATCHED" pill, and even the 366-episode season shows its progress in a single glance.</li>
+      <li><b>Episode rows read like a call sheet:</b> <span class="mono">E01 · title · runtime · air date</span>, with one tick on the left to mark it watched. Like, rating and review only appear on hover or focus, so 400 rows don't each repeat four buttons. The episode description opens on click.</li>
+      <li><b>Mark up to here</b> on hover marks every earlier episode as watched, which turns catching up on long anime into one click.</li>
+      <li>The <code>RatingSelect</code> star dropdown becomes a small rocket rating, so the rocket stays consistent everywhere.</li>
+      <li>The sidebar's "Ratings (S/E): 0 / Likes (S/E): 0" becomes one reel counter: <span class="mono">416/416 · COMPLETED NOV 2</span>.</li>
+    </ul>
+    <div class="app nl">
+      <div class="row" style="justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:8px">
+        <span class="display" style="font-size:20px;font-weight:700">Seasons</span>
+        <span class="mono" style="font-size:11px"><b style="color:var(--accent)">416</b><span class="muted">/416 EPISODES · COMPLETED NOV 2</span></span>
+      </div>
+
+      <div style="border-bottom:1px solid var(--line);padding:12px 0">
+        <div class="row" style="justify-content:space-between">
+          <div class="row" style="gap:12px"><span class="outline">00</span><div><b style="font-size:13.5px">Specials</b><div class="mono muted" style="font-size:10.5px">4 EP · 2004</div></div></div>
+          <div class="row" style="gap:12px"><span class="mono" style="font-size:11px;color:var(--accent)">4/4</span><span class="row" style="gap:1px" data-rockets="0"></span><span class="muted">▴</span></div>
+        </div>
+        <div class="cells" style="margin:8px 0 0 46px" data-cells="4" data-watched="4"></div>
+
+        <div style="margin:10px 0 0 46px;border-top:1px solid var(--line)">
+          <div class="row" style="padding:8px 0;border-bottom:1px solid var(--line);gap:10px">
+            <span style="width:16px;height:16px;border-radius:50%;background:var(--accent);color:#000;font-size:10px;display:grid;place-items:center;flex:none">✓</span>
+            <div style="width:64px;aspect-ratio:16/9;background:url(https://image.tmdb.org/t/p/w185/iaLRzWdQHP6PCRzxgOYzsOtJf8T.jpg) center/cover;flex:none"></div>
+            <span class="mono muted" style="font-size:11px;width:26px">E01</span><span style="flex:1;font-size:12.5px">Memories in the Rain</span><span class="mono muted" style="font-size:10.5px">29M · DEC 18 2004</span>
+          </div>
+          <div class="row" style="padding:8px 0;border-bottom:1px solid var(--line);gap:10px;background:color-mix(in srgb,var(--accent) 6%,transparent);position:relative">
+            <span style="width:16px;height:16px;border-radius:50%;background:var(--accent);color:#000;font-size:10px;display:grid;place-items:center;flex:none">✓</span>
+            <div style="width:64px;aspect-ratio:16/9;background:url(https://image.tmdb.org/t/p/w185/jAZAKCs9wcq4PLxbGzTZ7WxkzPn.jpg) center/cover;flex:none"></div>
+            <span class="mono muted" style="font-size:11px;width:26px">E02</span><span style="flex:1;font-size:12.5px">13 Court Guard Squads Omake</span>
+            <span class="row" style="gap:1px" data-rockets="7"></span><span style="color:#f17fa0;font-size:12px">♡</span><span class="mono" style="font-size:10px;color:var(--accent)">✎ REVIEW</span>
+            <div class="ann" style="left:-4px;right:-4px;top:2px;bottom:2px"><span>hover: actions appear</span></div>
+          </div>
+          <div class="row" style="padding:8px 0;border-bottom:1px solid var(--line);gap:10px">
+            <span style="width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line);flex:none"></span>
+            <div style="width:64px;aspect-ratio:16/9;background:url(https://image.tmdb.org/t/p/w185/oEoZgYyxQtZmx3Y3eV5BkOO5Kqn.jpg) center/cover;flex:none;opacity:.6"></div>
+            <span class="mono muted" style="font-size:11px;width:26px">E03</span><span style="flex:1;font-size:12.5px">The Sealed Sword Frenzy</span><span class="mono" style="font-size:10px;color:var(--accent)">✓ MARK UP TO HERE</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="border-bottom:1px solid var(--line);padding:12px 0">
+        <div class="row" style="justify-content:space-between">
+          <div class="row" style="gap:12px"><span class="outline">01</span><div><b style="font-size:13.5px">Bleach</b><div class="mono muted" style="font-size:10.5px">366 EP · 2004–2012</div></div></div>
+          <div class="row" style="gap:12px"><span class="mono" style="font-size:11px;color:var(--accent)">366/366</span><span class="row" style="gap:1px" data-rockets="9"></span><span class="muted">▾</span></div>
+        </div>
+        <div class="cells" style="margin:8px 0 0 46px;gap:1px" data-cells="366" data-watched="366" data-small="1"></div>
+      </div>
+
+      <div style="padding:12px 0 2px">
+        <div class="row" style="justify-content:space-between">
+          <div class="row" style="gap:12px"><span class="outline">02</span><div><b style="font-size:13.5px">Thousand-Year Blood War</b><div class="mono muted" style="font-size:10.5px">50 EP · 2022</div></div></div>
+          <div class="row" style="gap:12px"><span class="mono" style="font-size:11px;color:var(--accent)">50/50</span><span class="row" style="gap:1px" data-rockets="0"></span><span class="muted">▾</span></div>
+        </div>
+        <div class="cells" style="margin:8px 0 0 46px" data-cells="50" data-watched="50"></div>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:8px;font-size:12px">An unrated season shows ten empty rockets you can click. In progress, the header becomes <span class="mono">NEXT UP · S02E29 →</span> instead of "Completed".</p>
+  </section>
+
+  <!-- 3. FEED -->
+  <section>
+    <h2>3 · Feed</h2>
+    <ul class="why">
+      <li>Day dividers become slate lines (<span class="mono">MON · NOV 2 · WK 45</span>) instead of small grey dates.</li>
+      <li>One watch becomes one grouped card (from the signed-in review). Small events from the same person collapse into a single line: "liked 2 titles" with tiny posters.</li>
+      <li>The ALL / MOVIE / SERIAL tabs become the same filter sentence as the archive.</li>
+      <li>The right rail becomes <b>Now showing</b> with outlined rank numbers, plus <b>Your week</b> with real numbers, so the feed doesn't look empty when the people you follow are quiet.</li>
+      <li>Times and "Your week" numbers in this mockup are illustrative, not your real stats.</li>
+    </ul>
+    <div class="app df">
+      <div class="row" style="align-items:flex-start;gap:16px">
+        <div style="flex:1;min-width:0">
+          <div class="row" style="border:1px solid var(--line);padding:8px 10px;gap:8px"><span style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#7a1020,#2a2238);flex:none"></span><span class="muted" style="flex:1;font-size:12.5px">What did you watch tonight?</span><span class="btn" style="padding:5px 10px;font-size:11px">✎ Log</span></div>
+          <div class="sentence muted" style="font-size:12.5px;margin-top:10px">Showing <u>everything</u> from <u>people you follow</u>.</div>
+
+          <div class="divider"><span>MON · NOV 2</span><span>WK 45</span></div>
+          <div style="border:1px solid var(--line);padding:12px;background:var(--card)">
+            <div class="row" style="align-items:flex-start;gap:12px">
+              <div class="poster" style="width:62px;background-image:url(https://image.tmdb.org/t/p/w185/9l1NuFjel2j89hiuiJbsxfblqjy.jpg)"></div>
+              <div style="flex:1;min-width:0">
+                <div class="row" style="gap:6px;font-size:12px"><b>glory42</b><span class="muted">watched</span><span class="mono faint" style="margin-left:auto;font-size:10px">21:40</span></div>
+                <div class="display" style="font-size:17px;font-weight:600;margin-top:2px">Clayface <span class="mono muted" style="font-size:11px;font-weight:400">2026</span></div>
+                <div class="row" style="gap:8px;margin-top:4px"><span class="row" style="gap:1px" data-rockets="8"></span><span class="mono muted" style="font-size:11px">8/10</span><span style="color:#f17fa0">♥</span></div>
+                <div class="serif" style="font-size:15px;margin-top:8px;line-height:1.35">“Dc character when someone is not happly married”</div>
+                <div class="row mono faint" style="gap:14px;margin-top:8px;font-size:10.5px"><span>♡ 0</span><span>REPLY</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="row" style="border:1px solid var(--line);border-top:0;padding:9px 12px;font-size:12px;gap:8px">
+            <b>glory42</b><span class="muted">liked 2 titles</span>
+            <span class="row" style="gap:3px;margin-left:auto"><span class="poster" style="width:18px;background-image:url(https://image.tmdb.org/t/p/w92/2EewmxXe72ogD0EaWM8gqa0ccIw.jpg)"></span><span class="mono muted" style="font-size:10.5px">Bleach, Third Star</span></span>
+          </div>
+        </div>
+
+        <div style="width:200px;flex:none">
+          <div class="kick" style="color:var(--accent)">Now showing · WK 45</div>
+          <div style="margin-top:6px">
+            <div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span class="outline" style="font-size:20px;width:26px">01</span><span class="poster" style="width:22px;background-image:url(https://image.tmdb.org/t/p/w92/gAgWJhUSQWCgtKR8170nMkYlBda.jpg)"></span><span style="font-size:12px">Resident Evil</span></div>
+            <div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span class="outline" style="font-size:20px;width:26px">02</span><span class="poster" style="width:22px;background-image:url(https://image.tmdb.org/t/p/w92/6sYemVUn79UPKz1ZsSG6kPU4RVy.jpg)"></span><span style="font-size:12px">Heart of the Beast</span></div>
+            <div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span class="outline" style="font-size:20px;width:26px">03</span><span class="poster" style="width:22px;background-image:url(https://image.tmdb.org/t/p/w92/1ERGPNiKtnEcsvJS1ywsmqmcIDO.jpg)"></span><span style="font-size:12px">Possible Love</span></div>
+          </div>
+          <div class="kick" style="margin-top:16px">Your week</div>
+          <div class="credits" style="margin-top:4px;font-size:11px">
+            <div><span class="muted">Logged</span><span class="lead-dots"></span><span>3</span></div>
+            <div><span class="muted">Avg rating</span><span class="lead-dots"></span><span style="color:var(--primary)">9.0</span></div>
+            <div><span class="muted">Episodes</span><span class="lead-dots"></span><span>416</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+<script>
+  const R = '<svg class="r CLS" viewBox="0 0 24 24" stroke-width="2"><use href="#rk"/></svg>';
+  document.querySelectorAll('[data-rockets]').forEach(el => {
+    const n = +el.dataset.rockets;
+    el.innerHTML = Array.from({length: 10}, (_, i) => R.replace('CLS', i < n ? 'on' : 'off')).join('');
+  });
+  document.querySelectorAll('[data-cells]').forEach(el => {
+    const n = +el.dataset.cells, w = +el.dataset.watched, small = el.dataset.small;
+    el.innerHTML = Array.from({length: n}, (_, i) => `<i class="${i < w ? 'w' : ''}" style="${small ? 'width:4px;height:8px' : ''}"></i>`).join('');
+  });
+</script>
+</body>
+</html>

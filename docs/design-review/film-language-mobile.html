@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Interis — reel/slate language on mobile</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet" />
+<style>
+  body { margin: 0; font-family: var(--font-sans, Sora, sans-serif); color: var(--foreground, #e6e6e6); background: var(--background, #0a0a0a); }
+  .doc { max-width: 900px; margin: 0 auto; padding-bottom: 24px; }
+  h1 { font-size: 20px; margin: 0 0 6px; } h2 { font-size: 16px; margin: 0 0 4px; }
+  .lead { color: var(--muted-foreground, #9a9a9a); font-size: 13.5px; line-height: 1.55; margin: 0 0 12px; }
+  .why { margin: 6px 0 12px; padding-left: 18px; font-size: 12.5px; line-height: 1.6; color: var(--muted-foreground, #a8a8a8); }
+  .why code { font-family: var(--font-mono, monospace); font-size: 11.5px; color: var(--foreground, #e6e6e6); }
+  section { margin-top: 30px; }
+  .phones { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+  .cap { font: 600 10.5px var(--font-mono, monospace); letter-spacing: .08em; color: #7dffc0; text-align: center; margin-bottom: 6px; }
+
+  .ph { --bg:#000; --fg:#e6e6e6; --muted:#8d8d8d; --line:rgba(255,255,255,.11); --primary:#00ff88; --pfg:#020202; --accent:#00cfff; --movie:#00ff88; --card:#0b0b0b;
+    width: 300px; height: 620px; border-radius: 34px; border: 6px solid #1c1c1c; background: var(--bg); color: var(--fg); overflow: hidden; position: relative; font-family: Sora, sans-serif; font-size: 12px; box-sizing: border-box; }
+  .mono { font-family: "JetBrains Mono", monospace; } .display { font-family: "Space Grotesk", sans-serif; letter-spacing: -.03em; }
+  .serif { font-family: "Instrument Serif", Georgia, serif; font-style: italic; }
+  .muted { color: var(--muted); } .faint { color: color-mix(in srgb, var(--fg) 38%, transparent); }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .nav { height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid var(--line); font: 700 12px "JetBrains Mono", monospace; }
+  .slate { display: flex; justify-content: space-between; padding: 5px 10px; background: #000; font: 600 8.5px "JetBrains Mono", monospace; letter-spacing: .08em; color: #8a8a8a; border-bottom: 1px solid var(--line); }
+  .poster { aspect-ratio: 2/3; background: center/cover; border-radius: 2px; flex: none; }
+  .kick { font: 600 8.5px "JetBrains Mono", monospace; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; }
+  .btn { display: flex; justify-content: center; align-items: center; gap: 5px; border-radius: 3px; padding: 9px 6px; font-weight: 600; font-size: 11.5px; background: var(--primary); color: var(--pfg); }
+  .dock { position: absolute; left: 0; right: 0; bottom: 0; border-top: 1px solid var(--line); background: rgba(0,0,0,.96); padding: 8px 10px 18px; display: grid; gap: 4px; align-items: center; }
+  .dock .ic { text-align: center; font-size: 9px; line-height: 1.3; }
+  .credits { font: 10.5px "JetBrains Mono", monospace; }
+  .credits div { display: flex; gap: 5px; padding: 2px 0; }
+  .credits .d { flex: 1; border-bottom: 1px dotted var(--line); transform: translateY(-4px); }
+  .r { width: 10px; height: 10px; flex: none; } .r.on { fill: var(--primary); stroke: var(--primary); } .r.off { fill: none; stroke: color-mix(in srgb, var(--fg) 25%, transparent); }
+  .cells { display: flex; flex-wrap: wrap; gap: 2px; }
+  .cells i { width: 6px; height: 9px; background: color-mix(in srgb, var(--fg) 13%, transparent); display: block; border-radius: 1px; }
+  .cells i.w { background: var(--accent); }
+  .outline { font: 700 22px/1 "Space Grotesk", sans-serif; color: transparent; -webkit-text-stroke: 1px color-mix(in srgb, var(--fg) 55%, transparent); width: 30px; flex: none; }
+  .tickc { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; flex: none; font-size: 12px; }
+  .tickc.on { background: var(--accent); color: #000; } .tickc.off { border: 1.5px solid color-mix(in srgb, var(--fg) 30%, transparent); }
+  .divider { display: flex; align-items: center; gap: 8px; font: 600 8.5px "JetBrains Mono", monospace; letter-spacing: .1em; color: var(--muted); margin: 10px 0 6px; }
+  .divider b { flex: 1; border-top: 1px solid var(--line); }
+  .sentence u { text-decoration: none; border-bottom: 1px dashed var(--accent); color: var(--fg); }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: #0d0d0d; border-top: 1px solid rgba(0,255,136,.3); border-radius: 14px 14px 0 0; padding: 10px 16px 22px; }
+  .grab { width: 36px; height: 4px; border-radius: 2px; background: #333; margin: 0 auto 12px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><symbol id="rk" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol></svg>
+<div class="doc">
+  <h1>Reel / slate style on mobile</h1>
+  <p class="lead">Same design rules as the desktop version, adapted for touch. Hover becomes swipe or long-press, side panels become bottom sheets, and the main action always stays within thumb reach. Shown at 390px in your <code>null-log</code> theme.</p>
+
+  <!-- DETAIL -->
+  <section>
+    <h2>1 · Movie and TV detail page</h2>
+    <ul class="why">
+      <li>The title, scores and the start of the description now fit on the <b>first screen</b>; today the title starts around 900px down. The poster shrinks to 84px and overlaps the letterboxed backdrop.</li>
+      <li>A <b>sticky action bar</b> at the bottom (Log, Watched, Like, List and your rocket score) replaces the five stacked buttons and the 208px rating panel.</li>
+      <li>Tapping the rocket score opens a <b>short bottom sheet</b> with a full-width launch track, big enough for half points on a phone. The page stays visible above it (poster, title, scores) behind only a light dark overlay, so you can see what you're rating. It saves when you let go, and has a shortcut to write a review.</li>
+    </ul>
+    <div class="phones">
+      <div><div class="cap">FIRST SCREEN</div>
+        <div class="ph">
+          <div class="nav"><span>◓ Interis</span><span class="muted" style="font-weight:400">⌕ &nbsp; ☰</span></div>
+          <div class="slate"><span>FILM · 2026</span><span>1H 49M · EN · USA</span></div>
+          <div style="height:120px;background:linear-gradient(0deg,#000 0%,transparent 60%),url(https://image.tmdb.org/t/p/w780/xSDoxv4pHvs4xZjvTb0Iqg1A6ro.jpg) center 35%/cover"></div>
+          <div style="padding:0 14px">
+            <div class="row" style="align-items:flex-end;gap:12px;margin-top:-44px;position:relative">
+              <div class="poster" style="width:84px;background-image:url(https://image.tmdb.org/t/p/w185/9l1NuFjel2j89hiuiJbsxfblqjy.jpg);border:1px solid var(--line);box-shadow:0 14px 30px -12px #000"></div>
+              <div style="min-width:0;padding-bottom:2px">
+                <div class="kick">Dir. James Watkins</div>
+                <div class="display" style="font-size:26px;font-weight:700;line-height:1">Clayface</div>
+                <div class="serif" style="font-size:13px;color:var(--primary);opacity:.85">Some faces should stay buried.</div>
+              </div>
+            </div>
+            <div class="row mono" style="gap:14px;margin:12px 0 8px;font-size:9.5px"><span><b style="font-size:15px;color:var(--primary)">8.0</b> <span class="muted">INTERIS · 1 LOG</span></span><span><b style="font-size:15px">7.4</b> <span class="muted">TMDB</span></span></div>
+            <div class="mono muted" style="font-size:9px;margin-bottom:8px">HORROR / THRILLER / SCI-FI</div>
+            <div class="muted" style="font-size:11.5px;line-height:1.5">Matt Hagen's meteoric rise from Gotham street kid to Hollywood leading man is tragically cut short when… <span style="color:var(--fg)">more</span></div>
+            <div class="kick" style="margin:12px 0 3px">Credits</div>
+            <div class="credits">
+              <div><span class="muted">Matt Hagen</span><span class="d"></span><span>Tom Rhys Harries</span></div>
+              <div><span class="muted">Caitlyn Corr</span><span class="d"></span><span>Naomi Ackie</span></div>
+              <div><span class="muted">Frank Fitzpatrick</span><span class="d"></span><span>Eddie Marsan</span></div>
+            </div>
+          </div>
+          <div class="dock" style="grid-template-columns:1.7fr 1fr 1fr 1fr 1.1fr">
+            <span class="btn">✎ Log</span>
+            <span class="ic" style="color:var(--primary)">◉<br>Watched</span>
+            <span class="ic" style="color:#ff6b85">♥<br>Liked</span>
+            <span class="ic muted">⊕<br>List</span>
+            <span class="ic" style="color:var(--primary)"><svg style="width:13px;height:13px;fill:var(--primary);stroke:var(--primary)"><use href="#rk"/></svg><br><b class="mono">8</b></span>
+          </div>
+        </div>
+      </div>
+      <div><div class="cap">TAP THE ROCKET → RATING SHEET</div>
+        <div class="ph">
+          <div class="nav"><span>◓ Interis</span><span class="muted" style="font-weight:400">⌕ &nbsp; ☰</span></div>
+          <div class="slate"><span>FILM · 2026</span><span>1H 49M · EN · USA</span></div>
+          <div style="height:120px;background:linear-gradient(0deg,#000 0%,transparent 60%),url(https://image.tmdb.org/t/p/w780/xSDoxv4pHvs4xZjvTb0Iqg1A6ro.jpg) center 35%/cover"></div>
+          <div style="padding:0 14px">
+            <div class="row" style="align-items:flex-end;gap:12px;margin-top:-44px;position:relative">
+              <div class="poster" style="width:84px;background-image:url(https://image.tmdb.org/t/p/w185/9l1NuFjel2j89hiuiJbsxfblqjy.jpg);border:1px solid var(--line);box-shadow:0 14px 30px -12px #000"></div>
+              <div style="min-width:0;padding-bottom:2px">
+                <div class="kick">Dir. James Watkins</div>
+                <div class="display" style="font-size:26px;font-weight:700;line-height:1">Clayface</div>
+                <div class="serif" style="font-size:13px;color:var(--primary);opacity:.85">Some faces should stay buried.</div>
+              </div>
+            </div>
+            <div class="row mono" style="gap:14px;margin:12px 0 8px;font-size:9.5px"><span><b style="font-size:15px;color:var(--primary)">8.0</b> <span class="muted">INTERIS · 1 LOG</span></span><span><b style="font-size:15px">7.4</b> <span class="muted">TMDB</span></span></div>
+          </div>
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.55) 62%)"></div>
+          <div class="sheet" style="padding-top:8px">
+            <div class="grab" style="margin-bottom:10px"></div>
+            <div class="row" style="justify-content:space-between;align-items:center">
+              <div><div class="kick">Your rating</div><div class="muted" style="font-size:10.5px;margin-top:2px">Drag · half steps · saves on release</div></div>
+              <div class="mono" style="font-size:30px;font-weight:700;color:var(--primary);line-height:1">8.0<span class="muted" style="font-size:12px;font-weight:400">/10</span></div>
+            </div>
+            <div style="position:relative;height:44px;margin-top:10px">
+              <div style="position:absolute;left:0;right:0;top:20px;border-top:2px solid var(--line)"></div>
+              <div style="position:absolute;left:0;right:0;top:14px;height:14px;background:repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px calc(10% - .1px))"></div>
+              <div style="position:absolute;left:0;width:80%;top:18px;height:6px;border-radius:3px;background:linear-gradient(90deg,transparent,var(--primary));box-shadow:0 0 16px rgba(0,255,136,.45)"></div>
+              <svg style="position:absolute;left:calc(80% - 15px);top:6px;width:30px;height:30px;fill:var(--primary);stroke:var(--primary);transform:rotate(45deg)"><use href="#rk"/></svg>
+            </div>
+            <div class="row mono muted" style="justify-content:space-between;font-size:9px"><span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span></div>
+            <div class="row" style="margin-top:12px;gap:8px">
+              <span class="muted" style="font-size:11.5px;padding:9px 12px;border:1px solid var(--line);border-radius:3px">Clear</span>
+              <span class="btn" style="flex:1">✎ Write a review</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEASONS -->
+  <section>
+    <h2>2 · TV seasons and episodes</h2>
+    <ul class="why">
+      <li>A <b>Next up</b> card sits at the top while you're watching, with one large "Mark watched" button. That's the action you take most on a phone, right after an episode ends.</li>
+      <li>Season rows keep the reel progress strip. Tapping a row opens that season on its own screen instead of expanding a 366-row list in place.</li>
+      <li>Episode rows stay quiet: a <b>26px tick</b> (44px tap area), the still, the title (truncated with "…"), and small marks for what you've set (<span style="color:#ff6b85">♥</span>, rocket and score). A <b>⋯</b> button opens an <b>episode sheet</b> with the still as its header, Mark watched, the rocket track, Like, Review and <b>Up to here</b>. No swipe gestures to discover; it works the same with touch, keyboard and screen readers.</li>
+      <li>The seasons in this example are in progress (S02 at 28/50) to show the Next up card; your real Bleach data is complete.</li>
+    </ul>
+    <div class="phones">
+      <div><div class="cap">SEASONS LIST</div>
+        <div class="ph">
+          <div class="nav"><span>◓ Interis</span><span class="muted" style="font-weight:400">⌕ &nbsp; ☰</span></div>
+          <div style="padding:12px 14px">
+            <div class="row" style="justify-content:space-between;align-items:baseline"><span class="display" style="font-size:18px;font-weight:700">Bleach</span><span class="mono" style="font-size:10px"><b style="color:var(--accent)">398</b><span class="muted">/416 EP</span></span></div>
+            <div style="margin-top:10px;border:1px solid rgba(0,207,255,.35);background:rgba(0,207,255,.06);padding:11px">
+              <div class="kick" style="color:var(--accent)">Next up · S02 · E29</div>
+              <div style="font-size:13px;margin:3px 0 1px">Thousand-Year Blood War</div>
+              <div class="mono muted" style="font-size:9.5px">EPISODE 29 OF 50 · 24M</div>
+              <div class="btn" style="margin-top:9px;background:var(--accent)">✓ Mark watched</div>
+            </div>
+            <div style="border-bottom:1px solid var(--line);padding:12px 0">
+              <div class="row" style="justify-content:space-between"><div class="row"><span class="outline">00</span><div><b>Specials</b><div class="mono muted" style="font-size:9px">4 EP · 2004</div></div></div><span class="mono" style="font-size:10px;color:var(--accent)">4/4 ›</span></div>
+              <div class="cells" style="margin:7px 0 0 38px" data-cells="4" data-watched="4"></div>
+            </div>
+            <div style="border-bottom:1px solid var(--line);padding:12px 0">
+              <div class="row" style="justify-content:space-between"><div class="row"><span class="outline">01</span><div><b>Bleach</b><div class="mono muted" style="font-size:9px">366 EP · 2004–2012</div></div></div><span class="mono" style="font-size:10px;color:var(--accent)">366/366 ›</span></div>
+              <div class="cells" style="margin:7px 0 0 38px;gap:1px" data-cells="366" data-watched="366" data-small="1"></div>
+            </div>
+            <div style="padding:12px 0">
+              <div class="row" style="justify-content:space-between"><div class="row"><span class="outline">02</span><div><b>Thousand-Year Blood War</b><div class="mono muted" style="font-size:9px">50 EP · 2022</div></div></div><span class="mono" style="font-size:10px;color:var(--accent)">28/50 ›</span></div>
+              <div class="cells" style="margin:7px 0 0 38px" data-cells="50" data-watched="28"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div><div class="cap">SEASON SCREEN</div>
+        <div class="ph">
+          <div class="nav"><span class="muted" style="font-weight:400">‹ Seasons</span><span>00 · Specials</span><span class="mono" style="font-weight:400;color:var(--accent);font-size:10px">3/4</span></div>
+          <div style="padding:10px 14px 4px"><div class="cells" data-cells="4" data-watched="3"></div></div>
+          <div style="padding:0 14px">
+            <div class="row" style="padding:11px 0;border-bottom:1px solid var(--line);gap:10px">
+              <span class="tickc on">✓</span>
+              <div style="width:56px;aspect-ratio:16/9;background:url(https://image.tmdb.org/t/p/w185/iaLRzWdQHP6PCRzxgOYzsOtJf8T.jpg) center/cover;flex:none"></div>
+              <div style="min-width:0;flex:1"><div style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span class="mono muted">E01</span> Memories in the Rain</div><div class="mono muted" style="font-size:9px">29M · DEC 18 2004</div></div>
+              <span class="muted" style="width:24px;text-align:center;font-size:14px">⋯</span>
+            </div>
+            <div class="row" style="padding:11px 0;border-bottom:1px solid var(--line);gap:10px">
+              <span class="tickc on">✓</span>
+              <div style="width:56px;aspect-ratio:16/9;background:url(https://image.tmdb.org/t/p/w185/jAZAKCs9wcq4PLxbGzTZ7WxkzPn.jpg) center/cover;flex:none"></div>
+              <div style="min-width:0;flex:1"><div style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span class="mono muted">E02</span> 13 Court Guard Squads Omake</div><div class="mono muted" style="font-size:9px">3M · DEC 6 2005 · <span style="color:#ff6b85">♥</span></div></div>
+              <span class="muted" style="width:24px;text-align:center;font-size:14px">⋯</span>
+            </div>
+            <div class="row" style="padding:11px 0;border-bottom:1px solid var(--line);gap:10px">
+              <span class="tickc on">✓</span>
+              <div style="width:56px;aspect-ratio:16/9;background:url(https://image.tmdb.org/t/p/w185/oEoZgYyxQtZmx3Y3eV5BkOO5Kqn.jpg) center/cover;flex:none"></div>
+              <div style="min-width:0;flex:1"><div style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span class="mono muted">E03</span> The Sealed Sword Frenzy</div><div class="mono muted" style="font-size:9px">33M · MAR 23 2006 · <svg style="width:9px;height:9px;fill:var(--primary);stroke:var(--primary);vertical-align:-1px"><use href="#rk"/></svg> <span style="color:var(--primary)">7</span></div></div>
+              <span class="muted" style="width:24px;text-align:center;font-size:14px">⋯</span>
+            </div>
+            <div class="row" style="padding:11px 0;border-bottom:1px solid var(--line);gap:10px">
+              <span class="tickc off"></span>
+              <div style="width:56px;aspect-ratio:16/9;background:url(https://image.tmdb.org/t/p/w185/wSfEfZ4F2FIIcnaLbMpx83sc5ar.jpg) center/cover;flex:none;opacity:.55"></div>
+              <div style="min-width:0;flex:1"><div style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span class="mono muted">E04</span> The Blood Warfare, Separation (Interlude)</div><div class="mono muted" style="font-size:9px">24M · SEP 2 2023</div></div>
+              <span style="width:24px;text-align:center;font-size:14px;color:var(--accent)">⋯</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div><div class="cap">TAP ⋯ → EPISODE SHEET</div>
+        <div class="ph">
+          <div class="nav"><span class="muted" style="font-weight:400">‹ Seasons</span><span>00 · Specials</span><span class="mono" style="font-weight:400;color:var(--accent);font-size:10px">3/4</span></div>
+          <div style="padding:10px 14px 4px"><div class="cells" data-cells="4" data-watched="3"></div></div>
+          <div style="padding:0 14px;opacity:.9">
+            <div class="row" style="padding:11px 0;border-bottom:1px solid var(--line);gap:10px"><span class="tickc on">✓</span><div style="width:56px;aspect-ratio:16/9;background:url(https://image.tmdb.org/t/p/w185/iaLRzWdQHP6PCRzxgOYzsOtJf8T.jpg) center/cover;flex:none"></div><div style="font-size:12px"><span class="mono muted">E01</span> Memories in the Rain</div></div>
+            <div class="row" style="padding:11px 0;border-bottom:1px solid var(--line);gap:10px"><span class="tickc on">✓</span><div style="width:56px;aspect-ratio:16/9;background:url(https://image.tmdb.org/t/p/w185/jAZAKCs9wcq4PLxbGzTZ7WxkzPn.jpg) center/cover;flex:none"></div><div style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span class="mono muted">E02</span> 13 Court Guard Squads…</div></div>
+          </div>
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 25%,rgba(0,0,0,.55) 45%)"></div>
+          <div class="sheet" style="padding:0 0 18px;overflow:hidden;border-top-color:rgba(0,207,255,.35)">
+            <div style="position:relative;height:120px;background:linear-gradient(0deg,#0d0d0d 0%,transparent 55%),url(https://image.tmdb.org/t/p/w300/wSfEfZ4F2FIIcnaLbMpx83sc5ar.jpg) center/cover">
+              <div class="grab" style="position:absolute;left:0;right:0;top:8px;background:rgba(255,255,255,.5)"></div>
+              <div style="position:absolute;left:14px;bottom:8px"><div class="kick" style="color:var(--accent)">S00 · E04 · 24M · SEP 2 2023</div><div class="display" style="font-size:16px;font-weight:600">The Blood Warfare, Separation (Interlude)</div></div>
+            </div>
+            <div style="padding:10px 14px 0">
+              <div class="btn" style="background:var(--accent)">✓ Mark watched</div>
+              <div class="row" style="justify-content:space-between;margin-top:12px"><span class="kick">Your rating</span><span class="mono muted" style="font-size:11px">— /10</span></div>
+              <div style="position:relative;height:26px">
+                <div style="position:absolute;left:0;right:0;top:12px;border-top:2px solid var(--line)"></div>
+                <div style="position:absolute;left:0;right:0;top:7px;height:12px;background:repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px calc(10% - .1px))"></div>
+                <svg style="position:absolute;left:-4px;top:2px;width:20px;height:20px;fill:none;stroke:var(--muted);transform:rotate(45deg)"><use href="#rk"/></svg>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);margin-top:12px;text-align:center;font-size:10px">
+                <div style="padding:8px 0">♡<br>Like</div>
+                <div style="padding:8px 0;border-left:1px solid var(--line)">✎<br>Review</div>
+                <div style="padding:8px 0;border-left:1px solid var(--line);color:var(--accent)">✓✓<br>Up to here</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEED -->
+  <section>
+    <h2>3 · Feed</h2>
+    <ul class="why">
+      <li>There's no right sidebar on phones, so <b>Now showing</b> becomes a scrolling poster strip at the top with outlined rank numbers. <b>Your week</b> becomes a single slate line.</li>
+      <li>Grouped cards fill the screen width: poster, rockets, the review as a pull quote. Several "liked a title" events collapse into one line.</li>
+      <li>The "Log a thought" box moves into a <b>bottom tab bar</b> with a central ✎ button. Logging is the app's core action, so it's always one tap away (optional; the top navbar can stay).</li>
+      <li>The time and "Your week" numbers are illustrative.</li>
+    </ul>
+    <div class="phones">
+      <div><div class="cap">FEED</div>
+        <div class="ph">
+          <div class="nav"><span>◓ Interis</span><span class="muted" style="font-weight:400">🔔</span></div>
+          <div style="padding:10px 0 0 14px">
+            <div class="kick" style="color:var(--accent)">Now showing · WK 45</div>
+            <div class="row" style="gap:8px;margin-top:6px;overflow:hidden">
+              <div style="position:relative;flex:none"><div class="poster" style="width:62px;background-image:url(https://image.tmdb.org/t/p/w185/gAgWJhUSQWCgtKR8170nMkYlBda.jpg)"></div><span class="outline" style="position:absolute;left:-2px;bottom:-6px;font-size:24px;-webkit-text-stroke:1.2px #fff">1</span></div>
+              <div style="position:relative;flex:none"><div class="poster" style="width:62px;background-image:url(https://image.tmdb.org/t/p/w185/6sYemVUn79UPKz1ZsSG6kPU4RVy.jpg)"></div><span class="outline" style="position:absolute;left:-2px;bottom:-6px;font-size:24px;-webkit-text-stroke:1.2px #fff">2</span></div>
+              <div style="position:relative;flex:none"><div class="poster" style="width:62px;background-image:url(https://image.tmdb.org/t/p/w185/1ERGPNiKtnEcsvJS1ywsmqmcIDO.jpg)"></div><span class="outline" style="position:absolute;left:-2px;bottom:-6px;font-size:24px;-webkit-text-stroke:1.2px #fff">3</span></div>
+              <div style="position:relative;flex:none"><div class="poster" style="width:62px;background-image:url(https://image.tmdb.org/t/p/w185/lmrulvLbmaejTix1YaMxo1oGhH1.jpg)"></div><span class="outline" style="position:absolute;left:-2px;bottom:-6px;font-size:24px;-webkit-text-stroke:1.2px #fff">4</span></div>
+            </div>
+          </div>
+          <div style="padding:0 14px">
+            <div class="slate" style="margin:12px -14px 0;border-top:1px solid var(--line)"><span>YOUR WEEK · 3 LOGGED</span><span>AVG 9.0</span></div>
+            <div class="sentence muted" style="font-size:11.5px;margin-top:10px">Showing <u>everything</u> from <u>people you follow</u>.</div>
+            <div class="divider"><span>MON · NOV 2</span><b></b><span>WK 45</span></div>
+            <div style="border:1px solid var(--line);padding:10px;background:var(--card)">
+              <div class="row" style="align-items:flex-start;gap:10px">
+                <div class="poster" style="width:52px;background-image:url(https://image.tmdb.org/t/p/w185/9l1NuFjel2j89hiuiJbsxfblqjy.jpg)"></div>
+                <div style="min-width:0;flex:1">
+                  <div class="row" style="gap:5px;font-size:11px"><b>glory42</b><span class="muted">watched</span><span class="mono faint" style="margin-left:auto;font-size:9px">21:40</span></div>
+                  <div class="display" style="font-size:15px;font-weight:600">Clayface</div>
+                  <div class="row" style="gap:6px;margin-top:2px"><span class="row" style="gap:1px" data-rockets="8"></span><span style="color:#ff6b85;font-size:11px">♥</span></div>
+                  <div class="serif" style="font-size:13px;margin-top:6px;line-height:1.3">“Dc character when someone is not happly married”</div>
+                </div>
+              </div>
+            </div>
+            <div class="row" style="border:1px solid var(--line);border-top:0;padding:8px 10px;font-size:11px"><b>glory42</b><span class="muted">liked 2 titles</span><span class="mono muted" style="margin-left:auto;font-size:9px">BLEACH, THIRD STAR</span></div>
+          </div>
+          <div class="dock" style="grid-template-columns:repeat(5,1fr);padding-bottom:16px">
+            <span class="ic" style="color:var(--primary)">▤<br>Feed</span>
+            <span class="ic muted">▣<br>Films</span>
+            <span style="display:grid;place-items:center"><span style="width:42px;height:42px;border-radius:50%;background:var(--primary);color:var(--pfg);display:grid;place-items:center;font-size:17px;box-shadow:0 0 18px rgba(0,255,136,.35);margin-top:-16px">✎</span></span>
+            <span class="ic muted">▭<br>TV</span>
+            <span class="ic muted">◐<br>You</span>
+          </div>
+        </div>
+      </div>
+      <div><div class="cap">TAP ✎ → LOG SHEET</div>
+        <div class="ph">
+          <div style="position:absolute;inset:0;background:rgba(0,0,0,.6)"></div>
+          <div class="sheet" style="top:120px">
+            <div class="grab"></div>
+            <div class="display" style="font-size:17px;font-weight:600">What did you watch?</div>
+            <div class="row" style="margin-top:10px;border:1px solid var(--line);padding:9px 10px;gap:8px"><span class="muted">⌕</span><span style="font-size:12px">clay<span style="color:var(--primary)">|</span></span></div>
+            <div class="kick" style="margin:12px 0 6px">Results</div>
+            <div class="row" style="padding:7px 0;border-bottom:1px solid var(--line)"><div class="poster" style="width:30px;background-image:url(https://image.tmdb.org/t/p/w92/9l1NuFjel2j89hiuiJbsxfblqjy.jpg)"></div><div><div style="font-size:12px">Clayface</div><div class="mono muted" style="font-size:9px">FILM · 2026 · JAMES WATKINS</div></div><span class="mono" style="margin-left:auto;font-size:9px;color:var(--primary)">WATCHED ✓</span></div>
+            <div class="kick" style="margin:14px 0 6px">Recently watched · log again</div>
+            <div class="row" style="gap:8px">
+              <div class="poster" style="width:46px;background-image:url(https://image.tmdb.org/t/p/w92/2EewmxXe72ogD0EaWM8gqa0ccIw.jpg)"></div>
+              <div class="poster" style="width:46px;background-image:url(https://image.tmdb.org/t/p/w92/9l1NuFjel2j89hiuiJbsxfblqjy.jpg)"></div>
+            </div>
+            <div class="muted" style="font-size:10.5px;margin-top:14px;line-height:1.5">Or just <span style="color:var(--fg);border-bottom:1px dashed var(--primary)">post a thought</span> without a title.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+<script>
+  const R = '<svg class="r CLS" viewBox="0 0 24 24" stroke-width="2"><use href="#rk"/></svg>';
+  document.querySelectorAll('[data-rockets]').forEach(el => {
+    const n = +el.dataset.rockets;
+    el.innerHTML = Array.from({length: 10}, (_, i) => R.replace('CLS', i < n ? 'on' : 'off')).join('');
+  });
+  document.querySelectorAll('[data-cells]').forEach(el => {
+    const n = +el.dataset.cells, w = +el.dataset.watched, small = el.dataset.small;
+    el.innerHTML = Array.from({length: n}, (_, i) => `<i class="${i < w ? 'w' : ''}" style="${small ? 'width:3px;height:7px' : ''}"></i>`).join('');
+  });
+</script>
+</body>
+</html>

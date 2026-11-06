@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Interis — settings + auth</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Instrument+Serif:ital@1&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+<style>
+  body { margin: 0; font-family: var(--font-sans, Sora, sans-serif); color: var(--foreground, #e6e6e6); background: var(--background, #0a0a0a); }
+  .doc { max-width: 900px; margin: 0 auto; padding-bottom: 24px; }
+  h1 { font-size: 20px; margin: 0 0 6px; } h2 { font-size: 16px; margin: 0 0 4px; }
+  .lead { color: var(--muted-foreground, #9a9a9a); font-size: 13.5px; line-height: 1.55; margin: 0 0 12px; }
+  .why { margin: 6px 0 12px; padding-left: 18px; font-size: 12.5px; line-height: 1.6; color: var(--muted-foreground, #a8a8a8); }
+  .why code, .lead code { font-family: var(--font-mono, monospace); font-size: 11.5px; color: var(--foreground, #e6e6e6); }
+  section { margin-top: 30px; }
+  .phones { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-top: 14px; }
+  .cap { font: 600 10.5px var(--font-mono, monospace); letter-spacing: .08em; color: #7dffc0; text-align: center; margin-bottom: 6px; }
+
+  .df { --bg:#171420; --fg:#e8e3f7; --muted:#9f98bb; --line:rgba(232,227,247,.13); --primary:#d4b5ff; --pfg:#181422; --mv:#e0a8a3; --sr:#9fd4df; --danger:#f17fa0; --card:#1f1b2b; }
+  .nl { --bg:#000; --fg:#e6e6e6; --muted:#8d8d8d; --line:rgba(255,255,255,.11); --primary:#00ff88; --pfg:#020202; --mv:#00ff88; --sr:#00cfff; --danger:#ff6b85; --card:#0d0d0d; }
+  .tn { --bg:#1a1b26; --fg:#c0caf5; --muted:#737aa2; --line:rgba(192,202,245,.14); --primary:#7aa2f7; --pfg:#16161e; --mv:#7aa2f7; --sr:#bb9af7; --danger:#f7768e; --card:#1f2335; }
+  .mq { --bg:#faf6ee; --fg:#2b211a; --muted:#7a6a58; --line:#e2d5c0; --primary:#b8123a; --pfg:#fffaf0; --mv:#b8123a; --sr:#0f766e; --danger:#c2410c; --card:#fff; --dfont:"Playfair Display",Georgia,serif; }
+
+  .app { background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; font-family: Sora, sans-serif; font-size: 13px; overflow: hidden; position: relative; }
+  .mono { font-family: "JetBrains Mono", monospace; } .display { font-family: var(--dfont, "Space Grotesk", sans-serif); letter-spacing: -.03em; }
+  .serif { font-family: "Instrument Serif", Georgia, serif; font-style: italic; }
+  .muted { color: var(--muted); } .faint { color: color-mix(in srgb, var(--fg) 38%, transparent); } .err { color: var(--danger); } .ok { color: var(--primary); }
+  .row { display: flex; gap: 8px; align-items: center; } .sp { justify-content: space-between; } .f1 { flex: 1; min-width: 0; }
+  .slate { display: flex; justify-content: space-between; align-items: center; padding: 7px 12px; background: #000; font: 600 10px "JetBrains Mono", monospace; letter-spacing: .08em; color: #8a8a8a; }
+  .kick { font: 600 9.5px "JetBrains Mono", monospace; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; display: block; margin: 12px 0 5px; }
+  .po { aspect-ratio: 2/3; background: #222 center/cover; border-radius: 2px; flex: none; }
+  .duo { position: relative; overflow: hidden; border-radius: 2px; flex: none; }
+  .duo .po { filter: grayscale(1) contrast(1.2); border-radius: 0; }
+  .duo::after { content: ""; position: absolute; inset: 0; background: var(--t, var(--mv)); mix-blend-mode: color; opacity: .85; }
+  .duo::before { content: ""; position: absolute; inset: 0; z-index: 1; opacity: .25; mix-blend-mode: overlay; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+  .in { display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 2px; padding: 9px 10px; font-size: 14px; background: color-mix(in srgb, var(--fg) 3%, transparent); min-height: 18px; }
+  .in.bad { border-color: var(--danger); } .in.foc { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+  .in small { font: 600 10px "JetBrains Mono", monospace; color: var(--muted); letter-spacing: .06em; }
+  .hint { font-size: 11px; margin-top: 4px; }
+  .btn { display: inline-flex; justify-content: center; align-items: center; border-radius: 3px; padding: 9px 14px; font-weight: 600; font-size: 12.5px; background: var(--primary); color: var(--pfg); }
+  .ghost { display: inline-flex; align-items: center; justify-content: center; padding: 8px 12px; font-size: 12px; border: 1px solid var(--line); border-radius: 3px; color: var(--fg); }
+  .dbtn { display: inline-flex; justify-content: center; padding: 9px 14px; font-weight: 600; font-size: 12.5px; border-radius: 3px; border: 1px solid var(--danger); color: var(--danger); }
+  .credits { font: 12px "JetBrains Mono", monospace; }
+  .credits div { display: flex; gap: 6px; padding: 4px 0; align-items: baseline; }
+  .credits .d { flex: 1; border-bottom: 1px dotted var(--line); transform: translateY(-4px); min-width: 12px; }
+  .credits a { color: var(--primary); text-decoration: none; font-family: Sora, sans-serif; font-size: 11.5px; }
+  .sentence { font-size: 13.5px; line-height: 1.8; } .sentence u { text-decoration: none; border-bottom: 1px dashed var(--primary); color: var(--fg); }
+  .r { width: 11px; height: 11px; flex: none; } .r.on { fill: var(--primary); stroke: var(--primary); } .r.off { fill: none; stroke: color-mix(in srgb, var(--fg) 25%, transparent); }
+  .cells { display: flex; gap: 2px; } .cells i { width: 9px; height: 5px; background: color-mix(in srgb, var(--fg) 14%, transparent); display: block; border-radius: 1px; } .cells i.w { background: var(--c, var(--primary)); }
+  .nav a { display: flex; gap: 8px; padding: 7px 10px; color: var(--muted); text-decoration: none; border-left: 2px solid transparent; font-size: 12.5px; }
+  .nav a b { font: 600 10px "JetBrains Mono", monospace; opacity: .6; padding-top: 2px; } .nav a.on { color: var(--fg); border-color: var(--primary); background: color-mix(in srgb, var(--primary) 7%, transparent); }
+  .chip { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 2px; padding: 5px 9px; font-size: 11.5px; color: var(--muted); }
+  .chip.on { border-color: var(--primary); color: var(--fg); background: color-mix(in srgb, var(--primary) 12%, transparent); } .chip.dis { opacity: .35; }
+  .slot { position: relative; } .slot .n { position: absolute; left: 4px; top: 0; font: 700 26px/1 "Space Grotesk", sans-serif; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,.75); z-index: 3; }
+  .empty { aspect-ratio: 2/3; border: 1px dashed var(--line); border-radius: 2px; display: grid; place-items: center; text-align: center; font-size: 11px; color: var(--muted); }
+  .more { position: absolute; right: 3px; bottom: 3px; z-index: 3; background: rgba(0,0,0,.75); color: #fff; font-size: 12px; line-height: 1; padding: 3px 6px; border-radius: 2px; }
+  .lst > div { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+  .av { width: 30px; height: 30px; border-radius: 3px; display: grid; place-items: center; font: 700 12px "JetBrains Mono", monospace; background: color-mix(in srgb, var(--primary) 14%, transparent); color: var(--primary); flex: none; }
+  .tt { border: 1px solid var(--line); border-radius: 3px; overflow: hidden; background: var(--bg); color: var(--fg); font-size: 11px; }
+  .tt.on { outline: 2px solid var(--primary); outline-offset: 2px; }
+  .ph { --bg:#000; --fg:#e6e6e6; --muted:#8d8d8d; --line:rgba(255,255,255,.11); --primary:#00ff88; --pfg:#020202; --mv:#00ff88; --sr:#00cfff; --danger:#ff6b85;
+    width: 300px; height: 620px; border-radius: 34px; border: 6px solid #1c1c1c; background: var(--bg); color: var(--fg); overflow: hidden; position: relative; font-family: Sora, sans-serif; font-size: 12px; box-sizing: border-box; }
+  .ph .in { font-size: 12.5px; padding: 9px; } .ph .kick { font-size: 8.5px; margin: 10px 0 4px; } .ph .slate { font-size: 8.5px; padding: 5px 10px; }
+  .pbar { height: 42px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+  .pbar b { font: 700 10.5px "JetBrains Mono", monospace; letter-spacing: .08em; }
+  .pb { padding: 12px 14px; }
+  .ix > div { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+  .ix span:last-child { color: var(--muted); font-size: 11px; max-width: 150px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ix span:last-child::after { content: "  ›"; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: #0d0d0d; border-top: 1px solid rgba(0,255,136,.3); border-radius: 12px 12px 0 0; padding: 10px 16px 20px; z-index: 5; }
+  .grab { width: 36px; height: 4px; border-radius: 2px; background: #333; margin: 0 auto 10px; }
+  .sheet div.o { padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.6); z-index: 4; }
+  .strip { display: flex; gap: 3px; background: #000; padding: 0 3px; }
+  .sprk { height: 7px; background: repeating-linear-gradient(90deg, #000 0 6px, #2b2b2b 6px 11px); border-top: 2px solid #000; border-bottom: 2px solid #000; }
+  .foot { text-align: center; font: 600 9.5px "JetBrains Mono", monospace; letter-spacing: .1em; color: var(--muted); }
+  .foot svg { width: 11px; height: 11px; fill: var(--primary); stroke: var(--primary); vertical-align: -1px; }
+  .note { color: var(--muted-foreground, #9a9a9a); font-size: 12px; line-height: 1.55; margin: 8px 0 0; } .note code { font-family: var(--font-mono, monospace); font-size: 11px; color: var(--foreground, #e6e6e6); }
+  .h { font: 700 20px "Space Grotesk", sans-serif; letter-spacing: -.03em; } .hp { font-size: 19px; line-height: 1.15; }
+  .bk { display: flex; margin-top: 12px; } .pd { padding: 14px 16px; } .u { color: var(--fg); border-bottom: 1px dashed var(--primary); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><symbol id="rk" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol></svg>
+<div class="doc">
+  <h1>Settings and sign-in, in the reel / slate style</h1>
+  <p class="lead">Every field here exists in the API unless marked. Theme: <code>null-log</code>. Phone frames are 300px (77% of 390), so a 12.5px input here is 16px on the phone.</p>
+
+  <!-- 1 SHELL -->
+  <section>
+    <h2>1 · Settings shell and Profile</h2>
+    <ul class="why">
+      <li>7 tabs in a sideways-scrolling strip (<code>SettingsTabs.tsx:68</code>); on phones most are off-screen and <code>/settings</code> skips to Profile (<code>settings/index.tsx:5</code>), so there's no overview.</li>
+      <li>"Auth" is jargon (<code>settings.constants.ts:36</code>). Delete account hides in it (<code>SettingsAuthSection.tsx:331</code>).</li>
+      <li>"Change avatar" is hover-only (<code>SettingsProfileSection.tsx:134</code>). No bio counter for the 300 limit (<code>:190</code>). Pill buttons, <code>rounded-lg</code> 14px inputs (<code>:169,230</code>, <code>ui/input.tsx:12</code>): not square, and iOS zooms on focus.</li>
+    </ul>
+    <div class="app nl">
+      <div class="slate"><span>INTERIS · SETTINGS · @GLORY42</span><span>THEME NULL://LOG</span></div>
+      <div class="row" style="align-items:stretch;gap:0">
+        <div style="width:184px;border-right:1px solid var(--line);padding:14px 0" class="nav">
+          <div class="display" style="font-size:22px;font-weight:700;padding:0 12px 10px">Settings</div>
+          <a class="on"><b>01</b>Profile</a><a><b>02</b>Top 4</a><a><b>03</b>Genres</a><a><b>04</b>Theme</a><a><b>05</b>Account &amp; security</a><a><b>06</b>Blocked &amp; muted</a><a><b>07</b>Your data</a>
+          <div style="margin:14px 12px 0;padding-top:10px;border-top:1px solid var(--line);font-size:12px" class="err">Delete account</div>
+        </div>
+        <div class="f1" style="padding:16px 18px">
+          <div class="row sp"><span class="h">Profile</span><span class="mono faint" style="font-size:10px">SHOWN ON /profile/glory42</span></div>
+          <div class="row" style="align-items:flex-start;gap:18px;margin-top:12px">
+            <div style="width:96px;text-align:center"><div class="av" style="width:96px;height:96px;font-size:34px">G</div><div class="ghost" style="margin-top:8px;width:100%;box-sizing:border-box;font-size:11px">Change photo</div><div class="mono faint" style="font-size:9px;margin-top:5px">JPEG · PNG · WEBP<br>10 MB MAX</div></div>
+            <div class="f1">
+              <span class="kick" style="margin-top:0">Username</span>
+              <div class="in"><span><span class="faint">/profile/</span>glory42</span><small>3–20 · a–z 0–9 _</small></div>
+              <span class="kick">Bio</span>
+              <div class="in foc" style="align-items:flex-start;min-height:46px"><span>Selamlar :))<span class="ok">|</span></span><small>12 / 300</small></div>
+              <span class="kick">Location</span>
+              <div class="in"><span>Andromeda</span><small>12 / 100</small></div>
+            </div>
+          </div>
+          <div class="row sp" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><span class="muted" style="font-size:12px">1 unsaved change · bio</span><span class="row"><span class="ghost">Discard</span><span class="btn">Save profile</span></span></div>
+        </div>
+      </div>
+    </div>
+    <p class="note">Changing the username warns: "Your profile moves to /profile/&lt;new&gt;; old links stop working."</p>
+    <div class="phones">
+      <div><div class="cap">/SETTINGS · INDEX</div>
+        <div class="ph">
+          <div class="pbar"><span class="muted">‹ Profile</span><b>SETTINGS</b><span style="width:46px"></span></div>
+          <div class="pb" style="padding-top:4px">
+            <span class="kick">Your profile</span>
+            <div class="ix"><div><span>Profile</span><span>glory42 · Andromeda</span></div><div><span>Top 4</span><span>4 films · 3 shows</span></div><div><span>Genres</span><span>Sci-Fi, Drama, Thriller</span></div></div>
+            <span class="kick">Look</span>
+            <div class="ix"><div><span>Theme</span><span>NULL://LOG</span></div></div>
+            <span class="kick">Account</span>
+            <div class="ix"><div><span>Account &amp; security</span><span>m•@gorkemkaryol.dev</span></div><div><span>Blocked &amp; muted</span><span>2 · 1</span></div><div><span>Your data</span><span>CSV export, import</span></div></div>
+            <div style="padding:14px 0 6px" class="err">Delete account</div>
+            <div class="muted" style="padding:6px 0 16px">Sign out</div>
+            <div class="foot"><svg><use href="#rk"/></svg> LOGGED, NOT FILTERED.</div>
+          </div>
+        </div>
+      </div>
+      <div><div class="cap">PROFILE · EDITING</div>
+        <div class="ph">
+          <div class="pbar"><span class="muted">‹ Settings</span><b>PROFILE</b><span class="ok" style="font-weight:600">Save</span></div>
+          <div class="pb">
+            <div class="row" style="gap:12px"><div class="av" style="width:56px;height:56px;font-size:22px">G</div><div><div class="ghost" style="font-size:11px">Change photo</div><div class="mono faint" style="font-size:8.5px;margin-top:4px">JPEG · PNG · WEBP · 10 MB</div></div></div>
+            <span class="kick">Username</span><div class="in"><span>glory42</span></div>
+            <div class="hint faint">Your profile lives at /profile/glory42</div>
+            <span class="kick">Bio</span><div class="in foc" style="align-items:flex-start;min-height:60px"><span>Selamlar :))<span class="ok">|</span></span><small>12/300</small></div>
+            <span class="kick">Location</span><div class="in"><span>Andromeda</span></div>
+            <div class="muted" style="font-size:10.5px;margin-top:14px;line-height:1.5">Save stays in the top bar so it's reachable with the keyboard open. Leaving with unsaved changes asks first.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="note">On phones <code>/settings</code> is this index, with current values; desktop still opens Profile. Counts are illustrative.</p>
+  </section>
+
+  <!-- 2 THEME -->
+  <section>
+    <h2>2 · Theme: preview the real thing</h2>
+    <ul class="why">
+      <li>Four round swatches per theme (<code>SettingsThemeSection.tsx:331</code>) in <code>rounded-xl</code> cards (<code>:322</code>): you can't see a theme until it repaints the whole app. The default isn't marked.</li>
+    </ul>
+    <div class="app nl" style="padding:14px">
+      <div class="row sp"><span class="h">Theme</span><span class="muted" style="font-size:11.5px">Applies as soon as you tap. Saved to your account.</span></div>
+      <div id="themes" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px"></div>
+    </div>
+    <p class="note">Tiles render from each theme's <code>index.css</code> tokens (bg, primary, <code>--module-movie/serial</code>, display font), so new themes preview for free. Slates stay black everywhere.</p>
+  </section>
+
+  <!-- 3 TOP 4 + GENRES -->
+  <section>
+    <h2>3 · Top 4 and genres</h2>
+    <ul class="why">
+      <li>Top picks are text rows with 28px thumbs (<code>FavoritesSlotList.tsx:486</code>); empty slots read "Movie #1" (<code>:500</code>). No reordering.</li>
+      <li>Genres are listed twice (<code>SettingsGenresSection.tsx:106-147</code>); a fifth pick shows an error (<code>:65</code>) instead of disabling chips.</li>
+    </ul>
+    <div class="app nl pd">
+      <div class="row sp"><span class="h">Top 4</span><span class="muted" style="font-size:11.5px">Shown at the top of your profile, in this order.</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><span class="kick" style="color:var(--mv)">Films · 4/4</span><span class="kick" style="color:var(--sr)">Series · 3/4</span></div>
+      <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:8px" id="t4"></div>
+      <div class="row sp" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)"><span class="muted" style="font-size:12px">Order changed: <span class="mono">02 ⇄ 03</span></span><span class="row"><span class="ghost">Discard</span><span class="btn">Save top 4</span></span></div>
+      <div class="display" style="font-size:20px;font-weight:700;margin-top:18px">Genres</div>
+      <div class="sentence muted" style="margin-top:6px">On my profile: I mostly watch <u>Science Fiction</u>, <u>Drama</u> and <u>Thriller</u><span class="faint"> + one more</span>.</div>
+      <div id="gen" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+      <div class="mono faint" style="font-size:10px;margin-top:8px">3 / 4 PICKED · SAVES AS YOU TAP</div>
+    </div>
+    <p class="note">Films and series side by side, like the profile. Each filled slot has a visible <b>⋯</b> (Replace, Move left/right, Remove); drag is a desktop extra. Picks/genres illustrative.</p>
+    <div class="phones">
+      <div><div class="cap">THEME · PHONE · TAP APPLIES LIVE</div>
+        <div class="ph">
+          <div class="pbar"><span class="muted">‹ Settings</span><b>THEME</b><span style="width:46px"></span></div>
+          <div class="pb" id="themesm" style="display:grid;gap:8px"></div>
+        </div>
+      </div>
+      <div><div class="cap">TOP 4 · ⋯ OPENS A SHEET</div>
+        <div class="ph">
+          <div class="pbar"><span class="muted">‹ Settings</span><b>TOP 4</b><span class="ok" style="font-weight:600">Save</span></div>
+          <div class="pb">
+            <span class="kick" style="margin-top:0;color:var(--mv)">Films · 4/4</span><div id="t4m" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px"></div>
+            <span class="kick" style="color:var(--sr)">Series · 3/4</span><div id="t4s" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px"></div>
+          </div>
+          <div class="scrim"></div>
+          <div class="sheet"><div class="grab"></div>
+            <div class="mono muted" style="font-size:9px;letter-spacing:.1em">FILM 02 · ILLUSTRATIVE</div>
+            <div class="o">Replace…</div><div class="o">Move left</div><div class="o">Move right</div><div class="o err" style="border:0">Remove from Top 4</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 ACCOUNT -->
+  <section>
+    <h2>4 · Account &amp; security</h2>
+    <ul class="why">
+      <li>Email and password forms always open, with three eye toggles (<code>SettingsAuthSection.tsx:131-287</code>); "New email" is pre-filled with the current one (<code>:28</code>).</li>
+      <li>"Sign out from other sessions" turns red when <i>on</i> (<code>:291-296</code>).</li>
+      <li>No way to replace the recovery question, though the API allows it with the password (<code>auth.dto.ts</code> <code>SecurityQuestionSchema</code>); the web schema omits <code>currentPassword</code> (<code>features/auth/api.ts:27</code>).</li>
+    </ul>
+    <div class="app nl pd">
+      <div class="h">Account &amp; security</div>
+      <div class="credits" style="margin-top:10px">
+        <div><span class="muted">Email</span><span class="d"></span><span>m•@gorkemkaryol.dev</span><a>Change</a></div>
+        <div style="color:var(--primary)"><span>Password</span><span class="d"></span><span class="muted">editing ↓</span></div>
+        <div><span class="muted">Recovery question</span><span class="d"></span><span>set</span><a>Replace</a></div>
+      </div>
+      <div style="border:1px solid var(--line);border-left:2px solid var(--primary);margin-top:10px;padding:4px 14px 14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px">
+          <div><span class="kick">Current password</span><div class="in bad"><span>••••••••••</span><small>SHOW</small></div><div class="hint err">That's not your current password.</div></div>
+          <div><span class="kick">New password</span><div class="in foc"><span>•••••••••••••</span><small>SHOW</small></div>
+            <div class="row sp hint"><span class="cells" data-cells="8" data-on="8"></span><span class="mono faint" style="font-size:10px">13 / 128 · OK</span></div></div>
+        </div>
+        <div class="row sp" style="margin-top:12px"><span class="row" style="font-size:12px"><span style="width:14px;height:14px;border:1px solid var(--primary);background:var(--primary);color:var(--pfg);display:grid;place-items:center;font-size:10px;border-radius:2px">✓</span>Sign me out on my other devices</span><span class="row"><span class="ghost">Cancel</span><span class="btn">Change password</span></span></div>
+      </div>
+      <p class="muted" style="font-size:11.5px;margin:10px 0 0">One form opens at a time. Changing your email or recovery question asks for your current password, the same way.</p>
+    </div>
+    <p class="note">No confirm field; "show" covers it. 8 reel ticks fill to the 8-character minimum (<code>password.policy.ts</code>). Error copy is proposed.</p>
+  </section>
+
+  <!-- 5 BLOCKED + DATA -->
+  <section>
+    <h2>5 · Blocked &amp; muted, your data, delete account</h2>
+    <ul class="why">
+      <li>Blocked/muted are two half panels (<code>SettingsBlockedSection.tsx:267</code>); the rows already carry <code>createdAt</code>.</li>
+      <li>Import is a <code>rounded-xl</code> dashed "Click to select" box (<code>DataTransferPage.tsx:127</code>). Export says "full watch history" but is the diary CSV only.</li>
+      <li>Delete already needs the password (keep it), but the field has no label or hidden username (<code>SettingsDeleteAccountCard.tsx:404</code>).</li>
+    </ul>
+    <div class="row" style="align-items:stretch;gap:12px">
+      <div class="app nl f1" style="padding:14px 16px;flex:.8">
+        <div class="h">Blocked &amp; muted</div>
+        <div class="sentence muted" style="font-size:12.5px">Showing <u>blocked (2)</u> · muted (1)</div>
+        <div class="lst" style="margin-top:4px">
+          <div><span class="av">N</span><span class="f1">@nightowl_reels<div class="mono faint" style="font-size:9.5px">BLOCKED OCT 12</div></span><span class="ghost">Unblock</span></div>
+          <div><span class="av">S</span><span class="f1">@spoilerbot<div class="mono faint" style="font-size:9.5px">BLOCKED SEP 3</div></span><span class="ghost">Unblock</span></div>
+        </div>
+        <p class="muted" style="font-size:11px;line-height:1.5">Blocked people can't follow you and don't appear in your feed. Muted people don't know they're muted.</p>
+      </div>
+      <div class="app nl f1 pd">
+        <div class="h">Your data</div>
+        <div class="credits" style="font-size:11px;margin-top:6px">
+          <div><span class="muted">Diary export</span><span class="d"></span><a>Download CSV</a></div>
+          <div class="faint" style="font-size:9.5px;padding-top:0">DATE · TYPE · TITLE · YEAR · TMDB · RATING · REWATCH · REVIEW · SPOILERS</div>
+          <div><span class="muted">Import</span><span class="d"></span><a>Choose CSV…</a></div>
+          <div class="faint" style="font-size:9.5px;padding-top:0">LETTERBOXD diary / reviews / watched / watchlist · INTERIS CSV</div>
+        </div>
+        <div style="margin-top:12px;border:1px solid color-mix(in srgb,var(--danger) 55%,transparent);padding:10px 12px">
+          <div class="kick err" style="margin:0 0 4px">Danger zone</div>
+          <div style="font-size:12px;line-height:1.5">Deletes <b>@glory42</b> with every log, review, list, post and comment. This can't be undone. <span class="ok">Download your diary first.</span></div>
+          <span class="kick">Your password, to confirm</span>
+          <div class="in"><span class="faint">current password</span><small>SHOW</small></div>
+          <div class="row" style="margin-top:8px;justify-content:flex-end"><span class="dbtn" style="opacity:.45">Delete @glory42 forever</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="note">Usernames/dates illustrative. Delete stays disabled until a password is typed; the server still checks it (#136).</p>
+    <div class="phones">
+      <div><div class="cap">DELETE ACCOUNT · WRONG PASSWORD</div>
+        <div class="ph">
+          <div class="pbar"><span class="muted">Cancel</span><b class="err">DELETE ACCOUNT</b><span style="width:40px"></span></div>
+          <div class="pb">
+            <div class="h hp">This deletes @glory42 for good.</div>
+            <div class="credits" style="font-size:10.5px;margin-top:8px">
+              <div><span class="muted">Logs, reviews</span><span class="d"></span><span>deleted</span></div>
+              <div><span class="muted">Lists, posts, comments</span><span class="d"></span><span>deleted</span></div>
+              <div><span class="muted">Username</span><span class="d"></span><span>freed</span></div>
+            </div>
+            <div class="ghost" style="margin-top:10px;display:flex">↓ Download my diary first</div>
+            <span class="kick">Your password</span>
+            <div class="in bad"><span>•••••••••</span><small>SHOW</small></div>
+            <div class="hint err">That's not your password. Nothing was deleted.</div>
+            <div class="dbtn" style="display:flex;margin-top:14px;background:var(--danger);color:#000">Delete forever</div>
+            <div class="muted" style="font-size:10px;margin-top:10px;line-height:1.5">A full screen, not a small dialog: <code>autocomplete="current-password"</code> plus a hidden username field so password managers can fill it.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 AUTH -->
+  <section>
+    <h2>6 · Sign in, join, recover</h2>
+    <ul class="why">
+      <li>Generic split: form left, "Trending Movies/Shows" right, over a blurred poster wall (<code>_authLayout.tsx:41-77</code>).</li>
+      <li><code>h-9 text-sm</code> inputs (iOS zoom); one error box after submit (<code>RegisterForm.tsx:132</code>); login <code>minLength=8</code> (<code>LoginForm.tsx:312</code>) fires the browser popup.</li>
+      <li>Register puts <code>autoComplete="username"</code> on the handle (<code>RegisterForm.tsx:70</code>), so password managers save "glory42" while login asks for the email. Reset has no steps and no hidden username (<code>ForgotPasswordForm.tsx:260</code>).</li>
+      <li>Recovery setup uses a plain <code>PageWrapper</code> (<code>setup-security-question.tsx:199</code>) and claims it's the only way to change email (<code>SetupSecurityQuestionForm.tsx:363</code>); email change uses the password.</li>
+    </ul>
+    <div class="app nl">
+      <div class="slate"><span>INTERIS · REEL 01 · SIGN IN</span><span>TRENDING · WK 45 · NOV 2–8</span></div>
+      <div class="sprk"></div><div class="strip" id="strip"></div><div class="sprk"></div>
+      <div class="slate"><span class="cells" style="--c:var(--primary)" data-cells="3" data-on="1"></span><span>01 SIGN IN · 02 JOIN · 03 RECOVER</span></div>
+      <div style="width:360px;margin:0 auto;padding:20px 0 16px">
+        <div class="display" style="font-size:26px;font-weight:700;line-height:1.1">Pick up where you left off.</div>
+        <div class="muted" style="font-size:12.5px;margin-top:4px">Sign in with the email you joined with.</div>
+        <div style="margin-top:12px;border-left:2px solid var(--danger);padding:6px 10px;font-size:12px;background:color-mix(in srgb,var(--danger) 8%,transparent)">That email and password don't match. <span class="ok">Recover your password</span></div>
+        <span class="kick">Email</span><div class="in"><span>m•@gorkemkaryol.dev</span></div>
+        <div class="row sp"><span class="kick">Password</span><span class="muted" style="font-size:11px;margin-top:8px">Forgot it?</span></div>
+        <div class="in foc"><span>••••••••••<span class="ok">|</span></span><small>SHOW</small></div>
+        <div class="btn bk">Sign in</div>
+        <div class="muted" style="font-size:12px;margin-top:10px;text-align:center">New here? <span class="u">Start a diary</span></div>
+      </div>
+      <div class="foot" style="padding:0 0 14px"><svg><use href="#rk"/></svg> LOGGED, NOT FILTERED.</div>
+    </div>
+    <p class="note">Trending posters (same <code>useTrendingNow(9)</code> + <code>useTrendingSeries</code>) become one film strip between slates, tinted movie/series, persisting across Sign in / Join / Recover. Field attributes:</p>
+    <div class="app nl" style="padding:10px 14px">
+      <div class="credits" style="font-size:11px">
+        <div><span class="muted">Sign-in email</span><span class="d"></span><span>type=email autocomplete=username inputmode=email</span></div>
+        <div><span class="muted">Sign-in password</span><span class="d"></span><span>autocomplete=current-password, no minLength</span></div>
+        <div><span class="muted">Join · handle</span><span class="d"></span><span>autocomplete=off autocapitalize=none spellcheck=false</span></div>
+        <div><span class="muted">Join · email</span><span class="d"></span><span>autocomplete=username (this is the login)</span></div>
+        <div><span class="muted">Every new password</span><span class="d"></span><span>autocomplete=new-password passwordrules="minlength: 8; maxlength: 128;"</span></div>
+        <div><span class="muted">Recovery answer</span><span class="d"></span><span>autocomplete=off, never saved by the browser</span></div>
+        <div><span class="muted">All inputs</span><span class="d"></span><span>16px text · validate on blur · errors under the field</span></div>
+      </div>
+    </div>
+    <div class="phones">
+      <div><div class="cap">JOIN · INLINE ERRORS</div>
+        <div class="ph">
+          <div class="slate"><span>INTERIS · REEL 02 · JOIN</span><span>WK 45</span></div>
+          <div class="strip" id="stripm"></div>
+          <div class="pb">
+            <div class="h hp">Start your diary.</div>
+            <span class="kick">Handle</span><div class="in bad"><span><span class="faint">/profile/</span>films</span></div>
+            <div class="hint err">"films" is reserved. Try another.</div>
+            <span class="kick">Email</span><div class="in"><span>m•@gorkemkaryol.dev</span><small class="ok">✓</small></div>
+            <span class="kick">Password</span><div class="in foc"><span>•••••<span class="ok">|</span></span><small>SHOW</small></div>
+            <div class="row sp hint"><span class="cells" data-cells="8" data-on="5"></span><span class="mono faint" style="font-size:9px">3 MORE TO GO</span></div>
+            <div class="btn" style="display:flex;margin-top:12px;opacity:.5">Create account</div>
+            <div class="muted" style="font-size:11px;margin-top:8px;text-align:center">Have one? <span style="color:var(--fg)">Sign in</span></div>
+          </div>
+        </div>
+      </div>
+      <div><div class="cap">RECOVER · STEP 2 OF 3</div>
+        <div class="ph">
+          <div class="slate"><span>INTERIS · REEL 03 · RECOVER</span><span class="cells" data-cells="3" data-on="2"></span></div>
+          <div class="pb">
+            <div class="mono muted" style="font-size:9.5px">m•@gorkemkaryol.dev · <span class="ok">change</span></div>
+            <div class="kick">Your question</div>
+            <div class="serif" style="font-size:19px;line-height:1.25">"What was the first film you watched in a cinema?"</div>
+            <span class="kick">Answer</span><div class="in"><span>••••••••••</span><small>SHOW</small></div>
+            <span class="kick">New password</span><div class="in foc"><span>••••••••••••<span class="ok">|</span></span><small>SHOW</small></div>
+            <div class="row sp hint"><span class="cells" data-cells="8" data-on="8"></span><span class="mono faint" style="font-size:9px">12 / 128 · OK</span></div>
+            <div class="btn bk">Set new password</div>
+            <div class="muted" style="font-size:10.5px;margin-top:8px;line-height:1.5">This signs you out on every device. Step 3 is "Password updated. Sign in".</div>
+          </div>
+        </div>
+      </div>
+      <div><div class="cap">AFTER JOIN · RECOVERY QUESTION</div>
+        <div class="ph">
+          <div class="slate"><span>INTERIS · ONE LAST STEP</span><span class="cells" data-cells="2" data-on="2"></span></div>
+          <div class="pb">
+            <div class="h hp">Set a question only you can answer.</div>
+            <div class="muted" style="font-size:11px;line-height:1.5;margin-top:6px">Interis doesn't send reset emails. If you forget your password, this question is how you get back in.</div>
+            <span class="kick">Pick one or write your own</span>
+            <div style="display:flex;flex-wrap:wrap;gap:4px"><span class="chip on" style="font-size:10px">First film in a cinema?</span><span class="chip" style="font-size:10px">Most rewatched film?</span><span class="chip" style="font-size:10px">Street you grew up on?</span></div>
+            <span class="kick">Question</span><div class="in"><span style="font-size:11.5px">What was the first film you watched in a cinema?</span></div>
+            <span class="kick">Answer</span><div class="in foc"><span><span class="ok">|</span></span><small>0 / 200</small></div>
+            <div class="hint faint">Capitals and extra spaces don't matter when you answer later.</div>
+            <div class="btn bk">Save and open my diary</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="note">Prompt chips only fill the field; the user still writes the question (4–200 chars). Example question illustrative.</p>
+  </section>
+</div>
+<script>
+  const P = (p, s) => `background-image:url(https://image.tmdb.org/t/p/${s || 'w185'}/${p})`;
+  const PS = ['9l1NuFjel2j89hiuiJbsxfblqjy.jpg','gAgWJhUSQWCgtKR8170nMkYlBda.jpg','6sYemVUn79UPKz1ZsSG6kPU4RVy.jpg','1ERGPNiKtnEcsvJS1ywsmqmcIDO.jpg','lmrulvLbmaejTix1YaMxo1oGhH1.jpg','hSmIJluOJmTWvJs4d7kHRxjc8s8.jpg','2EewmxXe72ogD0EaWM8gqa0ccIw.jpg'];
+  const R = c => `<svg class="r ${c}" viewBox="0 0 24 24" stroke-width="2"><use href="#rk"/></svg>`;
+  const rockets = (n, sz) => `<span class="row" style="gap:1px">${Array.from({length:10},(_, i) => R(i < n ? 'on' : 'off')).join('').replaceAll('class="r', `style="width:${sz}px;height:${sz}px" class="r`)}</span>`;
+  const duo = (p, w, t) => `<div class="duo" style="width:${w};--t:var(${t})"><div class="po" style="${P(p)}"></div></div>`;
+  const TH = [['df','Rose Pine','DEFAULT','Mauve and rose on aubergine.'],['nl','NULL://LOG','','Terminal black, signal green.'],['tn','Tokyo Night','','Neon blue and violet, city at 2am.'],['mq','Marquee','LIGHT','Cream paper, theatre red, serif titles.']];
+  const tile = ([c, n, tag, d], i, small) => `<div class="tt ${c}${c === 'nl' ? ' on' : ''}">
+    <div class="slate" style="font-size:${small ? 8 : 9}px;padding:5px 8px"><span>${n}${tag ? ' · ' + tag : ''}</span><span style="color:#00ff88">${c === 'nl' ? '● IN USE' : ''}</span></div>
+    <div class="row" style="padding:8px;gap:8px;align-items:flex-start">${duo(PS[0], small ? '34px' : '46px', '--mv')}
+      <div class="f1"><div class="display" style="font-size:${small ? 14 : 15}px;font-weight:700">Clayface</div><div class="mono muted" style="font-size:8.5px">2026 · FILM</div>
+      <div style="margin:4px 0">${rockets(8, small ? 8 : 9)}</div><span class="cells" style="--c:var(--sr)" data-cells="8" data-on="5"></span></div>
+      ${small ? `<div class="muted" style="font-size:10px;width:96px;line-height:1.35">${d}</div>` : ''}</div>
+    ${small ? '' : `<div class="row" style="padding:0 8px 8px;gap:4px"><span class="btn" style="padding:4px 8px;font-size:10px">Log</span><span style="font-size:10px;color:var(--mv)">Films</span><span style="font-size:10px;color:var(--sr)">Series</span></div><div class="muted" style="font-size:10px;padding:0 8px 8px;line-height:1.35">${d}</div>`}</div>`;
+  document.getElementById('themes').innerHTML = TH.map((t, i) => tile(t, i)).join('');
+  document.getElementById('themesm').innerHTML = TH.map((t, i) => tile(t, i, 1)).join('');
+  const plain = (p, i, k) => p ? `<div class="slot"><span class="n">0${i + 1}</span><div class="po" style="${P(p)}"></div><span class="more">⋯</span></div>` : `<div class="empty" style="font-size:10px">+ add<br>a ${k || 'film'}</div>`;
+  const F = [PS[0],PS[2],PS[1],PS[3]], S = [PS[4],PS[5],PS[6],null], put = (id, a, k) => document.getElementById(id).innerHTML = a.map((p, i) => plain(p, i, k)).join('');
+  document.getElementById('t4').innerHTML = F.map((p, i) => plain(p, i)).join('') + S.map((p, i) => plain(p, i, 'series')).join('');
+  put('t4m', F); put('t4s', S, 'series');
+  document.querySelector('#t4m .slot:nth-child(2)').style.outline = '2px solid var(--primary)';
+  const G = ['Action','Adventure','Animation','Comedy','Crime','Documentary','Drama','Family','Fantasy','History','Horror','Music','Mystery','Romance','Science Fiction','Thriller','War','Western'], ON = ['Science Fiction','Drama','Thriller'];
+  document.getElementById('gen').innerHTML = G.map(g => `<span class="chip${ON.includes(g) ? ' on' : ''}">${ON.includes(g) ? '✓ ' : ''}${g}</span>`).join('');
+  const strip = (id, n, h) => { document.getElementById(id).innerHTML = PS.concat(PS).slice(0, n).map((p, i) => duo(p, `calc((100% - ${(n - 1) * 3}px) / ${n})`, i % 2 ? '--sr' : '--mv').replace('<div class="po"', `<div class="po" style="height:${h}px;aspect-ratio:auto;${P(p)}" x`)).join(''); };
+  strip('strip', 9, 118); strip('stripm', 5, 66);
+  document.querySelectorAll('[data-cells]').forEach(el => { el.innerHTML = Array.from({length: +el.dataset.cells}, (_, i) => `<i class="${i < +el.dataset.on ? 'w' : ''}"></i>`).join(''); });
+</script>
+</body>
+</html>

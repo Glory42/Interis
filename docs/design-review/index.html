@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Interis — design review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet" />
+<style>
+  /* Doc chrome (falls back to app colours when opened standalone) */
+  :root { color-scheme: dark; }
+  body { margin: 0; font-family: var(--font-sans, Sora, system-ui, sans-serif); color: var(--foreground, #e8e3f7); background: var(--background, #100e17); }
+  .doc { max-width: 1180px; margin: 0 auto; padding: 8px 0 40px; }
+  .doc h1 { font-size: 22px; margin: 0 0 6px; }
+  .doc h2 { font-size: 17px; margin: 0 0 4px; display: flex; gap: 10px; align-items: baseline; }
+  .doc .lead { color: var(--muted-foreground, #9f98bb); font-size: 13.5px; line-height: 1.55; margin: 0 0 18px; }
+  .num { font-family: var(--font-mono, "JetBrains Mono", monospace); font-size: 12px; color: var(--muted-foreground, #9f98bb); }
+  .prio { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+  .p1 { background: color-mix(in srgb, #f17fa0 22%, transparent); color: #f9a8bf; }
+  .p2 { background: color-mix(in srgb, #d4b5ff 20%, transparent); color: #dcc4ff; }
+  .p3 { background: color-mix(in srgb, #9fd4df 18%, transparent); color: #b5e2eb; }
+  section { margin-top: 34px; }
+  .why { margin: 6px 0 14px; padding-left: 18px; font-size: 13px; line-height: 1.6; color: var(--muted-foreground, #b3acd0); }
+  .why code { font-family: var(--font-mono, monospace); font-size: 11.5px; color: var(--foreground, #e8e3f7); }
+  .pair { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); }
+  .tag { font-family: var(--font-mono, monospace); font-size: 11px; letter-spacing: .08em; margin-bottom: 6px; display: block; }
+  .tag.now { color: #f9a8bf; } .tag.new { color: #a6e3b8; }
+  .summary { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 6px; }
+  .summary div { border: 1px solid var(--border, #3f3958); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; line-height: 1.45; }
+  .summary b { display: block; font-size: 13px; margin-bottom: 2px; }
+
+  /* ---------- App mock canvas: Interis default theme tokens ---------- */
+  .app {
+    --bg: #171420; --fg: #e8e3f7; --card: #1f1b2b; --primary: #d4b5ff; --primary-fg: #181422;
+    --muted-fg: #9f98bb; --border: #3f3958; --movie: #e0a8a3; --serial: #9fd4df; --accent: #f4c2bf;
+    --surface: color-mix(in srgb, var(--card) 55%, var(--bg) 45%);
+    --surface-border: color-mix(in srgb, var(--fg) 14%, transparent);
+    background: var(--bg); color: var(--fg); border: 1px solid var(--surface-border);
+    border-radius: 12px; padding: 16px; overflow: hidden; font-family: Sora, sans-serif; font-size: 13px;
+    position: relative;
+  }
+  .mono { font-family: "JetBrains Mono", monospace; }
+  .display { font-family: "Space Grotesk", sans-serif; letter-spacing: -0.02em; }
+  .poster { border-radius: 10px; background-size: cover; background-position: center; border: 1px solid var(--surface-border); aspect-ratio: 2/3; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 999px; border: 1px solid var(--surface-border); padding: 7px 12px; font-size: 12px; color: var(--fg); background: transparent; }
+  .btn.primary { background: var(--primary); color: var(--primary-fg); border-color: transparent; font-weight: 600; box-shadow: 0 10px 24px -15px rgba(212,181,255,.58); }
+  .chip { display: inline-block; border: 1px solid var(--surface-border); border-radius: 999px; padding: 2px 9px; font-size: 11px; color: var(--muted-fg); }
+  .muted { color: var(--muted-fg); }
+  .faint { color: color-mix(in srgb, var(--fg) 40%, transparent); }
+  .kick-old { font-family: "JetBrains Mono", monospace; font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase; font-weight: 700; }
+  .kick { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: .06em; color: var(--muted-fg); }
+  .row { display: flex; gap: 10px; align-items: center; }
+  .icon { width: 14px; height: 14px; display: inline-block; }
+  .ann { position: absolute; border: 1.5px dashed #f17fa0; border-radius: 8px; pointer-events: none; }
+  .ann span { position: absolute; top: -9px; left: 8px; background: #f17fa0; color: #1a0f14; font: 700 10px "JetBrains Mono", monospace; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <h1>Interis design review</h1>
+  <p class="lead">I reviewed the running app (landing, movie detail, archive, public profile) in the default theme and checked the components behind them. The base is solid: the theme token system, consistent surface cards and real poster art. Most of what holds it back is <b>typography</b> (monospace and tiny uppercase labels nearly everywhere), <b>copy that reads like dev notes</b>, and <b>empty states that show placeholders instead of hiding them</b>. Each card shows the current version on the left and my proposal on the right.</p>
+
+  <div class="summary">
+    <div><span class="prio p1">P1</span><b>Type system</b>373 <code>font-mono</code>, 308 labels under 12px. It reads like a terminal, not a journal.</div>
+    <div><span class="prio p1">P1</span><b>Movie action panel</b>"LOGIN TO LOG" wraps onto two lines, and four equal-weight buttons compete with no clear primary action.</div>
+    <div><span class="prio p2">P2</span><b>Empty & unknown data</b>"Unknown" facts, "-- 0 logs", an empty rating chart, 8× "Not set", "Unknown Galaxy".</div>
+    <div><span class="prio p2">P2</span><b>Navigation copy</b>"FEED / MOVIE / SERIAL" in shouty singular; "Module 02" kicker on the archive.</div>
+    <div><span class="prio p3">P3</span><b>Profile header</b>The Follow button looks disabled and the stats are spread far from the name.</div>
+    <div><span class="prio p3">P3</span><b>Archive hero</b>A hero with a 384px minimum height pushes the grid below the fold on a browse page.</div>
+  </div>
+
+  <!-- 1. TYPE -->
+  <section>
+    <h2><span class="num">01</span> Typography: give monospace one job <span class="prio p1">P1</span></h2>
+    <ul class="why">
+      <li>Titles (<code>MediaDetailsMainSection</code>, <code>MediaArchivePage</code> h2, <code>PageWrapper</code> h1), cast chips, review text and empty states all use <code>font-mono</code>. The theme already defines <code>--theme-display-font</code> (Space Grotesk), but mono overrides it.</li>
+      <li><code>text-[9px]–[11px]</code> plus <code>uppercase</code> plus <code>tracking-[0.18em]</code> is the default label style. At 9–10px with 0.18em tracking, labels like "COMMUNITY" or "RATING BREAKDOWN" are hard to read.</li>
+      <li><b>Rule:</b> Display font for titles, Sora for body text, and mono <i>only</i> for numbers, dates and short metadata. Labels should be at least 11px, with uppercase reserved for one- or two-word kickers.</li>
+    </ul>
+    <div class="pair">
+      <div>
+        <span class="tag now">NOW</span>
+        <div class="app">
+          <div class="row" style="gap:6px;margin-bottom:6px"><span class="mono faint" style="font-size:10px">2026</span><span class="chip mono" style="font-size:9.5px">Science Fiction</span><span class="chip mono" style="font-size:9.5px">Horror</span></div>
+          <div class="mono" style="font-size:30px;font-weight:700;line-height:1.1">Godzilla Minus Zero</div>
+          <div class="mono muted" style="margin:6px 0 14px;font-size:13px">dir. <span style="color:var(--movie)">Takashi Yamazaki</span></div>
+          <div class="row" style="gap:28px">
+            <div><div class="kick-old faint">Community</div><div class="mono" style="font-size:20px;color:var(--movie)">-- <span class="faint" style="font-size:10px">0 logs</span></div></div>
+            <div><div class="kick-old faint">TMDB</div><div class="mono" style="font-size:20px">8.3</div></div>
+          </div>
+          <div class="kick-old faint" style="margin-top:16px">Cast</div>
+          <div class="row" style="flex-wrap:wrap;gap:6px;margin-top:6px"><span class="chip mono" style="font-size:10px">Ryunosuke Kamiki as Koichi Shikishima</span><span class="chip mono" style="font-size:10px">Minami Hamabe as Noriko Oishi</span></div>
+        </div>
+      </div>
+      <div>
+        <span class="tag new">PROPOSED</span>
+        <div class="app">
+          <div class="kick" style="margin-bottom:6px">2026 · 2h 15m · Science Fiction, Horror</div>
+          <div class="display" style="font-size:32px;font-weight:700;line-height:1.05">Godzilla Minus Zero</div>
+          <div style="font-family:'Instrument Serif',Georgia,serif;font-style:italic;font-size:17px;color:var(--accent);margin:6px 0 2px">There is no third time. Everything ends here.</div>
+          <div class="muted" style="font-size:13px;margin-bottom:14px">Directed by <span style="color:var(--fg);text-decoration:underline;text-decoration-color:var(--movie);text-underline-offset:3px">Takashi Yamazaki</span></div>
+          <div class="row" style="gap:24px">
+            <div><div class="kick">TMDB</div><div class="mono" style="font-size:22px;font-weight:600">8.3</div></div>
+            <div><div class="kick">Interis</div><div style="font-size:13px" class="muted">No ratings yet. <span style="color:var(--primary)">Be the first</span></div></div>
+          </div>
+          <div class="kick" style="margin-top:16px">Cast</div>
+          <div class="row" style="gap:10px;margin-top:8px">
+            <div style="font-size:12.5px;line-height:1.3"><b style="font-weight:500">Ryunosuke Kamiki</b><br><span class="muted">Koichi Shikishima</span></div>
+            <div style="font-size:12.5px;line-height:1.3"><b style="font-weight:500">Minami Hamabe</b><br><span class="muted">Noriko Oishi</span></div>
+          </div>
+        </div>
+        <p class="lead" style="margin:8px 0 0;font-size:12px">The <code>tagline</code> is already in the API response (<code>/api/movies/:id</code>), but no component renders it, so this needs no backend change.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. NAV -->
+  <section>
+    <h2><span class="num">02</span> Navbar: plain language, less shouting <span class="prio p2">P2</span></h2>
+    <ul class="why">
+      <li>"MOVIE" and "SERIAL" are singular and all-caps, and "Serial" isn't how English speakers refer to TV. Use "Films" and "TV" (or "Shows", which the landing page already uses: "Trending Shows").</li>
+      <li>LOGIN and REGISTER are also all-caps mono. "Sign in" plus one filled "Create account" button is enough.</li>
+      <li>On desktop the search field is only 160px wide and reads "search...". Give it a <code>⌘K</code> hint so it works as the primary entry point.</li>
+    </ul>
+    <div class="pair" style="grid-template-columns:1fr">
+      <div><span class="tag now">NOW</span>
+        <div class="app" style="padding:10px 14px">
+          <div class="row" style="justify-content:space-between">
+            <span class="mono" style="font-weight:700;font-size:12px">◓ Interis</span>
+            <div class="row" style="gap:4px"><span class="kick-old muted" style="padding:5px 9px">Feed</span><span class="kick-old" style="padding:5px 9px;border:1px solid rgba(212,181,255,.34);background:rgba(212,181,255,.16);border-radius:999px;color:var(--movie)">Movie</span><span class="kick-old muted" style="padding:5px 9px">Serial</span></div>
+            <div class="row" style="gap:6px"><span class="mono faint" style="font-size:10px;border:1px solid var(--surface-border);border-radius:999px;padding:5px 10px">search...</span><span class="kick-old">Login</span></div>
+          </div>
+        </div>
+      </div>
+      <div><span class="tag new">PROPOSED</span>
+        <div class="app" style="padding:10px 14px">
+          <div class="row" style="justify-content:space-between">
+            <span class="display" style="font-weight:700;font-size:15px">◓ Interis</span>
+            <div class="row" style="gap:2px;font-size:13px"><span class="muted" style="padding:5px 10px">Feed</span><span style="padding:5px 10px;border-radius:999px;background:rgba(212,181,255,.14)">Films</span><span class="muted" style="padding:5px 10px">TV</span></div>
+            <div class="row" style="gap:8px"><span class="muted" style="font-size:12px;border:1px solid var(--surface-border);border-radius:999px;padding:5px 10px">Search <span class="mono faint" style="font-size:10px;margin-left:10px">⌘K</span></span><span class="btn primary" style="padding:5px 12px">Sign in</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. ACTION PANEL -->
+  <section>
+    <h2><span class="num">03</span> Movie page: one primary action, quick toggles below it <span class="prio p1">P1</span></h2>
+    <ul class="why">
+      <li><code>MediaActionsSidebar</code> uses a 2×2 grid of equal pill buttons. "LOGIN TO LOG" wraps onto two lines inside a pill (screenshot at 1280px), and Log, Queue, Watch and Like all carry the same visual weight.</li>
+      <li>Logging is the core action of the app, so make it a full-width primary button. Watched, Like and Watchlist become an icon toggle row (Letterboxd users expect this), with the rocket rating directly under it (see the signed-in review for the horizontal launch track).</li>
+      <li>Guests see four buttons that all link to <code>/login</code>. Replace them with one card: "Sign in to log, rate and review."</li>
+    </ul>
+    <div class="pair">
+      <div><span class="tag now">NOW</span>
+        <div class="app" style="display:flex;gap:16px">
+          <div style="width:150px;flex:none">
+            <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w342/hSmIJluOJmTWvJs4d7kHRxjc8s8.jpg)"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px">
+              <span class="btn kick-old" style="padding:6px 8px;font-size:9px;line-height:1.4;text-align:left;border-color:var(--primary)">Login to<br>log</span>
+              <span class="btn kick-old" style="font-size:9px">+ Queue</span>
+              <span class="btn kick-old" style="font-size:9px">✓ Watch</span>
+              <span class="btn kick-old" style="font-size:9px">♡ Like</span>
+            </div>
+            <div style="border:1px solid var(--surface-border);border-radius:10px;padding:8px;margin-top:6px"><div class="kick-old faint" style="font-size:8.5px">Your rating</div><div class="muted" style="font-size:10px;margin-top:4px">Sign in to rate</div></div>
+          </div>
+          <div class="ann" style="left:14px;top:244px;width:156px;height:72px"><span>4 equal CTAs · wraps</span></div>
+        </div>
+      </div>
+      <div><span class="tag new">PROPOSED · signed in</span>
+        <div class="app" style="display:flex;gap:16px">
+          <div style="width:150px;flex:none">
+            <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w342/hSmIJluOJmTWvJs4d7kHRxjc8s8.jpg)"></div>
+            <span class="btn primary" style="width:100%;box-sizing:border-box;margin-top:10px;padding:9px">✎ Log or review</span>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);margin-top:8px;border:1px solid var(--surface-border);border-radius:10px;overflow:hidden;text-align:center;font-size:10.5px">
+              <div style="padding:7px 0;color:#a6e3b8">◉<br>Watched</div>
+              <div style="padding:7px 0;border-left:1px solid var(--surface-border);color:var(--movie)">♥<br>Liked</div>
+              <div style="padding:7px 0;border-left:1px solid var(--surface-border)" class="muted">⊕<br>Watchlist</div>
+            </div>
+            <div style="margin-top:10px"><div style="text-align:left">
+            <div class="row" style="justify-content:space-between;align-items:baseline"><span class="mono muted" style="font-size:10.5px;letter-spacing:.06em">Your rating</span><span class="mono" style="font-size:18px;font-weight:700;color:var(--primary)">8<span class="muted" style="font-size:11px;font-weight:400">/10</span></span></div>
+            <div style="position:relative;height:28px;margin-top:4px">
+              <div style="position:absolute;left:0;right:0;top:12px;height:2px;background:var(--surface-border)"></div>
+              <div style="position:absolute;left:0;right:0;top:9px;height:8px;background:repeating-linear-gradient(90deg,var(--surface-border) 0 1px,transparent 1px calc(10% - 0.1px));opacity:.9"></div>
+              <div style="position:absolute;left:0;width:80%;top:11px;height:4px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--primary));box-shadow:0 0 10px color-mix(in srgb,var(--primary) 60%,transparent)"></div>
+              <div style="position:absolute;left:calc(80% - 11px);top:2px"><svg width="22" height="22" viewBox="0 0 24 24" fill="var(--primary)" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;transform:rotate(45deg);display:block"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></div>
+            </div>
+            <div class="row mono" style="justify-content:space-between;font-size:9px;color:color-mix(in srgb,currentColor 40%,transparent)"><span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span></div>
+            <div style="font-size:10px;margin-top:6px;color:color-mix(in srgb,currentColor 45%,transparent)">Drag or tap · saves on release · tap 8 again to clear</div>
+          </div></div>
+          </div>
+          <div style="flex:1;min-width:0;align-self:end">
+            <div class="kick">Guest version ↓</div>
+            <div style="margin-top:6px;border:1px dashed var(--surface-border);border-radius:10px;padding:12px;font-size:12px;line-height:1.5"><b style="font-weight:600">Track this film</b><br><span class="muted">Sign in to log, rate and review it.</span><br><span class="btn primary" style="margin-top:8px">Sign in</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. EMPTY / UNKNOWN -->
+  <section>
+    <h2><span class="num">04</span> Don't show what you don't know <span class="prio p2">P2</span></h2>
+    <ul class="why">
+      <li><code>MovieDetailsMainSection.tsx:38-70</code> falls back to <code>"Unknown"</code> for runtime, language, country and director. The facts grid then renders "Box Office: Unknow…" truncated, and the director appears a second time after the title.</li>
+      <li>With 0 logs, <code>RatingBreakdownChart</code> draws 10 flat bars that look like a loading glitch.</li>
+      <li>Community score "<code>--</code> 0 logs" in large pink mono looks like an error.</li>
+      <li><b>Rule:</b> filter out unknown facts. When a section has no data, show one sentence with a call to action, or hide the section entirely.</li>
+    </ul>
+    <div class="pair">
+      <div><span class="tag now">NOW</span>
+        <div class="app">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 18px">
+            <div><div class="kick-old faint">Director</div><div class="mono" style="font-size:12px">Takashi Yamazaki</div></div>
+            <div><div class="kick-old faint">Runtime</div><div class="mono" style="font-size:12px">2h 15 min</div></div>
+            <div><div class="kick-old faint">Budget</div><div class="mono" style="font-size:12px">$20M</div></div>
+            <div><div class="kick-old faint">Box Office</div><div class="mono" style="font-size:12px">Unknow…</div></div>
+          </div>
+          <div class="kick-old faint" style="margin-top:18px">Rating Breakdown</div>
+          <div style="display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-top:22px">
+            <i style="border-top:2px solid var(--surface-border)"></i><i style="border-top:2px solid var(--surface-border)"></i><i style="border-top:2px solid var(--surface-border)"></i><i style="border-top:2px solid var(--surface-border)"></i><i style="border-top:2px solid var(--surface-border)"></i><i style="border-top:2px solid var(--surface-border)"></i><i style="border-top:2px solid var(--surface-border)"></i><i style="border-top:2px solid var(--surface-border)"></i><i style="border-top:2px solid var(--surface-border)"></i><i style="border-top:2px solid var(--surface-border)"></i>
+          </div>
+          <div class="row mono faint" style="justify-content:space-between;font-size:9px;margin-top:4px"><span>1</span><span>10</span></div>
+          <div class="ann" style="left:calc(50% + 2px);top:56px;width:calc(50% - 22px);height:40px"><span>"Unknown" leaks</span></div>
+        </div>
+      </div>
+      <div><span class="tag new">PROPOSED</span>
+        <div class="app">
+          <dl style="display:grid;grid-template-columns:auto 1fr;gap:6px 18px;margin:0;font-size:12.5px">
+            <dt class="muted">Runtime</dt><dd style="margin:0" class="mono">2h 15m</dd>
+            <dt class="muted">Language</dt><dd style="margin:0">Japanese</dd>
+            <dt class="muted">Country</dt><dd style="margin:0">Japan</dd>
+            <dt class="muted">Budget</dt><dd style="margin:0" class="mono">$20M</dd>
+          </dl>
+          <div style="margin-top:16px;border:1px solid var(--surface-border);border-radius:10px;padding:12px;display:flex;gap:12px;align-items:center">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+            <div style="font-size:12.5px;line-height:1.45"><b style="font-weight:600">No Interis ratings yet</b><br><span class="muted">The rating breakdown appears after the first 3 logs.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. PROFILE -->
+  <section>
+    <h2><span class="num">05</span> Profile: make the person the focus, not the placeholders <span class="prio p3">P3</span></h2>
+    <ul class="why">
+      <li>Visitors see "No bio yet." (<code>ProfileHeaderCompact.tsx:128</code>) and the invented location "Unknown Galaxy" (<code>:82</code>). Hide both when they're empty, and show an "Add a bio" link only to the owner.</li>
+      <li>The Follow button is a 20px-tall outlined mono label that looks disabled. It's the main thing a visitor would click, so make it a filled primary button.</li>
+      <li>Eight "Not set" favourite slots take up most of the screen. For visitors, hide the row when it's empty. For the owner, collapse it to one prompt: "Pick your top 4".</li>
+      <li>Stats sit far to the right, away from the name. Move them into the identity block as an inline line of text.</li>
+    </ul>
+    <div class="pair">
+      <div><span class="tag now">NOW</span>
+        <div class="app">
+          <div class="row" style="gap:14px;align-items:flex-start">
+            <div style="width:56px;height:56px;border-radius:50%;border:1px solid var(--border);display:grid;place-items:center;color:var(--primary);font-weight:700;font-size:20px;flex:none">d</div>
+            <div style="min-width:0">
+              <div class="row" style="gap:8px;flex-wrap:wrap"><b style="font-size:16px">dpage_153250ac6a6d</b><span style="color:var(--primary);font-size:12px">@dpage_153250ac6a6d</span><span class="kick-old faint" style="border:1px solid var(--border);padding:2px 6px;font-size:8px">Follow</span></div>
+              <div class="muted" style="font-family:Georgia,serif;margin-top:4px">No bio yet.</div>
+              <div class="faint" style="font-size:11px;margin-top:4px">⌖ Unknown Galaxy</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px">
+            <div class="poster" style="display:grid;place-items:center;background:#120f1a"><span class="faint" style="font-size:10px">Not set</span></div><div class="poster" style="display:grid;place-items:center;background:#120f1a"><span class="faint" style="font-size:10px">Not set</span></div><div class="poster" style="display:grid;place-items:center;background:#120f1a"><span class="faint" style="font-size:10px">Not set</span></div><div class="poster" style="display:grid;place-items:center;background:#120f1a"><span class="faint" style="font-size:10px">Not set</span></div>
+          </div>
+        </div>
+      </div>
+      <div><span class="tag new">PROPOSED</span>
+        <div class="app">
+          <div class="row" style="gap:14px;align-items:center">
+            <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#d4b5ff,#9fd4df);display:grid;place-items:center;color:#181422;font-weight:700;font-size:20px;flex:none">D</div>
+            <div style="min-width:0;flex:1">
+              <div class="display" style="font-size:18px;font-weight:700">Deniz Page</div>
+              <div class="muted" style="font-size:12px">@dpage · <b style="color:var(--fg);font-weight:600">3</b> logged · <b style="color:var(--fg);font-weight:600">0</b> followers · <b style="color:var(--fg);font-weight:600">0</b> following</div>
+            </div>
+            <span class="btn primary">+ Follow</span>
+          </div>
+          <div style="margin-top:14px" class="kick">Recently logged</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px">
+            <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/gAgWJhUSQWCgtKR8170nMkYlBda.jpg)"></div>
+            <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/6sYemVUn79UPKz1ZsSG6kPU4RVy.jpg)"></div>
+            <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/1ERGPNiKtnEcsvJS1ywsmqmcIDO.jpg)"></div>
+            <div class="poster" style="display:grid;place-items:center;border-style:dashed;background:transparent"><span class="muted" style="font-size:10.5px;text-align:center;padding:4px">Owner only:<br><span style="color:var(--primary)">Pick top 4</span></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. ARCHIVE -->
+  <section>
+    <h2><span class="num">06</span> Archive: content first, filters inline <span class="prio p3">P3</span></h2>
+    <ul class="why">
+      <li><code>MediaArchivePage.tsx:136</code> renders a <code>min-h-72 sm:min-h-96</code> hero with the kicker "Module 02" and the subtitle "feature films - documentaries - shorts". That's internal naming, and it pushes the posters below the fold at 1280×800.</li>
+      <li>"WEEKLY TRENDING MODE · 10,000 titles" repeats information that's already in the filter row.</li>
+      <li><b>Updated:</b> keep the hero, but shrink it and have it show the film on screen. See <code>archive-hero.html</code> for three options; option A, the spotlight hero, is recommended. The compact mockup below is no longer the plan.</li>
+      <li>Bug found while testing: duplicate React key <code>movie-archive-item-1300968</code> when "Load more" returns an overlapping page. Dedupe by <code>tmdbId</code> when merging pages.</li>
+    </ul>
+    <div class="pair">
+      <div><span class="tag now">NOW</span>
+        <div class="app">
+          <div style="border:1px solid var(--surface-border);border-radius:12px;height:150px;display:flex;align-items:flex-end;padding:16px;background:linear-gradient(180deg,transparent,rgba(16,14,24,.9)),url(https://image.tmdb.org/t/p/w780/oqrYIDH4tvfEzPe1yqT4jzmAWHQ.jpg) center/cover">
+            <div><div class="kick-old" style="color:var(--movie);font-size:8.5px">Module 02</div><div class="mono" style="font-size:24px;font-weight:700">Movie</div><div class="mono muted" style="font-size:11px">feature films - documentaries - shorts</div></div>
+          </div>
+          <div class="row mono muted" style="gap:8px;font-size:10px;margin-top:10px;flex-wrap:wrap"><span>FILTER:</span><span class="chip mono" style="font-size:10px">All Genres</span><span class="chip mono" style="font-size:10px">Sort: Trending</span><span class="chip mono" style="font-size:10px">Language: All</span></div>
+          <div class="kick-old faint" style="margin-top:10px;font-size:8.5px">Weekly trending mode · 10,000 titles</div>
+          <div class="faint" style="margin-top:8px;font-size:11px;text-align:center">↓ grid starts below the fold</div>
+        </div>
+      </div>
+      <div><span class="tag new">PROPOSED</span>
+        <div class="app">
+          <div class="row" style="justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px">
+            <div><div class="display" style="font-size:24px;font-weight:700">Films</div><div class="muted" style="font-size:12px">Trending this week</div></div>
+            <div class="row" style="gap:6px;flex-wrap:wrap"><span class="chip" style="color:var(--fg)">Genre ▾</span><span class="chip" style="color:var(--fg)">Trending ▾</span><span class="chip" style="color:var(--fg)">Any language ▾</span></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;margin-top:14px">
+            <div><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/gAgWJhUSQWCgtKR8170nMkYlBda.jpg)"></div><div style="font-size:11px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Resident Evil</div><div class="mono faint" style="font-size:10px">2026</div></div>
+            <div><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/6sYemVUn79UPKz1ZsSG6kPU4RVy.jpg)"></div><div style="font-size:11px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Heart of the Beast</div><div class="mono faint" style="font-size:10px">2026</div></div>
+            <div><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/1ERGPNiKtnEcsvJS1ywsmqmcIDO.jpg)"></div><div style="font-size:11px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Possible Love</div><div class="mono faint" style="font-size:10px">2026</div></div>
+            <div><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/lmrulvLbmaejTix1YaMxo1oGhH1.jpg)"></div><div style="font-size:11px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Primetime</div><div class="mono faint" style="font-size:10px">2026</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Interis — admin console</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+body{margin:0;font-family:var(--font-sans,Sora,sans-serif);color:var(--foreground,#e8e3f7);background:var(--background,#0c0b10)}
+.doc{max-width:900px;margin:0 auto;padding-bottom:24px}
+h1{font-size:20px;margin:0 0 6px}h2{font-size:16px;margin:0 0 4px}
+.lead{color:var(--muted-foreground,#9f98bb);font-size:13.5px;line-height:1.55;margin:0 0 12px}
+.why{margin:6px 0 12px;padding-left:18px;font-size:12.5px;line-height:1.6;color:var(--muted-foreground,#b3acd0)}
+.why code{font-family:var(--font-mono,monospace);font-size:11px;color:var(--foreground,#e8e3f7)}
+.why b{color:var(--foreground,#e8e3f7)}
+section{margin-top:30px}
+.cap{font:600 10.5px var(--font-mono,monospace);letter-spacing:.08em;color:#7dffc0;text-align:center;margin-bottom:6px}
+.phones{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+.tg{font:700 8.5px "JetBrains Mono",monospace;letter-spacing:.08em;padding:1px 5px;border:1px solid;border-radius:2px;margin-left:4px;white-space:nowrap;vertical-align:1px}
+.fe{color:#7dffc0}.ep{color:#ffd479}.mg{color:#f9a8bf}
+.df{--bg:#171420;--fg:#e8e3f7;--muted:#9f98bb;--line:rgba(232,227,247,.13);--primary:#d4b5ff;--pfg:#181422;--accent:#e0a8a3;--danger:#f17fa0}
+.nl{--bg:#000;--fg:#e6e6e6;--muted:#8d8d8d;--line:rgba(255,255,255,.11);--primary:#00ff88;--pfg:#020202;--accent:#00cfff;--danger:#ff6b85}
+.app{background:var(--bg);color:var(--fg);font-family:Sora,sans-serif;font-size:12px;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.mono{font-family:"JetBrains Mono",monospace}.display{font-family:"Space Grotesk",sans-serif;letter-spacing:-.03em}
+.muted{color:var(--muted)}.faint{color:color-mix(in srgb,var(--fg) 38%,transparent)}
+.row{display:flex;gap:8px;align-items:center}.sp{justify-content:space-between}
+.kick{font:600 9.5px "JetBrains Mono",monospace;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+.slate{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;background:#000;font:600 9.5px "JetBrains Mono",monospace;letter-spacing:.08em;color:#8a8a8a}
+.slate b{color:var(--primary);font-weight:600}
+.btn{display:inline-flex;justify-content:center;align-items:center;gap:5px;border-radius:3px;padding:6px 10px;font-weight:600;font-size:11px;background:var(--primary);color:var(--pfg);white-space:nowrap}
+.gh{display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;font-size:11px;border:1px solid var(--line);border-radius:3px;color:var(--fg);white-space:nowrap}
+.dg{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 45%,transparent)}
+.credits{font:11px "JetBrains Mono",monospace}
+.credits div{display:flex;gap:6px;padding:2.5px 0}
+.credits .d{display:block;flex:1;border-bottom:1px dotted var(--line);transform:translateY(-4px)}
+.shell{display:grid;grid-template-columns:124px 1fr;min-height:300px}
+.side{border-right:1px solid var(--line);padding:10px 0}
+.side a{display:flex;justify-content:space-between;padding:6px 12px;font:600 10px "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-left:2px solid transparent}
+.side a.on{color:var(--fg);border-left-color:var(--primary);background:color-mix(in srgb,var(--primary) 7%,transparent)}
+.side a i{font-style:normal;color:var(--primary)}
+.main{padding:12px 14px;min-width:0}
+.t{width:100%;border-collapse:collapse;font-size:11px}
+.t th{font:600 8.5px "JetBrains Mono",monospace;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;text-align:left;padding:0 6px 5px;border-bottom:1px solid var(--line)}
+.t td{padding:6px;border-top:1px solid var(--line);vertical-align:top;line-height:1.4}
+.t tr.sel td{background:color-mix(in srgb,var(--primary) 7%,transparent)}
+.n{font:700 13px "JetBrains Mono",monospace;color:var(--primary)}
+.pill{font:600 8.5px "JetBrains Mono",monospace;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);border-radius:2px;padding:1px 4px;color:var(--muted);white-space:nowrap}
+.pill.x{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 40%,transparent)}
+.sentence{font-size:12px;line-height:1.7;color:var(--muted)}
+.sentence u{text-decoration:none;border-bottom:1px dashed var(--accent);color:var(--fg)}
+.field{border:1px solid var(--line);border-radius:2px;padding:6px 8px;font-size:11px;color:var(--muted);background:color-mix(in srgb,var(--fg) 3%,transparent)}
+.snap{border-left:2px solid var(--accent);padding:6px 10px;font-size:11.5px;line-height:1.5;background:color-mix(in srgb,var(--fg) 3%,transparent)}
+.r{width:9px;height:9px;flex:none}.r.on{fill:var(--primary);stroke:var(--primary)}.r.off{fill:none;stroke:color-mix(in srgb,var(--fg) 25%,transparent)}
+.il{font:600 8px "JetBrains Mono",monospace;letter-spacing:.1em;color:#ffd479}
+.chip{display:inline-flex;border:1px solid var(--line);border-radius:2px;padding:4px 8px;font-size:10.5px}
+.chip.on{border-color:var(--primary);color:var(--primary)}
+.modal{border:1px solid color-mix(in srgb,var(--danger) 50%,transparent);background:var(--bg);border-radius:4px;overflow:hidden}
+.scrim{background:rgba(10,8,16,.8);padding:18px 70px}
+.ph{width:300px;height:620px;border-radius:34px;border:6px solid #1c1c1c;background:var(--bg);color:var(--fg);overflow:hidden;position:relative;font-family:Sora,sans-serif;font-size:12px;box-sizing:border-box}
+.ph .slate{font-size:8.5px;padding:5px 12px;border-bottom:1px solid var(--line)}
+.pnav{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid var(--line);font:700 12px "JetBrains Mono",monospace}
+.qi{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px}
+.dots{width:30px;height:30px;display:grid;place-items:center;border:1px solid var(--line);border-radius:3px;flex:none;color:var(--muted)}
+.dock{position:absolute;left:0;right:0;bottom:0;border-top:1px solid var(--line);background:rgba(0,0,0,.96);padding:8px 12px 18px}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#0d0d0d;border-top:1px solid rgba(0,255,136,.3);border-radius:14px 14px 0 0;padding:8px 16px 18px}
+.grab{width:36px;height:4px;border-radius:2px;background:#333;margin:0 auto 10px}
+.opt{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:12px}
+[data-rockets]{display:inline-flex;gap:1px}.qi .n{width:14px}.dock .chip{flex:1 1 0;min-width:0;justify-content:center;white-space:nowrap;padding:6px 2px;font-size:10px}.dock .chip.rf{flex:none;padding:6px 9px}.dock .row{gap:6px}
+.bd{background:var(--danger)}.wide{width:100%;box-sizing:border-box;padding:10px}
+.s9{font:9.5px "JetBrains Mono",monospace;color:var(--muted);margin-top:3px}.ex{color:var(--muted);font-size:11px;margin-top:2px}
+.el{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.f1{flex:1;min-width:0}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><symbol id="rk" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol></svg>
+<div class="doc">
+  <h1>Admin: from nine tabs to a moderation desk</h1>
+  <p class="lead">Today <code>/admin</code> is nine tab panels, each the newest 20 rows. Proposed: six sections (Overview, Reports, Users, Content, Audit log, Cache) plus phone triage. Tags: <span class="tg fe">FRONTEND ONLY</span> <span class="tg ep">NEW ENDPOINT</span> <span class="tg mg">NEW TABLE/MIGRATION</span>. Admin is <b>glory42</b>; everything else is invented and marked <span class="il">ILLUSTRATIVE</span>.</p>
+
+  <div class="app df" style="padding:12px 14px">
+    <div class="kick" style="margin-bottom:6px">Ground rules every proposal below follows (CLAUDE.md)</div>
+    <div class="credits">
+      <div><span>Polling</span><i class="d"></i><span>none · refetch on focus or ↻ Refresh, staleTime 60s</span></div>
+      <div><span>Lists</span><i class="d"></i><span>server default 25 · cursor (created_at, id) for reports + audit</span></div>
+      <div><span>GET handlers</span><i class="d"></i><span>read-only · audit rows written only by POST/DELETE</span></div>
+      <div><span>New tables / columns</span><i class="d"></i><span>explicit index() on every FK and WHERE column</span></div>
+      <div><span>Overview numbers</span><i class="d"></i><span>COUNT(*) via Promise.all, on demand · not a live dashboard</span></div>
+      <div><span>Joins to authors / titles</span><i class="d"></i><span>one inArray() batch + Map, never per row</span></div>
+      <div><span>Destructive actions</span><i class="d"></i><span>re-enter admin password, or type @username to delete</span></div>
+    </div>
+  </div>
+
+  <section>
+    <h2>0 · What admin can do today, and what's wrong</h2>
+    <ul class="why">
+      <li><b>Can today:</b> list reports by status; resolve, dismiss, or remove the reported review/post (<code>reports.routes.ts:14-19</code>). Search users by username; reset password, suspend (optional reason), unsuspend, promote, demote, delete (<code>admin.routes.ts:14-23</code>). List + delete reviews, diary, posts, lists, activities. List, edit, TMDB-refresh, delete films and series.</li>
+      <li><b>First 20 rows, ever.</b> The frontend never sends <code>limit</code>/<code>offset</code> (<code>features/admin/api.ts:34,57</code>); report #21 is unreachable.</li>
+      <li><b>No audit trail.</b> <code>reports.resolvedBy</code> (<code>reports.entity.ts:44</code>) is the only record. Suspend, promote, delete, password reset leave nothing.</li>
+      <li><b>One row per reporter.</b> Remove content closes only that report (<code>reports.service.ts:74</code>); sibling reports on the deleted review stay pending. Rows carry no author or link (<code>api.ts:9-21</code>).</li>
+      <li><b>Gaps:</b> comments (<code>reviews.entity.ts:71</code>, <code>posts.entity.ts:54</code>) and lists can't be reported; comments have no admin panel. Search is username-only (<code>admin.repository.ts:21</code>).</li>
+      <li><b>Account actions are too easy.</b> Admin types the user's new password in plain text (<code>AdminUserRowActions.tsx:69</code>), also on their own row (<code>AdminUsersPanel.tsx:85</code>), never re-entering their own password: a hijacked admin session can take over any account. Promote is one click. Suspensions have no expiry or "by", and the reason is never shown again (<code>api.ts:24-29</code>).</li>
+      <li><b>No URL state</b> (<code>AdminDashboardPage.tsx:26</code>): refresh resets to Reports, nothing is linkable. Generic look: rounded-full pills (<code>AdminReportsPanel.tsx:123</code>), cards, icon nav.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>1 · Console shell and Overview</h2>
+    <ul class="why">
+      <li>Nav is real routes (<code>/admin/reports?status=pending</code>): linkable, survives refresh. <span class="tg fe">FRONTEND ONLY</span></li>
+      <li>Overview is one credits block from <code>GET /api/admin/overview</code>: ~8 <code>COUNT(*)</code> in <code>Promise.all</code>, run on open or ↻ only; the slate says when. If slow, memoise 5 min in process memory, never a timer or a write. <span class="tg ep">NEW ENDPOINT</span></li>
+    </ul>
+    <div class="app df">
+      <div class="slate"><span>INTERIS · ADMIN · <b>GLORY42</b></span><span>COMPUTED 2026-11-06 19:42 · ↻ REFRESH</span></div>
+      <div class="shell">
+        <div class="side">
+          <a class="on">Overview</a><a>Reports <i>7</i></a><a>Users</a><a>Content</a><a>Audit log</a><a>Cache</a>
+          <div class="il" style="padding:14px 12px 0">ILLUSTRATIVE<br>COUNTS</div>
+        </div>
+        <div class="main">
+          <div class="row sp" style="align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:6px"><span class="display" style="font-size:22px;font-weight:700">Overview</span><span class="mono muted" style="font-size:10px">WK 45 · NOV 2–8</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:10px">
+            <div>
+              <div class="kick">Needs you</div>
+              <div class="credits" style="margin:4px 0 10px">
+                <div><span>Pending reports</span><i class="d"></i><span style="color:var(--primary)">7 · oldest 3d 4h</span></div>
+                <div><span>Reported items</span><i class="d"></i><span>4</span></div>
+                <div><span>Suspensions ending ≤ 7d</span><i class="d"></i><span>2</span></div>
+              </div>
+              <div class="kick">Last 7 days</div>
+              <div class="credits" style="margin-top:4px">
+                <div><span>New accounts</span><i class="d"></i><span>41</span></div>
+                <div><span>Diary entries</span><i class="d"></i><span>1,286</span></div>
+                <div><span>Reviews</span><i class="d"></i><span>312</span></div>
+                <div><span>Posts · comments</span><i class="d"></i><span>96 · 233</span></div>
+                <div><span>Cached films · series</span><i class="d"></i><span>10,412 · 2,207</span></div>
+              </div>
+            </div>
+            <div>
+              <div class="kick">Latest admin actions</div>
+              <div class="credits" style="margin-top:4px;font-size:10.5px">
+                <div><span class="muted">19:31</span><span>removed review</span><i class="d"></i><span>@reel_drifter</span></div>
+                <div><span class="muted">19:30</span><span>suspended 7d</span><i class="d"></i><span>@freestreamz</span></div>
+                <div><span class="muted">11:02</span><span>dismissed 2</span><i class="d"></i><span>post #a41c</span></div>
+              </div>
+              <div class="gh" style="margin-top:10px;width:100%;box-sizing:border-box">Open the report queue →</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>2 · Reports: one row per reported item</h2>
+    <ul class="why">
+      <li><b>Grouped by target</b>: count, reasons, author, oldest age; sorted by count then age. Cursor paged; authors/titles in one <code>inArray</code> batch. <span class="tg ep">NEW ENDPOINT</span></li>
+      <li><b>Remove &amp; resolve 3</b> closes every pending report on the item in one transaction, with an optional resolution note. <span class="tg ep">NEW ENDPOINT</span> <span class="tg mg">NEW TABLE/MIGRATION</span> (<code>resolution_action</code>, <code>resolution_note</code>, index <code>(target_type, target_id)</code>)</li>
+      <li>Suspend the author from the report, with their standing inline. Comments and lists become reportable. <span class="tg mg">NEW TABLE/MIGRATION</span> (extend <code>report_target_type</code>)</li>
+    </ul>
+    <div class="app df">
+      <div class="slate"><span>ADMIN · REPORTS · <b>PENDING 7</b> · RESOLVED · DISMISSED</span><span class="il">ILLUSTRATIVE</span></div>
+      <div class="main">
+        <table class="t">
+          <tr><th style="width:26px">#</th><th>Item</th><th>Author</th><th>Reasons</th><th>Oldest</th></tr>
+          <tr class="sel"><td class="n">3</td><td>Review · <b>Clayface</b> (2026)</td><td class="mono">@reel_drifter</td><td><span class="pill x">harassment</span> <span class="pill">other</span></td><td class="mono muted">3d 4h</td></tr>
+          <tr><td colspan="5" style="border-top:0;padding:4px 6px 12px">
+            <div class="snap"><div class="row" style="gap:6px;margin-bottom:4px"><span data-rockets="2"></span><span class="mono muted" style="font-size:10px">2/10 · SNAPSHOT 2026-11-03 15:20</span></div>"Anyone who rated this above a 5 is [removed]. @mira_k especially, you've never watched a film in your life…"</div>
+            <div class="credits" style="margin:8px 0;font-size:10.5px">
+              <div><span>@mira_k · harassment</span><i class="d"></i><span class="muted">"targets me by name"</span></div>
+              <div><span>@tobi.frames · harassment</span><i class="d"></i><span class="muted">no note</span></div>
+              <div><span>@ann_sees · other</span><i class="d"></i><span class="muted">"third time this week"</span></div>
+              <div><span>@reel_drifter standing</span><i class="d"></i><span>2 earlier reports actioned · joined 2025-03-14</span></div>
+            </div>
+            <div class="row"><div class="field" style="flex:1">Resolution note (saved to audit log)…</div><span class="btn bd">Remove &amp; resolve 3</span><span class="gh">Dismiss 3</span><span class="gh dg">Suspend author…</span></div>
+          </td></tr>
+          <tr><td class="n">2</td><td>Post · "free 4k streams here →…"</td><td class="mono">@freestreamz</td><td><span class="pill">spam</span></td><td class="mono muted">1d 2h</td></tr>
+          <tr><td class="n">1</td><td>Comment · on @ann_sees' list</td><td class="mono">@noir_owl</td><td><span class="pill">inappropriate</span></td><td class="mono muted">6h</td></tr>
+          <tr><td class="n">1</td><td>List · "worst directors alive"</td><td class="mono">@kestrel</td><td><span class="pill">other</span></td><td class="mono muted">40m</td></tr>
+        </table>
+        <div class="row sp mono muted" style="font-size:10px;margin-top:8px"><span>4 ITEMS · 7 REPORTS</span><span class="gh" style="padding:3px 8px">Older →</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>3 · Users: a detail page, suspensions that end</h2>
+    <ul class="why">
+      <li>Search <b>username or email</b>, paged (escape <code>%</code>/<code>_</code> in the ilike). User page: counts via one <code>Promise.all</code>, sessions from the existing <code>sessions</code> table. <span class="tg ep">NEW ENDPOINT</span></li>
+      <li>Suspension <b>expiry + by</b>; <code>requireAuth</code> treats <code>suspended_until &lt; now()</code> as lifted <b>without writing</b>. <span class="tg mg">NEW TABLE/MIGRATION</span></li>
+      <li><b>Revoke sessions</b> (existing <code>revokeAllSessionsForUser</code>) <span class="tg ep">NEW ENDPOINT</span>. <b>Force reset</b> replaces typing a password: revoke + <code>must_change_password</code> flag. <span class="tg mg">NEW TABLE/MIGRATION</span></li>
+      <li>Suspend, role change, force reset require <b>glory42's password</b> (verified server-side); delete also requires typing the username. Never offered on your own row. <span class="tg ep">NEW ENDPOINT</span></li>
+    </ul>
+    <div class="app df">
+      <div class="slate"><span>ADMIN · USERS · <b>@REEL_DRIFTER</b></span><span>JOINED 2025-03-14 · <span class="il">ILLUSTRATIVE</span></span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:12px 14px">
+        <div>
+          <div class="row" style="align-items:baseline;gap:10px"><span class="display" style="font-size:22px;font-weight:700">@reel_drifter</span><span class="pill x">suspended</span></div>
+          <div class="mono muted" style="font-size:10px;margin-bottom:8px">r.drifter@mail.example · USER · 2 SESSIONS</div>
+          <div class="credits">
+            <div><span>Diary entries</span><i class="d"></i><span>418</span></div>
+            <div><span>Reviews · posts · lists</span><i class="d"></i><span>57 · 12 · 4</span></div>
+            <div><span>Followers · following</span><i class="d"></i><span>88 · 131</span></div>
+            <div><span>Reports against</span><i class="d"></i><span style="color:var(--danger)">5 · 3 actioned</span></div>
+            <div><span>Reports filed</span><i class="d"></i><span>1</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="kick">Standing</div>
+          <div class="credits" style="margin:4px 0 10px">
+            <div><span>Suspended</span><i class="d"></i><span>2026-11-06 19:31</span></div>
+            <div><span>Until</span><i class="d"></i><span style="color:var(--primary)">2026-11-13 · 7d</span></div>
+            <div><span>By</span><i class="d"></i><span>@glory42</span></div>
+            <div><span>Reason</span><i class="d"></i><span>harassment, 3 reports</span></div>
+          </div>
+          <div class="kick">Sessions</div>
+          <div class="credits" style="margin:4px 0 10px;font-size:10px">
+            <div><span>Firefox · Linux</span><i class="d"></i><span class="muted">85.10.x.x · 2h ago</span></div>
+            <div><span>Safari · iOS</span><i class="d"></i><span class="muted">85.10.x.x · 4d ago</span></div>
+          </div>
+          <div class="row" style="flex-wrap:wrap;gap:6px"><span class="gh">Lift suspension</span><span class="gh">Revoke sessions</span><span class="gh">Force reset</span><span class="gh">Make admin…</span><span class="gh dg">Delete…</span></div>
+        </div>
+      </div>
+      <div class="scrim">
+        <div class="modal">
+          <div class="slate"><span>SUSPEND · <b style="color:var(--danger)">@FREESTREAMZ</b></span><span style="font-size:12px;color:#bbb">✕</span></div>
+          <div style="padding:12px 14px">
+            <div class="kick" style="margin-bottom:5px">Length</div>
+            <div class="row" style="gap:5px"><span class="chip">24 hours</span><span class="chip on">7 days</span><span class="chip">30 days</span><span class="chip">Until lifted</span></div>
+            <div class="mono muted" style="font-size:10px;margin:6px 0 10px">Ends 2026-11-13 19:30 · signed out now · their content stays visible</div>
+            <div class="kick" style="margin-bottom:5px">Reason (shown to the user, saved to the audit log)</div>
+            <div class="field" style="color:var(--fg)">Spam: repeated streaming links in posts (report group #a41c)</div>
+            <div class="kick" style="margin:10px 0 5px">Your password, glory42</div>
+            <div class="field">••••••••••</div>
+            <div class="row sp" style="margin-top:12px"><span class="muted" style="font-size:11px">Cancel</span><span class="btn bd">Suspend for 7 days</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>4 · Content: one place to search and take things down</h2>
+    <ul class="why">
+      <li>Reviews/Diary/Posts/Lists/Activities tabs merge into one <b>Content</b> section, filter as a sentence, on the existing endpoints. <span class="tg fe">FRONTEND ONLY</span></li>
+      <li>Comment list + delete; body text search, bounded + paged. <span class="tg ep">NEW ENDPOINT</span></li>
+      <li><b>Take down with a reason</b> (existing report reasons + note), audited, optional author notice. <span class="tg ep">NEW ENDPOINT</span> Reversible hide (<code>hidden_at</code>) later: every public read would need to filter it. <span class="tg mg">NEW TABLE/MIGRATION</span></li>
+    </ul>
+    <div class="app df">
+      <div class="slate"><span>ADMIN · CONTENT</span><span class="il">ILLUSTRATIVE</span></div>
+      <div class="main">
+        <div class="sentence">Showing <u>reviews</u> ▾ by <u>anyone</u> ▾, <u>newest first</u> ▾, containing <u>"stream"</u>.</div>
+        <table class="t" style="margin-top:6px">
+          <tr><th>Excerpt</th><th>Author</th><th>On</th><th>Rating</th><th>Posted</th><th></th></tr>
+          <tr><td>"watch it free in 4k at the link in my bio…"</td><td class="mono">@freestreamz</td><td>Godzilla Minus Zero</td><td><span data-rockets="10"></span></td><td class="mono muted">NOV 6</td><td class="muted">⋯</td></tr>
+        </table>
+        <div class="row" style="margin-top:10px;padding:8px 10px;border:1px solid color-mix(in srgb,var(--danger) 40%,transparent);gap:10px">
+          <span class="kick" style="color:var(--danger)">Take down</span><span class="chip on">spam</span><span class="chip">harassment</span><span class="chip">inappropriate</span><span class="chip">other</span><span class="field" style="flex:1">Note…</span><span class="btn bd">Delete review</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>5 · Audit log: who, what, when, why</h2>
+    <ul class="why">
+      <li>Every admin POST/DELETE writes a row <b>in the same transaction</b>; actor and target labels are snapshotted so rows survive account deletion. <span class="tg mg">NEW TABLE/MIGRATION</span> <code>admin_audit_log(id, actor_id → user SET NULL, actor_username, action, target_type, target_id, target_label, reason, created_at)</code>, indexes <code>(created_at, id)</code>, <code>(actor_id, created_at)</code>, <code>(target_type, target_id)</code>.</li>
+      <li>Read-only, cursor paged (<code>(created_at, id) &lt; cursor LIMIT 50</code>), filter by admin/action/target. <span class="tg ep">NEW ENDPOINT</span></li>
+    </ul>
+    <div class="app df">
+      <div class="slate"><span>ADMIN · AUDIT LOG · <b>NEWEST FIRST</b></span><span class="il">ILLUSTRATIVE</span></div>
+      <div class="main">
+        <div class="sentence">Showing <u>every action</u> ▾ by <u>any admin</u> ▾ on <u>anyone</u> ▾.</div>
+        <table class="t" style="margin-top:6px">
+          <tr><th>When</th><th>Admin</th><th>Action</th><th>Target</th><th>Why</th></tr>
+          <tr><td class="mono muted">11-06 19:31</td><td class="mono">glory42</td><td>review.remove · 3 reports</td><td class="mono">@reel_drifter · Clayface</td><td class="muted">harassment, names a user</td></tr>
+          <tr><td class="mono muted">11-06 19:30</td><td class="mono">glory42</td><td>user.suspend · 7d</td><td class="mono">@freestreamz</td><td class="muted">spam links, group #a41c</td></tr>
+          <tr><td class="mono muted">11-06 11:02</td><td class="mono">glory42</td><td>report.dismiss · 2</td><td class="mono">post #a41c</td><td class="muted">quoting a trailer, not spam</td></tr>
+        </table>
+        <div class="row sp mono muted" style="font-size:10px;margin-top:8px"><span>50 PER PAGE · CURSOR 2026-11-06T11:02</span><span class="gh" style="padding:3px 8px">Older →</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>6 · Cache and system</h2>
+    <ul class="why">
+      <li>Refresh one title by TMDB id, using the existing <code>POST /admin/movies/:id/refresh</code>. <span class="tg fe">FRONTEND ONLY</span></li>
+      <li><b>Stale</b>: oldest <code>cached_at</code> first, refresh 25 per click. <span class="tg ep">NEW ENDPOINT</span> <span class="tg mg">NEW TABLE/MIGRATION</span> (index <code>cached_at</code>)</li>
+      <li><b>Purge unreferenced</b> titles: dry-run count, password, then 500-row batches, POST only. <span class="tg ep">NEW ENDPOINT</span> Since-boot figures (TTL cache, <code>blockCrawlers</code> refusals) from process memory, no DB. <span class="tg ep">NEW ENDPOINT</span></li>
+    </ul>
+    <div class="app df">
+      <div class="slate"><span>ADMIN · CACHE · TMDB MIRROR</span><span>↻ REFRESH · <span class="il">ILLUSTRATIVE</span></span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:12px 14px">
+        <div class="credits">
+          <div><span>Films cached</span><i class="d"></i><span>10,412</span></div>
+          <div><span>Older than 90 days</span><i class="d"></i><span style="color:var(--primary)">318</span></div>
+          <div><span>Unreferenced</span><i class="d"></i><span>2,940</span></div>
+          <div><span>Series cached</span><i class="d"></i><span>2,207 · 41 stale</span></div>
+          <div><span>Since boot 06:00</span><i class="d"></i><span>TTL 1,204 · bots 9,877</span></div>
+        </div>
+        <div>
+          <div class="row"><div class="field" style="flex:1">TMDB id or title…</div><span class="gh">Refresh</span></div>
+          <div class="row" style="margin-top:8px"><span class="gh" style="flex:1">Refresh oldest 25</span><span class="gh dg" style="flex:1">Purge 2,940…</span></div>
+          <div class="mono muted" style="font-size:9.5px;margin-top:6px;line-height:1.5">Purge runs a dry-run count, then asks for your password. Deletes 500 per batch.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>7 · Phone browser: report triage</h2>
+    <ul class="why">
+      <li>Same grouped queue at 390px. Visible <b>⋯</b> opens a bottom sheet; no swipe or long-press. Sticky bottom bar: status switch + <b>↻</b>; refetch on focus, never a timer.</li>
+      <li>Suspend opens a second sheet with the password and a sticky confirm. After acting, the next group opens with a "Done · audit #id" line on top. <span class="tg fe">FRONTEND ONLY</span> (on the section 2 endpoints)</li>
+    </ul>
+    <div class="phones nl">
+      <div><div class="cap">QUEUE · ILLUSTRATIVE</div>
+        <div class="ph">
+          <div class="pnav"><span>◓ Admin</span><span class="muted">☰</span></div>
+          <div class="slate"><span>REPORTS · <b>PENDING 7</b></span><span>19:42</span></div>
+          <div class="qi"><span class="n">3</span><div class="f1"><div class="kick">Review · harassment</div><div style="font-weight:600;margin:2px 0">Clayface</div><div class="ex el">"Anyone who rated this above a 5 is…"</div><div class="s9">@reel_drifter · 3d 4h</div></div><span class="dots">⋯</span></div>
+          <div class="qi"><span class="n">2</span><div class="f1"><div class="kick">Post · spam</div><div class="ex">"free 4k streams here →…"</div><div class="s9">@freestreamz · 1d 2h</div></div><span class="dots">⋯</span></div>
+          <div class="qi"><span class="n">1</span><div class="f1"><div class="kick">Comment · inappropriate</div><div class="ex">on @ann_sees' list</div><div class="s9">@noir_owl · 6h</div></div><span class="dots">⋯</span></div>
+          <div class="qi"><span class="n">1</span><div class="f1"><div class="kick">List · other</div><div class="ex">"worst directors alive"</div><div class="s9">@kestrel · 40m</div></div><span class="dots">⋯</span></div>
+          <div class="dock"><div class="row"><span class="chip on">Pending 7</span><span class="chip">Resolved</span><span class="chip">Dismissed</span><span class="chip rf">↻</span></div></div>
+        </div>
+      </div>
+      <div><div class="cap">⋯ SHEET</div>
+        <div class="ph">
+          <div class="pnav"><span>◓ Admin</span><span class="muted">☰</span></div>
+          <div class="slate"><span>REPORTS · <b>PENDING 7</b></span><span>19:42</span></div>
+          <div style="opacity:.35"><div class="qi"><span class="n">3</span><div><div class="kick">Review · harassment</div><div style="font-weight:600">Clayface</div></div></div></div>
+          <div style="position:absolute;inset:0;background:rgba(0,0,0,.45)"></div>
+          <div class="sheet">
+            <div class="grab"></div>
+            <div class="kick">Review · Clayface · 3 reports</div>
+            <div class="snap" style="margin:6px 0;font-size:11px"><div class="row" style="gap:5px;margin-bottom:3px"><span data-rockets="2"></span><span class="mono muted" style="font-size:9px">2/10</span></div>"Anyone who rated this above a 5 is [removed]. @mira_k especially…"</div>
+            <div class="mono muted" style="font-size:9.5px">@reel_drifter · 2 earlier reports actioned</div>
+            <div class="opt" style="color:var(--danger)"><span>Remove review &amp; resolve 3</span><span>›</span></div>
+            <div class="opt"><span>Dismiss 3 reports</span><span>›</span></div>
+            <div class="opt"><span>Suspend @reel_drifter…</span><span>›</span></div>
+            <div class="opt" style="border:0"><span>Open on site ↗</span><span></span></div>
+            <div class="field" style="margin-top:4px">Resolution note (optional)…</div>
+          </div>
+        </div>
+      </div>
+      <div><div class="cap">SUSPEND SHEET · PASSWORD</div>
+        <div class="ph">
+          <div class="pnav"><span>◓ Admin</span><span class="muted">☰</span></div>
+          <div style="position:absolute;inset:40px 0 0;background:rgba(0,0,0,.45)"></div>
+          <div class="sheet" style="top:96px;border-top-color:color-mix(in srgb,var(--danger) 50%,transparent)">
+            <div class="grab"></div>
+            <div class="display" style="font-size:20px;font-weight:700">Suspend @reel_drifter</div>
+            <div class="mono muted" style="font-size:9.5px;margin:2px 0 12px">5 REPORTS AGAINST · 3 ACTIONED</div>
+            <div class="kick" style="margin-bottom:5px">Length</div>
+            <div class="row" style="flex-wrap:wrap;gap:5px"><span class="chip">24h</span><span class="chip on">7 days</span><span class="chip">30 days</span><span class="chip">Until lifted</span></div>
+            <div class="mono muted" style="font-size:9.5px;margin:6px 0 12px">ENDS 2026-11-13 19:31</div>
+            <div class="kick" style="margin-bottom:5px">Reason</div>
+            <div class="field" style="color:var(--fg)">Harassment: names another user, 3 reports</div>
+            <div class="kick" style="margin:12px 0 5px">Your password, glory42</div>
+            <div class="field" style="border-color:var(--primary)">••••••••|</div>
+            <div class="dock" style="background:#0d0d0d"><span class="btn bd wide">Suspend for 7 days</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>8 · Order of work</h2>
+    <div class="app df" style="padding:12px 14px">
+      <div class="credits" style="font-size:10.5px">
+        <div><b style="color:var(--primary)">P1</b><span>audit log · admin password on account actions · paging + URL state · grouped reports</span><i class="d"></i><span class="tg mg">MIGRATION</span><span class="tg ep">ENDPOINT</span><span class="tg fe">FRONTEND</span></div>
+        <div><b>P2</b><span>user page · revoke sessions · suspension expiry · force reset · overview · phone triage</span><i class="d"></i><span class="tg mg">MIGRATION</span><span class="tg ep">ENDPOINT</span></div>
+        <div><b>P3</b><span>report comments/lists · comment admin · takedown reasons · cache tools · hide</span><i class="d"></i><span class="tg mg">MIGRATION</span><span class="tg ep">ENDPOINT</span></div>
+      </div>
+    </div>
+  </section>
+</div>
+<script>
+  const R = '<svg class="r CLS" viewBox="0 0 24 24" stroke-width="2"><use href="#rk"/></svg>';
+  document.querySelectorAll('[data-rockets]').forEach(el => {
+    const n = +el.dataset.rockets;
+    el.innerHTML = Array.from({length: 10}, (_, i) => R.replace('CLS', i < n ? 'on' : 'off')).join('');
+  });
+</script>
+</body>
+</html>

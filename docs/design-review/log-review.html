@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Interis — log / review flow</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet" />
+<style>
+  body { margin: 0; font-family: var(--font-sans, Sora, sans-serif); color: var(--foreground, #e8e3f7); background: var(--background, #0c0b10); }
+  .doc { max-width: 900px; margin: 0 auto; padding-bottom: 24px; }
+  h1 { font-size: 20px; margin: 0 0 6px; } h2 { font-size: 16px; margin: 0 0 4px; }
+  .lead { color: var(--muted-foreground, #9f98bb); font-size: 13.5px; line-height: 1.55; margin: 0 0 12px; }
+  .why { margin: 6px 0 12px; padding-left: 18px; font-size: 12.5px; line-height: 1.6; color: var(--muted-foreground, #b3acd0); }
+  .why code { font-family: var(--font-mono, monospace); font-size: 11.5px; color: var(--foreground, #e8e3f7); }
+  section { margin-top: 28px; }
+  .cap { font: 600 10.5px var(--font-mono, monospace); letter-spacing: .08em; color: #7dffc0; text-align: center; margin-bottom: 6px; }
+  .phones { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+
+  .df { --bg:#171420; --fg:#e8e3f7; --muted:#9f98bb; --line:rgba(232,227,247,.13); --primary:#d4b5ff; --pfg:#181422; --accent:#e0a8a3; --card:#1c1828; --danger:#f17fa0; }
+  .nl { --bg:#000; --fg:#e6e6e6; --muted:#8d8d8d; --line:rgba(255,255,255,.11); --primary:#00ff88; --pfg:#020202; --accent:#00ff88; --card:#0b0b0b; --danger:#ff6b85; }
+  .mono { font-family: "JetBrains Mono", monospace; } .display { font-family: "Space Grotesk", sans-serif; letter-spacing: -.03em; }
+  .serif { font-family: "Instrument Serif", Georgia, serif; font-style: italic; }
+  .muted { color: var(--muted); } .faint { color: color-mix(in srgb, var(--fg) 38%, transparent); }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .poster { aspect-ratio: 2/3; background: center/cover; border-radius: 2px; flex: none; }
+  .kick { font: 600 9.5px "JetBrains Mono", monospace; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; }
+  .btn { display: inline-flex; justify-content: center; align-items: center; gap: 6px; border-radius: 3px; padding: 9px 14px; font-weight: 600; font-size: 12px; background: var(--primary); color: var(--pfg); }
+  .ghost { display: inline-flex; align-items: center; padding: 9px 14px; font-size: 12px; border: 1px solid var(--line); border-radius: 3px; color: var(--fg); }
+  .slate { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #000; font: 600 10px "JetBrains Mono", monospace; letter-spacing: .08em; color: #8a8a8a; }
+  .sentence { font-size: 13px; line-height: 1.7; }
+  .sentence u { text-decoration: none; border-bottom: 1px dashed var(--accent); color: var(--fg); }
+  .track { position: relative; height: 36px; }
+  .track .base { position: absolute; left: 0; right: 0; top: 16px; border-top: 2px solid var(--line); }
+  .track .ticks { position: absolute; left: 0; right: 0; top: 10px; height: 14px; background: repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px calc(10% - .1px)); }
+  .track .fill { position: absolute; left: 0; top: 14px; height: 6px; border-radius: 3px; background: linear-gradient(90deg, transparent, var(--primary)); box-shadow: 0 0 14px color-mix(in srgb, var(--primary) 50%, transparent); }
+  .track svg { position: absolute; width: 26px; height: 26px; fill: var(--primary); stroke: var(--primary); transform: rotate(45deg); top: 4px; }
+  .area { border: 1px solid var(--line); background: color-mix(in srgb, var(--fg) 3%, transparent); padding: 12px; font-size: 13.5px; line-height: 1.6; }
+  .chip { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); border-radius: 3px; padding: 5px 9px; font-size: 11px; }
+  .chip.spoiler-on { border-color: color-mix(in srgb, var(--danger) 50%, transparent); background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
+
+  .modal { width: 100%; max-width: 680px; margin: 0 auto; border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent); background: var(--bg); color: var(--fg); font-family: Sora, sans-serif; font-size: 13px; box-shadow: 0 40px 80px -40px #000; border-radius: 4px; overflow: hidden; }
+  .scrim { background: rgba(10,8,16,.75); padding: 22px 14px; border-radius: 6px; position: relative; overflow: hidden; }
+
+  .ph { width: 300px; height: 620px; border-radius: 34px; border: 6px solid #1c1c1c; background: var(--bg); color: var(--fg); overflow: hidden; position: relative; font-family: Sora, sans-serif; font-size: 12px; box-sizing: border-box; }
+  .pbar { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+  .kbd { position: absolute; left: 0; right: 0; bottom: 0; height: 210px; background: #1e1e1e; border-top: 1px solid #2a2a2a; display: grid; grid-template-rows: repeat(4, 1fr); gap: 6px; padding: 8px 4px 22px; box-sizing: border-box; }
+  .kbd div { display: flex; gap: 5px; justify-content: center; }
+  .kbd i { flex: 1; max-width: 25px; background: #3a3a3a; border-radius: 5px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><symbol id="rk" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol></svg>
+<div class="doc">
+  <h1>Logging and reviewing: desktop and phone browser</h1>
+  <p class="lead">One form with every field the current <code>LogMediaDialog</code> has: watch date, rewatch, rocket rating, review (5,000 characters), like, contains spoilers, and delete when editing. Only the layout changes between desktop and phone.</p>
+
+  <section>
+    <h2>1 · Desktop: modal</h2>
+    <ul class="why">
+      <li>The header is a slate showing what you're logging (<span class="mono">LOG · FILM · 2026</span>) instead of the generic "Write a Review". The accent border still follows movie or TV.</li>
+      <li>Date and rewatch become one sentence: "Watched <u>today, Nov 6</u> · <u>first watch</u>". Tapping the date opens the calendar, and tapping "first watch" switches it to "rewatch". It replaces the two separate boxes and matches the filter sentences.</li>
+      <li>The rocket launch track and like sit on one line. The review box gets most of the space. Spoilers is a small switch under the review instead of a big red box that's always visible.</li>
+      <li>The save button changes with what you've entered: <b>Save log</b> with no text, <b>Post review</b> once you write something. Delete is a quiet text link, and only appears when editing.</li>
+    </ul>
+    <div class="scrim df">
+      <div style="position:absolute;inset:0;background:url(https://image.tmdb.org/t/p/w780/xSDoxv4pHvs4xZjvTb0Iqg1A6ro.jpg) center/cover;opacity:.15;filter:blur(2px)"></div>
+      <div class="modal" style="position:relative">
+        <div class="slate"><span>LOG · FILM · 2026 · <span style="color:var(--accent)">CLAYFACE</span></span><span style="font-size:13px;color:#bbb">✕</span></div>
+        <div class="row" style="align-items:flex-start;gap:18px;padding:18px">
+          <div style="width:120px;flex:none">
+            <div class="poster" style="width:120px;background-image:url(https://image.tmdb.org/t/p/w185/9l1NuFjel2j89hiuiJbsxfblqjy.jpg);border:1px solid var(--line)"></div>
+            <div class="display" style="font-size:15px;font-weight:600;margin-top:8px;line-height:1.15">Clayface</div>
+            <div class="mono muted" style="font-size:10px;margin-top:2px">JAMES WATKINS · 1H 49M</div>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div class="sentence muted">Watched <u>today, Nov 6</u> ▾ · <u>first watch</u> ↻</div>
+            <div class="row" style="justify-content:space-between;margin-top:14px"><span class="kick">Rating</span><span class="row" style="gap:12px"><span style="color:#f17fa0;font-size:12px">♥ Liked</span><span class="mono" style="font-size:20px;font-weight:700;color:var(--primary)">8.0<span class="muted" style="font-size:11px;font-weight:400">/10</span></span></span></div>
+            <div class="track"><div class="base"></div><div class="ticks"></div><div class="fill" style="width:80%"></div><svg style="left:calc(80% - 13px)"><use href="#rk"/></svg></div>
+            <div class="row mono muted" style="justify-content:space-between;font-size:9px;margin-top:-4px"><span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span></div>
+            <div class="kick" style="margin:16px 0 6px">Review</div>
+            <div class="area" style="min-height:118px">Dc character when someone is not happly married<span style="color:var(--primary)">|</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:8px">
+              <span class="chip muted"><span style="width:22px;height:12px;border-radius:6px;background:var(--line);position:relative;display:inline-block"><span style="position:absolute;left:2px;top:2px;width:8px;height:8px;border-radius:50%;background:var(--muted)"></span></span>Contains spoilers</span>
+              <span class="mono faint" style="font-size:10px">48 / 5000</span>
+            </div>
+          </div>
+        </div>
+        <div class="row" style="justify-content:space-between;padding:12px 18px;border-top:1px solid var(--line)">
+          <span style="font-size:12px;color:var(--danger)">Delete log</span>
+          <span class="row"><span class="ghost">Cancel</span><span class="btn">Post review</span></span>
+        </div>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:8px;font-size:12px">Episode or season reviews use the same modal: the slate reads <span class="mono">REVIEW · S00 · E04</span>, and the date sentence becomes "<u>Watched</u> ✓". Delete only shows when editing an existing log.</p>
+  </section>
+
+  <section>
+    <h2>2 · Phone browser: full screen</h2>
+    <ul class="why">
+      <li><b>Full screen, not a bottom sheet.</b> A sheet plus the on-screen keyboard leaves almost no room to write. Use <code>100dvh</code> so the browser's address bar doesn't push the layout around.</li>
+      <li><b>Cancel and Save at the top</b>, like a native compose screen. They stay reachable while the keyboard covers the bottom half.</li>
+      <li>While you type, a slim bar sits just above the keyboard with the <b>spoilers switch and character count</b>, positioned with <code>visualViewport</code> so it follows the keyboard in iOS Safari and Chrome.</li>
+      <li>The date opens the phone's <b>built-in date picker</b> (<code>&lt;input type="date"&gt;</code>), which is faster and more familiar on a phone than a custom calendar.</li>
+      <li>Draft text is saved locally, so switching apps or a browser reload doesn't lose a half-written review.</li>
+    </ul>
+    <div class="phones nl">
+      <div><div class="cap">LOG SCREEN</div>
+        <div class="ph">
+          <div class="pbar"><span class="muted">Cancel</span><b class="mono" style="font-size:11px;letter-spacing:.08em">LOG · FILM</b><span style="color:var(--primary);font-weight:600">Save</span></div>
+          <div style="padding:14px">
+            <div class="row" style="gap:12px">
+              <div class="poster" style="width:52px;background-image:url(https://image.tmdb.org/t/p/w185/9l1NuFjel2j89hiuiJbsxfblqjy.jpg);border:1px solid var(--line)"></div>
+              <div><div class="display" style="font-size:18px;font-weight:700">Clayface</div><div class="mono muted" style="font-size:9.5px">2026 · JAMES WATKINS</div></div>
+            </div>
+            <div class="sentence muted" style="font-size:12.5px;margin-top:14px">Watched <u>today, Nov 6</u> ▾ · <u>first watch</u> ↻</div>
+            <div class="row" style="justify-content:space-between;margin-top:14px"><span class="kick">Rating</span><span class="mono" style="font-size:20px;font-weight:700;color:var(--primary)">8.0<span class="muted" style="font-size:11px;font-weight:400">/10</span></span></div>
+            <div class="track"><div class="base"></div><div class="ticks"></div><div class="fill" style="width:80%"></div><svg style="left:calc(80% - 13px)"><use href="#rk"/></svg></div>
+            <div class="row mono muted" style="justify-content:space-between;font-size:9px;margin-top:-4px"><span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span></div>
+            <span class="chip" style="display:flex;justify-content:center;padding:9px;margin-top:14px;color:var(--danger);border-color:color-mix(in srgb,var(--danger) 45%,transparent)">♥ Liked</span>
+            <div class="kick" style="margin:16px 0 6px">Review</div>
+            <div class="area muted" style="min-height:120px;font-size:13px"><span class="serif" style="font-size:15px">What stayed with you?</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="chip muted">Contains spoilers</span><span class="mono faint" style="font-size:9.5px">0 / 5000</span></div>
+          </div>
+        </div>
+      </div>
+      <div><div class="cap">TYPING · KEYBOARD OPEN</div>
+        <div class="ph">
+          <div class="pbar"><span class="muted">Cancel</span><b class="mono" style="font-size:11px;letter-spacing:.08em">LOG · FILM</b><span style="color:var(--primary);font-weight:600">Post</span></div>
+          <div style="padding:10px 14px">
+            <div class="row" style="gap:8px">
+              <div class="poster" style="width:26px;background-image:url(https://image.tmdb.org/t/p/w92/9l1NuFjel2j89hiuiJbsxfblqjy.jpg)"></div>
+              <span style="font-size:12px"><b>Clayface</b> <span class="mono muted" style="font-size:9.5px">· 8.0 · ♥</span></span>
+            </div>
+            <div class="area" style="margin-top:10px;height:240px;box-sizing:border-box;font-size:13px;line-height:1.55">Dc character when someone is not happly married. The body-horror stuff in the last act is genuinely gross in the best way<span style="color:var(--primary)">|</span></div>
+          </div>
+          <div class="row" style="position:absolute;left:0;right:0;bottom:210px;justify-content:space-between;padding:7px 14px;background:#0d0d0d;border-top:1px solid var(--line)">
+            <span class="chip spoiler-on" style="padding:4px 8px">⚠ Contains spoilers</span>
+            <span class="mono faint" style="font-size:9.5px">121 / 5000</span>
+          </div>
+          <div class="kbd">
+            <div><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div><i style="max-width:60px"></i><i style="max-width:150px"></i><i style="max-width:60px"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:8px;font-size:12px">When the keyboard opens, the header collapses to a single line (poster, title, rating, like) so the review box keeps as much room as possible. "Save" becomes "Post" once there's text. The second sentence of the review is illustrative.</p>
+  </section>
+</div>
+</body>
+</html>
