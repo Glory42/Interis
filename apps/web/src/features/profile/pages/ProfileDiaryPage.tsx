@@ -6,7 +6,7 @@ import { DiaryRow } from "@/features/profile/components/diary/DiaryRow";
 import { DiaryRowSkeleton } from "@/features/profile/components/diary/DiaryRowSkeleton";
 import { DiaryTableHeader } from "@/features/profile/components/diary/DiaryTableHeader";
 import { toDiaryRows } from "@/features/profile/components/diary/diary-model";
-import { useUserDiary, useUserLikedMovies } from "@/features/profile/hooks/useProfile";
+import { useUserDiary } from "@/features/profile/hooks/useProfile";
 
 type ProfileDiaryPageProps = {
   username: string;
@@ -16,22 +16,9 @@ export const ProfileDiaryPage = ({ username }: ProfileDiaryPageProps) => {
   const { user } = useAuth();
   const isOwner = Boolean(user) && user?.username.toLowerCase() === username.toLowerCase();
   const diaryQuery = useUserDiary(username);
-  const likedQuery = useUserLikedMovies(username);
-
-  const likedTmdbIdSet = useMemo(() => {
-    // Only the first page of liked movies is loaded here - fine for marking
-    // recently-liked diary rows, and avoids fetching a profile's entire
-    // liked collection just to compute this lookup set.
-    return new Set(
-      (likedQuery.data?.pages.flat() ?? [])
-        .filter((item) => item.mediaType === "movie")
-        .map((movie) => movie.tmdbId),
-    );
-  }, [likedQuery.data]);
-
   const rows = useMemo(() => {
-    return toDiaryRows(diaryQuery.data?.pages.flat() ?? [], likedTmdbIdSet);
-  }, [diaryQuery.data, likedTmdbIdSet]);
+    return toDiaryRows(diaryQuery.data?.pages.flat() ?? []);
+  }, [diaryQuery.data]);
 
   return (
     <>

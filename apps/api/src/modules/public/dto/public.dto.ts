@@ -44,6 +44,7 @@ export type PublicDiaryItem = {
   watchedDate: string;
   rating: number | null;
   rewatch: boolean;
+  liked: boolean;
   createdAt: Date;
   updatedAt: Date;
   media: {

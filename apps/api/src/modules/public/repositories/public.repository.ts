@@ -1,10 +1,14 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { listEntries, lists } from "../../lists/lists.entity";
 import { movies } from "../../movies/movies.entity";
 import { reviews } from "../../reviews/reviews.entity";
-import { serialDiaryEntries, tvSeries } from "../../serials/serials.entity";
+import {
+  serialDiaryEntries,
+  serialInteractions,
+  tvSeries,
+} from "../../serials/serials.entity";
 
 export class PublicRepository {
   static async findUserIdByUsername(username: string): Promise<string | null> {
@@ -34,6 +38,7 @@ export class PublicRepository {
         reviewContent: reviews.content,
         reviewContainsSpoilers: reviews.containsSpoilers,
         reviewCreatedAt: reviews.createdAt,
+        liked: sql<boolean>`coalesce(${serialInteractions.liked}, false)`,
       })
       .from(serialDiaryEntries)
       .innerJoin(tvSeries, eq(tvSeries.id, serialDiaryEntries.seriesId))
@@ -43,6 +48,13 @@ export class PublicRepository {
           eq(reviews.userId, serialDiaryEntries.userId),
           eq(reviews.serialDiaryEntryId, serialDiaryEntries.id),
           eq(reviews.mediaType, "tv"),
+        ),
+      )
+      .leftJoin(
+        serialInteractions,
+        and(
+          eq(serialInteractions.userId, serialDiaryEntries.userId),
+          eq(serialInteractions.seriesId, serialDiaryEntries.seriesId),
         ),
       )
       .where(eq(serialDiaryEntries.userId, userId))

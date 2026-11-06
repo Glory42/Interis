@@ -113,7 +113,7 @@ Key fields:
 
 Key fields:
 
-- diary fields: `id`, `mediaType`, `watchedDate`, `rewatch`, `createdAt`, `updatedAt`
+- diary fields: `id`, `mediaType`, `watchedDate`, `rewatch`, `liked`, `createdAt`, `updatedAt`
 - rating: `rating` (0.5–10, or `null`)
 - `media` object (`tmdbId`, `title`, `posterPath`, `releaseYear`)
 - optional `review` object (`id`, `content`, `containsSpoilers`, `createdAt`) or `null`

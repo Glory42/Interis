@@ -31,6 +31,7 @@ GET /api/public/:username/diary?limit=50
     "watchedDate": "2026-01-10",
     "rating": 8,
     "rewatch": false,
+    "liked": true,
     "createdAt": "2026-01-10T12:00:00.000Z",
     "updatedAt": "2026-01-10T12:00:00.000Z",
     "media": {
@@ -54,6 +55,7 @@ GET /api/public/:username/diary?limit=50
 - Includes both `movie` and `tv` entries.
 - Results are merged and sorted by `watchedDate` desc, then `createdAt` desc.
 - `review` can be `null` when no linked review exists.
+- `liked` is whether the user currently likes the film or series (not the single log).
 
 ## Empty state behavior
 
