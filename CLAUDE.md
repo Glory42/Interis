@@ -32,6 +32,15 @@ bun run build        # tsr generate + tsc -b + vite build
 bun run routes:generate  # regenerate TanStack Router route tree (required after adding/renaming routes)
 ```
 
+### Mobile (run from `apps/mobile/`)
+```bash
+bun run start        # Expo dev server (React Native, Expo SDK 58 + Expo Router)
+bun run typecheck    # tsc --noEmit
+bun run lint         # ESLint (eslint-config-expo)
+bunx expo install <pkg>  # add native deps with SDK-compatible versions
+```
+The mobile app calls the deployed API (`https://api.interis.gorkemkaryol.dev`) by default; override with `EXPO_PUBLIC_API_BASE_URL` in `apps/mobile/.env.local`. See `apps/mobile/README.md`.
+
 ### E2E (run from `apps/e2e/`)
 ```bash
 bun run test:smoke   # Playwright smoke tests
