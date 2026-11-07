@@ -120,18 +120,9 @@ export const ProfileListsPage = ({ username }: ProfileListsPageProps) => {
         </div>
       ) : lists.length === 0 ? (
         <ProfileTabEmptyState
-          icon={Layers3}
-          title="No lists yet"
-          description={
-            isOwnProfile
-              ? "Create your first list to organize movies and series."
-              : "This profile has not created any public lists yet."
-          }
-          cta={
-            isOwnProfile
-              ? { label: "Create a List", to: "/profile/$username/lists/new", params: { username } }
-              : undefined
-          }
+          isOwner={isOwnProfile}
+          visitorText="No public lists."
+          ownerText="Start one from any film or series page, or with New list above."
         />
       ) : filteredLists.length === 0 ? (
         <div className="rounded-lg border border-border/60 bg-card/30 px-4 py-3 font-mono text-[11px] text-muted-foreground">

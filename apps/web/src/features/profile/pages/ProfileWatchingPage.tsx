@@ -1,12 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { PlayCircle } from "lucide-react";
 import { getPosterUrl } from "@/features/serials/components/utils";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import {
   PROFILE_MEDIA_GRID_CLASSES,
   ProfileMediaGridSkeleton,
 } from "@/features/profile/components/ProfileMediaGridSkeleton";
-import { useUserCurrentlyWatching } from "@/features/profile/hooks/useProfile";
+import { useIsOwnProfile, useUserCurrentlyWatching } from "@/features/profile/hooks/useProfile";
 import { getRelativeTime } from "@/features/profile/utils/profile.utils";
 
 type ProfileWatchingPageProps = {
@@ -15,6 +14,7 @@ type ProfileWatchingPageProps = {
 
 export const ProfileWatchingPage = ({ username }: ProfileWatchingPageProps) => {
   const currentlyWatchingQuery = useUserCurrentlyWatching(username);
+  const isOwner = useIsOwnProfile(username);
   const items = currentlyWatchingQuery.data ?? [];
 
   return (
@@ -31,10 +31,9 @@ export const ProfileWatchingPage = ({ username }: ProfileWatchingPageProps) => {
       !currentlyWatchingQuery.isError &&
       items.length === 0 ? (
         <ProfileTabEmptyState
-          icon={PlayCircle}
-          title="Nothing in progress"
-          description="This profile has not started a serial they haven't finished yet."
-          cta={{ label: "Browse Serials", to: "/serials" }}
+          isOwner={isOwner}
+          visitorText="Not in the middle of a series."
+          ownerAction={{ label: "Find a series →", to: "/serials" }}
         />
       ) : null}
 

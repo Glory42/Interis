@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Star, TriangleAlert } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { getPosterUrl } from "@/features/movies/components/utils";
 import type { UserReview } from "@/features/profile/api";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import { ReviewCardSkeleton } from "@/features/profile/components/ReviewCardSkeleton";
 import { DiaryRatingStars } from "@/features/profile/components/diary/DiaryRatingStars";
-import { useUserReviews } from "@/features/profile/hooks/useProfile";
+import { useIsOwnProfile, useUserReviews } from "@/features/profile/hooks/useProfile";
 
 type ProfileReviewsPageProps = {
   username: string;
@@ -44,6 +44,7 @@ const formatDate = (value: string | null): string => {
 
 export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
   const reviewsQuery = useUserReviews(username);
+  const isOwner = useIsOwnProfile(username);
   const reviews = reviewsQuery.data?.pages.flat() ?? [];
   const [revealedSpoilersById, setRevealedSpoilersById] = useState<
     Record<string, boolean>
@@ -67,10 +68,9 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
 
       {!reviewsQuery.isPending && !reviewsQuery.isError && reviews.length === 0 ? (
         <ProfileTabEmptyState
-          icon={Star}
-          title="No written reviews yet"
-          description="This profile has not published any reviews yet."
-          cta={{ label: "Browse Movie", to: "/movies" }}
+          isOwner={isOwner}
+          visitorText="No reviews yet."
+          ownerAction={{ label: "Find something to review →", to: "/movies" }}
         />
       ) : null}
 
