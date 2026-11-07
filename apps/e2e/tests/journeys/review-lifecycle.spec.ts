@@ -75,15 +75,13 @@ test("writes a review, then views/comments/edits it from its detail page and the
       await expect(page.getByText(REVIEW_TEXT).first()).toBeVisible({ timeout: 10_000 });
 
       await page.getByRole("button", { name: "Edit", exact: true }).click();
-      // FeedReviewEditDialog is built on this app's custom modal pattern
-      // (ModalShell), which - unlike LogMediaDialog - never sets
-      // role="dialog" on its container, so getByRole("dialog") matches
-      // nothing here. ModalHeader's title is also a <p>, not a heading.
-      // Scope to the <section> containing the title text instead.
-      const editDialog = page.locator("section", { hasText: "EDIT REVIEW" });
+      // The review was written with a log, so Edit opens EditLogDialog for
+      // both. It's a ModalShell, which never sets role="dialog", and its
+      // title is a <p>: scope to the <section> holding the title instead.
+      const editDialog = page.locator("section", { hasText: "EDIT LOG & REVIEW" });
       await expect(editDialog).toBeVisible({ timeout: 10_000 });
 
-      await editDialog.getByRole("textbox").fill(EDITED_REVIEW_TEXT);
+      await editDialog.getByRole("textbox", { name: "Review" }).fill(EDITED_REVIEW_TEXT);
       await editDialog.getByRole("button", { name: "save", exact: true }).click();
       await expect(editDialog).not.toBeVisible({ timeout: 10_000 });
       await expect(page.getByText(EDITED_REVIEW_TEXT).first()).toBeVisible({ timeout: 10_000 });
