@@ -18,6 +18,7 @@ import type { MovieArchivePeriod, MovieArchiveSort } from "@/features/movies/api
 import { useMovieArchive } from "@/features/movies/hooks/useMovies";
 import { ArchiveMediaCard } from "@/features/media/archive/ArchiveMediaCard";
 import { MediaArchivePage } from "@/features/media/archive/MediaArchivePage";
+import { ArchiveSpotlight, type SpotlightItem } from "@/features/media/archive/ArchiveSpotlight";
 import { dedupeBy } from "@/lib/dedupe-by";
 
 export const MovieArchivePage = () => {
@@ -55,12 +56,22 @@ export const MovieArchivePage = () => {
     );
   }, [archivePages]);
 
-  const backdropUrls = useMemo(() => {
-    return (firstPage?.items ?? [])
-      .filter((movie) => movie.backdropPath)
-      .slice(0, 10)
-      .map((movie) => getBackdropUrl(movie.backdropPath));
-  }, [firstPage]);
+  const spotlightItems = useMemo<SpotlightItem[]>(
+    () =>
+      (firstPage?.items ?? [])
+        .filter((movie) => movie.backdropPath)
+        .slice(0, 5)
+        .map((movie) => ({
+          tmdbId: movie.tmdbId,
+          title: movie.title,
+          year: movie.releaseYear,
+          credit: movie.director ? `Directed by ${movie.director}` : null,
+          backdropUrl: getBackdropUrl(movie.backdropPath),
+          tmdbRating: movie.tmdbRatingOutOfTen,
+        })),
+    [firstPage],
+  );
+  const modeLabel = sortOptions.find((option) => option.value === selectedSort)?.label ?? "Trending";
 
   const archiveCount = firstPage?.filteredCount ?? archiveItems.length;
   const archiveCountLabel = formatArchiveCount(archiveCount);
@@ -68,10 +79,16 @@ export const MovieArchivePage = () => {
   return (
     <MediaArchivePage
       moduleStyles={MOVIE_MODULE_STYLES}
-      heroModuleLabel="Module 02"
-      heroTitle="Movie"
-      heroSubtitle="feature films - documentaries - shorts"
-      backdropUrls={backdropUrls}
+      heading="Films"
+      spotlight={
+        <ArchiveSpotlight
+          kindLabel="Films"
+          modeLabel={modeLabel}
+          tone="film"
+          detailRoute="/movies/$tmdbId"
+          items={spotlightItems}
+        />
+      }
       archiveErrorMessage="Could not load the movie archive right now."
       emptyMessage="No titles match these filters right now."
       endOfArchiveMessage="End of movie archive."

@@ -22,6 +22,7 @@ import {
 import { useSeriesArchive } from "@/features/serials/hooks/useSerials";
 import { ArchiveMediaCard } from "@/features/media/archive/ArchiveMediaCard";
 import { MediaArchivePage } from "@/features/media/archive/MediaArchivePage";
+import { ArchiveSpotlight, type SpotlightItem } from "@/features/media/archive/ArchiveSpotlight";
 import { dedupeBy } from "@/lib/dedupe-by";
 
 export const SerialsArchivePage = () => {
@@ -57,12 +58,22 @@ export const SerialsArchivePage = () => {
     [archivePages],
   );
 
-  const backdropUrls = useMemo(() => {
-    return (firstPage?.items ?? [])
-      .filter((series) => series.backdropPath)
-      .slice(0, 10)
-      .map((series) => getBackdropUrl(series.backdropPath));
-  }, [firstPage]);
+  const spotlightItems = useMemo<SpotlightItem[]>(
+    () =>
+      (firstPage?.items ?? [])
+        .filter((series) => series.backdropPath)
+        .slice(0, 5)
+        .map((series) => ({
+          tmdbId: series.tmdbId,
+          title: series.title,
+          year: series.firstAirYear,
+          credit: series.creator ? `Created by ${series.creator}` : null,
+          backdropUrl: getBackdropUrl(series.backdropPath),
+          tmdbRating: series.tmdbRatingOutOfTen,
+        })),
+    [firstPage],
+  );
+  const modeLabel = sortOptions.find((option) => option.value === selectedSort)?.label ?? "Trending";
 
   const archiveRatingSource: ArchiveRatingSource =
     selectedSort === "rating_tmdb_desc" ? "tmdb" : "user";
@@ -73,10 +84,16 @@ export const SerialsArchivePage = () => {
   return (
     <MediaArchivePage
       moduleStyles={SERIAL_MODULE_STYLES}
-      heroModuleLabel="Module 03"
-      heroTitle="Serials"
-      heroSubtitle="episodic series - limited runs - anthologies"
-      backdropUrls={backdropUrls}
+      heading="TV"
+      spotlight={
+        <ArchiveSpotlight
+          kindLabel="TV"
+          modeLabel={modeLabel}
+          tone="series"
+          detailRoute="/serials/$tmdbId"
+          items={spotlightItems}
+        />
+      }
       archiveErrorMessage="Could not load the serial archive right now."
       emptyMessage="No titles match these filters right now."
       endOfArchiveMessage="End of serial archive."
