@@ -25,6 +25,9 @@ export const profiles = pgTable("profile", {
   isSuspended: boolean("is_suspended").default(false).notNull(),
   suspendedAt: timestamp("suspended_at"),
   suspendedReason: text("suspended_reason"),
+  // null = until an admin lifts it; a past time means it has already ended.
+  suspendedUntil: timestamp("suspended_until"),
+  suspendedBy: text("suspended_by").references(() => user.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

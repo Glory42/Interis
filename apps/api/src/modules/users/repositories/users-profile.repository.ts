@@ -21,6 +21,9 @@ const profileSelect = {
   createdAt: profiles.createdAt,
 } as const;
 
+// until: when the suspension ends (null = until lifted); by: the admin's user id.
+export type SuspensionOptions = { until?: Date | null; by?: string | null };
+
 export class UsersProfileRepository {
   static async findProfileByUsername(username: string) {
     const [result] = await db
@@ -144,13 +147,15 @@ export class UsersProfileRepository {
     return updated ?? null;
   }
 
-  static async setSuspended(userId: string, isSuspended: boolean, reason?: string) {
+  static async setSuspended(userId: string, isSuspended: boolean, reason?: string, options: SuspensionOptions = {}) {
     const [updated] = await db
       .update(profiles)
       .set({
         isSuspended,
         suspendedAt: isSuspended ? new Date() : null,
         suspendedReason: isSuspended ? (reason ?? null) : null,
+        suspendedUntil: isSuspended ? (options.until ?? null) : null,
+        suspendedBy: isSuspended ? (options.by ?? null) : null,
       })
       .where(eq(profiles.userId, userId))
       .returning({ userId: profiles.userId, isSuspended: profiles.isSuspended });

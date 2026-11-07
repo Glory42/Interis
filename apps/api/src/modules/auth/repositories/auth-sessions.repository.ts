@@ -37,6 +37,7 @@ export class AuthSessionsRepository {
         user,
         isAdmin: profiles.isAdmin,
         isSuspended: profiles.isSuspended,
+        suspendedUntil: profiles.suspendedUntil,
       })
       .from(authSessions)
       .innerJoin(user, eq(user.id, authSessions.userId))

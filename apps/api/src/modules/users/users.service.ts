@@ -1,3 +1,4 @@
+import type { SuspensionOptions } from "./repositories/users-profile.repository";
 import type { ThemeId } from "./constants/theme.constants";
 import type { UpdateProfileDto } from "./dto/users.dto";
 import { UsersLikesRepository } from "./repositories/users-likes.repository";
@@ -48,8 +49,8 @@ export class UsersService {
     return UsersProfileService.setAdminStatus(userId, isAdmin);
   }
 
-  static async setSuspended(userId: string, isSuspended: boolean, reason?: string) {
-    return UsersProfileService.setSuspended(userId, isSuspended, reason);
+  static async setSuspended(userId: string, isSuspended: boolean, reason?: string, options?: SuspensionOptions) {
+    return UsersProfileService.setSuspended(userId, isSuspended, reason, options);
   }
 
   static async getReviewsWithMovies(userId: string, limit?: number, offset?: number) {

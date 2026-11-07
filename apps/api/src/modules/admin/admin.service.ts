@@ -71,6 +71,7 @@ export class AdminService {
     adminPassword: string | undefined,
     username: string,
     reason: string | undefined,
+    durationDays?: number,
   ): Promise<string> {
     const [, userRow] = await Promise.all([
       AuthService.assertCurrentPassword(actorId, adminPassword),
@@ -80,7 +81,8 @@ export class AdminService {
       throw new BadRequestError("User not found");
     }
 
-    await UsersService.setSuspended(userRow.id, true, reason);
+    const until = durationDays ? new Date(Date.now() + durationDays * 86_400_000) : null;
+    await UsersService.setSuspended(userRow.id, true, reason, { until, by: actorId });
     return userRow.id;
   }
 

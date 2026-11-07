@@ -12,6 +12,7 @@ import { setAuthCookies } from "../../modules/auth/helpers/auth-cookies.helper";
 import { sendUnauthorized, sendForbidden } from "../http/validation-response.helper";
 import { db } from "../../infrastructure/database/db";
 import { profiles } from "../../modules/users/users.entity";
+import { isSuspensionInEffect } from "../auth/suspension.helper";
 
 // One lookup covers both the suspension gate and requireAdmin's later check
 // (cached on req.session.isAdmin) so admin routes don't pay for a second
@@ -20,12 +21,12 @@ const resolveProfileFlags = async (
   userId: string,
 ): Promise<{ isAdmin: boolean; isSuspended: boolean } | null> => {
   const [profile] = await db
-    .select({ isAdmin: profiles.isAdmin, isSuspended: profiles.isSuspended })
+    .select({ isAdmin: profiles.isAdmin, isSuspended: profiles.isSuspended, suspendedUntil: profiles.suspendedUntil })
     .from(profiles)
     .where(eq(profiles.userId, userId))
     .limit(1);
 
-  return profile ?? null;
+  return profile ? { isAdmin: profile.isAdmin, isSuspended: isSuspensionInEffect(profile) } : null;
 };
 
 export const requireAuth = async (
