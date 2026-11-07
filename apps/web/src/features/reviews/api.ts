@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { apiRequest, type QueryRequestOptions } from "@/lib/api-client";
-import { mediaTypeSchema, userSummarySchema } from "@/types/api";
+import { mediaTypeSchema, REVIEW_MAX_LENGTH, userSummarySchema } from "@/types/api";
 
 const reviewMediaTypeSchema = mediaTypeSchema;
 
@@ -26,7 +26,7 @@ const addReviewCommentInputSchema = z.object({
 
 const updateReviewInputSchema = z
   .object({
-    content: z.string().trim().min(1).max(10000).optional(),
+    content: z.string().trim().min(1).max(REVIEW_MAX_LENGTH).optional(),
     containsSpoilers: z.boolean().optional(),
   })
   .refine(

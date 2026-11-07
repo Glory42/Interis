@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useUpdateReview } from "@/features/reviews/hooks/useReviews";
 import { runDialogSubmit } from "@/lib/fire-and-forget";
 import { TickLoader } from "@/components/ui/tick-loader";
+import { REVIEW_MAX_LENGTH } from "@/types/api";
 
 type FeedReviewEditDialogProps = {
   isOpen: boolean;
@@ -37,7 +38,7 @@ const FeedReviewEditDialogContent = ({
 
   const canSave =
     draftContent.trim().length > 0 &&
-    draftContent.trim().length <= 10_000 &&
+    draftContent.trim().length <= REVIEW_MAX_LENGTH &&
     draftContent !== initialContent &&
     !updateReviewMutation.isPending;
 
@@ -64,7 +65,7 @@ const FeedReviewEditDialogContent = ({
             <Textarea
               value={draftContent}
               onChange={(event) => {
-                if (event.target.value.length <= 10_000) {
+                if (event.target.value.length <= REVIEW_MAX_LENGTH) {
                   setDraftContent(event.target.value);
                 }
               }}
@@ -73,7 +74,7 @@ const FeedReviewEditDialogContent = ({
 
             <div className="flex items-center justify-between gap-2">
               <span className="font-mono text-[10px] text-muted-foreground">
-                {draftContent.length}/10000
+                {draftContent.length}/{REVIEW_MAX_LENGTH}
               </span>
               <div className="flex items-center gap-2">
                 <button

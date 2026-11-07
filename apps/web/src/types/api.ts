@@ -8,6 +8,9 @@ export const MEDIA_TYPES = ["movie", "tv"] as const;
 export const mediaTypeSchema = z.enum(MEDIA_TYPES);
 export type MediaType = z.infer<typeof mediaTypeSchema>;
 
+// One length for a Review wherever it's written: alone, with a new log or by a log edit.
+export const REVIEW_MAX_LENGTH = 10_000;
+
 export const successResponseSchema = z.object({ success: z.boolean() });
 
 export const userSummarySchema = z.object({
@@ -132,7 +135,7 @@ export const createDiaryEntryInputSchema = z.object({
   watchedDate: z.string(),
   rating: ratingInputSchema.optional(),
   rewatch: z.boolean().optional(),
-  review: z.string().max(5000).optional(),
+  review: z.string().max(REVIEW_MAX_LENGTH).optional(),
   containsSpoilers: z.boolean().optional(),
 });
 
