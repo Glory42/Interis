@@ -7,6 +7,7 @@ import { isApiError } from "@/lib/api-client";
 import {
   asTopPickSlot,
   buildTopPickPayload,
+  describeTopPickChanges,
   resolveCategorySlots,
   toFixedLengthSlots,
   type PickerTarget,
@@ -164,6 +165,30 @@ export const useSettingsFavoritesController = (username: string) => {
     }
   };
 
+  const moveSlot = (category: TopPickCategoryKey, slotIndex: number, step: -1 | 1) => {
+    const target = slotIndex + step;
+    if (target < 0 || target > 3) return;
+    const setDraft = category === "movie" ? setDraftMovieSlots : setDraftSerialSlots;
+    const fallback = category === "movie" ? movieSlots : serialSlots;
+    setDraft((currentDraft) => {
+      const next = [...(currentDraft ?? fallback)];
+      [next[slotIndex], next[target]] = [next[target] ?? null, next[slotIndex] ?? null];
+      return toFixedLengthSlots(next);
+    });
+    setSaveError(null);
+    setSaveSuccess(null);
+  };
+
+  const discardChanges = () => {
+    setDraftMovieSlots(null);
+    setDraftSerialSlots(null);
+    setSaveError(null);
+  };
+
+  const changeSummary = isDirty
+    ? describeTopPickChanges([savedMovieSlots, savedSerialSlots], [movieSlots, serialSlots])
+    : null;
+
   const handleClearSlot = (category: TopPickCategoryKey, slotIndex: number) => {
     updateSlotDraft(category, slotIndex, null);
     setSaveError(null);
@@ -184,7 +209,7 @@ export const useSettingsFavoritesController = (username: string) => {
 
       setDraftMovieSlots(null);
       setDraftSerialSlots(null);
-      setSaveSuccess("Favorites saved.");
+      setSaveSuccess("Top 4 saved.");
     } catch (error) {
       setSaveError(
         isApiError(error) ? error.message : "Could not save favorites right now.",
@@ -214,5 +239,8 @@ export const useSettingsFavoritesController = (username: string) => {
     handleSelectSeries,
     handleClearSlot,
     handleSaveFavorites,
+    moveSlot,
+    discardChanges,
+    changeSummary,
   };
 };

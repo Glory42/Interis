@@ -1,7 +1,7 @@
-import { Film, Tv } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { FavoritesPickerDialogs } from "./favorites/FavoritesPickerDialogs";
-import { FavoritesSlotList } from "./favorites/FavoritesSlotList";
+import { TopPickSlots } from "./favorites/TopPickSlots";
+import { Button } from "@/components/ui/button";
 import { useSettingsFavoritesController } from "./favorites/useSettingsFavoritesController";
 import { TickLoader } from "@/components/ui/tick-loader";
 
@@ -19,91 +19,57 @@ export const SettingsFavoritesSection = () => {
     );
   }
 
+  const groups = [
+    { category: "movie" as const, label: "Films", slots: controller.movieSlots, count: controller.selectedMovieCount },
+    { category: "serial" as const, label: "Series", slots: controller.serialSlots, count: controller.selectedSerialCount },
+  ];
+
   return (
-    <div className="space-y-4">
-      <div className="border p-5 shell-border surface">
-        <p className="mb-1 text-base font-bold text-foreground">Top Picks</p>
-        <p className="mb-5 text-sm shell-muted">
-          Set up to 4 favorites for Movie and Serial. These appear as a showcase on your public profile.
+    <section>
+      <h2 className="display-4 text-foreground">Top 4</h2>
+      <p className="body-s mt-1 text-muted-foreground">Shown at the top of your profile, in this order.</p>
+
+      <div className="mt-4 grid gap-6 lg:grid-cols-2">
+        {groups.map((group) => (
+          <div key={group.category}>
+            <h3 className="kicker mb-2 text-muted-foreground">{`${group.label} · ${group.count}/4`}</h3>
+            <TopPickSlots
+              category={group.category}
+              slots={group.slots}
+              isBusy={controller.isBusy}
+              onPick={controller.openPickerForSlot}
+              onMove={controller.moveSlot}
+              onRemove={controller.handleClearSlot}
+            />
+          </div>
+        ))}
+      </div>
+
+      {controller.topPicksQuery.isPending ? (
+        <p className="body-s mt-4 flex items-center gap-2 text-muted-foreground">
+          <TickLoader /> Loading your Top 4…
         </p>
+      ) : null}
+      {controller.topPicksQuery.isError ? (
+        <p className="body-s mt-4 text-[color:var(--danger)]">Could not load your Top 4.</p>
+      ) : null}
+      {controller.saveError ? (
+        <p role="alert" className="body-s mt-4 text-[color:var(--danger)]">
+          {controller.saveError}
+        </p>
+      ) : null}
+      {controller.saveSuccess ? <p className="body-s mt-4 text-primary">{controller.saveSuccess}</p> : null}
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div>
-            <div className="mb-3 flex items-center gap-2">
-              <Film className="h-3.5 w-3.5" style={{ color: "var(--module-movie)" }} />
-              <span className="text-sm font-semibold" style={{ color: "var(--module-movie)" }}>
-                Movie
-              </span>
-              <span className="text-xs shell-muted">
-                ({controller.selectedMovieCount}/4)
-              </span>
-            </div>
-
-            <FavoritesSlotList
-              category="movie"
-              slots={controller.movieSlots}
-              isBusy={controller.isBusy}
-              onOpenSlotPicker={controller.openPickerForSlot}
-              onClearSlot={controller.handleClearSlot}
-            />
-          </div>
-
-          <div>
-            <div className="mb-3 flex items-center gap-2">
-              <Tv className="h-3.5 w-3.5" style={{ color: "var(--module-serial)" }} />
-              <span className="text-sm font-semibold" style={{ color: "var(--module-serial)" }}>
-                Serial
-              </span>
-              <span className="text-xs shell-muted">
-                ({controller.selectedSerialCount}/4)
-              </span>
-            </div>
-
-            <FavoritesSlotList
-              category="serial"
-              slots={controller.serialSlots}
-              isBusy={controller.isBusy}
-              onOpenSlotPicker={controller.openPickerForSlot}
-              onClearSlot={controller.handleClearSlot}
-            />
-          </div>
-        </div>
-
-        {controller.topPicksQuery.isPending ? (
-          <p className="mt-4 flex items-center gap-2 text-sm shell-muted">
-            <TickLoader /> Loading saved favorites...
-          </p>
+      <div className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-[color:var(--line)] pt-4">
+        {controller.changeSummary ? (
+          <span className="body-s mr-auto text-muted-foreground">{controller.changeSummary}</span>
         ) : null}
-
-        {controller.topPicksQuery.isError ? (
-          <p className="mt-4 border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            Could not load saved favorites.
-          </p>
-        ) : null}
-
-        {controller.saveError ? (
-          <p className="mt-4 border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {controller.saveError}
-          </p>
-        ) : null}
-
-        {controller.saveSuccess ? (
-          <p className="mt-4 border px-3 py-2 text-sm shell-border shell-accent shell-active-pill">
-            {controller.saveSuccess}
-          </p>
-        ) : null}
-
-        <button
-          type="button"
-          onClick={() => {
-            void controller.handleSaveFavorites();
-          }}
-          disabled={controller.updateProfileMutation.isPending || !controller.isDirty}
-          className="mt-5 px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-          style={{ background: "var(--shell-accent)", color: "var(--primary-foreground)" }}
-        >
-          {controller.updateProfileMutation.isPending ? "Saving..." : "Save favorites"}
-        </button>
+        <Button variant="outline" size="md" disabled={!controller.isDirty || controller.isBusy} onClick={controller.discardChanges}>
+          Discard
+        </Button>
+        <Button size="md" disabled={controller.updateProfileMutation.isPending || !controller.isDirty} onClick={() => void controller.handleSaveFavorites()}>
+          {controller.updateProfileMutation.isPending ? "Saving…" : "Save top 4"}
+        </Button>
       </div>
 
       <FavoritesPickerDialogs
@@ -120,6 +86,6 @@ export const SettingsFavoritesSection = () => {
           void controller.handleSelectSeries(series);
         }}
       />
-    </div>
+    </section>
   );
 };
