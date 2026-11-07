@@ -99,11 +99,16 @@ export const ProfileTabs = ({ username, activeTab }: ProfileTabsProps) => {
     const activeElement = tabRefs.current[activeTab];
     if (activeElement) {
       setIndicator({ left: activeElement.offsetLeft, width: activeElement.offsetWidth });
+      // Phones scroll the tab row; keep the current tab in sight.
+      activeElement.scrollIntoView?.({ block: "nearest", inline: "nearest" });
     }
   }, [activeTab]);
 
   return (
-    <nav className="relative flex gap-0 overflow-x-auto" aria-label="Profile sections">
+    <nav
+      className="relative flex gap-0 overflow-x-auto border-b border-[color:var(--line)] [scrollbar-width:none]"
+      aria-label="Profile sections"
+    >
       {indicator ? (
         <div
           className="absolute bottom-0 h-0.5 transition-[transform,width] duration-300 ease-in-out"
@@ -135,7 +140,7 @@ export const ProfileTabs = ({ username, activeTab }: ProfileTabsProps) => {
             aria-label={tab.label}
           >
             <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-            <span className="hidden sm:inline">{tab.label}</span>
+            <span>{tab.label}</span>
           </Link>
         );
       })}

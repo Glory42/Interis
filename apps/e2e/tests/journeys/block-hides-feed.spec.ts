@@ -45,8 +45,10 @@ test("blocking a user removes their activity from your feed", async ({ browser }
 
     await test.step("user A blocks user B", async () => {
       await pageA.goto(`/profile/${userB.username}`);
-      await pageA.getByRole("button", { name: "Block user" }).click();
-      await expect(pageA.getByRole("button", { name: "Unblock user" })).toBeVisible({
+      await pageA.getByRole("button", { name: "More actions" }).click();
+      await pageA.getByRole("menuitem", { name: "Block user" }).click();
+      await pageA.getByRole("button", { name: "More actions" }).click();
+      await expect(pageA.getByRole("menuitem", { name: "Unblock user" })).toBeVisible({
         timeout: 10_000,
       });
     });
