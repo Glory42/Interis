@@ -77,6 +77,10 @@ export class ReviewsCommentsService {
       return null;
     }
 
-    return ReviewsCommentsRepository.getCommentWithAuthorById(commentId);
+    const [comment] = await Promise.all([
+      ReviewsCommentsRepository.getCommentWithAuthorById(commentId),
+      ActivityRecorder.refreshExcerpt({ userId, type: "commented", entityId: commentId, content }),
+    ]);
+    return comment;
   }
 }

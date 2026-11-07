@@ -75,6 +75,30 @@ export class SocialRepository {
       .returning({ id: activities.id });
   }
 
+  // Rewrites the text copy an activity keeps of what it's about, e.g. after
+  // a comment is edited. Returns whether a row matched.
+  static async updateActivityExcerpt(input: {
+    userId: string;
+    type: ActivityType;
+    entityId: string;
+    excerpt: string;
+  }) {
+    const rows = await db
+      .update(activities)
+      .set({
+        metadata: sql`jsonb_set(coalesce(${activities.metadata}, '{}')::jsonb, '{excerpt}', to_jsonb(${input.excerpt}::text))::text`,
+      })
+      .where(
+        and(
+          eq(activities.userId, input.userId),
+          eq(activities.type, input.type),
+          eq(activities.entityId, input.entityId),
+        ),
+      )
+      .returning({ id: activities.id });
+    return rows.length > 0;
+  }
+
   static async deleteFollow(followerId: string, followingId: string) {
     await db
       .delete(follows)

@@ -145,12 +145,14 @@ export const useUpdatePostComment = (postId: string) => {
   return useMutation({
     mutationFn: (input: { commentId: string; content: string }) =>
       updatePostComment(input.commentId, { content: input.content }),
-    onSuccess: (updatedComment) => {
+    onSuccess: async (updatedComment) => {
       queryClient.setQueryData<PostComment[]>(postKeys.comments(postId), (currentComments) =>
         currentComments?.map((comment) =>
           comment.id === updatedComment.id ? { ...comment, content: updatedComment.content } : comment,
         ),
       );
+      // The feed quotes the comment, so its card must pick up the new text.
+      await invalidateFollowingFeed(queryClient);
     },
   });
 };
