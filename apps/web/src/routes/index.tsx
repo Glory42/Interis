@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { authQueryOptions, useAuth } from "@/features/auth/hooks/useAuth";
 import { HomePage } from "@/features/feed/pages/HomePage";
 import {
-  followingFeedInfiniteQueryOptions,
+  groupedFeedInfiniteQueryOptions,
   trendingMoviesQueryOptions,
 } from "@/features/feed/hooks/useFeed";
 import { LandingPage } from "@/features/landing/pages/LandingPage";
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/")({
       return;
     }
 
-    void context.queryClient.prefetchInfiniteQuery(followingFeedInfiniteQueryOptions());
+    void context.queryClient.prefetchInfiniteQuery(groupedFeedInfiniteQueryOptions());
   },
   component: HomeRoute,
   errorComponent: (props) => <RouteErrorBoundary {...props} title="Could not load home feed" />,

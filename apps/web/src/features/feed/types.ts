@@ -146,7 +146,40 @@ export const networkStatsSchema = z.object({
   liveReviews: z.number().int().nonnegative(),
 });
 
+// One person's actions on one title on one day, merged by the API (PR-10).
+export const feedTitleGroupSchema = z.object({
+  kind: z.literal("title"),
+  id: z.string(),
+  createdAt: z.string(),
+  actor: feedActorSchema,
+  movie: feedMovieSchema.unwrap(),
+  seasonNumber: z.number().int().nullable(),
+  episodeNumber: z.number().int().nullable(),
+  watched: z.boolean(),
+  rewatch: z.boolean(),
+  rating: z.number().nullable(),
+  liked: z.boolean(),
+  watchlisted: z.boolean(),
+  review: feedReviewSchema,
+  engagement: feedEngagementSchema,
+  itemIds: z.array(z.string()),
+});
+
+export const groupedFeedEntrySchema = z.discriminatedUnion("kind", [
+  feedTitleGroupSchema,
+  z.object({ kind: z.literal("activity"), item: feedItemSchema }),
+]);
+
+export const groupedFeedPageSchema = z.object({
+  items: z.array(groupedFeedEntrySchema),
+  nextCursor: z.string().nullable(),
+});
+
+export type FeedTitleGroup = z.infer<typeof feedTitleGroupSchema>;
+export type GroupedFeedEntry = z.infer<typeof groupedFeedEntrySchema>;
+export type GroupedFeedPage = z.infer<typeof groupedFeedPageSchema>;
 export type FeedItem = z.infer<typeof feedItemSchema>;
+export type FeedFilter = "all" | "movie" | "serial";
 export type FeedPage = z.infer<typeof feedPageSchema>;
 export type FeedActivityKind = z.infer<typeof feedActivityKindSchema>;
 export type TrendingMovie = z.infer<typeof trendingMovieSchema>;

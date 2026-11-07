@@ -1,13 +1,12 @@
 import { useMemo, useState } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import {
-  FeedActivityList,
-  type FeedFilter,
-} from "@/features/feed/components/FeedActivityList";
-import { FeedFilterTabs } from "@/features/feed/components/FeedFilterTabs";
+import { FeedDayList } from "@/features/feed/components/FeedDayList";
+import { FeedFilterSentence } from "@/features/feed/components/FeedFilterSentence";
+import { toFeedDays } from "@/features/feed/components/feed-days";
+import type { FeedFilter } from "@/features/feed/types";
 import { QuickLogComposer } from "@/features/feed/components/QuickLogComposer";
 import { TrendingNowRail } from "@/features/feed/components/TrendingNowRail";
-import { useFollowingFeed, useTrendingNow } from "@/features/feed/hooks/useFeed";
+import { useGroupedFeed, useTrendingNow } from "@/features/feed/hooks/useFeed";
 import { useTrendingSeries } from "@/features/serials/hooks/useSerials";
 
 export const HomePage = () => {
@@ -15,12 +14,12 @@ export const HomePage = () => {
   const [activeFilter, setActiveFilter] = useState<FeedFilter>("all");
 
   const isFollowingEnabled = Boolean(user);
-  const followingFeedQuery = useFollowingFeed(activeFilter, isFollowingEnabled);
+  const followingFeedQuery = useGroupedFeed(activeFilter, isFollowingEnabled);
   const movieTrendingQuery = useTrendingNow(6);
   const serialTrendingQuery = useTrendingSeries();
 
-  const feedItems = useMemo(
-    () => followingFeedQuery.data?.pages.flatMap((page) => page.items) ?? [],
+  const feedDays = useMemo(
+    () => toFeedDays(followingFeedQuery.data?.pages.flatMap((page) => page.items) ?? []),
     [followingFeedQuery.data],
   );
   const isFeedLoading = isUserLoading || (isFollowingEnabled && followingFeedQuery.isPending);
@@ -41,17 +40,12 @@ export const HomePage = () => {
             <QuickLogComposer user={user} />
           </div>
 
-          <div className="mb-8 flex items-center justify-between gap-4">
-            <FeedFilterTabs activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+          <div className="mb-5">
+            <FeedFilterSentence filter={activeFilter} onChange={setActiveFilter} />
           </div>
 
           <div className="animate-fade-up">
-            <FeedActivityList
-              isAuthenticated={isFollowingEnabled}
-              isLoading={isFeedLoading}
-              isError={isFeedError}
-              items={feedItems}
-            />
+            <FeedDayList isLoading={isFeedLoading} isError={isFeedError} days={feedDays} />
           </div>
 
           {canShowMoreFeed ? (
