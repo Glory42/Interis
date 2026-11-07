@@ -3,28 +3,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { useKeyboardInset } from "@/lib/use-keyboard-inset";
 import { cn } from "@/lib/utils";
 
+export type LogEditorReview = {
+  text: string;
+  containsSpoilers: boolean;
+  placeholder: string;
+  onTextChange: (nextValue: string) => void;
+  onContainsSpoilersChange: (nextValue: boolean) => void;
+};
+
 type LogReviewFieldProps = {
   isPhone: boolean;
-  review: string;
-  onReviewChange: (nextValue: string) => void;
-  containsSpoilers: boolean;
-  onContainsSpoilersChange: (nextValue: boolean) => void;
-  reviewMaxLength: number;
-  reviewPlaceholder: string;
+  review: LogEditorReview;
+  maxLength: number;
   onWritingChange?: (isWriting: boolean) => void;
 };
 
 // Review box with the spoilers switch and count; on phones that bar rides above the keyboard.
-export const LogReviewField = ({
-  isPhone,
-  review,
-  onReviewChange,
-  containsSpoilers,
-  onContainsSpoilersChange,
-  reviewMaxLength,
-  reviewPlaceholder,
-  onWritingChange,
-}: LogReviewFieldProps) => {
+export const LogReviewField = ({ isPhone, review, maxLength, onWritingChange }: LogReviewFieldProps) => {
+  const { text, containsSpoilers, onContainsSpoilersChange } = review;
   const [isFocused, setIsFocused] = useState(false);
   const keyboardInset = useKeyboardInset();
   const followsKeyboard = isPhone && isFocused && keyboardInset > 0;
@@ -38,12 +34,13 @@ export const LogReviewField = ({
     <section className={cn("flex min-h-0 flex-col", !isPhone && "flex-1")}>
       <p className="kicker mb-1.5">Review</p>
       <Textarea
-        maxLength={reviewMaxLength}
-        value={review}
-        onChange={(event) => onReviewChange(event.target.value)}
+        aria-label="Review"
+        maxLength={maxLength}
+        value={text}
+        onChange={(event) => review.onTextChange(event.target.value)}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        placeholder={reviewPlaceholder}
+        placeholder={review.placeholder}
         // On phones the box grows with the text instead of filling the screen.
         className={cn(
           "body min-h-32 rounded-[3px] border-[color:var(--line)] bg-foreground/[0.03]",
@@ -81,7 +78,7 @@ export const LogReviewField = ({
           Contains spoilers
         </button>
         <span className="font-mono text-[10px] tabular-nums text-[color:var(--faint)]">
-          {`${review.length} / ${reviewMaxLength}`}
+          {`${text.length} / ${maxLength}`}
         </span>
       </div>
     </section>

@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { server } from "../../../support/msw/server";
-import { useCreateDiaryEntry } from "@/features/diary/hooks/useDiary";
+import { useCreateLog } from "@/features/media/log-editor/use-log-mutations";
 import { authKeys } from "@/features/auth/hooks/useAuth";
 import { filmKeys } from "@/features/films/hooks/useFilms";
 import type { MeProfile, FilmLog } from "@/types/api";
@@ -20,6 +20,8 @@ const wrapperFor = (queryClient: QueryClient) => {
   );
   return Wrapper;
 };
+
+const film = { kind: "film" as const, tmdbId: 550 };
 
 const me: MeProfile = {
   id: "user-1",
@@ -65,7 +67,7 @@ const successResponse = () =>
     review: null,
   });
 
-describe("useCreateDiaryEntry", () => {
+describe("useCreateLog for a Film", () => {
   it("optimistically prepends a log when the current user is cached", async () => {
     server.use(http.post("*/api/diary", async () => successResponse()));
 
@@ -73,11 +75,11 @@ describe("useCreateDiaryEntry", () => {
     queryClient.setQueryData(authKeys.me, me);
     queryClient.setQueryData(filmKeys.logs(550), [] as FilmLog[]);
 
-    const { result } = renderHook(() => useCreateDiaryEntry(), {
+    const { result } = renderHook(() => useCreateLog(), {
       wrapper: wrapperFor(queryClient),
     });
 
-    result.current.mutate({ tmdbId: 550, watchedDate: "2026-01-15", rating: 8 });
+    result.current.mutate({ title: film, input: { watchedDate: "2026-01-15", rating: 8, rewatch: false } });
 
     await waitFor(() => {
       const logs = queryClient.getQueryData<FilmLog[]>(filmKeys.logs(550));
@@ -95,11 +97,11 @@ describe("useCreateDiaryEntry", () => {
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(filmKeys.logs(550), [] as FilmLog[]);
 
-    const { result } = renderHook(() => useCreateDiaryEntry(), {
+    const { result } = renderHook(() => useCreateLog(), {
       wrapper: wrapperFor(queryClient),
     });
 
-    result.current.mutate({ tmdbId: 550, watchedDate: "2026-01-15" });
+    result.current.mutate({ title: film, input: { watchedDate: "2026-01-15", rewatch: false } });
 
     // Give onMutate a tick to run - the logs array must stay empty since
     // there's no `me` in cache to build an optimistic entry from.
@@ -131,11 +133,11 @@ describe("useCreateDiaryEntry", () => {
     };
     queryClient.setQueryData(filmKeys.logs(550), [existingLog]);
 
-    const { result } = renderHook(() => useCreateDiaryEntry(), {
+    const { result } = renderHook(() => useCreateLog(), {
       wrapper: wrapperFor(queryClient),
     });
 
-    result.current.mutate({ tmdbId: 550, watchedDate: "2026-01-15" });
+    result.current.mutate({ title: film, input: { watchedDate: "2026-01-15", rewatch: false } });
     await waitFor(() => expect(result.current.isError).toBe(true));
 
     expect(queryClient.getQueryData<FilmLog[]>(filmKeys.logs(550))).toEqual([existingLog]);
@@ -150,11 +152,11 @@ describe("useCreateDiaryEntry", () => {
     queryClient.setQueryData(authKeys.me, me);
     // Deliberately no pre-existing movieKeys.logs(550) entry.
 
-    const { result } = renderHook(() => useCreateDiaryEntry(), {
+    const { result } = renderHook(() => useCreateLog(), {
       wrapper: wrapperFor(queryClient),
     });
 
-    result.current.mutate({ tmdbId: 550, watchedDate: "2026-01-15" });
+    result.current.mutate({ title: film, input: { watchedDate: "2026-01-15", rewatch: false } });
     await waitFor(() => expect(result.current.isError).toBe(true));
 
     // Must not be left with a stale single-optimistic-entry array.

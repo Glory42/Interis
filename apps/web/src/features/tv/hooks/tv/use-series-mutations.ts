@@ -1,8 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  createSeriesLog,
   updateSeriesInteraction,
-  type CreateSeriesLogInput,
   type SeriesInteraction,
   type UpdateSeriesInteractionInput,
 } from "@/features/tv/api";
@@ -84,16 +82,5 @@ export const useUpdateSeriesInteraction = (tmdbId: number) => {
         tmdbId,
         changed: changedInteractionFields(input),
       }),
-  });
-};
-
-// Editing and deleting a series log go through useOwnLogActions.
-export const useCreateSeriesLog = (tmdbId: number) => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (input: CreateSeriesLogInput) => createSeriesLog(tmdbId, input),
-    onSuccess: (_data, input) =>
-      refreshAfter(queryClient, { type: "log-created", kind: "tv", tmdbId, hasReview: Boolean(input.review) }),
   });
 };

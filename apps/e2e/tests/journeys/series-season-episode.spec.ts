@@ -69,7 +69,7 @@ test("toggles episode/season/series watch state and rating, and writes a season 
     await test.step("writes a season review", async () => {
       await season1Row.getByRole("button", { name: "Review season" }).click();
 
-      // LogMediaDialog sets role="dialog" (unlike the feed's review-edit
+      // LogEditorDialog sets role="dialog" (unlike the feed's review-edit
       // dialog built on the plain ModalShell pattern) - but it embeds its
       // own LaunchTrack, which shares the sidebar's generic
       // "Rating out of 10" aria-label. Scoping to the dialog picks the

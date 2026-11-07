@@ -1,104 +1,90 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
 import { Heart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModalShell } from "@/components/ui/ModalShell";
 import { LaunchTrack } from "@/components/film/rating/LaunchTrack";
-import { LogMediaWhen } from "@/features/diary/components/log-media/LogMediaWhen";
-import { LogReviewField } from "@/features/diary/components/log-media/LogReviewField";
+import { LogEditorWhen, type LogWhen } from "@/features/media/log-editor/LogEditorWhen";
+import { LogReviewField, type LogEditorReview } from "@/features/media/log-editor/LogReviewField";
+import type { MediaKind } from "@/features/media/media-refresh";
 import { PHONE_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
+import { REVIEW_MAX_LENGTH } from "@/types/api";
 
-type LogMediaDialogProps = {
-  title: string;
-  posterUrl: string;
+export type LogEditorMode = "log" | "edit" | "review";
+
+type LogEditorDialogProps = {
+  // log: a new log. edit: an existing log and its Review. review: a season or episode review.
+  mode: LogEditorMode;
+  // `subtitle` follows the medium in the slate: "S02 · E04" for an episode, else the year.
+  media: { kind: MediaKind; title: string; posterUrl: string; year?: number | null; subtitle?: string };
+  when: LogWhen;
   rating: number | null;
-  liked: boolean;
-  review: string;
-  containsSpoilers: boolean;
-  formError: string | null;
-  reviewMaxLength: number;
-  reviewPlaceholder: string;
-  isSubmitting: boolean;
-  onClose: () => void;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onRatingChange: (nextValue: number | null) => void;
+  liked: boolean;
   onLikedChange: (nextValue: boolean) => void;
-  onReviewChange: (nextValue: string) => void;
-  onContainsSpoilersChange: (nextValue: boolean) => void;
-  // Shown in the slate after the medium: a year for films and series, "S02 · E04" for episodes.
-  year?: number | null;
-  subtitle?: string;
-  // Log mode (film / series): a watch date and rewatch.
-  watchedDate?: string;
-  onWatchedDateChange?: (nextValue: string) => void;
-  rewatch?: boolean;
-  onRewatchChange?: (nextValue: boolean) => void;
-  // Review mode (season / episode): a single Watched box.
-  watched?: boolean;
-  onWatchedChange?: (nextValue: boolean) => void;
-  onDelete?: () => void;
-  submitLabel?: string;
-  accent?: "movie" | "serial";
+  review: LogEditorReview;
+  formError: string | null;
+  isSubmitting: boolean;
+  canSubmit?: boolean;
+  onSubmit: () => void;
+  onClose: () => void;
+  deleteAction?: { label: string; onClick: () => void };
 };
 
-const accentByKind = { movie: "var(--film)", serial: "var(--series)" } as const;
+const accentByKind: Record<MediaKind, string> = { film: "var(--film)", tv: "var(--series)" };
+const slateByMode: Record<LogEditorMode, string> = { log: "Log", edit: "Edit log", review: "Review" };
 
 // One form on every screen: a modal on desktop, full screen with Cancel and Save on top on phones.
-export const LogMediaDialog = ({
-  title,
-  posterUrl,
+export const LogEditorDialog = ({
+  mode,
+  media,
+  when,
   rating,
-  liked,
-  review,
-  containsSpoilers,
-  formError,
-  reviewMaxLength,
-  reviewPlaceholder,
-  isSubmitting,
-  onClose,
-  onSubmit,
   onRatingChange,
+  liked,
   onLikedChange,
-  onReviewChange,
-  onContainsSpoilersChange,
-  year,
-  subtitle,
-  watchedDate,
-  onWatchedDateChange,
-  rewatch,
-  onRewatchChange,
-  watched,
-  onWatchedChange,
-  onDelete,
-  submitLabel,
-  accent,
-}: LogMediaDialogProps) => {
+  review,
+  formError,
+  isSubmitting,
+  canSubmit = true,
+  onSubmit,
+  onClose,
+  deleteAction,
+}: LogEditorDialogProps) => {
   const isPhone = useMediaQuery(PHONE_QUERY);
   const [isWriting, setIsWriting] = useState(false);
-  const accentColor = accent ? accentByKind[accent] : "var(--primary)";
-  const isLog = watchedDate !== undefined && onWatchedDateChange !== undefined;
+  const { title, posterUrl, year, subtitle } = media;
+  const accentColor = accentByKind[media.kind];
   const slateLabel = [
-    isLog ? "Log" : "Review",
-    accent === "movie" ? "Film" : accent === "serial" ? "TV" : null,
+    slateByMode[mode],
+    media.kind === "film" ? "Film" : "TV",
     subtitle ?? (year ? String(year) : null),
   ]
     .filter(Boolean)
     .join(" · ");
-  const hasText = review.trim().length > 0;
-  const saveLabel = isSubmitting
-    ? "Saving…"
-    : (submitLabel ?? (isPhone ? (hasText ? "Post" : "Save") : hasText ? "Post review" : "Save log"));
+  const hasText = review.text.trim().length > 0;
+  const postOrSave = isPhone ? (hasText ? "Post" : "Save") : hasText ? "Post review" : "Save log";
+  const saveLabel = isSubmitting ? "Saving…" : mode === "log" ? postOrSave : "Save";
   // While typing on a phone the header shrinks to one line so the review keeps the room.
   const isCompact = isPhone && isWriting;
 
-  const deleteLink = onDelete ? (
+  // The page behind stays put while the form is open.
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  const deleteLink = deleteAction ? (
     <button
       type="button"
-      onClick={onDelete}
+      onClick={deleteAction.onClick}
       disabled={isSubmitting}
       className="body-s text-[color:var(--danger)] hover:underline disabled:opacity-50"
     >
-      Delete review
+      {deleteAction.label}
     </button>
   ) : null;
 
@@ -138,7 +124,13 @@ export const LogMediaDialog = ({
         )}
         style={isPhone ? undefined : { borderColor: `color-mix(in srgb, ${accentColor} 55%, transparent)` }}
       >
-        <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            onSubmit();
+          }}
+          className="flex min-h-0 flex-1 flex-col"
+        >
           {isPhone ? (
             <div className="grid h-12 shrink-0 grid-cols-[1fr_auto_1fr] items-center border-b border-[color:var(--line)] px-4">
               <button type="button" onClick={onClose} className="body-s justify-self-start text-muted-foreground">
@@ -147,7 +139,7 @@ export const LogMediaDialog = ({
               <span className="mono-meta text-foreground">{slateLabel.split(" · ").slice(0, 2).join(" · ")}</span>
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !canSubmit}
                 className="body-s justify-self-end font-semibold text-primary disabled:opacity-50"
               >
                 {saveLabel}
@@ -199,15 +191,7 @@ export const LogMediaDialog = ({
               <div className="flex min-w-0 flex-1 flex-col gap-4">
                 {isCompact ? null : (
                   <>
-                    <LogMediaWhen
-                      isPhone={isPhone}
-                      watchedDate={watchedDate}
-                      onWatchedDateChange={onWatchedDateChange}
-                      rewatch={rewatch}
-                      onRewatchChange={onRewatchChange}
-                      watched={watched}
-                      onWatchedChange={onWatchedChange}
-                    />
+                    <LogEditorWhen isPhone={isPhone} when={when} />
                     <section>
                       <div className="mb-1 flex items-center justify-between">
                         <p className="kicker">Rating</p>
@@ -222,11 +206,7 @@ export const LogMediaDialog = ({
                 <LogReviewField
                   isPhone={isPhone}
                   review={review}
-                  onReviewChange={onReviewChange}
-                  containsSpoilers={containsSpoilers}
-                  onContainsSpoilersChange={onContainsSpoilersChange}
-                  reviewMaxLength={reviewMaxLength}
-                  reviewPlaceholder={reviewPlaceholder}
+                  maxLength={REVIEW_MAX_LENGTH}
                   onWritingChange={setIsWriting}
                 />
 
@@ -248,7 +228,7 @@ export const LogMediaDialog = ({
                 <Button type="button" variant="ghost" onClick={onClose}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting || !canSubmit}>
                   {saveLabel}
                 </Button>
               </div>

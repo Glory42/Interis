@@ -7,7 +7,6 @@ import {
   type UpdateSeriesInteractionInput,
 } from "@/features/tv/api";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { LogSeriesModal } from "@/features/tv/components/LogSeriesModal";
 import { SeriesDetailsMainSection } from "@/features/tv/components/series-detail/SeriesDetailsMainSection";
 import { SeriesReviewsSection } from "@/features/tv/components/series-detail/SeriesReviewsSection";
 import { SeriesSeasonsSection } from "@/features/tv/components/series-detail/SeriesSeasonsSection";
@@ -19,7 +18,7 @@ import {
   useUpdateSeriesInteraction,
 } from "@/features/tv/hooks/useTv";
 import { LetterboxHero } from "@/features/media/detail/LetterboxHero";
-import { logTriggerProps } from "@/features/media/detail/log-trigger";
+import { MediaLogButton } from "@/features/media/detail/MediaLogButton";
 import { MediaActionCard } from "@/features/media/detail/MediaActionCard";
 import { BELOW_MD_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { MediaSimilarSection } from "@/features/media/detail/MediaSimilarSection";
@@ -29,8 +28,6 @@ import {
   MediaActionsSidebar,
   type MediaAction,
 } from "@/features/media/detail/MediaActionsSidebar";
-import { MediaReviewChooser } from "@/features/media/detail/MediaReviewChooser";
-import { useReviewChooser } from "@/features/reviews/hooks/useReviewChooser";
 import { getBackdropUrl, getPosterUrl } from "@/features/media/tmdb-images";
 import { toLanguageLabel as toSeriesLanguageLabel } from "@/features/media/labels";
 
@@ -54,7 +51,6 @@ export const SeriesDetailPage = ({ tmdbId }: SeriesDetailPageProps) => {
     Boolean(user) && isValidTmdbId,
   );
   const updateInteractionMutation = useUpdateSeriesInteraction(tmdbId);
-  const reviewChooser = useReviewChooser();
   const isBelowMd = useMediaQuery(BELOW_MD_QUERY);
 
   if (!isValidTmdbId) {
@@ -99,11 +95,6 @@ export const SeriesDetailPage = ({ tmdbId }: SeriesDetailPageProps) => {
   // and shouldn't visually lock while the (TMDB-backed, sometimes
   // multi-second) cascade request is still in flight in the background.
   const isInteractionBusy = interactionQuery.isPending;
-
-  const modalInitialState = {
-    rating: currentRating,
-    rewatch: Boolean(detail.userRating?.diaryEntryId),
-  };
 
   const handleToggleWatchlist = () => {
     void updateInteractionMutation.mutateAsync({ watchlisted: !watchlisted });
@@ -183,17 +174,16 @@ export const SeriesDetailPage = ({ tmdbId }: SeriesDetailPageProps) => {
       <MediaActionCard
         moduleStyles={SERIES_MODULE_STYLES}
         logSlot={
-          <LogSeriesModal
-            tmdbId={series.tmdbId}
-            seriesTitle={series.title}
-            seriesFirstAirYear={series.firstAirYear}
-            seriesPosterPath={series.posterPath}
-            initialState={modalInitialState}
-            onRequestOpen={(openLog) =>
-              reviewChooser.start({ mediaType: "tv", tmdbId: series.tmdbId }, openLog)
-            }
-            isTriggerBusy={reviewChooser.isChecking}
-            {...logTriggerProps(Boolean(detail.userRating?.watchedDate))}
+          <MediaLogButton
+            media={{
+              kind: "tv",
+              tmdbId: series.tmdbId,
+              title: series.title,
+              year: series.firstAirYear,
+              posterPath: series.posterPath,
+            }}
+            rating={currentRating}
+            hasLogged={Boolean(detail.userRating?.diaryEntryId)}
           />
         }
         tmdbId={series.tmdbId}
@@ -267,11 +257,6 @@ export const SeriesDetailPage = ({ tmdbId }: SeriesDetailPageProps) => {
 
           <SeriesDetailsMainSection detail={detail} actionsSlot={isBelowMd ? actionCard : null} />
         </div>
-
-        <MediaReviewChooser
-          chooser={reviewChooser}
-          title={{ mediaType: "tv", tmdbId: series.tmdbId, title: series.title }}
-        />
 
         <SeriesReviewsSection
           key={reviewsSort}

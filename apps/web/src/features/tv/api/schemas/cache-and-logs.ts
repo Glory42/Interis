@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { REVIEW_MAX_LENGTH } from "@/types/api";
 import { seriesGenreSchema } from "./shared";
 
 export const cachedSeriesSchema = z
@@ -60,6 +61,9 @@ export const updateSeriesLogInputSchema = z.object({
   watchedDate: z.string().optional(),
   rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
   rewatch: z.boolean().optional(),
+  // Text writes the attached Review, null or blank deletes it, omitted leaves it.
+  review: z.string().max(REVIEW_MAX_LENGTH).nullable().optional(),
+  containsSpoilers: z.boolean().optional(),
 });
 
 export const seriesLogSchema = z.object({
