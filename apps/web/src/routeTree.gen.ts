@@ -44,6 +44,7 @@ import { Route as ProfileUsernameFilmsRouteImport } from './routes/profile/$user
 import { Route as ProfileUsernameDiaryRouteImport } from './routes/profile/$username/diary'
 import { Route as ProfileUsernameCinemaRouteImport } from './routes/profile/$username/cinema'
 import { Route as ProfileUsernameListsIndexRouteImport } from './routes/profile/$username/lists/index'
+import { Route as SerialsTmdbIdSeasonSeasonNumberRouteImport } from './routes/serials/$tmdbId_.season.$seasonNumber'
 import { Route as ProfileUsernameListsNewRouteImport } from './routes/profile/$username/lists/new'
 import { Route as ProfileUsernameListsListIdIndexRouteImport } from './routes/profile/$username/lists/$listId/index'
 import { Route as ProfileUsernameListsListIdEditRouteImport } from './routes/profile/$username/lists/$listId/edit'
@@ -225,6 +226,12 @@ const ProfileUsernameListsIndexRoute =
     path: '/lists/',
     getParentRoute: () => ProfileUsernameRouteRoute,
   } as any)
+const SerialsTmdbIdSeasonSeasonNumberRoute =
+  SerialsTmdbIdSeasonSeasonNumberRouteImport.update({
+    id: '/serials/$tmdbId_/season/$seasonNumber',
+    path: '/serials/$tmdbId/season/$seasonNumber',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ProfileUsernameListsNewRoute = ProfileUsernameListsNewRouteImport.update({
   id: '/lists/new',
   path: '/lists/new',
@@ -278,6 +285,7 @@ export interface FileRoutesByFullPath {
   '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
   '/profile/$username/': typeof ProfileUsernameIndexRoute
   '/profile/$username/lists/new': typeof ProfileUsernameListsNewRoute
+  '/serials/$tmdbId/season/$seasonNumber': typeof SerialsTmdbIdSeasonSeasonNumberRoute
   '/profile/$username/lists/': typeof ProfileUsernameListsIndexRoute
   '/profile/$username/lists/$listId/edit': typeof ProfileUsernameListsListIdEditRoute
   '/profile/$username/lists/$listId/': typeof ProfileUsernameListsListIdIndexRoute
@@ -315,6 +323,7 @@ export interface FileRoutesByTo {
   '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
   '/profile/$username': typeof ProfileUsernameIndexRoute
   '/profile/$username/lists/new': typeof ProfileUsernameListsNewRoute
+  '/serials/$tmdbId/season/$seasonNumber': typeof SerialsTmdbIdSeasonSeasonNumberRoute
   '/profile/$username/lists': typeof ProfileUsernameListsIndexRoute
   '/profile/$username/lists/$listId/edit': typeof ProfileUsernameListsListIdEditRoute
   '/profile/$username/lists/$listId': typeof ProfileUsernameListsListIdIndexRoute
@@ -356,6 +365,7 @@ export interface FileRoutesById {
   '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
   '/profile/$username/': typeof ProfileUsernameIndexRoute
   '/profile/$username/lists/new': typeof ProfileUsernameListsNewRoute
+  '/serials/$tmdbId_/season/$seasonNumber': typeof SerialsTmdbIdSeasonSeasonNumberRoute
   '/profile/$username/lists/': typeof ProfileUsernameListsIndexRoute
   '/profile/$username/lists/$listId/edit': typeof ProfileUsernameListsListIdEditRoute
   '/profile/$username/lists/$listId/': typeof ProfileUsernameListsListIdIndexRoute
@@ -397,6 +407,7 @@ export interface FileRouteTypes {
     | '/reviews/$username/$reviewId'
     | '/profile/$username/'
     | '/profile/$username/lists/new'
+    | '/serials/$tmdbId/season/$seasonNumber'
     | '/profile/$username/lists/'
     | '/profile/$username/lists/$listId/edit'
     | '/profile/$username/lists/$listId/'
@@ -434,6 +445,7 @@ export interface FileRouteTypes {
     | '/reviews/$username/$reviewId'
     | '/profile/$username'
     | '/profile/$username/lists/new'
+    | '/serials/$tmdbId/season/$seasonNumber'
     | '/profile/$username/lists'
     | '/profile/$username/lists/$listId/edit'
     | '/profile/$username/lists/$listId'
@@ -474,6 +486,7 @@ export interface FileRouteTypes {
     | '/reviews/$username/$reviewId'
     | '/profile/$username/'
     | '/profile/$username/lists/new'
+    | '/serials/$tmdbId_/season/$seasonNumber'
     | '/profile/$username/lists/'
     | '/profile/$username/lists/$listId/edit'
     | '/profile/$username/lists/$listId/'
@@ -494,6 +507,7 @@ export interface RootRouteChildren {
   MoviesIndexRoute: typeof MoviesIndexRoute
   SerialsIndexRoute: typeof SerialsIndexRoute
   ReviewsUsernameReviewIdRoute: typeof ReviewsUsernameReviewIdRoute
+  SerialsTmdbIdSeasonSeasonNumberRoute: typeof SerialsTmdbIdSeasonSeasonNumberRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -743,6 +757,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileUsernameListsIndexRouteImport
       parentRoute: typeof ProfileUsernameRouteRoute
     }
+    '/serials/$tmdbId_/season/$seasonNumber': {
+      id: '/serials/$tmdbId_/season/$seasonNumber'
+      path: '/serials/$tmdbId/season/$seasonNumber'
+      fullPath: '/serials/$tmdbId/season/$seasonNumber'
+      preLoaderRoute: typeof SerialsTmdbIdSeasonSeasonNumberRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile/$username/lists/new': {
       id: '/profile/$username/lists/new'
       path: '/lists/new'
@@ -859,6 +880,7 @@ const rootRouteChildren: RootRouteChildren = {
   MoviesIndexRoute: MoviesIndexRoute,
   SerialsIndexRoute: SerialsIndexRoute,
   ReviewsUsernameReviewIdRoute: ReviewsUsernameReviewIdRoute,
+  SerialsTmdbIdSeasonSeasonNumberRoute: SerialsTmdbIdSeasonSeasonNumberRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

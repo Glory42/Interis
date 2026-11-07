@@ -21,6 +21,9 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { LogMediaDialog } from "@/features/diary/components/log-media/LogMediaDialog";
 import { SeasonHeaderRow } from "@/features/serials/components/serial-detail/SeasonHeaderRow";
 import { EpisodeRow } from "@/features/serials/components/serial-detail/EpisodeRow";
+import { ReelCells } from "@/components/film/ReelCells";
+import { BELOW_MD_QUERY, useMediaQuery } from "@/lib/use-media-query";
+import { cn } from "@/lib/utils";
 
 type ReviewSubject =
   | { type: "season" }
@@ -31,6 +34,8 @@ type SeasonAccordionItemProps = {
   season: SerialDetailResponse["series"]["seasons"][number];
   isOpen: boolean;
   onToggle: () => void;
+  // compact: a phone row that opens the season screen. screen: that screen's episode list.
+  variant?: "accordion" | "compact" | "screen";
 };
 
 export const SeasonAccordionItem = ({
@@ -38,12 +43,15 @@ export const SeasonAccordionItem = ({
   season,
   isOpen,
   onToggle,
+  variant = "accordion",
 }: SeasonAccordionItemProps) => {
   const { user } = useAuth();
+  const isPhone = useMediaQuery(BELOW_MD_QUERY);
+  const showEpisodes = variant === "screen" || (variant === "accordion" && isOpen);
   const seasonDetailQuery = useSeriesSeasonDetail(
     tmdbId,
     season.seasonNumber,
-    isOpen,
+    showEpisodes,
   );
 
   const episodes = seasonDetailQuery.data?.episodes ?? [];
@@ -193,19 +201,24 @@ export const SeasonAccordionItem = ({
 
   return (
     <section aria-label={season.name || `Season ${season.seasonNumber}`}>
-      <SeasonHeaderRow
-        season={season}
-        isOpen={isOpen}
-        showInteractions={Boolean(user)}
-        onToggle={onToggle}
-        onToggleWatched={handleSeasonWatchedToggle}
-        onToggleLiked={handleSeasonLikedToggle}
-        onRatingChange={handleSeasonRatingChange}
-        onOpenReview={() => handleOpenReview({ type: "season" })}
-      />
+      {variant === "screen" ? (
+        <ReelCells total={season.episodeCount ?? 0} watched={season.watchedEpisodeCount} className="py-2" />
+      ) : (
+        <SeasonHeaderRow
+          season={season}
+          isOpen={isOpen}
+          compact={variant === "compact"}
+          showInteractions={Boolean(user)}
+          onToggle={onToggle}
+          onToggleWatched={handleSeasonWatchedToggle}
+          onToggleLiked={handleSeasonLikedToggle}
+          onRatingChange={handleSeasonRatingChange}
+          onOpenReview={() => handleOpenReview({ type: "season" })}
+        />
+      )}
 
-      {isOpen ? (
-        <div className="mb-3 ml-[46px] border-t border-[color:var(--line)]">
+      {showEpisodes ? (
+        <div className={cn("border-t border-[color:var(--line)]", variant === "accordion" && "mb-3 ml-[46px]")}>
           {seasonDetailQuery.isPending ? (
             <p className="body-s py-3 text-muted-foreground">Loading episodes…</p>
           ) : seasonDetailQuery.isError ? (
@@ -217,6 +230,7 @@ export const SeasonAccordionItem = ({
               <EpisodeRow
                 key={`episode-${episode.id}`}
                 episode={episode}
+                layout={isPhone ? "phone" : "line"}
                 showInteractions={Boolean(user)}
                 onToggleWatched={handleEpisodeWatchedToggle}
                 onToggleLiked={handleEpisodeLikedToggle}

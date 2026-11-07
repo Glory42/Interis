@@ -14,3 +14,6 @@ export const useMediaQuery = (query: string): boolean =>
     () => typeof window.matchMedia === "function" && window.matchMedia(query).matches,
     () => false,
   );
+
+// Matches Tailwind's md breakpoint: below it, detail pages use their phone layout.
+export const BELOW_MD_QUERY = "(max-width: 767px)";
