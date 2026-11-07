@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
-import { getPosterUrl, toReleaseYear } from "@/features/movies/components/utils";
+import { toReleaseYear } from "@/features/movies/components/utils";
 import type { TmdbSearchMovie } from "@/types/api";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type MovieCardProps = {
   movie: TmdbSearchMovie;

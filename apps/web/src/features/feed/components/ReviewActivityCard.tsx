@@ -13,9 +13,9 @@ import { FeedCardHeader } from "@/features/feed/components/FeedCardHeader";
 import { FeedReviewEditDialog } from "@/features/feed/components/FeedReviewEditDialog";
 import { ReviewActivityDialog } from "@/features/feed/components/ReviewActivityDialog";
 import { toSeasonEpisodeLabel, truncateQuote } from "@/features/feed/components/feed-row.utils";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import type { FeedItem } from "@/features/feed/types";
 import { useReviewActivityCard } from "./review-activity-card/useReviewActivityCard";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type ReviewActivityCardProps = {
   item: FeedItem;

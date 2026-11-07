@@ -2,8 +2,8 @@ import { memo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
 import { toIsoWeek } from "@/features/media/archive/week-label";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import type { UserReview } from "@/features/profile/api";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];

@@ -1,11 +1,11 @@
 import { Check, CheckCheck, Heart, PenLine } from "lucide-react";
 import type { SerialSeasonDetailResponse } from "@/features/serials/api";
 import { ModalShell } from "@/components/ui/ModalShell";
-import { getStillUrl } from "@/features/serials/components/utils";
 import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
 import { toDateLabel } from "@/features/serials/components/serial-detail/utils";
 import { RatingSelect } from "@/features/serials/components/serial-detail/RatingSelect";
 import { cn } from "@/lib/utils";
+import { getStillUrl } from "@/features/media/tmdb-images";
 
 type Episode = SerialSeasonDetailResponse["episodes"][number];
 

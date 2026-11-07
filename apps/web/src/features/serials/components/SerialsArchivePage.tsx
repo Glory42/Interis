@@ -7,14 +7,11 @@ import {
   sortOptions,
 } from "@/features/serials/components/serial-archive/constants";
 import { ArchiveLoadingMoreRow } from "@/features/serials/components/serial-archive/ArchiveLoadingMoreRow";
-import { getBackdropUrl, getPosterUrl } from "@/features/serials/components/utils";
 import {
   getCreatorYearLine,
   getRating,
-  getSeriesStateLabel,
-  formatArchiveCount,
+  getSeriesStateLabel
 } from "@/features/serials/components/serial-archive/utils";
-import { type ArchiveRatingSource } from "@/features/serials/components/serial-archive/types";
 import {
   type SerialArchivePeriod,
   type SerialArchiveSort,
@@ -24,6 +21,9 @@ import { ArchiveMediaCard } from "@/features/media/archive/ArchiveMediaCard";
 import { MediaArchivePage } from "@/features/media/archive/MediaArchivePage";
 import { ArchiveSpotlight, type SpotlightItem } from "@/features/media/archive/ArchiveSpotlight";
 import { dedupeBy } from "@/lib/dedupe-by";
+import { getBackdropUrl, getPosterUrl } from "@/features/media/tmdb-images";
+import { formatArchiveCount } from "@/features/media/labels";
+import type { ArchiveRatingSource } from "@/features/media/types";
 
 export const SerialsArchivePage = () => {
   const [selectedGenre, setSelectedGenre] = useState("all");

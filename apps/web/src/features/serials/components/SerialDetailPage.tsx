@@ -15,10 +15,6 @@ import { SerialSeasonsSection } from "@/features/serials/components/serial-detai
 import { SerialProgressPanel } from "@/features/serials/components/serial-detail/SerialProgressPanel";
 import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
 import {
-  getBackdropUrl,
-  getPosterUrl,
-} from "@/features/serials/components/utils";
-import {
   serialKeys,
   useSeriesDetailView,
   useSeriesInteraction,
@@ -28,7 +24,6 @@ import { LetterboxHero } from "@/features/media/detail/LetterboxHero";
 import { logTriggerProps } from "@/features/media/detail/log-trigger";
 import { MediaActionCard } from "@/features/media/detail/MediaActionCard";
 import { BELOW_MD_QUERY, useMediaQuery } from "@/lib/use-media-query";
-import { toLanguageLabel as toSeriesLanguageLabel } from "@/features/serials/components/utils";
 import { MediaSimilarSection } from "@/features/media/detail/MediaSimilarSection";
 import { MediaDetailStatusPanel } from "@/features/media/detail/MediaDetailStatusPanel";
 import { MediaDetailSkeleton } from "@/components/ui/PageSkeletons";
@@ -38,6 +33,8 @@ import {
 } from "@/features/media/detail/MediaActionsSidebar";
 import { MediaReviewChooser } from "@/features/media/detail/MediaReviewChooser";
 import { useReviewChooser } from "@/features/reviews/hooks/useReviewChooser";
+import { getBackdropUrl, getPosterUrl } from "@/features/media/tmdb-images";
+import { toLanguageLabel as toSeriesLanguageLabel } from "@/features/media/labels";
 
 type SerialDetailPageProps = {
   tmdbId: number;

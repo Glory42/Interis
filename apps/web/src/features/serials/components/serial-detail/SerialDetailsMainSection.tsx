@@ -4,7 +4,8 @@ import { MediaDetailsMainSection } from "@/features/media/detail/MediaDetailsMai
 import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
 import { toDateLabel } from "@/features/serials/components/serial-detail/utils";
 import type { ReactNode } from "react";
-import { formatEpisodeRuntimeLabel, getPosterUrl } from "@/features/serials/components/utils";
+import { formatEpisodeRuntimeLabel } from "@/features/serials/components/utils";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type SerialDetailsMainSectionProps = {
   detail: SerialDetailResponse;

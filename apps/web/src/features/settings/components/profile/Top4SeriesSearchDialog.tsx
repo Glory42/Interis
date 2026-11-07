@@ -2,10 +2,10 @@ import { useDeferredValue } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ModalShell } from "@/components/ui/ModalShell";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import { useSerialSearch } from "@/features/serials/hooks/useSerials";
 import type { TmdbSearchSeries } from "@/features/serials/api";
 import { TickLoader } from "@/components/ui/tick-loader";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type Top4SeriesSearchDialogProps = {
   isOpen: boolean;

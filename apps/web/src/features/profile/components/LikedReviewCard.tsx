@@ -1,8 +1,8 @@
 import { memo } from "react";
 import { Link } from "@tanstack/react-router";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import type { LikedReview } from "@/features/profile/api";
 import { formatRelativeTime } from "@/lib/time";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 export const LikedReviewCard = memo(function LikedReviewCard({
   review,

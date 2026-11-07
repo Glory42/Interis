@@ -7,8 +7,8 @@ import { LogMediaLoginTrigger } from "@/features/diary/components/log-media/LogM
 import type { LogMediaInitialState } from "@/features/diary/components/log-media/types";
 import { useMediaLogSubmission } from "@/features/diary/hooks/useMediaLogSubmission";
 import { useCreateDiaryEntry } from "@/features/diary/hooks/useDiary";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import { useMovieInteraction, useUpdateMovieInteraction } from "@/features/interactions/hooks/useInteractions";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type LogMovieModalProps = {
   tmdbId: number;

@@ -2,8 +2,8 @@ import { LoadingRegion, TitleRowsSkeleton } from "@/components/ui/PageSkeletons"
 import { Link } from "@tanstack/react-router";
 import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
 import { toFeedDays, verbFor, type FeedRow } from "@/features/feed/components/feed-days";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import type { FeedItem, GroupedFeedEntry } from "@/features/feed/types";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type ProfileOverviewActivityProps = {
   entries: GroupedFeedEntry[];

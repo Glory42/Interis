@@ -1,14 +1,5 @@
 import type { SerialArchiveItem } from "@/features/serials/api";
-import type { ArchiveRatingSource } from "@/features/serials/components/serial-archive/types";
-
-export const formatArchiveCount = (count: number): string => {
-  if (count === 1) {
-    return "1 title";
-  }
-
-  return `${count.toLocaleString()} titles`;
-};
-
+import type { ArchiveRatingSource } from "@/features/media/types";
 export const getFirstAirYearLabel = (series: SerialArchiveItem): string => {
   if (series.firstAirYear !== null) {
     return String(series.firstAirYear);

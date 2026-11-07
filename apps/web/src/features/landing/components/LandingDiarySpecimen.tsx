@@ -1,7 +1,7 @@
 import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
 import { toWeekLabel } from "@/features/media/archive/week-label";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import type { TrendingMovie } from "@/features/feed/types";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 const EXAMPLE = [
   { day: "Fri 06", rating: 9 },

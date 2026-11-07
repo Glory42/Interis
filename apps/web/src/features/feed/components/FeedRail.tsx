@@ -4,9 +4,9 @@ import { Link } from "@tanstack/react-router";
 import { CreditsList } from "@/components/film/CreditsList";
 import { OutlinedRank } from "@/components/film/OutlinedRank";
 import { toIsoWeek } from "@/features/media/archive/week-label";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import type { MeFeedSummary, TrendingMovie } from "@/features/feed/types";
 import type { TrendingSeries } from "@/features/serials/api";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type FeedRailProps = {
   films: TrendingMovie[];

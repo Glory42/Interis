@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { OutlinedRank } from "@/components/film/OutlinedRank";
 import type { PersonCreditItem } from "@/features/people/api";
-import { getPosterUrl } from "@/features/movies/components/utils";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 // Their most-voted titles, ranked with outlined numbers.
 export const PersonKnownFor = ({ credits }: { credits: PersonCreditItem[] }) => {

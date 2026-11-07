@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import { cn } from "@/lib/utils";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type FeedMoviePreviewCardProps = {
   to: "/movies/$tmdbId" | "/serials/$tmdbId";

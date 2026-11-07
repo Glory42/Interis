@@ -3,9 +3,9 @@ import { OutlinedRank } from "@/components/film/OutlinedRank";
 import { LoadingRegion } from "@/components/ui/PageSkeletons";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { toWeekLabel } from "@/features/media/archive/week-label";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import type { TrendingMovie } from "@/features/feed/types";
 import type { TrendingSeries } from "@/features/serials/api/types";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 const pad = (index: number) => String(index + 1).padStart(2, "0");
 

@@ -2,10 +2,11 @@ import { useDeferredValue } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ModalShell } from "@/components/ui/ModalShell";
-import { getPosterUrl, toReleaseYear } from "@/features/movies/components/utils";
+import { toReleaseYear } from "@/features/movies/components/utils";
 import { useMovieSearch } from "@/features/movies/hooks/useMovies";
 import type { TmdbSearchMovie } from "@/types/api";
 import { TickLoader } from "@/components/ui/tick-loader";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type Top4MovieSearchDialogProps = {
   isOpen: boolean;

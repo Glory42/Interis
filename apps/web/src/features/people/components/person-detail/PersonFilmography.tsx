@@ -3,10 +3,10 @@ import { memo } from "react";
 import { Link } from "@tanstack/react-router";
 import { SentenceSelect } from "@/components/ui/SentenceSelect";
 import type { PersonCreditItem, PersonDetailResponse } from "@/features/people/api";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import { cn } from "@/lib/utils";
 import { toCreditLine, toDecades } from "./filmography-model";
 import type { CreditMediaTab, CreditRoleTab } from "./types";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type PersonFilmographyProps = {
   counts: PersonDetailResponse["credits"]["counts"];

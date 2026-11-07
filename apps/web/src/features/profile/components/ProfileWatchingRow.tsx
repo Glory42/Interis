@@ -1,9 +1,9 @@
 import { memo } from "react";
 import { Link } from "@tanstack/react-router";
 import { ReelCells } from "@/components/film/ReelCells";
-import { getPosterUrl } from "@/features/serials/components/utils";
 import { useUpdateEpisodeInteraction } from "@/features/serials/hooks/useSerials";
 import type { CurrentlyWatchingSeries } from "@/features/profile/api/schemas";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];

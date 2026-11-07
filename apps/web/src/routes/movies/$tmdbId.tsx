@@ -1,10 +1,10 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { getMovieDetail } from "@/features/movies/api";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import { MovieDetailPage } from "@/features/movies/components/MovieDetailPage";
 import { movieKeys } from "@/features/movies/hooks/useMovies";
 import { parsePositiveIntParam } from "@/lib/router/params";
 import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 export const Route = createFileRoute("/movies/$tmdbId")({
   beforeLoad: ({ params }) => {

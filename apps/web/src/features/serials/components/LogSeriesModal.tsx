@@ -6,8 +6,8 @@ import { LogMediaDialog } from "@/features/diary/components/log-media/LogMediaDi
 import { LogMediaLoginTrigger } from "@/features/diary/components/log-media/LogMediaLoginTrigger";
 import type { LogMediaInitialState } from "@/features/diary/components/log-media/types";
 import { useMediaLogSubmission } from "@/features/diary/hooks/useMediaLogSubmission";
-import { getPosterUrl } from "@/features/serials/components/utils";
 import { useCreateSeriesLog, useSeriesInteraction, useUpdateSeriesInteraction } from "@/features/serials/hooks/useSerials";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type LogSeriesModalProps = {
   tmdbId: number;

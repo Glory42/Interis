@@ -1,16 +1,3 @@
-export const toLanguageLabel = (languageCode: string | null): string | null => {
-  if (!languageCode) {
-    return null;
-  }
-
-  try {
-    const displayNames = new Intl.DisplayNames(["en"], { type: "language" });
-    return displayNames.of(languageCode) ?? languageCode.toUpperCase();
-  } catch {
-    return languageCode.toUpperCase();
-  }
-};
-
 export const formatMoneyLabel = (value: number | null): string | null => {
   if (value === null || !Number.isFinite(value) || value <= 0) {
     return null;

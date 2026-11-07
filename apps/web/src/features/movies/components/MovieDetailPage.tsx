@@ -13,10 +13,6 @@ import { MovieReviewsSection } from "@/features/movies/components/movie-detail/M
 import { UnwatchMovieDialog } from "@/features/movies/components/movie-detail/UnwatchMovieDialog";
 import { MOVIE_MODULE_STYLES } from "@/features/media/styles";
 import {
-  getBackdropUrl,
-  getPosterUrl,
-} from "@/features/movies/components/utils";
-import {
   movieKeys,
   useMovieDetailView,
 } from "@/features/movies/hooks/useMovies";
@@ -31,12 +27,13 @@ import { LetterboxHero } from "@/features/media/detail/LetterboxHero";
 import { logTriggerProps } from "@/features/media/detail/log-trigger";
 import { MediaActionCard } from "@/features/media/detail/MediaActionCard";
 import { BELOW_MD_QUERY, useMediaQuery } from "@/lib/use-media-query";
-import { toLanguageLabel } from "@/features/movies/components/movie-detail/utils";
 import { MediaSimilarSection } from "@/features/media/detail/MediaSimilarSection";
 import {
   MediaActionsSidebar,
   type MediaAction,
 } from "@/features/media/detail/MediaActionsSidebar";
+import { getBackdropUrl, getPosterUrl } from "@/features/media/tmdb-images";
+import { toLanguageLabel } from "@/features/media/labels";
 
 type MovieDetailPageProps = {
   tmdbId: number;

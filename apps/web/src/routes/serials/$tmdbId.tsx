@@ -1,10 +1,10 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { getSeriesDetail } from "@/features/serials/api";
-import { getPosterUrl } from "@/features/serials/components/utils";
 import { SerialDetailPage } from "@/features/serials/components/SerialDetailPage";
 import { serialKeys } from "@/features/serials/hooks/useSerials";
 import { parsePositiveIntParam } from "@/lib/router/params";
 import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 export const Route = createFileRoute("/serials/$tmdbId")({
   beforeLoad: ({ params }) => {

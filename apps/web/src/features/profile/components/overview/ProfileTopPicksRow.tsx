@@ -2,8 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { Film, Tv, type LucideIcon } from "lucide-react";
 import { useState, type CSSProperties } from "react";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import type { UserTopPickCategory, UserTopPickItem } from "@/features/profile/api";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 export type TopPickCategoryKey = "movie" | "serial";
 

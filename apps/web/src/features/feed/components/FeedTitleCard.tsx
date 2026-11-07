@@ -4,10 +4,10 @@ import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
 import { EditButton, LikeButton } from "@/features/feed/components/EngagementActionBar";
 import { FeedReviewEditDialog } from "@/features/feed/components/FeedReviewEditDialog";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import { useLikeReview, useUnlikeReview } from "@/features/reviews/hooks/useReviews";
 import type { FeedTitleGroup } from "@/features/feed/types";
 import { verbFor } from "@/features/feed/components/feed-days";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 const pad = (value: number) => String(value).padStart(2, "0");
 

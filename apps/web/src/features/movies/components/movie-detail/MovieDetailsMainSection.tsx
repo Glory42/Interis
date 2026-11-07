@@ -6,7 +6,8 @@ import {
 } from "@/features/media/detail/MediaDetailsMainSection";
 import { formatMoneyLabel } from "@/features/movies/components/movie-detail/utils";
 import type { ReactNode } from "react";
-import { formatRuntimeLabel, getPosterUrl } from "@/features/movies/components/utils";
+import { formatRuntimeLabel } from "@/features/movies/components/utils";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type MovieDetailsMainSectionProps = {
   detail: MovieDetailResponse;

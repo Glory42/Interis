@@ -4,7 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { FeedActivityCard } from "@/features/feed/components/FeedActivityCard";
 import { FeedTitleCard } from "@/features/feed/components/FeedTitleCard";
 import type { FeedDay, FeedRow } from "@/features/feed/components/feed-days";
-import { getPosterUrl } from "@/features/movies/components/utils";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type FeedDayListProps = {
   isLoading: boolean;

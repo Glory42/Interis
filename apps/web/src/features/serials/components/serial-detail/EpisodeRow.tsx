@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { CheckCheck, Ellipsis, Heart, PenLine, Rocket } from "lucide-react";
 import type { SerialSeasonDetailResponse } from "@/features/serials/api";
-import { getStillUrl } from "@/features/serials/components/utils";
 import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
 import { toDateLabel, toEpisodeCodeLabel } from "@/features/serials/components/serial-detail/utils";
 import { RatingSelect } from "@/features/serials/components/serial-detail/RatingSelect";
 import { WatchTick } from "@/features/serials/components/serial-detail/WatchTick";
 import { EpisodeSheet, type EpisodeActions } from "@/features/serials/components/serial-detail/EpisodeSheet";
 import { cn } from "@/lib/utils";
+import { getStillUrl } from "@/features/media/tmdb-images";
 
 type Episode = SerialSeasonDetailResponse["episodes"][number];
 

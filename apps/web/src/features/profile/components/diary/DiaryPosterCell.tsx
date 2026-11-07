@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import { toPosterFallbackLabel } from "./diary-model";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type DiaryPosterCellProps = {
   title: string;

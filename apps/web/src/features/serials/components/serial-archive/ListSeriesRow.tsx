@@ -1,15 +1,15 @@
 import { Link } from "@tanstack/react-router";
 import { BookText, ChevronRight, Rocket } from "lucide-react";
 import type { SerialArchiveItem } from "@/features/serials/api";
-import { getPosterUrl } from "@/features/serials/components/utils";
 import { SERIAL_MODULE_STYLES } from "@/features/serials/components/serial-archive/constants";
-import type { ArchiveRatingSource } from "@/features/serials/components/serial-archive/types";
 import {
   getCreatorYearLine,
   getRating,
   getRoundedStars,
 } from "@/features/serials/components/serial-archive/utils";
 import { cn } from "@/lib/utils";
+import { getPosterUrl } from "@/features/media/tmdb-images";
+import type { ArchiveRatingSource } from "@/features/media/types";
 
 type ListSeriesRowProps = {
   series: SerialArchiveItem;

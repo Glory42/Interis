@@ -6,20 +6,20 @@ import {
   periodOptions,
   sortOptions,
 } from "@/features/movies/components/movie-archive/constants";
-import { getBackdropUrl, getPosterUrl } from "@/features/movies/components/utils";
 import {
   getMovieStateLabel,
   getRating,
-  getReleaseYearLabel,
-  formatArchiveCount,
+  getReleaseYearLabel
 } from "@/features/movies/components/movie-archive/utils";
-import type { ArchiveRatingSource } from "@/features/movies/components/movie-archive/types";
 import type { MovieArchivePeriod, MovieArchiveSort } from "@/features/movies/api";
 import { useMovieArchive } from "@/features/movies/hooks/useMovies";
 import { ArchiveMediaCard } from "@/features/media/archive/ArchiveMediaCard";
 import { MediaArchivePage } from "@/features/media/archive/MediaArchivePage";
 import { ArchiveSpotlight, type SpotlightItem } from "@/features/media/archive/ArchiveSpotlight";
 import { dedupeBy } from "@/lib/dedupe-by";
+import { getBackdropUrl, getPosterUrl } from "@/features/media/tmdb-images";
+import { formatArchiveCount } from "@/features/media/labels";
+import type { ArchiveRatingSource } from "@/features/media/types";
 
 export const MovieArchivePage = () => {
   const [selectedSort, setSelectedSort] = useState<MovieArchiveSort>("trending");

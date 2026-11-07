@@ -2,7 +2,6 @@ import { LineRowsSkeleton, LoadingRegion } from "@/components/ui/PageSkeletons";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { SerialDetailResponse } from "@/features/serials/api";
-import { getPosterUrl } from "@/features/serials/components/utils";
 import {
   useSeriesSeasonDetail,
   useUpdateSeasonInteraction,
@@ -25,6 +24,7 @@ import { EpisodeRow } from "@/features/serials/components/serial-detail/EpisodeR
 import { ReelCells } from "@/components/film/ReelCells";
 import { BELOW_MD_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type ReviewSubject =
   | { type: "season" }
