@@ -36,7 +36,7 @@
   --color-destructive: var(--destructive);
 }
 
-:root {
+:root, [data-theme-preview="rose-pine"] {
   color-scheme: dark;
   /* Dialog and card slates stay black like film stock in every theme. */
   --slate: #000000;
@@ -126,7 +126,7 @@
   --surface-card-border-hover: color-mix(in srgb, var(--foreground) 24%, transparent);
 }
 
-:root[data-theme-id="null-log"] {
+:root[data-theme-id="null-log"], [data-theme-preview="null-log"] {
 
   /* Roles: every theme defines the same set. */
   --bg: #000000;
@@ -203,7 +203,7 @@
   --module-neutral: #9a9a9a;
 }
 
-:root[data-theme-id="nitrate"] {
+:root[data-theme-id="nitrate"], [data-theme-preview="nitrate"] {
 
   /* Roles: every theme defines the same set. */
   --bg: #14100c;
@@ -283,7 +283,7 @@
   --module-neutral: #ab9c86;
 }
 
-:root[data-theme-id="marquee"] {
+:root[data-theme-id="marquee"], [data-theme-preview="marquee"] {
   color-scheme: light;
 
   /* Roles: every theme defines the same set. */

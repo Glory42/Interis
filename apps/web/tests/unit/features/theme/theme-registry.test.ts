@@ -13,11 +13,11 @@ beforeAll(() => {
 });
 
 // Theme colours live only in index.css: `:root` is Rose Pine, the rest are
-// `:root[data-theme-id="…"]` blocks.
+// `:root[data-theme-id="…"]` blocks; each also answers to `[data-theme-preview]` for tiles.
 const readThemeTokens = (): Record<string, Record<string, string>> => {
   const css = readFileSync(resolve(__dirname, "../../../../src/index.css"), "utf8");
   const blocks: Record<string, Record<string, string>> = {};
-  for (const match of css.matchAll(/^:root(?:\[data-theme-id="([a-z-]+)"\])? \{([\s\S]*?)^\}/gm)) {
+  for (const match of css.matchAll(/^:root(?:\[data-theme-id="([a-z-]+)"\])?(?:, \[data-theme-preview="[a-z-]+"\])? \{([\s\S]*?)^\}/gm)) {
     const tokens: Record<string, string> = {};
     for (const token of match[2]!.matchAll(/^\s*(--[a-z0-9-]+):\s*([^;]+);/gm)) {
       tokens[token[1]!] = token[2]!.trim();
