@@ -5,6 +5,7 @@ import { AdminMediaController } from "./admin-media.controller";
 import { AdminCommunityController } from "./admin-community.controller";
 import { AdminAuditController } from "./admin-audit.controller";
 import { AdminOverviewController } from "./admin-overview.controller";
+import { AdminCacheController } from "./admin-cache.controller";
 import { asyncHandler } from "../../commons/utils/asyncHandler";
 import { requireAuth } from "../../commons/middlewares/requireAuth";
 import { requireAdmin } from "../../commons/middlewares/requireAdmin";
@@ -47,6 +48,10 @@ router.get("/serials", asyncHandler(AdminMediaController.listSerials));
 router.patch("/serials/:id", asyncHandler(AdminMediaController.updateSerial));
 router.post("/serials/:id/refresh", asyncHandler(AdminMediaController.refreshSerial));
 router.delete("/serials/:id", asyncHandler(AdminMediaController.deleteSerial));
+
+router.get("/cache", asyncHandler(AdminCacheController.summary));
+router.post("/cache/refresh-oldest", asyncHandler(AdminCacheController.refreshOldest));
+router.post("/cache/purge", asyncHandler(AdminCacheController.purge));
 
 router.get("/lists", asyncHandler(AdminCommunityController.listLists));
 router.delete("/lists/:id", asyncHandler(AdminCommunityController.deleteList));

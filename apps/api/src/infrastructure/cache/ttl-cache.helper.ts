@@ -1,3 +1,6 @@
+// Process-wide hit/miss counts since the server started, shown in the admin cache tools.
+export const memoryCacheCounters = { startedAt: new Date(), hits: 0, misses: 0 };
+
 const DEFAULT_TTL_MS = 30 * 60 * 1000;
 const DEFAULT_MAX_ENTRIES = 1_000;
 
@@ -60,6 +63,7 @@ export const createTtlCache = <Args extends unknown[], T>(
     const cached = cache.get(key);
 
     if (cached && cached.expiresAt > now) {
+      memoryCacheCounters.hits += 1;
       return cached.value;
     }
 
@@ -69,8 +73,11 @@ export const createTtlCache = <Args extends unknown[], T>(
 
     const inFlightRequest = inFlight.get(key);
     if (inFlightRequest) {
+      memoryCacheCounters.hits += 1;
       return inFlightRequest;
     }
+
+    memoryCacheCounters.misses += 1;
 
     const requestPromise = (async () => {
       const value = await fetcher(...args);
