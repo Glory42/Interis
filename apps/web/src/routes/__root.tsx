@@ -32,7 +32,7 @@ const RootLayout = () => {
       <HeadContent />
       <GlobalSearchDialogProvider>
         <div className="relative z-10 flex min-h-screen flex-col">
-          {isGuestLanding ? null : <AppNavbar />}
+          <AppNavbar />
           <main className={cn("min-w-0 flex-1 pb-10", showTabBar && "pb-24 md:pb-10")}>
             <div className="animate-route-enter motion-reduce:animate-none">
               <Outlet />
