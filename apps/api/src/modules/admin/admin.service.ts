@@ -1,12 +1,57 @@
-import { BadRequestError } from "../../commons/errors/app-error";
+import { BadRequestError, NotFoundError } from "../../commons/errors/app-error";
 import { AuthService } from "../auth/auth.service";
 import { AuthUsersRepository } from "../auth/repositories/auth-users.repository";
+import { SessionService } from "../auth/services/session.service";
 import { UsersService } from "../users/users.service";
 import { AdminRepository } from "./repositories/admin.repository";
 
 export class AdminService {
   static async listUsers(query: string | undefined, limit: number, offset: number) {
     return AdminRepository.listUsers(query, limit, offset);
+  }
+
+  // Account, activity counts and live sessions; refresh-token hashes never leave the server.
+  static async getUserDetail(username: string) {
+    const account = await AdminRepository.findUserDetail(username);
+    if (!account) {
+      throw new NotFoundError("User not found");
+    }
+
+    const [stats, reportCounts, sessionRows] = await Promise.all([
+      UsersService.getStats(account.id),
+      AdminRepository.countReports(account.id),
+      SessionService.listSessionsForUser(account.id),
+    ]);
+    const now = Date.now();
+    const sessions = sessionRows
+      .filter((session) => session.expiresAt.getTime() > now)
+      .map(({ id, userAgent, ipAddress, createdAt, updatedAt, expiresAt }) => ({
+        id,
+        userAgent,
+        ipAddress,
+        createdAt,
+        lastActiveAt: updatedAt,
+        expiresAt,
+      }));
+
+    return { user: account, counts: { ...stats, ...reportCounts }, sessions };
+  }
+
+  static async revokeUserSessions(
+    actorId: string,
+    adminPassword: string | undefined,
+    username: string,
+  ): Promise<string> {
+    const [, userRow] = await Promise.all([
+      AuthService.assertCurrentPassword(actorId, adminPassword),
+      AuthUsersRepository.findByUsername(username),
+    ]);
+    if (!userRow) {
+      throw new BadRequestError("User not found");
+    }
+
+    await SessionService.revokeAllSessionsForUser(userRow.id);
+    return userRow.id;
   }
 
   static async resetUserPassword(
