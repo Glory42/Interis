@@ -2,7 +2,6 @@ import { useState, type ReactNode } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { EmailForm, PasswordForm, RecoveryQuestionForm } from "@/features/settings/components/account/AccountForms";
 import { maskEmail } from "@/features/settings/model/mask-email";
-import { SettingsDeleteAccountCard } from "./SettingsDeleteAccountCard";
 import { TickLoader } from "@/components/ui/tick-loader";
 
 type OpenForm = "email" | "password" | "question" | null;
@@ -55,7 +54,7 @@ export const SettingsAuthSection = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div>
       <section>
         <h2 className="display-4 text-foreground">Account &amp; security</h2>
         <div className="mt-3 border-t border-[color:var(--line)]">
@@ -78,8 +77,6 @@ export const SettingsAuthSection = () => {
         </div>
         {notice ? <p className="body-s mt-3 text-primary">{notice}</p> : null}
       </section>
-
-      <SettingsDeleteAccountCard />
     </div>
   );
 };

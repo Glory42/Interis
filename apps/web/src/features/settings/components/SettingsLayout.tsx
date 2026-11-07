@@ -70,7 +70,7 @@ export const SettingsLayout = ({ children }: SettingsLayoutProps) => {
                 );
               })}
               <Link
-                to="/settings/auth"
+                to="/settings/data"
                 hash="delete-account"
                 className={cn(navLink, "mt-4 border-transparent text-[color:var(--danger)] hover:opacity-80")}
               >
