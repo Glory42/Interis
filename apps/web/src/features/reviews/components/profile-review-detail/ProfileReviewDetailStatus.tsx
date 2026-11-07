@@ -1,8 +1,10 @@
+import { DocumentSkeleton, LineRowsSkeleton } from "@/components/ui/PageSkeletons";
+
 export const ProfileReviewDetailPending = () => {
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-12">
-      <div className="h-64 animate-pulse border border-border/60 bg-card/35" />
-    </div>
+    <DocumentSkeleton label="Loading review">
+      <LineRowsSkeleton count={3} />
+    </DocumentSkeleton>
   );
 };
 

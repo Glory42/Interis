@@ -1,3 +1,4 @@
+import { LoadingRegion, TitleRowsSkeleton } from "@/components/ui/PageSkeletons";
 import { Link } from "@tanstack/react-router";
 import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
 import { toFeedDays, verbFor, type FeedRow } from "@/features/feed/components/feed-days";
@@ -84,7 +85,13 @@ const Row = ({ row }: { row: FeedRow }) => {
 
 // The profile's recent activity, one row per title per day under thin date lines.
 export const ProfileOverviewActivity = ({ entries, isPending, isError }: ProfileOverviewActivityProps) => {
-  if (isPending) return <div className="h-40 animate-pulse rounded-[3px] bg-muted/20" />;
+  if (isPending) {
+    return (
+      <LoadingRegion label="Loading activity">
+        <TitleRowsSkeleton count={3} posterWidth="w-9" />
+      </LoadingRegion>
+    );
+  }
   if (isError) return <p className="body-s text-[color:var(--danger)]">Could not load recent activity.</p>;
   if (entries.length === 0) return null;
 

@@ -1,3 +1,5 @@
+import { LoadingRegion, TitleRowsSkeleton } from "@/components/ui/PageSkeletons";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { Link } from "@tanstack/react-router";
 import { FeedActivityCard } from "@/features/feed/components/FeedActivityCard";
 import { FeedTitleCard } from "@/features/feed/components/FeedTitleCard";
@@ -9,17 +11,6 @@ type FeedDayListProps = {
   isError: boolean;
   days: FeedDay[];
 };
-
-const FeedSkeletonRow = () => (
-  <div className="flex animate-pulse gap-3 rounded-[3px] border border-[color:var(--line)] p-3">
-    <div className="aspect-2/3 w-[62px] shrink-0 rounded-[2px] bg-muted/40" />
-    <div className="min-w-0 flex-1 space-y-2.5 pt-1">
-      <div className="h-3 w-24 rounded bg-muted/40" />
-      <div className="h-4 w-48 rounded bg-muted/35" />
-      <div className="h-3 w-2/3 rounded bg-muted/20" />
-    </div>
-  </div>
-);
 
 const LikesLine = ({ row }: { row: Extract<FeedRow, { kind: "likes" }> }) => (
   <div className="flex items-center gap-2 rounded-[3px] border border-[color:var(--line)] px-3 py-2 text-xs">
@@ -46,11 +37,10 @@ const renderRow = (row: FeedRow) => {
 export const FeedDayList = ({ isLoading, isError, days }: FeedDayListProps) => {
   if (isLoading) {
     return (
-      <div className="space-y-3">
-        {Array.from({ length: 4 }, (_, index) => (
-          <FeedSkeletonRow key={index} />
-        ))}
-      </div>
+      <LoadingRegion label="Loading feed" className="space-y-3">
+        <Skeleton className="h-2.5 w-28 rounded-sm" />
+        <TitleRowsSkeleton count={4} posterWidth="w-[62px]" bordered />
+      </LoadingRegion>
     );
   }
 

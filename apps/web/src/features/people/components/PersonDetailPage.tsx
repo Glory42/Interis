@@ -5,6 +5,7 @@ import { PersonFilmography } from "./person-detail/PersonFilmography";
 import { PersonHero } from "./person-detail/PersonHero";
 import { PersonKnownFor } from "./person-detail/PersonKnownFor";
 import { type CreditMediaTab, type CreditRoleTab } from "./person-detail/types";
+import { DocumentSkeleton, PosterGridSkeleton } from "@/components/ui/PageSkeletons";
 
 type PersonDetailPageProps = {
   role: PersonRouteRole;
@@ -32,9 +33,9 @@ export const PersonDetailPage = ({ role, slug }: PersonDetailPageProps) => {
 
   if (detailQuery.isPending) {
     return (
-      <main className="mx-auto w-full max-w-5xl px-4 py-10">
-        <div className="h-64 animate-pulse rounded-[3px] bg-muted/20" />
-      </main>
+      <DocumentSkeleton label="Loading person">
+        <PosterGridSkeleton count={12} />
+      </DocumentSkeleton>
     );
   }
 

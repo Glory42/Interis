@@ -8,6 +8,7 @@ import { type MovieDetailReviewSort } from "@/features/movies/api";
 import { LogMovieModal } from "@/features/diary/components/LogMovieModal";
 import { MovieDetailsMainSection } from "@/features/movies/components/movie-detail/MovieDetailsMainSection";
 import { MediaDetailStatusPanel } from "@/features/media/detail/MediaDetailStatusPanel";
+import { MediaDetailSkeleton } from "@/components/ui/PageSkeletons";
 import { MovieReviewsSection } from "@/features/movies/components/movie-detail/MovieReviewsSection";
 import { UnwatchMovieDialog } from "@/features/movies/components/movie-detail/UnwatchMovieDialog";
 import { MOVIE_MODULE_STYLES } from "@/features/media/styles";
@@ -69,13 +70,7 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
   }
 
   if (detailQuery.isPending) {
-    return (
-      <MediaDetailStatusPanel
-        message="Loading..."
-        moduleStyles={MOVIE_MODULE_STYLES}
-        loading
-      />
-    );
+    return <MediaDetailSkeleton label="Loading film" />;
   }
 
   if (detailQuery.isError || !detailQuery.data) {

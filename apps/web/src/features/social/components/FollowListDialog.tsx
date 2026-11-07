@@ -1,3 +1,4 @@
+import { LineRowsSkeleton, LoadingRegion } from "@/components/ui/PageSkeletons";
 import { Link } from "@tanstack/react-router";
 import { ModalHeader } from "@/components/ui/ModalHeader";
 import { ModalShell } from "@/components/ui/ModalShell";
@@ -8,7 +9,6 @@ import {
   useUnfollowFromList,
   useRemoveFollowerFromList,
 } from "@/features/social/hooks/useSocial";
-import { TickLoader } from "@/components/ui/tick-loader";
 
 type FollowListDialogProps = {
   isOpen: boolean;
@@ -47,9 +47,9 @@ export const FollowListDialog = ({
 
         <div className="max-h-[420px] overflow-y-auto">
             {query.isPending ? (
-              <div className="flex items-center justify-center py-10">
-                <TickLoader />
-              </div>
+              <LoadingRegion label={`Loading ${title.toLowerCase()}`} className="px-4">
+                <LineRowsSkeleton count={5} />
+              </LoadingRegion>
             ) : query.isError ? (
               <p className="py-10 text-center font-mono text-xs text-muted-foreground">
                 Could not load {title.toLowerCase()}.

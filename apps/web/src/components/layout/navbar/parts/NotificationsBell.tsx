@@ -1,3 +1,4 @@
+import { LineRowsSkeleton, LoadingRegion } from "@/components/ui/PageSkeletons";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Bell } from "lucide-react";
@@ -11,7 +12,6 @@ import {
   useUnreadNotificationCount,
 } from "@/features/notifications/hooks/useNotifications";
 import { formatRelativeTime } from "@/lib/time";
-import { TickLoader } from "@/components/ui/tick-loader";
 
 const messageByType: Record<NotificationType, string> = {
   follow: "started following you",
@@ -155,9 +155,9 @@ export const NotificationsBell = () => {
 
           <div className="max-h-96 overflow-y-auto">
             {listQuery.isPending ? (
-              <div className="flex items-center justify-center py-8">
-                <TickLoader />
-              </div>
+              <LoadingRegion label="Loading notifications" className="px-3">
+                <LineRowsSkeleton count={4} />
+              </LoadingRegion>
             ) : notifications.length === 0 ? (
               <p className="py-8 text-center font-mono text-xs text-muted-foreground">
                 No notifications yet.

@@ -1,3 +1,4 @@
+import { LineRowsSkeleton, LoadingRegion } from "@/components/ui/PageSkeletons";
 import { useState } from "react";
 import { Check, List, Plus } from "lucide-react";
 import { ModalHeader } from "@/components/ui/ModalHeader";
@@ -9,7 +10,6 @@ import {
   useUserListsForItem,
 } from "@/features/lists/hooks/useLists";
 import { runDialogSubmit } from "@/lib/fire-and-forget";
-import { TickLoader } from "@/components/ui/tick-loader";
 
 type AddToListDialogProps = {
   tmdbId: number;
@@ -76,9 +76,9 @@ export const AddToListDialog = ({
 
             <div className="max-h-[360px] overflow-y-auto">
                     {listsQuery.isPending ? (
-                      <div className="flex items-center justify-center py-8">
-                        <TickLoader />
-                      </div>
+                      <LoadingRegion label="Loading your lists" className="px-4">
+                        <LineRowsSkeleton count={4} withAvatar={false} />
+                      </LoadingRegion>
                     ) : listsQuery.isError ? (
                       <p className="py-8 text-center font-mono text-xs text-muted-foreground">
                         Could not load lists.

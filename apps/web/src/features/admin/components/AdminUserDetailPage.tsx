@@ -1,6 +1,6 @@
+import { DocumentSkeleton, LineRowsSkeleton } from "@/components/ui/PageSkeletons";
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { TickLoader } from "@/components/ui/tick-loader";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { AdminUserActions } from "@/features/admin/components/AdminUserActions";
 import { useAdminUserDetail } from "@/features/admin/hooks/useAdminUserDetail";
@@ -29,11 +29,9 @@ export const AdminUserDetailPage = ({ username }: { username: string }) => {
   const { data, isPending, isError } = useAdminUserDetail(username);
 
   if (isPending) {
-    return (
-      <p className="body-s flex items-center gap-2 text-muted-foreground">
-        <TickLoader /> Loading @{username}…
-      </p>
-    );
+    return <DocumentSkeleton label={`Loading @${username}`} withPoster={false} className="max-w-none px-0 py-0">
+        <LineRowsSkeleton count={5} />
+      </DocumentSkeleton>;
   }
   if (isError) return <p className="body-s text-[color:var(--danger)]">Could not load this user.</p>;
 

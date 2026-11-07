@@ -1,8 +1,8 @@
+import { SettingsSectionSkeleton } from "@/components/ui/PageSkeletons";
 import { useState, type ReactNode } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { EmailForm, PasswordForm, RecoveryQuestionForm } from "@/features/settings/components/account/AccountForms";
 import { maskEmail } from "@/features/settings/model/mask-email";
-import { TickLoader } from "@/components/ui/tick-loader";
 
 type OpenForm = "email" | "password" | "question" | null;
 
@@ -36,11 +36,7 @@ export const SettingsAuthSection = () => {
   const [notice, setNotice] = useState<string | null>(null);
 
   if (isUserLoading || !user) {
-    return (
-      <p className="body-s flex items-center gap-2 text-muted-foreground">
-        <TickLoader /> Loading account settings…
-      </p>
-    );
+    return <SettingsSectionSkeleton label="Loading account settings" />;
   }
 
   const toggle = (form: Exclude<OpenForm, null>) => () => {

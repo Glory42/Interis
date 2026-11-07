@@ -1,6 +1,6 @@
+import { LineRowsSkeleton, LoadingRegion } from "@/components/ui/PageSkeletons";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { TickLoader } from "@/components/ui/tick-loader";
 
 type AdminPanelStateProps<T> = {
   query: {
@@ -24,9 +24,9 @@ export const AdminPanelState = <T,>({
 }: AdminPanelStateProps<T>) => {
   if (query.isPending) {
     return (
-      <div className="flex items-center justify-center py-10">
-        <TickLoader />
-      </div>
+      <LoadingRegion label="Loading">
+        <LineRowsSkeleton count={6} />
+      </LoadingRegion>
     );
   }
 

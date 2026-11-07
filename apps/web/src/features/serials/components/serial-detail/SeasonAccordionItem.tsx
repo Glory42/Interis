@@ -1,3 +1,4 @@
+import { LineRowsSkeleton, LoadingRegion } from "@/components/ui/PageSkeletons";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { SerialDetailResponse } from "@/features/serials/api";
@@ -220,7 +221,9 @@ export const SeasonAccordionItem = ({
       {showEpisodes ? (
         <div className={cn("border-t border-[color:var(--line)]", variant === "accordion" && "mb-3 ml-[46px]")}>
           {seasonDetailQuery.isPending ? (
-            <p className="body-s py-3 text-muted-foreground">Loading episodes…</p>
+            <LoadingRegion label="Loading episodes">
+              <LineRowsSkeleton count={4} withAvatar={false} />
+            </LoadingRegion>
           ) : seasonDetailQuery.isError ? (
             <p className="body-s py-3 text-[color:var(--danger)]">Could not load episodes for this season.</p>
           ) : episodes.length === 0 ? (

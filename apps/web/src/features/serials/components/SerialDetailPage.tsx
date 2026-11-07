@@ -31,6 +31,7 @@ import { BELOW_MD_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { toLanguageLabel as toSeriesLanguageLabel } from "@/features/serials/components/utils";
 import { MediaSimilarSection } from "@/features/media/detail/MediaSimilarSection";
 import { MediaDetailStatusPanel } from "@/features/media/detail/MediaDetailStatusPanel";
+import { MediaDetailSkeleton } from "@/components/ui/PageSkeletons";
 import {
   MediaActionsSidebar,
   type MediaAction,
@@ -72,13 +73,7 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
   }
 
   if (detailQuery.isPending) {
-    return (
-      <MediaDetailStatusPanel
-        message="Loading..."
-        moduleStyles={SERIAL_MODULE_STYLES}
-        loading
-      />
-    );
+    return <MediaDetailSkeleton label="Loading show" />;
   }
 
   if (detailQuery.isError || !detailQuery.data) {

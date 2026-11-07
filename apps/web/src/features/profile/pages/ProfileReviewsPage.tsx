@@ -1,5 +1,5 @@
+import { LoadingRegion, TitleRowsSkeleton } from "@/components/ui/PageSkeletons";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
-import { ReviewCardSkeleton } from "@/features/profile/components/ReviewCardSkeleton";
 import { ProfileReviewRow } from "@/features/profile/components/ProfileReviewRow";
 import { useIsOwnProfile, useUserProfile, useUserReviews } from "@/features/profile/hooks/useProfile";
 
@@ -17,11 +17,9 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
   return (
     <>
       {reviewsQuery.isPending ? (
-        <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <ReviewCardSkeleton key={`review-skeleton-${index}`} />
-          ))}
-        </div>
+        <LoadingRegion label="Loading reviews">
+          <TitleRowsSkeleton count={4} />
+        </LoadingRegion>
       ) : null}
 
       {reviewsQuery.isError ? (

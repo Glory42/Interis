@@ -1,3 +1,4 @@
+import { LineRowsSkeleton, LoadingRegion } from "@/components/ui/PageSkeletons";
 import { Flag, PenSquare, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -83,7 +84,9 @@ export const ProfileReviewCommentsSection = ({
 
       <div className="space-y-3">
         {commentsPending ? (
-          <p className="text-xs text-muted-foreground">Loading comments...</p>
+          <LoadingRegion label="Loading comments">
+            <LineRowsSkeleton count={2} />
+          </LoadingRegion>
         ) : null}
 
         {commentsError ? <p className="text-xs text-destructive">Could not load comments.</p> : null}

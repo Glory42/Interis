@@ -1,3 +1,4 @@
+import { SettingsSectionSkeleton } from "@/components/ui/PageSkeletons";
 import { useState, type FormEvent } from "react";
 import { Camera, Globe } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -10,7 +11,6 @@ import {
 import { useUpdateMyProfile } from "@/features/profile/hooks/useProfile";
 import { useProfileImageUpload } from "@/features/settings/hooks/useProfileImageUpload";
 import { isApiError } from "@/lib/api-client";
-import { TickLoader } from "@/components/ui/tick-loader";
 
 export const SettingsProfileSection = () => {
   const { user, isUserLoading, updateIdentity, isUpdateIdentityPending } = useAuth();
@@ -34,13 +34,7 @@ export const SettingsProfileSection = () => {
   } = useProfileImageUpload(user);
 
   if (isUserLoading || !user) {
-    return (
-      <div className="border px-4 py-3 text-sm shell-border shell-muted surface">
-        <p className="flex items-center gap-2">
-          <TickLoader /> Loading profile settings...
-        </p>
-      </div>
-    );
+    return <SettingsSectionSkeleton label="Loading profile settings" />;
   }
 
   const isSaving = isUpdateIdentityPending || updateProfileMutation.isPending;

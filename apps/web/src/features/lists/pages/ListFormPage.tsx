@@ -14,6 +14,7 @@ import { ListMetadataFields } from "@/features/lists/components/ListMetadataFiel
 import { ListItemSearch, type SearchResult } from "@/features/lists/components/ListItemSearch";
 import { ListItemsEditor } from "@/features/lists/components/ListItemsEditor";
 import { TickLoader } from "@/components/ui/tick-loader";
+import { SettingsSectionSkeleton } from "@/components/ui/PageSkeletons";
 
 type PendingItem = SearchResult;
 
@@ -29,11 +30,7 @@ export const ListFormPage = (props: ListFormPageProps) => {
   const list = mode === "edit" ? (detailQuery.data ?? null) : null;
 
   if (mode === "edit" && detailQuery.isPending) {
-    return (
-      <div className="flex items-center gap-2 py-10 text-sm text-muted-foreground">
-        <TickLoader /> Loading list...
-      </div>
-    );
+    return <SettingsSectionSkeleton label="Loading list" />;
   }
 
   if (mode === "edit" && (detailQuery.isError || !list)) {

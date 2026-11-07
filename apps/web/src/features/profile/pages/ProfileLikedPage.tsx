@@ -1,3 +1,4 @@
+import { LoadingRegion, TitleRowsSkeleton } from "@/components/ui/PageSkeletons";
 import { useMemo, useState } from "react";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import { LikedMediaGrid, type MediaFilter } from "@/features/profile/components/LikedMediaGrid";
@@ -101,7 +102,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
       {activeTab === "medias" ? (
         <>
           {mediasQuery.isPending ? (
-            <ProfileMediaGridSkeleton />
+            <ProfileMediaGridSkeleton label="Loading liked titles" />
           ) : mediasQuery.isError ? (
             <div className="rounded-lg border border-border/60 bg-card/30 p-4 text-sm text-destructive">
               Could not load liked media.
@@ -130,9 +131,9 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
       {activeTab === "reviews" ? (
         <>
           {reviewsQuery.isPending ? (
-            <div className="rounded-lg border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
-              Loading liked reviews...
-            </div>
+            <LoadingRegion label="Loading liked reviews">
+              <TitleRowsSkeleton count={3} />
+            </LoadingRegion>
           ) : reviewsQuery.isError ? (
             <div className="rounded-lg border border-border/60 bg-card/30 p-4 text-sm text-destructive">
               Could not load liked reviews.
@@ -169,9 +170,9 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
       {activeTab === "lists" ? (
         <>
           {listsQuery.isPending ? (
-            <div className="rounded-lg border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
-              Loading liked lists...
-            </div>
+            <LoadingRegion label="Loading liked lists">
+              <TitleRowsSkeleton count={3} />
+            </LoadingRegion>
           ) : listsQuery.isError ? (
             <div className="rounded-lg border border-border/60 bg-card/30 p-4 text-sm text-destructive">
               Could not load liked lists.

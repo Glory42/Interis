@@ -1,7 +1,8 @@
+import { Skeleton } from "@/components/ui/Skeleton";
+import { LoadingRegion } from "@/components/ui/PageSkeletons";
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { TickLoader } from "@/components/ui/tick-loader";
 import type { CacheKind, RefreshResult } from "@/features/admin/cache-api";
 import { useCacheSummary, usePurgeUnreferenced, useRefreshOldest } from "@/features/admin/hooks/useAdminCache";
 import { isApiError } from "@/lib/api-client";
@@ -30,9 +31,14 @@ export const AdminCachePage = () => {
 
   if (summary.isPending) {
     return (
-      <p className="body-s flex items-center gap-2 text-muted-foreground">
-        <TickLoader /> Counting…
-      </p>
+      <LoadingRegion label="Loading cache" className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {Array.from({ length: 4 }, (_, index) => (
+          <div key={index} className="space-y-2 rounded-[3px] border border-[color:var(--line)] p-3">
+            <Skeleton className="h-2.5 w-16 rounded-sm" />
+            <Skeleton className="h-7 w-20 rounded-sm" />
+          </div>
+        ))}
+      </LoadingRegion>
     );
   }
   if (summary.isError) return <p className="body-s text-[color:var(--danger)]">Could not load the cache summary.</p>;

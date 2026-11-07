@@ -1,5 +1,5 @@
+import { LineRowsSkeleton, LoadingRegion } from "@/components/ui/PageSkeletons";
 import { useState, type FormEvent } from "react";
-import { TickLoader } from "@/components/ui/tick-loader";
 import { useAuditLog } from "@/features/admin/hooks/useAdminAuditComments";
 
 const stamp = (date: Date) => date.toISOString().slice(5, 16).replace("T", " ");
@@ -31,9 +31,9 @@ export const AdminAuditPage = () => {
       </form>
 
       {query.isPending ? (
-        <p className="body-s flex items-center gap-2 text-muted-foreground">
-          <TickLoader /> Loading…
-        </p>
+        <LoadingRegion label="Loading audit log">
+          <LineRowsSkeleton count={8} />
+        </LoadingRegion>
       ) : query.isError ? (
         <p className="body-s text-[color:var(--danger)]">Could not load the audit log.</p>
       ) : query.data.length === 0 ? (

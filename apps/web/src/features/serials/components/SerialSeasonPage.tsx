@@ -1,3 +1,5 @@
+import { LineRowsSkeleton, LoadingRegion } from "@/components/ui/PageSkeletons";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
 import { SeasonAccordionItem } from "@/features/serials/components/serial-detail/SeasonAccordionItem";
@@ -30,9 +32,14 @@ export const SerialSeasonPage = ({ tmdbId, seasonNumber }: SerialSeasonPageProps
     return (
       <main className="mx-auto max-w-3xl px-4 py-6">
         {backLink}
-        <p className="body-s mt-4 text-muted-foreground">
-          {detailQuery.isPending ? "Loading season…" : "This season isn't available."}
-        </p>
+        {detailQuery.isPending ? (
+          <LoadingRegion label="Loading season" className="mt-4 space-y-4">
+            <Skeleton className="h-24 w-full rounded-[3px]" />
+            <LineRowsSkeleton count={6} withAvatar={false} />
+          </LoadingRegion>
+        ) : (
+          <p className="body-s mt-4 text-muted-foreground">This season isn&apos;t available.</p>
+        )}
       </main>
     );
   }

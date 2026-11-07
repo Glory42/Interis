@@ -1,3 +1,5 @@
+import { LoadingRegion } from "@/components/ui/PageSkeletons";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { Link } from "@tanstack/react-router";
 import { CreditsList } from "@/components/film/CreditsList";
 import { OutlinedRank } from "@/components/film/OutlinedRank";
@@ -36,7 +38,14 @@ export const FeedRail = ({ films, shows, week, isLoading, now }: FeedRailProps) 
     <section aria-label="Now showing">
       <p className="kicker text-[color:var(--film)]">{`Now showing · WK ${toIsoWeek(now ?? new Date())}`}</p>
       {isLoading ? (
-        <div className="mt-2 h-40 animate-pulse rounded-[3px] bg-muted/25" />
+        <LoadingRegion label="Loading now showing" className="mt-1.5">
+          {Array.from({ length: 5 }, (_, index) => (
+            <div key={index} className="flex items-center gap-2.5 border-b border-[color:var(--line)] py-2 last:border-b-0">
+              <Skeleton className="h-4 w-4 rounded-sm" />
+              <Skeleton className="h-3 rounded-sm" style={{ width: `${55 + ((index * 13) % 30)}%` }} />
+            </div>
+          ))}
+        </LoadingRegion>
       ) : (
         <>
           <RankedList items={films.slice(0, 5)} to="/movies/$tmdbId" />

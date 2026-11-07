@@ -1,26 +1,18 @@
 import { Skeleton } from "@/components/ui/Skeleton";
 
-export const DiaryRowSkeleton = () => {
-  return (
-    <div
-      className="grid grid-cols-[1fr] items-center gap-3 border-b px-2 py-3 md:grid-cols-[80px_48px_56px_1fr_80px_120px_32px_32px_32px]"
-      style={{ borderColor: "var(--shell-row-border)" }}
-    >
-      <Skeleton className="hidden h-14 w-16 border border-border/40 bg-card/25 md:block" />
-      <Skeleton className="hidden h-5 w-6 md:block" />
-      <Skeleton className="hidden h-14 w-10 border border-border/40 bg-card/25 md:block" />
-
-      <div className="min-w-0 space-y-2">
-        <Skeleton className="h-3 w-2/3 md:hidden" />
-        <Skeleton className="h-4 w-3/4" />
-        <Skeleton className="h-3 w-1/3 bg-border/30 md:hidden" />
-      </div>
-
-      <Skeleton className="hidden h-3 w-10 bg-border/30 md:block" />
-      <Skeleton className="hidden h-3 w-16 bg-border/30 md:block" />
-      <Skeleton className="hidden h-3.5 w-3.5 bg-border/30 md:block" />
-      <Skeleton className="hidden h-3.5 w-3.5 bg-border/30 md:block" />
-      <Skeleton className="hidden h-3.5 w-3.5 bg-border/30 md:block" />
+// Mirrors DiaryRow: day column, small poster, title and kicker, then the rockets.
+export const DiaryRowSkeleton = () => (
+  <div className="flex items-center gap-3 border-b border-[color:var(--line)] py-2.5">
+    <div className="flex w-9 shrink-0 flex-col items-center gap-1 sm:w-11">
+      <Skeleton className="h-5 w-6 rounded-sm" />
+      <Skeleton className="h-2 w-5 rounded-sm" />
     </div>
-  );
-};
+    <Skeleton shape="poster" className="w-10 shrink-0 rounded-[2px]" />
+    <div className="min-w-0 flex-1 space-y-1.5">
+      <Skeleton className="h-3.5 w-1/2 rounded-sm" />
+      <Skeleton className="h-2 w-16 rounded-sm" />
+    </div>
+    <Skeleton className="hidden h-3 w-28 rounded-sm sm:block" />
+    <Skeleton className="h-3 w-10 rounded-sm sm:hidden" />
+  </div>
+);

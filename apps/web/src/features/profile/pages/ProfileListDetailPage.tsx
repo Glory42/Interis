@@ -4,12 +4,12 @@ import { ArrowLeft, Ellipsis, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { SentenceSelect } from "@/components/ui/SentenceSelect";
-import { TickLoader } from "@/components/ui/tick-loader";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { ReportContentDialog } from "@/features/reports/components/ReportContentDialog";
 import { ListDetailPoster, ListDetailRow } from "@/features/lists/components/ListDetailItems";
 import { useDeleteList, useLikeList, useListDetail, useUnlikeList } from "@/features/lists/hooks/useLists";
 import { cn } from "@/lib/utils";
+import { DocumentSkeleton, PosterGridSkeleton } from "@/components/ui/PageSkeletons";
 
 type ProfileListDetailPageProps = {
   username: string;
@@ -48,9 +48,9 @@ export const ProfileListDetailPage = ({ username, listId }: ProfileListDetailPag
 
   if (detailQuery.isPending) {
     return (
-      <div className="body-s flex items-center gap-2 py-10 text-muted-foreground">
-        <TickLoader /> Loading list…
-      </div>
+      <DocumentSkeleton label="Loading list" withPoster={false} className="max-w-none px-0 py-0">
+        <PosterGridSkeleton count={6} />
+      </DocumentSkeleton>
     );
   }
 

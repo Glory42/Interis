@@ -1,3 +1,4 @@
+import { SettingsSectionSkeleton } from "@/components/ui/PageSkeletons";
 import { useState } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useUpdateMyProfile } from "@/features/profile/hooks/useProfile";
@@ -7,7 +8,6 @@ import {
 } from "@/features/settings/model/settings.constants";
 import { isApiError } from "@/lib/api-client";
 import type { FavoriteGenre } from "@/types/api";
-import { TickLoader } from "@/components/ui/tick-loader";
 import { cn } from "@/lib/utils";
 
 const toUniqueKnownGenres = (
@@ -43,13 +43,7 @@ export const SettingsGenresSection = () => {
   const [saveError, setSaveError] = useState<string | null>(null);
 
   if (isUserLoading || !user) {
-    return (
-      <div className="border px-4 py-3 text-sm shell-border shell-muted surface">
-        <p className="flex items-center gap-2">
-          <TickLoader /> Loading genre settings...
-        </p>
-      </div>
-    );
+    return <SettingsSectionSkeleton label="Loading genre settings" />;
   }
 
   // Each tap saves on its own; a failed save puts the chips back.
