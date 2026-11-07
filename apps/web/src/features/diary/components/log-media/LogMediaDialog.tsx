@@ -1,17 +1,11 @@
-import type { FormEvent } from "react";
-import {
-  AlertTriangle,
-  MessageSquare,
-  Rocket,
-  X,
-  Heart,
-} from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { Heart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModalShell } from "@/components/ui/ModalShell";
-import { Textarea } from "@/components/ui/textarea";
 import { LaunchTrack } from "@/components/film/rating/LaunchTrack";
-import { CalendarPicker } from "@/components/ui/CalendarPicker";
-import { todayAsLocalDateInput } from "@/lib/time";
+import { LogMediaWhen } from "@/features/diary/components/log-media/LogMediaWhen";
+import { LogReviewField } from "@/features/diary/components/log-media/LogReviewField";
+import { PHONE_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
 
 type LogMediaDialogProps = {
@@ -31,26 +25,25 @@ type LogMediaDialogProps = {
   onLikedChange: (nextValue: boolean) => void;
   onReviewChange: (nextValue: string) => void;
   onContainsSpoilersChange: (nextValue: boolean) => void;
-  // Aside identity — either year-based or a freeform subtitle
+  // Shown in the slate after the medium: a year for films and series, "S02 · E04" for episodes.
   year?: number | null;
-  yearDescriptionLabel?: string;
   subtitle?: string;
-  // Date-picker mode (movie / series log)
+  // Log mode (film / series): a watch date and rewatch.
   watchedDate?: string;
   onWatchedDateChange?: (nextValue: string) => void;
   rewatch?: boolean;
   onRewatchChange?: (nextValue: boolean) => void;
-  // Simple watched-toggle mode (season / episode review)
+  // Review mode (season / episode): a single Watched box.
   watched?: boolean;
   onWatchedChange?: (nextValue: boolean) => void;
-  // Footer extras
   onDelete?: () => void;
   submitLabel?: string;
-  // Content-type accent — movie vs serial (series/season/episode).
-  // Defaults to the active theme's generic primary color.
   accent?: "movie" | "serial";
 };
 
+const accentByKind = { movie: "var(--film)", serial: "var(--series)" } as const;
+
+// One form on every screen: a modal on desktop, full screen with Cancel and Save on top on phones.
 export const LogMediaDialog = ({
   title,
   posterUrl,
@@ -69,7 +62,6 @@ export const LogMediaDialog = ({
   onReviewChange,
   onContainsSpoilersChange,
   year,
-  yearDescriptionLabel,
   subtitle,
   watchedDate,
   onWatchedDateChange,
@@ -78,208 +70,192 @@ export const LogMediaDialog = ({
   watched,
   onWatchedChange,
   onDelete,
-  submitLabel = "Post Review",
+  submitLabel,
   accent,
 }: LogMediaDialogProps) => {
-  const accentColor =
-    accent === "movie" ? "var(--module-movie)" : accent === "serial" ? "var(--module-serial)" : "var(--primary)";
-  const headerSubtitle = subtitle
-    ? `${title} · ${subtitle}`
-    : `${title}${year ? ` (${year})` : ""}`;
+  const isPhone = useMediaQuery(PHONE_QUERY);
+  const [isWriting, setIsWriting] = useState(false);
+  const accentColor = accent ? accentByKind[accent] : "var(--primary)";
+  const isLog = watchedDate !== undefined && onWatchedDateChange !== undefined;
+  const slateLabel = [
+    isLog ? "Log" : "Review",
+    accent === "movie" ? "Film" : accent === "serial" ? "TV" : null,
+    subtitle ?? (year ? String(year) : null),
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const hasText = review.trim().length > 0;
+  const saveLabel = isSubmitting
+    ? "Saving…"
+    : (submitLabel ?? (isPhone ? (hasText ? "Post" : "Save") : hasText ? "Post review" : "Save log"));
+  // While typing on a phone the header shrinks to one line so the review keeps the room.
+  const isCompact = isPhone && isWriting;
 
-  const asideDescription = subtitle
-    ?? (year ? `${yearDescriptionLabel} ${year}` : yearDescriptionLabel ? `${yearDescriptionLabel} unavailable` : null);
+  const deleteLink = onDelete ? (
+    <button
+      type="button"
+      onClick={onDelete}
+      disabled={isSubmitting}
+      className="body-s text-[color:var(--danger)] hover:underline disabled:opacity-50"
+    >
+      Delete review
+    </button>
+  ) : null;
+
+  const likeButton = (
+    <button
+      type="button"
+      onClick={() => onLikedChange(!liked)}
+      className={cn(
+        "body-s inline-flex items-center justify-center gap-1.5 transition-colors",
+        isPhone && "rounded-[3px] border py-2.5",
+        liked ? "border-[color:var(--like)]/45 text-[color:var(--like)]" : "border-[color:var(--line)] text-muted-foreground",
+      )}
+    >
+      <Heart aria-hidden className="size-3.5" fill={liked ? "currentColor" : "transparent"} />
+      {liked ? "Liked" : "Like"}
+    </button>
+  );
 
   return (
     <ModalShell
       onClose={onClose}
       portal={false}
       closeOnEscape={false}
-      overlayClassName="z-150 bg-background/80 p-2 sm:p-4"
-      containerClassName="p-0"
+      layout={isPhone ? "fullscreen" : "dialog"}
+      overlayClassName="z-150"
       ariaCloseLabel="Close review modal"
     >
-      <div
+      <section
         role="dialog"
         aria-modal="true"
+        aria-label={`${slateLabel} · ${title}`}
         className={cn(
-          "theme-modal-panel relative z-50 flex w-[calc(100vw-1rem)] max-h-[calc(100dvh-1rem)] max-w-4xl flex-col overflow-hidden border border-border/70 bg-card/95 shadow-2xl backdrop-blur-xl animate-fade-up sm:w-[calc(100vw-2rem)] sm:max-h-[calc(100dvh-2rem)]",
-          accent === "movie" && "theme-modal-panel--movie",
-          accent === "serial" && "theme-modal-panel--serial",
+          "relative flex flex-col overflow-hidden bg-background text-foreground animate-fade-up",
+          isPhone
+            ? "h-dvh w-full"
+            : "w-[calc(100vw-2rem)] max-w-[680px] max-h-[calc(100dvh-2rem)] rounded-[4px] border shadow-2xl",
         )}
+        style={isPhone ? undefined : { borderColor: `color-mix(in srgb, ${accentColor} 55%, transparent)` }}
       >
-        <div className="flex items-start justify-between border-b border-border/60 bg-card/90 px-4 py-3.5 backdrop-blur-sm sm:px-5 sm:py-4">
-          <div>
-            <h2 className="text-base font-bold text-foreground sm:text-lg">Write a Review</h2>
-            <p className="mt-0.5 text-[11px] text-muted-foreground sm:text-xs">{headerSubtitle}</p>
-          </div>
-
-          <button
-            type="button"
-            className="rounded-full p-1 text-muted-foreground transition-[color,background-color,transform] hover:bg-secondary/60 hover:text-foreground active:scale-[0.97] sm:p-1.5"
-            onClick={onClose}
-            aria-label="Close review modal"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
         <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-3 sm:px-5 sm:pb-5 sm:pt-4 lg:px-6 lg:pb-6">
-            <div className="grid gap-4 lg:grid-cols-[176px_minmax(0,1fr)] lg:gap-5">
-              <aside className="space-y-2.5 lg:space-y-3.5">
-                <div className="flex items-start gap-3 lg:block lg:space-y-3">
-                  <div className="w-20 shrink-0 overflow-hidden rounded-lg border border-border/70 bg-background/30 shadow-sm sm:w-24 lg:w-full">
-                    <img src={posterUrl} alt={`${title} poster`} className="aspect-2/3 w-full object-cover" />
-                  </div>
+          {isPhone ? (
+            <div className="grid h-12 shrink-0 grid-cols-[1fr_auto_1fr] items-center border-b border-[color:var(--line)] px-4">
+              <button type="button" onClick={onClose} className="body-s justify-self-start text-muted-foreground">
+                Cancel
+              </button>
+              <span className="mono-meta text-foreground">{slateLabel.split(" · ").slice(0, 2).join(" · ")}</span>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="body-s justify-self-end font-semibold text-primary disabled:opacity-50"
+              >
+                {saveLabel}
+              </button>
+            </div>
+          ) : (
+            <div className="slate shrink-0">
+              <span className="mono-meta truncate">
+                <span>{slateLabel}</span>
+                <span aria-hidden> · </span>
+                <span style={{ color: accentColor }}>{title}</span>
+              </span>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close review modal"
+                className="rounded-[2px] p-1 text-[#bbbbbb] hover:text-white"
+              >
+                <X aria-hidden className="size-3.5" />
+              </button>
+            </div>
+          )}
 
-                  <div className="min-w-0 space-y-1 lg:space-y-1.5">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                      Reviewing
+          <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-[18px]">
+            <div className={cn("flex h-full gap-[18px]", isPhone && "flex-col gap-4")}>
+              <div className={cn(isPhone ? "flex items-center gap-3" : "w-[120px] shrink-0")}>
+                <img
+                  src={posterUrl}
+                  alt=""
+                  className={cn(
+                    "aspect-2/3 shrink-0 rounded-[2px] border border-[color:var(--line)] object-cover",
+                    isPhone ? (isCompact ? "w-[26px]" : "w-[52px]") : "w-full",
+                  )}
+                />
+                <div className={cn("min-w-0", !isPhone && "mt-2")}>
+                  <p className={cn("display-4 leading-tight", isPhone && !isCompact && "text-lg")}>{title}</p>
+                  {isCompact ? (
+                    <p className="mono-meta text-muted-foreground">
+                      {[rating !== null ? rating.toFixed(1) : null, liked ? "♥" : null].filter(Boolean).join(" · ")}
                     </p>
-                    <h3 className="text-sm font-semibold leading-snug text-foreground">{title}</h3>
-                    {asideDescription && (
-                      <p className="text-xs text-muted-foreground">{asideDescription}</p>
-                    )}
-                  </div>
+                  ) : (
+                    <p className="mono-meta mt-0.5 text-muted-foreground">
+                      {[year, subtitle].filter(Boolean).join(" · ")}
+                    </p>
+                  )}
                 </div>
-              </aside>
+              </div>
 
-              <div className="space-y-5 sm:space-y-6 lg:space-y-7">
-                {/* Top row — date+rewatch, simple watched toggle, or nothing */}
-                {watchedDate !== undefined && onWatchedDateChange ? (
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
-                    <div className="sm:flex-1">
-                      <CalendarPicker
-                        value={watchedDate}
-                        max={todayAsLocalDateInput()}
-                        onChange={onWatchedDateChange}
-                      />
-                    </div>
-                    {rewatch !== undefined && onRewatchChange && (
-                      <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border/70 bg-secondary/20 px-3 py-2.5 transition-colors hover:border-border sm:shrink-0">
-                        <input
-                          type="checkbox"
-                          checked={rewatch}
-                          onChange={(event) => onRewatchChange(event.target.checked)}
-                          className="h-4 w-4 shrink-0 border-border bg-input accent-primary"
-                        />
-                        <span className="text-sm font-medium text-foreground">I've watched this before</span>
-                      </label>
-                    )}
-                  </div>
-                ) : watched !== undefined && onWatchedChange ? (
-                  <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-border/70 bg-secondary/20 p-2.5 transition-colors hover:border-border sm:p-3">
-                    <input
-                      type="checkbox"
-                      checked={watched}
-                      onChange={(event) => onWatchedChange(event.target.checked)}
-                      className="h-4 w-4 border-border bg-input accent-primary"
+              <div className="flex min-w-0 flex-1 flex-col gap-4">
+                {isCompact ? null : (
+                  <>
+                    <LogMediaWhen
+                      isPhone={isPhone}
+                      watchedDate={watchedDate}
+                      onWatchedDateChange={onWatchedDateChange}
+                      rewatch={rewatch}
+                      onRewatchChange={onRewatchChange}
+                      watched={watched}
+                      onWatchedChange={onWatchedChange}
                     />
-                    <span className="text-sm font-medium text-foreground">Mark as Watched</span>
-                  </label>
-                ) : null}
+                    <section>
+                      <div className="mb-1 flex items-center justify-between">
+                        <p className="kicker">Rating</p>
+                        {isPhone ? null : likeButton}
+                      </div>
+                      <LaunchTrack value={rating} onCommit={onRatingChange} accentColor={accentColor} className="max-w-none" />
+                    </section>
+                    {isPhone ? likeButton : null}
+                  </>
+                )}
 
-                {/* Middle: Rating (left) + Review textarea (right) */}
-                <div className="flex gap-4 items-stretch">
-                  <section className="shrink-0 space-y-2">
-                    <label className="block text-sm font-semibold text-foreground">
-                      <span className="flex items-center gap-2">
-                        <Rocket className="h-3.5 w-3.5" style={{ color: accentColor }} />
-                        <span>Rating</span>
-                      </span>
-                    </label>
-                    <LaunchTrack
-                      value={rating}
-                      onCommit={onRatingChange}
-                      accentColor={accentColor}
-                    />
-                  </section>
-
-                  <section className="flex min-w-0 flex-1 flex-col gap-2">
-                    <label className="block text-sm font-semibold text-foreground">
-                      <span className="flex items-center gap-2">
-                        <MessageSquare className="h-3.5 w-3.5" />
-                        <span>Review</span>
-                      </span>
-                    </label>
-                    <Textarea
-                      maxLength={reviewMaxLength}
-                      value={review}
-                      onChange={(event) => onReviewChange(event.target.value)}
-                      placeholder={reviewPlaceholder}
-                      className="flex-1 border-border/70 bg-background/45"
-                    />
-                  </section>
-                </div>
-
-                {/* Bottom: Like + Spoilers */}
-                <div className="flex items-stretch gap-2">
-                  <button
-                    type="button"
-                    onClick={() => onLikedChange(!liked)}
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-[color,background-color,border-color,transform] hover:bg-secondary/30 active:scale-[0.97]"
-                    style={{
-                      borderColor: liked ? accentColor : "var(--border)",
-                      color: liked ? accentColor : "var(--muted-foreground)",
-                      background: liked ? `color-mix(in srgb, ${accentColor} 10%, transparent)` : "transparent",
-                    }}
-                  >
-                    <Heart className="h-3.5 w-3.5" fill={liked ? "currentColor" : "transparent"} />
-                    <span>{liked ? "Liked" : "Like"}</span>
-                  </button>
-
-                  <label className="flex flex-1 cursor-pointer items-center gap-2.5 rounded-lg border border-destructive/35 bg-destructive/10 px-3 py-2 transition-colors hover:border-destructive/50">
-                    <input
-                      type="checkbox"
-                      checked={containsSpoilers}
-                      onChange={(event) => onContainsSpoilersChange(event.target.checked)}
-                      className="h-4 w-4 shrink-0 border-border bg-input accent-primary"
-                    />
-                    <AlertTriangle className="h-4 w-4 shrink-0 text-destructive" />
-                    <span className="text-sm font-medium text-foreground">Review contains spoilers</span>
-                  </label>
-                </div>
+                <LogReviewField
+                  isPhone={isPhone}
+                  review={review}
+                  onReviewChange={onReviewChange}
+                  containsSpoilers={containsSpoilers}
+                  onContainsSpoilersChange={onContainsSpoilersChange}
+                  reviewMaxLength={reviewMaxLength}
+                  reviewPlaceholder={reviewPlaceholder}
+                  onWritingChange={setIsWriting}
+                />
 
                 {formError ? (
-                  <p
-                    role="alert"
-                    className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-                  >
+                  <p role="alert" className="body-s rounded-[3px] border border-[color:var(--danger)]/50 bg-[color:var(--danger)]/10 px-3 py-2 text-[color:var(--danger)]">
                     {formError}
                   </p>
                 ) : null}
+
+                {isPhone && deleteLink ? <div className="pt-2">{deleteLink}</div> : null}
               </div>
             </div>
           </div>
 
-          <div className="border-t border-border/60 bg-card/90 px-4 py-3 backdrop-blur-sm sm:px-5 sm:py-4 lg:px-6">
-            <div className="flex items-center justify-between gap-2 sm:gap-3">
-              {onDelete ? (
-                <Button
-                  type="button"
-                  variant="danger"
-                  className="h-9 px-4 sm:h-10 font-mono text-xs"
-                  onClick={onDelete}
-                  disabled={isSubmitting}
-                >
-                  Delete Review
-                </Button>
-              ) : (
-                <div />
-              )}
-              <div className="flex flex-1 items-center justify-end gap-2 sm:gap-3">
-                <Button type="button" variant="outline" className="h-9 px-4 sm:h-10" onClick={onClose}>
+          {isPhone ? null : (
+            <div className="flex shrink-0 items-center justify-between gap-3 border-t border-[color:var(--line)] px-[18px] py-3">
+              {deleteLink ?? <span />}
+              <div className="flex items-center gap-2">
+                <Button type="button" variant="ghost" onClick={onClose}>
                   Cancel
                 </Button>
-                <Button type="submit" className="h-9 px-4 sm:h-10" disabled={isSubmitting}>
-                  {isSubmitting ? "Saving..." : submitLabel}
+                <Button type="submit" disabled={isSubmitting}>
+                  {saveLabel}
                 </Button>
               </div>
             </div>
-          </div>
+          )}
         </form>
-      </div>
+      </section>
     </ModalShell>
   );
 };

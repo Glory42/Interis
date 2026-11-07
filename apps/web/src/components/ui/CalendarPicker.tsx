@@ -7,6 +7,8 @@ type CalendarPickerProps = {
   onChange: (value: string) => void;
   max?: string; // YYYY-MM-DD
   className?: string;
+  // inline: a dashed link inside a sentence ("Watched 07 Nov 2026 ▾").
+  variant?: "box" | "inline";
 };
 
 const MONTHS = [
@@ -31,7 +33,8 @@ export const CalendarPicker = ({
   value,
   onChange,
   max,
-  className = ""
+  className = "",
+  variant = "box",
 }: CalendarPickerProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -152,17 +155,28 @@ export const CalendarPicker = ({
   return (
     <div className={`relative ${className}`} ref={containerRef}>
       {/* Date Toggle Trigger */}
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between rounded-lg border border-border/70 bg-background/45 px-3.5 py-2 font-mono text-sm text-foreground transition-all hover:border-border sm:h-11"
-      >
-        <span className="flex items-center gap-2">
-          <CalendarDays className="h-4 w-4 text-muted-foreground" />
-          <span>{value ? formatDateLabel(value) : "Select date"}</span>
-        </span>
-        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Change</span>
-      </button>
+      {variant === "inline" ? (
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="border-b border-dashed border-[color:var(--primary)] font-mono text-sm text-foreground"
+        >
+          {value ? formatDateLabel(value) : "Select date"}
+          <span aria-hidden> ▾</span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex w-full items-center justify-between rounded-lg border border-border/70 bg-background/45 px-3.5 py-2 font-mono text-sm text-foreground transition-all hover:border-border sm:h-11"
+        >
+          <span className="flex items-center gap-2">
+            <CalendarDays className="h-4 w-4 text-muted-foreground" />
+            <span>{value ? formatDateLabel(value) : "Select date"}</span>
+          </span>
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Change</span>
+        </button>
+      )}
 
       {/* Calendar Dropdown Panel */}
       {isOpen && (

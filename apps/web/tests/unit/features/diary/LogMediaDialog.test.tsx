@@ -1,14 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { LogMediaDialog } from "@/features/diary/components/log-media/LogMediaDialog";
 
-// LogMediaDialog is a "dumb" presentational component - all form state and
-// validation lives in whichever parent wires it up (movie/serial/season/
-// episode log flows), so what's worth testing here is prop-to-DOM wiring:
-// every callback fires with the right value, and the two mutually-
-// exclusive top-row modes (date+rewatch vs. simple watched-toggle) render
-// correctly based on which props are passed.
+// Presentational: form state lives in the caller, so these check prop-to-DOM
+// wiring on desktop and on a phone-width screen.
 const baseProps = {
   title: "Fight Club",
   posterUrl: "/poster.jpg",
@@ -28,130 +24,169 @@ const baseProps = {
   onContainsSpoilersChange: vi.fn(),
 };
 
+const dateProps = {
+  watchedDate: "2026-01-01",
+  onWatchedDateChange: vi.fn(),
+  rewatch: false,
+  onRewatchChange: vi.fn(),
+};
+
+const usePhoneWidth = () => {
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    matches: query.includes("max-width"),
+    media: query,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }));
+};
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+const precedes = (first: Element, second: Element) =>
+  Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING);
+
 describe("LogMediaDialog", () => {
-  it("renders the title and year in the header subtitle", () => {
-    render(<LogMediaDialog {...baseProps} year={1999} yearDescriptionLabel="Released" />);
-    expect(screen.getByText("Fight Club (1999)")).toBeInTheDocument();
+  it("names what you're logging in the slate", () => {
+    render(<LogMediaDialog {...baseProps} {...dateProps} accent="movie" year={1999} />);
+    expect(screen.getByText("Log · Film · 1999")).toBeInTheDocument();
+    expect(screen.getAllByText("Fight Club").length).toBeGreaterThan(0);
   });
 
-  it("prefers an explicit subtitle over the year when both are given", () => {
-    render(<LogMediaDialog {...baseProps} year={1999} subtitle="Season 2" />);
-    expect(screen.getByText("Fight Club · Season 2")).toBeInTheDocument();
+  it("reads as a review of the season or episode when there's no watch date", () => {
+    render(<LogMediaDialog {...baseProps} accent="serial" subtitle="Season 2" watched={false} onWatchedChange={vi.fn()} />);
+    expect(screen.getByText("Review · TV · Season 2")).toBeInTheDocument();
   });
 
-  it("calls onClose from both the X button and the Cancel button", async () => {
+  it("says Save log until there's review text, then Post review", () => {
+    const { rerender } = render(<LogMediaDialog {...baseProps} {...dateProps} />);
+    expect(screen.getByRole("button", { name: "Save log" })).toBeInTheDocument();
+
+    rerender(<LogMediaDialog {...baseProps} {...dateProps} review="Loved it" />);
+    expect(screen.getByRole("button", { name: "Post review" })).toBeInTheDocument();
+  });
+
+  it("keeps an explicit submit label", () => {
+    render(<LogMediaDialog {...baseProps} review="Loved it" submitLabel="Save" />);
+    expect(screen.getByRole("button", { name: "Save", exact: true } as never)).toBeInTheDocument();
+  });
+
+  it("closes from the ✕ and from Cancel", async () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
     render(<LogMediaDialog {...baseProps} onClose={onClose} />);
 
     await user.click(screen.getByRole("button", { name: "Close review modal" }));
-    expect(onClose).toHaveBeenCalledTimes(1);
-
     await user.click(screen.getByRole("button", { name: "Cancel" }));
     expect(onClose).toHaveBeenCalledTimes(2);
   });
 
-  it("toggles liked via onLikedChange with the inverse of the current value", async () => {
+  it("switches first watch to rewatch in the date sentence", async () => {
+    const user = userEvent.setup();
+    const onRewatchChange = vi.fn();
+    render(<LogMediaDialog {...baseProps} {...dateProps} onRewatchChange={onRewatchChange} />);
+
+    const toggle = screen.getByRole("button", { name: "First watch" });
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    await user.click(toggle);
+    expect(onRewatchChange).toHaveBeenCalledWith(true);
+  });
+
+  it("marks a season or episode watched", async () => {
+    const user = userEvent.setup();
+    const onWatchedChange = vi.fn();
+    render(<LogMediaDialog {...baseProps} watched={false} onWatchedChange={onWatchedChange} />);
+
+    await user.click(screen.getByRole("checkbox", { name: "Watched" }));
+    expect(onWatchedChange).toHaveBeenCalledWith(true);
+    expect(screen.queryByRole("button", { name: "First watch" })).not.toBeInTheDocument();
+  });
+
+  it("toggles like", async () => {
     const user = userEvent.setup();
     const onLikedChange = vi.fn();
-    render(<LogMediaDialog {...baseProps} liked={false} onLikedChange={onLikedChange} />);
+    render(<LogMediaDialog {...baseProps} onLikedChange={onLikedChange} />);
 
     await user.click(screen.getByRole("button", { name: "Like" }));
     expect(onLikedChange).toHaveBeenCalledWith(true);
   });
 
-  it("calls onContainsSpoilersChange when the spoilers checkbox is toggled", async () => {
+  it("flags spoilers with a switch and counts characters", async () => {
     const user = userEvent.setup();
     const onContainsSpoilersChange = vi.fn();
     render(
-      <LogMediaDialog
-        {...baseProps}
-        containsSpoilers={false}
-        onContainsSpoilersChange={onContainsSpoilersChange}
-      />,
+      <LogMediaDialog {...baseProps} review="Loved it" onContainsSpoilersChange={onContainsSpoilersChange} />,
     );
 
-    await user.click(screen.getByRole("checkbox", { name: /contains spoilers/i }));
+    await user.click(screen.getByRole("switch", { name: "Contains spoilers" }));
     expect(onContainsSpoilersChange).toHaveBeenCalledWith(true);
+    expect(screen.getByText("8 / 5000")).toBeInTheDocument();
   });
 
-  it("calls onReviewChange as the review textarea is typed into, and applies reviewMaxLength", async () => {
+  it("caps the review at reviewMaxLength and reports typing", async () => {
     const user = userEvent.setup();
     const onReviewChange = vi.fn();
     render(<LogMediaDialog {...baseProps} reviewMaxLength={10} onReviewChange={onReviewChange} />);
 
     const textarea = screen.getByPlaceholderText("Write your review...");
     expect(textarea).toHaveAttribute("maxlength", "10");
-
-    // `review` is a controlled prop that this test never updates, so the
-    // DOM value resets to "" after each keystroke - each call reports
-    // just that one new character, not accumulated text.
-    await user.type(textarea, "hi");
-    expect(onReviewChange).toHaveBeenNthCalledWith(1, "h");
-    expect(onReviewChange).toHaveBeenNthCalledWith(2, "i");
+    await user.type(textarea, "h");
+    expect(onReviewChange).toHaveBeenCalledWith("h");
   });
 
-  it("renders the date+rewatch mode when watchedDate is provided", () => {
-    render(
-      <LogMediaDialog
-        {...baseProps}
-        watchedDate="2026-01-01"
-        onWatchedDateChange={vi.fn()}
-        rewatch={false}
-        onRewatchChange={vi.fn()}
-      />,
-    );
-    expect(screen.getByText("I've watched this before")).toBeInTheDocument();
-    expect(screen.queryByText("Mark as Watched")).not.toBeInTheDocument();
-  });
-
-  it("renders the simple watched-toggle mode when watched is provided instead", async () => {
-    const user = userEvent.setup();
-    const onWatchedChange = vi.fn();
-    render(<LogMediaDialog {...baseProps} watched={false} onWatchedChange={onWatchedChange} />);
-
-    expect(screen.getByText("Mark as Watched")).toBeInTheDocument();
-    expect(screen.queryByText("I've watched this before")).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole("checkbox", { name: /mark as watched/i }));
-    expect(onWatchedChange).toHaveBeenCalledWith(true);
-  });
-
-  it("renders neither top-row mode when neither watchedDate nor watched is provided", () => {
-    render(<LogMediaDialog {...baseProps} />);
-    expect(screen.queryByText("Mark as Watched")).not.toBeInTheDocument();
-    expect(screen.queryByText("I've watched this before")).not.toBeInTheDocument();
-  });
-
-  it("only renders the Delete button when onDelete is provided, and it's disabled while submitting", () => {
+  it("offers delete only when editing, disabled while saving", () => {
     const { rerender } = render(<LogMediaDialog {...baseProps} />);
-    expect(screen.queryByRole("button", { name: "Delete Review" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Delete review" })).not.toBeInTheDocument();
 
-    const onDelete = vi.fn();
-    rerender(<LogMediaDialog {...baseProps} onDelete={onDelete} isSubmitting />);
-    expect(screen.getByRole("button", { name: "Delete Review" })).toBeDisabled();
+    rerender(<LogMediaDialog {...baseProps} onDelete={vi.fn()} isSubmitting />);
+    expect(screen.getByRole("button", { name: "Delete review" })).toBeDisabled();
   });
 
-  it("calls onSubmit when the form is submitted via the submit button", async () => {
+  it("submits, and shows Saving… while it's in flight", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn((event: React.FormEvent<HTMLFormElement>) => event.preventDefault());
-    render(<LogMediaDialog {...baseProps} onSubmit={onSubmit} submitLabel="Log Film" />);
+    const { rerender } = render(<LogMediaDialog {...baseProps} onSubmit={onSubmit} />);
 
-    await user.click(screen.getByRole("button", { name: "Log Film" }));
+    await user.click(screen.getByRole("button", { name: "Save log" }));
     expect(onSubmit).toHaveBeenCalledTimes(1);
+
+    rerender(<LogMediaDialog {...baseProps} isSubmitting />);
+    expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
   });
 
-  it("disables the submit button and shows 'Saving...' while isSubmitting", () => {
-    render(<LogMediaDialog {...baseProps} isSubmitting submitLabel="Log Film" />);
-    expect(screen.getByRole("button", { name: "Saving..." })).toBeDisabled();
-    expect(screen.queryByRole("button", { name: "Log Film" })).not.toBeInTheDocument();
-  });
-
-  it("shows the form error as an alert when present, and shows nothing when absent", () => {
-    const { rerender } = render(<LogMediaDialog {...baseProps} formError="Rating is required" />);
+  it("shows the form error as an alert", () => {
+    render(<LogMediaDialog {...baseProps} formError="Rating is required" />);
     expect(screen.getByRole("alert")).toHaveTextContent("Rating is required");
+  });
 
-    rerender(<LogMediaDialog {...baseProps} formError={null} />);
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  it("puts the date picker inline and Save at the bottom on desktop", () => {
+    render(<LogMediaDialog {...baseProps} {...dateProps} />);
+    expect(screen.queryByLabelText("Watched on")).not.toBeInTheDocument();
+    expect(
+      precedes(screen.getByPlaceholderText("Write your review..."), screen.getByRole("button", { name: "Save log" })),
+    ).toBe(true);
+  });
+
+  it("goes full screen on phones with Cancel and Save at the top and the native date picker", () => {
+    usePhoneWidth();
+    const onWatchedDateChange = vi.fn();
+    render(<LogMediaDialog {...baseProps} {...dateProps} onWatchedDateChange={onWatchedDateChange} />);
+
+    const save = screen.getByRole("button", { name: "Save" });
+    expect(precedes(save, screen.getByPlaceholderText("Write your review..."))).toBe(true);
+    expect(screen.queryByRole("button", { name: "Close review modal" })).not.toBeInTheDocument();
+
+    const dateInput = screen.getByLabelText("Watched on");
+    expect(dateInput).toHaveAttribute("type", "date");
+    // The phone's picker hands back a whole date at once.
+    fireEvent.change(dateInput, { target: { value: "2025-12-24" } });
+    expect(onWatchedDateChange).toHaveBeenLastCalledWith("2025-12-24");
+  });
+
+  it("says Post on phones once there's review text", () => {
+    usePhoneWidth();
+    render(<LogMediaDialog {...baseProps} {...dateProps} review="Loved it" />);
+    expect(screen.getByRole("button", { name: "Post" })).toBeInTheDocument();
   });
 });

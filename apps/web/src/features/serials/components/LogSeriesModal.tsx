@@ -55,6 +55,7 @@ export const LogSeriesModal = ({
     likedFromInteraction: interactionQuery.data?.liked ?? false,
     submitLog: (input) => createSeriesLogMutation.mutateAsync(input),
     updateLiked: (liked) => updateInteractionMutation.mutateAsync({ liked }),
+    draftKey: `tv:${tmdbId}`,
   });
 
   if (!user) {
@@ -88,7 +89,6 @@ export const LogSeriesModal = ({
               accent="serial"
               title={seriesTitle}
               year={seriesFirstAirYear}
-              yearDescriptionLabel="First aired in"
               posterUrl={getPosterUrl(seriesPosterPath)}
               watchedDate={submission.watchedDate}
               rating={submission.rating}

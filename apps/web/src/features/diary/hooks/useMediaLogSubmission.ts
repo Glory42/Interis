@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import type { LogMediaInitialState } from "@/features/diary/components/log-media/types";
+import { clearReviewDraft, readReviewDraft, writeReviewDraft } from "@/features/diary/review-draft";
 import { isApiError } from "@/lib/api-client";
 import { todayAsLocalDateInput } from "@/lib/time";
 
@@ -20,6 +21,8 @@ type UseMediaLogSubmissionArgs = {
   likedFromInteraction: boolean;
   submitLog: (input: LogSubmitInput) => Promise<unknown>;
   updateLiked: (liked: boolean) => Promise<unknown>;
+  // Keeps unposted review text in localStorage, e.g. "movie:550".
+  draftKey?: string;
 };
 
 // Owns the log-modal form lifecycle; LogMovieModal/LogSeriesModal only
@@ -31,11 +34,16 @@ export const useMediaLogSubmission = ({
   likedFromInteraction,
   submitLog,
   updateLiked,
+  draftKey,
 }: UseMediaLogSubmissionArgs) => {
   const [watchedDate, setWatchedDate] = useState(todayAsLocalDateInput);
   const [rating, setRating] = useState<number | null>(null);
   const [rewatch, setRewatch] = useState(false);
-  const [review, setReview] = useState("");
+  const [review, setReviewState] = useState("");
+  const setReview = (nextReview: string) => {
+    setReviewState(nextReview);
+    if (draftKey) writeReviewDraft(draftKey, nextReview);
+  };
   const [containsSpoilers, setContainsSpoilers] = useState(false);
   // null = no manual toggle yet this session; falls back to the fetched
   // interaction once it resolves, so no effect is needed to sync it in.
@@ -66,7 +74,7 @@ export const useMediaLogSubmission = ({
     setWatchedDate(todayAsLocalDateInput());
     setRating(initialState?.rating ?? null);
     setRewatch(initialState?.rewatch ?? false);
-    setReview("");
+    setReviewState(draftKey ? readReviewDraft(draftKey) : "");
     setContainsSpoilers(false);
     setLikedOverride(null);
     setFormError(null);
@@ -93,6 +101,7 @@ export const useMediaLogSubmission = ({
         updateLiked(liked),
       ]);
 
+      if (draftKey) clearReviewDraft(draftKey);
       closeModal();
     } catch (error) {
       if (isApiError(error)) {
