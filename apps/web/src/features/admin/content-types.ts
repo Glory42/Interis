@@ -2,6 +2,7 @@ export const CONTENT_TYPES = [
   { value: "reviews", word: "reviews", label: "Reviews" },
   { value: "diary", word: "diary entries", label: "Diary entries" },
   { value: "posts", word: "posts", label: "Posts" },
+  { value: "comments", word: "comments", label: "Comments" },
   { value: "lists", word: "lists", label: "Lists" },
   { value: "activities", word: "activity", label: "Activity" },
   { value: "movies", word: "cached films", label: "Cached films" },
