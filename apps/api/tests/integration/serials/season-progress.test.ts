@@ -17,6 +17,7 @@ const seriesDetailFixture = () => ({
   number_of_seasons: 2,
   number_of_episodes: 14,
   seasons: [
+    { id: 3, name: "Specials", season_number: 0, episode_count: 3, air_date: null, poster_path: null },
     { id: 1, name: "Season 1", season_number: 1, episode_count: 8, air_date: null, poster_path: null },
     { id: 2, name: "Season 2", season_number: 2, episode_count: 6, air_date: null, poster_path: null },
   ],
@@ -109,6 +110,17 @@ describe("season progress", () => {
     const bySeason = new Map(detail.series.seasons.map((season) => [season.seasonNumber, season]));
     expect(bySeason.get(1)).toMatchObject({ episodeCount: 8, viewerInteraction: { watchedEpisodeCount: 5 } });
     expect(bySeason.get(2)).toMatchObject({ episodeCount: 6, viewerInteraction: { watchedEpisodeCount: 0 } });
+  });
+
+  it("counts watched specials on their own season, not in the series total", async () => {
+    expect((await markThrough(0, 2, jar)).status).toBe(200);
+
+    const response = await apiRequest(getServer().baseUrl, `/api/serials/${tmdbId}/detail`, {}, jar);
+    const detail = (await response.json()) as SeriesDetail & { viewerTracking: { watchedEpisodesCount: number } };
+
+    const specials = detail.series.seasons.find((season) => season.seasonNumber === 0);
+    expect(specials).toMatchObject({ episodeCount: 3, viewerInteraction: { watchedEpisodeCount: 2 } });
+    expect(detail.viewerTracking.watchedEpisodesCount).toBe(5);
   });
 
   it("needs sign-in and a real episode number", async () => {

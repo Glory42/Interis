@@ -35,7 +35,7 @@ export class SerialsProgressService {
     );
 
     const normalizedTmdbDetail = tmdbDetail ? normalizeTmdbSeriesDetail(tmdbDetail) : null;
-    const watchedCountBySeason = countWatchedEpisodesBySeason(viewerTracking.watchedEpisodes);
+    const watchedCountBySeason = countWatchedEpisodesBySeason(viewerTracking);
     const interactionBySeason = new Map(
       userSeasonInteractions.map((interaction) => [interaction.seasonNumber, interaction]),
     );
