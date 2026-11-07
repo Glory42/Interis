@@ -81,11 +81,8 @@ Valid numbers are floored and clamped to endpoint-specific max values.
 
 ## CORS note
 
-Backend CORS still uses an allow-list. A browser request from an origin that isn't
-allowed gets `403` with `{ "error": { "message": "Origin is not allowed", "code": "CORS_NOT_ALLOWED" } }`.
-Requests without an `Origin` header (cURL, server-side code) are not affected.
-
-In that case, call the API server-side from your own backend/function.
+The public API answers browser requests from any origin (`Access-Control-Allow-Origin: *`,
+no credentials), so a widget can call it straight from your own site's frontend.
 
 ## Next steps
 

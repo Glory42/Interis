@@ -65,5 +65,4 @@ const widgetRows = reviews.map((review) => ({
 ## Notes
 
 - Public routes are rate limited. Batch and cache on your side if possible.
-- For third-party browser apps, check CORS configuration in backend `CORS_ORIGIN`; origins not on it get `403` (`CORS_NOT_ALLOWED`).
-- If you do not control API CORS config, call the API server-side.
+- The public API allows any origin, so this works from a browser on your own site.

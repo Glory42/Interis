@@ -36,7 +36,6 @@ All routes are `GET` and use `:username` path params.
 - **HTTP 200** for successful reads.
 - Errors use `{ "error": { "message": string, "code": string } }`.
 - **HTTP 400** (`BAD_REQUEST`) when `/serials/:tmdbId` gets a non-numeric `tmdbId`.
-- **HTTP 403** (`CORS_NOT_ALLOWED`) when a browser sends an `Origin` that isn't on the backend allow-list.
 - **HTTP 404** (`NOT_FOUND`, `"User not found"`) when username is missing.
 - **HTTP 429** when a rate limit is exceeded.
 - **HTTP 500** (`INTERNAL_SERVER_ERROR`) for unhandled errors.

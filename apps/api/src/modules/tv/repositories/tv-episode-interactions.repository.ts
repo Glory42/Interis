@@ -233,7 +233,10 @@ export class TvEpisodeInteractionsRepository {
         // `AT TIME ZONE 'UTC'` makes Postgres return it with an explicit
         // offset, so the driver parses it as an unambiguous instant instead
         // of raw untyped text with no timezone marker at all.
-        lastWatchedAt: sql<Date>`(${lastWatchedAt}) at time zone 'UTC'`,
+        // A raw sql value skips the driver's date parsing, so map it explicitly.
+        lastWatchedAt: sql<Date>`(${lastWatchedAt}) at time zone 'UTC'`.mapWith(
+          (value: string | Date) => new Date(value),
+        ),
       })
       .from(seriesInteractions)
       .innerJoin(tvSeries, eq(seriesInteractions.seriesId, tvSeries.id))

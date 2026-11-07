@@ -37,7 +37,7 @@ Returns the TV series whose watch status is **watching**, ordered by most recent
     "numberOfEpisodes": 62,
     "watchedEpisodesCount": 14,
     "progressPercent": 23,
-    "lastWatchedAt": "2026-07-01 12:00:00.000000+00",
+    "lastWatchedAt": "2026-07-01T12:00:00.000Z",
     "currentEpisode": {
       "seasonNumber": 1,
       "episodeNumber": 4,
@@ -51,7 +51,6 @@ Returns the TV series whose watch status is **watching**, ordered by most recent
 
 - Ordered by `lastWatchedAt` descending — most recently watched series first.
 - `progressPercent` is `watchedEpisodesCount / numberOfEpisodes`, rounded to the nearest whole percent (`0` when `numberOfEpisodes` is unknown).
-- `lastWatchedAt` is currently serialized in Postgres timestamp format (`"2026-11-06 22:42:49.515805+00"`), not ISO 8601 like other date fields. Normalize it before parsing, e.g. `new Date(value.replace(' ', 'T').replace(/\+00$/, 'Z'))`.
 - `currentEpisode` is the first unwatched episode in chronological order (Up Next). It can be `null` if the locally cached `numberOfEpisodes` is behind the show's true episode count on TMDB.
 - `numberOfEpisodes` excludes season 0 (Specials). `watchedEpisodesCount` and `progressPercent` are computed the same way, so the fraction is always consistent.
 - `numberOfEpisodes`/`numberOfSeasons` reflect the last time this series was cached locally and can lag TMDB briefly for currently-airing shows.

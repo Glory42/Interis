@@ -52,4 +52,4 @@ This example renders a minimal profile + favorites widget from two endpoints.
 
 - Cache responses in your own layer if traffic is frequent.
 - Keep client-side requests under rate limits.
-- If CORS blocks browser calls, proxy via your server.
+- Browser calls work from any origin; a server-side proxy is only needed if you want your own cache.
