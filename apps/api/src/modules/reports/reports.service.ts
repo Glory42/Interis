@@ -1,5 +1,6 @@
 import { ReviewsService } from "../reviews/reviews.service";
 import { PostsService } from "../posts/posts.service";
+import { ReportTargetsRepository } from "./repositories/report-targets.repository";
 import {
   ReportsRepository,
   type ReportReason,
@@ -9,6 +10,26 @@ import {
 
 const CONTENT_SNAPSHOT_MAX_LENGTH = 2000;
 
+const TARGET_LABEL: Record<ReportTargetType, string> = {
+  review: "Review",
+  post: "Post",
+  comment: "Comment",
+  post_comment: "Comment",
+  list: "List",
+};
+
+const snapshotOf = async (targetType: ReportTargetType, targetId: string): Promise<string | null> => {
+  if (targetType === "review") return (await ReviewsService.findById(targetId))?.review.content ?? null;
+  if (targetType === "post") return (await PostsService.findById(targetId))?.content ?? null;
+  return ReportTargetsRepository.snapshot(targetType, targetId);
+};
+
+const removeTarget = async (targetType: ReportTargetType, targetId: string): Promise<void> => {
+  if (targetType === "review") await ReviewsService.deleteById(targetId);
+  else if (targetType === "post") await PostsService.deleteById(targetId);
+  else await ReportTargetsRepository.remove(targetType, targetId);
+};
+
 export class ReportsService {
   static async submitReport(
     reporterId: string,
@@ -17,13 +38,9 @@ export class ReportsService {
     reason: ReportReason,
     details?: string,
   ): Promise<{ error: string; status: 404 } | { success: true }> {
-    const content =
-      targetType === "review"
-        ? (await ReviewsService.findById(targetId))?.review.content
-        : (await PostsService.findById(targetId))?.content;
-
-    if (content === undefined) {
-      return { error: `${targetType === "review" ? "Review" : "Post"} not found`, status: 404 };
+    const content = await snapshotOf(targetType, targetId);
+    if (content === null) {
+      return { error: `${TARGET_LABEL[targetType]} not found`, status: 404 };
     }
 
     await ReportsRepository.insert({
@@ -65,11 +82,7 @@ export class ReportsService {
       return { error: "Report not found", status: 404 };
     }
 
-    if (report.targetType === "review") {
-      await ReviewsService.deleteById(report.targetId);
-    } else {
-      await PostsService.deleteById(report.targetId);
-    }
+    await removeTarget(report.targetType, report.targetId);
 
     await ReportsRepository.resolvePendingForTarget(report.targetType, report.targetId, adminUserId);
     return { success: true };

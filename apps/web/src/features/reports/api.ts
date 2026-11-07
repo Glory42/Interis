@@ -5,7 +5,7 @@ import { successResponseSchema } from "@/types/api";
 export const reportReasonSchema = z.enum(["spam", "harassment", "inappropriate", "other"]);
 export type ReportReason = z.infer<typeof reportReasonSchema>;
 
-export const reportTargetTypeSchema = z.enum(["review", "post"]);
+export const reportTargetTypeSchema = z.enum(["review", "post", "comment", "post_comment", "list"]);
 export type ReportTargetType = z.infer<typeof reportTargetTypeSchema>;
 
 const reportActionResponseSchema = successResponseSchema;

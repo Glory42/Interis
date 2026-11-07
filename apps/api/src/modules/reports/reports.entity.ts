@@ -9,7 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "../../infrastructure/database/auth.entity";
 
-export const reportTargetTypeEnum = pgEnum("report_target_type", ["review", "post"]);
+export const reportTargetTypeEnum = pgEnum("report_target_type", ["review", "post", "comment", "post_comment", "list"]);
 
 export const reportReasonEnum = pgEnum("report_reason", [
   "spam",

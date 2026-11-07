@@ -2,6 +2,7 @@ import { DiaryService } from "../diary/diary.service";
 import { PostsService } from "../posts/posts.service";
 import { ReviewsService } from "../reviews/reviews.service";
 import { resolveUserId } from "./helpers/resolve-user-id.helper";
+import { AdminCommentsRepository, type AdminCommentKind } from "./repositories/admin-comments.repository";
 
 type ContentFilters = { username?: string; movieId?: number };
 
@@ -31,5 +32,13 @@ export class AdminContentService {
 
   static async deletePost(postId: string) {
     return PostsService.deleteById(postId);
+  }
+
+  static async listComments(limit: number, offset: number) {
+    return AdminCommentsRepository.listRecent(limit, offset);
+  }
+
+  static async deleteComment(kind: AdminCommentKind, commentId: string) {
+    return AdminCommentsRepository.deleteById(kind, commentId);
   }
 }

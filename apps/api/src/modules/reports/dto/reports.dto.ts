@@ -2,7 +2,7 @@ import { z } from "zod";
 import { paginationQuerySchema } from "../../../commons/validation/common.schemas";
 
 export const SubmitReportSchema = z.object({
-  targetType: z.enum(["review", "post"]),
+  targetType: z.enum(["review", "post", "comment", "post_comment", "list"]),
   targetId: z.string().min(1),
   reason: z.enum(["spam", "harassment", "inappropriate", "other"]),
   details: z.string().trim().max(1000).optional(),
@@ -30,7 +30,7 @@ export const GroupedReportsQuerySchema = z.object({
 });
 
 export const ReportTargetParamsSchema = z.object({
-  targetType: z.enum(["review", "post"]),
+  targetType: z.enum(["review", "post", "comment", "post_comment", "list"]),
   targetId: z.string().uuid(),
 });
 
