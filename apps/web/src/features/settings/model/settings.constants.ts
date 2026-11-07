@@ -17,47 +17,15 @@ export const MAX_FAVORITE_GENRES = 4;
 
 export const FAVORITE_GENRE_OPTIONS: FavoriteGenre[] = [...favoriteGenreValues];
 
+// Ordered as the side list and the phone index show them.
 export const settingsSections: SettingsSectionDefinition[] = [
-  {
-    id: "profile",
-    to: "/settings/profile",
-    label: "Profile",
-    description: "Profile image, username, bio, and location.",
-  },
-  {
-    id: "theme",
-    to: "/settings/theme",
-    label: "Theme",
-    description: "Appearance theme selection.",
-  },
-  {
-    id: "auth",
-    to: "/settings/auth",
-    label: "Auth",
-    description: "Email and password security settings.",
-  },
-  {
-    id: "genres",
-    to: "/settings/genres",
-    label: "Genres",
-    description: "Favorite genres shown on your profile.",
-  },
-  {
-    id: "favorites",
-    to: "/settings/favorites",
-    label: "Favorites",
-    description: "Top picks showcased on your profile.",
-  },
-  {
-    id: "blocked",
-    to: "/settings/blocked",
-    label: "Blocked",
-    description: "Manage blocked and muted users.",
-  },
-  {
-    id: "data",
-    to: "/settings/data",
-    label: "Data",
-    description: "Export your diary or import from Letterboxd.",
-  },
+  { id: "profile", to: "/settings/profile", number: "01", label: "Profile", group: "profile" },
+  { id: "favorites", to: "/settings/favorites", number: "02", label: "Top 4", group: "profile" },
+  { id: "genres", to: "/settings/genres", number: "03", label: "Genres", group: "profile" },
+  { id: "theme", to: "/settings/theme", number: "04", label: "Theme", group: "look" },
+  { id: "auth", to: "/settings/auth", number: "05", label: "Account & security", group: "account" },
+  { id: "blocked", to: "/settings/blocked", number: "06", label: "Blocked & muted", group: "account" },
+  { id: "data", to: "/settings/data", number: "07", label: "Your data", group: "account" },
 ];
+
+export const SETTINGS_GROUP_LABEL = { profile: "Your profile", look: "Look", account: "Account" } as const;
