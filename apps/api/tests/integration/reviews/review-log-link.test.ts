@@ -7,9 +7,8 @@ import { startTestServer, type RunningTestServer } from "../../support/app/test-
 
 type MyReview = { id: string; content: string; diaryEntryId: string | null };
 
-// A review written with a log points at it; deleting the log keeps the
-// review but detaches it, and a review can only point at its author's own
-// log of the same title (#87).
+// A review can only point at its author's own log of the same title (#87).
+// Detaching on log delete is covered in watch-log/.
 describe("reviews linked to logs", () => {
   let testServer: RunningTestServer | null = null;
 
@@ -64,30 +63,6 @@ describe("reviews linked to logs", () => {
     expect(status).toBe(201);
     return (body as { entry: { id: string } }).entry.id;
   };
-
-  it("deleting a movie log keeps its review, detached", async () => {
-    const { jar } = await signUpTestUser(getServer().baseUrl, "rllmov");
-    const movie = await seedTestFilm();
-    const entryId = await logMovie(jar, movie.tmdbId, "Kept after the log");
-    expect((await getMine(jar, "movie", movie.tmdbId))[0]?.diaryEntryId).toBe(entryId);
-
-    expect((await send(jar, "DELETE", `/api/diary/${entryId}`)).status).toBeLessThan(300);
-    expect(await getMine(jar, "movie", movie.tmdbId)).toMatchObject([
-      { content: "Kept after the log", diaryEntryId: null },
-    ]);
-  });
-
-  it("deleting a series log keeps its review, detached", async () => {
-    const { jar } = await signUpTestUser(getServer().baseUrl, "rllser");
-    const serial = await seedTestSeries();
-    const entryId = await logSerial(jar, serial.tmdbId, "Kept after the series log");
-    expect((await getMine(jar, "tv", serial.tmdbId))[0]?.diaryEntryId).toBe(entryId);
-
-    expect((await send(jar, "DELETE", `/api/serials/logs/${entryId}`)).status).toBeLessThan(300);
-    expect(await getMine(jar, "tv", serial.tmdbId)).toMatchObject([
-      { content: "Kept after the series log", diaryEntryId: null },
-    ]);
-  });
 
   it("attaches a review to the author's own series log", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "rllatt");
