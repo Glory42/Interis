@@ -35,7 +35,7 @@ The frontend proxies `/api` requests to the backend during development.
 
 ### Key capabilities
 
-- Log film and TV watches with dates, 1–10 rocket ratings (half-rocket steps), rewatches, and reviews
+- Log film and TV watches with dates, 0.5–10 rocket ratings in half steps, rewatches, and reviews
 - Follow users, browse a personalized activity feed, write short posts, comment and like
 - Browse film and TV archives with genre/language/period/sort filters
 - TV tracking down to seasons and episodes

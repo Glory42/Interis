@@ -4,7 +4,7 @@
 
 **Every watch, remembered.**
 
-A social diary for films and TV. Log what you watch, rate it with rockets from 1 to 10,
+A social diary for films and TV. Log what you watch, rate it from 0.5 to 10 rockets,
 track shows one episode at a time, and see what the people you follow are watching.
 
 [**Open Interis**](https://interis.gorkemkaryol.dev) ·
@@ -21,7 +21,7 @@ track shows one episode at a time, and see what the people you follow are watchi
 
 ## Features
 
-- **Diary** — log films and episodes with a date, a 1–10 rocket rating, rewatches, likes and an optional review
+- **Diary** — log films and episodes with a date, a 0.5–10 rocket rating, rewatches, likes and an optional review
 - **Films & TV** — browse trending titles and an archive filtered by genre, language and sort, with director and actor pages
 - **TV tracking** — follow series season by season and episode by episode
 - **Social feed** — follow people and get a timeline of their logs, reviews, lists and posts

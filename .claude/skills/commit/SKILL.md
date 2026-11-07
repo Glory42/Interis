@@ -58,7 +58,7 @@ Create git commits following Conventional Commits with project-specific domain s
 | `viewer-status` | Viewer's per-title status lookups — `modules/viewer-status/`, `features/viewer-status/` |
 | `uploads` | Signed R2 upload flow — `modules/uploads/`, `features/uploads/` |
 | `landing` | Signed-out landing page — `features/landing/` |
-| `rating` | 1–10 rocket rating input and display — `components/film/rating/` (`LaunchTrack`, `RocketDisplay`), `lib/rating.ts` |
+| `rating` | 0.5–10 rocket rating input and display — `components/film/rating/` (`LaunchTrack`, `RocketDisplay`), `lib/rating.ts` |
 | `tmdb` | TMDB client and caching — `apps/api/src/infrastructure/tmdb/` |
 | `ui` | Shared Radix/shadcn primitives — `apps/web/src/components/ui/` |
 | `db` | Drizzle schema, migrations — `apps/api/src/infrastructure/database/`, `apps/api/drizzle/` |
