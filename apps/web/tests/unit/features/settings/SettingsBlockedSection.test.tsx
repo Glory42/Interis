@@ -39,3 +39,31 @@ describe("SettingsBlockedSection", () => {
     expect(offsets).toEqual(["0", "25"]);
   });
 });
+
+describe("SettingsBlockedSection as one list", () => {
+  it("shows blocked or muted, one at a time, with when each happened", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("http://localhost/api/moderation/blocked", () => HttpResponse.json([moderated(1), moderated(2)])),
+      http.get("http://localhost/api/moderation/muted", () =>
+        HttpResponse.json([{ ...moderated(3), username: "spoilerbot", createdAt: "2026-09-03T12:00:00.000Z" }]),
+      ),
+    );
+    const { container } = renderWithProviders(<SettingsBlockedSection />);
+
+    expect(await screen.findByText("@blocked1")).toBeInTheDocument();
+    await screen.findByRole("button", { name: /blocked \(2\)/ });
+    expect(container).toHaveTextContent("Showing blocked (2) · muted (1)");
+    expect(screen.getAllByText("Blocked Nov 2")).toHaveLength(2);
+    expect(screen.queryByText("@spoilerbot")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /blocked \(2\)/ }));
+    await user.click(screen.getByRole("menuitemradio", { name: "Muted (1)" }));
+
+    expect(screen.getByText("@spoilerbot")).toBeInTheDocument();
+    expect(screen.getByText("Muted Sep 3")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Unmute" })).toBeInTheDocument();
+    expect(screen.queryByText("@blocked1")).not.toBeInTheDocument();
+    expect(container).toHaveTextContent("Muted people don't know they're muted.");
+  });
+});

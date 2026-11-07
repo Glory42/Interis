@@ -52,6 +52,8 @@ test("follows then unfollows a user, and mutes/unmutes their activity from the f
 
     await test.step("viewer unmutes from settings and the post reappears", async () => {
       await pageB.goto("/settings/blocked");
+      await pageB.getByRole("button", { name: /blocked \(/ }).click();
+      await pageB.getByRole("menuitemradio", { name: /^Muted/ }).click();
       const mutedRow = pageB.locator("li", { hasText: author.username });
       await expect(mutedRow).toBeVisible({ timeout: 10_000 });
       await mutedRow.getByRole("button", { name: "Unmute" }).click();
