@@ -1,54 +1,18 @@
-import { useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { TriangleAlert } from "lucide-react";
-import { getPosterUrl } from "@/features/movies/components/utils";
-import type { UserReview } from "@/features/profile/api";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import { ReviewCardSkeleton } from "@/features/profile/components/ReviewCardSkeleton";
-import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
-import { useIsOwnProfile, useUserReviews } from "@/features/profile/hooks/useProfile";
+import { ProfileReviewRow } from "@/features/profile/components/ProfileReviewRow";
+import { useIsOwnProfile, useUserProfile, useUserReviews } from "@/features/profile/hooks/useProfile";
 
 type ProfileReviewsPageProps = {
   username: string;
-};
-
-const mediaMetaByType: Record<
-  UserReview["mediaType"],
-  {
-    label: string;
-    color: string;
-  }
-> = {
-  movie: {
-    label: "Movie",
-    color: "var(--module-movie)",
-  },
-  tv: {
-    label: "Serial",
-    color: "var(--module-serial)",
-  },
-};
-
-const formatDate = (value: string | null): string => {
-  if (!value) {
-    return "Unknown";
-  }
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleDateString("en-US");
 };
 
 export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
   const reviewsQuery = useUserReviews(username);
   const isOwner = useIsOwnProfile(username);
   const reviews = reviewsQuery.data?.pages.flat() ?? [];
-  const [revealedSpoilersById, setRevealedSpoilersById] = useState<
-    Record<string, boolean>
-  >({});
+  // The profile (already loaded by the layout) carries the real total, not just this page.
+  const totalReviews = useUserProfile(username).data?.stats?.reviewCount;
 
   return (
     <>
@@ -61,9 +25,7 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
       ) : null}
 
       {reviewsQuery.isError ? (
-        <div className="rounded-xl border border-border/60 bg-card/30 p-4 text-sm text-destructive">
-          Could not load reviews.
-        </div>
+        <p className="body-s text-[color:var(--danger)]">Could not load reviews.</p>
       ) : null}
 
       {!reviewsQuery.isPending && !reviewsQuery.isError && reviews.length === 0 ? (
@@ -74,139 +36,16 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
         />
       ) : null}
 
-      <div className="space-y-3">
-        <div className="mb-4 flex items-center justify-between">
-          <p className="font-mono text-[10px] uppercase tracking-widest shell-accent">
-            <span>Reviews </span>
-            <span className="shell-muted">({reviews.length})</span>
+      {reviews.length > 0 ? (
+        <section aria-label="Reviews">
+          <p className="body-s mb-1 text-muted-foreground">
+            {`Showing all ${(totalReviews ?? reviews.length).toLocaleString("en-US")} reviews, newest first.`}
           </p>
-        </div>
-
-        {reviews.map((entry) => (
-          <article
-            key={entry.id}
-            className="group rounded-xl border transition-colors hover:border-primary/30"
-            style={{
-              borderColor: "var(--surface-card-border)",
-              background: "var(--surface-card-bg)",
-            }}
-          >
-            <div className="grid gap-3 p-3 sm:p-4" style={{ gridTemplateColumns: "68px 1fr" }}>
-              {entry.mediaType === "tv" ? (
-                <Link
-                  to="/serials/$tmdbId"
-                  params={{ tmdbId: String(entry.tmdbId) }}
-                  className="shrink-0"
-                  viewTransition
-                >
-                  <div
-                    className="overflow-hidden rounded-lg border"
-                    style={{
-                      width: 68,
-                      height: 102,
-                      borderColor: "var(--shell-row-border)",
-                      background: "color-mix(in srgb, var(--shell-bg) 85%, black)",
-                    }}
-                  >
-                    <img
-                      src={getPosterUrl(entry.posterPath)}
-                      alt={`${entry.title} poster`}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-                </Link>
-              ) : (
-                <Link
-                  to="/movies/$tmdbId"
-                  params={{ tmdbId: String(entry.tmdbId) }}
-                  className="shrink-0"
-                  viewTransition
-                >
-                  <div
-                    className="overflow-hidden rounded-lg border"
-                    style={{
-                      width: 68,
-                      height: 102,
-                      borderColor: "var(--shell-row-border)",
-                      background: "color-mix(in srgb, var(--shell-bg) 85%, black)",
-                    }}
-                  >
-                    <img
-                      src={getPosterUrl(entry.posterPath)}
-                      alt={`${entry.title} poster`}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-                </Link>
-              )}
-
-              <div className="min-w-0 space-y-1.5">
-                <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
-                  <Link
-                    to="/reviews/$username/$reviewId"
-                    params={{ username, reviewId: entry.id }}
-                    className="font-sans text-sm font-semibold leading-snug hover:underline"
-                    style={{ color: "var(--shell-fg)" }}
-                    viewTransition
-                  >
-                    {entry.title}
-                    {entry.releaseYear ? (
-                      <span className="shell-muted"> ({entry.releaseYear})</span>
-                    ) : null}
-                  </Link>
-
-                  <span
-                    className="mt-0.5 shrink-0 rounded-full border px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-widest"
-                    style={{
-                      borderColor: `color-mix(in srgb, ${mediaMetaByType[entry.mediaType].color} 25%, transparent)`,
-                      color: mediaMetaByType[entry.mediaType].color,
-                    }}
-                  >
-                    {mediaMetaByType[entry.mediaType].label}
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  {entry.rating != null ? <RocketDisplay rating={entry.rating} size="sm" /> : null}
-                  <span className="font-mono text-[9px] shell-muted">
-                    Reviewed on {formatDate(entry.createdAt)}
-                  </span>
-                </div>
-
-                {entry.containsSpoilers && !revealedSpoilersById[entry.id] ? (
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/12 px-2.5 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-200 transition-colors hover:bg-amber-500/18"
-                    onClick={(event) => {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      setRevealedSpoilersById((current) => ({
-                        ...current,
-                        [entry.id]: true,
-                      }));
-                    }}
-                  >
-                    <TriangleAlert className="h-3.5 w-3.5" />
-                    spoiler warning - reveal
-                  </button>
-                ) : (
-                  <Link
-                    to="/reviews/$username/$reviewId"
-                    params={{ username, reviewId: entry.id }}
-                    className="block whitespace-pre-wrap font-mono text-xs leading-relaxed transition-colors"
-                    style={{ color: "color-mix(in srgb, var(--shell-fg) 58%, transparent)" }}
-                    viewTransition
-                  >
-                    {entry.content}
-                  </Link>
-                )}
-              </div>
-            </div>
-          </article>
-        ))}
-      </div>
+          {reviews.map((entry) => (
+            <ProfileReviewRow key={entry.id} review={entry} username={username} />
+          ))}
+        </section>
+      ) : null}
 
       {reviewsQuery.hasNextPage ? (
         <div className="mt-5 flex justify-center">
