@@ -127,7 +127,7 @@ export class WatchLogService {
       case "none":
         return attached;
       case "delete":
-        await ReviewsService.delete(edit.reviewId, log.userId);
+        await ReviewsService.remove(edit.reviewId, { by: "author", userId: log.userId });
         return null;
       case "update":
         return toAttachedReview(
