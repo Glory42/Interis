@@ -37,7 +37,7 @@ test("exports the diary as CSV and imports a fixture back in", async ({ page }) 
       await page.goto("/settings/data");
 
       const downloadPromise = page.waitForEvent("download");
-      await page.getByRole("button", { name: "Export as CSV" }).click();
+      await page.getByRole("button", { name: "Download CSV" }).click();
       const download = await downloadPromise;
 
       const stream = await download.createReadStream();

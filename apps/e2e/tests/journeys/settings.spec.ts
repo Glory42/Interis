@@ -93,31 +93,28 @@ test("edits profile, theme, Top4 favorites, and manages blocked users from setti
   }
 });
 
-// #102, #136: an account can be deleted from Settings > Auth, guarded by the
+// #102, #136: an account can be deleted from Settings > Your data, guarded by the
 // current password, and is really gone afterwards.
 test("deletes the account from settings", async ({ page }) => {
   const user = buildTestUser("e2edel");
 
   try {
-    await test.step("sign up and open auth settings", async () => {
+    await test.step("sign up and open your data settings", async () => {
       await registerUser(page, user);
-      await page.goto("/settings/auth");
+      await page.goto("/settings/data");
     });
 
     await test.step("confirms with the password and lands home signed out", async () => {
-      await page.getByRole("button", { name: "Delete account" }).click();
-      // The settings page has its own "Current password" fields; use the dialog's.
-      const dialog = page.getByRole("dialog", { name: "Delete account" });
-      const confirm = dialog.getByRole("button", { name: "Delete forever" });
+      const confirm = page.getByRole("button", { name: `Delete @${user.username} forever` });
       await expect(confirm).toBeDisabled();
 
-      await dialog.getByLabel("Current password").fill("not-my-password");
+      await page.getByLabel("Your password, to confirm").fill("not-my-password");
       await confirm.click();
       await expect(page.getByText("Current password is incorrect")).toBeVisible({
         timeout: 10_000,
       });
 
-      await dialog.getByLabel("Current password").fill(user.password);
+      await page.getByLabel("Your password, to confirm").fill(user.password);
       await confirm.click();
       await page.waitForURL("/", { timeout: 15_000 });
 

@@ -5,6 +5,7 @@ import { ImportDialog } from "../components/ImportDialog";
 import { useImportStream } from "../hooks/useImportStream";
 import { exportDiary } from "../api";
 import { TickLoader } from "@/components/ui/tick-loader";
+import { Button } from "@/components/ui/button";
 
 export const DataTransferPage = () => {
   const exportMutation = useMutation({ mutationFn: exportDiary });
@@ -41,128 +42,66 @@ export const DataTransferPage = () => {
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Export */}
-        <div className="border space-y-4 p-5 shell-border surface">
-          <div>
-            <h2 className="text-base font-bold text-foreground">Export diary</h2>
-            <p className="mt-1 text-sm shell-muted">
-              Download your full watch history as a CSV file. Includes dates,
-              ratings, rewatches, and reviews.
+      <section>
+        <h2 className="display-4 text-foreground">Your data</h2>
+        <div className="mt-3 border-t border-[color:var(--line)]">
+          <div className="border-b border-[color:var(--line)] py-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="body text-foreground">Diary export</span>
+              <Button variant="outline" size="md" onClick={() => exportMutation.mutate()} disabled={exportMutation.isPending}>
+                {exportMutation.isPending ? <TickLoader /> : <Download aria-hidden className="size-3.5" />}
+                {exportMutation.isPending ? "Exporting…" : "Download CSV"}
+              </Button>
+            </div>
+            <p className="mono-meta mt-1 uppercase text-muted-foreground">
+              Date · Type · Title · Year · TMDB · Rating · Rewatch · Review · Spoilers
             </p>
+            {exportMutation.isError ? <p className="body-s mt-1 text-[color:var(--danger)]">Export failed. Please try again.</p> : null}
           </div>
 
-          <button
-            type="button"
-            onClick={() => exportMutation.mutate()}
-            disabled={exportMutation.isPending}
-            className="flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors shell-border shell-muted hover:text-foreground disabled:opacity-50"
-          >
-            {exportMutation.isPending ? (
-              <TickLoader />
-            ) : (
-              <Download className="h-3.5 w-3.5" />
-            )}
-            {exportMutation.isPending ? "Exporting…" : "Export as CSV"}
-          </button>
-
-          {exportMutation.isError && (
-            <p className="text-sm text-destructive">Export failed. Please try again.</p>
-          )}
-        </div>
-
-        {/* Import */}
-        <div className="border space-y-4 p-5 shell-border surface">
-          <div>
-            <h2 className="text-base font-bold text-foreground">Import diary</h2>
-            <p className="mt-1 text-sm shell-muted">
-              Import from a Letterboxd export —{" "}
-              <span className="shell-accent">diary.csv</span>,{" "}
-              <span className="shell-accent">reviews.csv</span>,{" "}
-              <span className="shell-accent">watched.csv</span>, or{" "}
-              <span className="shell-accent">watchlist.csv</span> — or
-              a previous Interis export. Reviews and watchlist entries are
-              imported automatically. Duplicates are skipped.
-            </p>
-          </div>
-
-          {/* Running in background banner */}
-          {isImportRunning && !dialogOpen && (
-            <div className="flex items-center justify-between border px-3 py-2 shell-border shell-active-pill">
-              <div className="flex items-center gap-2 text-sm shell-accent">
-                <TickLoader />
-                <span>
-                  Import running — {importState.processed} / {importState.total} processed
-                </span>
+          <div className="border-b border-[color:var(--line)] py-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span className="body text-foreground">Import</span>
+              <div className="flex items-center gap-2">
+                {selectedFile ? (
+                  <span className="body-s max-w-48 truncate text-muted-foreground">{`${selectedFile.name} · ${(selectedFile.size / 1024).toFixed(1)} KB`}</span>
+                ) : null}
+                <Button variant="outline" size="md" onClick={() => fileInputRef.current?.click()} disabled={isImportRunning}>
+                  <Upload aria-hidden className="size-3.5" />
+                  Choose CSV…
+                </Button>
+                {selectedFile ? (
+                  <Button size="md" onClick={handleImport} disabled={isImportRunning}>
+                    Import
+                  </Button>
+                ) : null}
               </div>
-              <button
-                type="button"
-                onClick={handleReopen}
-                className="text-xs font-medium shell-accent underline-offset-2 hover:underline"
-              >
-                View
-              </button>
             </div>
-          )}
+            <p className="mono-meta mt-1 uppercase text-muted-foreground">
+              Letterboxd diary / reviews / watched / watchlist · Interis CSV · duplicates skipped
+            </p>
+            <input ref={fileInputRef} type="file" accept=".csv,text/csv" className="hidden" onChange={handleFileChange} />
 
-          {/* Done in background banner */}
-          {isImportDone && !dialogOpen && (
-            <div className="flex items-center justify-between rounded-lg border px-3 py-2 shell-border">
-              <span className="text-sm shell-muted">
-                Last import: {importState.summary.imported} imported ·{" "}
-                {importState.summary.skipped} skipped ·{" "}
-                {importState.summary.failed} failed
-              </span>
-              <button
-                type="button"
-                onClick={handleReopen}
-                className="text-xs font-medium shell-muted hover:text-foreground"
-              >
-                View log
-              </button>
-            </div>
-          )}
-
-          <div className="space-y-3">
-            <div
-              className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-6 py-8 transition-colors shell-border hover:border-[color:var(--shell-accent)]"
-              onClick={() => fileInputRef.current?.click()}
-              onKeyDown={(e) => e.key === "Enter" && fileInputRef.current?.click()}
-              role="button"
-              tabIndex={0}
-            >
-              <Upload className="h-5 w-5 shell-muted" />
-              <p className="text-sm shell-muted">
-                {selectedFile ? selectedFile.name : "Click to select a CSV file"}
+            {isImportRunning && !dialogOpen ? (
+              <p className="body-s mt-2 flex items-center gap-2 text-muted-foreground">
+                <TickLoader />
+                {`Import running — ${importState.processed} / ${importState.total} processed`}
+                <button type="button" onClick={handleReopen} className="text-primary hover:underline">
+                  View
+                </button>
               </p>
-              {selectedFile && (
-                <p className="text-xs shell-muted">
-                  {(selectedFile.size / 1024).toFixed(1)} KB
-                </p>
-              )}
-            </div>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv,text/csv"
-              className="hidden"
-              onChange={handleFileChange}
-            />
-
-            <button
-              type="button"
-              onClick={handleImport}
-              disabled={!selectedFile || isImportRunning}
-              className="flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-              style={{ background: "var(--shell-accent)", color: "var(--primary-foreground)" }}
-            >
-              <Upload className="h-3.5 w-3.5" />
-              Import
-            </button>
+            ) : null}
+            {isImportDone && !dialogOpen ? (
+              <p className="body-s mt-2 text-muted-foreground">
+                {`Last import: ${importState.summary.imported} imported · ${importState.summary.skipped} skipped · ${importState.summary.failed} failed `}
+                <button type="button" onClick={handleReopen} className="text-primary hover:underline">
+                  View log
+                </button>
+              </p>
+            ) : null}
           </div>
         </div>
-      </div>
+      </section>
 
       <ImportDialog
         isOpen={dialogOpen}
