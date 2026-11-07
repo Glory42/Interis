@@ -39,7 +39,7 @@ export const registerUser = async (page: Page, user: TestUser): Promise<void> =>
 
   await page.getByLabel("Your question").fill("What is this test account's favorite film?");
   await page.getByLabel("Your answer").fill("e2e-test-answer");
-  await page.getByRole("button", { name: "Save and continue" }).click();
+  await page.getByRole("button", { name: "Save and open my diary" }).click();
   await page.waitForURL("/");
 };
 
