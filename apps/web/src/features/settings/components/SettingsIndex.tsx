@@ -3,13 +3,8 @@ import { ChevronRight } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { SETTINGS_GROUP_LABEL, settingsSections } from "@/features/settings/model/settings.constants";
 import type { SettingsSectionId } from "@/features/settings/model/settings.types";
+import { maskEmail } from "@/features/settings/model/mask-email";
 import { getThemeById } from "@/features/theme/theme-registry";
-
-// "me@example.com" → "m•@example.com": enough to recognise, not to copy.
-const maskEmail = (email: string) => {
-  const [name, domain] = email.split("@");
-  return name && domain ? `${name.slice(0, 1)}•@${domain}` : email;
-};
 
 const groups = Object.keys(SETTINGS_GROUP_LABEL) as (keyof typeof SETTINGS_GROUP_LABEL)[];
 

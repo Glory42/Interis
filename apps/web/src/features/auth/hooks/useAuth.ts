@@ -99,7 +99,7 @@ export const useSetSecurityQuestion = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: { question: string; answer: string }) =>
+    mutationFn: (input: { question: string; answer: string; currentPassword?: string }) =>
       setCurrentUserSecurityQuestion(input),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: authKeys.me });

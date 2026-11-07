@@ -27,6 +27,8 @@ const changeEmailInputSchema = z.object({
 const securityQuestionInputSchema = z.object({
   question: z.string().min(4).max(200),
   answer: z.string().min(1).max(200),
+  // Only needed to replace an existing question.
+  currentPassword: z.string().min(1).max(256).optional(),
 });
 
 type UpdateIdentityInput = {
@@ -183,6 +185,7 @@ export const changeCurrentUserEmail = async (input: {
 export const setCurrentUserSecurityQuestion = async (input: {
   question: string;
   answer: string;
+  currentPassword?: string;
 }): Promise<void> => {
   const payload = securityQuestionInputSchema.parse(input);
 
