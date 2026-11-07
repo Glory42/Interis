@@ -9,12 +9,12 @@ This page documents likely next areas without treating them as shipped features.
 
 - Public routes are read-only and username-based.
 - No auth token system for public endpoints.
-- No cursor pagination yet.
+- No cursor pagination yet; only `/diary` supports `offset`.
 - Public responses are cached (`Cache-Control: public, max-age=300, stale-while-revalidate=600`), not `no-store`.
 
 ## Potential near-term improvements
 
-- Cursor or offset pagination for high-volume users.
+- Cursor or offset pagination beyond `/diary` for high-volume users.
 - More explicit endpoint-specific response schemas in backend DTOs.
 - Additional response metadata for easier widget hydration.
 - Public docs changelog entries tied to backend releases.

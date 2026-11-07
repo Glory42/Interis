@@ -25,7 +25,7 @@ All routes are `GET` and use `:username` path params.
 | `/api/public/:username/lists` | 50 | 200 | Public lists only |
 | `/api/public/:username/likes` | 50 | 200 | Liked movie + TV media |
 | `/api/public/:username/watchlist` | 50 | 200 | Watchlisted movie + TV media |
-| `/api/public/:username/diary` | 50 | 200 | Movie + TV diary entries |
+| `/api/public/:username/diary` | 50 | 200 | Movie + TV diary entries; also `offset` (max 5000) |
 | `/api/public/:username/movies/watched` | 50 | 200 | Watched movies (movie-only) |
 | `/api/public/:username/serials/:tmdbId` | - | - | Serial progress + stats |
 | `/api/public/:username/serials/currently-watching` | 10 | 30 | In-progress serials, most recent first |
@@ -34,10 +34,13 @@ All routes are `GET` and use `:username` path params.
 ## Response conventions
 
 - **HTTP 200** for successful reads.
-- **HTTP 404** with `{ "error": "User not found" }` when username is missing.
+- Errors use `{ "error": { "message": string, "code": string } }`.
+- **HTTP 400** (`BAD_REQUEST`) when `/serials/:tmdbId` gets a non-numeric `tmdbId`.
+- **HTTP 403** (`CORS_NOT_ALLOWED`) when a browser sends an `Origin` that isn't on the backend allow-list.
+- **HTTP 404** (`NOT_FOUND`, `"User not found"`) when username is missing.
 - **HTTP 429** when a rate limit is exceeded.
-- **HTTP 500** with `{ "error": "Internal server error" }` for unhandled errors.
-- `Cache-Control: public, max-age=300, stale-while-revalidate=600` is set on successful public responses.
+- **HTTP 500** (`INTERNAL_SERVER_ERROR`) for unhandled errors.
+- `Cache-Control: public, max-age=300, stale-while-revalidate=600` is set on successful public responses (`max-age=60` on `User not found`).
 
 ## Rate limiting
 
@@ -55,9 +58,10 @@ The broader `/api` limiter is configured to skip `/public/*`, so public traffic 
 
 - Lists endpoint returns only rows where `isPublic = true`.
 - Likes/watchlist include both movie and TV rows.
-- Diary includes both movie and TV entries merged and sorted by watched date.
+- Diary includes both movie and TV entries merged and sorted by watched date. It is the only endpoint with `offset` paging.
 - Activity/recent return the same feed item shape, but with different default/max limits.
 - Currently-watching lists series with the "watching" status; completed, paused, and dropped series are excluded.
+- Ratings are on a 0.5–10 scale in 0.5 steps (`null` when unrated).
 - Movies watched / serials watched are each movie-only or series-only (unlike likes/watchlist, which mix both media types).
 
 ## Endpoint docs

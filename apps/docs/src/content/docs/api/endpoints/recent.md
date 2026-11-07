@@ -40,7 +40,6 @@ Returns `FeedItem[]`.
       "id": "user-id",
       "username": "your_username",
       "displayUsername": "Your Username",
-      "image": null,
       "avatarUrl": null
     },
     "movie": {
@@ -68,12 +67,14 @@ Returns `FeedItem[]`.
       "containsSpoilers": false,
       "reviewId": "review-id",
       "commentId": null,
-      "movieId": 550,
+      "movieId": 123,
       "postId": null,
       "postMediaId": null,
       "postMediaType": null,
       "seasonNumber": null,
-      "episodeNumber": null
+      "episodeNumber": null,
+      "listId": null,
+      "listTitle": null
     },
     "engagement": {
       "likeCount": 3,

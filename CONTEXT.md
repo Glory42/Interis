@@ -21,7 +21,7 @@ The umbrella term for "Film or Series" — used where logic, UI, or storage is g
 _Avoid_: content, title (both too generic)
 
 **Film**:
-A film, TMDB-sourced and cached locally (title, release year, director, runtime, genres) the first time any user references it — never bulk-imported. The UI section is **Films**; code is `modules/films`, `features/films` and `Film*` names (ADR 0003). The wire keeps the older name: `/movies/:tmdbId` pages, `/api/movies`, the `movies` table, `movie_id` columns and `mediaType: "movie"`.
+A film, TMDB-sourced and cached locally (title, release year, director, runtime, genres) the first time any user references it — never bulk-imported. The UI section is **Films**; code is `modules/films`, `features/films` and `Film*` names (ADR 0003). The wire keeps the older name: `/movies/:tmdbId` pages, `/api/movies`, the `movie` table, `movie_id` columns and `mediaType: "movie"`.
 _Avoid_: movie (in new code and copy), cinema, title (title is ambiguous with the string field)
 
 **Series**:
@@ -35,11 +35,11 @@ _Avoid_: actor, cast member (too narrow — Person covers crew too)
 ### Watching & reviewing
 
 **Diary Entry**:
-A record that a user watched a Movie or Serial on a given date — a watch log. Stored per media type (`diary_entry` for movies, `serial_diary_entry` for serials). May optionally have a Review attached (`Review.diaryEntryId` for movie logs, `Review.serialDiaryEntryId` for serial logs). Deleting the log keeps the Review, unattached.
+A record that a user watched a Film or Series on a given date — a watch log. Stored per media type (`diary_entry` for Films, `serial_diary_entry` for Series). May optionally have a Review attached (`Review.diaryEntryId` for Film logs, `Review.serialDiaryEntryId` for Series logs). Deleting the log keeps the Review, unattached.
 _Avoid_: watch, log
 
 **Review**:
-A write-up about a Movie or Serial. May be attached to the Diary Entry it was written for, or stand alone with no Diary Entry at all.
+A write-up about a Film or Series. May be attached to the Diary Entry it was written for, or stand alone with no Diary Entry at all.
 _Avoid_: rating (a separate Interaction, not a Review)
 
 **Comment**:
@@ -47,24 +47,24 @@ A reply to a Review or a Post — a distinct model per parent, not a shared one.
 _Avoid_: reply
 
 **Interaction**:
-A user's standing relationship to one Movie or Serial — liked, watchlisted, watched, and rating — held as one row per user+media pair and updated in place, never a history of events. Season- and episode-level variants exist for Serials.
+A user's standing relationship to one Film or Series — liked, watchlisted, watched, and rating — held as one row per user+media pair and updated in place, never a history of events (`movie_interaction` for Films, `serial_interaction` for Series). Season- and episode-level variants exist for Series.
 _Avoid_: reaction, status
 
 **Your Rating**:
-A user's current rating of a Movie or Serial: the Interaction rating, else their latest rated Diary Entry. Logging or editing their latest rated Diary Entry sets the Interaction rating to match.
+A user's current rating of a Film or Series, on the 0.5–10 rocket scale: the Interaction rating, else their latest rated Diary Entry. Logging or editing their latest rated Diary Entry sets the Interaction rating to match.
 
 **Community Rating**:
-The average of every user's Your Rating for a Movie or Serial, one rating per user however many Diary Entries they have. The detail page and archive listings use the same rule.
+The average of every user's Your Rating for a Film or Series, one rating per user however many Diary Entries they have. The detail page and archive listings use the same rule.
 _Avoid_: average log rating
 
 ### Lists
 
 **List**:
-A user-curated, orderable collection of Movies and/or Serials, optionally ranked and optionally public.
+A user-curated, orderable collection of Films and/or Series, optionally ranked and optionally public.
 _Avoid_: watchlist (Watchlist is a boolean Interaction flag, not a List)
 
 **List Entry**:
-One Movie or Serial's membership in a List, carrying its position and an optional note.
+One Film or Series' membership in a List, carrying its position and an optional note.
 _Avoid_: list item
 
 ### Social & activity
@@ -74,11 +74,11 @@ A one-directional relationship where one user (the follower) subscribes to anoth
 _Avoid_: friend, connection
 
 **Activity**:
-A record of one discrete user action — logging a Diary Entry, writing a Review, liking or watchlisting a Movie/Serial, following a user, creating a List, liking a Review, commenting, or posting. Stored as a row in the `activity` table (`type` enum) and is the raw material the Following Feed is built from.
+A record of one discrete user action — logging a Diary Entry, writing a Review, liking or watchlisting a Film/Series, following a user, creating a List, liking a Review, commenting, or posting. Stored as a row in the `activity` table (`type` enum) and is the raw material the Following Feed is built from.
 _Avoid_: event, log entry (ambiguous with Diary Entry)
 
 **Post**:
-A short, Twitter-style standalone update a user writes, optionally attached to one Movie or Serial.
+A short, Twitter-style standalone update a user writes, optionally attached to one Film or Series.
 _Avoid_: status, tweet
 
 **Following Feed**:
@@ -86,21 +86,21 @@ The personalized, authenticated activity stream showing Activities from the user
 _Avoid_: feed (too ambiguous alone — always qualify as "Following Feed" or "Trending Now")
 
 **Trending Now**:
-TMDB's industry-wide popularity ranking for Movies and Serials, fetched on demand and cached locally like any other TMDB data — carries no Interis user activity and is not personalized or Follow-scoped. Shown as two separate rankings, one for Movies and one for Serials, never blended into a single list.
+TMDB's industry-wide popularity ranking for Films and Series, fetched on demand and cached locally like any other TMDB data — carries no Interis user activity and is not personalized or Follow-scoped. Shown as two separate rankings, one for Films and one for TV, never blended into a single list.
 _Avoid_: Trending on Interis (a superseded, Interis-engagement-based ranking that existed alongside this rail; removed — see [ADR 0001](docs/adr/0001-global-trending-on-interis.md))
 
 ### Moderation & trust
 
 **Block**:
-A one-directional relationship where a user hides another's content from their own Following Feed and related surfaces.
+A relationship one user places on another that removes any Follow between them and hides each one's activity from the other's Following Feed.
 _Avoid_: ban (a platform-wide restriction is Suspension, not Block)
 
 **Mute**:
-A one-directional relationship, distinct from Block, that hides another user's activity from the viewer's Following Feed.
+A one-directional relationship, distinct from Block, that hides another user's activity from the viewer's Following Feed without touching Follows or affecting the muted user.
 _Avoid_: block (Mute and Block are separate relationships)
 
 **Report**:
-A user's flag of a Review or Post for moderator review, snapshotting the content at submit time so it stays reviewable even if the original is later edited or deleted.
+A user's flag of a Review, Post, comment, or List for moderator review, snapshotting the content at submit time so it stays reviewable even if the original is later edited or deleted.
 _Avoid_: flag
 
 **Suspension**:
@@ -110,5 +110,5 @@ _Avoid_: ban, block
 ### Notifications
 
 **Notification**:
-A record that another user's action (follow, like, comment) is relevant to a user and awaits their attention, with its own read/unread state. Distinct from Activity, which is the public record of the action itself regardless of who it's relevant to.
+A record that another user's action (follow, like, comment) or a moderator's removal of their content is relevant to a user and awaits their attention, with its own read/unread state. Distinct from Activity, which is the public record of the action itself regardless of who it's relevant to.
 _Avoid_: alert

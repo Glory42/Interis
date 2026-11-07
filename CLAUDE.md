@@ -13,8 +13,9 @@ Interis is a social movie journal app (Letterboxd-inspired). Users log watches, 
 # from repo root: docker compose up postgres db-proxy   — local DB for dev + tests (never use Neon)
 bun run dev          # watch mode dev server (port 5000)
 bun run typecheck    # tsc --noEmit
+bun run lint         # ESLint (incl. 380-line max per file)
 bun test             # all tests (needs DIRECT_DATABASE_URL → local Postgres)
-bun run test:integration   # integration tests only
+bun run test:integration   # integration tests only (also test:contract, test:unit)
 bun run lint:arch    # architecture layer check (see constraints below)
 bunx drizzle-kit generate  # generate migration after schema change
 bun run scripts/docker-migrate.ts   # apply migrations to local Postgres
@@ -48,6 +49,7 @@ JWT_ACCESS_SECRET=
 TMDB_ACCESS_TOKEN=Bearer <token>
 CORS_ORIGIN=http://localhost:5173
 PORT=5000
+TZ=UTC   # driver reads naive timestamps back in the process TZ
 # Optional: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_PUBLIC_URL
 # Optional, have defaults: JWT_ACCESS_TTL_SECONDS, REFRESH_TOKEN_TTL_SECONDS, AUTH_ACCESS_COOKIE_NAME, AUTH_REFRESH_COOKIE_NAME
 ```
@@ -70,13 +72,15 @@ VITE_API_BASE_URL=
 
 ### Request flow
 ```
-Browser → Vite dev server (proxies /api) → Express on Bun.serve (port 5000)
+Browser → Vite dev server (proxies /api) → Express 5 on Bun (port 5000)
+                                                 ↓
+                    helmet → CORS → blockCrawlers → rate limiters → trusted-origin check
                                                  ↓
                                     In-house auth (JWT access + refresh cookies)
                                                  ↓
                                    controller → service → repository
                                                  ↓
-                                         Drizzle ORM → Neon PostgreSQL
+              Drizzle ORM → Neon PostgreSQL (prod) / local Postgres (dev + tests)
                                                  ↓
                                        TMDB API (on-demand + cached locally)
 ```
@@ -105,7 +109,7 @@ constants/              # Magic values / enums
 - DTOs must not import services, repositories, or controllers
 
 **Enforced by `bun run lint` (ESLint):**
-- No single backend file over 380 lines (applies repo-wide under `src/`, matching the frontend's `max-lines` rule)
+- No single backend file over 380 lines (applies repo-wide under `src/`, the frontend's `max-lines` rule caps files at 330)
 
 **Auth:** `requireAuth` middleware (`commons/middlewares/requireAuth.ts`) sets `req.user`/`req.session`. For optional auth use `resolveViewerUserIdFromHeaders()` from `commons/auth/session-resolver.helper.ts`. Admin-only routes use `requireAdmin`.
 
@@ -115,14 +119,14 @@ constants/              # Magic values / enums
 
 **TMDB:** movie/serial data is fetched on demand and cached locally in the DB — never bulk imported. Always use the TMDB client from `infrastructure/tmdb`.
 
-**Activity feed:** creating lists, following users, logging diary entries, and other social actions produce rows in the `activities` table (see `social.entity.ts` for the `activityTypeEnum`).
+**Activity feed:** creating lists, following users, logging diary entries, and other social actions produce rows in the `activity` table (see `social.entity.ts` for the `activityTypeEnum`).
 
 ### Frontend structure
 
 ```
 src/
 ├── routes/                     # TanStack Router file-based routes
-│   └── profile/$username/      # Profile sub-routes (diary, reviews, lists, liked, watchlist)
+│   └── profile/$username/      # Profile sub-routes (diary, reviews, lists, liked, watchlist, watching, stats)
 ├── features/<feature>/
 │   ├── api.ts                  # fetch calls — use apiRequest(), validate with Zod
 │   ├── hooks/use<Feature>.ts   # React Query hooks + query key factories
@@ -149,9 +153,10 @@ src/
 ## Key domain notes
 
 - **Diary entries and reviews are separate models.** A diary entry (watch log) can optionally have a review; reviews can also exist standalone.
-- **The existing `lists` entity** (`apps/api/src/modules/lists/lists.entity.ts`) currently only supports movies (`movieId` FK). The frontend stubs (`features/lists/api.ts`, `features/profile/pages/ProfileListsPage.tsx`) are placeholders awaiting full implementation.
+- **Lists** (`apps/api/src/modules/lists/`, mounted at `/api/lists`) hold Films and Series: each `list_entry` has an `itemType` plus a nullable `movieId` or `tvSeriesId` FK, a `position` and an optional note (max 500 items per list). Lists can be ranked/public and liked (`list_like`). Frontend lives in `features/lists/` and the profile list pages.
 - **Films and TV:** code says Film/Series/Tv (`modules/films`, `modules/tv`, `features/films`, `features/tv`); URLs, API paths, tables and JSON keep `movies`/`serials`/`movie`/`tv` (see ADR 0003). TV series are `tvSeries` in the DB (`tv_series` table). Anything both use goes in `media`.
-- **Interactions** (liked, watchlisted, rating) are stored in `movie_interaction` table — one row per user+movie pair, updated in place.
+- **Interactions** (liked, watchlisted, watched, rating) are one row per user+title, updated in place: `movie_interaction` for Films, `serial_interaction` for Series (plus `serial_season_interaction` / `serial_episode_interaction`). Shared logic lives in `modules/media-interactions`.
+- **Ratings** are 0.5–10 in half steps (the 10-rocket scale), validated in each DTO.
 - **Theme system:** themes are full-stack — backend validates `themeId`, frontend loads from `public/theme-registry.js` before React hydrates. See `ADDING-THEMES.md` for the complete guide.
 - **Public API** (`/api/public/*`) uses open CORS and is intended for external widgets — keep these routes read-only and unauthenticated.
 
@@ -159,10 +164,10 @@ src/
 
 Apply these to every new feature, not just when something is already slow — they reflect real regressions found and fixed in this codebase.
 
-- **Query invalidation:** never invalidate a whole top-level key (`["movies"]`, `["feed"]`) after a mutation — it silently refetches every unrelated query in that namespace (search, archive, other detail pages). Invalidate only the specific keys that actually change. See the narrow-invalidation pattern in `useInteractions.ts`/`useSerials.ts`.
+- **Query invalidation:** never invalidate a whole top-level key (`["movies"]`, `["feed"]`) after a mutation — it silently refetches every unrelated query in that namespace (search, archive, other detail pages). Invalidate only the specific keys that actually change. See the narrow-invalidation pattern in `useInteractions.ts`/`features/tv/hooks/tv/use-series-mutations.ts`.
 - **No background polling:** never add `refetchInterval` (or any timer) that hits a DB-backed endpoint. Neon suspends compute only after 5 idle minutes, so any poll shorter than that keeps compute awake 24/7 from a single open tab — a 60s unread-count poll exhausted the Free plan's compute hours (2026-10-21). Refetch on window focus, mount, or mutation instead.
 - **Crawlers stay off the API:** `blockCrawlers` (`commons/middlewares/blockCrawlers.ts`) refuses crawler and spoofed-browser requests before any DB work; only `/api/users/:username/**` is crawlable. Bots crawling the TMDB mirror pages kept Neon awake ~82% of the time (2026-11-03). Widen `CRAWLABLE_PATH_PATTERN` only deliberately, for bounded content.
-- **No DB writes from read paths:** GET handlers must not insert cache rows — use `MoviesCacheService.findForRead` / `SerialsCacheService.findForRead` (returns an unsaved row with `id = UNSAVED_MEDIA_ID` for uncached titles), and keep `findOrCreate` for write paths (log, review, list, interaction). Otherwise every crawler page view grows the DB.
+- **No DB writes from read paths:** GET handlers must not insert cache rows — use `FilmsCacheService.findForRead` / `TvCacheService.findForRead` (returns an unsaved row with `id = UNSAVED_MEDIA_ID` for uncached titles), and keep `findOrCreate` for write paths (log, review, list, interaction). Otherwise every crawler page view grows the DB.
 - **External API calls:** reads from TMDB (or any third-party API) that don't change per-request must go through a cache, not hit the network on every request. Use `createCachedTmdbFetcher` (`infrastructure/tmdb/tmdb-cache.helper.ts`) for new TMDB reads keyed by an id.
 - **Independent async work:** run independent `await`s via `Promise.all`, never sequentially. Only chain awaits when one genuinely depends on the previous result.
 - **N+1 queries:** never loop over rows firing one query per row. Collect the needed ids first, batch-fetch with a single `inArray(...)` query, build a `Map` for O(1) lookup, then do a synchronous pass to assemble results. See `buildFeedFallbackMediaContext` in `social-feed-context.helper.ts` for the pattern.

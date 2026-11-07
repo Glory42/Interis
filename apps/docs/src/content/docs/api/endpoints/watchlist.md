@@ -45,7 +45,7 @@ Response shape matches [Likes](/api/endpoints/likes/):
 ### Notes
 
 - Includes both `movie` and `tv` rows.
-- Sorted by `lastInteractionAt` descending.
+- Sorted by `lastInteractionAt` descending (last change to the user's interaction with the title).
 
 ## Empty state behavior
 

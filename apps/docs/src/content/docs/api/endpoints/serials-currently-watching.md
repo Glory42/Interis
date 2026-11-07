@@ -6,7 +6,7 @@ description: Read the TV series a user is currently watching.
 ## Endpoint
 
 ```txt
-GET /api/public/:username/serials/currently-watching
+GET /api/public/:username/serials/currently-watching?limit=10
 ```
 
 Returns the TV series whose watch status is **watching**, ordered by most recent watch activity. A series becomes "watching" when the user checks its first regular episode, and leaves this list when every episode is watched (completed), when the user pauses or drops it, or when every episode is unchecked. Specials (season 0) don't count toward progress, so watching only specials doesn't put a series on this list. A completed series comes back here when new episodes air, as long as the user had tracked it episode by episode.
@@ -37,7 +37,7 @@ Returns the TV series whose watch status is **watching**, ordered by most recent
     "numberOfEpisodes": 62,
     "watchedEpisodesCount": 14,
     "progressPercent": 23,
-    "lastWatchedAt": "2026-07-01T12:00:00.000Z",
+    "lastWatchedAt": "2026-07-01 12:00:00.000000+00",
     "currentEpisode": {
       "seasonNumber": 1,
       "episodeNumber": 4,
@@ -50,7 +50,8 @@ Returns the TV series whose watch status is **watching**, ordered by most recent
 ### Notes
 
 - Ordered by `lastWatchedAt` descending — most recently watched series first.
-- `progressPercent` is `watchedEpisodesCount / numberOfEpisodes`, rounded to the nearest whole percent.
+- `progressPercent` is `watchedEpisodesCount / numberOfEpisodes`, rounded to the nearest whole percent (`0` when `numberOfEpisodes` is unknown).
+- `lastWatchedAt` is currently serialized in Postgres timestamp format (`"2026-11-06 22:42:49.515805+00"`), not ISO 8601 like other date fields. Normalize it before parsing, e.g. `new Date(value.replace(' ', 'T').replace(/\+00$/, 'Z'))`.
 - `currentEpisode` is the first unwatched episode in chronological order (Up Next). It can be `null` if the locally cached `numberOfEpisodes` is behind the show's true episode count on TMDB.
 - `numberOfEpisodes` excludes season 0 (Specials). `watchedEpisodesCount` and `progressPercent` are computed the same way, so the fraction is always consistent.
 - `numberOfEpisodes`/`numberOfSeasons` reflect the last time this series was cached locally and can lag TMDB briefly for currently-airing shows.

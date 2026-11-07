@@ -109,6 +109,8 @@ After cleanup, run:
 ```bash
 # Backend
 bun run typecheck    # from apps/api/
+bun run lint
+bun run lint:arch
 
 # Frontend
 bun run typecheck    # from apps/web/

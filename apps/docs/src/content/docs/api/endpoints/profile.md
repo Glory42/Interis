@@ -28,15 +28,15 @@ None.
   "username": "your_username",
   "displayUsername": "Your Username",
   "name": "Your Name",
-  "image": null,
   "avatarUrl": null,
   "bio": "Public bio",
   "location": "Istanbul",
   "favoriteGenres": ["Drama", "Thriller"],
-  "themeId": "null-log",
+  "themeId": "rose-pine",
   "createdAt": "2026-01-01T12:00:00.000Z",
   "stats": {
-    "entryCount": 120,
+    "movieEntryCount": 120,
+    "serialEntryCount": 30,
     "reviewCount": 42,
     "movieCount": 95,
     "listCount": 8,
@@ -50,7 +50,11 @@ None.
 
 - Timestamps are serialized as ISO datetime strings.
 - `favoriteGenres` is an array (falls back to `[]` when missing).
-- `listCount` is sourced from the user stats aggregate (not only public lists).
+- `themeId` is one of `rose-pine`, `null-log`, `nitrate`, `marquee`.
+- `movieEntryCount` / `serialEntryCount` count film and TV diary logs separately.
+- `reviewCount` counts all of the user's reviews (film and TV).
+- `movieCount` counts distinct films the user has logged or marked watched.
+- `listCount` counts public lists only.
 
 ## Empty state behavior
 
@@ -58,7 +62,7 @@ No array-style empty state. For existing users, this endpoint returns an object.
 
 ## Error behavior
 
-- `404` when username does not exist.
+- `404` with `{ "error": { "message": "User not found", "code": "NOT_FOUND" } }` when username does not exist.
 - `429` when the public rate limit is exceeded.
 - `500` for unexpected server errors.
 
@@ -88,7 +92,7 @@ curl "https://api.interis.gorkemkaryol.dev/api/public/your_username/profile"
 function toProfileHeader(profile) {
   return {
     title: profile.displayUsername ?? profile.username,
-    subtitle: `${profile.stats.reviewCount} reviews · ${profile.stats.entryCount} logs`,
+    subtitle: `${profile.stats.reviewCount} reviews · ${profile.stats.movieEntryCount + profile.stats.serialEntryCount} logs`,
     themeId: profile.themeId,
   };
 }

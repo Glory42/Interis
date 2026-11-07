@@ -1,6 +1,6 @@
 # Interis Public API
 
-> A small, read-only, username-based public API for pulling a user's public Interis data (a Letterboxd-style movie/TV journal app) into portfolio widgets, favorites sections, review panels, and diary/watchlist embeds.
+> A small, read-only, username-based public API for pulling a user's public Interis data (a social film and TV diary) into portfolio widgets, favorites sections, review panels, and diary/watchlist embeds.
 
 Base URL: `https://api.interis.gorkemkaryol.dev/api/public`
 
@@ -21,18 +21,18 @@ There is no auth token flow. Every request is shaped as `GET /api/public/:userna
 - [Lists](https://docs.interis.gorkemkaryol.dev/api/endpoints/lists/): `GET /:username/lists?limit=50` (max 200) — public (`isPublic=true`) lists only, with ordered items.
 - [Likes](https://docs.interis.gorkemkaryol.dev/api/endpoints/likes/): `GET /:username/likes?limit=50` (max 200) — liked movie + TV media.
 - [Watchlist](https://docs.interis.gorkemkaryol.dev/api/endpoints/watchlist/): `GET /:username/watchlist?limit=50` (max 200) — watchlisted movie + TV media.
-- [Diary](https://docs.interis.gorkemkaryol.dev/api/endpoints/diary/): `GET /:username/diary?limit=50` (max 200) — movie + TV diary log entries, merged and sorted by watched date.
+- [Diary](https://docs.interis.gorkemkaryol.dev/api/endpoints/diary/): `GET /:username/diary?limit=50&offset=0` (max 200, offset max 5000) — movie + TV diary log entries, merged and sorted by watched date.
 - [Movies Watched](https://docs.interis.gorkemkaryol.dev/api/endpoints/movies-watched/): `GET /:username/movies/watched?limit=50` (max 200) — watched movies, film-only (unlike likes/watchlist, does not mix in TV).
 - [Serials Progress](https://docs.interis.gorkemkaryol.dev/api/endpoints/serials-progress/): `GET /:username/serials/:tmdbId` — full watch progress for one specific TV series (season-by-season interaction, ratings/likes/review counts, "up next" episode).
 - [Serials Currently Watching](https://docs.interis.gorkemkaryol.dev/api/endpoints/serials-currently-watching/): `GET /:username/serials/currently-watching?limit=10` (max 30) — series started but not finished, most recently watched first, with `progressPercent` and the "up next" episode. Excludes series explicitly marked fully watched.
-- [Serials Watched](https://docs.interis.gorkemkaryol.dev/api/endpoints/serials-watched/): `GET /:username/serials/watched?limit=50` (max 200) — fully watched series, series-only. Reflects the explicit series-level "watched" flag, not derived from per-episode completion.
+- [Serials Watched](https://docs.interis.gorkemkaryol.dev/api/endpoints/serials-watched/): `GET /:username/serials/watched?limit=50` (max 200) — fully watched series, series-only. A series counts as watched when its watch status is `completed`, either marked directly or by watching every episode.
 
 ## Reference
 
 - [Data Shapes](https://docs.interis.gorkemkaryol.dev/reference/data-shapes/): shared field-level shape notes for every endpoint's response.
-- [Errors & Empty States](https://docs.interis.gorkemkaryol.dev/reference/errors-and-empty-states/): status code table (200/404/429/500) and per-endpoint empty-state behavior (`[]` for list endpoints).
+- [Errors & Empty States](https://docs.interis.gorkemkaryol.dev/reference/errors-and-empty-states/): status code table (200/400/403/404/429/500), error body shape `{ "error": { "message", "code" } }` and per-endpoint empty-state behavior (`[]` for list endpoints).
 - [Rate Limits](https://docs.interis.gorkemkaryol.dev/reference/rate-limits/): 60 requests/min per IP across all public endpoints combined. `Cache-Control: public, max-age=60, stale-while-revalidate=120` on every successful response.
-- [FAQ](https://docs.interis.gorkemkaryol.dev/reference/faq/): common questions — no auth tokens, CORS allow-list behavior, recent vs. activity, movie+TV mixing in likes/watchlist, no pagination beyond `limit`.
+- [FAQ](https://docs.interis.gorkemkaryol.dev/reference/faq/): common questions — no auth tokens, CORS allow-list behavior, recent vs. activity, movie+TV mixing in likes/watchlist, paging (`limit`, plus `offset` on diary).
 - [Future Notes](https://docs.interis.gorkemkaryol.dev/reference/future-notes/): current boundaries (no cursor pagination yet, no auth tokens) and unshipped ideas — not currently available.
 
 ## Examples
@@ -49,4 +49,7 @@ There is no auth token flow. Every request is shaped as `GET /api/public/:userna
 - List-shaped endpoints (`recent`, `activity`, `reviews`, `lists`, `likes`, `watchlist`, `diary`, `movies/watched`, `serials/currently-watching`, `serials/watched`) return `[]` when empty, not `404` or `null`.
 - `profile` and `top4` are the only endpoints without a `limit` param.
 - `likes`/`watchlist`/`diary`/`reviews` mix movie + TV rows together. `movies/watched` and `serials/watched` are each restricted to one media type.
-- No cursor/offset pagination exists on any public endpoint yet — `limit` only.
+- No cursor pagination exists yet. Every list endpoint takes `limit`; only `diary` also takes `offset`.
+- Ratings are on a 0.5–10 scale in 0.5 steps ("rockets"), or `null` when unrated.
+- Errors use `{ "error": { "message": string, "code": string } }`, except `429`, which is plain text with a `Retry-After` header.
+- Browser calls from origins outside the API's allow-list get `403 CORS_NOT_ALLOWED`; call from a server for embeds on other sites.

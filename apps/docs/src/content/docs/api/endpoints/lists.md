@@ -51,8 +51,9 @@ GET /api/public/:username/lists?limit=50
 
 - Returns only lists where `isPublic = true`.
 - Lists are ordered by `updatedAt` then `createdAt` (descending).
-- Items are ordered by `position`.
-- Current list entries are movie-backed.
+- Items are ordered by `position`; positions are not guaranteed to be contiguous.
+- `itemCount` is the length of `items`. Every list's full item array is returned (`limit` caps lists, not items).
+- Current list entries are film-only.
 
 ## Empty state behavior
 

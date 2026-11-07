@@ -12,16 +12,17 @@ Returned by `/profile`.
 Key fields:
 
 - `username`, `displayUsername`, `name`
-- `image`, `avatarUrl`, `bio`, `location`
+- `avatarUrl`, `bio`, `location`
 - `favoriteGenres[]`, `themeId`, `createdAt`
-- `stats` with `entryCount`, `reviewCount`, `movieCount`, `listCount`, `followerCount`, `followingCount`
+- `stats` with `movieEntryCount`, `serialEntryCount`, `reviewCount`, `movieCount`, `listCount` (public lists only), `followerCount`, `followingCount`
 
 ## Top 4 payload
 
 Returned by `/top4`.
 
 - `categories` array with category objects (`id`, `key`, `supported`, `items`)
-- Category keys are currently `movie` and `serial`
+- Category keys are currently `movie` and `serial` (at most 4 items each)
+- Item `mediaType` is `"movie"` or `"tv"`
 - Each item has `slot`, `mediaType`, `mediaSource`, `mediaSourceId`, `entityId`, `tmdbId`, `title`, `posterPath`, `releaseYear`
 
 ## Feed item (`recent`, `activity`)
@@ -38,7 +39,6 @@ Both endpoints return `FeedItem[]`.
     "id": "user-id",
     "username": "your_username",
     "displayUsername": null,
-    "image": null,
     "avatarUrl": null
   },
   "movie": null,
@@ -74,12 +74,14 @@ Both endpoints return `FeedItem[]`.
 
 ### Feed item notes
 
+- `movie` holds a film or a series; check `movie.mediaType` (`"movie"` or `"tv"`).
+- `metadata.movieId` is Interis' internal id, not a TMDB id. Use `movie.tmdbId` for TMDB lookups.
 - `viewerHasLiked` is currently `null` in public feed responses (no viewer context is passed).
 - Depending on activity type, `movie`, `post`, or `review` can be `null`.
 - `kind` may be a derived value (for example `liked_comment`, `liked_post`, `commented_post`).
 - `seasonNumber` and `episodeNumber` are populated for season/episode interactions (`liked_movie`, `review`). Both are `null` for movie/series-level activities.
 - For `liked_movie` activities on seasons/episodes, `metadata.rating` will be non-null when the action was a rating (not a like); `metadata.rating` is `null` for pure like actions.
-- `listId` and `listTitle` are populated for `created_list` activities; both are `null` for all other activity types `listTitle` is the list's current title. A `created_list` activity for a private list is left out, and shows again if the list is made public.
+- `listId` and `listTitle` are populated for `created_list` activities; both are `null` for all other activity types. `listTitle` is the list's current title. A `created_list` activity for a private list is left out, and shows again if the list is made public.
 - Activities about a review, post, diary log or list that has since been deleted are left out. A `diary_entry` stays after its review is deleted, with `review: null` and `metadata.hasReview: false`.
 - On `review`, `liked_review` and `diary_entry` items, `metadata.excerpt` is the start of the current review text, so it reflects edits.
 - On `diary_entry` items, `metadata.rating` and `metadata.rewatch` are the log's current values, so they reflect edits.
@@ -90,14 +92,14 @@ Key fields:
 
 - `id`, `content`, `containsSpoilers`, `createdAt`, `updatedAt`
 - media fields: `tmdbId`, `title`, `posterPath`, `releaseYear`, `mediaType`
-- score field: `rating` (0.5–10, or `null`)
+- score field: `rating` (0.5–10 in 0.5 steps, taken from the linked diary log; `null` for reviews without a rated log)
 
 ## Interaction rows (`/likes`, `/watchlist`)
 
 Key fields:
 
 - `tmdbId`, `title`, `posterPath`, `releaseYear`
-- `runtime`, `genres`, `mediaType`
+- `runtime` (episode runtime for TV), `genres` (`{ id, name }[]` or `null`), `mediaType` (`"movie"` or `"tv"`)
 - `lastInteractionAt`
 
 Note: `/likes` and `/watchlist` mix both `movie` and `tv` rows. `/movies/watched` uses this exact same row shape but is movie-only. `/serials/watched` has a different, series-specific shape — see the Watched Serials payload section below.
@@ -114,7 +116,7 @@ Key fields:
 Key fields:
 
 - diary fields: `id`, `mediaType`, `watchedDate`, `rewatch`, `liked`, `createdAt`, `updatedAt`
-- rating: `rating` (0.5–10, or `null`)
+- rating: `rating` (0.5–10 in 0.5 steps, or `null`)
 - `media` object (`tmdbId`, `title`, `posterPath`, `releaseYear`)
 - optional `review` object (`id`, `content`, `containsSpoilers`, `createdAt`) or `null`
 
@@ -124,13 +126,14 @@ Key fields:
 
 - `series` basic info: `id`, `tmdbId`, `title`, `posterPath`, `numberOfSeasons`, `numberOfEpisodes`
   - `numberOfEpisodes` excludes season 0 (Specials) — only regular aired seasons are counted.
-- `viewerTracking` progress:
+- `series.id` is Interis' internal id (`0` if the series isn't cached locally yet).
+- `viewerTracking` progress (always an object; counts are `0` when the user hasn't tracked the series):
   - `watchedEpisodesCount`: total count of watched episodes in regular seasons.
   - `watchedEpisodes[]` list: `{ seasonNumber, episodeNumber }` mappings (regular seasons).
   - `watchedSpecialEpisodesCount`: watched episodes in season 0 (Specials).
   - `currentEpisode` (Up Next): `{ seasonNumber, episodeNumber, name }` or `null` if series completed.
   - interaction aggregations: `ratingsCount`, `likesCount`, `reviewsCount`.
-- `seasons[]` array list: `seasonNumber`, `name`, `episodeCount`, and season-level `viewerInteraction` object (`watched`, `liked`, `rating`, `hasReview`, `watchedEpisodeCount`: episodes watched in that season, including Specials for season 0).
+- `seasons[]` array list (includes season 0 Specials when TMDB has them; `[]` if TMDB details are unavailable): `seasonNumber`, `name`, `episodeCount`, and season-level `viewerInteraction` object (`watched`, `liked`, `rating`, `hasReview`, `watchedEpisodeCount`: episodes watched in that season, including Specials for season 0).
 
 ## Currently Watching payload (`/serials/currently-watching`)
 
@@ -139,7 +142,7 @@ An array of in-progress series, most recently watched first. Key fields per item
 - series info: `tmdbId`, `title`, `posterPath`, `backdropPath`, `firstAirYear`, `numberOfSeasons`, `numberOfEpisodes`
   - `numberOfEpisodes` excludes season 0 (Specials).
 - progress: `watchedEpisodesCount`, `progressPercent` (0–100, rounded)
-- `lastWatchedAt`: timestamp of the most recently watched episode.
+- `lastWatchedAt`: timestamp of the most recently watched episode. Currently serialized in Postgres format (`"2026-11-06 22:42:49.515805+00"`), not ISO 8601.
 - `currentEpisode` (Up Next): `{ seasonNumber, episodeNumber, name }`, or `null` if the cached episode total is behind TMDB's true count.
 
 ## Watched Movies payload (`/movies/watched`)

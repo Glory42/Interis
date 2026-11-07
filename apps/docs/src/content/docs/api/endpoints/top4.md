@@ -56,9 +56,11 @@ None.
 
 ### Notes
 
-- Categories are currently fixed to `movie` (`id: 1`) and `serial` (`id: 2`).
-- `items` are sorted by `slot`.
-- `entityId` and `tmdbId` can be `null` for unresolved/non-TMDB records.
+- Categories are currently fixed to `movie` (`id: 1`) and `serial` (`id: 2`), always in that order.
+- Each category holds at most 4 items, sorted by `slot`.
+- Item `mediaType` is `"movie"` in the `movie` category and `"tv"` in the `serial` category.
+- `entityId` is Interis' internal id for the cached title; it is `null` when the title isn't cached locally.
+- `tmdbId` is `null` for non-TMDB records; `title`, `posterPath` and `releaseYear` can be `null` too.
 
 ## Empty state behavior
 

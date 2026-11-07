@@ -23,7 +23,7 @@ GET /api/public/:username/reviews?limit=50
 
 ## Response
 
-Returns a time-descending array.
+Returns an array sorted by `createdAt`, newest first.
 
 ```json
 [
@@ -46,8 +46,8 @@ Returns a time-descending array.
 ### Notes
 
 - Includes both `movie` and `tv` rows.
-- `rating` is 0.5–10 or `null`.
-- Results are fetched, then sliced to `limit`.
+- `rating` comes from the diary log the review is attached to: 0.5–10 in 0.5 steps, or `null` (standalone review or unrated log).
+- For a TV review whose series isn't cached locally, `title` is `"Unknown series"` and `posterPath`/`releaseYear` are `null`.
 
 ## Empty state behavior
 

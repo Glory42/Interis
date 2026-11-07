@@ -4,12 +4,13 @@ React + Vite frontend for Interis.
 
 ## What this app includes
 
-- Feed, diary, and profile experiences
-- Movie archive and movie detail pages
-- TV series archive and detail pages
-- Director and actor pages
-- Auth flows (register/login) with session cookies
-- Settings pages (profile, auth, theme)
+- Guest landing, home feed, diary, and profile experiences
+- Films archive and film detail pages
+- TV archive, series detail, and per-season pages
+- Director and actor pages, ⌘K search, lists, and review detail pages
+- Auth flows (sign in, join, recover, recovery question) with session cookies
+- Settings pages (profile, account & security, favorites, genres, theme, blocked, data, delete account)
+- Admin console and developer page
 - Feature-driven UI architecture with TanStack Router + Query
 
 ## Stack
@@ -21,15 +22,15 @@ React + Vite frontend for Interis.
 | Routing | TanStack Router (file-based) |
 | Data | TanStack React Query |
 | Styling | Tailwind CSS 4 |
-| UI | Radix UI + shadcn-style primitives |
+| UI | shadcn-style primitives (Radix Slot, CVA) |
 | Icons | Lucide |
 | Validation | Zod |
-| Auth | Better Auth client |
+| Auth | In-house JWT access + refresh cookies, sent by `apiRequest` |
 
 ## Getting started
 
 ```bash
-cd frontend
+cd apps/web
 bun install
 bun run dev
 ```
@@ -38,7 +39,7 @@ By default, Vite runs on `http://localhost:5173` and proxies `/api` to the backe
 
 ## Environment variables
 
-Create `frontend/.env`:
+Create `apps/web/.env`:
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
@@ -61,7 +62,7 @@ bun run test:coverage    # Vitest with coverage
 
 ## Testing
 
-- Test runner: Vitest (`jsdom`)
+- Test runner: Vitest (`jsdom`, via `tests/support/environments/jsdom-native-fetch.ts`)
 - UI testing: React Testing Library
 - Network mocking: MSW (`tests/support/msw/*`)
 - Shared setup: `tests/support/setup.ts`
@@ -69,7 +70,7 @@ bun run test:coverage    # Vitest with coverage
 Run tests:
 
 ```bash
-cd frontend
+cd apps/web
 bun run test
 ```
 
@@ -77,22 +78,26 @@ bun run test
 
 | Route | Description |
 | --- | --- |
-| `/` | Home/feed view |
-| `/movies` | Movie archive |
-| `/movies/:tmdbId` | Movie detail |
-| `/serials` | TV series archive |
-| `/serials/:tmdbId` | TV series detail |
+| `/` | Home feed (signed in) or guest landing |
+| `/movies` | Films archive |
+| `/movies/:tmdbId` | Film detail |
+| `/serials` | TV archive |
+| `/serials/:tmdbId` | Series detail |
+| `/serials/:tmdbId/season/:seasonNumber` | Season page (phones) |
 | `/director/:slug` | Director page |
 | `/actor/:slug` | Actor page |
+| `/reviews/:username/:reviewId` | Review detail |
 | `/profile/:username/*` | Profile tabs (overview, diary, reviews, liked, watching, watchlist, stats, lists) |
-| `/settings/*` | Account/profile/theme settings |
-| `/login`, `/register` | Auth |
-| `/admin` | Admin section |
+| `/settings/*` | Profile, auth, favorites, genres, theme, blocked, data, delete-account |
+| `/login`, `/register`, `/forgot-password` | Auth |
+| `/setup-security-question` | Recovery question setup |
+| `/developer` | Public API terms and widget snippets |
+| `/admin/*` | Admin console (overview, reports, users, content, audit, cache) |
 
 ## Project structure
 
 ```text
-frontend/
+apps/web/
 ├── components.json
 ├── vite.config.ts
 ├── vitest.config.ts
@@ -102,7 +107,7 @@ frontend/
     ├── routeTree.gen.ts          # generated TanStack Router tree
     ├── routes/                   # file-based route definitions
     ├── features/                 # domain features (api + hooks + components)
-    ├── components/               # shared app/layout/ui components
+    ├── components/               # shared ui/, layout/ and film/ (slate, poster card, rockets) components
     ├── lib/
     │   ├── api-client.ts         # fetch wrapper + API error handling
     │   ├── query-client.ts       # TanStack Query client setup
@@ -118,46 +123,51 @@ Each feature in `src/features/` follows a consistent structure:
 
 ```
 feature/
-├── api.ts           # Stable feature API barrel
-├── api/             # API internals (requests/schemas/mappers/types)
-│   ├── requests.ts
-│   ├── schemas.ts
-│   ├── mappers.ts
-│   └── types.ts
+├── api.ts           # Feature API (requests + Zod schemas)
+├── api/             # Larger features only (films, tv): requests/schemas/mappers/types behind the api.ts barrel
 ├── hooks/           # React Query hooks + query key factories
 ├── components/      # Feature-specific UI components
 ├── pages/           # Page-level components (when needed)
-└── types.ts         # Local type definitions
+└── types.ts         # Local type definitions (when needed)
 ```
 
 | Feature | Purpose |
 | --- | --- |
-| `admin/` | Admin panel |
-| `auth/` | Authentication, login/register forms, useAuth hook |
-| `diary/` | Diary entry CRUD |
-| `feed/` | Home feed, trending, network stats |
-| `interactions/` | Like/watchlist interactions |
+| `admin/` | Admin console (overview, reports, users, content, audit log, cache) |
+| `auth/` | Authentication, sign-in/join/recover forms, useAuth hook |
+| `data-transfer/` | Export and import of your data |
+| `developer/` | Developer page for the public API |
+| `diary/` | Log and review dialog, diary entry CRUD |
+| `feed/` | Home feed (grouped day cards, Now showing / Your week rail, composer) |
+| `films/` | Films archive and detail, FilmCard |
+| `interactions/` | Like/watchlist/rating interactions |
+| `landing/` | Guest landing page |
 | `lists/` | User-curated lists |
-| `media/` | Shared movie/serial archive + detail UI (`MediaArchivePage`, `MediaActionsSidebar`, `MediaDetailsMainSection`, ...) |
-| `movies/` | Movie archive, detail, search, MovieCard, SpaceRating |
+| `media/` | Shared film/TV archive + detail UI (`MediaArchivePage`, `MediaActionsSidebar`, `MediaDetailsMainSection`, ...) |
+| `moderation/` | Block and mute |
+| `notifications/` | Notifications bell |
 | `people/` | Director/actor pages |
 | `posts/` | Short posts |
 | `profile/` | User profiles with tabs |
-| `reviews/` | Review display |
-| `serials/` | TV series |
+| `reports/` | Reporting content |
+| `reviews/` | Review display and detail |
+| `search/` | ⌘K search and recent searches |
 | `settings/` | Settings pages |
-| `social/` | Follow graph, feed |
+| `social/` | Follow graph |
 | `theme/` | Theme system (rose-pine, null-log, nitrate, marquee) |
+| `tv/` | TV archive, series detail, seasons and episodes |
 | `uploads/` | Avatar uploads |
+| `viewer-status/` | Batched watched/liked/rating marks for poster cards |
 
 ## Data flow conventions
 
-- **API functions** are exposed from `src/features/*/api.ts` and implemented in `src/features/*/api/requests.ts` with Zod-validated schemas.
+- **API functions** are exposed from `src/features/*/api.ts` (implemented in `api/requests.ts` for films and tv) with Zod-validated schemas.
 - **Data fetching hooks** live under feature hooks (`src/features/*/hooks/*`) using TanStack Query.
-- **Query key factories** are exported as `*Keys` objects (e.g., `movieKeys`, `authKeys`, `feedKeys`) for consistent cache key management.
+- **Query key factories** are exported as `*Keys` objects (e.g., `filmKeys`, `seriesKeys`, `authKeys`, `feedKeys`) for consistent cache key management.
 - **Requests include cookies** (`credentials: include`) for authenticated endpoints.
-- **Smart retry**: Queries do NOT retry on 400, 401, 403, 404, 422; retry up to 2 times for other errors.
-- **Architecture linting**: ESLint enforces file-size and API-layer import boundaries to prevent new monolith files and route/UI leakage into API modules.
+- **Smart retry**: Queries do NOT retry on 400, 401, 403, 404, 408, 422; other errors retry once. Mutations never retry.
+- **Freshness**: queries stay fresh for 2 minutes and don't refetch on window focus or reconnect; there is no polling.
+- **Architecture linting**: ESLint caps files at 330 lines and stops `api.ts`/`api/` modules importing routes, components or pages.
 
 ## Routing patterns
 

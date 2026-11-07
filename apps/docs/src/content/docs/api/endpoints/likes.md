@@ -44,7 +44,8 @@ GET /api/public/:username/likes?limit=50
 
 - Includes both `movie` and `tv` rows.
 - Sorted by `lastInteractionAt` descending.
-- `genres` may be `null` or omitted depending on source row state.
+- `genres` is an array of `{ id, name }` or `null`; `runtime` can be `null` (for TV it is the episode runtime).
+- `lastInteractionAt` is the last time the user's interaction row for that title changed (like, rating, watchlist, ...), not strictly when it was liked.
 
 ## Empty state behavior
 

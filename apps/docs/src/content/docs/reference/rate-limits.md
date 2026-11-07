@@ -21,7 +21,17 @@ public limiter above rather than the broader API cap.
 ## Headers
 
 Public responses include standard rate-limit headers from `express-rate-limit`
-(`standardHeaders: true`, `legacyHeaders: false`).
+(`standardHeaders: true`, `legacyHeaders: false`):
+
+```txt
+RateLimit-Policy: 60;w=60
+RateLimit-Limit: 60
+RateLimit-Remaining: 58
+RateLimit-Reset: 55
+```
+
+`RateLimit-Reset` is seconds until the window resets. A `429` response also carries
+`Retry-After` and a plain-text body: `Too many requests, please try again later.`
 
 Use `curl -i` to inspect them:
 
@@ -38,6 +48,8 @@ Cache-Control: public, max-age=300, stale-while-revalidate=600
 Vary: Accept-Encoding
 ```
 
+`404 User not found` responses set `Cache-Control: public, max-age=60` instead.
+
 The server also keeps each response (including `404 User not found`) in
 memory for 5 minutes, so data can lag a new log or review by up to 5
 minutes. A response served from that cache carries `X-Cache: HIT`.
@@ -49,4 +61,5 @@ immediately while a background revalidation occurs.
 
 - The 5-minute cache window means polling faster than once every 5 minutes
   gives no benefit — you'll receive a cached response anyway.
+- Requests served from the server-side cache still count toward the 60/min limit.
 - Avoid aggressive polling from client-side widgets.

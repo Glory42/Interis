@@ -8,6 +8,8 @@ This plan turns the design review in `docs/design-review/*.html` into shippable 
 
 Every item below is sized as **one pull request** (PR-xx). Phases are the order of work, not deadlines.
 
+**Status (2026-11-07): all 46 PRs have shipped** (GitHub #142–#221, then a polish pass in #222). Still open: people search (deferred in PR-13) and the reversible "hide" for admin content (D5). The TMDB credit (PR-06, PR-31) ended up on the Developer page, not the footer.
+
 ---
 
 ## 0. Decisions to confirm before starting
@@ -161,7 +163,7 @@ These are security, correctness and performance bugs. They're independent of the
 **PR-16 · Theme ids: Tokyo Night becomes Nitrate**
 - **Change:**
   - Add `nitrate` to `users/constants/theme.constants.ts`.
-  - A data migration runs `UPDATE "user" SET theme='nitrate' WHERE theme='tokyo-night'`.
+  - A data migration runs `UPDATE "profile" SET theme='nitrate' WHERE theme='tokyo-night'` (`apps/api/drizzle/0061_nitrate_theme.sql`).
   - Remove `tokyo-night` from the list.
 - **Order:** ship together with B1, which adds the frontend fallback for unknown theme ids.
 
@@ -194,7 +196,7 @@ Admin also needs PR-01 and PR-02 from Phase 1. Mockup: `admin.html`.
 - **PR-21 · Force password reset**
   - **Migration:** add a `must_change_password` flag.
   - **Behaviour:** revoke the user's sessions and send them through the existing security-question reset flow.
-  - **Missing question:** decide how to handle users who never set a security question.
+  - **Missing question:** decided: accounts without a recovery question get a 409 instead of being locked out.
 - **PR-22 · Overview numbers**
   - `GET /admin/overview` runs about 8 counts with `Promise.all`, only when the page opens or Refresh is pressed.
   - If it gets slow, keep the result in memory for 5 minutes. Never add a timer or a stored rollup.
@@ -329,14 +331,14 @@ Each page ships desktop and phone browser together. The mockups are the spec.
 
 ## 5. Order of work
 
-| Phase | Track A (backend) | Track B / C (frontend) |
-|---|---|---|
-| 1 | PR-01–05, 07, 08 | PR-06, PR-26 (themes) together with PR-16, PR-27 |
-| 2 | PR-09–15 | PR-28–31 |
-| 3 | PR-17–18 (admin P1) | PR-32–35 |
-| 4 | PR-19–22 (admin P2) | PR-36–42 |
-| 5 | PR-23–25 (admin P3) | PR-43–45 |
-| 6 | | PR-46 |
+| Phase | Track A (backend) | Track B / C (frontend) | Status |
+|---|---|---|---|
+| 1 | PR-01–05, 07, 08 | PR-06, PR-26 (themes) together with PR-16, PR-27 | Shipped |
+| 2 | PR-09–15 | PR-28–31 | Shipped |
+| 3 | PR-17–18 (admin P1) | PR-32–35 | Shipped |
+| 4 | PR-19–22 (admin P2) | PR-36–42 | Shipped |
+| 5 | PR-23–25 (admin P3) | PR-43–45 | Shipped |
+| 6 | | PR-46 | Shipped |
 
 The first useful milestone is the end of Phase 3. By then the security holes are closed, the themes are fixed, and the film/TV page, logging and seasons all have the new design. Those are the screens people use most.
 

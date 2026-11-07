@@ -68,7 +68,7 @@ console.log(profile.username, profile.stats.reviewCount);
 | `/api/public/:username/lists` | Public lists with entries |
 | `/api/public/:username/likes` | Liked movies + series |
 | `/api/public/:username/watchlist` | Watchlisted movies + series |
-| `/api/public/:username/diary` | Movie + TV diary entries |
+| `/api/public/:username/diary` | Movie + TV diary entries (supports `offset`) |
 | `/api/public/:username/movies/watched` | Watched movies (movie-only) |
 | `/api/public/:username/serials/:tmdbId` | Watch progress for one serial |
 | `/api/public/:username/serials/currently-watching` | In-progress serials |
@@ -81,8 +81,9 @@ Valid numbers are floored and clamped to endpoint-specific max values.
 
 ## CORS note
 
-Backend CORS still uses an allow-list. If your browser app origin is not allowed,
-client-side requests may be blocked.
+Backend CORS still uses an allow-list. A browser request from an origin that isn't
+allowed gets `403` with `{ "error": { "message": "Origin is not allowed", "code": "CORS_NOT_ALLOWED" } }`.
+Requests without an `Origin` header (cURL, server-side code) are not affected.
 
 In that case, call the API server-side from your own backend/function.
 

@@ -10,7 +10,7 @@ A structured health check across backend and frontend. Run after a sprint, befor
 ## Scope
 
 Default: full `apps/api/src` and `apps/web/src` trees plus migrations and docs.
-If the user scopes it ("just the serials module", "just frontend"), honour that.
+If the user scopes it ("just the tv module", "just frontend"), honour that.
 
 Use the `Explore` agent for the search legwork — it keeps the main context window clean.
 
@@ -28,14 +28,14 @@ Run `bun run lint:arch` from `apps/api/`. Capture any violations and report them
 If `lint:arch` passes, note that explicitly.
 
 ### 2. Oversized files
-In `apps/api/src/modules/`, list every `.ts` file over 380 lines (the project limit from CLAUDE.md). Run:
+ESLint `max-lines` caps backend files under `apps/api/src/` at 380 lines and frontend files at 330 (both skip blank lines and comments), so `bun run lint` in each app is the authoritative check. For a quick view of files near the limit:
 ```bash
-find apps/api/src/modules -name "*.ts" | xargs wc -l | sort -rn | head -20
+find apps/api/src apps/web/src -name "*.ts" -o -name "*.tsx" | grep -v routeTree.gen | xargs wc -l | sort -rn | head -20
 ```
-Flag files that exceed the limit and which layer they're in (controller / service / repository).
+Flag files that exceed (or sit just under) the limit and which layer they're in (controller / service / repository / component).
 
 ### 3. Missing DB indexes
-For every `*.entity.ts` in `apps/api/src/modules/`, check that every FK column (`userId`, `movieId`, `seriesId`, etc.) and any column used in `WHERE`/`JOIN` elsewhere has an explicit `index()` in the entity definition. The PK alone doesn't cover lookups by other columns.
+For every `*.entity.ts` in `apps/api/src/modules/` (plus `apps/api/src/infrastructure/database/auth.entity.ts`), check that every FK column (`userId`, `movieId`, `seriesId`, etc.) and any column used in `WHERE`/`JOIN` elsewhere has an explicit `index()` in the entity definition. The PK alone doesn't cover lookups by other columns.
 
 Reference: `diary.entity.ts`, `social.entity.ts` for the pattern.
 
@@ -43,10 +43,10 @@ Reference: `diary.entity.ts`, `social.entity.ts` for the pattern.
 Check that every entity exported from `apps/api/src/infrastructure/database/entities.ts` has a corresponding migration covering its current shape. Look for columns that exist in entity files but have no `ALTER TABLE ... ADD COLUMN` in any migration — this suggests a schema was edited without running `bunx drizzle-kit generate`.
 
 ### 5. Unregistered entities
-Scan `apps/api/src/modules/*/*.entity.ts` and cross-check against `apps/api/src/infrastructure/database/entities.ts`. Flag any entity that is defined but never exported from the central file (Drizzle won't track it for migrations).
+Scan `apps/api/src/modules/*/*.entity.ts` and `apps/api/src/infrastructure/database/auth.entity.ts` and cross-check against `apps/api/src/infrastructure/database/entities.ts`. Flag any entity that is defined but never exported from the central file (Drizzle won't track it for migrations).
 
 ### 6. Dead / orphaned routes
-In `apps/api/src/infrastructure/routing/register-hono-routes.ts` find every `app.route(...)` registration. For each, confirm the imported module file exists and exports a valid Hono app (created via `createHonoApp()`). Also grep for any `*.routes.ts` file that is never imported there.
+In `apps/api/src/infrastructure/routing/register-routes.ts` find every `app.use("/api/...", router)` registration. For each, confirm the imported `*.routes.ts` exists and exports an `express.Router()` (the public module exports a `createPublicRouter()` factory instead) with every handler wrapped in `asyncHandler()`. Also grep for any `*.routes.ts` file that is never imported there. `modules/media` and `modules/media-interactions` are shared code with no router — that's expected.
 
 ### 7. Unresolved TODOs and FIXMEs
 ```bash

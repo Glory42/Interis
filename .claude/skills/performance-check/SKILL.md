@@ -1,6 +1,6 @@
 ---
 name: performance-check
-description: Audits code for performance issues — broad React Query cache invalidation, uncached external API calls, N+1 queries, sequential awaits that could run in parallel, unbounded/unpaginated list endpoints, missing DB indexes, useEffect-based state syncing, and unmemoized list items. Use when the user says "check performance", "review for perf issues", "/performance-check", or after building a feature that adds a new list endpoint, mutation, or detail page. Also use proactively before considering a new feature done.
+description: Audits code for performance issues — broad React Query cache invalidation, uncached external API calls, N+1 queries, sequential awaits that could run in parallel, unbounded/unpaginated list endpoints, missing DB indexes, useEffect-based state syncing, unmemoized list items, background polling, and DB writes on read paths. Use when the user says "check performance", "review for perf issues", "/performance-check", or after building a feature that adds a new list endpoint, mutation, or detail page. Also use proactively before considering a new feature done.
 ---
 
 # Performance Check — Interis
@@ -37,7 +37,7 @@ Read service files touched in the diff. Flag consecutive `await` statements wher
 ### 4. N+1 queries
 Grep for `.map(async` / `for (...)` loops in repository or service files that contain `await db...` or `await SomeRepository....` per iteration. Flag any loop firing one query per row instead of a single batched `inArray(...)` query.
 - Reference pattern: `buildFeedFallbackMediaContext` in `apps/api/src/modules/social/helpers/social-feed-context.helper.ts` (collect ids first, batch-fetch, build a `Map`, then a synchronous pass to assemble results).
-- Also check for per-row upserts that should be one multi-row `.insert().values([...])` with `onConflictDoUpdate` instead (see `upsertManyEpisodeWatchedState` in `serials-episode-interactions.repository.ts`).
+- Also check for per-row upserts that should be one multi-row `.insert().values([...])` with `onConflictDoUpdate` instead (see `upsertManyEpisodeWatchedState` in `apps/api/src/modules/tv/repositories/tv-episode-interactions.repository.ts`).
 
 ### 5. Unbounded / unpaginated list endpoints
 For any new or changed repository method returning an array tied to user-generated content (feed, likes, watchlist, reviews, lists, comments): check it has `.limit(...)` applied, with a sane default even when the caller doesn't pass one. Check the controller actually parses and forwards `limit`/`offset` or `cursor` query params — a repository that supports a limit param is useless if the controller never wires it through.
@@ -52,18 +52,23 @@ For any new or changed `*.entity.ts`: does every column used in a `.where(eq(...
 
 ### 7. useEffect state-sync anti-pattern (frontend)
 Grep changed `.tsx` files for `useEffect` bodies that just call `setXxx(...)` to copy a prop or query result into local state. This costs an extra render/commit and is a common source of stale-state bugs. Legitimate `useEffect` uses (DOM/window event listeners, timers, scroll locks, non-React APIs) are fine — only flag the "sync into state" shape.
-- Fix pattern A (adjust during render): track a `prevValue` state and compare during render, calling `setState` inline instead of in an effect — see `CalendarPicker.tsx`, `SpaceRating.tsx`.
+- Fix pattern A (adjust during render): track a `prevValue` state and compare during render, calling `setState` inline instead of in an effect — see `components/ui/CalendarPicker.tsx`, `components/film/rating/LaunchTrack.tsx`.
 - Fix pattern B (key-based remount): key the component by the entity id so it mounts fresh with correct initial state — see `ListCreateEditDialog.tsx`, `FeedReviewEditDialog.tsx`.
 
 ### 8. Missing memoization on repeated list items
 Check any new grid/list item component rendered via `.map()` inside a page that also holds unrelated local state (open menus, filters, tabs). If the component takes only plain data props (no unstable inline callbacks), wrap it in `React.memo`. If it takes callback props, those must be `useCallback`'d in the parent too, or memoizing the child is a no-op.
-- Reference: `ArchiveMovieCard.tsx`, `GridSeriesCard.tsx`.
+- Reference: `features/media/archive/ArchiveMediaCard.tsx`, `components/film/PosterCard.tsx`.
+
+### 9. Polling, read-path writes, crawlable paths
+- Grep changed frontend hooks for `refetchInterval` or timers that hit a DB-backed endpoint — any poll keeps Neon compute awake. Fix: refetch on focus/mount/mutation.
+- GET handlers must not insert cache rows: they should use `FilmsCacheService.findForRead` / `TvCacheService.findForRead` (unsaved row with `id = UNSAVED_MEDIA_ID`), not `findOrCreate`.
+- Flag any change that widens `CRAWLABLE_PATH_PATTERN` in `apps/api/src/commons/middlewares/blockCrawlers.ts` beyond bounded content.
 
 ## Reporting format
 
 Report findings grouped by tier, most severe first. Do not fix anything unless the user asked for that explicitly.
 
-**Tier 1 — measurable user-facing cost** (broad invalidation on a frequent mutation, N+1/uncached calls in a hot path, unbounded fetch that will grow with user data)
+**Tier 1 — measurable user-facing cost** (broad invalidation on a frequent mutation, N+1/uncached calls in a hot path, unbounded fetch that will grow with user data, polling or DB writes on a read path)
 **Tier 2 — real but lower-severity** (missing index on a low-traffic table, useEffect smell with no visible bug yet, missing memoization)
 
 For each finding give: `file:line`, one-line description of the defect, the concrete scenario where it costs something (e.g. "clicking like on a feed item refetches the entire trending rail"), and the fix pattern to apply (point at the reference file above rather than re-explaining the pattern each time).

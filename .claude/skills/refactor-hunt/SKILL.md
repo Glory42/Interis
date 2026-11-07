@@ -11,7 +11,7 @@ Scans for code that would benefit from simplification, consolidation, or better 
 
 Default: the diff since the last tagged release or the modules the user names. For a broader hunt, use the `Explore` agent to search across the full `apps/api/src` and `apps/web/src` trees.
 
-If the user says "hunt in serials" or names a specific feature, scope to that module's files.
+If the user says "hunt in tv" or names a specific feature, scope to that module's files.
 
 ---
 
@@ -21,12 +21,13 @@ If the user says "hunt in serials" or names a specific feature, scope to that mo
 
 Look for the same computation appearing in two or more service or helper files. Common patterns in this codebase:
 
-- Episode/season filtering logic (`seasonNumber > 0`) duplicated across helpers
-- Rating normalisation applied in multiple places instead of a shared helper
-- `watchedDate` parsing (`T00:00:00` appended) done inline rather than always calling `parseDateOnly`
-- Feed metadata construction repeated across `buildSerialDiaryEntryActivityMetadata` / `buildMovieDiaryEntryActivityMetadata`
+- Specials filtering (`season.season_number > 0`) duplicated across `modules/tv/helpers/`
+- Rating normalisation applied in multiple places instead of a shared helper (`modules/media/helpers/`, `apps/web/src/lib/rating.ts`)
+- Date-only parsing (`T00:00:00` appended) done inline rather than calling `parseDateOnly` from `apps/web/src/lib/time.ts`
+- Activity metadata built inline instead of via the `*-activity.helper.ts` builders (`diary`, `reviews`, `posts`) and `toMediaFields` in `commons/helpers/media-activity-fields.helper.ts`
+- Film and TV code doing the same thing on each side — per ADR 0003 and `CONTEXT.md`, anything both use belongs in `modules/media` / `features/media`
 
-Grep for structural similarity: same field access patterns, same guard expressions, same shape of return object. Flag the files and suggest where a shared helper would live (`commons/`, `media/helpers/`, or a module's own `helpers/` directory).
+Grep for structural similarity: same field access patterns, same guard expressions, same shape of return object. Flag the files and suggest where a shared helper would live (`commons/`, `modules/media/helpers/`, `features/media/`, or a module's own `helpers/` directory).
 
 ### 2. Repository methods that duplicate query logic
 

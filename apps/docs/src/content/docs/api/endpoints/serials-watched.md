@@ -43,7 +43,7 @@ Returns TV series whose watch status is **completed**: marked watched (watch tog
 
 ### Notes
 
-- "Watched" here is the explicit series-level flag set when a user marks the whole series watched — the same flag used elsewhere in the app (independent of per-episode tracking). It is not derived from episode-completion counts.
+- "Watched" means the series' watch status is `completed`, whether the user marked it watched, logged it, or checked every regular episode.
 - Sorted by `lastInteractionAt` descending (most recently completed first).
 - Does not include per-season/episode progress. For that level of detail on one specific series, see [Serials Progress](/api/endpoints/serials-progress/).
 

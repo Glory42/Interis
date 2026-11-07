@@ -62,6 +62,9 @@ curl "$BASE_URL/api/public/$USERNAME/watchlist?limit=20"
 
 ```bash
 curl "$BASE_URL/api/public/$USERNAME/diary?limit=20"
+
+# next page
+curl "$BASE_URL/api/public/$USERNAME/diary?limit=20&offset=20"
 ```
 
 ## Movies watched
@@ -94,4 +97,4 @@ curl "$BASE_URL/api/public/$USERNAME/serials/watched?limit=20"
 curl -i "$BASE_URL/api/public/$USERNAME/profile"
 ```
 
-You should see standard rate limit headers from `express-rate-limit` and `Cache-Control: public, max-age=300, stale-while-revalidate=600`.
+You should see `RateLimit-*` headers from `express-rate-limit`, `Cache-Control: public, max-age=300, stale-while-revalidate=600`, and `X-Cache: HIT` or `MISS`.

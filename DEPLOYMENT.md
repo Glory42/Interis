@@ -21,7 +21,7 @@ One real compatibility gap from that detour: a handful of accounts got their pas
 
 ## Render setup
 
-Render Web Service, native runtime (not Docker — `apps/api/Dockerfile` still exists and works if you ever want Docker-based deploys instead):
+Render Web Service, native runtime (not Docker — `apps/api/Dockerfile` has a `prod` target if you ever want Docker-based deploys instead; its entrypoint migrates with `scripts/docker-migrate.ts`, so it would need `DIRECT_DATABASE_URL` set):
 
 | Field | Value |
 |---|---|
@@ -33,7 +33,7 @@ Render Web Service, native runtime (not Docker — `apps/api/Dockerfile` still e
 Migrations run in the Build Command because Render's Pre-Deploy Command is
 paid-only; on the free instance it silently never runs (0048–0059 piled up, 2026-11-01).
 
-Don't use `bun run scripts/docker-migrate.ts` here — that script is hardcoded to `DIRECT_DATABASE_URL` specifically for docker-compose's local Postgres proxy, and doesn't apply to a direct Neon connection. Plain `drizzle-kit migrate` (using `DATABASE_URL` and the neon-serverless driver) is correct for Render.
+Don't use `bun run scripts/docker-migrate.ts` here — that script reads `DIRECT_DATABASE_URL` (not set on Render) and is meant for the local docker-compose Postgres and CI. Plain `drizzle-kit migrate` (using `DATABASE_URL` and the neon-serverless driver, which drizzle-kit picks whenever `@neondatabase/serverless` is installed) is correct for Render.
 
 Render injects `PORT` automatically; `env.ts` already reads it from the environment with no code changes needed.
 
@@ -49,7 +49,7 @@ Set these in Render's Environment tab (Secrets, not the repo):
 | `JWT_ACCESS_SECRET` | 32+ chars |
 | `TMDB_ACCESS_TOKEN` | Include the `Bearer ` prefix, same as `.env` |
 | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL` | Only needed if avatar uploads are enabled |
-| `CORS_ORIGIN` | The deployed web app's origin(s), comma-separated |
+| `CORS_ORIGIN` | The deployed web app's origin(s), comma-separated — required in prod; unset falls back to the local dev origins (`localhost`/`127.0.0.1:5173`) |
 | `NODE_ENV` | `production` |
 
 Everything else (`AUTH_ACCESS_COOKIE_NAME`, `AUTH_REFRESH_COOKIE_NAME`, `JWT_ACCESS_TTL_SECONDS`, `REFRESH_TOKEN_TTL_SECONDS`, `USE_LOCAL_DB_PROXY`) has a safe default in `env.ts` and doesn't need to be set explicitly in production. Don't set `USE_LOCAL_DB_PROXY` at all unless you mean it — see the `z.stringbool()` note below.
@@ -75,7 +75,7 @@ drains the Free plan's monthly network-transfer quota). Bring the DB up with
 
 ### `z.coerce.boolean()` and any other stringly-typed env var
 
-`z.coerce.boolean()` (in `env.ts`, zod v4) uses JavaScript's `Boolean(value)` semantics, not string parsing — `Boolean("false")` is `true`, because any non-empty string is truthy. Every env var arrives as a literal string regardless of source, so declaring `SOME_FLAG=false` anywhere would silently evaluate to `true`. This broke `USE_LOCAL_DB_PROXY` in production once already. Use `z.stringbool()` for any boolean env var in `env.ts`, never `z.coerce.boolean()`.
+`z.coerce.boolean()` (zod v4) uses JavaScript's `Boolean(value)` semantics, not string parsing — `Boolean("false")` is `true`, because any non-empty string is truthy. Every env var arrives as a literal string regardless of source, so declaring `SOME_FLAG=false` anywhere would silently evaluate to `true`. This broke `USE_LOCAL_DB_PROXY` in production once already; `env.ts` now uses `z.stringbool()` for it. Use `z.stringbool()` for any boolean env var in `env.ts`, never `z.coerce.boolean()`.
 
 ### Don't trust local dev to reproduce every production failure mode
 
@@ -86,7 +86,9 @@ Several of the Workers-era bugs (a PBKDF2 iteration cap, a WASM codegen restrict
 ## Local Development
 
 ```bash
+docker compose up postgres db-proxy   # from the repo root
 cd apps/api
 bun install
-bun run dev         # Bun.serve, http://localhost:5000
+bun run scripts/docker-migrate.ts      # apply migrations to local Postgres
+bun run dev         # Express on Bun, http://localhost:5000
 ```

@@ -4,38 +4,26 @@ How the engineering skills should consume this repo's domain documentation when 
 
 ## Before exploring, read these
 
-- **`CONTEXT.md`** at the repo root, or
-- **`CONTEXT-MAP.md`** at the repo root if it exists — it points at one `CONTEXT.md` per context. Read each one relevant to the topic.
-- **`docs/adr/`** — read ADRs that touch the area you're about to work in. In multi-context repos, also check `src/<context>/docs/adr/` for context-scoped decisions.
+- **`CONTEXT.md`** at the repo root — the glossary (User, Profile, Media, Film, Series, Interaction, …). This is a single-context repo; there is no `CONTEXT-MAP.md`.
+- **`docs/adr/`** — read ADRs that touch the area you're about to work in. Currently:
+  - `0001-global-trending-on-interis.md` (superseded — the rail was removed; history only)
+  - `0002-movie-as-canonical-naming-across-frontend-and-backend.md` (code-naming half superseded by 0003; the `/movies` URLs and `"movie"` values still stand)
+  - `0003-films-and-tv-as-code-naming-wire-names-unchanged.md` — code says Film/Series/Tv (`modules/films`, `modules/tv`, `features/films`, `features/tv`, shared code in `media`); URLs, API paths, tables and JSON keep `movies`/`serials`
 
-If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The `/domain-modeling` skill (reached via `/grill-with-docs` and `/improve-codebase-architecture`) creates them lazily when terms or decisions actually get resolved.
+The `/domain-modeling` skill updates these as terms or decisions get resolved. Don't create new context files or ADRs upfront.
 
 ## File structure
-
-Single-context repo (most repos):
 
 ```
 /
 ├── CONTEXT.md
 ├── docs/adr/
-│   ├── 0001-event-sourced-orders.md
-│   └── 0002-postgres-for-write-model.md
-└── src/
-```
-
-Multi-context repo (presence of `CONTEXT-MAP.md` at the root):
-
-```
-/
-├── CONTEXT-MAP.md
-├── docs/adr/                          ← system-wide decisions
-└── src/
-    ├── ordering/
-    │   ├── CONTEXT.md
-    │   └── docs/adr/                  ← context-specific decisions
-    └── billing/
-        ├── CONTEXT.md
-        └── docs/adr/
+│   ├── 0001-global-trending-on-interis.md
+│   ├── 0002-movie-as-canonical-naming-across-frontend-and-backend.md
+│   └── 0003-films-and-tv-as-code-naming-wire-names-unchanged.md
+└── apps/
+    ├── api/
+    └── web/
 ```
 
 ## Use the glossary's vocabulary

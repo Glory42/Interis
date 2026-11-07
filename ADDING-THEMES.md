@@ -42,9 +42,9 @@ Every theme block defines the same roles. Components should use these.
 | `--like`, `--danger`, `--warning`, `--success` | states |
 | `--grain` | grain opacity for backdrops |
 
-Each block also sets the shadcn/library names (`--background`, `--card`, `--border`, `--module-movie`, …) from those roles, plus the navbar, hero, modal and typography tokens.
+Each block also sets the shadcn/library names (`--background`, `--card`, `--border`, `--module-movie`, …) from those roles, plus the navbar, hero, modal and typography (`--theme-body-font`, `--theme-display-font`, `--theme-kicker-font`) tokens. `--slate` (black) is set once in `:root` and shared by every theme.
 
-`tests/unit/features/theme/theme-registry.test.ts` reads `index.css` and checks that every text role reaches 4.5:1 on `--bg` and `--surface` in every theme.
+`apps/web/tests/unit/features/theme/theme-registry.test.ts` reads `index.css` and checks that every text role (`--fg`, `--muted-foreground`, `--primary`, `--film`, `--series`, `--like`, `--danger`, `--warning`, `--success`) is a 6-digit hex that reaches 4.5:1 on `--bg` and `--surface`, and that `--primary-foreground` reaches 4.5:1 on `--primary`, for every id in its `THEME_IDS` list.
 
 ---
 
@@ -79,15 +79,15 @@ If you are retiring an existing theme, move it from `SUPPORTED_THEME_IDS` to the
 
 **File:** `apps/web/src/features/theme/theme-registry.ts`
 
-Add your theme ID to `SUPPORTED_THEME_IDS` (line 16):
+Add your theme ID to `SUPPORTED_THEME_IDS`:
 
 ```typescript
 const SUPPORTED_THEME_IDS = ["rose-pine", "null-log", "nitrate", "marquee", "your-theme-id"] as const;
 ```
 
-Also update `DEFAULT_THEME_ID` (line 14) if you want your theme to be the new default.
+Making your theme the new default touches more than `DEFAULT_THEME_ID` here: the backend `DEFAULT_THEME_ID`, `window.__THIS_IS_CINEMA_DEFAULT_THEME_ID__` in `theme-registry.js`, the `"rose-pine"` fallbacks in the `index.html` startup script and `fallbackTheme` in this file, and the plain `:root` block in `index.css`, which holds the default palette.
 
-If retiring an existing theme, add it to the `LEGACY_THEME_IDS` set (lines 24-47).
+If retiring an existing theme, add it to the `LEGACY_THEME_IDS` set.
 
 ---
 
@@ -115,9 +115,17 @@ Add the picker metadata only:
 
 **File:** `apps/web/src/index.css`
 
-Copy an existing `:root[data-theme-id="…"]` block (e.g. `nitrate`), rename it, and set every role. Light themes also set `color-scheme: light;`. Keep the derived library names in step with the roles (`--background: <bg>`, `--card: <surface>`, `--border: <line-strong over bg>`, `--module-movie: <film>`, `--module-serial: <series>`, …).
+Copy an existing block (e.g. `nitrate`), rename both selectors, and set every role:
 
-Run `bun run test` from `apps/web`; the contrast test fails if a text role is too faint.
+```css
+:root[data-theme-id="your-theme-id"], [data-theme-preview="your-theme-id"] {
+```
+
+The `[data-theme-preview]` selector is what lets the settings tile render in your theme's own colours, and the contrast test only finds blocks written in exactly this form. Light themes also set `color-scheme: light;`. Keep the derived library names in step with the roles (`--background: <bg>`, `--card: <surface>`, `--border: <line-strong over bg>`, `--module-movie: <film>`, `--module-serial: <series>`, …).
+
+Optional signature touches go in the `@layer utilities` block as `:root[data-theme-id="your-theme-id"] .duotone` / `.slate` overrides (see null-log's scanlines and nitrate's sprocket edges).
+
+If the theme names a font that isn't loaded yet, add its `@fontsource` package and import it in `apps/web/src/main.tsx`; `typography.test.ts` fails otherwise.
 
 ---
 
@@ -133,17 +141,13 @@ type ThemeRegistryId = "rose-pine" | "null-log" | "nitrate" | "marquee" | "your-
 
 ---
 
-### Step 6: Frontend — update the settings page description
+### Step 6: Frontend — add the theme to the theme tests
 
-**File:** `apps/web/src/features/settings/components/sections/SettingsThemeSection.tsx`
+**Files:** `apps/web/tests/unit/features/theme/theme-registry.test.ts` and `apps/web/tests/unit/features/settings/settings-theme.test.tsx`
 
-Update the `CardDescription` text (around line 72) to include your theme name in the list:
+Add your theme ID to `THEME_IDS` in both. The registry test asserts that `listThemes()` returns exactly this list, and it runs the contrast check only for ids in it; the settings test checks that every theme gets a tile.
 
-```tsx
-<CardDescription>
-  Choose between Rose Pine, NULL://LOG, Nitrate, Marquee, and Your Theme Name. Selection applies immediately and syncs to your account.
-</CardDescription>
-```
+The settings tiles (`SettingsThemeSection.tsx`) and the profile menu's theme submenu (`NavbarThemeSubmenu.tsx`) render from `listThemes()`, so neither needs editing.
 
 ---
 
@@ -154,12 +158,13 @@ Run the full quality check suite:
 ```bash
 # Backend
 cd apps/api
-bunx tsc --noEmit
+bun run typecheck
 
 # Frontend
 cd apps/web
 bun run typecheck
 bun run lint
+bun run test
 bun run build
 ```
 
@@ -167,7 +172,7 @@ Then test manually:
 
 1. Start both backend and frontend
 2. Log in to an account
-3. Go to Settings > Appearance
+3. Go to Settings → Theme (`/settings/theme`)
 4. Select your new theme
 5. Verify:
    - Theme applies immediately (no flash)
@@ -189,9 +194,11 @@ Every file that needs modification when adding a theme:
 | 1 | `apps/api/src/modules/users/constants/theme.constants.ts` | Add to `SUPPORTED_THEME_IDS` |
 | 2 | `apps/web/src/features/theme/theme-registry.ts` | Add to `SUPPORTED_THEME_IDS` |
 | 3 | `apps/web/public/theme-registry.js` | Add id, label, description and preview swatches |
-| 4 | `apps/web/src/index.css` | Add a `:root[data-theme-id="..."]` block with every colour role |
+| 4 | `apps/web/src/index.css` | Add a `:root[data-theme-id="..."], [data-theme-preview="..."]` block with every colour role |
 | 5 | `apps/web/src/types/theme-registry.d.ts` | Add to `ThemeRegistryId` union |
-| 6 | `apps/web/src/features/settings/components/sections/SettingsThemeSection.tsx` | Update description text |
+| 6 | `apps/web/tests/unit/features/theme/theme-registry.test.ts` | Add to `THEME_IDS` |
+| 6b | `apps/web/tests/unit/features/settings/settings-theme.test.tsx` | Add to `THEME_IDS` |
+| 7 | `apps/web/src/main.tsx` (only for a new font) | Import its `@fontsource` package |
 
 ---
 
@@ -201,14 +208,14 @@ To retire an existing theme without breaking users who have it saved:
 
 1. **Backend**: Move the theme ID from `SUPPORTED_THEME_IDS` to `LEGACY_THEME_IDS` in `theme.constants.ts`
 2. **Frontend**: Move the theme ID from `SUPPORTED_THEME_IDS` to `LEGACY_THEME_IDS` in `theme-registry.ts`
-3. **Frontend**: Add the theme ID to `LEGACY_THEME_IDS` in `theme-registry.js` (if present)
+3. **Frontend**: Remove its entry from `theme-registry.js`, its `index.css` block and its id from `ThemeRegistryId` and both tests' `THEME_IDS` (`theme-registry.js` has no legacy list; an unknown `data-theme-id` falls through to `:root`, the default palette)
 4. Users with the retired theme saved will be silently redirected to the default theme
 5. The theme will no longer appear in the settings picker
 
 To **replace** a theme instead (as Nitrate replaced Tokyo Night), map the old id to the
 new one in `RENAMED_THEME_IDS` (backend `theme.constants.ts` and frontend
 `theme-registry.ts`) and in `renamedThemeIds` in the `index.html` startup script, then add a
-data migration that rewrites `profile.theme` (see `drizzle/0061_nitrate_theme.sql`).
+data migration that rewrites `profile.theme` (see `apps/api/drizzle/0061_nitrate_theme.sql`).
 
 ---
 

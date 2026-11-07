@@ -6,7 +6,7 @@ description: Read a user's public diary entries across movies and TV.
 ## Endpoint
 
 ```txt
-GET /api/public/:username/diary?limit=50
+GET /api/public/:username/diary?limit=50&offset=0
 ```
 
 ## Path params
@@ -20,6 +20,9 @@ GET /api/public/:username/diary?limit=50
 | Param | Type | Default | Max | Description |
 | --- | --- | ---: | ---: | --- |
 | `limit` | number | 50 | 200 | Number of diary rows to return |
+| `offset` | number | 0 | 5000 | Number of rows to skip, for paging |
+
+Invalid or non-positive `offset` values fall back to `0`.
 
 ## Response
 
@@ -55,6 +58,8 @@ GET /api/public/:username/diary?limit=50
 - Includes both `movie` and `tv` entries.
 - Results are merged and sorted by `watchedDate` desc, then `createdAt` desc.
 - `review` can be `null` when no linked review exists.
+- `rating` is 0.5–10 in 0.5 steps, or `null`.
+- `media.releaseYear` is the first-air year for TV entries.
 - `liked` is whether the user currently likes the film or series (not the single log).
 
 ## Empty state behavior
@@ -82,6 +87,17 @@ const diary = await res.json();
 
 ```bash
 curl "https://api.interis.gorkemkaryol.dev/api/public/your_username/diary?limit=30"
+```
+
+### Practical: page through the diary
+
+```js
+async function loadDiaryPage(page, pageSize = 50) {
+  const url = `https://api.interis.gorkemkaryol.dev/api/public/your_username/diary?limit=${pageSize}&offset=${page * pageSize}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Diary failed: ${res.status}`);
+  return res.json(); // fewer than pageSize rows means you reached the end
+}
 ```
 
 ### Practical: isolate rewatch entries

@@ -37,7 +37,7 @@ This example renders a minimal profile + favorites widget from two endpoints.
   const root = document.querySelector('#interis-widget');
   root.innerHTML = `
     <h2>${profile.displayUsername ?? profile.username}</h2>
-    <p>${profile.stats.reviewCount} reviews · ${profile.stats.entryCount} logs</p>
+    <p>${profile.stats.reviewCount} reviews · ${profile.stats.movieEntryCount + profile.stats.serialEntryCount} logs</p>
 
     <h3>Top 4 Movies</h3>
     <ul>${(byKey.movie ?? []).map((item) => `<li>${item.title ?? 'Untitled'}</li>`).join('')}</ul>

@@ -32,27 +32,39 @@ Create git commits following Conventional Commits with project-specific domain s
 
 | Scope | Covers |
 |-------|--------|
-| `diary` | Watch log CRUD — `apps/api/src/modules/diary/`, `apps/web/src/features/diary/` |
-| `interactions` | Per-movie like / watchlist / rating state — `modules/interactions/`, `features/interactions/` |
+| `diary` | Watch log CRUD, log dialog — `apps/api/src/modules/diary/`, `apps/web/src/features/diary/` |
+| `interactions` | Per-title like / watchlist / rating state — `modules/interactions/`, `modules/media-interactions/`, `features/interactions/` |
 | `reviews` | Reviews, comments, likes — `modules/reviews/`, `features/reviews/` |
 | `posts` | Short posts with comments/likes — `modules/posts/`, `features/posts/` |
-| `feed` | Social feed assembly and display — `modules/social/`, `features/feed/` |
-| `social` | Follow graph, activity insertion — `modules/social/` |
+| `feed` | Social feed assembly and display — `modules/social/` (feed services/helpers), `features/feed/` |
+| `social` | Follow graph, activity insertion — `modules/social/`, `features/social/` |
 | `films` | Film search, detail, archive, film pages — `modules/films/`, `features/films/` |
 | `tv` | TV series search, detail, archive, season/episode tracking — `modules/tv/`, `features/tv/` |
-| `profile` | Public profile pages, tabs, top picks — `modules/users/`, `features/profile/` |
-| `public` | Rate-limited widget endpoints — `modules/public/`, `features/public/` |
-| `auth` | Authentication, sessions, guards — `infrastructure/auth/`, `features/auth/` |
-| `users` | Account management, themes, settings — `modules/users/`, `features/users/` |
+| `media` | Code shared by Films and TV (archive, detail layout, TMDB image urls) — `modules/media/`, `features/media/` |
+| `search` | Global search — `modules/search/`, `features/search/` |
+| `profile` | Public profile pages, tabs, stats, top picks — `modules/users/`, `features/profile/` |
+| `users` | Account data, profile settings API — `modules/users/` |
+| `settings` | Settings pages — `features/settings/` |
+| `theme` | Theme registry, CSS tokens, picker — `features/theme/`, `public/theme-registry.js`, `index.css` theme blocks, `users/constants/theme.constants.ts` |
+| `public` | Read-only widget endpoints — `modules/public/`, plus the developer page `features/developer/` |
+| `auth` | Authentication, sessions, guards — `modules/auth/`, `commons/auth/`, `commons/middlewares/requireAuth.ts`, `features/auth/`, `lib/router/auth-guards.ts` |
 | `people` | Director/actor pages — `modules/people/`, `features/people/` |
 | `lists` | User-curated lists — `modules/lists/`, `features/lists/` |
+| `notifications` | Notification inbox and unread counts — `modules/notifications/`, `features/notifications/` |
+| `moderation` | Blocks and mutes — `modules/moderation/`, `features/moderation/` |
+| `reports` | User content reports and the admin review queue — `modules/reports/`, `features/reports/` |
+| `admin` | Admin dashboard, audit log, cache/media/community tools — `modules/admin/`, `features/admin/` |
+| `data-transfer` | Data import/export — `modules/data-transfer/`, `features/data-transfer/` |
+| `viewer-status` | Viewer's per-title status lookups — `modules/viewer-status/`, `features/viewer-status/` |
 | `uploads` | Signed R2 upload flow — `modules/uploads/`, `features/uploads/` |
-| `rating` | Rating scale, display components — `SpaceRating`, `DiaryRatingStars`, rating utils |
+| `landing` | Signed-out landing page — `features/landing/` |
+| `rating` | 1–10 rocket rating input and display — `components/film/rating/` (`LaunchTrack`, `RocketDisplay`), `lib/rating.ts` |
+| `tmdb` | TMDB client and caching — `apps/api/src/infrastructure/tmdb/` |
 | `ui` | Shared Radix/shadcn primitives — `apps/web/src/components/ui/` |
 | `db` | Drizzle schema, migrations — `apps/api/src/infrastructure/database/`, `apps/api/drizzle/` |
-| `api` | Cross-cutting backend changes — `src/index.ts`, middleware, commons |
+| `api` | Cross-cutting backend changes — `src/index.ts`, middleware, commons, routing |
 | `web` | Cross-cutting frontend changes — routing, query client, api-client |
-| `docs` | Public API documentation — `apps/docs/` |
+| `docs` | Public API documentation site — `apps/docs/` |
 | `config` | Build config, tsconfig, drizzle.config, vite.config |
 | `e2e` | Playwright smoke tests — `apps/e2e/` |
 

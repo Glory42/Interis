@@ -45,7 +45,7 @@ Returns movies the user has marked as watched. Unlike [Likes](/api/endpoints/lik
 ### Notes
 
 - Movie-only. For a combined movie + TV "liked"/"watchlisted" view, see [Likes](/api/endpoints/likes/) and [Watchlist](/api/endpoints/watchlist/).
-- Sorted by `lastInteractionAt` descending (most recently marked watched first).
+- Sorted by `lastInteractionAt` descending (the last change to the user's interaction with the film, not strictly when it was marked watched).
 - `isWatched` is a direct flag on the movie interaction row, independent of like/rating/watchlist state.
 
 ## Empty state behavior
