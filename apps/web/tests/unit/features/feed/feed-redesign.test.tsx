@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { QueryClient } from "@tanstack/react-query";
+import { authKeys } from "@/features/auth/hooks/useAuth";
 import { renderWithProviders } from "../../../support/render/render-with-providers";
 import { toFeedDays } from "@/features/feed/components/feed-days";
 import { FeedTitleCard } from "@/features/feed/components/FeedTitleCard";
@@ -112,6 +114,27 @@ describe("FeedTitleCard", () => {
     expect(screen.queryByText(/Snape/)).not.toBeInTheDocument();
     await user.click(await screen.findByRole("button", { name: "Show spoilers" }));
     expect(screen.getByText(/Snape kills Dumbledore/)).toBeInTheDocument();
+  });
+});
+
+describe("FeedTitleCard on your own review", () => {
+  it("lets you edit the review from the feed, and only yours", async () => {
+    const user = userEvent.setup();
+    const mine = group({ actor: { id: "user_1", username: "cinefan", displayUsername: null, avatarUrl: null } });
+    const signedIn = () => {
+      const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      queryClient.setQueryData(authKeys.me, { id: "user_1", username: "cinefan" });
+      return queryClient;
+    };
+    const { unmount } = renderWithProviders(<FeedTitleCard group={mine} />, { queryClient: signedIn() });
+
+    await user.click(await screen.findByRole("button", { name: "Edit" }));
+    expect(await screen.findByText("EDIT REVIEW")).toBeInTheDocument();
+    unmount();
+
+    renderWithProviders(<FeedTitleCard group={group()} />, { queryClient: signedIn() });
+    await screen.findByText("glory42");
+    expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
   });
 });
 

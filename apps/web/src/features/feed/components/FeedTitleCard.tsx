@@ -1,7 +1,9 @@
 import { memo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
-import { LikeButton } from "@/features/feed/components/EngagementActionBar";
+import { EditButton, LikeButton } from "@/features/feed/components/EngagementActionBar";
+import { FeedReviewEditDialog } from "@/features/feed/components/FeedReviewEditDialog";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { getPosterUrl } from "@/features/movies/components/utils";
 import { useLikeReview, useUnlikeReview } from "@/features/reviews/hooks/useReviews";
 import type { FeedTitleGroup } from "@/features/feed/types";
@@ -37,7 +39,10 @@ const ReviewLike = ({ reviewId, engagement }: { reviewId: string; engagement: Fe
 // One watch, one card: who, when, the title, the score, the like and the review.
 export const FeedTitleCard = memo(function FeedTitleCard({ group }: { group: FeedTitleGroup }) {
   const [showSpoilers, setShowSpoilers] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const { user } = useAuth();
   const { actor, movie, review } = group;
+  const isOwnReview = Boolean(review && user && user.id === actor.id);
   const createdAt = new Date(group.createdAt);
   const isTv = movie.mediaType === "tv";
   const episodeLabel =
@@ -109,7 +114,15 @@ export const FeedTitleCard = memo(function FeedTitleCard({ group }: { group: Fee
               >
                 Reply
               </Link>
+              {isOwnReview ? <EditButton onClick={() => setIsEditing(true)} /> : null}
             </div>
+            <FeedReviewEditDialog
+              isOpen={isEditing}
+              onClose={() => setIsEditing(false)}
+              reviewId={review.id}
+              initialContent={review.content}
+              containsSpoilers={review.containsSpoilers}
+            />
           </>
         ) : null}
       </div>
