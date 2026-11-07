@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { Bookmark } from "lucide-react";
 import { ProfileMediaInteractionGridSection } from "@/features/profile/components/ProfileMediaInteractionGridSection";
 import {
   toMediaShelfType,
   type MediaShelfFilter,
 } from "@/features/profile/components/media-shelf-filter";
-import { useUserWatchlist } from "@/features/profile/hooks/useProfile";
+import { useIsOwnProfile, useUserWatchlist } from "@/features/profile/hooks/useProfile";
 
 type ProfileWatchlistPageProps = {
   username: string;
@@ -16,17 +15,18 @@ export const ProfileWatchlistPage = ({
 }: ProfileWatchlistPageProps) => {
   const [filter, setFilter] = useState<MediaShelfFilter>("all");
   const watchlistQuery = useUserWatchlist(username, toMediaShelfType(filter));
+  const isOwner = useIsOwnProfile(username);
 
   return (
     <ProfileMediaInteractionGridSection
       errorLabel="Could not load watchlist."
       sectionTitle="Watchlist"
       interactionVerb="added"
+      isOwner={isOwner}
       emptyState={{
-        icon: Bookmark,
-        title: "No watchlist items yet",
-        description: "This profile has not added anything to watchlist yet.",
-        cta: { label: "Browse Movie", to: "/movies" },
+        visitorText: "Nothing on the watchlist.",
+        ownerText: "Add titles from any film or series page.",
+        ownerAction: { label: "Browse films →", to: "/movies" },
       }}
       isPending={watchlistQuery.isPending}
       isError={watchlistQuery.isError}

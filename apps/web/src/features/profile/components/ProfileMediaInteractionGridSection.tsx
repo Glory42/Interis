@@ -1,4 +1,3 @@
-import type { LucideIcon } from "lucide-react";
 import { MediaPosterGridItem } from "@/features/profile/components/MediaPosterGridItem";
 import {
   PROFILE_MEDIA_GRID_CLASSES,
@@ -20,11 +19,11 @@ type ProfileMediaInteractionGridSectionProps = {
   errorLabel: string;
   sectionTitle: string;
   emptyState: {
-    icon: LucideIcon;
-    title: string;
-    description: string;
-    cta?: ProfileTabEmptyStateCta;
+    visitorText: string;
+    ownerText?: string;
+    ownerAction?: ProfileTabEmptyStateCta;
   };
+  isOwner: boolean;
   interactionVerb: string;
   isPending: boolean;
   isError: boolean;
@@ -41,6 +40,7 @@ export const ProfileMediaInteractionGridSection = ({
   errorLabel,
   sectionTitle,
   emptyState,
+  isOwner,
   interactionVerb,
   isPending,
   isError,
@@ -65,12 +65,7 @@ export const ProfileMediaInteractionGridSection = ({
       ) : null}
 
       {!isPending && !isError && isShelfEmpty ? (
-        <ProfileTabEmptyState
-          icon={emptyState.icon}
-          title={emptyState.title}
-          description={emptyState.description}
-          cta={emptyState.cta}
-        />
+        <ProfileTabEmptyState isOwner={isOwner} {...emptyState} />
       ) : null}
 
       {!isPending && !isError && !isShelfEmpty ? (

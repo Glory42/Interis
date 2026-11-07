@@ -51,6 +51,11 @@ router.get(
   asyncHandler(UsersProfileTabsController.getRecent),
 );
 router.get(
+  "/:username/recent/grouped",
+  profileTabsCache,
+  asyncHandler(UsersProfileTabsController.getRecentGrouped),
+);
+router.get(
   "/:username/serials/currently-watching",
   profileTabsCache,
   asyncHandler(UsersProfileTabsController.getSerialsCurrentlyWatching),
