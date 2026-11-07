@@ -1,257 +1,201 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Globe, Heart, Lock, Pencil, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useAuth } from "@/features/auth/hooks/useAuth";
-import {
-  useDeleteList,
-  useLikeList,
-  useListDetail,
-  useUnlikeList,
-} from "@/features/lists/hooks/useLists";
+import { ArrowLeft, Ellipsis, Heart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { SentenceSelect } from "@/components/ui/SentenceSelect";
 import { TickLoader } from "@/components/ui/tick-loader";
-
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p";
-
-const getPosterUrl = (posterPath: string | null): string => {
-  if (!posterPath) return "";
-  return `${TMDB_IMAGE_BASE}/w185${posterPath}`;
-};
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { ListDetailPoster, ListDetailRow } from "@/features/lists/components/ListDetailItems";
+import { useDeleteList, useLikeList, useListDetail, useUnlikeList } from "@/features/lists/hooks/useLists";
+import { cn } from "@/lib/utils";
 
 type ProfileListDetailPageProps = {
   username: string;
   listId: string;
 };
 
-export const ProfileListDetailPage = ({
-  username,
-  listId,
-}: ProfileListDetailPageProps) => {
+type ListView = "rows" | "grid";
+
+const viewOptions = [
+  { value: "rows", word: "ranked rows", label: "Ranked rows" },
+  { value: "grid", word: "a poster grid", label: "Poster grid" },
+] as const;
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+const kindLabel = (derivedType: string | null, count: number) => {
+  const noun = derivedType === "movie" ? "film" : derivedType === "serial" ? "series" : "title";
+  return `${count} ${noun}${count === 1 || noun === "series" ? "" : "s"}`;
+};
+
+const menuItem = "block w-full px-4 py-2 text-left text-xs text-muted-foreground hover:bg-foreground/5 hover:text-foreground";
+
+export const ProfileListDetailPage = ({ username, listId }: ProfileListDetailPageProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-
   const detailQuery = useListDetail(listId);
   const list = detailQuery.data;
-
-  const isOwnProfile =
-    Boolean(user) && list ? user?.id === list.userId : false;
-
+  const isOwnProfile = Boolean(user && list && user.id === list.userId);
   const deleteMutation = useDeleteList(listId, username);
-  const [deletePending, setDeletePending] = useState(false);
-
-  const viewerUsername = user?.username;
-  const likeMutation = useLikeList(listId, viewerUsername);
-  const unlikeMutation = useUnlikeList(listId, viewerUsername);
-  const isLiked = list?.likedByViewer ?? false;
-  const likeCount = list?.likeCount ?? 0;
-  const likeLoading = likeMutation.isPending || unlikeMutation.isPending;
-
-  const handleLikeToggle = () => {
-    if (likeLoading) return;
-    if (isLiked) {
-      unlikeMutation.mutate();
-    } else {
-      likeMutation.mutate();
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!confirm("Delete this list? This cannot be undone.")) return;
-    setDeletePending(true);
-    try {
-      await deleteMutation.mutateAsync();
-      void navigate({ to: "/profile/$username/lists", params: { username } });
-    } finally {
-      setDeletePending(false);
-    }
-  };
+  const likeMutation = useLikeList(listId, user?.username);
+  const unlikeMutation = useUnlikeList(listId, user?.username);
+  const [view, setView] = useState<ListView>("rows");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   if (detailQuery.isPending) {
     return (
-      <div className="flex items-center gap-2 py-10 text-sm text-muted-foreground">
-        <TickLoader /> Loading list...
+      <div className="body-s flex items-center gap-2 py-10 text-muted-foreground">
+        <TickLoader /> Loading list…
       </div>
     );
   }
 
   if (detailQuery.isError || !list) {
-    return (
-      <div className="rounded-xl border border-border/60 bg-card/30 p-4 text-sm text-destructive">
-        This list could not be loaded.
-      </div>
-    );
+    return <p className="body-s text-[color:var(--danger)]">This list could not be loaded.</p>;
   }
 
-  const derivedTypeLabel =
-    list.derivedType === "movie"
-      ? "MOVIE"
-      : list.derivedType === "serial"
-        ? "SERIAL"
-        : list.derivedType === "mixed"
-          ? "MIXED"
-          : null;
+  const isLiked = list.likedByViewer;
+  const isLikePending = likeMutation.isPending || unlikeMutation.isPending;
+  const updated = new Date(list.updatedAt);
+  const slateLeft = ["List", list.isRanked ? "Ranked" : null, kindLabel(list.derivedType, list.itemCount), list.isPublic ? "Public" : "Private"]
+    .filter(Boolean)
+    .join(" · ");
+  const slateRight = [`By ${username}`, Number.isNaN(updated.getTime()) ? null : `Updated ${MONTHS[updated.getMonth()]} ${updated.getDate()}`]
+    .filter(Boolean)
+    .join(" · ");
+
+  const deleteList = async () => {
+    await deleteMutation.mutateAsync();
+    setIsConfirmingDelete(false);
+    void navigate({ to: "/profile/$username/lists", params: { username } });
+  };
 
   return (
     <div>
       <Link
         to="/profile/$username/lists"
         params={{ username }}
-        className="mb-6 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground"
+        className="mono-meta mb-4 inline-flex items-center gap-1.5 uppercase text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="h-3 w-3" />
-        Back to lists
+        <ArrowLeft aria-hidden className="size-3" />
+        Lists
       </Link>
 
-      <div className="mb-8 border-b border-border/50 pb-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <h1 className="mb-2 font-mono text-xl font-bold text-foreground">
-              {list.title}
-            </h1>
-            {list.description ? (
-              <p className="mb-3 font-mono text-sm text-muted-foreground">
-                {list.description}
-              </p>
-            ) : null}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-[11px] font-semibold shell-accent">
-                {list.itemCount}
-              </span>
-              <span className="font-mono text-[11px] text-muted-foreground">
-                items
-              </span>
-              {derivedTypeLabel ? (
-                <span className="rounded-full border border-border/60 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
-                  {derivedTypeLabel}
-                </span>
+      <div className="rounded-[3px] border border-[color:var(--line)]">
+        <div className="slate mono-meta rounded-t-[3px] uppercase">
+          <span>{slateLeft}</span>
+          <span>{slateRight}</span>
+        </div>
+
+        <div className="p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h1 className="display-2 leading-none text-foreground">{list.title}</h1>
+              {list.description ? <p className="body mt-2 text-muted-foreground">{list.description}</p> : null}
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              {user && !isOwnProfile ? (
+                <Button
+                  variant="outline"
+                  size="md"
+                  aria-label={isLiked ? "Unlike this list" : "Like this list"}
+                  aria-pressed={isLiked}
+                  disabled={isLikePending}
+                  onClick={() => (isLiked ? unlikeMutation.mutate() : likeMutation.mutate())}
+                >
+                  <Heart aria-hidden className={cn("size-3.5 text-[color:var(--like)]", isLiked && "fill-current")} />
+                  {list.likeCount > 0 ? `Like · ${list.likeCount}` : "Like"}
+                </Button>
+              ) : !user && list.likeCount > 0 ? (
+                <span className="mono-meta text-muted-foreground">{`♥ ${list.likeCount}`}</span>
               ) : null}
-              {list.isRanked ? (
-                <span className="rounded-full border border-border/60 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
-                  RANKED
-                </span>
+
+              {isOwnProfile ? (
+                <div
+                  className="relative"
+                  onBlur={(event) => !event.currentTarget.contains(event.relatedTarget) && setIsMenuOpen(false)}
+                  onKeyDown={(event) => event.key === "Escape" && setIsMenuOpen(false)}
+                >
+                  <Button
+                    variant="icon"
+                    size="md"
+                    aria-label="List actions"
+                    aria-haspopup="menu"
+                    aria-expanded={isMenuOpen}
+                    onClick={() => setIsMenuOpen((open) => !open)}
+                  >
+                    <Ellipsis aria-hidden className="size-4" />
+                  </Button>
+                  {isMenuOpen ? (
+                    <div role="menu" className="surface-card absolute top-full right-0 z-40 mt-1 min-w-32 overflow-hidden">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className={menuItem}
+                        onClick={() => void navigate({ to: "/profile/$username/lists/$listId/edit", params: { username, listId } })}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className={cn(menuItem, "text-[color:var(--danger)]")}
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          setIsConfirmingDelete(true);
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
               ) : null}
-              <span className="flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
-                {list.isPublic ? (
-                  <Globe className="h-3 w-3" />
-                ) : (
-                  <Lock className="h-3 w-3" />
-                )}
-                {list.isPublic ? "Public" : "Private"}
-              </span>
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
-            {/* Like button — shown to authenticated non-owners */}
-            {user && !isOwnProfile ? (
-              <button
-                type="button"
-                onClick={handleLikeToggle}
-                disabled={likeLoading}
-                aria-label={isLiked ? "Unlike this list" : "Like this list"}
-                aria-pressed={isLiked}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-                  isLiked
-                    ? "border-rose-500/50 text-rose-500 hover:border-rose-500"
-                    : "border-border/70 text-muted-foreground hover:border-rose-500/50 hover:text-rose-400",
-                )}
-              >
-                <Heart className={cn("h-3 w-3", isLiked && "fill-current")} />
-                {likeCount > 0 ? likeCount : null}
-              </button>
-            ) : !user && likeCount > 0 ? (
-              <span className="inline-flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground">
-                <Heart className="h-3 w-3" />
-                {likeCount}
-              </span>
-            ) : null}
+          {list.items.length === 0 ? (
+            <p className="body-s mt-4 border-t border-[color:var(--line)] pt-4 text-muted-foreground">
+              {isOwnProfile ? "Edit this list to add films and series." : "This list is empty."}
+            </p>
+          ) : view === "rows" ? (
+            <ol className="mt-4">
+              {list.items.map((item, index) => (
+                <ListDetailRow key={item.id} item={item} rank={list.isRanked ? index + 1 : null} />
+              ))}
+            </ol>
+          ) : (
+            <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-5 lg:grid-cols-6">
+              {list.items.map((item, index) => (
+                <ListDetailPoster key={item.id} item={item} rank={list.isRanked ? index + 1 : null} />
+              ))}
+            </div>
+          )}
 
-            {isOwnProfile ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => {
-                    void navigate({
-                      to: "/profile/$username/lists/$listId/edit",
-                      params: { username, listId },
-                    });
-                  }}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-border/70 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  <Pencil className="h-3 w-3" />
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { void handleDelete(); }}
-                  disabled={deletePending}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-destructive/40 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-destructive/70 transition-colors hover:border-destructive hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {deletePending ? (
-                    <TickLoader />
-                  ) : (
-                    <Trash2 className="h-3 w-3" />
-                  )}
-                  Delete
-                </button>
-              </>
-            ) : null}
-          </div>
+          {list.items.length > 0 ? (
+            <p className="body-s mt-3 text-muted-foreground">
+              {"Viewing as "}
+              <SentenceSelect value={view} options={viewOptions} onChange={setView} />
+              {"."}
+            </p>
+          ) : null}
         </div>
       </div>
 
-      {list.items.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border/50 py-12 text-center">
-          <p className="font-mono text-sm text-muted-foreground">
-            {isOwnProfile
-              ? "Edit this list to add movies and series."
-              : "This list is empty."}
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-4 gap-3 sm:grid-cols-5 lg:grid-cols-6">
-          {list.items.map((item, idx) => (
-            <Link
-              key={item.id}
-              to={
-                item.itemType === "movie"
-                  ? "/movies/$tmdbId"
-                  : "/serials/$tmdbId"
-              }
-              params={{ tmdbId: String(item.tmdbId ?? "") }}
-              className="group block"
-              viewTransition
-            >
-              <div className="relative mb-1.5 aspect-2/3 overflow-hidden rounded-lg border border-border/70 bg-card/25">
-                {item.posterPath ? (
-                  <img
-                    src={getPosterUrl(item.posterPath)}
-                    alt={item.title ?? ""}
-                    className="h-full w-full object-cover opacity-90 transition-[transform,opacity] duration-500 group-hover:scale-105 group-hover:opacity-100"
-                    loading="lazy"
-                  />
-                ) : null}
-                {list.isRanked ? (
-                  <div className="absolute left-0 top-0 bg-background/80 px-1.5 py-0.5">
-                    <span className="font-mono text-[10px] font-bold text-foreground">
-                      {idx + 1}
-                    </span>
-                  </div>
-                ) : null}
-              </div>
-              <p className="line-clamp-1 text-[11px] font-semibold text-foreground/95 transition-colors group-hover:text-primary">
-                {item.title ?? "Unknown"}
-              </p>
-              {item.releaseYear ? (
-                <p className="mt-0.5 text-[10px] text-muted-foreground/85">
-                  {item.releaseYear}
-                </p>
-              ) : null}
-            </Link>
-          ))}
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={isConfirmingDelete}
+        context="List · Delete"
+        title="Delete this list?"
+        description="The list and its notes go for good. The films and series stay in your diary."
+        confirmLabel="Delete list"
+        cancelLabel="Keep list"
+        isDestructive
+        isConfirming={deleteMutation.isPending}
+        onConfirm={() => void deleteList()}
+        onClose={() => setIsConfirmingDelete(false)}
+      />
     </div>
   );
 };

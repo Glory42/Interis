@@ -8,8 +8,7 @@ import {
   createList,
   deleteList,
   getListDetail,
-  getUserLists,
-  getUserListsForItem,
+  getUserLists, getUserListsForItem,
   likeList,
   removeListItem,
   reorderListItems,
@@ -168,6 +167,7 @@ export const useAddListItem = (listId: string, ownerUsername: string) => {
               title: data.title,
               posterPath: data.posterPath,
               releaseYear: data.releaseYear,
+              ownerRating: null, credit: null,
             },
           ],
         });

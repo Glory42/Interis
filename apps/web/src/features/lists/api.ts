@@ -33,6 +33,9 @@ const listItemSchema = z.object({
   title: z.string().nullable(),
   posterPath: z.string().nullable(),
   releaseYear: z.number().int().nullable(),
+  // The list owner's own score, and the director or creator (from the cached title).
+  ownerRating: z.number().nullable().optional().default(null),
+  credit: z.string().nullable().optional().default(null),
 });
 
 export const listDetailSchema = z
