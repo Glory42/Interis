@@ -28,17 +28,15 @@ const review = (n: number) => ({
 });
 
 const report = (n: number) => ({
-  id: `report-${n}`,
-  reporterId: `reporter-${n}`,
-  reporterUsername: `reporter${n}`,
   targetType: "review",
   targetId: `review-${n}`,
+  reportCount: 1,
+  reasons: ["spam"],
   contentSnapshot: `Reported text ${n}`,
-  reason: "spam",
-  details: null,
-  status: "pending",
-  createdAt: "2026-11-02T12:00:00.000Z",
-  resolvedAt: null,
+  authorUsername: `critic${n}`,
+  oldestReportAt: "2026-11-02T12:00:00.000Z",
+  reportId: `report-${n}`,
+  reports: [{ reporterUsername: `reporter${n}`, reason: "spam", details: null }],
 });
 
 const pagesBy = (pages: Record<string, unknown[]>) => {
@@ -79,14 +77,14 @@ describe("admin list pagination", () => {
       "0": Array.from({ length: 20 }, (_, i) => report(i + 1)),
       "20": [report(21)],
     });
-    server.use(fake.handler("http://localhost/api/reports"));
+    server.use(fake.handler("http://localhost/api/reports/grouped"));
 
     renderWithQueryClient(<AdminReportsPanel status="pending" onStatusChange={() => {}} />);
 
-    expect(await screen.findByText("Reported text 20")).toBeInTheDocument();
+    expect(await screen.findByText(/Reported text 20$/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Load more" }));
 
-    expect(await screen.findByText("Reported text 21")).toBeInTheDocument();
+    expect(await screen.findByText(/Reported text 21$/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Load more" })).not.toBeInTheDocument();
   });
 });
