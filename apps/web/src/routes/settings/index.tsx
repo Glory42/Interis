@@ -1,12 +1,13 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { Navigate, createFileRoute } from "@tanstack/react-router";
+import { SettingsIndex } from "@/features/settings/components/SettingsIndex";
+import { PHONE_QUERY, useMediaQuery } from "@/lib/use-media-query";
 
 export const Route = createFileRoute("/settings/")({
-  beforeLoad: () => {
-    throw redirect({ to: "/settings/profile" });
-  },
-  component: SettingsIndexRedirect,
+  component: SettingsIndexPage,
 });
 
-function SettingsIndexRedirect() {
-  return null;
+// Phones get the index; desktop has the side list, so it opens Profile.
+function SettingsIndexPage() {
+  const isPhone = useMediaQuery(PHONE_QUERY);
+  return isPhone ? <SettingsIndex /> : <Navigate to="/settings/profile" replace />;
 }

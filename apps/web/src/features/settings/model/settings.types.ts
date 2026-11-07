@@ -19,6 +19,7 @@ export type SettingsSectionTo =
 export type SettingsSectionDefinition = {
   id: SettingsSectionId;
   to: SettingsSectionTo;
+  number: string;
   label: string;
-  description: string;
+  group: "profile" | "look" | "account";
 };

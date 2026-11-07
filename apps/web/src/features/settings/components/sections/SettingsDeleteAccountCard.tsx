@@ -28,7 +28,7 @@ export const SettingsDeleteAccountCard = () => {
   };
 
   return (
-    <div className="border p-5 space-y-4 shell-border surface">
+    <div id="delete-account" className="scroll-mt-20 border p-5 space-y-4 shell-border surface">
       <div>
         <p className="mb-1 text-base font-bold text-foreground">Delete account</p>
         <p className="text-sm shell-muted">
