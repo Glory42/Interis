@@ -6,12 +6,12 @@ import {
   useSeriesSeasonDetail,
   useUpdateSeasonInteraction,
   useUpdateEpisodeInteraction,
+  useMarkWatchedThrough,
   useUpsertSeasonReview,
   useDeleteSeasonReview,
   useUpsertEpisodeReview,
   useDeleteEpisodeReview,
 } from "@/features/serials/hooks/useSerials";
-import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
 import { useReviewDraft } from "@/features/serials/hooks/serials/use-review-draft";
 import { useReviewSubmission } from "@/features/serials/hooks/serials/use-review-submission";
 import type { MyTitleReview } from "@/features/reviews/api";
@@ -60,6 +60,7 @@ export const SeasonAccordionItem = ({
 
   const updateSeasonInteractionMutation = useUpdateSeasonInteraction(tmdbId);
   const updateEpisodeInteractionMutation = useUpdateEpisodeInteraction(tmdbId, season.seasonNumber);
+  const markWatchedThroughMutation = useMarkWatchedThrough(tmdbId, season.seasonNumber);
 
   const upsertSeasonReviewMutation = useUpsertSeasonReview(tmdbId, season.seasonNumber);
   const deleteSeasonReviewMutation = useDeleteSeasonReview(tmdbId, season.seasonNumber);
@@ -191,13 +192,7 @@ export const SeasonAccordionItem = ({
   const seasonRating = season.viewerInteraction?.rating ?? null;
 
   return (
-    <div
-      className="overflow-hidden rounded-xl border"
-      style={{
-        borderColor: SERIAL_MODULE_STYLES.border,
-        background: SERIAL_MODULE_STYLES.panel,
-      }}
-    >
+    <section aria-label={season.name || `Season ${season.seasonNumber}`}>
       <SeasonHeaderRow
         season={season}
         isOpen={isOpen}
@@ -210,60 +205,29 @@ export const SeasonAccordionItem = ({
       />
 
       {isOpen ? (
-        <div
-          className="border-t"
-          style={{ borderColor: SERIAL_MODULE_STYLES.borderSoft }}
-        >
+        <div className="mb-3 ml-[46px] border-t border-[color:var(--line)]">
           {seasonDetailQuery.isPending ? (
-            <div
-              className="px-4 py-3 font-mono text-xs"
-              style={{ color: SERIAL_MODULE_STYLES.muted }}
-            >
-              Loading episodes...
-            </div>
-          ) : null}
-
-          {seasonDetailQuery.isError ? (
-            <div
-              className="px-4 py-3 font-mono text-xs text-destructive"
-              style={{
-                background:
-                  "color-mix(in srgb, var(--destructive) 10%, transparent)",
-              }}
-            >
-              Could not load episodes for this season.
-            </div>
-          ) : null}
-
-          {!seasonDetailQuery.isPending &&
-          !seasonDetailQuery.isError &&
-          episodes.length === 0 ? (
-            <div
-              className="px-4 py-3 font-mono text-xs"
-              style={{ color: SERIAL_MODULE_STYLES.muted }}
-            >
-              No episodes available for this season.
-            </div>
-          ) : null}
-
-          {!seasonDetailQuery.isPending &&
-          !seasonDetailQuery.isError &&
-          episodes.length > 0
-            ? episodes.map((episode, index) => (
-                <EpisodeRow
-                  key={`episode-${episode.id}`}
-                  episode={episode}
-                  index={index}
-                  showInteractions={Boolean(user)}
-                  onToggleWatched={handleEpisodeWatchedToggle}
-                  onToggleLiked={handleEpisodeLikedToggle}
-                  onRatingChange={handleEpisodeRatingChange}
-                  onOpenReview={(episodeNumber, episodeName) =>
-                    handleOpenReview({ type: "episode", episodeNumber, episodeName })
-                  }
-                />
-              ))
-            : null}
+            <p className="body-s py-3 text-muted-foreground">Loading episodes…</p>
+          ) : seasonDetailQuery.isError ? (
+            <p className="body-s py-3 text-[color:var(--danger)]">Could not load episodes for this season.</p>
+          ) : episodes.length === 0 ? (
+            <p className="body-s py-3 text-muted-foreground">No episodes for this season yet.</p>
+          ) : (
+            episodes.map((episode) => (
+              <EpisodeRow
+                key={`episode-${episode.id}`}
+                episode={episode}
+                showInteractions={Boolean(user)}
+                onToggleWatched={handleEpisodeWatchedToggle}
+                onToggleLiked={handleEpisodeLikedToggle}
+                onRatingChange={handleEpisodeRatingChange}
+                onMarkWatchedThrough={(episodeNumber) => markWatchedThroughMutation.mutate(episodeNumber)}
+                onOpenReview={(episodeNumber, episodeName) =>
+                  handleOpenReview({ type: "episode", episodeNumber, episodeName })
+                }
+              />
+            ))
+          )}
         </div>
       ) : null}
 
@@ -345,6 +309,6 @@ export const SeasonAccordionItem = ({
         }}
         onClose={reviewChooser.close}
       />
-    </div>
+    </section>
   );
 };

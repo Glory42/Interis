@@ -22,17 +22,15 @@ test("toggles episode/season/series watch state and rating, and writes a season 
       });
     });
 
-    // SeasonHeaderRow renders every season's own <button> unconditionally
-    // (not just the open one); scoping to the button whose text contains
-    // "Season 1" isolates just that row's controls from every other
-    // season's identical-looking watched/like/rating/review buttons.
-    const season1Row = page.locator("button").filter({ hasText: "Season 1" }).first();
+    // Each season is a region named after it; scoping to it isolates that
+    // season's controls (and, once open, its episodes) from every other season's.
+    const season1Row = page.getByRole("region", { name: "Season 1", exact: true });
 
     await test.step("expands season 1", async () => {
-      await page.getByText("Season 1", { exact: true }).first().click();
+      await season1Row.getByRole("button", { name: /Season 1/ }).click();
       // Episodes render inside <article> elements once the season detail
       // query resolves - nothing else on this page uses <article>.
-      await expect(page.locator("article").first()).toBeVisible({ timeout: 10_000 });
+      await expect(season1Row.locator("article").first()).toBeVisible({ timeout: 10_000 });
     });
 
     // Toggle the episode and season - and write the season review - before
@@ -42,13 +40,12 @@ test("toggles episode/season/series watch state and rating, and writes a season 
     // serials-tracking.service.ts's syncSeasonWatchedFromEpisodes), which
     // would make an "Unwatched" -> click -> "Watched" assertion here a
     // false positive (already watched by the cascade, not by this click).
-    const episode1 = page.locator("article").first();
+    const episode1 = season1Row.locator("article").first();
 
     await test.step("toggles episode 1 watched and sets its rating", async () => {
-      await episode1.getByRole("button", { name: "Unwatched" }).click();
-      await expect(episode1.getByRole("button", { name: "Watched", exact: true })).toBeVisible({
-        timeout: 10_000,
-      });
+      const episodeTick = episode1.getByRole("button", { name: "Watched", exact: true });
+      await episodeTick.click();
+      await expect(episodeTick).toHaveAttribute("aria-pressed", "true", { timeout: 10_000 });
 
       // Episode and season rows rate with a small launch track (0–10, left
       // to right, saves on release) - clicking 90% along it lands on 9.
@@ -59,10 +56,9 @@ test("toggles episode/season/series watch state and rating, and writes a season 
     });
 
     await test.step("toggles season 1 watched and sets its rating", async () => {
-      await season1Row.getByRole("button", { name: "Unwatched" }).click();
-      await expect(season1Row.getByRole("button", { name: "Watched", exact: true })).toBeVisible({
-        timeout: 10_000,
-      });
+      const seasonTick = season1Row.getByRole("button", { name: "Season watched" });
+      await seasonTick.click();
+      await expect(seasonTick).toHaveAttribute("aria-pressed", "true", { timeout: 10_000 });
 
       const seasonRating = season1Row.getByRole("slider", { name: "Season rating out of 10" });
       const seasonBox = await seasonRating.boundingBox();
@@ -71,7 +67,7 @@ test("toggles episode/season/series watch state and rating, and writes a season 
     });
 
     await test.step("writes a season review", async () => {
-      await season1Row.getByRole("button", { name: "Review", exact: true }).click();
+      await season1Row.getByRole("button", { name: "Review season" }).click();
 
       // LogMediaDialog sets role="dialog" (unlike the feed's review-edit
       // dialog built on the plain ModalShell pattern) - but it embeds its
@@ -91,7 +87,7 @@ test("toggles episode/season/series watch state and rating, and writes a season 
 
       // With a review written, Review asks whether to write another one or
       // edit it (#74); editing reopens the form with that review's text.
-      await season1Row.getByRole("button", { name: "Review", exact: true }).click();
+      await season1Row.getByRole("button", { name: "Review season" }).click();
       await page.getByRole("button", { name: /Edit your review from/ }).click();
       await expect(dialog).toBeVisible({ timeout: 10_000 });
       await expect(

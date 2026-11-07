@@ -64,6 +64,61 @@ export const patchSeasonsInDetailViewCache = (
   return previousQueries;
 };
 
+type NextUpPatch = {
+  // Applies while next up sits in this season at an episode this returns true for.
+  when: (episodeNumber: number) => boolean;
+  next: { episodeNumber: number; name: string } | null;
+};
+
+// Moves a season's watched-episode count to toNext(current, size), clamped to the
+// season, and shifts the series total by the same amount (specials don't count there).
+export const shiftWatchedCountsInDetailViewCache = (
+  queryClient: QueryClient,
+  tmdbId: number,
+  seasonNumber: number,
+  toNext: (current: number, episodeCount: number | null) => number,
+  nextUp?: NextUpPatch,
+) => {
+  const queryKey = serialKeys.detailViewRoot(tmdbId);
+  const previousQueries = queryClient.getQueriesData<SerialDetailResponse>({ queryKey });
+
+  queryClient.setQueriesData<SerialDetailResponse>({ queryKey }, (old) => {
+    if (!old) return old;
+    let delta = 0;
+    const seasons = old.series.seasons.map((season) => {
+      if (season.seasonNumber !== seasonNumber) return season;
+      const next = Math.max(
+        0,
+        Math.min(season.episodeCount ?? Number.POSITIVE_INFINITY, toNext(season.watchedEpisodeCount, season.episodeCount)),
+      );
+      delta = next - season.watchedEpisodeCount;
+      return { ...season, watchedEpisodeCount: next };
+    });
+    const tracking = old.viewerTracking;
+    if (!tracking || seasonNumber === 0) return { ...old, series: { ...old.series, seasons } };
+
+    const current = tracking.currentEpisode;
+    const size = seasons.find((season) => season.seasonNumber === seasonNumber)?.episodeCount ?? null;
+    const advance =
+      nextUp?.next &&
+      current?.seasonNumber === seasonNumber &&
+      nextUp.when(current.episodeNumber) &&
+      (size === null || nextUp.next.episodeNumber <= size);
+
+    return {
+      ...old,
+      series: { ...old.series, seasons },
+      viewerTracking: {
+        ...tracking,
+        watchedEpisodesCount: Math.max(0, tracking.watchedEpisodesCount + delta),
+        currentEpisode: advance && nextUp?.next ? { seasonNumber, ...nextUp.next } : current,
+      },
+    };
+  });
+
+  return previousQueries;
+};
+
 // Optimistically patches cached season-detail (episode list) queries.
 // seasonNumber "all" touches every cached season's episodes (series-level
 // cascade); a specific number scopes to that season, optionally further
