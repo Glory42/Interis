@@ -95,7 +95,7 @@ export const QuickLogComposer = ({ user }: QuickLogComposerProps) => {
                 setContent(event.target.value);
               }
             }}
-            placeholder="Log a thought…"
+            placeholder="What did you watch tonight?"
             className="min-h-18 resize-y border-border/50 bg-background/40 text-sm"
           />
 

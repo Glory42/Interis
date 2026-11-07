@@ -17,8 +17,8 @@ test("a user reports a post, an admin removes it", async ({ browser }) => {
   try {
     await test.step("author signs up and posts a quick log", async () => {
       await registerUser(pageA, author);
-      await pageA.getByPlaceholder("Log a thought…").fill(POST_CONTENT);
-      await pageA.getByPlaceholder("Log a thought…").press("Enter");
+      await pageA.getByPlaceholder("What did you watch tonight?").fill(POST_CONTENT);
+      await pageA.getByPlaceholder("What did you watch tonight?").press("Enter");
       await expect(pageA.getByText(POST_CONTENT)).toBeVisible({ timeout: 10_000 });
     });
 

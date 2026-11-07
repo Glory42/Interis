@@ -89,9 +89,12 @@ export class UsersReadService {
   }
 
   static async getMeSummary(userId: string) {
-    const [profile, summaryData] = await Promise.all([
+    // "Your week" on the feed: the last seven days, today included.
+    const weekStart = new Date(Date.now() - 6 * 86_400_000);
+    const [profile, summaryData, week] = await Promise.all([
       UsersProfileService.findById(userId),
       UsersStatsRepository.getMeSummaryData(userId),
+      UsersStatsRepository.getWeekSummary(userId, weekStart.toISOString().slice(0, 10), weekStart),
     ]);
     if (!profile) {
       return null;
@@ -110,6 +113,7 @@ export class UsersReadService {
         following: summaryData.following,
       },
       recentPosters,
+      week,
     };
   }
 }
