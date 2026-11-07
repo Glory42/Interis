@@ -30,15 +30,11 @@ test("writes a review, then views/comments/edits it from its detail page and the
 
     await test.step("the review shows up on the profile reviews tab and its own detail page", async () => {
       await page.goto(`/profile/${user.username}/reviews`);
-      // ProfileReviewsPage.tsx also renders a poster-thumbnail link to
-      // /movies/$tmdbId right before the title link, whose accessible name
-      // ("Fight Club poster", from the img alt) matches a loose
-      // name-based regex just as well as the real title link - scoping to
-      // href*="/reviews/" targets only the links that actually lead to
-      // the review detail page.
+      // Each review is a row whose title links to the film; "Read →" opens the review itself.
       const reviewLink = page
-        .locator('a[href*="/reviews/"]', { hasText: KNOWN_MOVIE_TITLE })
-        .first();
+        .locator("article", { hasText: KNOWN_MOVIE_TITLE })
+        .first()
+        .getByRole("link", { name: "Read →" });
       await expect(reviewLink).toBeVisible({ timeout: 10_000 });
       await reviewLink.click();
 
@@ -96,8 +92,9 @@ test("writes a review, then views/comments/edits it from its detail page and the
     await test.step("the edited content is reflected on the review detail page", async () => {
       await page.goto(`/profile/${user.username}/reviews`);
       await page
-        .locator('a[href*="/reviews/"]', { hasText: KNOWN_MOVIE_TITLE })
+        .locator("article", { hasText: KNOWN_MOVIE_TITLE })
         .first()
+        .getByRole("link", { name: "Read →" })
         .click();
       await page.waitForURL(/\/reviews\/.+\/.+$/);
       await expect(page.getByText(EDITED_REVIEW_TEXT)).toBeVisible({ timeout: 10_000 });
