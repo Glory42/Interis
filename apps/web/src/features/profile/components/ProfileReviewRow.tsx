@@ -1,9 +1,10 @@
-import { memo, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { memo, useState, type MouseEvent } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
 import { toIsoWeek } from "@/features/media/archive/week-label";
 import type { UserReview } from "@/features/profile/api";
 import { getPosterUrl } from "@/features/media/tmdb-images";
+import { isCardBackgroundClick } from "@/lib/card-click";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -20,9 +21,19 @@ export const ProfileReviewRow = memo(function ProfileReviewRow({ review, usernam
   const [isRevealed, setIsRevealed] = useState(false);
   const to = review.mediaType === "tv" ? "/serials/$tmdbId" : "/movies/$tmdbId";
   const isTv = review.mediaType === "tv";
+  const navigate = useNavigate();
+
+  // The whole row opens the review.
+  const openReview = (event: MouseEvent<HTMLElement>) => {
+    if (!isCardBackgroundClick(event)) return;
+    void navigate({ to: "/reviews/$username/$reviewId", params: { username, reviewId: review.id }, viewTransition: true });
+  };
 
   return (
-    <article className="flex items-start gap-3.5 border-b border-[color:var(--line)] py-3.5 last:border-b-0">
+    <article
+      onClick={openReview}
+      className="flex cursor-pointer items-start gap-3.5 border-b border-[color:var(--line)] py-3.5 last:border-b-0"
+    >
       <Link to={to} params={{ tmdbId: String(review.tmdbId) }} className="shrink-0" viewTransition>
         <img src={getPosterUrl(review.posterPath)} alt="" className="aspect-2/3 w-14 rounded-[2px] object-cover" loading="lazy" />
       </Link>

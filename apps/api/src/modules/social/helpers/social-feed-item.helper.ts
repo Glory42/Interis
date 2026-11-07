@@ -41,7 +41,7 @@ export const toFeedItem = (
       : null;
   const reviewDetails = reviewById ?? reviewByDiaryEntry;
 
-  // Rating and rewatch come from the live log, so an edit shows up too.
+  // Rating, rewatch and watch day come from the live log, so an edit shows up too.
   const diaryEntry = isDiaryEntry
     ? fallbackMedia.diaryEntriesById.get(row.activity.entityId) ?? null
     : null;
@@ -105,7 +105,12 @@ export const toFeedItem = (
   const metadataWithReviewContext = {
     ...metadata,
     ...reviewMetadata,
-    ...(diaryEntry && { rating: diaryEntry.rating, rewatch: diaryEntry.rewatch }),
+    ...(diaryEntry && {
+      rating: diaryEntry.rating,
+      rewatch: diaryEntry.rewatch,
+      logId: diaryEntry.id,
+      watchedDate: diaryEntry.watchedDate,
+    }),
     targetUsername:
       followedUser?.username ??
       metadata.targetUsername ??

@@ -228,7 +228,7 @@ export class SocialFeedRepository {
       .where(inArray(films.id, movieIds));
   }
 
-  // Live rating/rewatch for diary_entry activities. Movie and series logs
+  // Live rating/rewatch/watch day for diary_entry activities. Movie and series logs
   // live in separate tables; their ids are UUIDs, so one map holds both.
   static async getDiaryEntriesByIds(entryIds: string[]) {
     if (entryIds.length === 0) return [];
@@ -238,6 +238,7 @@ export class SocialFeedRepository {
           id: diaryEntries.id,
           rating: diaryEntries.rating,
           rewatch: diaryEntries.rewatch,
+          watchedDate: diaryEntries.watchedDate,
         })
         .from(diaryEntries)
         .where(inArray(diaryEntries.id, entryIds)),
@@ -246,6 +247,7 @@ export class SocialFeedRepository {
           id: seriesDiaryEntries.id,
           rating: seriesDiaryEntries.rating,
           rewatch: seriesDiaryEntries.rewatch,
+          watchedDate: seriesDiaryEntries.watchedDate,
         })
         .from(seriesDiaryEntries)
         .where(inArray(seriesDiaryEntries.id, entryIds)),

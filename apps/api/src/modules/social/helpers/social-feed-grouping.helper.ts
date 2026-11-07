@@ -41,6 +41,7 @@ const startGroup = (item: FeedItem): FeedTitleGroup => ({
   liked: false,
   watchlisted: false,
   review: null,
+  log: null,
   engagement: item.engagement,
   itemIds: [],
 });
@@ -52,6 +53,15 @@ const addToGroup = (group: FeedTitleGroup, item: FeedItem): void => {
   if (item.type === "diary_entry") {
     group.watched = true;
     group.rewatch = group.rewatch || item.metadata.rewatch === true;
+    const { logId, watchedDate } = item.metadata;
+    if (!group.log && logId && watchedDate) {
+      group.log = {
+        id: logId,
+        watchedDate,
+        rating: item.metadata.rating,
+        rewatch: item.metadata.rewatch === true,
+      };
+    }
   }
 
   // Ratings are recorded as liked_movie rows that carry a rating.

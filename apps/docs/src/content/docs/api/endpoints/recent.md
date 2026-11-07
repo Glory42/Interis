@@ -74,7 +74,9 @@ Returns `FeedItem[]`.
       "seasonNumber": null,
       "episodeNumber": null,
       "listId": null,
-      "listTitle": null
+      "listTitle": null,
+      "logId": null,
+      "watchedDate": null
     },
     "engagement": {
       "likeCount": 3,

@@ -21,6 +21,7 @@ type GroupedEntry =
       liked: boolean;
       watchlisted: boolean;
       review: { content: string } | null;
+      log: { id: string; watchedDate: string; rating: number | null; rewatch: boolean } | null;
       itemIds: string[];
     }
   | { kind: "activity"; item: { id: string } };
@@ -79,6 +80,8 @@ describe("GET /api/social/feed/grouped", () => {
     expect(entries).toHaveLength(1);
     expect(entries[0]).toMatchObject({ watched: true, rating: 8, liked: true });
     expect(entries[0]!.review?.content).toBe("Grouped review text");
+    // The day it was watched, not the day it was logged.
+    expect(entries[0]!.log).toMatchObject({ watchedDate: "2026-02-01", rating: 8, rewatch: false });
   });
 
   it("keeps only films or only TV when asked", async () => {

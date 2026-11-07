@@ -66,6 +66,9 @@ export type FeedMetadata = {
   episodeNumber: number | null;
   listId: string | null;
   listTitle: string | null;
+  // The live log behind a diary_entry activity; its watch day can predate the log.
+  logId: string | null;
+  watchedDate: string | null;
 };
 
 export type FeedEngagement = {
@@ -135,6 +138,7 @@ export type FeedDiaryEntryRow = {
   id: string;
   rating: number | null;
   rewatch: boolean;
+  watchedDate: string;
 };
 
 export type FeedListRow = {
@@ -171,6 +175,8 @@ export type FeedTitleGroup = {
   liked: boolean;
   watchlisted: boolean;
   review: FeedReview | null;
+  // The newest log in the group, so its owner can edit it from the feed.
+  log: FeedDiaryEntryRow | null;
   engagement: FeedEngagement;
   itemIds: string[];
 };

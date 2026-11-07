@@ -44,6 +44,8 @@ export const toFeedMetadata = (rawMetadata: FeedRawMetadata): FeedMetadata => {
     // Filled from the live list row in toFeedItem.
     listId: null,
     listTitle: null,
+    logId: null,
+    watchedDate: null,
   };
 };
 

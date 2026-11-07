@@ -1,15 +1,17 @@
-import { memo, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { memo, useState, type MouseEvent } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
 import { EditButton, LikeButton } from "@/features/feed/components/EngagementActionBar";
-import { FeedReviewEditDialog } from "@/features/feed/components/FeedReviewEditDialog";
+import { FeedTitleEditDialog } from "@/features/feed/components/FeedTitleEditDialog";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useLikeReview, useUnlikeReview } from "@/features/reviews/hooks/useReviews";
 import type { FeedTitleGroup } from "@/features/feed/types";
-import { verbFor } from "@/features/feed/components/feed-days";
+import { verbFor, watchedDayLabel } from "@/features/feed/components/feed-days";
 import { getPosterUrl } from "@/features/media/tmdb-images";
+import { isCardBackgroundClick } from "@/lib/card-click";
 
 const pad = (value: number) => String(value).padStart(2, "0");
+
 
 const ReviewLike = ({ reviewId, engagement }: { reviewId: string; engagement: FeedTitleGroup["engagement"] }) => {
   const like = useLikeReview(reviewId);
@@ -34,8 +36,11 @@ export const FeedTitleCard = memo(function FeedTitleCard({ group }: { group: Fee
   const [showSpoilers, setShowSpoilers] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { actor, movie, review } = group;
-  const isOwnReview = Boolean(review && user && user.id === actor.id);
+  const isOwn = Boolean(user && user.id === actor.id);
+  const canEdit = isOwn && (group.log !== null || review !== null);
+  const watchedLabel = watchedDayLabel(group);
   const createdAt = new Date(group.createdAt);
   const isTv = movie.mediaType === "tv";
   const episodeLabel =
@@ -45,8 +50,29 @@ export const FeedTitleCard = memo(function FeedTitleCard({ group }: { group: Fee
           .join(" · ")
       : null;
 
+  // The whole card opens the review, or the title when there's no review.
+  const openCard = (event: MouseEvent<HTMLElement>) => {
+    if (!isCardBackgroundClick(event)) return;
+    if (review) {
+      void navigate({
+        to: "/reviews/$username/$reviewId",
+        params: { username: actor.username, reviewId: review.id },
+        viewTransition: true,
+      });
+      return;
+    }
+    void navigate({
+      to: isTv ? "/serials/$tmdbId" : "/movies/$tmdbId",
+      params: { tmdbId: String(movie.tmdbId) },
+      viewTransition: true,
+    });
+  };
+
   return (
-    <article className="flex items-start gap-3 rounded-[3px] border border-[color:var(--line)] bg-card p-3">
+    <article
+      onClick={openCard}
+      className="flex cursor-pointer items-start gap-3 rounded-[3px] border border-[color:var(--line)] bg-card p-3 transition-colors hover:border-[color:var(--line-strong)]"
+    >
       <img
         src={getPosterUrl(movie.posterPath)}
         alt=""
@@ -59,7 +85,11 @@ export const FeedTitleCard = memo(function FeedTitleCard({ group }: { group: Fee
             {actor.username}
           </Link>
           <span className="text-muted-foreground">{verbFor(group)}</span>
-          <time dateTime={group.createdAt} className="mono-meta ml-auto text-[color:var(--faint)]">
+          <time
+            dateTime={group.createdAt}
+            title={`Logged ${createdAt.toLocaleString()}`}
+            className="mono-meta ml-auto text-[color:var(--faint)]"
+          >
             {`${pad(createdAt.getHours())}:${pad(createdAt.getMinutes())}`}
           </time>
         </p>
@@ -71,7 +101,11 @@ export const FeedTitleCard = memo(function FeedTitleCard({ group }: { group: Fee
           {movie.title}
           {movie.releaseYear ? <span className="mono-meta ml-1.5 font-normal text-muted-foreground">{movie.releaseYear}</span> : null}
         </Link>
-        {episodeLabel ? <p className="mono-meta text-muted-foreground">{episodeLabel}</p> : null}
+        {episodeLabel || watchedLabel ? (
+          <p className="mono-meta uppercase text-muted-foreground">
+            {[episodeLabel, watchedLabel].filter(Boolean).join(" · ")}
+          </p>
+        ) : null}
 
         {group.rating !== null || group.liked ? (
           <p className="mt-1 flex items-center gap-2">
@@ -114,17 +148,15 @@ export const FeedTitleCard = memo(function FeedTitleCard({ group }: { group: Fee
               >
                 Reply
               </Link>
-              {isOwnReview ? <EditButton onClick={() => setIsEditing(true)} /> : null}
+              {canEdit ? <EditButton onClick={() => setIsEditing(true)} /> : null}
             </div>
-            <FeedReviewEditDialog
-              isOpen={isEditing}
-              onClose={() => setIsEditing(false)}
-              reviewId={review.id}
-              initialContent={review.content}
-              containsSpoilers={review.containsSpoilers}
-            />
           </>
+        ) : canEdit ? (
+          <div className="mono-meta mt-2 flex items-center gap-4 text-[color:var(--faint)]">
+            <EditButton onClick={() => setIsEditing(true)} />
+          </div>
         ) : null}
+        {isEditing ? <FeedTitleEditDialog group={group} onClose={() => setIsEditing(false)} /> : null}
       </div>
     </article>
   );

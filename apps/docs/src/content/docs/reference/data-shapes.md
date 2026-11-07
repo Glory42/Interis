@@ -62,7 +62,9 @@ Both endpoints return `FeedItem[]`.
     "seasonNumber": null,
     "episodeNumber": null,
     "listId": null,
-    "listTitle": null
+    "listTitle": null,
+    "logId": null,
+    "watchedDate": null
   },
   "engagement": {
     "likeCount": 0,
@@ -84,7 +86,8 @@ Both endpoints return `FeedItem[]`.
 - `listId` and `listTitle` are populated for `created_list` activities; both are `null` for all other activity types. `listTitle` is the list's current title. A `created_list` activity for a private list is left out, and shows again if the list is made public.
 - Activities about a review, post, diary log or list that has since been deleted are left out. A `diary_entry` stays after its review is deleted, with `review: null` and `metadata.hasReview: false`.
 - On `review`, `liked_review` and `diary_entry` items, `metadata.excerpt` is the start of the current review text, so it reflects edits.
-- On `diary_entry` items, `metadata.rating` and `metadata.rewatch` are the log's current values, so they reflect edits.
+- On `diary_entry` items, `metadata.rating` and `metadata.rewatch` are the log's current values, so they reflect edits. `metadata.logId` is the log's id and `metadata.watchedDate` (`YYYY-MM-DD`) the day it was watched, which can be earlier than `createdAt` (the day it was logged). Both are `null` on other items.
+- On `commented` and `commented_post` items, `metadata.excerpt` is the start of the comment's current text, so it reflects edits.
 
 ## Review row (`/reviews`)
 
@@ -142,7 +145,7 @@ An array of in-progress series, most recently watched first. Key fields per item
 - series info: `tmdbId`, `title`, `posterPath`, `backdropPath`, `firstAirYear`, `numberOfSeasons`, `numberOfEpisodes`
   - `numberOfEpisodes` excludes season 0 (Specials).
 - progress: `watchedEpisodesCount`, `progressPercent` (0–100, rounded)
-- `lastWatchedAt`: timestamp of the most recently watched episode. Currently serialized in Postgres format (`"2026-11-06 22:42:49.515805+00"`), not ISO 8601.
+- `lastWatchedAt`: ISO 8601 timestamp of the most recently watched episode.
 - `currentEpisode` (Up Next): `{ seasonNumber, episodeNumber, name }`, or `null` if the cached episode total is behind TMDB's true count.
 
 ## Watched Movies payload (`/movies/watched`)

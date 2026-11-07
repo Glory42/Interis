@@ -283,6 +283,7 @@ export const SeriesDetailPage = ({ tmdbId }: SeriesDetailPageProps) => {
 
         <MediaReviewChooser
           chooser={reviewChooser}
+          title={{ mediaType: "tv", tmdbId: series.tmdbId, title: series.title }}
           onReviewEdited={handleReviewEdited}
         />
 

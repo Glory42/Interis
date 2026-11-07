@@ -19,6 +19,21 @@ export const verbFor = (group: FeedTitleGroup): string => {
   return "wants to watch";
 };
 
+const toLocalDayKey = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+// "Watched Nov 1" when the watch predates the log (logged today, watched last week); null otherwise.
+export const watchedDayLabel = (group: FeedTitleGroup): string | null => {
+  const watchedDate = group.log?.watchedDate;
+  if (!watchedDate) return null;
+  const loggedAt = new Date(group.createdAt);
+  if (watchedDate === toLocalDayKey(loggedAt)) return null;
+  const [year, month, day] = watchedDate.split("-").map(Number);
+  if (!year || !month || !day) return null;
+  const label = `${MONTHS[month - 1]} ${day}`;
+  return `Watched ${year === loggedAt.getFullYear() ? label : `${label}, ${year}`}`;
+};
+
 const isLikeOnly = (group: FeedTitleGroup) =>
   group.liked && !group.watched && group.rating === null && !group.review && !group.watchlisted;
 

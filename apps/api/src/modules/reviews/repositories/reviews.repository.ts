@@ -178,6 +178,9 @@ export class ReviewsRepository {
         createdAt: reviews.createdAt,
         updatedAt: reviews.updatedAt,
         rating: sql<number | null>`coalesce(${diaryEntries.rating}, ${seriesDiaryEntries.rating})`,
+        rewatch: sql<
+          boolean | null
+        >`coalesce(${diaryEntries.rewatch}, ${seriesDiaryEntries.rewatch})`,
         watchedDate: sql<
           string | null
         >`coalesce(${diaryEntries.watchedDate}, ${seriesDiaryEntries.watchedDate})::text`,

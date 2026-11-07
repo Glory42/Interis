@@ -275,6 +275,7 @@ export function FilmDetailPage({ tmdbId }: FilmDetailPageProps) {
 
         <MediaReviewChooser
           chooser={reviewChooser}
+          title={{ mediaType: "movie", tmdbId: movie.tmdbId, title: movie.title }}
           onReviewEdited={handleReviewEdited}
         />
 

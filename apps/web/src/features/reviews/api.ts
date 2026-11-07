@@ -86,6 +86,7 @@ const myTitleReviewSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   rating: z.number().nullable(),
+  rewatch: z.boolean().nullable().default(null),
   watchedDate: z.string().nullable(),
 });
 
