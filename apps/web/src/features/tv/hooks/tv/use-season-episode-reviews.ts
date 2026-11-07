@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache";
+import { refreshAfter } from "@/features/media/media-refresh";
 import {
   deleteEpisodeReview,
   deleteSeasonReview,
@@ -7,7 +7,6 @@ import {
   upsertSeasonReview,
   type SeasonEpisodeReviewSaveInput,
 } from "@/features/tv/api";
-import { seriesKeys } from "./query-keys";
 
 export const useUpsertSeasonReview = (tmdbId: number, seasonNumber: number) => {
   const queryClient = useQueryClient();
@@ -15,14 +14,8 @@ export const useUpsertSeasonReview = (tmdbId: number, seasonNumber: number) => {
   return useMutation({
     mutationFn: (input: SeasonEpisodeReviewSaveInput) =>
       upsertSeasonReview(tmdbId, seasonNumber, input),
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: seriesKeys.detailViewRoot(tmdbId),
-        }),
-        invalidateFollowingFeed(queryClient),
-      ]);
-    },
+    onSuccess: () =>
+      refreshAfter(queryClient, { type: "season-review-changed", tmdbId, seasonNumber, episodeNumber: null }),
   });
 };
 
@@ -31,14 +24,8 @@ export const useDeleteSeasonReview = (tmdbId: number, seasonNumber: number) => {
 
   return useMutation({
     mutationFn: (reviewId: string) => deleteSeasonReview(tmdbId, seasonNumber, reviewId),
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: seriesKeys.detailViewRoot(tmdbId),
-        }),
-        invalidateFollowingFeed(queryClient),
-      ]);
-    },
+    onSuccess: () =>
+      refreshAfter(queryClient, { type: "season-review-changed", tmdbId, seasonNumber, episodeNumber: null }),
   });
 };
 
@@ -48,14 +35,8 @@ export const useUpsertEpisodeReview = (tmdbId: number, seasonNumber: number) => 
   return useMutation({
     mutationFn: ({ episodeNumber, input }: { episodeNumber: number; input: SeasonEpisodeReviewSaveInput }) =>
       upsertEpisodeReview(tmdbId, seasonNumber, episodeNumber, input),
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: seriesKeys.seasonDetail(tmdbId, seasonNumber),
-        }),
-        invalidateFollowingFeed(queryClient),
-      ]);
-    },
+    onSuccess: (_data, { episodeNumber }) =>
+      refreshAfter(queryClient, { type: "season-review-changed", tmdbId, seasonNumber, episodeNumber }),
   });
 };
 
@@ -65,13 +46,7 @@ export const useDeleteEpisodeReview = (tmdbId: number, seasonNumber: number) => 
   return useMutation({
     mutationFn: ({ episodeNumber, reviewId }: { episodeNumber: number; reviewId: string }) =>
       deleteEpisodeReview(tmdbId, seasonNumber, episodeNumber, reviewId),
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: seriesKeys.seasonDetail(tmdbId, seasonNumber),
-        }),
-        invalidateFollowingFeed(queryClient),
-      ]);
-    },
+    onSuccess: (_data, { episodeNumber }) =>
+      refreshAfter(queryClient, { type: "season-review-changed", tmdbId, seasonNumber, episodeNumber }),
   });
 };

@@ -8,14 +8,13 @@ import type { ReviewChooser } from "@/features/reviews/hooks/useReviewChooser";
 type MediaReviewChooserProps = {
   chooser: ReviewChooser;
   title: { mediaType: "movie" | "tv"; tmdbId: number; title: string };
-  onReviewEdited: () => void;
 };
 
 // The movie/series Log button's chooser (#74): a review is written with a
 // log, so "new" continues to the log form, and an existing review is edited
 // together with its log (date, rewatch, rating); a review without a log only
 // edits its text.
-export const MediaReviewChooser = ({ chooser, title, onReviewEdited }: MediaReviewChooserProps) => {
+export const MediaReviewChooser = ({ chooser, title }: MediaReviewChooserProps) => {
   const [editingReview, setEditingReview] = useState<MyTitleReview | null>(null);
   const logId = editingReview?.diaryEntryId ?? null;
   const watchedDate = editingReview?.watchedDate ?? null;
@@ -48,7 +47,6 @@ export const MediaReviewChooser = ({ chooser, title, onReviewEdited }: MediaRevi
             hasReview: true,
           }}
           review={editingReview}
-          onSaved={onReviewEdited}
           onClose={close}
         />
       ) : (
@@ -57,7 +55,6 @@ export const MediaReviewChooser = ({ chooser, title, onReviewEdited }: MediaRevi
           reviewId={editingReview?.id ?? ""}
           initialContent={editingReview?.content ?? ""}
           containsSpoilers={editingReview?.containsSpoilers ?? false}
-          onSaved={onReviewEdited}
           onClose={close}
         />
       )}

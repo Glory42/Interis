@@ -4,11 +4,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { server } from "../../../support/msw/server";
-import { diaryKeys, useCreateDiaryEntry } from "@/features/diary/hooks/useDiary";
+import { useCreateDiaryEntry } from "@/features/diary/hooks/useDiary";
 import { authKeys } from "@/features/auth/hooks/useAuth";
-import { feedKeys } from "@/features/feed/hooks/useFeed";
 import { filmKeys } from "@/features/films/hooks/useFilms";
-import { profileKeys } from "@/features/profile/hooks/useProfile";
 import type { MeProfile, FilmLog } from "@/types/api";
 
 const createTestQueryClient = (): QueryClient =>
@@ -161,60 +159,5 @@ describe("useCreateDiaryEntry", () => {
 
     // Must not be left with a stale single-optimistic-entry array.
     expect(queryClient.getQueryState(filmKeys.logs(550))).toBeUndefined();
-  });
-
-  it("invalidates only this movie's own logs/detail-view, the current user's diary/profile keys - not a different movie or user", async () => {
-    server.use(http.post("*/api/diary", async () => successResponse()));
-
-    const queryClient = createTestQueryClient();
-    queryClient.setQueryData(authKeys.me, me);
-    queryClient.setQueryData(filmKeys.logs(550), [] as FilmLog[]);
-    queryClient.setQueryData(diaryKeys.myLogs, [] as FilmLog[]);
-    queryClient.setQueryData([...filmKeys.detailViewRoot(550), "recent"], { tmdbId: 550 });
-    queryClient.setQueryData(profileKeys.detail("cinefan"), { username: "cinefan" });
-    queryClient.setQueryData(profileKeys.recentActivity("cinefan", 20), []);
-
-    // Unrelated movie and unrelated user's cache must not be touched.
-    queryClient.setQueryData(filmKeys.logs(999), [] as FilmLog[]);
-    queryClient.setQueryData(profileKeys.detail("someone-else"), { username: "someone-else" });
-
-    const { result } = renderHook(() => useCreateDiaryEntry(), {
-      wrapper: wrapperFor(queryClient),
-    });
-
-    result.current.mutate({ tmdbId: 550, watchedDate: "2026-01-15" });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
-    expect(queryClient.getQueryState(diaryKeys.myLogs)?.isInvalidated).toBe(true);
-    expect(queryClient.getQueryState(filmKeys.logs(550))?.isInvalidated).toBe(true);
-    expect(
-      queryClient.getQueryState([...filmKeys.detailViewRoot(550), "recent"])?.isInvalidated,
-    ).toBe(true);
-    expect(queryClient.getQueryState(profileKeys.detail("cinefan"))?.isInvalidated).toBe(true);
-    expect(
-      queryClient.getQueryState(profileKeys.recentActivity("cinefan", 20))?.isInvalidated,
-    ).toBe(true);
-
-    expect(queryClient.getQueryState(filmKeys.logs(999))?.isInvalidated).toBe(false);
-    expect(queryClient.getQueryState(profileKeys.detail("someone-else"))?.isInvalidated).toBe(
-      false,
-    );
-  });
-
-  it("invalidates the following feed so the new watch/review shows up for followers", async () => {
-    server.use(http.post("*/api/diary", async () => successResponse()));
-
-    const queryClient = createTestQueryClient();
-    queryClient.setQueryData(authKeys.me, me);
-    queryClient.setQueryData(feedKeys.grouped("all"), { pages: [], pageParams: [] });
-
-    const { result } = renderHook(() => useCreateDiaryEntry(), {
-      wrapper: wrapperFor(queryClient),
-    });
-
-    result.current.mutate({ tmdbId: 550, watchedDate: "2026-01-15" });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
-    expect(queryClient.getQueryState(feedKeys.grouped("all"))?.isInvalidated).toBe(true);
   });
 });

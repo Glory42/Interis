@@ -16,17 +16,10 @@ import {
   updateReviewComment,
   unlikeReview,
 } from "@/features/reviews/api";
+import { reviewKeys } from "@/features/reviews/hooks/review-keys";
+import { refreshAfter, reviewEditedEvent } from "@/features/media/media-refresh";
 
-export const reviewKeys = {
-  detail: (username: string, reviewId: string) =>
-    ["reviews", "detail", username, reviewId] as const,
-  // Prefix-only variant - used to filter/match every cached review-detail
-  // query regardless of username, e.g. when patching by reviewId alone.
-  detailRoot: ["reviews", "detail"] as const,
-  comments: (mediaType: ReviewMediaType, reviewId: string) =>
-    ["reviews", "comments", mediaType, reviewId] as const,
-  mineForTitle: (query: MyTitleReviewsQuery) => ["reviews", "mine", query] as const,
-};
+export { reviewKeys };
 
 // Loads the viewer's reviews of a title on demand (when they open the review
 // chooser) rather than on every detail-page view; staleTime 0 so a review
@@ -265,7 +258,7 @@ export const useUpdateReview = (reviewId: string) => {
         updatedAt: updatedReview.updatedAt,
       }));
 
-      await invalidateFollowingFeed(queryClient);
+      await refreshAfter(queryClient, reviewEditedEvent(updatedReview));
     },
   });
 };

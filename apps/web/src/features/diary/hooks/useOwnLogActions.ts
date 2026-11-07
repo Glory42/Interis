@@ -1,64 +1,17 @@
-import {
-  useMutation,
-  useQueryClient,
-  type QueryClient,
-  type QueryKey,
-} from "@tanstack/react-query";
-import { authKeys } from "@/features/auth/hooks/useAuth";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   deleteDiaryEntry,
   updateDiaryEntry,
   type UpdateDiaryEntryInput,
 } from "@/features/diary/api";
-import { diaryKeys } from "@/features/diary/hooks/useDiary";
-import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache";
-import { interactionKeys } from "@/features/interactions/hooks/useInteractions";
-import { filmKeys } from "@/features/films/hooks/useFilms";
-import { profileKeys } from "@/features/profile/hooks/useProfile";
+import { refreshAfter, toMediaKind } from "@/features/media/media-refresh";
 import { deleteSeriesLog, updateSeriesLog } from "@/features/tv/api";
-import { seriesKeys } from "@/features/tv/hooks/tv/query-keys";
-import type { MeProfile } from "@/types/api";
 
 // One of the viewer's own logs: a movie log or a series log.
 export type OwnLog = {
   id: string;
   mediaType: "movie" | "tv";
   tmdbId: number;
-};
-
-// Everything that shows the log: the viewer's diary and profile counts,
-// the title's page and logs list, and the feeds.
-export const invalidateOwnLogQueries = async (queryClient: QueryClient, log: OwnLog) => {
-  const me = queryClient.getQueryData<MeProfile | null>(authKeys.me);
-  const keys: QueryKey[] =
-    log.mediaType === "movie"
-      ? [
-          diaryKeys.myLogs,
-          filmKeys.logs(log.tmdbId),
-          filmKeys.detailViewRoot(log.tmdbId),
-          interactionKeys.detail(log.tmdbId),
-        ]
-      : [
-          seriesKeys.myLogs,
-          seriesKeys.logs(log.tmdbId),
-          seriesKeys.detailViewRoot(log.tmdbId),
-          seriesKeys.detail(log.tmdbId),
-          seriesKeys.interaction(log.tmdbId),
-          seriesKeys.seasonDetailRoot(log.tmdbId),
-        ];
-
-  if (me?.username) {
-    keys.push(
-      profileKeys.diary(me.username),
-      profileKeys.detail(me.username),
-      profileKeys.recentActivity(me.username, 20),
-    );
-  }
-
-  await Promise.all([
-    ...keys.map((queryKey) => queryClient.invalidateQueries({ queryKey })),
-    invalidateFollowingFeed(queryClient),
-  ]);
 };
 
 export const useUpdateOwnLog = () => {
@@ -72,7 +25,8 @@ export const useUpdateOwnLog = () => {
       }
       await updateSeriesLog(log.id, input);
     },
-    onSuccess: (_data, { log }) => invalidateOwnLogQueries(queryClient, log),
+    onSuccess: (_data, { log }) =>
+      refreshAfter(queryClient, { type: "log-edited", kind: toMediaKind(log.mediaType), tmdbId: log.tmdbId }),
   });
 };
 
@@ -86,6 +40,12 @@ export const useDeleteOwnLog = () => {
       log.mediaType === "movie"
         ? deleteDiaryEntry(log.id, { unwatch })
         : deleteSeriesLog(log.id, { unwatch }),
-    onSuccess: (_data, { log }) => invalidateOwnLogQueries(queryClient, log),
+    onSuccess: (_data, { log, unwatch = false }) =>
+      refreshAfter(queryClient, {
+        type: "log-deleted",
+        kind: toMediaKind(log.mediaType),
+        tmdbId: log.tmdbId,
+        unwatch,
+      }),
   });
 };

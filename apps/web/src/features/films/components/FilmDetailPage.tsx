@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { Award, CircleCheck, CircleDot, CirclePlus, Heart } from "lucide-react";
@@ -12,11 +11,7 @@ import { MediaDetailSkeleton } from "@/components/ui/PageSkeletons";
 import { FilmReviewsSection } from "@/features/films/components/film-detail/FilmReviewsSection";
 import { UnwatchFilmDialog } from "@/features/films/components/film-detail/UnwatchFilmDialog";
 import { FILM_MODULE_STYLES } from "@/features/media/styles";
-import {
-  filmKeys,
-  useFilmDetailView,
-} from "@/features/films/hooks/useFilms";
-import { diaryKeys } from "@/features/diary/hooks/useDiary";
+import { useFilmDetailView } from "@/features/films/hooks/useFilms";
 import { useReviewChooser } from "@/features/reviews/hooks/useReviewChooser";
 import { MediaReviewChooser } from "@/features/media/detail/MediaReviewChooser";
 import {
@@ -55,7 +50,6 @@ export function FilmDetailPage({ tmdbId }: FilmDetailPageProps) {
   const updateInteractionMutation = useUpdateFilmInteraction(tmdbId);
   const reviewChooser = useReviewChooser();
   const isBelowMd = useMediaQuery(BELOW_MD_QUERY);
-  const queryClient = useQueryClient();
 
   if (!isValidTmdbId) {
     return (
@@ -97,16 +91,6 @@ export function FilmDetailPage({ tmdbId }: FilmDetailPageProps) {
   const modalInitialState = {
     rating: currentRating,
     rewatch: Boolean(detail.userRating?.diaryEntryId),
-  };
-
-  const handleReviewEdited = () => {
-    void Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: filmKeys.detailViewRoot(tmdbId),
-      }),
-      queryClient.invalidateQueries({ queryKey: filmKeys.logs(tmdbId) }),
-      queryClient.invalidateQueries({ queryKey: diaryKeys.myLogs }),
-    ]);
   };
 
   const handleToggleWatchlist = () => {
@@ -276,7 +260,6 @@ export function FilmDetailPage({ tmdbId }: FilmDetailPageProps) {
         <MediaReviewChooser
           chooser={reviewChooser}
           title={{ mediaType: "movie", tmdbId: movie.tmdbId, title: movie.title }}
-          onReviewEdited={handleReviewEdited}
         />
 
         {isConfirmingUnwatch ? (

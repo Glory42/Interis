@@ -1,17 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authKeys } from "@/features/auth/hooks/useAuth";
-import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache";
 import { createDiaryEntry, getMyFilmLogs } from "@/features/diary/api";
-import { interactionKeys } from "@/features/interactions/hooks/useInteractions";
+import { diaryKeys } from "@/features/diary/hooks/diary-keys";
 import { filmKeys } from "@/features/films/hooks/useFilms";
-import { profileKeys } from "@/features/profile/hooks/useProfile";
-import { profileStatsKeys } from "@/features/profile/hooks/useProfileStats";
+import { refreshAfter } from "@/features/media/media-refresh";
 import type { CreateDiaryEntryInput, MeProfile, FilmLog } from "@/types/api";
 
-export const diaryKeys = {
-  all: ["diary"] as const,
-  myLogs: ["diary", "my-logs"] as const,
-};
+export { diaryKeys };
 
 export const useMyFilmLogs = () =>
   useQuery({
@@ -68,34 +63,12 @@ export const useCreateDiaryEntry = () => {
         queryClient.removeQueries({ queryKey: context.logsKey, exact: true });
       }
     },
-    onSuccess: async (_data, variables) => {
-      const me = queryClient.getQueryData<MeProfile | null>(authKeys.me);
-      const tasks = [
-        queryClient.invalidateQueries({ queryKey: diaryKeys.myLogs }),
-        queryClient.invalidateQueries({ queryKey: filmKeys.logs(variables.tmdbId) }),
-        queryClient.invalidateQueries({
-          queryKey: filmKeys.detailViewRoot(variables.tmdbId),
-        }),
-        // Logging marks the movie watched and a rated log sets "Your rating".
-        queryClient.invalidateQueries({ queryKey: interactionKeys.detail(variables.tmdbId) }),
-        invalidateFollowingFeed(queryClient),
-      ];
-
-      // The log shows in the viewer's diary and stats, and logging takes the
-      // movie off their watchlist (#95).
-      if (me?.username) {
-        tasks.push(
-          ...[
-            profileKeys.detail(me.username),
-            profileKeys.diary(me.username),
-            profileKeys.watchlist(me.username),
-            profileKeys.recentActivity(me.username, 20),
-            profileStatsKeys.detail(me.username),
-          ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
-        );
-      }
-
-      await Promise.all(tasks);
-    },
+    onSuccess: (_data, variables) =>
+      refreshAfter(queryClient, {
+        type: "log-created",
+        kind: "film",
+        tmdbId: variables.tmdbId,
+        hasReview: Boolean(variables.review),
+      }),
   });
 };

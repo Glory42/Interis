@@ -42,6 +42,9 @@ const updatedReviewSchema = z
     content: z.string(),
     containsSpoilers: z.boolean(),
     updatedAt: z.string(),
+    // Which title it's about: "movie"/"tv" with a tmdbId, or "tv_season"/"tv_episode" with "tmdbId:season[:episode]".
+    mediaType: z.string().optional(),
+    mediaSourceId: z.string().optional(),
   })
   .passthrough();
 

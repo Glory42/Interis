@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { CircleCheck, CircleDot, CirclePlus, Heart } from "lucide-react";
@@ -15,7 +14,6 @@ import { SeriesSeasonsSection } from "@/features/tv/components/series-detail/Ser
 import { SeriesProgressPanel } from "@/features/tv/components/series-detail/SeriesProgressPanel";
 import { SERIES_MODULE_STYLES } from "@/features/media/styles";
 import {
-  seriesKeys,
   useSeriesDetailView,
   useSeriesInteraction,
   useUpdateSeriesInteraction,
@@ -58,7 +56,6 @@ export const SeriesDetailPage = ({ tmdbId }: SeriesDetailPageProps) => {
   const updateInteractionMutation = useUpdateSeriesInteraction(tmdbId);
   const reviewChooser = useReviewChooser();
   const isBelowMd = useMediaQuery(BELOW_MD_QUERY);
-  const queryClient = useQueryClient();
 
   if (!isValidTmdbId) {
     return (
@@ -106,16 +103,6 @@ export const SeriesDetailPage = ({ tmdbId }: SeriesDetailPageProps) => {
   const modalInitialState = {
     rating: currentRating,
     rewatch: Boolean(detail.userRating?.diaryEntryId),
-  };
-
-  const handleReviewEdited = () => {
-    void Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: seriesKeys.detailViewRoot(tmdbId),
-      }),
-      queryClient.invalidateQueries({ queryKey: seriesKeys.logs(tmdbId) }),
-      queryClient.invalidateQueries({ queryKey: seriesKeys.myLogs }),
-    ]);
   };
 
   const handleToggleWatchlist = () => {
@@ -284,7 +271,6 @@ export const SeriesDetailPage = ({ tmdbId }: SeriesDetailPageProps) => {
         <MediaReviewChooser
           chooser={reviewChooser}
           title={{ mediaType: "tv", tmdbId: series.tmdbId, title: series.title }}
-          onReviewEdited={handleReviewEdited}
         />
 
         <SeriesReviewsSection

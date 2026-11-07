@@ -1,5 +1,4 @@
-import { useMutation, useQueryClient, type QueryKey } from "@tanstack/react-query";
-import { authKeys } from "@/features/auth/hooks/useAuth";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createSeriesLog,
   updateSeriesInteraction,
@@ -12,13 +11,7 @@ import {
   patchSeasonsInDetailViewCache,
   restoreQueries,
 } from "@/features/tv/hooks/tv-cache.helper";
-import {
-  invalidateViewerCurrentlyWatching,
-  profileKeys,
-} from "@/features/profile/hooks/useProfile";
-import { profileStatsKeys } from "@/features/profile/hooks/useProfileStats";
-import type { MeProfile } from "@/types/api";
-import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache";
+import { changedInteractionFields, refreshAfter } from "@/features/media/media-refresh";
 import { seriesKeys } from "./query-keys";
 
 export const useUpdateSeriesInteraction = (tmdbId: number) => {
@@ -84,25 +77,13 @@ export const useUpdateSeriesInteraction = (tmdbId: number) => {
       restoreQueries(queryClient, context?.previousSeasonQueries ?? []);
       restoreQueries(queryClient, context?.previousEpisodeQueries ?? []);
     },
-    onSettled: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: seriesKeys.interaction(tmdbId),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: seriesKeys.detail(tmdbId),
-        }),
-        // Prefix-matches every reviewsSort variant for this series only.
-        queryClient.invalidateQueries({
-          queryKey: seriesKeys.detailViewRoot(tmdbId),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: seriesKeys.logs(tmdbId),
-        }),
-        invalidateViewerCurrentlyWatching(queryClient),
-        invalidateFollowingFeed(queryClient),
-      ]);
-    },
+    onSettled: (_data, _error, input) =>
+      refreshAfter(queryClient, {
+        type: "interaction-changed",
+        kind: "tv",
+        tmdbId,
+        changed: changedInteractionFields(input),
+      }),
   });
 };
 
@@ -112,33 +93,7 @@ export const useCreateSeriesLog = (tmdbId: number) => {
 
   return useMutation({
     mutationFn: (input: CreateSeriesLogInput) => createSeriesLog(tmdbId, input),
-    // Logging marks the series and every episode watched, a rated log sets
-    // "Your rating", and the log lands in the viewer's diary, stats and
-    // the feed (#97).
-    onSuccess: async () => {
-      const me = queryClient.getQueryData<MeProfile | null>(authKeys.me);
-      const keys: QueryKey[] = [
-        seriesKeys.detailViewRoot(tmdbId),
-        seriesKeys.detail(tmdbId),
-        seriesKeys.interaction(tmdbId),
-        seriesKeys.seasonDetailRoot(tmdbId),
-        seriesKeys.logs(tmdbId),
-        seriesKeys.myLogs,
-      ];
-      if (me?.username) {
-        keys.push(
-          profileKeys.detail(me.username),
-          profileKeys.diary(me.username),
-          profileKeys.recentActivity(me.username, 20),
-          profileStatsKeys.detail(me.username),
-        );
-      }
-
-      await Promise.all([
-        ...keys.map((queryKey) => queryClient.invalidateQueries({ queryKey })),
-        invalidateViewerCurrentlyWatching(queryClient),
-        invalidateFollowingFeed(queryClient),
-      ]);
-    },
+    onSuccess: (_data, input) =>
+      refreshAfter(queryClient, { type: "log-created", kind: "tv", tmdbId, hasReview: Boolean(input.review) }),
   });
 };
