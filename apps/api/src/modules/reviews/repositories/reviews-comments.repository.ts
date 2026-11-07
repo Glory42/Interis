@@ -60,11 +60,12 @@ export class ReviewsCommentsRepository {
     return commentWithAuthor ?? null;
   }
 
-  static async deleteCommentByIdAndUser(commentId: string, userId: string) {
+  // ownerId limits the delete to that user's comment.
+  static async deleteComment(commentId: string, ownerId?: string) {
     const [deleted] = await db
       .delete(comments)
-      .where(and(eq(comments.id, commentId), eq(comments.userId, userId)))
-      .returning({ id: comments.id });
+      .where(and(eq(comments.id, commentId), ownerId ? eq(comments.userId, ownerId) : undefined))
+      .returning({ id: comments.id, userId: comments.userId });
 
     return deleted ?? null;
   }

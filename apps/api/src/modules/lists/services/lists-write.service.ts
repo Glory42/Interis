@@ -6,6 +6,9 @@ import type { CreateListDto, UpdateListDto } from "../dto/lists.dto";
 import { deriveListType } from "../helpers/derive-list-type.helper";
 import { ListsReadRepository } from "../repositories/lists-read.repository";
 import { ListsWriteRepository } from "../repositories/lists-write.repository";
+import { NotificationsService } from "../../notifications/notifications.service";
+import { isUuid } from "../../../commons/helpers/uuid.helper";
+import { removalOwnerId, type ContentRemoval } from "../../../commons/types/content-removal.types";
 
 type ServiceError = { error: string; status: 400 | 403 | 404 };
 
@@ -63,7 +66,7 @@ export class ListsWriteService {
     listId: string,
     userId: string,
   ): Promise<void | ServiceError> {
-    const list = await ListsReadRepository.findById(listId);
+    const list = isUuid(listId) ? await ListsReadRepository.findById(listId) : null;
 
     if (!list) {
       return { error: "List not found", status: 404 };
@@ -73,8 +76,7 @@ export class ListsWriteService {
       return { error: "Forbidden", status: 403 };
     }
 
-    await ListsWriteRepository.deleteById(listId);
-    await ListsWriteService.retractCreatedList(list);
+    await ListsWriteService.remove(listId, { by: "author", userId });
   }
 
   static async addItem(
@@ -220,19 +222,19 @@ export class ListsWriteService {
     return { success: true, likeCount };
   }
 
-  // No ownership check — admin moderation only.
-  static async deleteForAdmin(listId: string): Promise<{ deleted: boolean }> {
-    const list = await ListsReadRepository.findById(listId);
-    if (!list) {
-      return { deleted: false };
+  // The one way a list goes, whoever removes it.
+  static async remove(listId: string, removal: ContentRemoval) {
+    if (!isUuid(listId)) {
+      return null;
     }
 
-    await ListsWriteRepository.deleteById(listId);
-    await ListsWriteService.retractCreatedList(list);
-    return { deleted: true };
-  }
-
-  private static async retractCreatedList(list: { id: string; userId: string }) {
-    await ActivityRecorder.retract({ userId: list.userId, type: "created_list", entityId: list.id });
+    const removed = await ListsWriteRepository.deleteById(listId, removalOwnerId(removal));
+    if (removed) {
+      await Promise.all([
+        ActivityRecorder.retract({ userId: removed.userId, type: "created_list", entityId: listId }),
+        NotificationsService.notifyOfRemoval(removal, { authorId: removed.userId, id: listId, targetType: "list" }),
+      ]);
+    }
+    return removed;
   }
 }

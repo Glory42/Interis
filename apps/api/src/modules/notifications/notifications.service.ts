@@ -3,6 +3,7 @@ import {
   encodeFeedCursor,
 } from "../social/helpers/social-feed-cursor.helper";
 import { normalizeBoundedLimit } from "../../commons/helpers/pagination.helper";
+import type { ContentRemoval, RemovableContentType } from "../../commons/types/content-removal.types";
 import {
   NotificationsRepository,
   type NotificationType,
@@ -37,14 +38,22 @@ export class NotificationsService {
     });
   }
 
-  // A moderator's notice: the recipient is set as the actor so the moderator stays anonymous.
-  static async notifyOfRemoval(input: { recipientId: string; entityId: string; metadata: Record<string, unknown> }): Promise<void> {
+  // Sends a moderator's notice, if the removal carries one. The recipient is set as
+  // the actor so the moderator stays anonymous.
+  static async notifyOfRemoval(
+    removal: ContentRemoval,
+    content: { authorId: string; id: string; targetType: RemovableContentType },
+  ): Promise<void> {
+    if (removal.by !== "moderator" || !removal.notice) {
+      return;
+    }
+
     await NotificationsRepository.insert({
-      recipientId: input.recipientId,
-      actorId: input.recipientId,
+      recipientId: content.authorId,
+      actorId: content.authorId,
       type: "content_removed",
-      entityId: input.entityId,
-      metadata: JSON.stringify(input.metadata),
+      entityId: content.id,
+      metadata: JSON.stringify({ targetType: content.targetType, ...removal.notice }),
     });
   }
 

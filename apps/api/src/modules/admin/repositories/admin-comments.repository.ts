@@ -6,10 +6,6 @@ import { postComments } from "../../posts/posts.entity";
 
 export type AdminCommentKind = "review" | "post";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-const tableFor = (kind: AdminCommentKind) => (kind === "review" ? comments : postComments);
-
 export class AdminCommentsRepository {
   // Newest comments of both kinds; each source fetches enough rows to cover offset + limit.
   static async listRecent(limit: number, offset: number) {
@@ -35,12 +31,5 @@ export class AdminCommentsRepository {
     ]
       .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
       .slice(offset, offset + limit);
-  }
-
-  static async deleteById(kind: AdminCommentKind, id: string): Promise<boolean> {
-    if (!UUID.test(id)) return false;
-    const table = tableFor(kind);
-    const deleted = await db.delete(table).where(eq(table.id, id)).returning({ id: table.id });
-    return deleted.length > 0;
   }
 }

@@ -11,6 +11,9 @@ import { buildReviewCreatedActivityMetadata } from "../helpers/reviews-activity.
 import type { CreateReviewDto, MyTitleReviewsQueryDto, UpdateReviewDto } from "../dto/reviews.dto";
 import type { MediaType } from "../../media/constants/media-type.constant";
 import { ConflictError, NotFoundError } from "../../../commons/errors/app-error";
+import { isUuid } from "../../../commons/helpers/uuid.helper";
+import { removalOwnerId, type ContentRemoval } from "../../../commons/types/content-removal.types";
+import { NotificationsService } from "../../notifications/notifications.service";
 
 const MY_TITLE_REVIEWS_LIMIT = 50;
 
@@ -143,22 +146,22 @@ export class ReviewsCoreService {
     return updated;
   }
 
-  static async delete(reviewId: string, userId: string) {
-    const deleted = await ReviewsRepository.deleteByIdAndUser(reviewId, userId);
-    ActivityRecorder.invalidateFeeds(userId);
-    if (deleted) {
-      await ActivityRecorder.retract({ userId, type: "review", entityId: reviewId });
+  // The one way a review goes, whoever removes it.
+  static async remove(reviewId: string, removal: ContentRemoval) {
+    if (!isUuid(reviewId)) {
+      return null;
     }
-    return deleted;
-  }
 
-  // No ownership check — admin moderation only.
-  static async deleteById(reviewId: string) {
-    const deleted = await ReviewsRepository.deleteById(reviewId);
-    if (deleted) {
-      await ActivityRecorder.retract({ userId: deleted.userId, type: "review", entityId: reviewId });
+    const removed = await ReviewsRepository.deleteById(reviewId, removalOwnerId(removal));
+    if (removed) {
+      // A log card shows its attached review without a review activity of its own.
+      ActivityRecorder.invalidateFeeds(removed.userId);
+      await Promise.all([
+        ActivityRecorder.retract({ userId: removed.userId, type: "review", entityId: reviewId }),
+        NotificationsService.notifyOfRemoval(removal, { authorId: removed.userId, id: reviewId, targetType: "review" }),
+      ]);
     }
-    return deleted;
+    return removed;
   }
 
   // Film and Series reviews share the one review table; Series rows have no movieTitle.

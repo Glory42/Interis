@@ -93,20 +93,11 @@ export class PostsRepository {
       .offset(offset);
   }
 
-  static async deleteByIdAndUser(postId: string, userId: string) {
+  // ownerId limits the delete to that user's post.
+  static async deleteById(postId: string, ownerId?: string) {
     const [deleted] = await db
       .delete(posts)
-      .where(and(eq(posts.id, postId), eq(posts.userId, userId)))
-      .returning({ id: posts.id, userId: posts.userId });
-
-    return deleted ?? null;
-  }
-
-  // No ownership check — admin moderation only.
-  static async deleteById(postId: string) {
-    const [deleted] = await db
-      .delete(posts)
-      .where(eq(posts.id, postId))
+      .where(and(eq(posts.id, postId), ownerId ? eq(posts.userId, ownerId) : undefined))
       .returning({ id: posts.id, userId: posts.userId });
 
     return deleted ?? null;
@@ -178,11 +169,12 @@ export class PostsRepository {
     return comment ?? null;
   }
 
-  static async deleteCommentByIdAndUser(commentId: string, userId: string) {
+  // ownerId limits the delete to that user's comment.
+  static async deleteComment(commentId: string, ownerId?: string) {
     const [deleted] = await db
       .delete(postComments)
-      .where(and(eq(postComments.id, commentId), eq(postComments.userId, userId)))
-      .returning({ id: postComments.id });
+      .where(and(eq(postComments.id, commentId), ownerId ? eq(postComments.userId, ownerId) : undefined))
+      .returning({ id: postComments.id, userId: postComments.userId });
 
     return deleted ?? null;
   }

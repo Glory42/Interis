@@ -2,6 +2,9 @@ import { ActivityRecorder } from "../../social/services/activity-recorder.servic
 import type { CreatePostDto, UpdatePostDto } from "../dto/posts.dto";
 import { buildPostCreatedActivityMetadata } from "../helpers/posts-activity.helper";
 import { PostsRepository } from "../repositories/posts.repository";
+import { NotificationsService } from "../../notifications/notifications.service";
+import { isUuid } from "../../../commons/helpers/uuid.helper";
+import { removalOwnerId, type ContentRemoval } from "../../../commons/types/content-removal.types";
 
 export class PostsCoreService {
   static async create(userId: string, input: CreatePostDto) {
@@ -54,21 +57,21 @@ export class PostsCoreService {
     return PostsRepository.findByUser(userId);
   }
 
-  static async delete(postId: string, userId: string) {
-    const deleted = await PostsRepository.deleteByIdAndUser(postId, userId);
-    ActivityRecorder.invalidateFeeds(userId);
-    if (deleted) {
-      await ActivityRecorder.retract({ userId, type: "post", entityId: postId });
+  // The one way a post goes, whoever removes it.
+  static async remove(postId: string, removal: ContentRemoval) {
+    if (!isUuid(postId)) {
+      return null;
     }
-    return deleted;
-  }
 
-  static async deleteById(postId: string) {
-    const deleted = await PostsRepository.deleteById(postId);
-    if (deleted) {
-      await ActivityRecorder.retract({ userId: deleted.userId, type: "post", entityId: postId });
+    const removed = await PostsRepository.deleteById(postId, removalOwnerId(removal));
+    if (removed) {
+      ActivityRecorder.invalidateFeeds(removed.userId);
+      await Promise.all([
+        ActivityRecorder.retract({ userId: removed.userId, type: "post", entityId: postId }),
+        NotificationsService.notifyOfRemoval(removal, { authorId: removed.userId, id: postId, targetType: "post" }),
+      ]);
     }
-    return deleted;
+    return removed;
   }
 
   static async listAllForAdmin(filters: { userId?: string }, limit: number, offset: number) {

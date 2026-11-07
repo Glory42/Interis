@@ -68,7 +68,7 @@ export class ReviewsController {
     req: Request<{ id: string }>,
     res: Response,
   ): Promise<void> {
-    const deleted = await ReviewsService.delete(req.params.id, req.user.id);
+    const deleted = await ReviewsService.remove(req.params.id, { by: "author", userId: req.user.id });
     if (!deleted) {
       sendNotFound(res, "Review not found");
       return;
@@ -110,10 +110,10 @@ export class ReviewsController {
     req: Request<{ commentId: string }>,
     res: Response,
   ): Promise<void> {
-    const deleted = await ReviewsService.deleteComment(
-      req.params.commentId,
-      req.user.id,
-    );
+    const deleted = await ReviewsService.removeComment(req.params.commentId, {
+      by: "author",
+      userId: req.user.id,
+    });
     if (!deleted) {
       sendNotFound(res, "Comment not found");
       return;

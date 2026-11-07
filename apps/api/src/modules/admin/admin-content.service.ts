@@ -15,7 +15,7 @@ export class AdminContentService {
   }
 
   static async deleteReview(reviewId: string) {
-    return ReviewsService.deleteById(reviewId);
+    return ReviewsService.remove(reviewId, { by: "moderator" });
   }
 
   static async listDiaryEntries(
@@ -43,7 +43,7 @@ export class AdminContentService {
   }
 
   static async deletePost(postId: string) {
-    return PostsService.deleteById(postId);
+    return PostsService.remove(postId, { by: "moderator" });
   }
 
   static async listComments(limit: number, offset: number) {
@@ -51,6 +51,9 @@ export class AdminContentService {
   }
 
   static async deleteComment(kind: AdminCommentKind, commentId: string) {
-    return AdminCommentsRepository.deleteById(kind, commentId);
+    const removed = kind === "review"
+      ? await ReviewsService.removeComment(commentId, { by: "moderator" })
+      : await PostsService.removeComment(commentId, { by: "moderator" });
+    return removed !== null;
   }
 }

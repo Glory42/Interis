@@ -49,8 +49,14 @@ export class ListsWriteRepository {
     return updated ?? null;
   }
 
-  static async deleteById(listId: string): Promise<void> {
-    await db.delete(lists).where(eq(lists.id, listId));
+  // ownerId limits the delete to that user's list.
+  static async deleteById(listId: string, ownerId?: string) {
+    const [deleted] = await db
+      .delete(lists)
+      .where(and(eq(lists.id, listId), ownerId ? eq(lists.userId, ownerId) : undefined))
+      .returning({ id: lists.id, userId: lists.userId });
+
+    return deleted ?? null;
   }
 
   static async insertEntry(data: {

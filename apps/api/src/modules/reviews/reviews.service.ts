@@ -1,3 +1,4 @@
+import type { ContentRemoval } from "../../commons/types/content-removal.types";
 import type { CreateReviewDto, MyTitleReviewsQueryDto, UpdateReviewDto } from "./dto/reviews.dto";
 import { ReviewsCommentsService } from "./services/reviews-comments.service";
 import { ReviewsCoreService } from "./services/reviews-core.service";
@@ -28,12 +29,8 @@ export class ReviewsService {
     return ReviewsCoreService.update(reviewId, userId, input);
   }
 
-  static async delete(reviewId: string, userId: string) {
-    return ReviewsCoreService.delete(reviewId, userId);
-  }
-
-  static async deleteById(reviewId: string) {
-    return ReviewsCoreService.deleteById(reviewId);
+  static async remove(reviewId: string, removal: ContentRemoval) {
+    return ReviewsCoreService.remove(reviewId, removal);
   }
 
   static async listAllForAdmin(
@@ -56,8 +53,8 @@ export class ReviewsService {
     return ReviewsCommentsService.addComment(userId, reviewId, content);
   }
 
-  static async deleteComment(commentId: string, userId: string) {
-    return ReviewsCommentsService.deleteComment(commentId, userId);
+  static async removeComment(commentId: string, removal: ContentRemoval) {
+    return ReviewsCommentsService.removeComment(commentId, removal);
   }
 
   static async updateComment(commentId: string, userId: string, content: string) {

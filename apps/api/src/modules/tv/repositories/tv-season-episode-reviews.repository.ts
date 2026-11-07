@@ -225,7 +225,7 @@ export class TvSeasonEpisodeReviewsRepository {
       reviewId,
     );
     if (!target) return null;
-    return ReviewsRepository.deleteByIdAndUser(target.id, userId);
+    return ReviewsRepository.deleteById(target.id, userId);
   }
 
   static async getSeasonReview(userId: string, seriesTmdbId: number, seasonNumber: number) {

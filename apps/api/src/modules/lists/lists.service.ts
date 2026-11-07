@@ -1,3 +1,4 @@
+import type { ContentRemoval } from "../../commons/types/content-removal.types";
 import type { CreateListDto, UpdateListDto } from "./dto/lists.dto";
 import { ListsReadService } from "./services/lists-read.service";
 import { ListsWriteService } from "./services/lists-write.service";
@@ -71,7 +72,7 @@ export class ListsService {
     return ListsReadService.listAllForAdmin(filters, limit, offset);
   }
 
-  static async deleteForAdmin(listId: string) {
-    return ListsWriteService.deleteForAdmin(listId);
+  static async remove(listId: string, removal: ContentRemoval) {
+    return ListsWriteService.remove(listId, removal);
   }
 }

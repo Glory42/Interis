@@ -252,20 +252,11 @@ export class ReviewsRepository {
     return updated ?? null;
   }
 
-  static async deleteByIdAndUser(reviewId: string, userId: string) {
+  // ownerId limits the delete to that user's review.
+  static async deleteById(reviewId: string, ownerId?: string) {
     const [deleted] = await db
       .delete(reviews)
-      .where(and(eq(reviews.id, reviewId), eq(reviews.userId, userId)))
-      .returning({ id: reviews.id, userId: reviews.userId });
-
-    return deleted ?? null;
-  }
-
-  // No ownership check — admin moderation only.
-  static async deleteById(reviewId: string) {
-    const [deleted] = await db
-      .delete(reviews)
-      .where(eq(reviews.id, reviewId))
+      .where(and(eq(reviews.id, reviewId), ownerId ? eq(reviews.userId, ownerId) : undefined))
       .returning({ id: reviews.id, userId: reviews.userId });
 
     return deleted ?? null;

@@ -34,7 +34,7 @@ export class PostsController {
     req: Request<{ id: string }>,
     res: Response,
   ): Promise<void> {
-    const deleted = await PostsService.delete(req.params.id, req.user.id);
+    const deleted = await PostsService.remove(req.params.id, { by: "author", userId: req.user.id });
     if (!deleted) {
       sendNotFound(res, "Post not found");
       return;
@@ -121,10 +121,10 @@ export class PostsController {
     req: Request<{ commentId: string }>,
     res: Response,
   ): Promise<void> {
-    const deleted = await PostsService.deleteComment(
-      req.params.commentId,
-      req.user.id,
-    );
+    const deleted = await PostsService.removeComment(req.params.commentId, {
+      by: "author",
+      userId: req.user.id,
+    });
     if (!deleted) {
       sendNotFound(res, "Comment not found");
       return;

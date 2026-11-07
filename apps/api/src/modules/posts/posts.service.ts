@@ -1,3 +1,4 @@
+import type { ContentRemoval } from "../../commons/types/content-removal.types";
 import type { CreatePostDto, UpdatePostDto } from "./dto/posts.dto";
 import { PostsCommentsService } from "./services/posts-comments.service";
 import { PostsCoreService } from "./services/posts-core.service";
@@ -20,12 +21,8 @@ export class PostsService {
     return PostsCoreService.update(postId, userId, input);
   }
 
-  static async delete(postId: string, userId: string) {
-    return PostsCoreService.delete(postId, userId);
-  }
-
-  static async deleteById(postId: string) {
-    return PostsCoreService.deleteById(postId);
+  static async remove(postId: string, removal: ContentRemoval) {
+    return PostsCoreService.remove(postId, removal);
   }
 
   static async listAllForAdmin(filters: { userId?: string }, limit: number, offset: number) {
@@ -52,8 +49,8 @@ export class PostsService {
     return PostsCommentsService.addComment(userId, postId, content);
   }
 
-  static async deleteComment(commentId: string, userId: string) {
-    return PostsCommentsService.deleteComment(commentId, userId);
+  static async removeComment(commentId: string, removal: ContentRemoval) {
+    return PostsCommentsService.removeComment(commentId, removal);
   }
 
   static async updateComment(commentId: string, userId: string, content: string) {
