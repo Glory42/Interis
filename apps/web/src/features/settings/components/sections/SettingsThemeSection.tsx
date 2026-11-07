@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useUpdateMyTheme } from "@/features/theme/hooks/useTheme";
-import { listThemes, resolveThemeId } from "@/features/theme/theme-registry";
+import { getDefaultThemeId, listThemes, resolveThemeId, type ThemeDefinition } from "@/features/theme/theme-registry";
+import { cn } from "@/lib/utils";
 import { applyAndPersistTheme } from "@/features/theme/theme-runtime";
 import { isApiError } from "@/lib/api-client";
 import { TickLoader } from "@/components/ui/tick-loader";
@@ -56,89 +57,81 @@ export const SettingsThemeSection = () => {
   };
 
   const themeOptions = listThemes();
+  const defaultThemeId = getDefaultThemeId();
 
   return (
-    <div className="border p-6 sm:p-8 space-y-6 shell-border surface">
-      <div>
-        <p className="mb-1 text-lg font-bold text-foreground">Appearance</p>
-        <p className="text-sm shell-muted">
-          Choose between Rose Pine, NULL://LOG, Nitrate, and Marquee. Selection applies immediately.
-        </p>
-      </div>
+    <section>
+      <h2 className="display-4 text-foreground">Theme</h2>
+      <p className="body-s mt-1 text-muted-foreground">Applies as soon as you tap. Saved to your account.</p>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {themeOptions.map((theme) => {
-          const isActive = theme.id === activeThemeId;
-
-          return (
-            <button
-              key={theme.id}
-              type="button"
-              onClick={() => {
-                void handleSelectTheme(theme.id);
-              }}
-              disabled={updateThemeMutation.isPending}
-              className={
-                "w-full rounded-xl border p-4 text-left transition-all " +
-                (isActive
-                  ? "shell-active-option"
-                  : "shell-border shell-input")
-              }
-            >
-              <div className="mb-2 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex gap-1">
-                    {(theme.preview?.swatches ?? []).map((swatch) => (
-                      <span
-                        key={`${theme.id}-${swatch}`}
-                        className="h-3.5 w-3.5 rounded-full border border-white/10"
-                        style={{ backgroundColor: swatch }}
-                        aria-hidden="true"
-                      />
-                    ))}
-                  </div>
-
-                  <span
-                    className={
-                      "text-sm font-semibold " +
-                      (isActive ? "shell-accent" : "text-foreground")
-                    }
-                  >
-                    {theme.label}
-                  </span>
-
-                  {isActive ? (
-                    <span
-                      className="rounded-full px-1.5 py-0.5 text-xs font-medium"
-                      style={{ background: "var(--shell-accent)", color: "var(--primary-foreground)" }}
-                    >
-                      Active
-                    </span>
-                  ) : null}
-                </div>
-
-                <span className="flex h-4 w-4 items-center justify-center rounded-full border shell-border">
-                  {isActive ? <span className="h-2 w-2 rounded-full shell-dot" aria-hidden="true" /> : null}
-                </span>
-              </div>
-
-              <p className="text-xs shell-muted">{theme.description}</p>
-            </button>
-          );
-        })}
+      <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {themeOptions.map((theme) => (
+          <ThemeTile
+            key={theme.id}
+            theme={theme}
+            isActive={theme.id === activeThemeId}
+            isDefault={theme.id === defaultThemeId}
+            disabled={updateThemeMutation.isPending}
+            onSelect={() => void handleSelectTheme(theme.id)}
+          />
+        ))}
       </div>
 
       {themeError ? (
-        <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p role="alert" className="body-s mt-3 text-[color:var(--danger)]">
           {themeError}
         </p>
       ) : null}
-
-      {themeSuccess ? (
-        <p className="border px-3 py-2 text-sm shell-border shell-accent shell-active-pill">
-          {themeSuccess}
-        </p>
-      ) : null}
-    </div>
+      {themeSuccess ? <p className="body-s mt-3 text-primary">{themeSuccess}</p> : null}
+    </section>
   );
 };
+
+type ThemeTileProps = {
+  theme: ThemeDefinition;
+  isActive: boolean;
+  isDefault: boolean;
+  disabled: boolean;
+  onSelect: () => void;
+};
+
+// The preview carries the theme's own tokens (see index.css), so it shows the real thing.
+const ThemeTile = ({ theme, isActive, isDefault, disabled, onSelect }: ThemeTileProps) => (
+  <button
+    type="button"
+    aria-pressed={isActive}
+    disabled={disabled}
+    onClick={onSelect}
+    className={cn(
+      "rounded-[3px] text-left transition-[outline-color] disabled:cursor-wait",
+      isActive ? "outline-2 outline-offset-2 outline-[color:var(--primary)]" : "outline-2 outline-offset-2 outline-transparent",
+    )}
+  >
+    <div
+      data-theme-preview={theme.id}
+      className="overflow-hidden rounded-[3px] border border-[color:var(--line)] bg-background text-foreground"
+    >
+      <div className="slate mono-meta uppercase">
+        <span>Interis</span>
+        <span>Diary</span>
+      </div>
+      <div className="p-2.5">
+        <p className="font-display text-lg leading-none tracking-tight">Clayface</p>
+        <p className="mono-meta mt-1 text-muted-foreground">2026 · 8/10</p>
+        <div className="mt-2 flex gap-1" aria-hidden>
+          <span className="h-1.5 flex-1 rounded-[1px] bg-[color:var(--film)]" />
+          <span className="h-1.5 flex-1 rounded-[1px] bg-[color:var(--series)]" />
+        </div>
+        <span className="mt-2 inline-block rounded-[2px] bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground">
+          Log
+        </span>
+      </div>
+    </div>
+    <span className="body-s mt-1.5 flex items-center justify-between gap-2 text-foreground">
+      <span className="font-semibold">{theme.label}</span>
+      <span className="mono-meta uppercase text-muted-foreground">
+        {[isDefault ? "Default" : null, isActive ? "Current" : null].filter(Boolean).join(" · ")}
+      </span>
+    </span>
+  </button>
+);
