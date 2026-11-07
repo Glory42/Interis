@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { SentenceSelect } from "@/components/ui/SentenceSelect";
 import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
 import type { ModeratedUser } from "@/features/moderation/api";
 import {
@@ -9,9 +11,6 @@ import {
 } from "@/features/moderation/hooks/useModeration";
 import { TickLoader } from "@/components/ui/tick-loader";
 
-const rowClass =
-  "flex items-center gap-3 border-b px-4 py-2.5 last:border-0 shell-row-border";
-
 const UnblockButton = ({ username }: { username: string }) => {
   const unblockMutation = useUnblockUser(username);
 
@@ -20,7 +19,7 @@ const UnblockButton = ({ username }: { username: string }) => {
       type="button"
       disabled={unblockMutation.isPending}
       onClick={() => unblockMutation.mutate()}
-      className="shrink-0 border px-3 py-1.5 text-xs font-medium transition-colors shell-border shell-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+      className="body-s shrink-0 rounded-[3px] border border-[color:var(--line)] px-2.5 py-1 text-foreground hover:border-[color:var(--line-strong)] disabled:cursor-not-allowed disabled:opacity-50"
     >
       {unblockMutation.isPending ? "Saving" : "Unblock"}
     </button>
@@ -35,53 +34,34 @@ const UnmuteButton = ({ username }: { username: string }) => {
       type="button"
       disabled={unmuteMutation.isPending}
       onClick={() => unmuteMutation.mutate()}
-      className="shrink-0 border px-3 py-1.5 text-xs font-medium transition-colors shell-border shell-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+      className="body-s shrink-0 rounded-[3px] border border-[color:var(--line)] px-2.5 py-1 text-foreground hover:border-[color:var(--line-strong)] disabled:cursor-not-allowed disabled:opacity-50"
     >
       {unmuteMutation.isPending ? "Saving" : "Unmute"}
     </button>
   );
 };
 
-const UserRow = ({
-  moderatedUser,
-  action,
-}: {
-  moderatedUser: ModeratedUser;
-  action: "unblock" | "unmute";
-}) => {
-  const avatarUrl = moderatedUser.avatarUrl ?? null;
-  const initial = moderatedUser.username.slice(0, 1).toUpperCase();
+const formatDay = (date: Date) => date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
-  return (
-    <li className={rowClass}>
-      <Link to="/profile/$username" params={{ username: moderatedUser.username }} className="shrink-0">
-        <FeedActorAvatar
-          avatarUrl={avatarUrl}
-          username={moderatedUser.username}
-          initial={initial}
-          className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden border shell-border"
-        />
-      </Link>
-
-      <Link
-        to="/profile/$username"
-        params={{ username: moderatedUser.username }}
-        className="min-w-0 flex-1"
-      >
-        <p className="truncate text-sm font-semibold shell-accent">
-          {moderatedUser.displayUsername ?? moderatedUser.username}
-        </p>
-        <p className="truncate text-xs shell-muted">@{moderatedUser.username}</p>
-      </Link>
-
-      {action === "unblock" ? (
-        <UnblockButton username={moderatedUser.username} />
-      ) : (
-        <UnmuteButton username={moderatedUser.username} />
-      )}
-    </li>
-  );
-};
+const UserRow = ({ moderatedUser, action }: { moderatedUser: ModeratedUser; action: "unblock" | "unmute" }) => (
+  <li className="flex items-center gap-3 border-b border-[color:var(--line)] py-2.5">
+    <Link to="/profile/$username" params={{ username: moderatedUser.username }} className="shrink-0">
+      <FeedActorAvatar
+        avatarUrl={moderatedUser.avatarUrl ?? null}
+        username={moderatedUser.username}
+        initial={moderatedUser.username.slice(0, 1).toUpperCase()}
+        className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-[3px]"
+      />
+    </Link>
+    <Link to="/profile/$username" params={{ username: moderatedUser.username }} className="body min-w-0 flex-1 truncate text-foreground">
+      {`@${moderatedUser.username}`}
+    </Link>
+    <span className="mono-meta shrink-0 uppercase text-muted-foreground">
+      {`${action === "unblock" ? "Blocked" : "Muted"} ${formatDay(moderatedUser.createdAt)}`}
+    </span>
+    {action === "unblock" ? <UnblockButton username={moderatedUser.username} /> : <UnmuteButton username={moderatedUser.username} />}
+  </li>
+);
 
 const LoadMoreRow = ({
   label,
@@ -98,90 +78,68 @@ const LoadMoreRow = ({
       aria-label={label}
       disabled={isLoading}
       onClick={onLoadMore}
-      className="text-sm shell-muted underline-offset-4 hover:underline disabled:opacity-60"
+      className="body-s text-muted-foreground underline-offset-4 hover:underline disabled:opacity-60"
     >
       {isLoading ? "Loading…" : "Load more"}
     </button>
   </div>
 );
 
+type ListKind = "blocked" | "muted";
+
+const EXPLAINER: Record<ListKind, string> = {
+  blocked: "Blocked people can't follow you and don't appear in your feed.",
+  muted: "Muted people don't know they're muted. Their activity is hidden from your feed only.",
+};
+
 export const SettingsBlockedSection = () => {
   const blockedQuery = useBlockedUsers();
   const mutedQuery = useMutedUsers();
+  const [kind, setKind] = useState<ListKind>("blocked");
+
+  const countOf = (query: typeof blockedQuery) => `${query.data?.length ?? 0}${query.hasNextPage ? "+" : ""}`;
+  const counts = { blocked: countOf(blockedQuery), muted: countOf(mutedQuery) };
+  const options = (["blocked", "muted"] as const).map((value) => ({
+    value,
+    word: `${value} (${counts[value]})`,
+    label: `${value === "blocked" ? "Blocked" : "Muted"} (${counts[value]})`,
+  }));
+  const other: ListKind = kind === "blocked" ? "muted" : "blocked";
+  const query = kind === "blocked" ? blockedQuery : mutedQuery;
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-      <div className="border shell-border surface">
-        <div className="border-b px-5 py-4 shell-row-border">
-          <p className="mb-1 text-base font-bold text-foreground">Blocked Users</p>
-          <p className="text-sm shell-muted">
-            Blocked users can't follow you, and their activity is hidden from your feed.
-          </p>
+    <section>
+      <h2 className="display-4 text-foreground">Blocked &amp; muted</h2>
+      <p className="body-s mt-1 text-muted-foreground">
+        {"Showing "}
+        <SentenceSelect value={kind} options={options} onChange={setKind} />
+        {` · ${other} (${counts[other]})`}
+      </p>
+
+      {query.isPending ? (
+        <div className="flex justify-center py-8">
+          <TickLoader />
         </div>
+      ) : query.isError ? (
+        <p className="body-s py-6 text-muted-foreground">{`Could not load ${kind} users.`}</p>
+      ) : query.data.length === 0 ? (
+        <p className="body-s py-6 text-muted-foreground">{kind === "blocked" ? "You haven't blocked anyone." : "You haven't muted anyone."}</p>
+      ) : (
+        <ul className="mt-3 border-t border-[color:var(--line)]">
+          {query.data.map((moderatedUser) => (
+            <UserRow key={moderatedUser.id} moderatedUser={moderatedUser} action={kind === "blocked" ? "unblock" : "unmute"} />
+          ))}
+        </ul>
+      )}
+      {query.hasNextPage ? (
+        <LoadMoreRow
+          label={`Load more ${kind} users`}
+          isLoading={query.isFetchingNextPage}
+          onLoadMore={() => void query.fetchNextPage()}
+        />
+      ) : null}
 
-        {blockedQuery.isPending ? (
-          <div className="flex items-center justify-center py-10">
-            <TickLoader />
-          </div>
-        ) : blockedQuery.isError ? (
-          <p className="py-10 text-center text-sm shell-muted">
-            Could not load blocked users.
-          </p>
-        ) : blockedQuery.data.length === 0 ? (
-          <p className="py-10 text-center text-sm shell-muted">
-            You haven't blocked anyone.
-          </p>
-        ) : (
-          <ul>
-            {blockedQuery.data.map((moderatedUser) => (
-              <UserRow key={moderatedUser.id} moderatedUser={moderatedUser} action="unblock" />
-            ))}
-          </ul>
-        )}
-        {blockedQuery.hasNextPage ? (
-          <LoadMoreRow
-            label="Load more blocked users"
-            isLoading={blockedQuery.isFetchingNextPage}
-            onLoadMore={() => void blockedQuery.fetchNextPage()}
-          />
-        ) : null}
-      </div>
-
-      <div className="border shell-border surface">
-        <div className="border-b px-5 py-4 shell-row-border">
-          <p className="mb-1 text-base font-bold text-foreground">Muted Users</p>
-          <p className="text-sm shell-muted">
-            Muted users don't know you've muted them. Their activity is hidden from your feed only.
-          </p>
-        </div>
-
-        {mutedQuery.isPending ? (
-          <div className="flex items-center justify-center py-10">
-            <TickLoader />
-          </div>
-        ) : mutedQuery.isError ? (
-          <p className="py-10 text-center text-sm shell-muted">
-            Could not load muted users.
-          </p>
-        ) : mutedQuery.data.length === 0 ? (
-          <p className="py-10 text-center text-sm shell-muted">
-            You haven't muted anyone.
-          </p>
-        ) : (
-          <ul>
-            {mutedQuery.data.map((moderatedUser) => (
-              <UserRow key={moderatedUser.id} moderatedUser={moderatedUser} action="unmute" />
-            ))}
-          </ul>
-        )}
-        {mutedQuery.hasNextPage ? (
-          <LoadMoreRow
-            label="Load more muted users"
-            isLoading={mutedQuery.isFetchingNextPage}
-            onLoadMore={() => void mutedQuery.fetchNextPage()}
-          />
-        ) : null}
-      </div>
-    </div>
+      <p className="body-s mt-3 text-muted-foreground">{EXPLAINER[kind]}</p>
+    </section>
   );
 };
