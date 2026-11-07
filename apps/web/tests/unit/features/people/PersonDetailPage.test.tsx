@@ -90,15 +90,16 @@ describe("PersonDetailPage", () => {
 
     renderWithProviders(<PersonDetailPage role="director" slug="christopher-nolan" />);
 
-    expect(await screen.findByRole("button", { name: "Crew (41)" })).toBeInTheDocument();
+    expect(await screen.findByRole("tab", { name: "Crew 41", selected: true })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Christopher Nolan" })).toBeInTheDocument();
     expect(screen.getByText("From Wikipedia, the free encyclopedia")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Combined (43)" })).toBeInTheDocument();
-    expect(await screen.findByText("Director, Writer")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /films and TV/ })).toBeInTheDocument();
+    expect(await screen.findByText("Director · Writer")).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "2020s" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Load more credits" }));
 
-    expect(await screen.findByText("Film 41")).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: /Film 41/ })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Load more credits" })).not.toBeInTheDocument();
     expect(offsets).toEqual(["0", "40"]);
   });
