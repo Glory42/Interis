@@ -34,6 +34,8 @@ A social movie journal app inspired by Letterboxd + timeline-style social apps.
 ├── apps/web/         # React app (TanStack Router + Query)
 ├── apps/e2e/              # Playwright smoke and end-to-end tests
 ├── CONTRIBUTING.md   # Guidelines for contributors
+├── CODE_OF_CONDUCT.md # Community standards
+├── SECURITY.md       # How to report vulnerabilities
 ├── DEPLOYMENT.md      # Render deploy setup for apps/api
 └── README.md
 ```
@@ -217,3 +219,4 @@ for environment variable setup and first-time configuration.
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines, architecture overview, coding conventions, and how to get started.
+By participating you agree to the [Code of Conduct](CODE_OF_CONDUCT.md). Please report security issues privately as described in [SECURITY.md](SECURITY.md).

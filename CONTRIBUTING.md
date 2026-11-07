@@ -2,6 +2,8 @@
 
 Thank you for your interest in contributing to Interis. This document covers the project architecture, development workflow, coding conventions, and guidelines for submitting changes.
 
+By participating you agree to the [Code of Conduct](CODE_OF_CONDUCT.md). Found a security issue? Report it privately — see [SECURITY.md](SECURITY.md).
+
 ## Table of contents
 
 - [Project overview](#project-overview)
@@ -611,11 +613,11 @@ at the repo root (`prepare` script), so no separate setup step is needed.
 
 ## Submitting changes
 
-1. Create a branch from `main` with a descriptive name (e.g., `feat/movie-reviews`, `fix/diary-rating-display`).
+1. Create a branch from `master` with a descriptive name (e.g., `feat/movie-reviews`, `fix/diary-rating-display`).
 2. Make your changes following the conventions above.
 3. Run quality checks (type check, lint, tests, build).
 4. Commit with a clear message describing what changed and why.
-5. Open a pull request with:
+5. Open a pull request — the [PR template](.github/pull_request_template.md) prompts for:
    - A summary of the changes.
    - Any relevant screenshots or screen recordings for UI changes.
    - Notes on database migrations if applicable.

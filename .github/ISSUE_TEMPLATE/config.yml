@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/Glory42/Interis/blob/master/SECURITY.md
+    about: Please report security issues privately — never in a public issue.
+  - name: Public API docs
+    url: https://github.com/Glory42/Interis/tree/master/apps/docs
+    about: Reference for the /api/public/* widget endpoints.

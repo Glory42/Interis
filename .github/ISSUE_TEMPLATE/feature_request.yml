@@ -1,0 +1,57 @@
+name: Feature request
+description: Suggest a new feature or an improvement to an existing one
+title: "feat: "
+labels: ["feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea! Please check existing issues first so we can keep the discussion in one place.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do, and what gets in the way today?
+      placeholder: When I rewatch a film, I can't see my earlier rating while logging...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What would you like to happen? Mockups and sketches are welcome.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches or workarounds you've thought about.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Diary / logging
+        - Reviews
+        - Feed / social
+        - Profiles / lists / likes / watchlist
+        - Films / TV / archive
+        - Auth / account settings
+        - Themes / UI
+        - Public API (/api/public/*)
+        - Local dev / Docker / tooling
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contribution
+      options:
+        - label: I'd be willing to open a pull request for this
