@@ -13,16 +13,14 @@ export const Route = createFileRoute("/_authLayout/forgot-password")({
 function ForgotPasswordPage() {
   return (
     <>
-      <AuthPageHeader title="Forgot password" subtitle="We'll help you get back in." />
-      <div className="space-y-4">
-        <ForgotPasswordForm />
-        <p className="text-sm text-muted-foreground">
-          Remembered it?{" "}
-          <Link to="/login" className="font-semibold text-primary hover:text-primary/80">
-            Sign in
-          </Link>
-        </p>
-      </div>
+      <AuthPageHeader title="Get back in." subtitle="Interis doesn't send reset emails. Your recovery question is the way back." />
+      <ForgotPasswordForm />
+      <p className="body-s mt-4 text-muted-foreground">
+        {"Remembered it? "}
+        <Link to="/login" className="font-semibold text-primary hover:underline">
+          Sign in
+        </Link>
+      </p>
     </>
   );
 }

@@ -1,10 +1,24 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { isApiError } from "@/lib/api-client";
 import { useRequestPasswordReset, useResetPassword } from "@/features/auth/hooks/useAuth";
+import { PASSWORD_MAX, PASSWORD_MIN, PASSWORD_RULES } from "@/features/auth/password";
+import { AccountField, PasswordLengthHint } from "@/features/settings/components/account/AccountField";
+import { maskEmail } from "@/features/settings/model/mask-email";
+import { isApiError } from "@/lib/api-client";
 
+const errorOf = (error: unknown) => (isApiError(error) ? error.message : "Unexpected error. Please try again.");
+
+const StepLabel = ({ step }: { step: 1 | 2 | 3 }) => <p className="mono-meta mb-3 uppercase text-muted-foreground">{`Step ${step} of 3`}</p>;
+
+const FormError = ({ message }: { message: string | null }) =>
+  message ? (
+    <p role="alert" className="body-s text-[color:var(--danger)]">
+      {message}
+    </p>
+  ) : null;
+
+// Email → question and new password → done.
 export const ForgotPasswordForm = () => {
   const navigate = useNavigate();
   const { mutateAsync: requestReset, isPending: isLookupPending } = useRequestPasswordReset();
@@ -20,52 +34,31 @@ export const ForgotPasswordForm = () => {
   const handleLookup = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError(null);
-
     try {
-      const foundQuestion = await requestReset({ email });
-      setQuestion(foundQuestion);
+      setQuestion(await requestReset({ email: email.trim() }));
     } catch (error) {
-      if (isApiError(error)) {
-        setFormError(error.message);
-        return;
-      }
-
-      setFormError("Unexpected error. Please try again.");
+      setFormError(errorOf(error));
     }
   };
 
   const handleReset = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError(null);
-
     try {
-      await resetPassword({ email, answer, newPassword });
+      await resetPassword({ email: email.trim(), answer, newPassword });
       setIsDone(true);
     } catch (error) {
-      if (isApiError(error)) {
-        setFormError(error.message);
-        return;
-      }
-
-      setFormError("Unexpected error. Please try again.");
+      setFormError(errorOf(error));
     }
   };
 
   if (isDone) {
     return (
-      <div className="w-full max-w-md space-y-4">
-        <div className="space-y-1.5">
-          <h2
-            className="text-lg font-bold text-foreground"
-            style={{ fontFamily: "var(--theme-display-font)" }}
-          >
-            Password updated
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            You&apos;ve been signed out of all devices — sign in with your new password.
-          </p>
-        </div>
-        <Button className="w-full" onClick={() => void navigate({ to: "/login" })}>
+      <div className="space-y-4">
+        <StepLabel step={3} />
+        <h2 className="display-3 text-foreground">Password updated</h2>
+        <p className="body-s text-muted-foreground">You've been signed out everywhere. Sign in with the new password.</p>
+        <Button className="w-full" size="md" onClick={() => void navigate({ to: "/login" })}>
           Go to sign in
         </Button>
       </div>
@@ -74,107 +67,72 @@ export const ForgotPasswordForm = () => {
 
   if (question) {
     return (
-      <div className="w-full max-w-md">
-        <div className="mb-5 space-y-1.5">
-          <h2
-            className="text-lg font-bold text-foreground"
-            style={{ fontFamily: "var(--theme-display-font)" }}
+      <form className="space-y-4" onSubmit={handleReset}>
+        <StepLabel step={2} />
+        <p className="body-s text-muted-foreground">
+          <span>{maskEmail(email.trim())}</span>
+          {" · "}
+          <button
+            type="button"
+            aria-label="Change email"
+            onClick={() => {
+              setQuestion(null);
+              setFormError(null);
+            }}
+            className="text-primary hover:underline"
           >
-            Answer your security question
-          </h2>
-          <p className="text-sm text-muted-foreground">{question}</p>
+            change
+          </button>
+        </p>
+        <div>
+          <p className="kicker mb-1 text-muted-foreground">Your question</p>
+          <p className="body text-foreground">{`“${question}”`}</p>
         </div>
-
-        <form className="space-y-4" onSubmit={handleReset}>
-          <div className="space-y-1.5">
-            <label
-              className="text-sm font-medium text-foreground"
-              htmlFor="forgot-password-answer"
-            >
-              Answer
-            </label>
-            <Input
-              id="forgot-password-answer"
-              name="answer"
-              type="text"
-              value={answer}
-              onChange={(event) => setAnswer(event.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label
-              className="text-sm font-medium text-foreground"
-              htmlFor="forgot-password-new-password"
-            >
-              New password
-            </label>
-            <Input
-              id="forgot-password-new-password"
-              name="newPassword"
-              type="password"
-              autoComplete="new-password"
-              value={newPassword}
-              onChange={(event) => setNewPassword(event.target.value)}
-              minLength={8}
-              maxLength={128}
-              required
-            />
-          </div>
-
-          {formError ? (
-            <p
-              role="alert"
-              className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-            >
-              {formError}
-            </p>
-          ) : null}
-
-          <Button className="w-full" type="submit" disabled={isResetPending}>
-            {isResetPending ? "Updating..." : "Update password"}
-          </Button>
-        </form>
-      </div>
+        {/* Saves the new password against the right account in password managers. */}
+        <input type="email" name="email" autoComplete="username" value={email.trim()} readOnly hidden />
+        <AccountField id="forgot-password-answer" name="answer" label="Answer" autoComplete="off" maxLength={200} value={answer} onValueChange={setAnswer} required />
+        <div>
+          <AccountField
+            id="forgot-password-new-password"
+            name="newPassword"
+            label="New password"
+            isPassword
+            autoComplete="new-password"
+            maxLength={PASSWORD_MAX}
+            {...PASSWORD_RULES}
+            value={newPassword}
+            onValueChange={setNewPassword}
+            required
+          />
+          <PasswordLengthHint length={newPassword.length} />
+        </div>
+        <FormError message={formError} />
+        <Button className="w-full" size="md" type="submit" disabled={isResetPending || !answer.trim() || newPassword.length < PASSWORD_MIN}>
+          {isResetPending ? "Updating…" : "Set new password"}
+        </Button>
+        <p className="body-s text-muted-foreground">This signs you out on every device.</p>
+      </form>
     );
   }
 
   return (
-    <div className="w-full max-w-md">
-      <p className="mb-5 text-sm leading-relaxed text-muted-foreground">
-        Enter your email — if it has a security question set up, we&apos;ll show it to you here.
-      </p>
-
-      <form className="space-y-4" onSubmit={handleLookup}>
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium text-foreground" htmlFor="forgot-password-email">
-            Email
-          </label>
-          <Input
-            id="forgot-password-email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            required
-          />
-        </div>
-
-        {formError ? (
-          <p
-            role="alert"
-            className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-          >
-            {formError}
-          </p>
-        ) : null}
-
-        <Button className="w-full" type="submit" disabled={isLookupPending}>
-          {isLookupPending ? "Looking up..." : "Continue"}
-        </Button>
-      </form>
-    </div>
+    <form className="space-y-4" onSubmit={handleLookup}>
+      <StepLabel step={1} />
+      <AccountField
+        id="forgot-password-email"
+        name="email"
+        label="Email"
+        type="email"
+        inputMode="email"
+        autoComplete="username"
+        value={email}
+        onValueChange={setEmail}
+        required
+      />
+      <FormError message={formError} />
+      <Button className="w-full" size="md" type="submit" disabled={isLookupPending || !email.trim()}>
+        {isLookupPending ? "Looking up…" : "Continue"}
+      </Button>
+    </form>
   );
 };

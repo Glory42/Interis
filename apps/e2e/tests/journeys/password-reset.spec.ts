@@ -36,7 +36,7 @@ test("resets a forgotten password via the security question and signs in with it
       await expect(page.getByText(SECURITY_QUESTION)).toBeVisible({ timeout: 10_000 });
       await page.getByLabel("Answer", { exact: true }).fill(SECURITY_ANSWER);
       await page.getByLabel("New password", { exact: true }).fill(NEW_PASSWORD);
-      await page.getByRole("button", { name: "Update password" }).click();
+      await page.getByRole("button", { name: "Set new password" }).click();
 
       await expect(page.getByRole("heading", { name: "Password updated" })).toBeVisible({
         timeout: 10_000,
