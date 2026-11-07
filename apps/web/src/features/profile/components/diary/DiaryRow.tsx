@@ -48,10 +48,10 @@ export const DiaryRow = ({ row, username, isOwner = false }: DiaryRowProps) => {
       <span className="flex w-14 shrink-0 items-center justify-end gap-1.5 text-sm">
         {row.isLiked ? <span aria-label="Liked" className="text-[color:var(--like)]">♥</span> : null}
         {row.rewatch ? <span aria-label="Rewatch" className="text-primary">↻</span> : null}
-        {row.reviewId ? (
+        {row.review ? (
           <Link
             to="/reviews/$username/$reviewId"
-            params={{ username, reviewId: row.reviewId }}
+            params={{ username, reviewId: row.review.id }}
             aria-label="Review"
             className="text-primary"
             viewTransition
@@ -82,10 +82,10 @@ export const DiaryRow = ({ row, username, isOwner = false }: DiaryRowProps) => {
             year: row.releaseYear,
             posterPath: row.posterPath,
             logId: row.id,
-            watchedDate: row.createdAt,
+            watchedDate: row.watchedDate,
             rating: row.rating,
             rewatch: row.rewatch,
-            review: null,
+            review: row.review,
           }}
         />
       ) : null}
