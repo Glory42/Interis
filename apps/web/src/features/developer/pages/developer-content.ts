@@ -1,138 +1,51 @@
-import type { LucideIcon } from "lucide-react";
-import { Activity, FileText, LayoutDashboard, Zap } from "lucide-react";
+export const DOCS_URL = "https://docs.interis.gorkemkaryol.dev";
 
-export type UseCaseTone = "primary" | "movie" | "serial" | "destructive";
+// Absolute, so snippets still work when pasted onto another site.
+export const publicApiBase = (): string =>
+  `${(import.meta.env.VITE_API_BASE_URL || window.location.origin).replace(/\/$/, "")}/api/public`;
 
-export type UseCase = {
-  title: string;
-  description: string;
-  icon: LucideIcon;
-  tone: UseCaseTone;
+// Limits mirror public-query-normalizer.helper.ts in the API: "default / max", or null when there's none.
+export const PUBLIC_ENDPOINTS: ReadonlyArray<{ path: string; description: string; limits: string | null }> = [
+  { path: "/profile", description: "Profile summary and counts", limits: null },
+  { path: "/top4", description: "Top 4 films and series", limits: null },
+  { path: "/recent", description: "Recent activity, one entry per title per day", limits: "10 / 20" },
+  { path: "/activity", description: "Longer activity timeline", limits: "30 / 100" },
+  { path: "/diary", description: "Diary logs, films and TV (offset ≤ 5000)", limits: "50 / 200" },
+  { path: "/reviews", description: "Reviews with the title", limits: "50 / 200" },
+  { path: "/lists", description: "Public lists and their entries", limits: "50 / 200" },
+  { path: "/likes", description: "Liked films and series", limits: "50 / 200" },
+  { path: "/watchlist", description: "Watchlist", limits: "50 / 200" },
+  { path: "/movies/watched", description: "Watched films", limits: "50 / 200" },
+  { path: "/serials/watched", description: "Finished series", limits: "50 / 200" },
+  { path: "/serials/currently-watching", description: "Series in progress", limits: "10 / 30" },
+  { path: "/serials/:tmdbId", description: "Progress on one series", limits: null },
+];
+
+export type TryEndpoint = "diary" | "currently-watching";
+
+// Each option names where a title lives in its response, so the HTML snippet stays truthful.
+export const TRY_ENDPOINTS: Record<TryEndpoint, { path: string; max: number; titleExpr: string }> = {
+  diary: { path: "diary", max: 200, titleExpr: "item.media.title" },
+  "currently-watching": { path: "serials/currently-watching", max: 30, titleExpr: "item.title" },
 };
 
-export type PublicEndpoint = {
-  method: "GET";
-  path: string;
-  description: string;
-};
+export type SnippetKind = "fetch" | "curl" | "html";
 
-export type CodeExample = {
-  title: string;
-  code: string;
-  language: string;
-};
-
-export const useCases: readonly UseCase[] = [
-  {
-    title: "Portfolio Widget",
-    description:
-      "Show your Top 4 movie and serial picks directly on your personal website.",
-    icon: LayoutDashboard,
-    tone: "primary",
-  },
-  {
-    title: "Live Activity Block",
-    description:
-      "Display your latest activity stream in a small sidebar or homepage module.",
-    icon: Activity,
-    tone: "movie",
-  },
-  {
-    title: "Review Feed",
-    description:
-      "Pull your public reviews into a blog, newsletter footer, or personal changelog.",
-    icon: FileText,
-    tone: "serial",
-  },
-  {
-    title: "Personal Dashboard",
-    description:
-      "Combine profile, watchlist, likes, and diary into one custom view outside Interis.",
-    icon: Zap,
-    tone: "destructive",
-  },
-] as const;
-
-export const publicSurface: readonly PublicEndpoint[] = [
-  { method: "GET", path: "/api/public/:username/profile", description: "Public profile summary and core counts." },
-  { method: "GET", path: "/api/public/:username/top4", description: "Featured top movie and serial picks." },
-  { method: "GET", path: "/api/public/:username/recent", description: "Short recent public activity stream." },
-  { method: "GET", path: "/api/public/:username/reviews", description: "Public reviews with media context." },
-  { method: "GET", path: "/api/public/:username/lists", description: "Public lists and list entries." },
-  { method: "GET", path: "/api/public/:username/likes", description: "Public liked movie and serial media." },
-  { method: "GET", path: "/api/public/:username/watchlist", description: "Public watchlist items." },
-  {
-    method: "GET",
-    path: "/api/public/:username/diary",
-    description: "Public diary/log history for movie and serial entries.",
-  },
-  { method: "GET", path: "/api/public/:username/activity", description: "Broader public activity timeline." },
-  {
-    method: "GET",
-    path: "/api/public/:username/movies/watched",
-    description: "Watched movies (movie-only).",
-  },
-  {
-    method: "GET",
-    path: "/api/public/:username/serials/:tmdbId",
-    description: "Watch progress and stats for a specific serial.",
-  },
-  {
-    method: "GET",
-    path: "/api/public/:username/serials/currently-watching",
-    description: "Serials started but not finished, most recently watched first.",
-  },
-  {
-    method: "GET",
-    path: "/api/public/:username/serials/watched",
-    description: "Fully watched serials (series-only).",
-  },
-] as const;
-
-export const codeExamples: readonly CodeExample[] = [
-  {
-    title: "Fetch profile (JavaScript)",
-    language: "js",
-    code: `const username = "your_username";
-
-const res = await fetch(
-  "/api/public/" + username + "/profile"
-);
-
-if (!res.ok) throw new Error("Profile not found");
-
-const profile = await res.json();
-console.log(profile.displayUsername, profile.stats.reviewCount);`,
-  },
-  {
-    title: "Fetch top picks (curl)",
-    language: "curl",
-    code: `curl "https://api.interis.gorkemkaryol.dev/api/public/your_username/top4"`,
-  },
-  {
-    title: "Tiny recent widget (React)",
-    language: "tsx",
-    code: `const [recent, setRecent] = useState([]);
-
-useEffect(() => {
-  fetch("/api/public/your_username/recent?limit=5")
-    .then((res) => res.json())
-    .then(setRecent);
-}, []);
-
-return (
-  <ul>
-    {recent.map((item) => (
-      <li key={item.id}>{item.actor.username} • {item.kind}</li>
-    ))}
-  </ul>
-);`,
-  },
-] as const;
-
-export const toneToColor: Record<UseCaseTone, string> = {
-  primary: "var(--primary)",
-  movie: "var(--module-movie)",
-  serial: "var(--module-serial)",
-  destructive: "var(--destructive)",
+export const buildSnippet = (kind: SnippetKind, url: string, endpoint: TryEndpoint): string => {
+  if (kind === "curl") return `curl "${url}"`;
+  if (kind === "fetch") {
+    return `const res = await fetch("${url}");\nconst items = await res.json();\nconsole.log(items);`;
+  }
+  return [
+    `<ul id="interis"></ul>`,
+    `<script>`,
+    `  fetch("${url}")`,
+    `    .then((res) => res.json())`,
+    `    .then((items) => {`,
+    `      document.getElementById("interis").innerHTML = items`,
+    `        .map((item) => "<li>" + ${TRY_ENDPOINTS[endpoint].titleExpr} + "</li>")`,
+    `        .join("");`,
+    `    });`,
+    `</script>`,
+  ].join("\n");
 };
