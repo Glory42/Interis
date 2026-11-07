@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArchiveFilterControls } from "@/features/media/archive/ArchiveFilterControls";
 import { ArchiveSkeletonGrid } from "@/features/media/archive/ArchiveSkeletonGrid";
-import { RotatingPosterBackdrop } from "@/features/media/detail/RotatingPosterBackdrop";
 import type { MediaModuleStyles } from "@/features/media/styles";
 import type { ArchiveMenuKey } from "@/features/media/types";
 
@@ -12,10 +11,9 @@ type ArchiveFilterOption<TValue extends string> = {
 
 type MediaArchivePageProps<TItem, TSort extends string, TPeriod extends string> = {
   moduleStyles: MediaModuleStyles;
-  heroModuleLabel: string;
-  heroTitle: string;
-  heroSubtitle: string;
-  backdropUrls: string[];
+  heading: string;
+  // The rotating reel above the filters.
+  spotlight: ReactNode;
   archiveErrorMessage: string;
   emptyMessage: string;
   endOfArchiveMessage: string;
@@ -45,10 +43,8 @@ type MediaArchivePageProps<TItem, TSort extends string, TPeriod extends string> 
 
 export function MediaArchivePage<TItem, TSort extends string, TPeriod extends string>({
   moduleStyles,
-  heroModuleLabel,
-  heroTitle,
-  heroSubtitle,
-  backdropUrls,
+  heading,
+  spotlight,
   archiveErrorMessage,
   emptyMessage,
   endOfArchiveMessage,
@@ -132,26 +128,13 @@ export function MediaArchivePage<TItem, TSort extends string, TPeriod extends st
 
   return (
     <main className="relative mx-auto w-full max-w-400">
-      <div className="px-4 py-8">
-        <div className="surface-card relative mb-8 flex min-h-72 items-end overflow-hidden px-6 py-10 sm:min-h-96 sm:px-10 sm:py-14">
-          <RotatingPosterBackdrop
-            key={backdropUrls.join("|")}
-            backdropUrls={backdropUrls}
-            accentColor={moduleStyles.accent}
-          />
-
-          <div className="relative z-10">
-            <p className="theme-kicker mb-1 text-[10px]" style={{ color: moduleStyles.accent }}>
-              {heroModuleLabel}
-            </p>
-            <h2 className="mb-2 font-mono text-3xl font-bold md:text-5xl" style={{ color: moduleStyles.text }}>
-              {heroTitle}
-            </h2>
-            <p className="font-mono text-sm" style={{ color: moduleStyles.muted }}>
-              {heroSubtitle}
-            </p>
-          </div>
+      <div className="px-4 py-6">
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+          <h1 className="display-1 text-foreground">{heading}</h1>
+          <p className="mono-meta text-muted-foreground">{`${archiveCountLabel} · logged, not filtered.`}</p>
         </div>
+
+        {spotlight}
 
         <ArchiveFilterControls
           controlsRef={controlsRef}
@@ -174,7 +157,6 @@ export function MediaArchivePage<TItem, TSort extends string, TPeriod extends st
             setOpenMenu((current) => (current === menu ? null : menu));
           }}
           onCloseMenu={() => setOpenMenu(null)}
-          archiveCountLabel={archiveCountLabel}
           selectedGenre={selectedGenre}
           selectedLanguage={selectedLanguage}
           selectedSort={selectedSort}
