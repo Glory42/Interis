@@ -1,168 +1,170 @@
-import { parseMetadata, resolveActivityKind } from "./social-feed-metadata.helper";
 import { truncateExcerpt } from "../../../commons/helpers/text.helper";
+import { isUuid } from "../../../commons/helpers/uuid.helper";
 import {
-  resolveFilm,
-  resolvePost,
-  resolvePostFallbackId,
-  resolveReviewId,
+  parseMetadata,
+  readNumber,
+  readPostMediaType,
+  readString,
+  resolveActivityKind,
+  toFeedMediaType,
   toFeedMetadata,
-} from "./social-feed-resolvers.helper";
+} from "./social-feed-metadata.helper";
 import type {
   ActivityRow,
   FeedEngagement,
-  FeedFallbackMediaContext,
+  FeedFilm,
   FeedItem,
-  PostEngagement,
-  ReviewContext,
+  FeedMetadata,
+  ReviewFeedContext,
 } from "../types/social-feed.types";
+import type { FeedContext, FeedIds, FeedKind, ParsedActivity } from "../types/social-feed-kind.types";
 
-// Returns null when the review, post, diary log, list or followed account
-// the activity is about no longer exists (deleted by its author or a
-// moderator), or when the list is private. Metadata keeps a copy of
-// the text from when the activity was recorded, but it must never stand in
-// for deleted content.
-export const toFeedItem = (
-  row: ActivityRow,
-  reviewContext: ReviewContext,
-  postEngagementByPostId: Map<string, PostEngagement>,
-  activityEngagementById: Map<string, FeedEngagement>,
-  fallbackMedia: FeedFallbackMediaContext,
-): FeedItem | null => {
-  const rawMetadata = parseMetadata(row.activity.metadata);
-  const metadata = toFeedMetadata(rawMetadata);
-  const kind = resolveActivityKind(row.activity.type, metadata.action);
+// The pieces of a feed item every kind builds the same way. Metadata keeps a
+// copy of the text from when the activity was recorded, but it must never stand
+// in for deleted content.
 
-  const reviewId = resolveReviewId(row.activity, metadata);
-  const reviewById = reviewId ? reviewContext.byReviewId.get(reviewId) ?? null : null;
-  const isDiaryEntry = row.activity.type === "diary_entry";
-  const reviewByDiaryEntry =
-    isDiaryEntry
-      ? reviewContext.byDiaryEntryId.get(row.activity.entityId) ?? null
-      : null;
-  const reviewDetails = reviewById ?? reviewByDiaryEntry;
+export const parseActivity = (row: ActivityRow): ParsedActivity => {
+  const raw = parseMetadata(row.activity.metadata);
+  const metadata = toFeedMetadata(raw);
+  return { row, activity: row.activity, raw, metadata, kind: resolveActivityKind(row.activity.type, metadata.action) };
+};
 
-  // Rating, rewatch and watch day come from the live log, so an edit shows up too.
-  const diaryEntry = isDiaryEntry
-    ? fallbackMedia.diaryEntriesById.get(row.activity.entityId) ?? null
-    : null;
-  if (isDiaryEntry && !diaryEntry) {
+// A post's own id, or the post its metadata names (a like or comment on it).
+const postIdOf = ({ activity, raw }: ParsedActivity): string | null => {
+  const fromMetadata = readString(raw, "postId");
+  if (activity.type !== "post" && !fromMetadata) {
     return null;
   }
+  return fromMetadata ?? activity.entityId;
+};
 
-  // A private list stays out of every feed, its owner's included, and comes
-  // back if it's made public again. The title is the list's current one.
-  const isCreatedList = row.activity.type === "created_list";
-  const list = isCreatedList ? fallbackMedia.listsById.get(row.activity.entityId) ?? null : null;
-  if (isCreatedList && !list?.isPublic) {
+const embeddedFilm = ({ raw }: ParsedActivity): FeedFilm | null => {
+  const tmdbId = readNumber(raw, "tmdbId");
+  const title = readString(raw, "title");
+  if (tmdbId === null || !title) {
     return null;
   }
-
-  // A follow names its target by id, so it shows the target's current
-  // username, and goes once the account is deleted (#102).
-  const isFollow = row.activity.type === "followed_user";
-  const followedUser = isFollow
-    ? fallbackMedia.usersById.get(row.activity.entityId) ?? null
-    : null;
-  if (isFollow && !followedUser) {
-    return null;
-  }
-
-  // A diary entry outlives its review, so it stays in the feed without it.
-  if (reviewId && !reviewById && !isDiaryEntry) {
-    return null;
-  }
-
-  const post = resolvePost(rawMetadata, row.activity, fallbackMedia);
-  if (resolvePostFallbackId(rawMetadata, row.activity) && !post) {
-    return null;
-  }
-
-  const movie =
-    reviewDetails?.movie ?? resolveFilm(rawMetadata, row.activity, metadata, fallbackMedia);
-
-  const review = reviewDetails
-    ? {
-        id: reviewDetails.id,
-        content: reviewDetails.content,
-        containsSpoilers: reviewDetails.containsSpoilers,
-        rating: reviewDetails.rating,
-      }
-    : null;
-
-  // Review items carry a copy of the review text in metadata.excerpt, taken
-  // when the activity was recorded. Replace it with the live review so an
-  // edited or deleted review never shows its old text.
-  const carriesReviewText = kind === "review" || kind === "liked_review" || isDiaryEntry;
-  const reviewMetadata = carriesReviewText
-    ? {
-        hasReview: reviewDetails !== null,
-        reviewId: reviewDetails?.id ?? null,
-        containsSpoilers: reviewDetails?.containsSpoilers ?? null,
-        excerpt: reviewDetails ? truncateExcerpt(reviewDetails.content) : null,
-      }
-    : {};
-
-  const metadataWithReviewContext = {
-    ...metadata,
-    ...reviewMetadata,
-    ...(diaryEntry && {
-      rating: diaryEntry.rating,
-      rewatch: diaryEntry.rewatch,
-      logId: diaryEntry.id,
-      watchedDate: diaryEntry.watchedDate,
-    }),
-    targetUsername:
-      followedUser?.username ??
-      metadata.targetUsername ??
-      reviewDetails?.reviewAuthorUsername ??
-      null,
-    listId: list?.id ?? null,
-    listTitle: list?.title ?? null,
+  return {
+    tmdbId,
+    title,
+    posterPath: readString(raw, "posterPath"),
+    releaseYear: readNumber(raw, "releaseYear"),
+    mediaType: toFeedMediaType(readPostMediaType(raw, "mediaType")) ?? "movie",
   };
+};
 
-  const postId = post?.id ?? metadata.postId ?? (kind === "post" ? row.activity.entityId : null);
-  const fallbackPostEngagement: PostEngagement = {
-    likeCount: 0,
-    commentCount: 0,
-    viewerHasLiked: null,
-  };
-  const postEngagement: PostEngagement = postId
-    ? postEngagementByPostId.get(postId) ?? fallbackPostEngagement
-    : fallbackPostEngagement;
+// The film row to load when the metadata doesn't embed the film itself.
+const filmIdOf = (parsed: ParsedActivity): number | null => {
+  if (embeddedFilm(parsed)) {
+    return null;
+  }
+  const { activity, metadata } = parsed;
+  const filmId =
+    metadata.movieId ??
+    (metadata.postMediaType === "movie" ? metadata.postMediaId : null) ??
+    (activity.type === "liked_movie" || activity.type === "watchlisted_movie"
+      ? Number.parseInt(activity.entityId, 10)
+      : null);
+  return !filmId || Number.isNaN(filmId) ? null : filmId;
+};
 
-  const engagement: FeedEngagement = reviewDetails
-    ? {
-        likeCount: reviewDetails.likeCount,
-        commentCount: reviewDetails.commentCount,
-        viewerHasLiked: reviewDetails.viewerHasLiked,
-      }
-    : postId
-      ? {
-          likeCount: postEngagement.likeCount,
-          commentCount: postEngagement.commentCount,
-          viewerHasLiked: postEngagement.viewerHasLiked,
-        }
-      : activityEngagementById.get(row.activity.id) ?? {
-          likeCount: 0,
-          commentCount: 0,
-          viewerHasLiked: null,
-        };
+const filmOf = (parsed: ParsedActivity, context: FeedContext): FeedFilm | null => {
+  const embedded = embeddedFilm(parsed);
+  if (embedded) {
+    return embedded;
+  }
+  const filmId = filmIdOf(parsed);
+  const film = filmId === null ? undefined : context.films.get(filmId);
+  return film
+    ? { tmdbId: film.tmdbId, title: film.title, posterPath: film.posterPath, releaseYear: film.releaseYear, mediaType: "movie" }
+    : null;
+};
+
+export const addUuid = (set: Set<string>, id: string | null): void => {
+  if (id && isUuid(id)) {
+    set.add(id);
+  }
+};
+
+// The ids every kind may need: the post and film it shows and the review it names.
+export const collectShared = (parsed: ParsedActivity, ids: FeedIds, reviewId: string | null): void => {
+  addUuid(ids.reviews, reviewId);
+  addUuid(ids.posts, postIdOf(parsed));
+  const filmId = filmIdOf(parsed);
+  if (filmId !== null) {
+    ids.films.add(filmId);
+  }
+};
+
+// Dead when the review or post the activity is about has been deleted.
+export const sharedContentGone = (parsed: ParsedActivity, context: FeedContext, reviewId: string | null): boolean => {
+  const postId = postIdOf(parsed);
+  return (reviewId !== null && !context.reviews.byReviewId.has(reviewId)) || (postId !== null && !context.posts.has(postId));
+};
+
+export const reviewById = (context: FeedContext, reviewId: string | null): ReviewFeedContext | null =>
+  (reviewId ? context.reviews.byReviewId.get(reviewId) : null) ?? null;
+
+// The live review's text and flags in place of the activity's copy, so an
+// edited or deleted review never shows its old text.
+export const liveReviewMetadata = (review: ReviewFeedContext | null): Partial<FeedMetadata> => ({
+  hasReview: review !== null,
+  reviewId: review?.id ?? null,
+  containsSpoilers: review?.containsSpoilers ?? null,
+  excerpt: review ? truncateExcerpt(review.content) : null,
+});
+
+const noEngagement = (): FeedEngagement => ({ likeCount: 0, commentCount: 0, viewerHasLiked: null });
+
+export const projectItem = (
+  parsed: ParsedActivity,
+  context: FeedContext,
+  parts: { review: ReviewFeedContext | null; metadata?: Partial<FeedMetadata> },
+): FeedItem => {
+  const { activity, row, metadata } = parsed;
+  const { review } = parts;
+  const postId = postIdOf(parsed);
+  const postRow = postId ? context.posts.get(postId) : undefined;
+  const post = postRow
+    ? { id: postRow.id, content: postRow.content, mediaId: postRow.mediaId, mediaType: postRow.mediaType }
+    : null;
+
+  // Likes and comments belong to the review or post shown, else to the activity itself.
+  const engagement: FeedEngagement = review
+    ? { likeCount: review.likeCount, commentCount: review.commentCount, viewerHasLiked: review.viewerHasLiked }
+    : post
+      ? context.postEngagement.get(post.id) ?? noEngagement()
+      : context.activityEngagement.get(activity.id) ?? noEngagement();
 
   return {
-    id: row.activity.id,
-    type: row.activity.type,
-    kind,
-    createdAt: row.activity.createdAt,
+    id: activity.id,
+    type: activity.type,
+    kind: parsed.kind,
+    createdAt: activity.createdAt,
     actor: {
       id: row.actorId,
       username: row.actorUsername,
       displayUsername: row.actorDisplayUsername,
       avatarUrl: row.actorAvatarUrl,
     },
-    movie,
+    movie: review?.movie ?? filmOf(parsed, context),
     post,
-    review,
-    metadata: metadataWithReviewContext,
+    review: review
+      ? { id: review.id, content: review.content, containsSpoilers: review.containsSpoilers, rating: review.rating }
+      : null,
+    metadata: {
+      ...metadata,
+      ...parts.metadata,
+      targetUsername:
+        parts.metadata?.targetUsername ?? metadata.targetUsername ?? review?.reviewAuthorUsername ?? null,
+    },
     engagement,
   };
+};
+
+// Kinds about no review or log of their own: the review and post their metadata names.
+export const contentKind: FeedKind = {
+  collect: (parsed, ids) => collectShared(parsed, ids, parsed.metadata.reviewId),
+  isDead: (parsed, context) => sharedContentGone(parsed, context, parsed.metadata.reviewId),
+  project: (parsed, context) => projectItem(parsed, context, { review: reviewById(context, parsed.metadata.reviewId) }),
 };

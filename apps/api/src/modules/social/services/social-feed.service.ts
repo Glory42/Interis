@@ -1,14 +1,8 @@
 import { createTtlCache } from "../../../infrastructure/cache/ttl-cache.helper";
 import { normalizeLimit } from "../helpers/social-feed-metadata.helper";
-import {
-  buildActivityEngagementContext,
-  buildFeedFallbackMediaContext,
-  buildPostEngagementContext,
-  buildReviewContext,
-} from "../helpers/social-feed-context.helper";
+import { toFeedItems } from "../helpers/feed-kinds/feed-kind.registry";
 import { dedupeReviewFeedItems } from "../helpers/social-feed-dedupe.helper";
 import { inferFeedItemMediaType } from "../helpers/social-feed-channel.helper";
-import { toFeedItem } from "../helpers/social-feed-item.helper";
 import { groupFeedItems, toUtcDayKey } from "../helpers/social-feed-grouping.helper";
 import { decodeFeedCursor, encodeFeedCursor } from "../helpers/social-feed-cursor.helper";
 import { SocialRepository } from "../repositories/social.repository";
@@ -40,26 +34,7 @@ const FEED_CACHE_TTL_MS = 20 * 1000;
 const buildFeedItems = async (
   rows: ActivityRow[],
   viewerId?: string,
-): Promise<FeedItem[]> => {
-  const [reviewContext, postEngagementByPostId, activityEngagementById] = await Promise.all([
-    buildReviewContext(rows, viewerId),
-    buildPostEngagementContext(rows, viewerId),
-    buildActivityEngagementContext(rows, viewerId),
-  ]);
-
-  // Depends on reviewContext (a row only needs a movie fallback lookup
-  // when it has no review-attached movie already), so it can't join the
-  // Promise.all above.
-  const fallbackMedia = await buildFeedFallbackMediaContext(rows, reviewContext);
-
-  const feedItems = rows
-    .map((row) =>
-      toFeedItem(row, reviewContext, postEngagementByPostId, activityEngagementById, fallbackMedia),
-    )
-    .filter((item): item is FeedItem => item !== null);
-
-  return dedupeReviewFeedItems(feedItems);
-};
+): Promise<FeedItem[]> => dedupeReviewFeedItems(await toFeedItems(rows, viewerId));
 
 const getFeedUserIds = async (userId: string): Promise<string[]> => {
   const [followingRows, blockedIds, blockedByIds, mutedIds] = await Promise.all([
@@ -101,7 +76,7 @@ const getFollowingFeedUncached = async (
     // dedupedItems can be shorter than rows (items about deleted content
     // are dropped, and dedupeReviewFeedItems only ever *drops* items, it
     // never merges two rows into one - each surviving item's id/createdAt
-    // is still a genuine row's identity, see toFeedItem), so it can also
+    // is still a genuine row's identity, see toFeedItems), so it can also
     // be longer than normalizedLimit
     // since fetchLimit over-fetches 2x as headroom for that dedup step.
     // Slicing here (rather than returning dedupedItems as-is) is the fix:
