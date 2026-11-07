@@ -15,6 +15,8 @@ export const emptyFeedIds = (): FeedIds => ({
   films: new Set(),
   lists: new Set(),
   users: new Set(),
+  reviewComments: new Set(),
+  postComments: new Set(),
   likedActivities: new Set(),
 });
 
@@ -144,6 +146,8 @@ export const loadFeedContext = async (ids: FeedIds, viewerId?: string): Promise<
     logRows,
     listRows,
     userRows,
+    reviewCommentRows,
+    postCommentRows,
   ] = await Promise.all([
     loadReviews([...ids.reviews], [...ids.logs], viewerId),
     loadPostEngagement(postIds, viewerId),
@@ -153,6 +157,8 @@ export const loadFeedContext = async (ids: FeedIds, viewerId?: string): Promise<
     SocialFeedRepository.getDiaryEntriesByIds([...ids.logs]),
     SocialFeedRepository.getListsByIds([...ids.lists]),
     SocialFeedRepository.getUsersByIds([...ids.users]),
+    SocialFeedRepository.getReviewCommentsByIds([...ids.reviewComments]),
+    SocialFeedRepository.getPostCommentsByIds([...ids.postComments]),
   ]);
 
   return {
@@ -163,6 +169,8 @@ export const loadFeedContext = async (ids: FeedIds, viewerId?: string): Promise<
     logs: byId(logRows),
     lists: byId(listRows),
     users: byId(userRows),
+    reviewComments: byId(reviewCommentRows),
+    postComments: byId(postCommentRows),
     activityEngagement,
   };
 };

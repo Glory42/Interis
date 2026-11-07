@@ -34,9 +34,13 @@ export type FeedIds = {
   films: Set<number>;
   lists: Set<string>;
   users: Set<string>;
+  reviewComments: Set<string>;
+  postComments: Set<string>;
   // Activities whose likes are their own, not a review's or a post's.
   likedActivities: Set<string>;
 };
+
+export type FeedCommentRow = { id: string; content: string };
 
 export type FeedContext = {
   reviews: ReviewContext;
@@ -46,6 +50,8 @@ export type FeedContext = {
   logs: Map<string, FeedDiaryEntryRow>;
   lists: Map<string, FeedListRow>;
   users: Map<string, FeedUserRow>;
+  reviewComments: Map<string, FeedCommentRow>;
+  postComments: Map<string, FeedCommentRow>;
   activityEngagement: Map<string, FeedEngagement>;
 };
 
