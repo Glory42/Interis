@@ -1,7 +1,7 @@
 import { SerialsEpisodeInteractionsRepository } from "../repositories/serials-episode-interactions.repository";
 import { toNormalizedSeasonItems } from "./serials-normalization.helper";
 import { filterWatchedNonSpecialEpisodes, toWatchedEpisodeKeySet } from "./serials-episode-filter.helper";
-import { isNonSpecialSeasonNumber } from "../constants/serials-season.constants";
+import { isNonSpecialSeasonNumber, SPECIALS_SEASON_NUMBER } from "../constants/serials-season.constants";
 import type { TMDBSeriesDetail } from "../../../infrastructure/tmdb/serials";
 import type { SerialDetailViewerTracking } from "../types/serials.types";
 
@@ -27,13 +27,15 @@ export function findNextUnwatchedEpisode(
   return null;
 }
 
+// Watched episodes per season, specials (season 0) included.
 export const countWatchedEpisodesBySeason = (
-  watchedEpisodes: { seasonNumber: number }[],
+  tracking: Pick<SerialDetailViewerTracking, "watchedEpisodes" | "watchedSpecialEpisodesCount">,
 ): Map<number, number> => {
   const counts = new Map<number, number>();
-  for (const { seasonNumber } of watchedEpisodes) {
+  for (const { seasonNumber } of tracking.watchedEpisodes) {
     counts.set(seasonNumber, (counts.get(seasonNumber) ?? 0) + 1);
   }
+  if (tracking.watchedSpecialEpisodesCount > 0) counts.set(SPECIALS_SEASON_NUMBER, tracking.watchedSpecialEpisodesCount);
   return counts;
 };
 
@@ -71,6 +73,9 @@ export async function calculateViewerTracking(
   return {
     watchedEpisodesCount: watchedEpisodes.length,
     watchedEpisodes,
+    watchedSpecialEpisodesCount: userEpisodeInteractions.filter(
+      (i) => i.watched && i.seasonNumber === SPECIALS_SEASON_NUMBER,
+    ).length,
     currentEpisode,
     ratingsCount: seasonRatingsCount + episodeRatingsCount,
     likesCount: seasonLikesCount + episodeLikesCount,

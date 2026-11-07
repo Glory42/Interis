@@ -211,8 +211,10 @@ export type SerialReviewsPageResponse = {
 };
 
 export type SerialDetailViewerTracking = {
+  // Regular seasons only; specials are counted separately below.
   watchedEpisodesCount: number;
   watchedEpisodes: { seasonNumber: number; episodeNumber: number }[];
+  watchedSpecialEpisodesCount: number;
   currentEpisode: { seasonNumber: number; episodeNumber: number; name: string } | null;
   ratingsCount: number;
   likesCount: number;

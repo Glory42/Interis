@@ -125,11 +125,12 @@ Key fields:
 - `series` basic info: `id`, `tmdbId`, `title`, `posterPath`, `numberOfSeasons`, `numberOfEpisodes`
   - `numberOfEpisodes` excludes season 0 (Specials) — only regular aired seasons are counted.
 - `viewerTracking` progress:
-  - `watchedEpisodesCount`: total count of watched episodes.
-  - `watchedEpisodes[]` list: `{ seasonNumber, episodeNumber }` mappings.
+  - `watchedEpisodesCount`: total count of watched episodes in regular seasons.
+  - `watchedEpisodes[]` list: `{ seasonNumber, episodeNumber }` mappings (regular seasons).
+  - `watchedSpecialEpisodesCount`: watched episodes in season 0 (Specials).
   - `currentEpisode` (Up Next): `{ seasonNumber, episodeNumber, name }` or `null` if series completed.
   - interaction aggregations: `ratingsCount`, `likesCount`, `reviewsCount`.
-- `seasons[]` array list: `seasonNumber`, `name`, `episodeCount`, and season-level `viewerInteraction` object (`watched`, `liked`, `rating`, `hasReview`, `watchedEpisodeCount`: regular episodes watched in that season).
+- `seasons[]` array list: `seasonNumber`, `name`, `episodeCount`, and season-level `viewerInteraction` object (`watched`, `liked`, `rating`, `hasReview`, `watchedEpisodeCount`: episodes watched in that season, including Specials for season 0).
 
 ## Currently Watching payload (`/serials/currently-watching`)
 

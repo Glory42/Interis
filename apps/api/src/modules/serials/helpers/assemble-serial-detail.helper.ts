@@ -142,7 +142,7 @@ export const assembleSerialDetail = (inputs: SerialDetailInputs): SerialDetailRe
   );
 
   const watchedCountBySeason = countWatchedEpisodesBySeason(
-    inputs.viewerTracking?.watchedEpisodes ?? [],
+    inputs.viewerTracking ?? { watchedEpisodes: [], watchedSpecialEpisodesCount: 0 },
   );
 
   const mappedSeasons = (tmdbDetail ? toNormalizedSeasonItems(tmdbDetail) : []).map((season) => {
