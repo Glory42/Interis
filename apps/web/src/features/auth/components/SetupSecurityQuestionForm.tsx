@@ -1,9 +1,18 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { isApiError } from "@/lib/api-client";
 import { useSetSecurityQuestion } from "@/features/auth/hooks/useAuth";
+import { AccountField } from "@/features/settings/components/account/AccountField";
+import { isApiError } from "@/lib/api-client";
+
+const ANSWER_MAX = 200;
+
+// Prompts only fill the field; the person still owns the wording.
+const PROMPTS = [
+  { chip: "First film in a cinema?", question: "What was the first film you watched in a cinema?" },
+  { chip: "Most rewatched film?", question: "Which film have you rewatched the most?" },
+  { chip: "Street you grew up on?", question: "What street did you grow up on?" },
+];
 
 export const SetupSecurityQuestionForm = () => {
   const navigate = useNavigate();
@@ -16,77 +25,75 @@ export const SetupSecurityQuestionForm = () => {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError(null);
-
     try {
-      await setSecurityQuestion({ question, answer });
+      await setSecurityQuestion({ question: question.trim(), answer });
       await navigate({ to: "/" });
     } catch (error) {
-      if (isApiError(error)) {
-        setFormError(error.message);
-        return;
-      }
-
-      setFormError("Unexpected error. Please try again.");
+      setFormError(isApiError(error) ? error.message : "Unexpected error. Please try again.");
     }
   };
 
   return (
-    <div className="mx-auto w-full max-w-md">
-      <p className="mb-5 text-sm leading-relaxed text-muted-foreground">
-        Write your own security question and answer — it&apos;s how you reset your password if
-        you forget it, so pick something only you would know.
+    <div>
+      <h1 className="display-2 leading-tight text-foreground">Set a question only you can answer.</h1>
+      <p className="body mt-2 text-muted-foreground">
+        Interis doesn't send reset emails. If you forget your password, this question is how you get back in.
       </p>
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        <div className="space-y-1.5">
-          <label
-            className="text-sm font-medium text-foreground"
-            htmlFor="security-question-question"
-          >
-            Your question
-          </label>
-          <Input
-            id="security-question-question"
-            name="question"
-            type="text"
-            placeholder="e.g. What was the first film you watched in a cinema?"
-            value={question}
-            onChange={(event) => setQuestion(event.target.value)}
-            minLength={4}
-            maxLength={200}
-            required
-          />
+      <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+        <div>
+          <p className="kicker mb-1.5 text-muted-foreground">Pick one or write your own</p>
+          <div className="flex flex-wrap gap-2">
+            {PROMPTS.map((prompt) => (
+              <button
+                key={prompt.chip}
+                type="button"
+                aria-pressed={question === prompt.question}
+                onClick={() => setQuestion(prompt.question)}
+                className="body-s rounded-[2px] border border-[color:var(--line)] px-2.5 py-1 text-muted-foreground hover:text-foreground aria-pressed:border-[color:var(--primary)] aria-pressed:text-foreground"
+              >
+                {prompt.chip}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="space-y-1.5">
-          <label
-            className="text-sm font-medium text-foreground"
-            htmlFor="security-question-answer"
-          >
-            Your answer
-          </label>
-          <Input
+        <AccountField
+          id="security-question-question"
+          name="question"
+          label="Your question"
+          autoComplete="off"
+          minLength={4}
+          maxLength={200}
+          value={question}
+          onValueChange={setQuestion}
+          required
+        />
+        <div>
+          <AccountField
             id="security-question-answer"
             name="answer"
-            type="text"
+            label="Your answer"
+            autoComplete="off"
+            maxLength={ANSWER_MAX}
             value={answer}
-            onChange={(event) => setAnswer(event.target.value)}
-            maxLength={200}
+            onValueChange={setAnswer}
             required
           />
+          <p className="mono-meta mt-1 flex justify-between text-muted-foreground">
+            <span>Capitals and spaces at either end don't matter when you answer later.</span>
+            <span>{`${answer.length} / ${ANSWER_MAX}`}</span>
+          </p>
         </div>
 
         {formError ? (
-          <p
-            role="alert"
-            className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-          >
+          <p role="alert" className="body-s text-[color:var(--danger)]">
             {formError}
           </p>
         ) : null}
 
-        <Button className="w-full" type="submit" disabled={isPending}>
-          {isPending ? "Saving..." : "Save and continue"}
+        <Button className="w-full" size="md" type="submit" disabled={isPending || question.trim().length < 4 || !answer.trim()}>
+          {isPending ? "Saving…" : "Save and open my diary"}
         </Button>
       </form>
     </div>
