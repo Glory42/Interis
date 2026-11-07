@@ -91,7 +91,7 @@ describe("PersonDetailPage", () => {
     renderWithProviders(<PersonDetailPage role="director" slug="christopher-nolan" />);
 
     expect(await screen.findByRole("button", { name: "Crew (41)" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Films" })).toHaveAttribute("href", "/movies");
+    expect(screen.getByRole("heading", { name: "Christopher Nolan" })).toBeInTheDocument();
     expect(screen.getByText("From Wikipedia, the free encyclopedia")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Combined (43)" })).toBeInTheDocument();
     expect(await screen.findByText("Director, Writer")).toBeInTheDocument();
