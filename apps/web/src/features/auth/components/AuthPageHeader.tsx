@@ -4,13 +4,8 @@ type AuthPageHeaderProps = {
 };
 
 export const AuthPageHeader = ({ title, subtitle }: AuthPageHeaderProps) => (
-  <div className="mb-6 space-y-1">
-    <h1
-      className="text-2xl font-bold text-foreground"
-      style={{ fontFamily: "var(--theme-display-font)" }}
-    >
-      {title}
-    </h1>
-    <p className="text-sm text-muted-foreground">{subtitle}</p>
+  <div className="mb-6">
+    <h1 className="display-2 leading-tight text-foreground">{title}</h1>
+    <p className="body mt-1.5 text-muted-foreground">{subtitle}</p>
   </div>
 );

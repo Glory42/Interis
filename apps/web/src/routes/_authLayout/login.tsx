@@ -25,16 +25,14 @@ function LoginPage() {
 
   return (
     <>
-      <AuthPageHeader title="Sign in" subtitle="Continue your diary from where you left off." />
-      <div className="space-y-4">
-        <LoginForm redirectTo={redirect} />
-        <p className="text-sm text-muted-foreground">
-          New here?{" "}
-          <Link to="/register" className="font-semibold text-primary hover:text-primary/80">
-            Create an account
-          </Link>
-        </p>
-      </div>
+      <AuthPageHeader title="Pick up where you left off." subtitle="Sign in with the email you joined with." />
+      <LoginForm redirectTo={redirect} />
+      <p className="body-s mt-4 text-muted-foreground">
+        {"New here? "}
+        <Link to="/register" className="font-semibold text-primary hover:underline">
+          Start a diary
+        </Link>
+      </p>
     </>
   );
 }
