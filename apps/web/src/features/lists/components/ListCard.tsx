@@ -51,7 +51,7 @@ export const ListCard = memo(function ListCard({ list, username }: ListCardProps
           return (
             <div
               key={i}
-              className="absolute top-0 overflow-hidden rounded-md border border-border/40 bg-muted/20"
+              className="absolute top-0 overflow-hidden rounded-[2px] border border-border/40 bg-muted/20"
               style={{
                 left: `${i * OFFSET}px`,
                 width: `${POSTER_W}px`,
@@ -85,11 +85,11 @@ export const ListCard = memo(function ListCard({ list, username }: ListCardProps
       </div>
 
       <div className="min-w-0 flex-1">
-        <h3 className="mb-1 font-mono text-base font-semibold text-foreground group-hover:text-foreground/90">
+        <h3 className="display-4 mb-1 text-foreground group-hover:text-foreground/90">
           {list.title}
         </h3>
         {list.description ? (
-          <p className="mb-2 line-clamp-1 font-mono text-xs text-muted-foreground">
+          <p className="body-s mb-2 line-clamp-1 text-muted-foreground">
             {list.description}
           </p>
         ) : null}

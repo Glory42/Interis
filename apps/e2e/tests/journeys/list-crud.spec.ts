@@ -43,7 +43,9 @@ test("creates a list, adds an item, edits it, then deletes it", async ({ page })
     await test.step("edits the title and removes the item", async () => {
       await page.getByText("My Favorite Thrillers").click();
       await page.waitForURL(/\/profile\/.+\/lists\/.+$/);
-      await page.getByRole("button", { name: "Edit" }).click();
+      // Edit and Delete live in the list's ⋯ menu.
+      await page.getByRole("button", { name: "List actions" }).click();
+      await page.getByRole("menuitem", { name: "Edit" }).click();
       await page.waitForURL(/\/lists\/.+\/edit$/);
 
       const titleInput = page.getByPlaceholder("Give your list a name...");
@@ -66,10 +68,9 @@ test("creates a list, adds an item, edits it, then deletes it", async ({ page })
     });
 
     await test.step("deletes the list", async () => {
-      page.once("dialog", (dialog) => {
-        void dialog.accept();
-      });
-      await page.getByRole("button", { name: "Delete" }).click();
+      await page.getByRole("button", { name: "List actions" }).click();
+      await page.getByRole("menuitem", { name: "Delete" }).click();
+      await page.getByRole("button", { name: "Delete list" }).click();
       await page.waitForURL(`/profile/${user.username}/lists`);
       await expect(page.getByText("Renamed List")).not.toBeVisible();
     });
