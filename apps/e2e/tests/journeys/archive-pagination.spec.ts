@@ -5,7 +5,8 @@ import { expect, test } from "@playwright/test";
 // profile tabs (60-item page size, would need seeding 61+ diary/review/
 // watchlist entries per test to ever reach "Load more"), this needs no
 // signup or per-test data at all to reach and exercise a second page.
-const ARCHIVE_ITEM_LINK_SELECTOR = 'a[href^="/movies/"]';
+// Grid cards only: the spotlight reel above the grid is a <section> with its own title link.
+const ARCHIVE_ITEM_LINK_SELECTOR = 'main a[href^="/movies/"]:not(section a)';
 const ARCHIVE_PAGE_SIZE = 30;
 
 // Counts are bounds, not exact: trending can repeat a title across TMDB

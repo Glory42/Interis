@@ -1,8 +1,7 @@
 import { useState, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
-import { Settings } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { ProfileHeaderCompact } from "@/features/profile/components/ProfileHeaderCompact";
+import { ProfileActions } from "@/features/profile/components/ProfileActions";
 import {
   ProfileTabs,
   type ProfileTab,
@@ -136,65 +135,24 @@ export const ProfileLayout = ({
     muteMutation.mutate();
   };
 
-  const actionClassName =
-    "flex items-center gap-1.5 border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.16em] transition-colors shell-border shell-muted hover:text-foreground";
-
-  const profileHeaderAction = isUserLoading ? null : isOwnProfile ? (
-    <Link
-      to="/settings/profile"
-      className={actionClassName}
-      aria-label="Open settings"
-    >
-      <Settings className="h-3 w-3" aria-hidden="true" />
-    </Link>
-  ) : isViewerLoggedIn ? (
-    <div className="flex items-center gap-1.5">
-      <button
-        type="button"
-        className={actionClassName}
-        disabled={followStateQuery.isPending || isFollowActionPending || isBlocked}
-        onClick={() => {
-          void handleToggleFollow();
-        }}
-        aria-label="Follow user"
-      >
-        {followStateQuery.isPending
-          ? "Loading"
-          : isFollowActionPending
-            ? "Saving"
-            : isFollowing
-              ? "Following"
-              : "Follow"}
-      </button>
-      <button
-        type="button"
-        className={actionClassName}
-        disabled={relationshipStateQuery.isPending || isMuteActionPending}
-        onClick={handleToggleMute}
-        aria-label={isMuted ? "Unmute user" : "Mute user"}
-      >
-        {isMuteActionPending ? "Saving" : isMuted ? "Muted" : "Mute"}
-      </button>
-      <button
-        type="button"
-        className={actionClassName}
-        disabled={relationshipStateQuery.isPending || isBlockActionPending}
-        onClick={handleToggleBlock}
-        aria-label={isBlocked ? "Unblock user" : "Block user"}
-      >
-        {isBlockActionPending ? "Saving" : isBlocked ? "Blocked" : "Block"}
-      </button>
-    </div>
-  ) : (
-    <Link
-      to="/login"
-      search={{
-        redirect: `/profile/${profile.username}`,
-      }}
-      className={actionClassName}
-    >
-      Follow
-    </Link>
+  const profileHeaderAction = isUserLoading ? null : (
+    <ProfileActions
+      mode={isOwnProfile ? "owner" : isViewerLoggedIn ? "viewer" : "guest"}
+      username={profile.username}
+      isFollowing={isFollowing}
+      isMuted={isMuted}
+      isBlocked={isBlocked}
+      isBusy={
+        followStateQuery.isPending ||
+        relationshipStateQuery.isPending ||
+        isFollowActionPending ||
+        isMuteActionPending ||
+        isBlockActionPending
+      }
+      onToggleFollow={() => void handleToggleFollow()}
+      onToggleMute={handleToggleMute}
+      onToggleBlock={handleToggleBlock}
+    />
   );
 
   const entryCount = (profile.stats?.movieEntryCount ?? 0) + (profile.stats?.serialEntryCount ?? 0);
