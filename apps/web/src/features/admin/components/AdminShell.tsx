@@ -9,6 +9,7 @@ const SECTIONS = [
   { to: "/admin/users", label: "Users", exact: false },
   { to: "/admin/content", label: "Content", exact: false },
   { to: "/admin/audit", label: "Audit log", exact: false },
+  { to: "/admin/cache", label: "Cache", exact: false },
 ] as const;
 
 // Each section is its own route, so a refresh or a shared link lands in place.

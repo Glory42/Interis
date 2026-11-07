@@ -31,6 +31,7 @@ import { Route as MoviesTmdbIdRouteImport } from './routes/movies/$tmdbId'
 import { Route as DirectorSlugRouteImport } from './routes/director/$slug'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as AdminContentRouteImport } from './routes/admin/content'
+import { Route as AdminCacheRouteImport } from './routes/admin/cache'
 import { Route as AdminAuditRouteImport } from './routes/admin/audit'
 import { Route as ActorSlugRouteImport } from './routes/actor/$slug'
 import { Route as AuthLayoutRegisterRouteImport } from './routes/_authLayout/register'
@@ -162,6 +163,11 @@ const AdminReportsRoute = AdminReportsRouteImport.update({
 const AdminContentRoute = AdminContentRouteImport.update({
   id: '/content',
   path: '/content',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminCacheRoute = AdminCacheRouteImport.update({
+  id: '/cache',
+  path: '/cache',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminAuditRoute = AdminAuditRouteImport.update({
@@ -298,6 +304,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof AuthLayoutRegisterRoute
   '/actor/$slug': typeof ActorSlugRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/cache': typeof AdminCacheRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/reports': typeof AdminReportsRoute
   '/director/$slug': typeof DirectorSlugRoute
@@ -341,6 +348,7 @@ export interface FileRoutesByTo {
   '/register': typeof AuthLayoutRegisterRoute
   '/actor/$slug': typeof ActorSlugRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/cache': typeof AdminCacheRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/reports': typeof AdminReportsRoute
   '/director/$slug': typeof DirectorSlugRoute
@@ -389,6 +397,7 @@ export interface FileRoutesById {
   '/_authLayout/register': typeof AuthLayoutRegisterRoute
   '/actor/$slug': typeof ActorSlugRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/cache': typeof AdminCacheRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/reports': typeof AdminReportsRoute
   '/director/$slug': typeof DirectorSlugRoute
@@ -437,6 +446,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/actor/$slug'
     | '/admin/audit'
+    | '/admin/cache'
     | '/admin/content'
     | '/admin/reports'
     | '/director/$slug'
@@ -480,6 +490,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/actor/$slug'
     | '/admin/audit'
+    | '/admin/cache'
     | '/admin/content'
     | '/admin/reports'
     | '/director/$slug'
@@ -527,6 +538,7 @@ export interface FileRouteTypes {
     | '/_authLayout/register'
     | '/actor/$slug'
     | '/admin/audit'
+    | '/admin/cache'
     | '/admin/content'
     | '/admin/reports'
     | '/director/$slug'
@@ -736,6 +748,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminContentRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/cache': {
+      id: '/admin/cache'
+      path: '/cache'
+      fullPath: '/admin/cache'
+      preLoaderRoute: typeof AdminCacheRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/audit': {
       id: '/admin/audit'
       path: '/audit'
@@ -902,6 +921,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteRouteChildren {
   AdminAuditRoute: typeof AdminAuditRoute
+  AdminCacheRoute: typeof AdminCacheRoute
   AdminContentRoute: typeof AdminContentRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -911,6 +931,7 @@ interface AdminRouteRouteChildren {
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminAuditRoute: AdminAuditRoute,
+  AdminCacheRoute: AdminCacheRoute,
   AdminContentRoute: AdminContentRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminIndexRoute: AdminIndexRoute,
