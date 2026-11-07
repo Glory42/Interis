@@ -184,10 +184,15 @@ export type GroupedFeedPage = {
 
 // Pages end on a day boundary when the next row is from the same day, so a
 // title's same-day group never splits across two pages.
+// A title group or activity's film/TV kind; null for follows, lists and plain posts.
+const entryMediaType = (entry: GroupedFeedEntry): FeedMediaType | null =>
+  entry.kind === "title" ? entry.movie.mediaType : (entry.item.movie?.mediaType ?? entry.item.post?.mediaType ?? null);
+
 const getGroupedFollowingFeedUncached = async (
   userId: string,
   limit?: number,
   cursor?: string,
+  mediaType?: FeedMediaType,
 ): Promise<GroupedFeedPage> => {
   const fetchLimit = normalizeLimit(limit) * 2;
   const feedUserIds = await getFeedUserIds(userId);
@@ -205,7 +210,9 @@ const getGroupedFollowingFeedUncached = async (
     pageRows = pageRows.filter((row) => toUtcDayKey(row.activity.createdAt) !== lastDay);
   }
 
-  const items = groupFeedItems(await buildFeedItems(pageRows, userId));
+  const grouped = groupFeedItems(await buildFeedItems(pageRows, userId));
+  // Filtered after grouping, so a filtered page can come back short; the cursor still advances.
+  const items = mediaType ? grouped.filter((entry) => entryMediaType(entry) === mediaType) : grouped;
   const lastRow = pageRows.at(-1);
 
   return {
@@ -219,8 +226,8 @@ const getGroupedFollowingFeedUncached = async (
 
 const cachedGetGroupedFollowingFeed = createTtlCache(getGroupedFollowingFeedUncached, {
   ttlMs: FEED_CACHE_TTL_MS,
-  keyFn: (userId: string, limit?: number, cursor?: string) =>
-    `${userId}:${limit ?? ""}:${cursor ?? ""}`,
+  keyFn: (userId: string, limit?: number, cursor?: string, mediaType?: FeedMediaType) =>
+    `${userId}:${limit ?? ""}:${cursor ?? ""}:${mediaType ?? ""}`,
 });
 
 const cachedGetFollowingFeed = createTtlCache(getFollowingFeedUncached, {
@@ -265,8 +272,9 @@ export class SocialFeedService {
     userId: string,
     limit?: number,
     cursor?: string,
+    mediaType?: FeedMediaType,
   ): Promise<GroupedFeedPage> {
-    return cachedGetGroupedFollowingFeed(userId, limit, cursor);
+    return cachedGetGroupedFollowingFeed(userId, limit, cursor, mediaType);
   }
 
   static async getUserActivityFeed(userId: string, limit?: number): Promise<FeedItem[]> {

@@ -81,6 +81,16 @@ describe("GET /api/social/feed/grouped", () => {
     expect(entries[0]!.review?.content).toBe("Grouped review text");
   });
 
+  it("keeps only films or only TV when asked", async () => {
+    const { jar } = await signUpTestUser(getServer().baseUrl, "grpfilter");
+    const movie = await seedTestMovie("Filtered Movie");
+    await send(jar, "/api/diary", "POST", { tmdbId: movie.tmdbId, watchedDate: "2026-02-02", rating: 7 });
+
+    const hasMovie = (page: GroupedPage) => titleEntries(page).some((entry) => entry.movie.tmdbId === movie.tmdbId);
+    expect(hasMovie(await getPage(jar, "limit=20&mediaType=movie"))).toBe(true);
+    expect(hasMovie(await getPage(jar, "limit=20&mediaType=tv"))).toBe(false);
+  });
+
   it("pages across a day boundary without splitting or repeating a group", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "grppage");
     const [userRow] = await db.select({ id: user.id }).from(user).where(eq(user.username, username));

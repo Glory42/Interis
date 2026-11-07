@@ -42,7 +42,8 @@ export class SocialController {
     res: Response,
   ): Promise<void> {
     const limit = normalizeSocialFeedLimit(req.query.limit, 20);
-    const feed = await SocialService.getGroupedFollowingFeed(req.user.id, limit, req.query.cursor);
+    const mediaType = normalizeSocialFeedMediaType(req.query.mediaType);
+    const feed = await SocialService.getGroupedFollowingFeed(req.user.id, limit, req.query.cursor, mediaType);
     res.status(200).json(feed);
   }
 

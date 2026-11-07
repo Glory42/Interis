@@ -1,10 +1,10 @@
 import { apiRequest, type QueryRequestOptions } from "@/lib/api-client";
 import {
-  feedPageSchema,
+  groupedFeedPageSchema,
   meFeedSummarySchema,
   networkStatsSchema,
   trendingMovieListSchema,
-  type FeedPage,
+  type GroupedFeedPage,
   type MeFeedSummary,
   type NetworkStats,
   type TrendingMovie,
@@ -21,12 +21,13 @@ const normalizeLimit = (limit: number, fallback: number): number => {
 
 export type FeedMediaTypeFilter = MediaType;
 
-export const getFollowingFeed = async (
+// Same-day actions on a title arrive merged (PR-10); a filtered page can come back short.
+export const getGroupedFeed = async (
   limit = 20,
   cursor?: string,
   mediaType?: FeedMediaTypeFilter,
   options: QueryRequestOptions = {},
-): Promise<FeedPage> => {
+): Promise<GroupedFeedPage> => {
   const params = new URLSearchParams({ limit: String(normalizeLimit(limit, 20)) });
   if (cursor) {
     params.set("cursor", cursor);
@@ -35,15 +36,12 @@ export const getFollowingFeed = async (
     params.set("mediaType", mediaType);
   }
 
-  const response = await apiRequest<unknown>(
-    `/api/social/feed/following?${params.toString()}`,
-    {
-      method: "GET",
-      signal: options.signal,
-    },
-  );
+  const response = await apiRequest<unknown>(`/api/social/feed/grouped?${params.toString()}`, {
+    method: "GET",
+    signal: options.signal,
+  });
 
-  return feedPageSchema.parse(response);
+  return groupedFeedPageSchema.parse(response);
 };
 
 export const getTrendingMovies = async (

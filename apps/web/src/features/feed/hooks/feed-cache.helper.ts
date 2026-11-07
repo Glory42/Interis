@@ -9,8 +9,12 @@ type FeedInfiniteData = InfiniteData<FeedPage, string | undefined>;
 // (posts, reviews, social graph, moderation, diary, serials) invalidates
 // it from - keeps the query key and invalidation scope in one spot instead
 // of duplicated at each call site.
-export const invalidateFollowingFeed = (queryClient: QueryClient): Promise<void> =>
-  queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot });
+export const invalidateFollowingFeed = async (queryClient: QueryClient): Promise<void> => {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: feedKeys.followingRoot }),
+    queryClient.invalidateQueries({ queryKey: feedKeys.groupedRoot }),
+  ]);
+};
 
 // Patches matching feed items across every cached page without a full
 // refetch. The feed is a useInfiniteQuery, so its cache is

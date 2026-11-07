@@ -1,7 +1,7 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import type { FeedFilter } from "@/features/feed/components/FeedActivityList";
+import type { FeedFilter } from "@/features/feed/types";
 import {
-  getFollowingFeed,
+  getGroupedFeed,
   getMyFeedSummary,
   getNetworkStats,
   getTrendingMovies,
@@ -22,25 +22,26 @@ export const feedKeys = {
   // (e.g. after liking a post, regardless of which tab is active).
   followingRoot: ["feed", "following"] as const,
   following: (filter: FeedFilter = "all") => ["feed", "following", filter] as const,
+  // The grouped feed lives apart from "following": patchFeedItems assumes flat FeedItem pages.
+  groupedRoot: ["feed", "grouped"] as const,
+  grouped: (filter: FeedFilter = "all") => ["feed", "grouped", filter] as const,
   trending: (limit = 3) => ["feed", "trending", limit] as const,
   meSummary: ["feed", "me-summary"] as const,
   networkStats: ["feed", "network-stats"] as const,
 };
 
-// Shared between useFollowingFeed and the route loader's prefetch call so
-// both stay in sync on queryKey/queryFn/pagination behavior.
-export const followingFeedInfiniteQueryOptions = (filter: FeedFilter = "all") => ({
-  queryKey: feedKeys.following(filter),
+// Shared between useGroupedFeed and the route loader's prefetch so both use one key.
+export const groupedFeedInfiniteQueryOptions = (filter: FeedFilter = "all") => ({
+  queryKey: feedKeys.grouped(filter),
   queryFn: ({ signal, pageParam }: { signal: AbortSignal; pageParam: string | undefined }) =>
-    getFollowingFeed(FEED_PAGE_SIZE, pageParam, toMediaTypeFilter(filter), { signal }),
+    getGroupedFeed(FEED_PAGE_SIZE, pageParam, toMediaTypeFilter(filter), { signal }),
   initialPageParam: undefined as string | undefined,
-  getNextPageParam: (lastPage: Awaited<ReturnType<typeof getFollowingFeed>>) =>
-    lastPage.nextCursor ?? undefined,
+  getNextPageParam: (lastPage: Awaited<ReturnType<typeof getGroupedFeed>>) => lastPage.nextCursor ?? undefined,
 });
 
-export const useFollowingFeed = (filter: FeedFilter = "all", enabled = true) =>
+export const useGroupedFeed = (filter: FeedFilter = "all", enabled = true) =>
   useInfiniteQuery({
-    ...followingFeedInfiniteQueryOptions(filter),
+    ...groupedFeedInfiniteQueryOptions(filter),
     enabled,
   });
 

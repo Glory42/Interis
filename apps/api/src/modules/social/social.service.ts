@@ -57,8 +57,13 @@ export class SocialService {
     return SocialFeedService.getFollowingFeed(userId, limit, cursor, mediaType);
   }
 
-  static async getGroupedFollowingFeed(userId: string, limit?: number, cursor?: string) {
-    return SocialFeedService.getGroupedFollowingFeed(userId, limit, cursor);
+  static async getGroupedFollowingFeed(
+    userId: string,
+    limit?: number,
+    cursor?: string,
+    mediaType?: FeedMediaType,
+  ) {
+    return SocialFeedService.getGroupedFollowingFeed(userId, limit, cursor, mediaType);
   }
 
   static async likeActivity(
