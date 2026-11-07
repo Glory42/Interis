@@ -72,8 +72,10 @@ test("edits profile, theme, Top4 favorites, and manages blocked users from setti
 
     await test.step("blocks another user and unblocks them from settings", async () => {
       await page.goto(`/profile/${otherUser.username}`);
-      await page.getByRole("button", { name: "Block user" }).click();
-      await expect(page.getByRole("button", { name: "Unblock user" })).toBeVisible({
+      await page.getByRole("button", { name: "More actions" }).click();
+      await page.getByRole("menuitem", { name: "Block user" }).click();
+      await page.getByRole("button", { name: "More actions" }).click();
+      await expect(page.getByRole("menuitem", { name: "Unblock user" })).toBeVisible({
         timeout: 10_000,
       });
 

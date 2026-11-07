@@ -37,10 +37,14 @@ test("follows then unfollows a user, and mutes/unmutes their activity from the f
 
     await test.step("viewer mutes the author and their post disappears from the feed", async () => {
       await pageB.goto(`/profile/${author.username}`);
-      await pageB.getByRole("button", { name: "Mute user" }).click();
-      await expect(pageB.getByRole("button", { name: "Unmute user" })).toHaveText("Muted", {
+      // Mute and Block live in the profile's ⋯ menu.
+      await pageB.getByRole("button", { name: "More actions" }).click();
+      await pageB.getByRole("menuitem", { name: "Mute user" }).click();
+      await pageB.getByRole("button", { name: "More actions" }).click();
+      await expect(pageB.getByRole("menuitem", { name: "Unmute user" })).toBeVisible({
         timeout: 10_000,
       });
+      await pageB.keyboard.press("Escape");
 
       await pageB.goto("/");
       await expect(pageB.getByText(POST_CONTENT)).not.toBeVisible({ timeout: 10_000 });
