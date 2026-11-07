@@ -28,6 +28,8 @@ export const profiles = pgTable("profile", {
   // null = until an admin lifts it; a past time means it has already ended.
   suspendedUntil: timestamp("suspended_until"),
   suspendedBy: text("suspended_by").references(() => user.id, { onDelete: "set null" }),
+  // Set by an admin's force reset; sign-in is refused until the recovery-question reset clears it.
+  mustChangePassword: boolean("must_change_password").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

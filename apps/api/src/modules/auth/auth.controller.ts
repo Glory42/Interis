@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import {
   sendBadRequest,
+  sendAppError,
   sendConflict,
   sendUnauthorized,
   sendValidationError,
@@ -34,6 +35,10 @@ const handleAuthError = (res: Response, error: unknown): void => {
     }
     if (error.code === "CONFLICT") {
       sendConflict(res, error.message);
+      return;
+    }
+    if (error.code === "PASSWORD_RESET_REQUIRED") {
+      sendAppError(res, error);
       return;
     }
     sendBadRequest(res, error.message);
