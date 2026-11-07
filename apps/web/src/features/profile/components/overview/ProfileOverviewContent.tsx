@@ -1,56 +1,41 @@
-import {
-  useUserRecentActivity,
-  useUserTopPicks,
-} from "@/features/profile/hooks/useProfile";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useUserRecentActivity, useUserTopPicks } from "@/features/profile/hooks/useProfile";
 import { ProfileTopPicksRow } from "./ProfileTopPicksRow";
-import { ProfileRecentActivitySection } from "./ProfileRecentActivitySection";
-import { buildRecentActivityItems } from "./profileOverview.utils";
+import { ProfileOverviewActivity } from "./ProfileOverviewActivity";
 
 type ProfileOverviewContentProps = {
   username: string;
 };
 
 export const ProfileOverviewContent = ({ username }: ProfileOverviewContentProps) => {
+  const { user } = useAuth();
+  const isOwner = user?.username.toLowerCase() === username.toLowerCase();
   const recentActivityQuery = useUserRecentActivity(username, 20);
   const topPicksQuery = useUserTopPicks(username);
 
   if (recentActivityQuery.isError && topPicksQuery.isError) {
-    return (
-      <div className="rounded-lg border border-border/60 bg-card/30 p-4 text-sm text-destructive">
-        Could not load profile overview.
-      </div>
-    );
+    return <p className="body-s text-[color:var(--danger)]">Could not load profile overview.</p>;
   }
 
-  const recentActivity = recentActivityQuery.data ?? [];
-  const topPicks = topPicksQuery.data ?? null;
-  const activities = buildRecentActivityItems({ feedItems: recentActivity, limit: 12 });
-
-  const categoriesByKey = new Map(
-    (topPicks?.categories ?? []).map((category) => [category.key, category]),
-  );
+  const categoriesByKey = new Map((topPicksQuery.data?.categories ?? []).map((category) => [category.key, category]));
 
   return (
-    <div className="space-y-14">
-      <section>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+    <div className="space-y-10">
+      <section className="grid grid-cols-1 gap-8 md:grid-cols-2">
+        {(["movie", "serial"] as const).map((key) => (
           <ProfileTopPicksRow
-            categoryKey="movie"
-            category={categoriesByKey.get("movie")}
+            key={key}
+            categoryKey={key}
+            category={categoriesByKey.get(key)}
             isPending={topPicksQuery.isPending}
             isError={topPicksQuery.isError}
+            isOwner={isOwner}
           />
-          <ProfileTopPicksRow
-            categoryKey="serial"
-            category={categoriesByKey.get("serial")}
-            isPending={topPicksQuery.isPending}
-            isError={topPicksQuery.isError}
-          />
-        </div>
+        ))}
       </section>
 
-      <ProfileRecentActivitySection
-        activities={activities}
+      <ProfileOverviewActivity
+        entries={recentActivityQuery.data ?? []}
         isPending={recentActivityQuery.isPending}
         isError={recentActivityQuery.isError}
       />

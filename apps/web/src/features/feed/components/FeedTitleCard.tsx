@@ -7,16 +7,9 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { getPosterUrl } from "@/features/movies/components/utils";
 import { useLikeReview, useUnlikeReview } from "@/features/reviews/hooks/useReviews";
 import type { FeedTitleGroup } from "@/features/feed/types";
+import { verbFor } from "@/features/feed/components/feed-days";
 
 const pad = (value: number) => String(value).padStart(2, "0");
-
-const verbFor = (group: FeedTitleGroup): string => {
-  if (group.watched) return group.rewatch ? "rewatched" : "watched";
-  if (group.review) return "reviewed";
-  if (group.rating !== null) return "rated";
-  if (group.liked) return "liked";
-  return "wants to watch";
-};
 
 const ReviewLike = ({ reviewId, engagement }: { reviewId: string; engagement: FeedTitleGroup["engagement"] }) => {
   const like = useLikeReview(reviewId);

@@ -12,13 +12,13 @@ const topPickCategoryMeta: Record<
   { label: string; color: string; icon: LucideIcon; defaultSupported: boolean }
 > = {
   movie: {
-    label: "Favorite Movies",
+    label: "Favourite films",
     color: "var(--module-movie)",
     icon: Film,
     defaultSupported: true,
   },
   serial: {
-    label: "Favorite Serials",
+    label: "Favourite series",
     color: "var(--module-serial)",
     icon: Tv,
     defaultSupported: true,
@@ -151,6 +151,8 @@ type ProfileTopPicksRowProps = {
   category: UserTopPickCategory | undefined;
   isPending: boolean;
   isError: boolean;
+  // Owners see their empty slots (or an invite); visitors see only what's been picked.
+  isOwner: boolean;
 };
 
 export const ProfileTopPicksRow = ({
@@ -158,11 +160,22 @@ export const ProfileTopPicksRow = ({
   category,
   isPending,
   isError,
+  isOwner,
 }: ProfileTopPicksRowProps) => {
   const meta = topPickCategoryMeta[categoryKey];
   const Icon = meta.icon;
-  const slots = toSlotItems(category);
+  const allSlots = toSlotItems(category);
+  const filledCount = allSlots.filter(Boolean).length;
+  const slots = isOwner ? allSlots : allSlots.filter(Boolean);
   const isCategorySupported = category?.supported ?? meta.defaultSupported;
+
+  if (!isPending && !isError && filledCount === 0) {
+    return isOwner ? (
+      <Link to="/settings/favorites" className="body-s text-muted-foreground hover:text-foreground">
+        {`Choose your ${meta.label.toLowerCase()} →`}
+      </Link>
+    ) : null;
+  }
 
   return (
     <div>

@@ -1,6 +1,7 @@
 import { DiaryRepository } from "../diary/repositories/diary.repository";
 import { UsersService } from "../users/users.service";
 import { SocialFeedService } from "../social/services/social-feed.service";
+import { groupFeedItems } from "../social/helpers/social-feed-grouping.helper";
 import { PublicRepository } from "./repositories/public.repository";
 import { PublicTopPicksService } from "./services/public-top-picks.service";
 
@@ -59,6 +60,11 @@ export class PublicService {
 
   static getRecentActivityByUserId(userId: string, limit = 10) {
     return SocialFeedService.getUserActivityFeed(userId, limit);
+  }
+
+  // Same rows as getRecentActivityByUserId, merged into one entry per title per day.
+  static async getRecentActivityGroupedByUserId(userId: string, limit = 10) {
+    return groupFeedItems(await SocialFeedService.getUserActivityFeed(userId, limit));
   }
 
   static async getActivity(username: string, limit = 30) {

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { apiRequest, type QueryRequestOptions } from "@/lib/api-client";
-import { feedListSchema, type FeedItem } from "@/features/feed/types";
+import { groupedFeedEntrySchema, type GroupedFeedEntry } from "@/features/feed/types";
 import {
   mediaTypeSchema,
   movieGenreSchema,
@@ -105,7 +105,8 @@ export type UserInteractionMovie = z.infer<typeof userInteractionMovieSchema>;
 export type UserTopPicks = PublicTop4Response;
 export type UserTopPickCategory = UserTopPicks["categories"][number];
 export type UserTopPickItem = UserTopPickCategory["items"][number];
-export type UserRecentActivity = FeedItem;
+// One entry per title per day (PR-10 grouping), plus follows, lists and posts.
+export type UserRecentActivity = GroupedFeedEntry;
 export type UserSearchResult = z.infer<typeof userSearchResultSchema>;
 
 export const getUserProfile = async (
@@ -273,7 +274,7 @@ export const getUserRecentActivity = async (
   options: QueryRequestOptions = {},
 ): Promise<UserRecentActivity[]> => {
   const response = await apiRequest<unknown>(
-    `/api/users/${encodePathSegment(username)}/recent?limit=${normalizeRecentLimit(limit, 20)}`,
+    `/api/users/${encodePathSegment(username)}/recent/grouped?limit=${normalizeRecentLimit(limit, 20)}`,
     {
       method: "GET",
       cache: "no-store",
@@ -281,7 +282,7 @@ export const getUserRecentActivity = async (
     },
   );
 
-  return feedListSchema.parse(response);
+  return z.array(groupedFeedEntrySchema).parse(response);
 };
 
 export const searchUsers = async (
