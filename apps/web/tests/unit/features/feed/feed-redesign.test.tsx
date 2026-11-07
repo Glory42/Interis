@@ -26,6 +26,7 @@ const group = (overrides: Partial<FeedTitleGroup> = {}): FeedTitleGroup => ({
   liked: true,
   watchlisted: false,
   review: { id: "r1", content: "Dc character when someone is not happly married", containsSpoilers: false, rating: 8 },
+  log: null,
   engagement: { likeCount: 0, commentCount: 0, viewerHasLiked: false },
   itemIds: ["a1", "a2"],
   ...overrides,
@@ -106,6 +107,33 @@ describe("FeedTitleCard", () => {
     expect(screen.getByRole("link", { name: /Breaking Bad/ })).toHaveAttribute("href", "/serials/1396");
   });
 
+  it("says when it was watched if that was before the day it was logged", async () => {
+    const log = { id: "e1", watchedDate: "2026-10-26", rating: 8, rewatch: false };
+    const { unmount } = renderWithProviders(<FeedTitleCard group={group({ log })} />);
+    expect(await screen.findByText("Watched OCT 26")).toBeInTheDocument();
+    unmount();
+
+    renderWithProviders(<FeedTitleCard group={group({ log: { ...log, watchedDate: "2026-11-02" } })} />);
+    await screen.findByText("glory42");
+    expect(screen.queryByText(/^Watched/)).not.toBeInTheDocument();
+  });
+
+  it("opens the review from anywhere on the card, but leaves its links alone", async () => {
+    const user = userEvent.setup();
+    const { router } = renderWithProviders(<FeedTitleCard group={group()} />);
+
+    await user.click(await screen.findByText("8/10"));
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe("/reviews/glory42/r1"));
+  });
+
+  it("opens the title when the card has no review", async () => {
+    const user = userEvent.setup();
+    const { router } = renderWithProviders(<FeedTitleCard group={group({ review: null })} />);
+
+    await user.click(await screen.findByText("8/10"));
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe("/movies/1"));
+  });
+
   it("hides a spoiler review behind a reveal", async () => {
     const user = userEvent.setup();
     renderWithProviders(
@@ -135,6 +163,24 @@ describe("FeedTitleCard on your own review", () => {
     renderWithProviders(<FeedTitleCard group={group()} />, { queryClient: signedIn() });
     await screen.findByText("glory42");
     expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
+  });
+
+  it("edits the whole log, review included, when the card has one", async () => {
+    const user = userEvent.setup();
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    queryClient.setQueryData(authKeys.me, { id: "user_1", username: "cinefan" });
+    const mine = group({
+      actor: { id: "user_1", username: "cinefan", displayUsername: null, avatarUrl: null },
+      log: { id: "e1", watchedDate: "2026-10-26", rating: 8, rewatch: false },
+    });
+    renderWithProviders(<FeedTitleCard group={mine} />, { queryClient });
+
+    await user.click(await screen.findByRole("button", { name: "Edit" }));
+    expect(await screen.findByText("EDIT LOG & REVIEW")).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: /watched this before/i })).not.toBeChecked();
+    expect(screen.getByRole("textbox", { name: "Review" })).toHaveValue(
+      "Dc character when someone is not happly married",
+    );
   });
 });
 

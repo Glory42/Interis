@@ -49,6 +49,10 @@ export class PostsCommentsService {
   }
 
   static async updateComment(commentId: string, userId: string, content: string) {
-    return PostsRepository.updateCommentByIdAndUser(commentId, userId, content);
+    const updated = await PostsRepository.updateCommentByIdAndUser(commentId, userId, content);
+    if (updated) {
+      await ActivityRecorder.refreshExcerpt({ userId, type: "commented", entityId: commentId, content });
+    }
+    return updated;
   }
 }

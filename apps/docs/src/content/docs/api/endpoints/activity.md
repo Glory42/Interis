@@ -52,6 +52,10 @@ When a user likes or rates a TV season or episode, a `liked_movie` item is emitt
 
 For likes vs. ratings on seasons/episodes: `metadata.rating` is non-null when the action was a rating; it is `null` for a pure like.
 
+### Diary log activity
+
+A `diary_entry` item carries the log's id in `metadata.logId` and the day it was watched in `metadata.watchedDate` (`YYYY-MM-DD`). A log can be backdated, so `watchedDate` can be earlier than the item's `createdAt`. Both fields are `null` for every other activity type.
+
 ### List creation activity
 
 When a user creates a list, a `created_list` item is emitted. `metadata.listId` and `metadata.listTitle` are populated with the list's id and name; all other metadata fields are `null`. Both fields are `null` for every other activity type.

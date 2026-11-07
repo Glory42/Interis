@@ -193,4 +193,30 @@ describe("reviews comments", () => {
     const listBody = (await listAfterDelete.json()) as Array<{ id: string }>;
     expect(listBody.some((c) => c.id === comment.id)).toBe(false);
   });
+
+  it("shows an edited comment's new text in the commenter's feed", async () => {
+    const { jar } = await signUpTestUser(getServer().baseUrl, "rcommentedit");
+    const movie = await seedTestFilm();
+    const review = await createReview(jar, movie.tmdbId, "Review to comment on");
+    const send = (path: string, method: string, content: string) =>
+      apiRequest(
+        getServer().baseUrl,
+        path,
+        { method, headers: { "content-type": "application/json" }, body: JSON.stringify({ content }) },
+        jar,
+      );
+
+    const added = await send(`/api/reviews/${review.review.id}/comments`, "POST", "First draft");
+    const comment = (await added.json()) as { id: string };
+    expect((await send(`/api/reviews/comments/${comment.id}`, "PUT", "Second draft")).status).toBe(200);
+
+    const feed = await apiRequest(getServer().baseUrl, "/api/social/feed/grouped?limit=20", {}, jar);
+    const body = (await feed.json()) as {
+      items: Array<{ kind: string; item?: { kind: string; metadata: { commentId: string | null; excerpt: string | null } } }>;
+    };
+    const commented = body.items.find(
+      (entry) => entry.item?.kind === "commented" && entry.item.metadata.commentId === comment.id,
+    );
+    expect(commented?.item?.metadata.excerpt).toBe("Second draft");
+  });
 });

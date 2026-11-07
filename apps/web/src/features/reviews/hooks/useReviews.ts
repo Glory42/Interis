@@ -152,7 +152,7 @@ export const useUpdateReviewComment = (reviewId: string, mediaType: ReviewMediaT
   return useMutation({
     mutationFn: (input: { commentId: string; content: string }) =>
       updateReviewComment(input.commentId, { content: input.content }),
-    onSuccess: (updatedComment) => {
+    onSuccess: async (updatedComment) => {
       queryClient.setQueryData<ReviewComment[]>(
         reviewKeys.comments(mediaType, reviewId),
         (currentComments) =>
@@ -160,6 +160,8 @@ export const useUpdateReviewComment = (reviewId: string, mediaType: ReviewMediaT
             comment.id === updatedComment.id ? updatedComment : comment,
           ) ?? currentComments,
       );
+      // The feed quotes the comment, so its card must pick up the new text.
+      await invalidateFollowingFeed(queryClient);
     },
   });
 };

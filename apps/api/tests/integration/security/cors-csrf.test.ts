@@ -38,6 +38,18 @@ describe("CORS + CSRF origin enforcement", () => {
     expect(response.status).toBe(403);
   });
 
+  it("lets a widget on any Origin read the public API", async () => {
+    const response = await apiRequest(
+      getServer().baseUrl,
+      "/api/public/no-such-public-user-xyz/profile",
+      { headers: { origin: "https://someones-blog.example.com" } },
+    );
+
+    expect(response.status).toBe(404);
+    expect(response.headers.get("access-control-allow-origin")).toBe("*");
+    expect(response.headers.get("access-control-allow-credentials")).toBeNull();
+  });
+
   it("rejects a mutation with an untrusted Origin (blocked by the CORS layer)", async () => {
     const response = await apiRequest(
       getServer().baseUrl,

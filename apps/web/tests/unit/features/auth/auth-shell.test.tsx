@@ -32,6 +32,34 @@ describe("AuthShell", () => {
   });
 });
 
+describe("AuthShell film strip", () => {
+  it("alternates films and series, looping a hidden second copy", async () => {
+    server.use(
+      http.get("*/api/movies/trending", () =>
+        HttpResponse.json([
+          { tmdbId: 1, title: "Film A", posterPath: null, releaseYear: 2026 },
+          { tmdbId: 2, title: "Film B", posterPath: null, releaseYear: 2026 },
+        ]),
+      ),
+      http.get("*/api/serials/trending", () =>
+        HttpResponse.json([
+          { tmdbId: 3, title: "Series A", posterPath: null, firstAirYear: 2026 },
+          { tmdbId: 4, title: "Series B", posterPath: null, firstAirYear: 2026 },
+        ]),
+      ),
+    );
+    renderWithProviders(<AuthShell>form</AuthShell>, { routePath: "/login" });
+
+    await screen.findByRole("link", { name: "Series B" });
+    const strip = screen
+      .getAllByRole("link")
+      .map((link) => link.getAttribute("aria-label"))
+      .filter((label) => label?.includes(" A") || label?.includes(" B"));
+    expect(strip).toEqual(["Film A", "Series A", "Film B", "Series B"]);
+    expect(screen.getAllByRole("link", { name: "Film A", hidden: true })).toHaveLength(2);
+  });
+});
+
 describe("LoginForm", () => {
   it("sets the fields up for password managers and phones", async () => {
     renderWithProviders(<LoginForm />, { routePath: "/login" });

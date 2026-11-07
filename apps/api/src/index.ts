@@ -57,24 +57,31 @@ export const createApp = (options: CreateAppOptions = {}) => {
     }),
   );
 
-  app.use(
-    cors({
-      origin: (origin, callback) => {
-        if (!origin) {
-          callback(null, true);
-          return;
-        }
+  const trustedOriginCors = cors({
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
 
-        if (isTrustedOrigin(origin, trustedOrigins)) {
-          callback(null, true);
-          return;
-        }
+      if (isTrustedOrigin(origin, trustedOrigins)) {
+        callback(null, true);
+        return;
+      }
 
-        callback(new Error("Not allowed by CORS"));
-      },
-      credentials: true,
-    }),
-  );
+      callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  });
+
+  // The public API answered above with open CORS; the allow-list would 403 widgets on other sites.
+  app.use((req, res, next) => {
+    if (req.path === "/api/public" || req.path.startsWith("/api/public/")) {
+      next();
+      return;
+    }
+    trustedOriginCors(req, res, next);
+  });
 
   app.use(
     pinoHttp({

@@ -1,4 +1,4 @@
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { mergeSortedPaginated } from "../../../commons/helpers/merge-sorted-paginated.helper";
 import { diaryEntries } from "../../diary/diary.entity";
@@ -30,7 +30,9 @@ export class UsersReviewsListRepository {
       .from(reviews)
       .innerJoin(films, eq(reviews.movieId, films.id))
       .leftJoin(diaryEntries, eq(reviews.diaryEntryId, diaryEntries.id))
-      .where(and(eq(reviews.userId, userId), eq(reviews.mediaType, "movie")));
+      .where(and(eq(reviews.userId, userId), eq(reviews.mediaType, "movie")))
+      // Newest first before the cap, or the limit keeps arbitrary rows.
+      .orderBy(desc(reviews.createdAt), desc(reviews.id));
 
     const tvQ = db
       .select({
@@ -44,8 +46,9 @@ export class UsersReviewsListRepository {
         mediaType: sql<"tv">`'tv'`,
       })
       .from(reviews)
-      .leftJoin(seriesDiaryEntries, eq(reviews.diaryEntryId, seriesDiaryEntries.id))
-      .where(and(eq(reviews.userId, userId), eq(reviews.mediaType, "tv")));
+      .leftJoin(seriesDiaryEntries, eq(reviews.serialDiaryEntryId, seriesDiaryEntries.id))
+      .where(and(eq(reviews.userId, userId), eq(reviews.mediaType, "tv")))
+      .orderBy(desc(reviews.createdAt), desc(reviews.id));
 
     const [movieReviewRows, tvReviewRows] = await Promise.all([
       fetchCap ? movieQ.limit(fetchCap) : movieQ,

@@ -76,6 +76,7 @@ describe("serials currently-watching (via public widget API)", () => {
       watchedEpisodesCount: number;
       numberOfEpisodes: number | null;
       progressPercent: number;
+      lastWatchedAt: string;
     }>;
 
     expect(series).toHaveLength(1);
@@ -83,6 +84,8 @@ describe("serials currently-watching (via public widget API)", () => {
     expect(series[0]!.watchedEpisodesCount).toBe(1);
     expect(series[0]!.numberOfEpisodes).toBe(10);
     expect(series[0]!.progressPercent).toBe(10);
+    // ISO like every other date, not the raw Postgres text.
+    expect(series[0]!.lastWatchedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
   });
 
   const getCurrentlyWatching = async (username: string) => {

@@ -1,4 +1,5 @@
 import { toMediaFields } from "../../../commons/helpers/media-activity-fields.helper";
+import { truncateExcerpt } from "../../../commons/helpers/text.helper";
 import {
   SocialRepository,
   type ActivityMetadataFilter,
@@ -204,6 +205,29 @@ export class ActivityRecorder {
       }
     } catch {
       // Swallowed on purpose, see above.
+    }
+  }
+
+  // The thing an activity quotes was edited (a comment): keep the feed's copy
+  // of the text current. Never fails the edit itself.
+  static async refreshExcerpt(input: {
+    userId: string;
+    type: ActivityType;
+    entityId: string;
+    content: string;
+  }): Promise<void> {
+    try {
+      const updated = await SocialRepository.updateActivityExcerpt({
+        userId: input.userId,
+        type: input.type,
+        entityId: input.entityId,
+        excerpt: truncateExcerpt(input.content),
+      });
+      if (updated) {
+        ActivityRecorder.invalidateFeeds(input.userId);
+      }
+    } catch {
+      // Swallowed on purpose: a stale excerpt is better than a failed edit.
     }
   }
 

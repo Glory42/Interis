@@ -84,6 +84,8 @@ export const feedMetadataSchema = z.object({
   episodeNumber: z.number().nullable().optional(),
   listId: z.string().nullable().optional(),
   listTitle: z.string().nullable().optional(),
+  logId: z.string().nullable().optional(),
+  watchedDate: z.string().nullable().optional(),
 });
 
 export const feedEngagementSchema = z.object({
@@ -167,6 +169,16 @@ export const feedTitleGroupSchema = z.object({
   liked: z.boolean(),
   watchlisted: z.boolean(),
   review: feedReviewSchema,
+  // The newest log in the group; its watch day can be earlier than the log itself.
+  log: z
+    .object({
+      id: z.string(),
+      watchedDate: z.string(),
+      rating: z.number().nullable(),
+      rewatch: z.boolean(),
+    })
+    .nullable()
+    .default(null),
   engagement: feedEngagementSchema,
   itemIds: z.array(z.string()),
 });

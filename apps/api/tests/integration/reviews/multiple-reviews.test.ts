@@ -13,6 +13,7 @@ type MyReview = {
   content: string;
   diaryEntryId: string | null;
   rating: number | null;
+  rewatch: boolean | null;
   watchedDate: string | null;
 };
 
@@ -109,11 +110,12 @@ describe("multiple reviews per title", () => {
         review.content,
         review.diaryEntryId,
         review.rating,
+        review.rewatch,
         review.watchedDate,
       ]),
     ).toEqual([
-      ["Now I get it", second.entry.id, 9, "2026-03-01"],
-      ["Didn't get it", first.entry.id, 6, "2026-01-01"],
+      ["Now I get it", second.entry.id, 9, false, "2026-03-01"],
+      ["Didn't get it", first.entry.id, 6, false, "2026-01-01"],
     ]);
   });
 

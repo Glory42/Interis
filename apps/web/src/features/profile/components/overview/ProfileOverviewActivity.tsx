@@ -1,9 +1,11 @@
 import { LoadingRegion, TitleRowsSkeleton } from "@/components/ui/PageSkeletons";
-import { Link } from "@tanstack/react-router";
+import type { MouseEvent } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
 import { toFeedDays, verbFor, type FeedRow } from "@/features/feed/components/feed-days";
 import type { FeedItem, GroupedFeedEntry } from "@/features/feed/types";
 import { getPosterUrl } from "@/features/media/tmdb-images";
+import { isCardBackgroundClick } from "@/lib/card-click";
 
 type ProfileOverviewActivityProps = {
   entries: GroupedFeedEntry[];
@@ -23,6 +25,8 @@ const ACTIVITY_LINES: Partial<Record<FeedItem["kind"], string>> = {
 const titleRoute = (mediaType: string) => (mediaType === "tv" ? "/serials/$tmdbId" : "/movies/$tmdbId");
 
 const Row = ({ row }: { row: FeedRow }) => {
+  const navigate = useNavigate();
+
   if (row.kind === "likes") {
     return (
       <p className="body-s text-muted-foreground">
@@ -52,8 +56,18 @@ const Row = ({ row }: { row: FeedRow }) => {
 
   const { group } = row;
   const isTv = group.movie.mediaType === "tv";
+  const { review } = group;
+  // A row with a review opens it from anywhere on the row.
+  const openReview = (event: MouseEvent<HTMLElement>) => {
+    if (!review || !isCardBackgroundClick(event)) return;
+    void navigate({
+      to: "/reviews/$username/$reviewId",
+      params: { username: group.actor.username, reviewId: review.id },
+      viewTransition: true,
+    });
+  };
   return (
-    <div className="flex items-start gap-3">
+    <div onClick={openReview} className={`flex items-start gap-3 ${review ? "cursor-pointer" : ""}`}>
       <img src={getPosterUrl(group.movie.posterPath)} alt="" className="aspect-2/3 w-9 shrink-0 rounded-[2px] object-cover" loading="lazy" />
       <div className="min-w-0">
         <p className={`kicker ${isTv ? "text-[color:var(--series)]" : "text-[color:var(--film)]"}`}>

@@ -9,7 +9,6 @@ description: Status code behavior and empty-response conventions for public rout
 | ---: | --- | --- |
 | `200` | Successful read | JSON payload |
 | `400` | Non-numeric `tmdbId` on `/serials/:tmdbId` | `{ "error": { "message": "Invalid tmdbId", "code": "BAD_REQUEST" } }` |
-| `403` | Browser `Origin` not on the CORS allow-list | `{ "error": { "message": "Origin is not allowed", "code": "CORS_NOT_ALLOWED" } }` |
 | `404` | Username not found | `{ "error": { "message": "User not found", "code": "NOT_FOUND" } }` |
 | `404` | Unknown series on `/serials/:tmdbId` | `{ "error": { "message": "Series not found", "code": "NOT_FOUND" } }` |
 | `429` | Public rate limit exceeded | Plain text: `Too many requests, please try again later.` |

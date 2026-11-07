@@ -68,8 +68,15 @@ export const PersonHero = ({ role, detail, now }: PersonHeroProps) => {
               ...links.map((link) => ({
                 label: link.label,
                 value: (
-                  <a href={link.href} target="_blank" rel="noreferrer" className="text-primary hover:underline">
-                    {`${linkText(link.label, link.href)} ↗`}
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={linkText(link.label, link.href)}
+                    className="flex min-w-0 justify-end text-primary hover:underline"
+                  >
+                    <span className="truncate">{linkText(link.label, link.href)}</span>
+                    <span aria-hidden className="ml-1 shrink-0">↗</span>
                   </a>
                 ),
               })),
