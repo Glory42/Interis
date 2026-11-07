@@ -46,7 +46,7 @@ export const ProfileReviewSection = ({
 
       <p
         className={cn(
-          "mt-3 whitespace-pre-wrap text-sm leading-relaxed text-foreground/95",
+          "tagline mt-3 whitespace-pre-wrap text-2xl leading-snug text-foreground",
           !canReadSpoiler ? "hidden" : "",
         )}
       >

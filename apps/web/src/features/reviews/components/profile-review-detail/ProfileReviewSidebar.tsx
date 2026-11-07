@@ -1,80 +1,40 @@
 import { Link } from "@tanstack/react-router";
-import { CalendarDays, Clock3, Heart, MessageSquare } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { CreditsList } from "@/components/film/CreditsList";
 import type { ReviewDetail } from "@/features/reviews/api";
-import {
-  formatDateLabel,
-  formatRelativeTime,
-} from "@/features/reviews/components/profile-review-detail/utils";
 
-type ProfileReviewSidebarProps = {
-  detail: ReviewDetail;
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+const toDayLabel = (value: string) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : `${WEEKDAYS[date.getDay()]} ${MONTHS[date.getMonth()]} ${date.getDate()}`;
 };
 
-export const ProfileReviewSidebar = ({ detail }: ProfileReviewSidebarProps) => {
+// The review's facts as one credits block, plus the way to the title itself.
+export const ProfileReviewSidebar = ({ detail }: { detail: ReviewDetail }) => {
+  const isTv = detail.mediaType === "tv";
   return (
-    <aside className="space-y-8 lg:col-span-4">
-      <section className="rounded-2xl border border-border/60 bg-card/35 p-5">
-        <h2 className="mb-5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-          Review Stats
-        </h2>
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between text-xs">
-            <span className="inline-flex items-center gap-2 text-muted-foreground">
-              <CalendarDays className="h-3 w-3" />
-              Published
-            </span>
-            <span className="font-medium text-foreground">{formatDateLabel(detail.createdAt)}</span>
-          </div>
-
-          <div className="flex items-center justify-between text-xs">
-            <span className="inline-flex items-center gap-2 text-muted-foreground">
-              <Clock3 className="h-3 w-3" />
-              Activity
-            </span>
-            <span className="font-medium text-foreground">
-              {formatRelativeTime(detail.createdAt)}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between text-xs">
-            <span className="inline-flex items-center gap-2 text-muted-foreground">
-              <Heart className="h-3 w-3" />
-              Likes
-            </span>
-            <span className="font-medium text-foreground">{detail.engagement.likeCount}</span>
-          </div>
-
-          <div className="flex items-center justify-between text-xs">
-            <span className="inline-flex items-center gap-2 text-muted-foreground">
-              <MessageSquare className="h-3 w-3" />
-              Comments
-            </span>
-            <span className="font-medium text-foreground">{detail.engagement.commentCount}</span>
-          </div>
-        </div>
+    <aside className="space-y-4 lg:col-span-4">
+      <section aria-label="Credits">
+        <p className="kicker text-muted-foreground">Credits</p>
+        <CreditsList
+          className="mt-1"
+          rows={[
+            { label: "Reviewed", value: toDayLabel(detail.createdAt) },
+            { label: "Rating", value: detail.rating !== null ? `${detail.rating} / 10` : null },
+            { label: "Likes", value: String(detail.engagement.likeCount) },
+            { label: "Comments", value: String(detail.engagement.commentCount) },
+          ]}
+        />
       </section>
-
-      <section className="rounded-2xl border border-border/60 bg-card/35 p-5">
-        <h2 className="mb-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-          Watch Page
-        </h2>
-
-        {detail.mediaType === "tv" ? (
-          <Button asChild variant="outline" className="w-full">
-            <Link to="/serials/$tmdbId" params={{ tmdbId: String(detail.media.tmdbId) }}>
-              Open series page
-            </Link>
-          </Button>
-        ) : (
-          <Button asChild variant="outline" className="w-full">
-            <Link to="/movies/$tmdbId" params={{ tmdbId: String(detail.media.tmdbId) }}>
-              Open movie page
-            </Link>
-          </Button>
-        )}
-      </section>
+      <Link
+        to={isTv ? "/serials/$tmdbId" : "/movies/$tmdbId"}
+        params={{ tmdbId: String(detail.media.tmdbId) }}
+        className="mono-meta inline-block uppercase text-muted-foreground hover:text-foreground"
+        viewTransition
+      >
+        {isTv ? "Open the series →" : "Open the film →"}
+      </Link>
     </aside>
   );
 };
