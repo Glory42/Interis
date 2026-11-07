@@ -108,13 +108,13 @@ test("deletes the account from settings", async ({ page }) => {
       const confirm = page.getByRole("button", { name: `Delete @${user.username} forever` });
       await expect(confirm).toBeDisabled();
 
-      await page.getByLabel("Your password, to confirm").fill("not-my-password");
+      await page.getByLabel("Your password, to confirm", { exact: true }).fill("not-my-password");
       await confirm.click();
       await expect(page.getByText("Current password is incorrect")).toBeVisible({
         timeout: 10_000,
       });
 
-      await page.getByLabel("Your password, to confirm").fill(user.password);
+      await page.getByLabel("Your password, to confirm", { exact: true }).fill(user.password);
       await confirm.click();
       await page.waitForURL("/", { timeout: 15_000 });
 
