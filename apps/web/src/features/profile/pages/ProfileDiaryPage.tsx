@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { BookOpen } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import { DiaryRow } from "@/features/profile/components/diary/DiaryRow";
@@ -39,10 +38,10 @@ export const ProfileDiaryPage = ({ username }: ProfileDiaryPageProps) => {
 
       {!diaryQuery.isPending && !diaryQuery.isError && rows.length === 0 ? (
         <ProfileTabEmptyState
-          icon={BookOpen}
-          title="No diary activity yet"
-          description="This profile has not logged or reviewed anything yet."
-          cta={{ label: "Browse Movie", to: "/movies" }}
+          isOwner={isOwner}
+          visitorText={`${username} hasn't logged anything yet.`}
+          ownerAction={{ label: "✎ Log a watch", to: "/movies" }}
+          ownerText="Your favourites, diary and stats fill in from what you log."
         />
       ) : null}
 

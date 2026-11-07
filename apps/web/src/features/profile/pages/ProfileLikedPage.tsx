@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { Heart } from "lucide-react";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import { LikedMediaGrid, type MediaFilter } from "@/features/profile/components/LikedMediaGrid";
 import { LikedListCard } from "@/features/profile/components/LikedListCard";
@@ -14,6 +13,7 @@ import {
   useUserLikedMovies,
   useUserLikedLists,
   useUserLikedReviews,
+  useIsOwnProfile,
 } from "@/features/profile/hooks/useProfile";
 
 type LikedTab = "medias" | "reviews" | "lists";
@@ -56,6 +56,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
   const [listFilter, setListFilter] = useState<ListFilter>("all");
 
   const mediasQuery = useUserLikedMovies(username, toMediaShelfType(mediaFilter));
+  const isOwner = useIsOwnProfile(username);
   const reviewsQuery = useUserLikedReviews(username);
   const listsQuery = useUserLikedLists(username);
 
@@ -152,12 +153,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
               Could not load liked media.
             </div>
           ) : mediaTotal === 0 ? (
-            <ProfileTabEmptyState
-              icon={Heart}
-              title="No liked media yet"
-              description="This profile has not liked any movies or series yet."
-              cta={{ label: "Browse Movie", to: "/movies" }}
-            />
+            <ProfileTabEmptyState isOwner={isOwner} visitorText="No likes yet." ownerText="♥ any title to keep it here." />
           ) : (
             <LikedMediaGrid items={mediaItems} filter={mediaFilter} />
           )}
@@ -188,11 +184,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
               Could not load liked reviews.
             </div>
           ) : reviewItems.length === 0 ? (
-            <ProfileTabEmptyState
-              icon={Heart}
-              title="No liked reviews yet"
-              description="This profile has not liked any reviews yet."
-            />
+            <ProfileTabEmptyState isOwner={isOwner} visitorText="No liked reviews yet." />
           ) : filteredReviews.length === 0 ? (
             <div className="border px-3 py-2 text-xs shell-border shell-muted surface">
               No {reviewFilter === "all" ? "reviews" : reviewFilter} liked yet.
@@ -231,11 +223,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
               Could not load liked lists.
             </div>
           ) : listItems.length === 0 ? (
-            <ProfileTabEmptyState
-              icon={Heart}
-              title="No liked lists yet"
-              description="This profile has not liked any lists yet."
-            />
+            <ProfileTabEmptyState isOwner={isOwner} visitorText="No liked lists yet." />
           ) : filteredLists.length === 0 ? (
             <div className="border px-3 py-2 text-xs shell-border shell-muted surface">
               No {listFilter === "all" ? "lists" : listFilter} liked yet.

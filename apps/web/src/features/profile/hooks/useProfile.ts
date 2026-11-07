@@ -23,7 +23,7 @@ import {
   type UserMediaShelfPage,
   type UserMediaShelfType,
 } from "@/features/profile/api";
-import { authKeys } from "@/features/auth/hooks/useAuth";
+import { authKeys, useAuth } from "@/features/auth/hooks/useAuth";
 import type { MeProfile, UpdateProfileInput } from "@/types/api";
 
 export const profileKeys = {
@@ -73,6 +73,12 @@ export const invalidateViewerCurrentlyWatching = (queryClient: QueryClient) => {
   return queryClient.invalidateQueries({
     queryKey: profileKeys.currentlyWatching(me.username),
   });
+};
+
+// True when the signed-in viewer is looking at their own profile.
+export const useIsOwnProfile = (username: string): boolean => {
+  const { user } = useAuth();
+  return user?.username.toLowerCase() === username.toLowerCase();
 };
 
 export const useUserProfile = (username: string) =>
