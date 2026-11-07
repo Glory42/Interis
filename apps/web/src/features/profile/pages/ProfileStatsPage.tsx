@@ -1,180 +1,99 @@
-import { Link } from "@tanstack/react-router";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import { useDetailedStats } from "@/features/profile/hooks/useProfileStats";
+import { ReelCells } from "@/components/film/ReelCells";
 import { TickLoader } from "@/components/ui/tick-loader";
+import { MonthBars, RankedBars, RatingBars, WeekReel } from "@/features/profile/components/stats/StatsCharts";
+import { STATS_MIN_LOGS, fillLastTwelveMonths, toRatingBuckets, toWeekReel } from "@/features/profile/components/stats/stats-model";
+import { useIsOwnProfile, useUserProfile } from "@/features/profile/hooks/useProfile";
+import { useDetailedStats } from "@/features/profile/hooks/useProfileStats";
 
 type ProfileStatsPageProps = {
   username: string;
+  now?: Date;
 };
 
-const formatMonthLabel = (month: string): string => {
-  const [year, monthNumber] = month.split("-");
-  if (!year || !monthNumber) return month;
-  const date = new Date(Number(year), Number(monthNumber) - 1, 1);
-  return date.toLocaleDateString(undefined, { month: "short", year: "2-digit" });
-};
+const Headline = ({ value, label }: { value: string; label: string }) => (
+  <div>
+    <p className="display-2 leading-none text-foreground">{value}</p>
+    <p className="kicker mt-1 text-muted-foreground">{label}</p>
+  </div>
+);
 
-const tooltipStyle = {
-  background: "var(--card)",
-  border: "1px solid var(--border)",
-  borderRadius: 0,
-  fontSize: 11,
-  fontFamily: "monospace",
-} as const;
-
-const ChartSection = ({
-  title,
-  isEmpty,
-  emptyLabel,
-  children,
-}: {
-  title: string;
-  isEmpty: boolean;
-  emptyLabel: string;
-  children: React.ReactNode;
-}) => (
-  <section className="border shell-border p-5">
-    <h2 className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] shell-muted">
-      {title}
-    </h2>
-    {isEmpty ? (
-      <p className="py-8 text-center font-mono text-xs shell-muted">{emptyLabel}</p>
-    ) : (
-      children
-    )}
+const Block = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <section aria-label={title}>
+    <p className="kicker mb-2 text-muted-foreground">{title}</p>
+    {children}
   </section>
 );
 
-export const ProfileStatsPage = ({ username }: ProfileStatsPageProps) => {
+export const ProfileStatsPage = ({ username, now: nowProp }: ProfileStatsPageProps) => {
+  const now = nowProp ?? new Date();
   const statsQuery = useDetailedStats(username);
+  const profileQuery = useUserProfile(username);
+  const isOwner = useIsOwnProfile(username);
+  const logged = (profileQuery.data?.stats?.movieEntryCount ?? 0) + (profileQuery.data?.stats?.serialEntryCount ?? 0);
 
-  if (statsQuery.isPending) {
+  if (statsQuery.isPending || profileQuery.isPending) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <TickLoader />
+      <div className="body-s flex items-center gap-2 py-10 text-muted-foreground">
+        <TickLoader /> Loading stats…
       </div>
     );
   }
 
-  if (statsQuery.isError || !statsQuery.data) {
+  if (statsQuery.isError) {
+    return <p className="body-s text-[color:var(--danger)]">Could not load stats right now.</p>;
+  }
+
+  if (logged < STATS_MIN_LOGS) {
     return (
-      <div className="border shell-border p-4 font-mono text-sm shell-muted">
-        Could not load stats right now.
+      <div className="border-t border-[color:var(--line)] pt-4">
+        <p className="body-s text-muted-foreground">
+          {isOwner ? `${STATS_MIN_LOGS - logged} more logs to start your stats.` : "Not enough logs for stats yet."}
+        </p>
+        {isOwner ? <ReelCells total={STATS_MIN_LOGS} watched={logged} tone="film" className="mt-2" /> : null}
       </div>
     );
   }
 
-  const { entriesPerMonth, ratingDistribution, topGenres, topDirectors } = statsQuery.data;
-
-  const monthData = entriesPerMonth.map((row) => ({
-    month: formatMonthLabel(row.month),
-    count: row.count,
-  }));
-
-  const ratingData = ratingDistribution.map((row) => ({
-    rating: String(row.rating),
-    count: row.count,
-  }));
+  const stats = statsQuery.data;
+  const reviews = profileQuery.data?.stats?.reviewCount ?? 0;
 
   return (
-    <div className="space-y-6">
-      <ChartSection
-        title="Entries Per Month (last 12 months)"
-        isEmpty={monthData.length === 0}
-        emptyLabel="No entries logged yet."
-      >
-        <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={monthData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-            <XAxis
-              dataKey="month"
-              tick={{ fontSize: 10, fontFamily: "monospace" }}
-              stroke="var(--muted-foreground)"
-            />
-            <YAxis
-              allowDecimals={false}
-              tick={{ fontSize: 10, fontFamily: "monospace" }}
-              stroke="var(--muted-foreground)"
-            />
-            <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "var(--secondary)" }} />
-            <Bar dataKey="count" fill="var(--primary)" />
-          </BarChart>
-        </ResponsiveContainer>
-      </ChartSection>
+    <div className="space-y-7">
+      <div className="grid grid-cols-2 gap-4 border-b border-[color:var(--line)] pb-4 sm:grid-cols-4">
+        <Headline value={logged.toLocaleString("en-US")} label="logged" />
+        <Headline value={reviews.toLocaleString("en-US")} label="reviews" />
+        <Headline value={stats.averageRating !== null ? stats.averageRating.toFixed(1) : "—"} label="avg rating" />
+        <Headline value={`${Math.round(stats.hoursWatched).toLocaleString("en-US")}h`} label="watched" />
+      </div>
 
-      <ChartSection
-        title="Rating Distribution"
-        isEmpty={ratingData.length === 0}
-        emptyLabel="No ratings logged yet."
-      >
-        <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={ratingData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-            <XAxis
-              dataKey="rating"
-              tick={{ fontSize: 10, fontFamily: "monospace" }}
-              stroke="var(--muted-foreground)"
-            />
-            <YAxis
-              allowDecimals={false}
-              tick={{ fontSize: 10, fontFamily: "monospace" }}
-              stroke="var(--muted-foreground)"
-            />
-            <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "var(--secondary)" }} />
-            <Bar dataKey="count" fill="var(--primary)" />
-          </BarChart>
-        </ResponsiveContainer>
-      </ChartSection>
+      <Block title={`${now.getFullYear()} in reels · one cell per week`}>
+        <WeekReel cells={toWeekReel(stats.logsPerWeek, now)} year={now.getFullYear()} />
+      </Block>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <ChartSection
-          title="Top Genres"
-          isEmpty={topGenres.length === 0}
-          emptyLabel="Not enough data yet."
-        >
-          <ul className="space-y-2">
-            {topGenres.map((row) => (
-              <li key={row.genre} className="flex items-center justify-between text-sm">
-                <span className="text-foreground/90">{row.genre}</span>
-                <span className="font-mono text-xs shell-accent">{row.count}</span>
-              </li>
-            ))}
-          </ul>
-        </ChartSection>
+      <div className="grid gap-6 md:grid-cols-[1fr_1.5fr]">
+        <Block title="Logs per month · last 12">
+          <MonthBars months={fillLastTwelveMonths(stats.entriesPerMonth, now)} />
+        </Block>
+        <Block title={`Ratings · ${stats.ratedLogCount.toLocaleString("en-US")} rated logs`}>
+          <RatingBars buckets={toRatingBuckets(stats.ratingDistribution)} average={stats.averageRating} />
+        </Block>
+      </div>
 
-        <ChartSection
-          title="Top Directors"
-          isEmpty={topDirectors.length === 0}
-          emptyLabel="Not enough data yet."
-        >
-          <ul className="space-y-2">
-            {topDirectors.map((row) => (
-              <li key={row.director} className="flex items-center justify-between text-sm">
-                {row.slug ? (
-                  <Link
-                    to="/director/$slug"
-                    params={{ slug: row.slug }}
-                    className="text-foreground/90 hover:text-primary hover:underline"
-                    viewTransition
-                  >
-                    {row.director}
-                  </Link>
-                ) : (
-                  <span className="text-foreground/90">{row.director}</span>
-                )}
-                <span className="font-mono text-xs shell-accent">{row.count}</span>
-              </li>
-            ))}
-          </ul>
-        </ChartSection>
+      <div className="grid gap-6 md:grid-cols-2">
+        <Block title="Top genres">
+          {stats.topGenres.length > 0 ? (
+            <RankedBars rows={stats.topGenres.map((row) => ({ label: row.genre, count: row.count }))} />
+          ) : (
+            <p className="body-s text-muted-foreground">Not enough data yet.</p>
+          )}
+        </Block>
+        <Block title="Top directors">
+          {stats.topDirectors.length > 0 ? (
+            <RankedBars rows={stats.topDirectors.map((row) => ({ label: row.director, count: row.count, slug: row.slug }))} />
+          ) : (
+            <p className="body-s text-muted-foreground">Not enough data yet.</p>
+          )}
+        </Block>
       </div>
     </div>
   );
