@@ -36,6 +36,8 @@ router.get("/diary", asyncHandler(AdminContentController.listDiaryEntries));
 router.delete("/diary/:id", asyncHandler(AdminContentController.deleteDiaryEntry));
 router.get("/posts", asyncHandler(AdminContentController.listPosts));
 router.delete("/posts/:id", asyncHandler(AdminContentController.deletePost));
+router.get("/comments", asyncHandler(AdminContentController.listComments));
+router.delete("/comments/:kind/:id", asyncHandler(AdminContentController.deleteComment));
 
 router.get("/movies", asyncHandler(AdminMediaController.listMovies));
 router.patch("/movies/:id", asyncHandler(AdminMediaController.updateMovie));

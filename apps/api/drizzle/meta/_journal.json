@@ -463,6 +463,13 @@
       "when": 1794034599552,
       "tag": "0065_must_change_password",
       "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1794041089994,
+      "tag": "0066_report_comments_lists",
+      "breakpoints": true
     }
   ]
 }
