@@ -1,6 +1,7 @@
-import { PenSquare, Trash2, X } from "lucide-react";
+import { Flag, PenSquare, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { ReportContentDialog } from "@/features/reports/components/ReportContentDialog";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,6 +40,7 @@ export const ProfileReviewCommentsSection = ({
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState("");
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [reportingId, setReportingId] = useState<string | null>(null);
 
   const startEditing = (comment: ReviewComment) => {
     setEditingCommentId(comment.id);
@@ -138,6 +140,15 @@ export const ProfileReviewCommentsSection = ({
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
+                    ) : user ? (
+                      <button
+                        type="button"
+                        onClick={() => setReportingId(comment.id)}
+                        aria-label="Report comment"
+                        className="shrink-0 text-muted-foreground transition-[color,transform] hover:text-destructive active:scale-[0.97]"
+                      >
+                        <Flag className="h-3.5 w-3.5" />
+                      </button>
                     ) : null}
                   </div>
 
@@ -215,6 +226,12 @@ export const ProfileReviewCommentsSection = ({
           void confirmDelete();
         }}
         onClose={() => setPendingDeleteId(null)}
+      />
+      <ReportContentDialog
+        isOpen={reportingId !== null}
+        onClose={() => setReportingId(null)}
+        targetType="comment"
+        targetId={reportingId ?? ""}
       />
     </section>
   );
