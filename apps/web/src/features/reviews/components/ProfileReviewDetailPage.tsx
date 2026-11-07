@@ -3,7 +3,6 @@ import { useState } from "react";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { FeedReviewEditDialog } from "@/features/feed/components/FeedReviewEditDialog";
-import { formatRatingLabel } from "@/lib/rating";
 import { ProfileReviewCommentsSection } from "@/features/reviews/components/profile-review-detail/ProfileReviewCommentsSection";
 import { ProfileReviewDetailHero } from "@/features/reviews/components/profile-review-detail/ProfileReviewDetailHero";
 import {
@@ -77,12 +76,6 @@ export function ProfileReviewDetailPage({
   const likeBusy =
     likeReviewMutation.isPending || unlikeReviewMutation.isPending;
   const comments = commentsQuery.data ?? [];
-  const ratingLabel = formatRatingLabel(detail.rating);
-  const mediaCreditParts = [
-    detail.media.releaseYear ? String(detail.media.releaseYear) : null,
-    detail.media.director,
-    detail.media.creator,
-  ].filter((part): part is string => part !== null && part.trim().length > 0);
 
   const goToLogin = async () => {
     const redirectPath = `${window.location.pathname}${window.location.search}`;
@@ -193,11 +186,9 @@ export function ProfileReviewDetailPage({
         detail={detail}
         displayAuthorName={displayAuthorName}
         authorAvatar={authorAvatar}
-        mediaCreditParts={mediaCreditParts}
-        ratingLabel={ratingLabel}
       />
 
-      <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 px-4 pb-16 pt-14 sm:pt-16 lg:grid-cols-12">
+      <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-8 px-4 pb-16 pt-6 lg:grid-cols-12">
         <div className="space-y-8 lg:col-span-8">
           <ProfileReviewSection
             detail={detail}
