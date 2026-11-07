@@ -1,65 +1,40 @@
-import { useMemo } from "react";
-import { TrendingPosterRow } from "@/components/media/TrendingPosterRow";
+import { Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 import { useTrendingNow } from "@/features/feed/hooks/useFeed";
+import { LandingDiarySpecimen } from "@/features/landing/components/LandingDiarySpecimen";
 import { LandingHero } from "@/features/landing/components/LandingHero";
+import { LandingTrending } from "@/features/landing/components/LandingTrending";
 import { useTrendingSeries } from "@/features/serials/hooks/useSerials";
-import { buildPosterWall } from "@/lib/poster-wall";
-
-const POSTER_WALL_SIZE = 24;
 
 export const LandingPage = () => {
-  const trendingMoviesQuery = useTrendingNow(9);
-  const trendingSeriesQuery = useTrendingSeries();
-
-  const trendingMoviesData = trendingMoviesQuery.data;
-  const trendingSeriesData = trendingSeriesQuery.data;
-  const trendingMovies = trendingMoviesData ?? [];
-  const trendingSeries = trendingSeriesData ?? [];
-
-  const posterWall = useMemo(
-    () =>
-      buildPosterWall(
-        [
-          ...(trendingMoviesData ?? []).map((movie) => movie.posterPath),
-          ...(trendingSeriesData ?? []).map((series) => series.posterPath),
-        ],
-        POSTER_WALL_SIZE,
-      ),
-    [trendingMoviesData, trendingSeriesData],
-  );
+  // Nine matches the loader's prefetch in routes/index.tsx; the grid shows eight.
+  const films = useTrendingNow(9).data ?? [];
+  const shows = useTrendingSeries().data ?? [];
 
   return (
-    <div className="w-full">
-      <LandingHero posterPaths={posterWall} />
+    <div className="w-full pb-20 sm:pb-0">
+      <LandingHero specimen={<LandingDiarySpecimen films={films} />} />
+      <LandingTrending films={films} shows={shows} />
 
-      <div className="mx-auto w-full max-w-7xl space-y-10 px-4 py-10">
-        <TrendingPosterRow
-          title="Trending Movies"
-          to="/movies/$tmdbId"
-          accentColor="var(--module-movie)"
-          isLoading={trendingMoviesQuery.isPending}
-          isError={trendingMoviesQuery.isError}
-          items={trendingMovies.map((movie) => ({
-            id: `movie-${movie.tmdbId}`,
-            title: movie.title,
-            tmdbId: movie.tmdbId,
-            posterPath: movie.posterPath,
-          }))}
-        />
+      <div className="mx-auto w-full max-w-6xl px-4">
+        <div className="slate mono-meta rounded-[3px] uppercase">
+          <span>Interis · logged, not filtered.</span>
+          <span className="flex gap-3">
+            <Link to="/developer" className="hover:text-white">
+              Developer
+            </Link>
+          </span>
+        </div>
+      </div>
 
-        <TrendingPosterRow
-          title="Trending Shows"
-          to="/serials/$tmdbId"
-          accentColor="var(--module-serial)"
-          isLoading={trendingSeriesQuery.isPending}
-          isError={trendingSeriesQuery.isError}
-          items={trendingSeries.map((series) => ({
-            id: `serial-${series.tmdbId}`,
-            title: series.title,
-            tmdbId: series.tmdbId,
-            posterPath: series.posterPath,
-          }))}
-        />
+      {/* Phones keep sign-up within reach while scrolling. */}
+      <div className="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t border-[color:var(--line)] bg-background/95 px-4 py-3 backdrop-blur sm:hidden">
+        <Button asChild size="md" className="flex-1">
+          <Link to="/register">Start your diary, free</Link>
+        </Button>
+        <Button asChild size="md" variant="outline">
+          <Link to="/login">Log in</Link>
+        </Button>
       </div>
     </div>
   );
