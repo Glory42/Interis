@@ -62,6 +62,29 @@ export class AdminController {
     res.status(200).json({ success: true });
   }
 
+  // POST /api/admin/users/:username/force-password-reset
+  static async forcePasswordReset(req: Request<{ username: string }>, res: Response): Promise<void> {
+    if (isSelfTarget(req)) {
+      sendBadRequest(res, "Change your own password from account settings");
+      return;
+    }
+
+    const parsed = AdminPasswordConfirmSchema.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    const targetId = await AdminService.forcePasswordReset(req.user.id, parsed.data.adminPassword, req.params.username);
+    await AdminAuditService.record(req.user, {
+      action: "user.force_password_reset",
+      targetType: "user",
+      targetId,
+      targetLabel: req.params.username,
+    });
+    res.status(200).json({ success: true });
+  }
+
   // POST /api/admin/users/:username/reset-password
   static async resetUserPassword(
     req: Request<{ username: string }>,

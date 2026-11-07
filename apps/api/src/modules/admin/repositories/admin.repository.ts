@@ -1,7 +1,7 @@
 import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "../../../infrastructure/database/db";
-import { user } from "../../../infrastructure/database/auth.entity";
+import { securityAnswers, user } from "../../../infrastructure/database/auth.entity";
 import { profiles } from "../../users/users.entity";
 import { reports } from "../../reports/reports.entity";
 import { reviews } from "../../reviews/reviews.entity";
@@ -45,6 +45,8 @@ export class AdminRepository {
         suspendedReason: profiles.suspendedReason,
         suspendedUntil: profiles.suspendedUntil,
         suspendedBy: suspender.username,
+        mustChangePassword: profiles.mustChangePassword,
+        hasRecoveryQuestion: sql<boolean>`exists (select 1 from ${securityAnswers} where ${securityAnswers.userId} = ${user.id})`,
       })
       .from(user)
       .innerJoin(profiles, eq(user.id, profiles.userId))

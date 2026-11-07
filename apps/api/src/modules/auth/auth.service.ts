@@ -6,6 +6,7 @@ import {
 import {
   BadRequestError,
   ConflictError,
+  PasswordResetRequiredError,
   UnauthorizedError,
 } from "../../commons/errors/app-error";
 import { ActivityRecorder } from "../social/services/activity-recorder.service";
@@ -113,9 +114,16 @@ export class AuthService {
       throw invalidCredentialsError;
     }
 
-    const passwordCheck = await PasswordService.verify(input.password, credential.passwordHash);
+    const [passwordCheck, mustResetPassword] = await Promise.all([
+      PasswordService.verify(input.password, credential.passwordHash),
+      AuthProfileRepository.requiresPasswordReset(userRow.id),
+    ]);
     if (!passwordCheck.matches) {
       throw invalidCredentialsError;
+    }
+    // Only after the password matches, so the flag never leaks to a guesser.
+    if (mustResetPassword) {
+      throw new PasswordResetRequiredError();
     }
 
     if (passwordCheck.upgradedHash) {
@@ -207,7 +215,23 @@ export class AuthService {
 
     const passwordHash = await PasswordService.hash(newPassword);
     await setPasswordForUser(row.userId, passwordHash);
-    await SessionService.revokeAllSessionsForUser(row.userId);
+    await Promise.all([
+      SessionService.revokeAllSessionsForUser(row.userId),
+      AuthProfileRepository.setMustChangePassword(row.userId, false),
+    ]);
+  }
+
+  // Admin force reset: signs the user out everywhere and blocks sign-in until
+  // they set a new password through their recovery question.
+  static async forcePasswordReset(userId: string): Promise<{ hasRecoveryQuestion: boolean }> {
+    const recovery = await SecurityAnswersRepository.findByUserId(userId);
+    if (!recovery) {
+      return { hasRecoveryQuestion: false };
+    }
+
+    await AuthProfileRepository.setMustChangePassword(userId, true);
+    await SessionService.revokeAllSessionsForUser(userId);
+    return { hasRecoveryQuestion: true };
   }
 
   // No answer/current-password verification — admin authority (requireAdmin)

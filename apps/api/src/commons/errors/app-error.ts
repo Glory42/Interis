@@ -3,6 +3,7 @@ export type ErrorCode =
   | "VALIDATION_ERROR"
   | "UNAUTHORIZED"
   | "FORBIDDEN"
+  | "PASSWORD_RESET_REQUIRED"
   | "NOT_FOUND"
   | "CONFLICT"
   | "PAYLOAD_TOO_LARGE"
@@ -41,6 +42,12 @@ export class UnauthorizedError extends AppError {
 export class ForbiddenError extends AppError {
   constructor(message = "Forbidden") {
     super(403, "FORBIDDEN", message);
+  }
+}
+
+export class PasswordResetRequiredError extends AppError {
+  constructor() {
+    super(403, "PASSWORD_RESET_REQUIRED", "An admin asked you to reset your password. Use your recovery question to set a new one.");
   }
 }
 

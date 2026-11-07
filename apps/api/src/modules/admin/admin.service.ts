@@ -1,4 +1,4 @@
-import { BadRequestError, NotFoundError } from "../../commons/errors/app-error";
+import { BadRequestError, ConflictError, NotFoundError } from "../../commons/errors/app-error";
 import { AuthService } from "../auth/auth.service";
 import { AuthUsersRepository } from "../auth/repositories/auth-users.repository";
 import { SessionService } from "../auth/services/session.service";
@@ -51,6 +51,26 @@ export class AdminService {
     }
 
     await SessionService.revokeAllSessionsForUser(userRow.id);
+    return userRow.id;
+  }
+
+  static async forcePasswordReset(
+    actorId: string,
+    adminPassword: string | undefined,
+    username: string,
+  ): Promise<string> {
+    const [, userRow] = await Promise.all([
+      AuthService.assertCurrentPassword(actorId, adminPassword),
+      AuthUsersRepository.findByUsername(username),
+    ]);
+    if (!userRow) {
+      throw new BadRequestError("User not found");
+    }
+
+    const { hasRecoveryQuestion } = await AuthService.forcePasswordReset(userRow.id);
+    if (!hasRecoveryQuestion) {
+      throw new ConflictError("This account has no recovery question, so a forced reset would lock it out");
+    }
     return userRow.id;
   }
 

@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { profiles } from "../../users/users.entity";
 import { DEFAULT_THEME_ID } from "../../users/constants/theme.constants";
@@ -11,5 +12,18 @@ export class AuthProfileRepository {
       themeId: DEFAULT_THEME_ID,
       isAdmin: false,
     });
+  }
+
+  static async requiresPasswordReset(userId: string): Promise<boolean> {
+    const [row] = await db
+      .select({ mustChangePassword: profiles.mustChangePassword })
+      .from(profiles)
+      .where(eq(profiles.userId, userId))
+      .limit(1);
+    return row?.mustChangePassword ?? false;
+  }
+
+  static async setMustChangePassword(userId: string, mustChangePassword: boolean): Promise<void> {
+    await db.update(profiles).set({ mustChangePassword }).where(eq(profiles.userId, userId));
   }
 }

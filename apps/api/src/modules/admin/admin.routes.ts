@@ -16,6 +16,8 @@ router.get("/audit", asyncHandler(AdminAuditController.list));
 router.get("/users", asyncHandler(AdminController.listUsers));
 router.get("/users/:username", asyncHandler(AdminController.getUserDetail));
 router.post("/users/:username/revoke-sessions", asyncHandler(AdminController.revokeUserSessions));
+router.post("/users/:username/force-password-reset", asyncHandler(AdminController.forcePasswordReset));
+// Fallback for accounts with no recovery question, which force reset can't help.
 router.post(
   "/users/:username/reset-password",
   asyncHandler(AdminController.resetUserPassword),

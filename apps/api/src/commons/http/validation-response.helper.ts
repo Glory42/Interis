@@ -1,12 +1,16 @@
 import type { Response } from "express";
 import { z, type ZodError } from "zod";
-import type { ErrorCode } from "../errors/app-error";
+import type { AppError, ErrorCode } from "../errors/app-error";
 
 type ErrorPayload = { message: string; code: ErrorCode; details?: unknown };
 
 const sendError = (res: Response, status: number, payload: ErrorPayload): void => {
   res.status(status).json({ error: payload });
 };
+
+// Sends a typed error with its own status and code, for codes the client acts on.
+export const sendAppError = (res: Response, error: AppError): void =>
+  sendError(res, error.statusCode, { message: error.message, code: error.code });
 
 export const sendBadRequest = (res: Response, message: string, details?: unknown): void =>
   sendError(res, 400, { message, code: "BAD_REQUEST", details });
