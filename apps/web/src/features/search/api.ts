@@ -10,6 +10,8 @@ export const unifiedSearchResultSchema = z.object({
   posterPath: z.string().nullable(),
   releaseDate: z.string().nullable(),
   popularity: z.number(),
+  // Director (film) or creator (TV), only when the title is already cached.
+  credit: z.string().nullable().optional().default(null),
 });
 
 export type UnifiedSearchResult = z.infer<typeof unifiedSearchResultSchema>;

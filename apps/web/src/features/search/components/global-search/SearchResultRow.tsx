@@ -1,4 +1,3 @@
-import { ArrowRight } from "lucide-react";
 import { getPosterUrl } from "@/features/movies/components/utils";
 import { cn } from "@/lib/utils";
 import { toYear } from "./mappers";
@@ -13,68 +12,18 @@ type SearchResultRowProps = {
   onSelect: (entry: SearchResultEntry) => void;
 };
 
-export const SearchResultRow = ({
-  inputId,
-  entry,
-  index,
-  isHighlighted,
-  onHover,
-  onSelect,
-}: SearchResultRowProps) => {
-  if (entry.kind === "users") {
-    return (
-      <li>
-        <button
-          id={`${inputId}-result-${index}`}
-          type="button"
-          role="option"
-          aria-selected={isHighlighted}
-          className={cn(
-            "group flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
-            isHighlighted
-              ? "border-primary/45 bg-primary/10"
-              : "border-border/70 bg-background/40 hover:bg-secondary/35",
-          )}
-          onMouseEnter={() => onHover(index)}
-          onClick={() => onSelect(entry)}
-        >
-          {entry.avatarUrl ? (
-            <img
-              src={entry.avatarUrl}
-              alt={`${entry.username} avatar`}
-              className="h-9 w-9 shrink-0 rounded-full border border-border/70 object-cover"
-              loading="lazy"
-            />
-          ) : (
-            <span
-              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border font-mono text-xs"
-              style={{
-                borderColor: "color-mix(in srgb, var(--module-serial) 40%, transparent)",
-                color: "var(--module-serial)",
-                background: "rgba(0, 207, 255, 0.1)",
-              }}
-            >
-              {entry.username.slice(0, 1).toUpperCase()}
-            </span>
-          )}
-
-          <span className="min-w-0 flex-1">
-            <span className="line-clamp-1 block font-mono text-[11px] font-semibold text-foreground">
-              {entry.displayName}
-            </span>
-            <span className="block font-mono text-[10px] text-muted-foreground/85">
-              @{entry.username}
-            </span>
-          </span>
-
-          <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/45 transition-transform group-hover:translate-x-0.5" />
-        </button>
-      </li>
-    );
-  }
-
-  const isMovie = entry.kind === "movie";
-  const year = isMovie ? toYear(entry.releaseDate) : toYear(entry.firstAirDate);
+// One result: poster or avatar, the name, and "Film · 1999 · David Fincher" / "Member · @name".
+export const SearchResultRow = ({ inputId, entry, index, isHighlighted, onHover, onSelect }: SearchResultRowProps) => {
+  const isUser = entry.kind === "users";
+  const meta = isUser
+    ? `Member · @${entry.username}`
+    : [
+        entry.kind === "movie" ? "Film" : "TV",
+        toYear(entry.kind === "movie" ? entry.releaseDate : entry.firstAirDate),
+        entry.credit,
+      ]
+        .filter(Boolean)
+        .join(" · ");
 
   return (
     <li>
@@ -84,32 +33,34 @@ export const SearchResultRow = ({
         role="option"
         aria-selected={isHighlighted}
         className={cn(
-          "group flex w-full items-center gap-3 border px-3 py-2 text-left transition-colors",
-          isHighlighted
-            ? "border-primary/45 bg-primary/10"
-            : "border-border/70 bg-background/40 hover:bg-secondary/35",
+          "flex w-full items-center gap-3 border-l-2 px-4 py-2 text-left transition-colors",
+          isHighlighted ? "border-l-[color:var(--primary)] bg-foreground/5" : "border-l-transparent hover:bg-foreground/5",
         )}
         onMouseEnter={() => onHover(index)}
         onClick={() => onSelect(entry)}
       >
-        <img
-          src={getPosterUrl(entry.posterPath)}
-          alt={`${entry.title} poster`}
-          className="h-11 w-8 shrink-0 rounded-md border border-border/70 object-cover"
-          loading="lazy"
-        />
-
+        {isUser ? (
+          entry.avatarUrl ? (
+            <img src={entry.avatarUrl} alt="" className="size-8 shrink-0 rounded-full object-cover" loading="lazy" />
+          ) : (
+            <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs text-primary">
+              {entry.username.slice(0, 1).toLowerCase()}
+            </span>
+          )
+        ) : (
+          <img src={getPosterUrl(entry.posterPath)} alt="" className="aspect-2/3 w-7 shrink-0 rounded-[2px] object-cover" loading="lazy" />
+        )}
         <span className="min-w-0 flex-1">
-          <span className="line-clamp-1 block font-mono text-[11px] font-semibold text-foreground">
-            {entry.title}
-          </span>
-          <span className="block font-mono text-[10px] text-muted-foreground/85">
-            {isMovie ? "Movie" : "Serials"}
-            {year ? ` · ${year}` : ""}
+          <span className="block truncate text-sm font-semibold text-foreground">{isUser ? entry.displayName : entry.title}</span>
+          <span
+            className={cn(
+              "mono-meta block truncate uppercase",
+              entry.kind === "movie" ? "text-[color:var(--film)]" : entry.kind === "serials" ? "text-[color:var(--series)]" : "text-muted-foreground",
+            )}
+          >
+            {meta}
           </span>
         </span>
-
-        <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/45 transition-transform group-hover:translate-x-0.5" />
       </button>
     </li>
   );

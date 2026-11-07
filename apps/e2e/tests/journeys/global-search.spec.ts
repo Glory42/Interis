@@ -20,7 +20,7 @@ test("searches for a movie and a series and navigates to each from the results",
     };
 
     const searchInput = () =>
-      page.getByRole("dialog").getByPlaceholder("Search users, movie, serials...");
+      page.getByRole("dialog").getByPlaceholder("Films, shows, members");
 
     await test.step("shows a hint below the minimum query length", async () => {
       await openSearch();
@@ -41,7 +41,7 @@ test("searches for a movie and a series and navigates to each from the results",
       // so name-based matching isn't reliable here - the best relevance
       // match is always the first, pre-selected option in the listbox
       // (aria-selected="true", used for Enter-to-navigate keyboard nav).
-      const movieResult = page.getByRole("listbox").getByRole("option").first();
+      const movieResult = page.getByRole("dialog").getByRole("option").first();
       await expect(movieResult).toBeVisible({ timeout: 10_000 });
       await movieResult.click();
 
@@ -55,7 +55,7 @@ test("searches for a movie and a series and navigates to each from the results",
       await openSearch();
       await searchInput().fill(KNOWN_SERIES_TITLE);
 
-      const seriesResult = page.getByRole("listbox").getByRole("option").first();
+      const seriesResult = page.getByRole("dialog").getByRole("option").first();
       await expect(seriesResult).toBeVisible({ timeout: 10_000 });
       await seriesResult.click();
 
@@ -69,7 +69,7 @@ test("searches for a movie and a series and navigates to each from the results",
       await openSearch();
       await searchInput().fill("zzqxnonexistentquery123");
       await expect(
-        page.getByText("No matches found across users, movies, and TV shows."),
+        page.getByText("Nothing in the reel for “zzqxnonexistentquery123”."),
       ).toBeVisible({ timeout: 10_000 });
       await page.keyboard.press("Escape");
     });

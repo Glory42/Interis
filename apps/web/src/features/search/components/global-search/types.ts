@@ -1,13 +1,10 @@
-import type { ComponentType, CSSProperties } from "react";
 import type { UserSearchResult } from "@/features/profile/api";
 import type { TmdbSearchSeries } from "@/features/serials/api";
 import type { TmdbSearchMovie } from "@/types/api";
 
 export type SearchMode = "home" | "scoped";
 export type ScopedTarget = "users" | "movie" | "serials";
-// Home (unscoped) sections also include a merged movies+TV section, which
-// isn't an individually enterable scope the way ScopedTarget values are.
-export type SectionTarget = ScopedTarget | "titles";
+export type SectionTarget = ScopedTarget;
 
 export type UserResultEntry = {
   kind: "users";
@@ -24,6 +21,7 @@ export type MovieResultEntry = {
   title: string;
   posterPath: string | null;
   releaseDate: string;
+  credit: string | null;
 };
 
 export type SerialResultEntry = {
@@ -33,6 +31,7 @@ export type SerialResultEntry = {
   title: string;
   posterPath: string | null;
   firstAirDate: string;
+  credit: string | null;
 };
 
 export type SearchResultEntry =
@@ -46,15 +45,6 @@ export type SearchSection = {
   items: SearchResultEntry[];
   isLoading: boolean;
   isError: boolean;
-};
-
-export type QuickLink = {
-  target: ScopedTarget;
-  title: string;
-  description: string;
-  icon: ComponentType<{ className?: string; style?: CSSProperties }>;
-  color: string;
-  tint: string;
 };
 
 export type SearchSectionOffset = {
