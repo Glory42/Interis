@@ -98,6 +98,8 @@ export class ReportsRepository {
       authorUsername: string | null;
       oldestReportAt: Date;
       latestReportAt: Date;
+      reportId: string;
+      reports: { reporterUsername: string; reason: ReportReason; details: string | null }[];
     }>(sql`
       SELECT
         r.target_type AS "targetType",
@@ -107,11 +109,18 @@ export class ReportsRepository {
         (array_agg(r.content_snapshot ORDER BY r.created_at DESC))[1] AS "contentSnapshot",
         min(u.username) AS "authorUsername",
         min(r.created_at) AS "oldestReportAt",
-        max(r.created_at) AS "latestReportAt"
+        max(r.created_at) AS "latestReportAt",
+        (array_agg(r.id::text ORDER BY r.created_at DESC))[1] AS "reportId",
+        json_agg(json_build_object('reporterUsername', ru.username, 'reason', r.reason, 'details', r.details)
+          ORDER BY r.created_at ASC) AS "reports"
       FROM report r
       LEFT JOIN review rv ON r.target_type = 'review' AND rv.id::text = r.target_id
       LEFT JOIN post p ON r.target_type = 'post' AND p.id::text = r.target_id
-      LEFT JOIN "user" u ON u.id = coalesce(rv.user_id, p.user_id)
+      LEFT JOIN comment c ON r.target_type = 'comment' AND c.id::text = r.target_id
+      LEFT JOIN post_comment pc ON r.target_type = 'post_comment' AND pc.id::text = r.target_id
+      LEFT JOIN list l ON r.target_type = 'list' AND l.id::text = r.target_id
+      LEFT JOIN "user" u ON u.id = coalesce(rv.user_id, p.user_id, c.user_id, pc.user_id, l.user_id)
+      LEFT JOIN "user" ru ON ru.id = r.reporter_id
       WHERE r.status = ${status}
       GROUP BY r.target_type, r.target_id
       ORDER BY count(*) DESC, min(r.created_at) ASC

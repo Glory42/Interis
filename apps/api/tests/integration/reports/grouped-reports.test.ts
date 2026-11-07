@@ -15,6 +15,8 @@ type GroupedRow = {
   reasons: string[];
   authorUsername: string | null;
   oldestReportAt: string;
+  reportId: string;
+  reports: { reporterUsername: string; reason: string; details: string | null }[];
 };
 
 describe("reports grouped by item", () => {
@@ -109,5 +111,36 @@ describe("reports grouped by item", () => {
     expect((await send(admin.jar, `/api/reports/targets/post/${postId}/dismiss`, "POST", {})).status).toBe(200);
     const [row] = await db.select().from(reports).where(eq(reports.targetId, postId));
     expect(row).toMatchObject({ status: "dismissed", resolutionAction: "dismissed", resolutionNote: null });
+  });
+
+  it("lists who reported what on each item, with a report id to act on", async () => {
+    const admin = await signUpTestUser(getServer().baseUrl, "grpwho");
+    await promoteToAdmin(admin.username);
+    const { postId } = await reportedPost("grp4", ["spam", "harassment"]);
+
+    const row = (await grouped(admin.jar)).find((item) => item.targetId === postId)!;
+    expect(row.reports.map((report) => [report.reporterUsername.split("_")[0], report.reason])).toEqual([
+      ["grp4r0", "spam"],
+      ["grp4r1", "harassment"],
+    ]);
+    expect(typeof row.reportId).toBe("string");
+    expect((await send(admin.jar, `/api/reports/${row.reportId}/remove-content`, "POST", { reason: "spam" })).status).toBe(200);
+    expect((await grouped(admin.jar)).some((item) => item.targetId === postId)).toBe(false);
+  });
+
+  it("names the author of a reported comment or list", async () => {
+    const admin = await signUpTestUser(getServer().baseUrl, "grpcl");
+    await promoteToAdmin(admin.username);
+    const author = await signUpTestUser(getServer().baseUrl, "grpcla");
+    const reporter = await signUpTestUser(getServer().baseUrl, "grpclr");
+    const post = (await (await send(author.jar, "/api/posts", "POST", { content: "host post" })).json()) as { id: string };
+    const comment = (await (await send(author.jar, `/api/posts/${post.id}/comments`, "POST", { content: "rude" })).json()) as { id: string };
+    const list = (await (await send(author.jar, "/api/lists", "POST", { title: "Bad list" })).json()) as { id: string };
+    await send(reporter.jar, "/api/reports", "POST", { targetType: "post_comment", targetId: comment.id, reason: "harassment" });
+    await send(reporter.jar, "/api/reports", "POST", { targetType: "list", targetId: list.id, reason: "other" });
+
+    const rows = await grouped(admin.jar);
+    expect(rows.find((item) => item.targetId === comment.id)?.authorUsername).toBe(author.username);
+    expect(rows.find((item) => item.targetId === list.id)?.authorUsername).toBe(author.username);
   });
 });

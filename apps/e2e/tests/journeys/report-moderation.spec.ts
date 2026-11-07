@@ -49,14 +49,14 @@ test("a user reports a post, an admin removes it", async ({ browser }) => {
       promoteToAdmin(reporter.username);
 
       await pageB.goto("/admin/reports");
-      await expect(pageB.getByText("Reports").first()).toBeVisible({ timeout: 10_000 });
-
-      const reportRow = pageB.locator("article, div").filter({ hasText: POST_CONTENT }).last();
-      await expect(reportRow.getByText(`reported by @${reporter.username}`)).toBeVisible({
+      const item = pageB.getByRole("button", { name: new RegExp(POST_CONTENT) });
+      await expect(item).toBeVisible({ timeout: 10_000 });
+      await item.click();
+      await expect(pageB.getByText(`@${reporter.username} · `, { exact: false })).toBeVisible({
         timeout: 10_000,
       });
 
-      await reportRow.getByRole("button", { name: "Remove content" }).click();
+      await pageB.getByRole("button", { name: "Remove & resolve 1" }).click();
 
       // AdminConfirmDialog is built on the same role-less ModalShell
       // pattern as the feed's review-edit dialog (see review-lifecycle.

@@ -11,7 +11,7 @@ describe("AdminReportsPanel status", () => {
     const user = userEvent.setup();
     const statuses: (string | null)[] = [];
     server.use(
-      http.get("http://localhost/api/reports", ({ request }) => {
+      http.get("http://localhost/api/reports/grouped", ({ request }) => {
         statuses.push(new URL(request.url).searchParams.get("status"));
         return HttpResponse.json([]);
       }),
