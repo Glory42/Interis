@@ -18,6 +18,14 @@ const groupedReportSchema = z.object({
 
 export type GroupedReport = z.infer<typeof groupedReportSchema>;
 
+export const REPORT_TYPE_LABEL: Record<GroupedReport["targetType"], string> = {
+  review: "Review",
+  post: "Post",
+  comment: "Comment",
+  post_comment: "Comment",
+  list: "List",
+};
+
 export const listGroupedReports = async (status: ReportStatus, page: AdminPage): Promise<GroupedReport[]> => {
   const params = new URLSearchParams({ status });
   appendPageParams(params, page);
