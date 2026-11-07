@@ -114,13 +114,16 @@ export class AdminController {
       parsed.data.adminPassword,
       req.params.username,
       parsed.data.reason,
+      parsed.data.durationDays,
     );
+    const { reason, durationDays } = parsed.data;
+    const length = durationDays ? `${durationDays} ${durationDays === 1 ? "day" : "days"}` : null;
     await AdminAuditService.record(req.user, {
       action: "user.suspend",
       targetType: "user",
       targetId,
       targetLabel: req.params.username,
-      reason: parsed.data.reason,
+      reason: [reason, length && `(${length})`].filter(Boolean).join(" ") || null,
     });
     res.status(200).json({ success: true });
   }

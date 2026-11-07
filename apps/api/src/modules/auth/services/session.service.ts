@@ -1,3 +1,4 @@
+import { isSuspensionInEffect } from "../../../commons/auth/suspension.helper";
 import { randomUUID } from "node:crypto";
 import { env } from "../../../infrastructure/config/env";
 import {
@@ -75,7 +76,13 @@ export class SessionService {
       profileFlags:
         context.isAdmin === null || context.isSuspended === null
           ? null
-          : { isAdmin: context.isAdmin, isSuspended: context.isSuspended },
+          : {
+              isAdmin: context.isAdmin,
+              isSuspended: isSuspensionInEffect({
+                isSuspended: context.isSuspended,
+                suspendedUntil: context.suspendedUntil,
+              }),
+            },
     };
   }
 

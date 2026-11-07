@@ -1,4 +1,5 @@
 import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { profiles } from "../../users/users.entity";
@@ -16,9 +17,12 @@ const userColumns = {
   email: user.email,
   avatarUrl: profiles.avatarUrl,
   isAdmin: profiles.isAdmin,
-  isSuspended: profiles.isSuspended,
+  // Effective state: a suspension whose end time has passed no longer counts.
+  isSuspended: sql<boolean>`(${profiles.isSuspended} AND (${profiles.suspendedUntil} IS NULL OR ${profiles.suspendedUntil} > now()))`,
   createdAt: profiles.createdAt,
 };
+
+const suspender = alias(user, "suspender");
 
 export class AdminRepository {
   static async listUsers(query: string | undefined, limit: number, offset: number) {
@@ -35,9 +39,16 @@ export class AdminRepository {
 
   static async findUserDetail(username: string) {
     const [row] = await db
-      .select({ ...userColumns, suspendedAt: profiles.suspendedAt, suspendedReason: profiles.suspendedReason })
+      .select({
+        ...userColumns,
+        suspendedAt: profiles.suspendedAt,
+        suspendedReason: profiles.suspendedReason,
+        suspendedUntil: profiles.suspendedUntil,
+        suspendedBy: suspender.username,
+      })
       .from(user)
       .innerJoin(profiles, eq(user.id, profiles.userId))
+      .leftJoin(suspender, eq(suspender.id, profiles.suspendedBy))
       .where(eq(user.username, username))
       .limit(1);
     return row ?? null;

@@ -18,6 +18,8 @@ export const AdminResetPasswordSchema = z.object({
 
 export const AdminSuspendUserSchema = z.object({
   reason: z.string().trim().max(500).optional(),
+  // Omitted = until an admin lifts it.
+  durationDays: z.number().int().min(1).max(365).optional(),
   adminPassword: adminPasswordSchema,
 });
 
