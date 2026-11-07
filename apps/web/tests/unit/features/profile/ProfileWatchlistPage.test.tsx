@@ -10,7 +10,7 @@ const shelfItem = (tmdbId: number, title: string, mediaType: "movie" | "tv") => 
   tmdbId,
   title,
   posterPath: null,
-  releaseYear: 2020,
+  releaseYear: mediaType === "tv" ? null : 2020,
   runtime: null,
   genres: null,
   mediaType,
@@ -34,13 +34,15 @@ describe("ProfileWatchlistPage", () => {
       }),
     );
 
-    renderWithProviders(<ProfileWatchlistPage username="cinephile" />);
+    const { container } = renderWithProviders(<ProfileWatchlistPage username="cinephile" />);
 
     expect(await screen.findByText("Queued Film")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "All (71)" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Serial (1)" }));
+    expect(container).toHaveTextContent("Showing 71 films and series, newest first.");
+    await user.click(screen.getByRole("button", { name: /films and series/ }));
+    await user.click(screen.getByRole("menuitemradio", { name: "Series · 1" }));
 
     expect(await screen.findByText("Queued Show")).toBeInTheDocument();
+    expect(container).not.toHaveTextContent("Unknown year");
     expect(screen.queryByText("Queued Film")).not.toBeInTheDocument();
     expect(types).toEqual(["all", "tv"]);
   });

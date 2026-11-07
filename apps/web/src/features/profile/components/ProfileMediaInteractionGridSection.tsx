@@ -1,4 +1,5 @@
 import { MediaPosterGridItem } from "@/features/profile/components/MediaPosterGridItem";
+import { SentenceSelect } from "@/components/ui/SentenceSelect";
 import {
   PROFILE_MEDIA_GRID_CLASSES,
   ProfileMediaGridSkeleton,
@@ -10,7 +11,7 @@ import {
 import type { UserInteractionMovie } from "@/features/profile/api";
 import {
   mediaShelfCount,
-  mediaShelfFilters,
+  mediaShelfOptions,
   type MediaShelfCounts,
   type MediaShelfFilter,
 } from "@/features/profile/components/media-shelf-filter";
@@ -70,48 +71,17 @@ export const ProfileMediaInteractionGridSection = ({
 
       {!isPending && !isError && !isShelfEmpty ? (
         <div>
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              {sectionTitle}
-            </h3>
-            <div className="flex flex-wrap justify-end gap-1">
-              {mediaShelfFilters.map((filterTab) => {
-                const isActive = activeFilter === filterTab.key;
-
-                return (
-                  <button
-                    key={`${sectionTitle}-filter-${filterTab.key}`}
-                    type="button"
-                    className="rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest transition-colors"
-                    style={
-                      isActive
-                        ? {
-                            borderColor: "var(--shell-accent)",
-                            color: "var(--shell-accent)",
-                            background:
-                              "color-mix(in srgb, var(--shell-accent) 8%, transparent)",
-                          }
-                        : {
-                            borderColor: "var(--shell-border)",
-                            color: "var(--shell-muted)",
-                            background: "transparent",
-                          }
-                    }
-                    onClick={() => {
-                      onFilterChange(filterTab.key);
-                    }}
-                  >
-                    {filterTab.label} ({mediaShelfCount(filterTab.key, counts)})
-                  </button>
-                );
-              })}
-            </div>
+          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2 border-b border-[color:var(--line)] pb-2">
+            <h2 className="display-3 text-foreground">{sectionTitle}</h2>
+            <p className="body-s text-muted-foreground">
+              {`Showing ${mediaShelfCount(activeFilter, counts)} `}
+              <SentenceSelect value={activeFilter} options={mediaShelfOptions(counts)} onChange={onFilterChange} />
+              {", newest first."}
+            </p>
           </div>
 
           {items.length === 0 ? (
-            <div className="border px-3 py-2 text-xs shell-border shell-muted surface">
-              No {activeFilter === "all" ? "items" : activeFilter} {interactionVerb} yet.
-            </div>
+            <p className="body-s text-muted-foreground">Nothing here for this filter yet.</p>
           ) : (
             <div className={PROFILE_MEDIA_GRID_CLASSES}>
               {items.map((item) => (

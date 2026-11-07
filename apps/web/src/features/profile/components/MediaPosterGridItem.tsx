@@ -31,8 +31,7 @@ export const MediaPosterGridItem = ({ item, interactionVerb }: MediaPosterGridIt
         {item.title}
       </p>
       <p className="mt-0.5 text-[10px] text-muted-foreground/85">
-        {item.releaseYear ?? "Unknown year"} · {interactionVerb}{" "}
-        {getRelativeTime(item.lastInteractionAt)}
+        {[item.releaseYear, `${interactionVerb} ${getRelativeTime(item.lastInteractionAt)}`].filter(Boolean).join(" · ")}
       </p>
     </>
   );

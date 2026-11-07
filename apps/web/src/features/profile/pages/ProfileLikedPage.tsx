@@ -6,9 +6,10 @@ import { LikedReviewCard } from "@/features/profile/components/LikedReviewCard";
 import { ProfileMediaGridSkeleton } from "@/features/profile/components/ProfileMediaGridSkeleton";
 import {
   mediaShelfCount,
-  mediaShelfFilters,
+  mediaShelfOptions,
   toMediaShelfType,
 } from "@/features/profile/components/media-shelf-filter";
+import { SentenceSelect, type SentenceOption } from "@/components/ui/SentenceSelect";
 import {
   useUserLikedMovies,
   useUserLikedLists,
@@ -19,31 +20,18 @@ import {
 type LikedTab = "medias" | "reviews" | "lists";
 type ListFilter = "all" | "movie" | "serial" | "mixed";
 
-const topTabs: Array<{ key: LikedTab; label: string }> = [
-  { key: "medias", label: "Medias" },
-  { key: "reviews", label: "Reviews" },
-  { key: "lists", label: "Lists" },
+const topTabs: Array<SentenceOption<LikedTab>> = [
+  { value: "medias", word: "titles", label: "Titles" },
+  { value: "reviews", word: "reviews", label: "Reviews" },
+  { value: "lists", word: "lists", label: "Lists" },
 ];
 
-const listSubFilters: Array<{ key: ListFilter; label: string }> = [
-  { key: "all", label: "All" },
-  { key: "movie", label: "Movie" },
-  { key: "serial", label: "Serial" },
-  { key: "mixed", label: "Mixed" },
+const listSubFilters: Array<SentenceOption<ListFilter>> = [
+  { value: "all", word: "every kind", label: "Every kind" },
+  { value: "movie", word: "film lists", label: "Film lists" },
+  { value: "serial", word: "series lists", label: "Series lists" },
+  { value: "mixed", word: "mixed lists", label: "Mixed lists" },
 ];
-
-const tabButtonStyle = (isActive: boolean): React.CSSProperties =>
-  isActive
-    ? {
-        borderColor: "var(--shell-accent)",
-        color: "var(--shell-accent)",
-        background: "color-mix(in srgb, var(--shell-accent) 8%, transparent)",
-      }
-    : {
-        borderColor: "var(--shell-border)",
-        color: "var(--shell-muted)",
-        background: "transparent",
-      };
 
 type ProfileLikedPageProps = {
   username: string;
@@ -63,11 +51,8 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
   const mediaItems = mediasQuery.data?.items ?? [];
   const mediaCounts = mediasQuery.data?.counts ?? { movie: 0, tv: 0 };
   const mediaTotal = mediaShelfCount("all", mediaCounts);
-  const mediaSubFilters = mediaShelfFilters.map((filter) => ({
-    ...filter,
-    label: `${filter.label} (${mediaShelfCount(filter.key, mediaCounts)})`,
-  }));
-  const reviewSubFilters = mediaShelfFilters;
+  const mediaSubFilters = mediaShelfOptions(mediaCounts);
+  const reviewSubFilters = mediaShelfOptions();
   const reviewItems = useMemo(
     () => reviewsQuery.data?.pages.flat() ?? [],
     [reviewsQuery.data],
@@ -90,58 +75,27 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
   }, [listItems, listFilter]);
 
   const countByTab: Record<LikedTab, number | undefined> = {
-    medias: mediasQuery.isPending ? undefined : mediaTotal,
-    reviews: reviewsQuery.isPending ? undefined : reviewItems.length,
-    lists: listsQuery.isPending ? undefined : listItems.length,
+    medias: mediasQuery.isPending ? undefined : mediaShelfCount(mediaFilter, mediaCounts),
+    reviews: reviewsQuery.isPending ? undefined : filteredReviews.length,
+    lists: listsQuery.isPending ? undefined : filteredLists.length,
   };
 
   const activeSubFilters =
     activeTab === "medias"
-      ? { filters: mediaSubFilters, active: mediaFilter, onChange: setMediaFilter as (k: string) => void }
+      ? <SentenceSelect value={mediaFilter} options={mediaSubFilters} onChange={setMediaFilter} />
       : activeTab === "reviews"
-        ? { filters: reviewSubFilters, active: reviewFilter, onChange: setReviewFilter as (k: string) => void }
-        : { filters: listSubFilters, active: listFilter, onChange: setListFilter as (k: string) => void };
+        ? <SentenceSelect value={reviewFilter} options={reviewSubFilters} onChange={setReviewFilter} />
+        : <SentenceSelect value={listFilter} options={listSubFilters} onChange={setListFilter} />;
 
   return (
     <div>
-      {/* Heading */}
-      <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-        Likes
-        {countByTab[activeTab] !== undefined ? (
-          <span className="ml-1 shell-accent">({countByTab[activeTab]})</span>
-        ) : null}
+      <p className="body-s mb-4 text-muted-foreground">
+        {countByTab[activeTab] !== undefined ? `Showing ${countByTab[activeTab]} liked ` : "Showing liked "}
+        <SentenceSelect value={activeTab} options={topTabs} onChange={setActiveTab} />
+        {" · "}
+        {activeSubFilters}
+        {"."}
       </p>
-
-      {/* Single row: sub-filters left, top tabs right */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-1">
-        <div className="flex flex-wrap items-center gap-1">
-          {topTabs.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              className="rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest transition-colors"
-              style={tabButtonStyle(activeTab === tab.key)}
-              onClick={() => { setActiveTab(tab.key); }}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-1">
-          {activeSubFilters.filters.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              className="rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest transition-colors"
-              style={tabButtonStyle(activeSubFilters.active === f.key)}
-              onClick={() => { activeSubFilters.onChange(f.key); }}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Content */}
       {activeTab === "medias" ? (

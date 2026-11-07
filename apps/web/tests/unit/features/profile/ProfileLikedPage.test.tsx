@@ -36,11 +36,12 @@ describe("ProfileLikedPage", () => {
       http.get("http://localhost/api/users/cinephile/liked-lists", () => HttpResponse.json([])),
     );
 
-    renderWithProviders(<ProfileLikedPage username="cinephile" />);
+    const { container } = renderWithProviders(<ProfileLikedPage username="cinephile" />);
 
     expect(await screen.findByText("Loved Show")).toBeInTheDocument();
-    expect(screen.getByText("(94)")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Movie (90)" }));
+    expect(container).toHaveTextContent("Showing 94 liked titles · films and series.");
+    await user.click(screen.getByRole("button", { name: /films and series/ }));
+    await user.click(screen.getByRole("menuitemradio", { name: "Films · 90" }));
 
     expect(await screen.findByText("Loved Film")).toBeInTheDocument();
     expect(types).toEqual(["all", "movie"]);
