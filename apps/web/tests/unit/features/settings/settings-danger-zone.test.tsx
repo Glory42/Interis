@@ -21,6 +21,7 @@ describe("SettingsDangerZone", () => {
     renderWithProviders(<SettingsDangerZone />, { routePath: "/settings/data", queryClient: signedIn() });
 
     expect(await screen.findByText(/Deletes @cinefan with every log, review, list, post and comment/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Download your diary first." })).toHaveAttribute("href", "/settings/data");
     const password = screen.getByLabelText("Your password, to confirm");
     expect(password).toHaveAttribute("autocomplete", "current-password");
     expect(document.querySelector('input[autocomplete="username"]')).toHaveValue("cinefan");

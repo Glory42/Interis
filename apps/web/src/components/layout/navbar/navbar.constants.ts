@@ -41,9 +41,3 @@ export const navLinkActiveOptions = {
 
 export const dropdownItemClass =
   "flex w-full items-center rounded-lg px-2.5 py-2 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:bg-secondary/65 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60";
-
-// Detail pages get their own sticky action bar on phones, so the tab bar steps aside there.
-const DETAIL_PATH = /^\/(movies|serials)\/[^/]+/;
-
-export const shouldShowTabBar = (pathname: string, isNotGuestLanding: boolean): boolean =>
-  isNotGuestLanding && !DETAIL_PATH.test(pathname);

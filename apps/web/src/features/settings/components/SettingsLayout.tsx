@@ -19,17 +19,19 @@ export const SettingsLayout = ({ children }: SettingsLayoutProps) => {
   const matchRoute = useMatchRoute();
   const isPhone = useMediaQuery(PHONE_QUERY);
   const active = settingsSections.find((section) => Boolean(matchRoute({ to: section.to })));
+  const isDeletePage = Boolean(matchRoute({ to: "/settings/delete-account" }));
+  const phoneTitle = active?.label ?? (isDeletePage ? "Delete account" : null);
 
   if (isPhone) {
     return (
       <div className="min-h-[80vh]">
-        {active ? (
+        {phoneTitle ? (
           <div className="flex h-11 items-center justify-between border-b border-[color:var(--line)] px-4">
             <Link to="/settings" className="body-s inline-flex items-center gap-1 text-foreground">
               <ChevronLeft aria-hidden className="size-4" />
               Settings
             </Link>
-            <span className="mono-meta uppercase text-foreground">{active.label}</span>
+            <span className="mono-meta uppercase text-foreground">{phoneTitle}</span>
             <span className="w-16" aria-hidden />
           </div>
         ) : null}
@@ -70,9 +72,13 @@ export const SettingsLayout = ({ children }: SettingsLayoutProps) => {
                 );
               })}
               <Link
-                to="/settings/data"
-                hash="delete-account"
-                className={cn(navLink, "mt-4 border-transparent text-[color:var(--danger)] hover:opacity-80")}
+                to="/settings/delete-account"
+                aria-current={isDeletePage ? "page" : undefined}
+                className={cn(
+                  navLink,
+                  "mt-4 text-[color:var(--danger)] hover:opacity-80",
+                  isDeletePage ? "border-[color:var(--danger)] bg-[color:var(--danger)]/[0.07]" : "border-transparent",
+                )}
               >
                 Delete account
               </Link>

@@ -63,6 +63,32 @@ describe("SettingsLayout on desktop", () => {
   });
 });
 
+describe("Delete account", () => {
+  it("is its own page, not a jump into Your data", async () => {
+    renderWithProviders(<SettingsLayout>Danger zone</SettingsLayout>, {
+      routePath: "/settings/delete-account",
+      queryClient: signedIn(),
+    });
+
+    const nav = await screen.findByRole("navigation", { name: "Settings sections" });
+    const link = within(nav).getByRole("link", { name: "Delete account" });
+    expect(link).toHaveAttribute("href", "/settings/delete-account");
+    expect(link).toHaveAttribute("aria-current", "page");
+    expect(within(nav).getByRole("link", { name: "07 Your data" })).not.toHaveAttribute("aria-current");
+  });
+
+  it("gets a way back on a phone", async () => {
+    asPhone(true);
+    renderWithProviders(<SettingsLayout>Danger zone</SettingsLayout>, {
+      routePath: "/settings/delete-account",
+      queryClient: signedIn(),
+    });
+
+    expect(await screen.findByRole("link", { name: "Settings" })).toHaveAttribute("href", "/settings");
+    expect(screen.getByText("Delete account")).toBeInTheDocument();
+  });
+});
+
 describe("SettingsLayout on a phone", () => {
   it("swaps the side list for a way back to the index", async () => {
     asPhone(true);
@@ -85,7 +111,7 @@ describe("SettingsIndex", () => {
     expect(screen.getByRole("link", { name: /Genres.*Drama, Thriller/ })).toHaveAttribute("href", "/settings/genres");
     expect(screen.getByRole("link", { name: /Theme.*Nitrate/ })).toHaveAttribute("href", "/settings/theme");
     expect(screen.getByRole("link", { name: /Account & security.*m•@example.com/ })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Delete account" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Delete account" })).toHaveAttribute("href", "/settings/delete-account");
     expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
   });
 });

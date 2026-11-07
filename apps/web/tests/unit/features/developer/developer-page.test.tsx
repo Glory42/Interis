@@ -16,6 +16,15 @@ describe("DeveloperPage", () => {
     expect(screen.queryByText("Portfolio Widget")).not.toBeInTheDocument();
   });
 
+  it("credits TMDB as its terms require", async () => {
+    renderWithProviders(<DeveloperPage />, { routePath: "/developer" });
+
+    expect(
+      await screen.findByText("This product uses the TMDB API but is not endorsed or certified by TMDB."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "TMDB" })).toHaveAttribute("href", "https://www.themoviedb.org");
+  });
+
   it("lists every endpoint with its default and maximum limit", async () => {
     renderWithProviders(<DeveloperPage />, { routePath: "/developer" });
 

@@ -96,7 +96,14 @@ export const FeedTitleCard = memo(function FeedTitleCard({ group }: { group: Fee
                 Show spoilers
               </button>
             ) : (
-              <p className="tagline mt-2 text-foreground">{`“${review.content}”`}</p>
+              <Link
+                to="/reviews/$username/$reviewId"
+                params={{ username: actor.username, reviewId: review.id }}
+                className="tagline mt-2 block text-foreground hover:underline hover:decoration-[color:var(--line-strong)]"
+                viewTransition
+              >
+                {`“${review.content}”`}
+              </Link>
             )}
             <div className="mono-meta mt-2 flex items-center gap-4 text-[color:var(--faint)]">
               <ReviewLike reviewId={review.id} engagement={group.engagement} />

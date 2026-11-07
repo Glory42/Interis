@@ -86,7 +86,7 @@ describe("FeedTitleCard", () => {
     expect(screen.getByRole("link", { name: /Clayface/ })).toHaveAttribute("href", "/movies/1");
     expect(screen.getByText("8/10")).toBeInTheDocument();
     expect(screen.getByLabelText("Liked")).toBeInTheDocument();
-    expect(screen.getByText("“Dc character when someone is not happly married”")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "“Dc character when someone is not happly married”" })).toHaveAttribute("href", "/reviews/glory42/r1");
     expect(screen.getByRole("link", { name: "Reply" })).toHaveAttribute("href", "/reviews/glory42/r1");
   });
 

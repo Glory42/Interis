@@ -109,8 +109,8 @@ test("toggles episode/season/series watch state and rating, and writes a season 
     const sidebar = page.getByRole("complementary").first();
 
     await test.step("toggles series-level watchlist", async () => {
-      await sidebar.getByRole("button", { name: "watchlist" }).click();
-      await expect(sidebar.getByRole("button", { name: "watchlisted" })).toBeVisible({
+      await sidebar.getByRole("button", { name: "Watchlist", exact: true }).click();
+      await expect(sidebar.getByRole("button", { name: "Watchlisted", exact: true })).toBeVisible({
         timeout: 10_000,
       });
     });
@@ -120,7 +120,7 @@ test("toggles episode/season/series watch state and rating, and writes a season 
       await expect(page.getByText(KNOWN_SERIES_TITLE).first()).toBeVisible({ timeout: 10_000 });
 
       await page.goto(`/serials/${KNOWN_SERIES_TMDB_ID}`);
-      await expect(sidebar.getByRole("button", { name: "watchlisted" })).toBeVisible({
+      await expect(sidebar.getByRole("button", { name: "Watchlisted", exact: true })).toBeVisible({
         timeout: 10_000,
       });
     });
@@ -133,7 +133,7 @@ test("toggles episode/season/series watch state and rating, and writes a season 
       await expect(sidebar.getByRole("button", { name: "Watched", exact: true })).toBeVisible({
         timeout: 10_000,
       });
-      await expect(sidebar.getByRole("button", { name: "watchlist", exact: true })).toBeVisible({
+      await expect(sidebar.getByRole("button", { name: "Watchlist", exact: true })).toBeVisible({
         timeout: 10_000,
       });
 

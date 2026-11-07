@@ -40,7 +40,14 @@ export const ProfileReviewRow = memo(function ProfileReviewRow({ review, usernam
             ⚠ Spoilers · reveal
           </button>
         ) : (
-          <p className="tagline mt-1.5 text-lg text-foreground">{`“${review.content}”`}</p>
+          <Link
+            to="/reviews/$username/$reviewId"
+            params={{ username, reviewId: review.id }}
+            className="tagline mt-1.5 block text-lg text-foreground hover:underline hover:decoration-[color:var(--line-strong)]"
+            viewTransition
+          >
+            {`“${review.content}”`}
+          </Link>
         )}
         <Link
           to="/reviews/$username/$reviewId"

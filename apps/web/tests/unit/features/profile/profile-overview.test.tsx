@@ -49,7 +49,7 @@ describe("ProfileOverviewActivity", () => {
     expect(screen.getByLabelText("8 of 10")).toBeInTheDocument();
     expect(screen.getByLabelText("Liked")).toBeInTheDocument();
     expect(screen.getByLabelText("Reviewed")).toBeInTheDocument();
-    expect(screen.getByText("“Dc character when someone is not happly married”")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "“Dc character when someone is not happly married”" })).toHaveAttribute("href", "/reviews/glory42/r1");
   });
 
   it("names series and quieter events in one line", async () => {

@@ -23,6 +23,7 @@ import { Route as SettingsThemeRouteImport } from './routes/settings/theme'
 import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
 import { Route as SettingsGenresRouteImport } from './routes/settings/genres'
 import { Route as SettingsFavoritesRouteImport } from './routes/settings/favorites'
+import { Route as SettingsDeleteAccountRouteImport } from './routes/settings/delete-account'
 import { Route as SettingsDataRouteImport } from './routes/settings/data'
 import { Route as SettingsBlockedRouteImport } from './routes/settings/blocked'
 import { Route as SettingsAuthRouteImport } from './routes/settings/auth'
@@ -123,6 +124,11 @@ const SettingsGenresRoute = SettingsGenresRouteImport.update({
 const SettingsFavoritesRoute = SettingsFavoritesRouteImport.update({
   id: '/favorites',
   path: '/favorites',
+  getParentRoute: () => SettingsRouteRoute,
+} as any)
+const SettingsDeleteAccountRoute = SettingsDeleteAccountRouteImport.update({
+  id: '/delete-account',
+  path: '/delete-account',
   getParentRoute: () => SettingsRouteRoute,
 } as any)
 const SettingsDataRoute = SettingsDataRouteImport.update({
@@ -313,6 +319,7 @@ export interface FileRoutesByFullPath {
   '/settings/auth': typeof SettingsAuthRoute
   '/settings/blocked': typeof SettingsBlockedRoute
   '/settings/data': typeof SettingsDataRoute
+  '/settings/delete-account': typeof SettingsDeleteAccountRoute
   '/settings/favorites': typeof SettingsFavoritesRoute
   '/settings/genres': typeof SettingsGenresRoute
   '/settings/profile': typeof SettingsProfileRoute
@@ -357,6 +364,7 @@ export interface FileRoutesByTo {
   '/settings/auth': typeof SettingsAuthRoute
   '/settings/blocked': typeof SettingsBlockedRoute
   '/settings/data': typeof SettingsDataRoute
+  '/settings/delete-account': typeof SettingsDeleteAccountRoute
   '/settings/favorites': typeof SettingsFavoritesRoute
   '/settings/genres': typeof SettingsGenresRoute
   '/settings/profile': typeof SettingsProfileRoute
@@ -406,6 +414,7 @@ export interface FileRoutesById {
   '/settings/auth': typeof SettingsAuthRoute
   '/settings/blocked': typeof SettingsBlockedRoute
   '/settings/data': typeof SettingsDataRoute
+  '/settings/delete-account': typeof SettingsDeleteAccountRoute
   '/settings/favorites': typeof SettingsFavoritesRoute
   '/settings/genres': typeof SettingsGenresRoute
   '/settings/profile': typeof SettingsProfileRoute
@@ -455,6 +464,7 @@ export interface FileRouteTypes {
     | '/settings/auth'
     | '/settings/blocked'
     | '/settings/data'
+    | '/settings/delete-account'
     | '/settings/favorites'
     | '/settings/genres'
     | '/settings/profile'
@@ -499,6 +509,7 @@ export interface FileRouteTypes {
     | '/settings/auth'
     | '/settings/blocked'
     | '/settings/data'
+    | '/settings/delete-account'
     | '/settings/favorites'
     | '/settings/genres'
     | '/settings/profile'
@@ -547,6 +558,7 @@ export interface FileRouteTypes {
     | '/settings/auth'
     | '/settings/blocked'
     | '/settings/data'
+    | '/settings/delete-account'
     | '/settings/favorites'
     | '/settings/genres'
     | '/settings/profile'
@@ -690,6 +702,13 @@ declare module '@tanstack/react-router' {
       path: '/favorites'
       fullPath: '/settings/favorites'
       preLoaderRoute: typeof SettingsFavoritesRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
+    '/settings/delete-account': {
+      id: '/settings/delete-account'
+      path: '/delete-account'
+      fullPath: '/settings/delete-account'
+      preLoaderRoute: typeof SettingsDeleteAccountRouteImport
       parentRoute: typeof SettingsRouteRoute
     }
     '/settings/data': {
@@ -947,6 +966,7 @@ interface SettingsRouteRouteChildren {
   SettingsAuthRoute: typeof SettingsAuthRoute
   SettingsBlockedRoute: typeof SettingsBlockedRoute
   SettingsDataRoute: typeof SettingsDataRoute
+  SettingsDeleteAccountRoute: typeof SettingsDeleteAccountRoute
   SettingsFavoritesRoute: typeof SettingsFavoritesRoute
   SettingsGenresRoute: typeof SettingsGenresRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
@@ -958,6 +978,7 @@ const SettingsRouteRouteChildren: SettingsRouteRouteChildren = {
   SettingsAuthRoute: SettingsAuthRoute,
   SettingsBlockedRoute: SettingsBlockedRoute,
   SettingsDataRoute: SettingsDataRoute,
+  SettingsDeleteAccountRoute: SettingsDeleteAccountRoute,
   SettingsFavoritesRoute: SettingsFavoritesRoute,
   SettingsGenresRoute: SettingsGenresRoute,
   SettingsProfileRoute: SettingsProfileRoute,

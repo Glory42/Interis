@@ -10,7 +10,6 @@ import { AppFooter } from "@/components/layout/AppFooter";
 import { AppNavbar } from "@/components/layout/AppNavbar";
 import { NotFoundPage } from "@/components/layout/NotFoundPage";
 import { MobileTabBar } from "@/components/layout/navbar/parts/MobileTabBar";
-import { shouldShowTabBar } from "@/components/layout/navbar/navbar.constants";
 import { Toaster } from "@/components/ui/Toaster";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { GlobalSearchDialogProvider } from "@/features/search/components/GlobalSearchDialogProvider";
@@ -25,7 +24,8 @@ const RootLayout = () => {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { user } = useAuth();
   const isGuestLanding = pathname === "/" && !user;
-  const showTabBar = shouldShowTabBar(pathname, !isGuestLanding);
+  // Phones keep the tab bar everywhere, detail pages included; only the guest landing hides it.
+  const showTabBar = !isGuestLanding;
 
   return (
     <>

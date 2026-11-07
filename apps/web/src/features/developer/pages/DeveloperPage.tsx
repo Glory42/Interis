@@ -47,6 +47,15 @@ export const DeveloperPage = () => {
 
           <DeveloperTryIt />
         </div>
+
+        <p className="mono-meta mt-10 border-t border-[color:var(--line)] pt-4 text-muted-foreground">
+          {"Film and TV data from "}
+          <a href="https://www.themoviedb.org" target="_blank" rel="noreferrer" className="underline-offset-2 hover:text-foreground hover:underline">
+            TMDB
+          </a>
+          {". "}
+          <span>This product uses the TMDB API but is not endorsed or certified by TMDB.</span>
+        </p>
       </div>
     </div>
   );

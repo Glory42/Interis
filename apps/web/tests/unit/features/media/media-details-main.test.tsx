@@ -52,6 +52,26 @@ describe("MediaDetailsMainSection", () => {
     expect(screen.getByText("Horror / Thriller")).toBeInTheDocument();
   });
 
+  it("puts the runtime on the score line under the title, and phone actions right after it", async () => {
+    renderWithProviders(
+      <MediaDetailsMainSection
+        {...baseProps}
+        creditPeople={[]}
+        tagline={null}
+        cast={[]}
+        factRows={[]}
+        runtimeLabel="2h 15min"
+        actionsSlot={<button type="button">Log</button>}
+      />,
+    );
+
+    const scoreLine = await screen.findByRole("list", { name: "At a glance" });
+    expect(scoreLine).toHaveTextContent("2h 15min");
+    const log = screen.getByRole("button", { name: "Log" });
+    expect(scoreLine.compareDocumentPosition(log) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(log.compareDocumentPosition(screen.getByText("Matt Hagen's rise is cut short.")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("never shows Unknown: missing credits and facts simply don't appear", async () => {
     renderWithProviders(
       <MediaDetailsMainSection

@@ -68,7 +68,14 @@ const Row = ({ row }: { row: FeedRow }) => {
           {group.review ? <span aria-label="Reviewed" className="text-primary">✎</span> : null}
         </p>
         {group.review && !group.review.containsSpoilers ? (
-          <p className="tagline mt-0.5 line-clamp-2 text-foreground">{`“${group.review.content}”`}</p>
+          <Link
+            to="/reviews/$username/$reviewId"
+            params={{ username: group.actor.username, reviewId: group.review.id }}
+            className="tagline mt-0.5 line-clamp-2 text-foreground hover:underline hover:decoration-[color:var(--line-strong)]"
+            viewTransition
+          >
+            {`“${group.review.content}”`}
+          </Link>
         ) : null}
       </div>
     </div>

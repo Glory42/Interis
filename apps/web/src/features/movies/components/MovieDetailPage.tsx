@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { Award, Check, Heart, Plus } from "lucide-react";
+import { Award, CircleCheck, CircleDot, CirclePlus, Heart } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { type MovieDetailReviewSort } from "@/features/movies/api";
 import { LogMovieModal } from "@/features/diary/components/LogMovieModal";
@@ -27,12 +27,10 @@ import {
   useUpdateMovieInteraction,
 } from "@/features/interactions/hooks/useInteractions";
 import { LetterboxHero } from "@/features/media/detail/LetterboxHero";
-import {
-  logTriggerProps,
-  type LogTriggerVariant,
-} from "@/features/media/detail/log-trigger";
+import { logTriggerProps } from "@/features/media/detail/log-trigger";
+import { MediaActionCard } from "@/features/media/detail/MediaActionCard";
+import { BELOW_MD_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { toLanguageLabel } from "@/features/movies/components/movie-detail/utils";
-import { formatRuntimeLabel } from "@/features/movies/components/utils";
 import { MediaSimilarSection } from "@/features/media/detail/MediaSimilarSection";
 import {
   MediaActionsSidebar,
@@ -58,6 +56,7 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
   );
   const updateInteractionMutation = useUpdateMovieInteraction(tmdbId);
   const reviewChooser = useReviewChooser();
+  const isBelowMd = useMediaQuery(BELOW_MD_QUERY);
   const queryClient = useQueryClient();
 
   if (!isValidTmdbId) {
@@ -155,54 +154,64 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
     });
   };
 
-  const actions: [MediaAction, ...MediaAction[]] = [
-    {
-      key: "watchlist",
-      isActive: watchlisted,
-      activeIcon: <Check className="h-3 w-3" />,
-      inactiveIcon: <Plus className="h-3 w-3" />,
-      activeLabel: "watchlisted",
-      inactiveLabel: "watchlist",
-      loginLabel: "Queue",
-      onToggle: handleToggleWatchlist,
-    },
+  const actions: MediaAction[] = [
     {
       key: "watched",
       isActive: watched,
-      activeIcon: <Check className="h-3 w-3" />,
-      inactiveIcon: <Check className="h-3 w-3" />,
+      activeIcon: <CircleDot />,
+      inactiveIcon: <CircleDot />,
       activeLabel: "Watched",
       inactiveLabel: "Watch",
-      loginLabel: "Watch",
       onToggle: handleToggleWatched,
     },
     {
       key: "liked",
       isActive: liked,
-      activeIcon: <Heart className="h-3 w-3" />,
-      inactiveIcon: <Heart className="h-3 w-3" />,
+      activeIcon: <Heart className="fill-current" />,
+      inactiveIcon: <Heart />,
       activeLabel: "Liked",
       inactiveLabel: "Like",
-      loginLabel: "Like",
       onToggle: handleToggleLike,
+    },
+    {
+      key: "watchlist",
+      isActive: watchlisted,
+      activeIcon: <CircleCheck />,
+      inactiveIcon: <CirclePlus />,
+      activeLabel: "Watchlisted",
+      inactiveLabel: "Watchlist",
+      onToggle: handleToggleWatchlist,
     },
   ];
 
-  const logModal = (variant: LogTriggerVariant) => (
-    <LogMovieModal
-      tmdbId={movie.tmdbId}
-      movieTitle={movie.title}
-      movieReleaseYear={movie.releaseYear}
-      moviePosterPath={movie.posterPath}
-      initialState={modalInitialState}
-      onRequestOpen={(openLog) =>
-        reviewChooser.start(
-          { mediaType: "movie", tmdbId: movie.tmdbId },
-          openLog,
-        )
+  const actionCard = (
+    <MediaActionCard
+      moduleStyles={MOVIE_MODULE_STYLES}
+      logSlot={
+        <LogMovieModal
+          tmdbId={movie.tmdbId}
+          movieTitle={movie.title}
+          movieReleaseYear={movie.releaseYear}
+          moviePosterPath={movie.posterPath}
+          initialState={modalInitialState}
+          onRequestOpen={(openLog) =>
+            reviewChooser.start({ mediaType: "movie", tmdbId: movie.tmdbId }, openLog)
+          }
+          isTriggerBusy={reviewChooser.isChecking}
+          {...logTriggerProps(Boolean(detail.userRating?.watchedDate))}
+        />
       }
-      isTriggerBusy={reviewChooser.isChecking}
-      {...logTriggerProps(variant, Boolean(detail.userRating?.watchedDate))}
+      tmdbId={movie.tmdbId}
+      itemType="movie"
+      viewerUsername={user?.username ?? null}
+      lastWatchedDate={detail.userRating?.watchedDate ?? null}
+      currentRating={currentRating}
+      onRatingChange={handleRatingChange}
+      isRatingSaving={updateInteractionMutation.isPending}
+      isAuthenticated={Boolean(user)}
+      isInteractionBusy={isInteractionBusy}
+      isInteractionLoading={isInteractionLoading}
+      actions={actions}
     />
   );
 
@@ -216,13 +225,12 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
           ...(movie.releaseYear ? [String(movie.releaseYear)] : []),
         ]}
         slateRight={[
-          formatRuntimeLabel(movie.runtime),
           toLanguageLabel(movie.languageCode),
           movie.productionCountries[0] ?? null,
         ].filter((part): part is string => Boolean(part))}
       />
 
-      <main className="relative z-10 mx-auto -mt-20 w-full max-w-5xl px-4 pb-24 sm:-mt-28 md:pb-10">
+      <main className="relative z-10 mx-auto -mt-20 w-full max-w-5xl px-4 pb-10 sm:-mt-28">
         <Link
           to="/movies"
           className="mb-4 inline-flex items-center gap-1.5 font-mono text-[11px]"
@@ -266,22 +274,11 @@ export function MovieDetailPage({ tmdbId }: MovieDetailPageProps) {
                 </div>
               )
             }
-            logModalSlot={logModal("sidebar")}
-            mobileLogSlot={logModal("bar")}
-            mobileReviewSlot={logModal("review")}
-            tmdbId={movie.tmdbId}
-            itemType="movie"
-            currentRating={currentRating}
-            isRatingSaving={updateInteractionMutation.isPending}
-            onRatingChange={handleRatingChange}
-            isAuthenticated={Boolean(user)}
-            isInteractionBusy={isInteractionBusy}
-            isInteractionLoading={isInteractionLoading}
-            actions={actions}
-            lastWatchedDate={detail.userRating?.watchedDate ?? null}
-          />
+          >
+            {isBelowMd ? null : actionCard}
+          </MediaActionsSidebar>
 
-          <MovieDetailsMainSection detail={detail} />
+          <MovieDetailsMainSection detail={detail} actionsSlot={isBelowMd ? actionCard : null} />
         </div>
 
         <MediaReviewChooser

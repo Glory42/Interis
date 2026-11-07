@@ -860,4 +860,15 @@
     animation-duration: 220ms;
     animation-timing-function: ease;
   }
+
+  /* The navbars skip the page crossfade so their marker visibly slides. */
+  ::view-transition-old(navbar),
+  ::view-transition-old(tabbar) {
+    display: none;
+  }
+
+  ::view-transition-new(navbar),
+  ::view-transition-new(tabbar) {
+    animation: none;
+  }
 }

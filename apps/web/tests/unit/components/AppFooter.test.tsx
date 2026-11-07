@@ -4,17 +4,11 @@ import { renderWithProviders } from "../../support/render/render-with-providers"
 import { AppFooter } from "@/components/layout/AppFooter";
 
 describe("AppFooter", () => {
-  it("credits TMDB as its terms require", async () => {
+  it("keeps to the app line and its links; the TMDB credit lives on the Developer page", async () => {
     renderWithProviders(<AppFooter />);
 
-    expect(
-      await screen.findByText(
-        "This product uses the TMDB API but is not endorsed or certified by TMDB.",
-      ),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "TMDB" })).toHaveAttribute(
-      "href",
-      "https://www.themoviedb.org",
-    );
+    expect(await screen.findByText("Interis · logged, not filtered")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Developer" })).toHaveAttribute("href", "/developer");
+    expect(screen.queryByText(/not endorsed or certified by TMDB/)).not.toBeInTheDocument();
   });
 });

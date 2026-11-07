@@ -44,6 +44,27 @@ describe("LaunchTrack", () => {
     expect(screen.queryByRole("button", { name: "Save" })).not.toBeInTheDocument();
   });
 
+  it("clears when the current score is tapped again, but not when a drag ends back on it", () => {
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({
+      left: 0, width: 200, top: 0, height: 24, right: 200, bottom: 24, x: 0, y: 0, toJSON: () => ({}),
+    });
+    HTMLElement.prototype.setPointerCapture = () => {};
+    HTMLElement.prototype.releasePointerCapture = () => {};
+    const onCommit = vi.fn();
+    render(<LaunchTrack value={8} onCommit={onCommit} />);
+    const slider = screen.getByRole("slider", { name: "Rating out of 10" });
+
+    fireEvent.pointerDown(slider, { clientX: 160, pointerId: 1 });
+    fireEvent.pointerMove(slider, { clientX: 100, pointerId: 1 });
+    fireEvent.pointerMove(slider, { clientX: 160, pointerId: 1 });
+    fireEvent.pointerUp(slider, { clientX: 160, pointerId: 1 });
+    expect(onCommit).not.toHaveBeenCalled();
+
+    fireEvent.pointerDown(slider, { clientX: 160, pointerId: 1 });
+    fireEvent.pointerUp(slider, { clientX: 160, pointerId: 1 });
+    expect(onCommit).toHaveBeenCalledWith(null);
+  });
+
   it("clears with Delete", async () => {
     const onCommit = vi.fn();
     render(<LaunchTrack value={7.5} onCommit={onCommit} />);

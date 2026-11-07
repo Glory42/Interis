@@ -5,13 +5,15 @@ import {
   type MediaFactRow,
 } from "@/features/media/detail/MediaDetailsMainSection";
 import { formatMoneyLabel } from "@/features/movies/components/movie-detail/utils";
-import { getPosterUrl } from "@/features/movies/components/utils";
+import type { ReactNode } from "react";
+import { formatRuntimeLabel, getPosterUrl } from "@/features/movies/components/utils";
 
 type MovieDetailsMainSectionProps = {
   detail: MovieDetailResponse;
+  actionsSlot?: ReactNode;
 };
 
-// Runtime, language and country sit on the hero slate; money rounds out the credits.
+// Language and country sit on the hero slate; money rounds out the credits.
 const buildFactRows = (detail: MovieDetailResponse): MediaFactRow[] => {
   const budget = formatMoneyLabel(detail.movie.budget);
   const boxOffice = formatMoneyLabel(detail.movie.revenue);
@@ -24,7 +26,7 @@ const buildFactRows = (detail: MovieDetailResponse): MediaFactRow[] => {
   ];
 };
 
-export const MovieDetailsMainSection = ({ detail }: MovieDetailsMainSectionProps) => {
+export const MovieDetailsMainSection = ({ detail, actionsSlot }: MovieDetailsMainSectionProps) => {
   const movie = detail.movie;
   const communityRatingLabel =
     detail.ratingBreakdown.averageRating !== null
@@ -49,6 +51,8 @@ export const MovieDetailsMainSection = ({ detail }: MovieDetailsMainSectionProps
       factRows={buildFactRows(detail)}
       ratingBuckets={detail.ratingBreakdown.buckets}
       posterUrl={movie.posterPath ? getPosterUrl(movie.posterPath) : null}
+      runtimeLabel={formatRuntimeLabel(movie.runtime)}
+      actionsSlot={actionsSlot}
     />
   );
 };

@@ -17,6 +17,8 @@ type LaunchTrackProps = {
   ariaLabel?: string;
   // Show "Saved 7.5 ✓" after a commit, for controls that write straight to the API.
   confirmSaves?: boolean;
+  // "scale" swaps the score readout for 0–10 labels, for panels that show the score themselves.
+  footer?: "status" | "scale";
   className?: string;
 };
 
@@ -32,10 +34,13 @@ export const LaunchTrack = ({
   size = "md",
   ariaLabel = "Rating out of 10",
   confirmSaves = false,
+  footer = "status",
   className,
 }: LaunchTrackProps) => {
   const trackRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  // Set once a drag leaves the score it started on, so a plain tap on the current score clears it.
+  const hasMovedRef = useRef(false);
   const [draft, setDraft] = useState<number | null>(value);
   const [savedValue, setSavedValue] = useState<number | null | undefined>(undefined);
 
@@ -64,11 +69,15 @@ export const LaunchTrack = ({
     event.currentTarget.setPointerCapture(event.pointerId);
     setIsDragging(true);
     setSavedValue(undefined);
+    hasMovedRef.current = false;
     setDraft(valueAt(event.clientX));
   };
 
   const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (isDragging && !disabled) setDraft(valueAt(event.clientX));
+    if (!isDragging || disabled) return;
+    const next = valueAt(event.clientX);
+    if (next !== draft) hasMovedRef.current = true;
+    setDraft(next);
   };
 
   const onPointerUp = (event: PointerEvent<HTMLDivElement>) => {
@@ -76,8 +85,9 @@ export const LaunchTrack = ({
     event.currentTarget.releasePointerCapture(event.pointerId);
     setIsDragging(false);
     const next = valueAt(event.clientX);
-    setDraft(next);
-    commit(next);
+    const isTapOnCurrent = !hasMovedRef.current && next === value;
+    setDraft(isTapOnCurrent ? null : next);
+    commit(isTapOnCurrent ? null : next);
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -141,12 +151,16 @@ export const LaunchTrack = ({
         <div className="absolute inset-x-0 top-1/2 h-3.5 -translate-y-1/2 bg-[repeating-linear-gradient(90deg,var(--line-strong)_0_1px,transparent_1px_calc(10%-0.1px))]" />
         <div
           className={cn("absolute top-1/2 left-0 h-1.5 -translate-y-1/2 rounded-sm", !isDragging && "transition-[width] duration-150")}
-          style={{ width: `${fill}%`, background: "linear-gradient(90deg, transparent, var(--launch-accent))" }}
+          style={{
+            width: `${fill}%`,
+            background: "linear-gradient(90deg, transparent, var(--launch-accent))",
+            boxShadow: "0 0 10px color-mix(in srgb, var(--launch-accent) 60%, transparent)",
+          }}
         />
         <Rocket
           aria-hidden
           className={cn(
-            "absolute top-1/2 rotate-45 fill-current",
+            "absolute top-1/2 fill-current",
             isSmall ? "size-4" : "size-6",
             !isDragging && "transition-[left] duration-150",
           )}
@@ -167,7 +181,13 @@ export const LaunchTrack = ({
         ) : null}
       </div>
 
-      {isSmall ? null : (
+      {isSmall ? null : footer === "scale" ? (
+        <div aria-hidden className="mt-0.5 flex justify-between font-mono text-[9px] text-muted-foreground/70">
+          {[0, 2, 4, 6, 8, 10].map((mark) => (
+            <span key={mark}>{mark}</span>
+          ))}
+        </div>
+      ) : (
         <div className="mt-1 flex items-center justify-between font-mono text-[10px] text-muted-foreground">
           <span>
             {draft === null

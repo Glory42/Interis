@@ -99,9 +99,9 @@ test("deletes the account from settings", async ({ page }) => {
   const user = buildTestUser("e2edel");
 
   try {
-    await test.step("sign up and open your data settings", async () => {
+    await test.step("sign up and open the delete account page", async () => {
       await registerUser(page, user);
-      await page.goto("/settings/data");
+      await page.goto("/settings/delete-account");
     });
 
     await test.step("confirms with the password and lands home signed out", async () => {

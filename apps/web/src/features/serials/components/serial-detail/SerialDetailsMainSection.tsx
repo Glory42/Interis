@@ -3,14 +3,17 @@ import { buildSerialFactRows } from "@/features/serials/components/serial-detail
 import { MediaDetailsMainSection } from "@/features/media/detail/MediaDetailsMainSection";
 import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
 import { toDateLabel } from "@/features/serials/components/serial-detail/utils";
-import { getPosterUrl } from "@/features/serials/components/utils";
+import type { ReactNode } from "react";
+import { formatEpisodeRuntimeLabel, getPosterUrl } from "@/features/serials/components/utils";
 
 type SerialDetailsMainSectionProps = {
   detail: SerialDetailResponse;
+  actionsSlot?: ReactNode;
 };
 
 export const SerialDetailsMainSection = ({
   detail,
+  actionsSlot,
 }: SerialDetailsMainSectionProps) => {
   const series = detail.series;
 
@@ -44,6 +47,8 @@ export const SerialDetailsMainSection = ({
       factRows={factRows}
       ratingBuckets={detail.ratingBreakdown.buckets}
       posterUrl={series.posterPath ? getPosterUrl(series.posterPath) : null}
+      runtimeLabel={formatEpisodeRuntimeLabel(series.episodeRuntime)}
+      actionsSlot={actionsSlot}
     />
   );
 };
