@@ -10,7 +10,7 @@ type ProfileOverviewContentProps = {
 export const ProfileOverviewContent = ({ username }: ProfileOverviewContentProps) => {
   const { user } = useAuth();
   const isOwner = user?.username.toLowerCase() === username.toLowerCase();
-  const recentActivityQuery = useUserRecentActivity(username, 20);
+  const recentActivityQuery = useUserRecentActivity(username);
   const topPicksQuery = useUserTopPicks(username);
 
   if (recentActivityQuery.isError && topPicksQuery.isError) {

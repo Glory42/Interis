@@ -33,7 +33,7 @@ export const listKeys = {
 const invalidateListActivity = (queryClient: QueryClient, ownerUsername: string) =>
   Promise.all([
     invalidateFollowingFeed(queryClient),
-    queryClient.invalidateQueries({ queryKey: profileKeys.recentActivity(ownerUsername, 20) }),
+    queryClient.invalidateQueries({ queryKey: profileKeys.recentActivityRoot(ownerUsername) }),
   ]);
 
 const FORM_SEARCH_MIN_QUERY_LENGTH = 2;
