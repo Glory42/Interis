@@ -64,6 +64,7 @@ const makeInputs = (over: Partial<FilmDetailInputs> = {}): FilmDetailInputs => (
   communityRatings: [],
   tmdbSimilar: [],
   viewerDiary: null,
+  viewerRating: null,
   viewerReview: null,
   viewerUserId: null,
   reviewsSort: "recent",
@@ -177,7 +178,7 @@ describe("assembleFilmDetail", () => {
       expect(assembleFilmDetail(makeInputs({ viewerUserId: null })).userRating).toBeNull();
     });
 
-    it("merges the viewer's diary and review rows when authenticated", () => {
+    it("merges the viewer's newest log, Your Rating and review when authenticated", () => {
       const res = assembleFilmDetail(
         makeInputs({
           viewerUserId: "viewer-1",
@@ -185,8 +186,8 @@ describe("assembleFilmDetail", () => {
             id: "diary-1",
             watchedDate: "2026-02-02",
             rewatch: true,
-            rating: 8,
-          } as FilmDetailInputs["viewerDiary"],
+          },
+          viewerRating: 8,
           viewerReview: {
             id: "review-1",
             content: "loved it",

@@ -51,7 +51,7 @@ A user's standing relationship to one Film or Series — liked, watchlisted, wat
 _Avoid_: reaction, status
 
 **Your Rating**:
-A user's current rating of a Film or Series, on the 0.5–10 rocket scale: the Interaction rating, else their latest rated Diary Entry. Logging or editing their latest rated Diary Entry sets the Interaction rating to match.
+A user's current rating of a Film or Series, on the 0.5–10 rocket scale: the Interaction rating, else their latest rated Diary Entry. Logging or editing their latest rated Diary Entry sets the Interaction rating to match. When the latest rated Diary Entry changes otherwise (backdated, cleared or deleted), an Interaction rating that still matched it moves to the new latest rated one; it is never cleared. Owned by `modules/media-interactions` (`YourRatingService`).
 
 **Community Rating**:
 The average of every user's Your Rating for a Film or Series, one rating per user however many Diary Entries they have. The detail page and archive listings use the same rule.

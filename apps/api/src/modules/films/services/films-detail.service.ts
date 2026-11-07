@@ -8,6 +8,8 @@ import {
   type FilmDetailInputs,
 } from "../helpers/assemble-film-detail.helper";
 import { FilmsRepository } from "../repositories/films.repository";
+import { WatchLogStores } from "../../media/repositories/watch-log.repository";
+import { YourRatingService } from "../../media-interactions/services/your-rating.service";
 import { FilmsReviewsRepository } from "../repositories/films-reviews.repository";
 import { FilmsCacheService } from "./films-cache.service";
 import { createTtlCache } from "../../../infrastructure/cache/ttl-cache.helper";
@@ -157,7 +159,7 @@ export class FilmsDetailService {
           offset: reviewsOffset,
         }),
         tmdbClient.getSimilar(input.tmdbId).catch(() => []),
-        FilmsRepository.getCommunityRatingsByMovieId(movie.id),
+        YourRatingService.communityRatings("movie", movie.id),
       ]);
     const { rows: reviewRows, totalCount: reviewsTotalCount } = reviewsPage;
 
@@ -210,12 +212,13 @@ export class FilmsDetailService {
       viewerUserId,
     );
 
-    const [viewerDiaryRow, viewerReviewRow] = viewerUserId
+    const [viewerDiary, viewerRating, viewerReviewRow] = viewerUserId
       ? await Promise.all([
-          FilmsRepository.getViewerDiaryRows(viewerUserId, movie.id),
+          WatchLogStores.film.findLatest(viewerUserId, movie.id),
+          YourRatingService.resolve("movie", viewerUserId, movie.id),
           FilmsRepository.getViewerReviewRows(viewerUserId, movie.id),
         ])
-      : [[], []];
+      : [null, null, []];
 
     return {
       movie,
@@ -228,7 +231,8 @@ export class FilmsDetailService {
       engagement,
       communityRatings,
       tmdbSimilar,
-      viewerDiary: viewerDiaryRow[0] ?? null,
+      viewerDiary,
+      viewerRating,
       viewerReview: viewerReviewRow[0] ?? null,
       viewerUserId,
       reviewsSort: input.reviewsSort,

@@ -10,7 +10,7 @@ import { db } from "../../../src/infrastructure/database/db";
 import { user } from "../../../src/infrastructure/database/auth.entity";
 import { seriesDiaryEntries, seriesInteractions } from "../../../src/modules/tv/tv.entity";
 import { TvArchiveRepository } from "../../../src/modules/tv/repositories/tv-archive.repository";
-import { TvInteractionsRepository } from "../../../src/modules/tv/repositories/tv-interactions.repository";
+import { YourRatingService } from "../../../src/modules/media-interactions/services/your-rating.service";
 
 const getUserIdByUsername = async (username: string): Promise<string> => {
   const [row] = await db.select({ id: user.id }).from(user).where(eq(user.username, username));
@@ -64,7 +64,7 @@ describe("serials community rating aggregate", () => {
     ]);
 
     const expectedRatings = [3, 7, 8];
-    const detailRatings = await TvInteractionsRepository.getCommunityRatingsBySeriesId(serial.id);
+    const detailRatings = await YourRatingService.communityRatings("tv", serial.id);
     expect(detailRatings.map((row) => row.rating).sort()).toEqual(expectedRatings);
 
     const [aggregateRow] = await TvArchiveRepository.getLocalArchiveAggregateRowsByTmdbIds([

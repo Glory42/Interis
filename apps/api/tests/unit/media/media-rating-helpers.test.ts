@@ -3,7 +3,6 @@ import {
   computeWeightedTmdbRating,
   sortByWeightedTmdbRatingDesc,
 } from "../../../src/modules/media/helpers/media-weighted-rating.helper";
-import { mergeCommunityRatings } from "../../../src/modules/media/helpers/media-community-rating.helper";
 import { normalizeVoteAverage } from "../../../src/modules/media/helpers/media-vote-average.helper";
 import { buildMediaRatingBreakdown } from "../../../src/modules/media/helpers/media-rating-breakdown.helper";
 
@@ -61,43 +60,6 @@ describe("sortByWeightedTmdbRatingDesc", () => {
       left.id.localeCompare(right.id),
     );
     expect(sorted.map((i) => i.id)).toEqual(["a", "b"]);
-  });
-});
-
-describe("mergeCommunityRatings", () => {
-  it("includes both log-only and star-only raters", () => {
-    const merged = mergeCommunityRatings(
-      [{ userId: "u1", rating: 8 }],
-      [{ userId: "u2", rating: 6 }],
-    );
-    expect(merged).toEqual([{ rating: 6 }, { rating: 8 }]);
-  });
-
-  it("prefers a user's star rating over their logs (no double-count)", () => {
-    const merged = mergeCommunityRatings(
-      [{ userId: "u1", rating: 9 }],
-      [{ userId: "u1", rating: 3 }],
-    );
-    expect(merged).toEqual([{ rating: 3 }]);
-  });
-
-  it("counts only the latest of a user's rated logs", () => {
-    const merged = mergeCommunityRatings(
-      [
-        { userId: "u1", rating: 9 },
-        { userId: "u1", rating: 7 },
-      ],
-      [],
-    );
-    expect(merged).toEqual([{ rating: 9 }]);
-  });
-
-  it("falls back to the logs when the star rating is empty", () => {
-    const merged = mergeCommunityRatings(
-      [{ userId: "u1", rating: 7 }],
-      [{ userId: "u1", rating: null }],
-    );
-    expect(merged).toEqual([{ rating: 7 }]);
   });
 });
 

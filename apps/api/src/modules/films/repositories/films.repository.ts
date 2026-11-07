@@ -6,25 +6,8 @@ import { diaryEntries } from "../../diary/diary.entity";
 import { filmInteractions } from "../../interactions/interactions.entity";
 import { profiles } from "../../users/users.entity";
 import { reviews } from "../../reviews/reviews.entity";
-import {
-  buildCommunityRatingAggregateSql,
-  mergeCommunityRatings,
-} from "../../media/helpers/media-community-rating.helper";
+import { YourRatingRepository } from "../../media-interactions/repositories/your-rating.repository";
 import { films } from "../films.entity";
-import type { CommunityRatingAggregateSource } from "../../media/helpers/media-community-rating.helper";
-
-const FILM_COMMUNITY_RATING_SOURCE: CommunityRatingAggregateSource = {
-  diaryTableName: "diary_entry",
-  diaryEntityIdColumn: diaryEntries.movieId,
-  diaryRatingColumn: diaryEntries.rating,
-  diaryUserIdColumn: diaryEntries.userId,
-  diaryWatchedDateColumn: diaryEntries.watchedDate,
-  diaryCreatedAtColumn: diaryEntries.createdAt,
-  interactionTableName: "movie_interaction",
-  interactionEntityIdColumn: filmInteractions.movieId,
-  interactionRatingColumn: filmInteractions.rating,
-  interactionUserIdColumn: filmInteractions.userId,
-};
 
 export type AdminUpdateFilmFields = Partial<{
   title: string;
@@ -110,42 +93,6 @@ export class FilmsRepository {
     return row?.count ?? 0;
   }
 
-  // See mergeCommunityRatings for the one-rating-per-user rule.
-  static async getCommunityRatingsByMovieId(movieId: number): Promise<{ rating: number }[]> {
-    const [diaryRatingRows, interactionRatingRows] = await Promise.all([
-      db
-        .select({ userId: diaryEntries.userId, rating: diaryEntries.rating })
-        .from(diaryEntries)
-        .where(and(eq(diaryEntries.movieId, movieId), isNotNull(diaryEntries.rating)))
-        .orderBy(desc(diaryEntries.watchedDate), desc(diaryEntries.createdAt)),
-      db
-        .select({ userId: filmInteractions.userId, rating: filmInteractions.rating })
-        .from(filmInteractions)
-        .where(and(eq(filmInteractions.movieId, movieId), isNotNull(filmInteractions.rating))),
-    ]);
-
-    return mergeCommunityRatings(diaryRatingRows, interactionRatingRows);
-  }
-
-  static async getViewerDiaryRows(viewerUserId: string, movieId: number) {
-    return db
-      .select({
-        id: diaryEntries.id,
-        watchedDate: diaryEntries.watchedDate,
-        rewatch: diaryEntries.rewatch,
-        rating: diaryEntries.rating,
-      })
-      .from(diaryEntries)
-      .where(
-        and(
-          eq(diaryEntries.userId, viewerUserId),
-          eq(diaryEntries.movieId, movieId),
-        ),
-      )
-      .orderBy(desc(diaryEntries.watchedDate), desc(diaryEntries.createdAt))
-      .limit(1);
-  }
-
   static async getViewerReviewRows(viewerUserId: string, movieId: number) {
     return db
       .select({
@@ -229,10 +176,7 @@ export class FilmsRepository {
       return [];
     }
 
-    const communityRating = buildCommunityRatingAggregateSql(
-      FILM_COMMUNITY_RATING_SOURCE,
-      films.id,
-    );
+    const communityRating = YourRatingRepository.communityAggregateSql("movie", films.id);
 
     return db
       .select({
@@ -252,10 +196,7 @@ export class FilmsRepository {
   }
 
   static async getLocalArchiveRows(dateRange?: { watchedDateGte: string; watchedDateLte: string }) {
-    const communityRating = buildCommunityRatingAggregateSql(
-      FILM_COMMUNITY_RATING_SOURCE,
-      films.id,
-    );
+    const communityRating = YourRatingRepository.communityAggregateSql("movie", films.id);
 
     return db
       .select({

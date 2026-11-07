@@ -11,6 +11,7 @@ import { user } from "../../../src/infrastructure/database/auth.entity";
 import { diaryEntries } from "../../../src/modules/diary/diary.entity";
 import { filmInteractions } from "../../../src/modules/interactions/interactions.entity";
 import { FilmsRepository } from "../../../src/modules/films/repositories/films.repository";
+import { YourRatingService } from "../../../src/modules/media-interactions/services/your-rating.service";
 
 const getUserIdByUsername = async (username: string): Promise<string> => {
   const [row] = await db.select({ id: user.id }).from(user).where(eq(user.username, username));
@@ -64,7 +65,7 @@ describe("movies community rating aggregate", () => {
     ]);
 
     const expectedRatings = [3, 7, 8];
-    const detailRatings = await FilmsRepository.getCommunityRatingsByMovieId(movie.id);
+    const detailRatings = await YourRatingService.communityRatings("movie", movie.id);
     expect(detailRatings.map((row) => row.rating).sort()).toEqual(expectedRatings);
 
     const [aggregateRow] = await FilmsRepository.getLocalArchiveAggregateRowsByTmdbIds([
