@@ -13,19 +13,14 @@ export const Route = createFileRoute("/_authLayout/register")({
 function RegisterPage() {
   return (
     <>
-      <AuthPageHeader
-        title="Create your account"
-        subtitle="Choose your username once, and your profile is ready immediately."
-      />
-      <div className="space-y-4">
-        <RegisterForm />
-        <p className="text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link to="/login" className="font-semibold text-primary hover:text-primary/80">
-            Sign in
-          </Link>
-        </p>
-      </div>
+      <AuthPageHeader title="Start your diary." subtitle="Pick a username once; your profile is ready straight away." />
+      <RegisterForm />
+      <p className="body-s mt-4 text-muted-foreground">
+        {"Have one? "}
+        <Link to="/login" className="font-semibold text-primary hover:underline">
+          Sign in
+        </Link>
+      </p>
     </>
   );
 }

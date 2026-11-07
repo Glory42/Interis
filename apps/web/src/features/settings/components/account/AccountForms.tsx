@@ -4,11 +4,8 @@ import { Button } from "@/components/ui/button";
 import { changeCurrentUserEmail, changeCurrentUserPassword } from "@/features/auth/api";
 import { authKeys, useSetSecurityQuestion } from "@/features/auth/hooks/useAuth";
 import { isApiError } from "@/lib/api-client";
-import { cn } from "@/lib/utils";
-import { AccountField } from "./AccountField";
-
-const PASSWORD_MIN = 8;
-const PASSWORD_MAX = 128;
+import { PASSWORD_MAX, PASSWORD_MIN, PASSWORD_RULES } from "@/features/auth/password";
+import { AccountField, PasswordLengthHint } from "./AccountField";
 
 type FormProps = { onClose: () => void; onDone: (message: string) => void };
 
@@ -63,15 +60,6 @@ export const EmailForm = ({ onClose, onDone }: FormProps) => {
   );
 };
 
-// Eight ticks fill up to the minimum length, like a reel counting in.
-const MinimumTicks = ({ length }: { length: number }) => (
-  <span className="flex gap-0.5" aria-hidden>
-    {Array.from({ length: PASSWORD_MIN }, (_, index) => (
-      <i key={index} className={cn("block h-1.5 w-2.5 rounded-[1px]", index < length ? "bg-primary" : "bg-foreground/15")} />
-    ))}
-  </span>
-);
-
 export const PasswordForm = ({ onClose, onDone }: FormProps) => {
   const mutation = useMutation({ mutationFn: changeCurrentUserPassword });
   const [currentPassword, setCurrentPassword] = useState("");
@@ -101,13 +89,11 @@ export const PasswordForm = ({ onClose, onDone }: FormProps) => {
           isPassword
           autoComplete="new-password"
           maxLength={PASSWORD_MAX}
+          {...PASSWORD_RULES}
           value={newPassword}
           onValueChange={setNewPassword}
         />
-        <p className="mono-meta mt-1.5 flex items-center gap-2 text-muted-foreground">
-          <MinimumTicks length={newPassword.length} />
-          {`${newPassword.length} / ${PASSWORD_MAX} · ${remaining > 0 ? `${remaining} more` : "OK"}`}
-        </p>
+        <PasswordLengthHint length={newPassword.length} />
       </div>
       <label className="body-s flex items-center gap-2 text-foreground">
         <input type="checkbox" checked={revokeOtherSessions} onChange={(event) => setRevokeOtherSessions(event.target.checked)} className="accent-[color:var(--primary)]" />

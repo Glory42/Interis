@@ -1,16 +1,23 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import {
-  USERNAME_MAX_LENGTH,
-  USERNAME_MIN_LENGTH,
-  normalizeUsername,
-  validateUsernameInput,
-} from "@/features/auth/username";
+import { RESERVED_USERNAMES, USERNAME_MAX_LENGTH, normalizeUsername, validateUsernameInput } from "@/features/auth/username";
+import { PASSWORD_MAX, PASSWORD_MIN, PASSWORD_RULES } from "@/features/auth/password";
+import { AccountField, PasswordLengthHint } from "@/features/settings/components/account/AccountField";
 import { isApiError } from "@/lib/api-client";
 
+const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const usernameError = (raw: string) => {
+  const username = normalizeUsername(raw);
+  if (RESERVED_USERNAMES.has(username)) return `"${username}" is reserved. Try another.`;
+  return validateUsernameInput(username);
+};
+
+const emailError = (email: string) => (EMAIL_SHAPE.test(email.trim()) ? null : "That doesn't look like an email.");
+
+// Fields are checked when you leave them; errors sit under the field, not in one box after submit.
 export const RegisterForm = () => {
   const navigate = useNavigate();
   const { register, isRegisterPending } = useAuth();
@@ -18,130 +25,82 @@ export const RegisterForm = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [touched, setTouched] = useState({ username: false, email: false });
   const [formError, setFormError] = useState<string | null>(null);
+
+  const errors = {
+    username: touched.username && username ? usernameError(username) : null,
+    email: touched.email && email ? emailError(email) : null,
+  };
+  const canSubmit = !usernameError(username) && !emailError(email) && password.length >= PASSWORD_MIN;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError(null);
-
-    if (password !== confirmPassword) {
-      setFormError("Passwords do not match.");
-      return;
-    }
-
-    const normalizedUsername = normalizeUsername(username);
-    const usernameValidationError = validateUsernameInput(normalizedUsername);
-    if (usernameValidationError) {
-      setFormError(usernameValidationError);
-      return;
-    }
+    setTouched({ username: true, email: true });
+    if (!canSubmit) return;
 
     try {
-      await register({
-        username: normalizedUsername,
-        email,
-        password,
-      });
-      // Every new account still needs to set up its security question —
-      // route there directly instead of the homepage.
+      await register({ username: normalizeUsername(username), email: email.trim(), password });
+      // Every new account sets up its recovery question next.
       await navigate({ to: "/setup-security-question" });
     } catch (error) {
-      if (isApiError(error)) {
-        setFormError(error.message);
-        return;
-      }
-
-      setFormError("Unexpected error. Please try again.");
+      setFormError(isApiError(error) ? error.message : "Unexpected error. Please try again.");
     }
   };
 
   return (
-    <div className="w-full max-w-md">
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium text-foreground" htmlFor="register-username">
-            Username
-          </label>
-          <Input
-            id="register-username"
-            name="username"
-            type="text"
-            autoComplete="off"
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
-            minLength={USERNAME_MIN_LENGTH}
-            maxLength={USERNAME_MAX_LENGTH}
-            required
-          />
-          <p className="text-xs text-muted-foreground">
-            Use lowercase letters, numbers, and underscores.
-          </p>
-        </div>
+    <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+      <AccountField
+        id="register-username"
+        name="username"
+        label="Username"
+        prefix="/profile/"
+        autoComplete="off"
+        autoCapitalize="none"
+        spellCheck={false}
+        maxLength={USERNAME_MAX_LENGTH}
+        value={username}
+        onValueChange={setUsername}
+        onBlur={() => setTouched((current) => ({ ...current, username: true }))}
+        error={errors.username}
+      />
+      <AccountField
+        id="register-email"
+        name="email"
+        label="Email"
+        type="email"
+        inputMode="email"
+        autoComplete="username"
+        value={email}
+        onValueChange={setEmail}
+        onBlur={() => setTouched((current) => ({ ...current, email: true }))}
+        error={errors.email}
+      />
+      <div>
+        <AccountField
+          id="register-password"
+          name="password"
+          label="Password"
+          isPassword
+          autoComplete="new-password"
+          maxLength={PASSWORD_MAX}
+          {...PASSWORD_RULES}
+          value={password}
+          onValueChange={setPassword}
+        />
+        <PasswordLengthHint length={password.length} />
+      </div>
 
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium text-foreground" htmlFor="register-email">
-            Email
-          </label>
-          <Input
-            id="register-email"
-            name="email"
-            type="email"
-            autoComplete="username"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            required
-          />
-        </div>
+      {formError ? (
+        <p role="alert" className="body-s text-[color:var(--danger)]">
+          {formError}
+        </p>
+      ) : null}
 
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium text-foreground" htmlFor="register-password">
-            Password
-          </label>
-          <Input
-            id="register-password"
-            name="password"
-            type="password"
-            autoComplete="new-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            minLength={8}
-            required
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <label
-            className="text-sm font-medium text-foreground"
-            htmlFor="register-password-confirm"
-          >
-            Confirm password
-          </label>
-          <Input
-            id="register-password-confirm"
-            name="passwordConfirm"
-            type="password"
-            autoComplete="new-password"
-            value={confirmPassword}
-            onChange={(event) => setConfirmPassword(event.target.value)}
-            minLength={8}
-            required
-          />
-        </div>
-
-        {formError ? (
-          <p
-            role="alert"
-            className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-          >
-            {formError}
-          </p>
-        ) : null}
-
-        <Button className="w-full" type="submit" disabled={isRegisterPending}>
-          {isRegisterPending ? "Creating account..." : "Create account"}
-        </Button>
-      </form>
-    </div>
+      <Button className="w-full" size="md" type="submit" disabled={!canSubmit || isRegisterPending}>
+        {isRegisterPending ? "Creating account…" : "Create account"}
+      </Button>
+    </form>
   );
 };
