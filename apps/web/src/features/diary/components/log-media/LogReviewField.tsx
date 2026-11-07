@@ -35,7 +35,7 @@ export const LogReviewField = ({
   };
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col">
+    <section className={cn("flex min-h-0 flex-col", !isPhone && "flex-1")}>
       <p className="kicker mb-1.5">Review</p>
       <Textarea
         maxLength={reviewMaxLength}
@@ -44,7 +44,11 @@ export const LogReviewField = ({
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         placeholder={reviewPlaceholder}
-        className="body min-h-32 flex-1 rounded-[3px] border-[color:var(--line)] bg-foreground/[0.03]"
+        // On phones the box grows with the text instead of filling the screen.
+        className={cn(
+          "body min-h-32 rounded-[3px] border-[color:var(--line)] bg-foreground/[0.03]",
+          isPhone ? "max-h-[40dvh] field-sizing-content" : "flex-1",
+        )}
       />
       <div
         className={cn(

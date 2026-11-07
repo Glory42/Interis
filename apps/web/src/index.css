@@ -393,8 +393,10 @@
     background: transparent;
   }
 
+  /* The canvas behind route changes and view transitions; without it a page swap flashes white. */
   html {
     scrollbar-gutter: stable;
+    background-color: var(--background);
   }
 
   body {
@@ -475,6 +477,16 @@
 
   to {
     opacity: 1;
+  }
+}
+
+@keyframes film-strip-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
   }
 }
 
@@ -838,6 +850,15 @@
   .animate-like-pop {
     animation: like-pop 320ms var(--ease-out);
   }
+
+  .animate-film-strip {
+    animation: film-strip-scroll 50s linear infinite;
+  }
+
+  .animate-film-strip:hover,
+  .animate-film-strip:focus-within {
+    animation-play-state: paused;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -849,12 +870,17 @@
     animation-fill-mode: both;
   }
 
-  .animate-like-pop {
+  .animate-like-pop,
+  .animate-film-strip {
     animation: none;
   }
 }
 
 @supports (view-transition-name: root) {
+  ::view-transition {
+    background-color: var(--background);
+  }
+
   ::view-transition-old(root),
   ::view-transition-new(root) {
     animation-duration: 220ms;

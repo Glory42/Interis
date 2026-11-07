@@ -15,17 +15,44 @@ const STEPS = [
 
 type StripItem = { key: string; title: string; posterPath: string | null; to: "/movies/$tmdbId" | "/serials/$tmdbId"; tmdbId: number; tone: "film" | "series" };
 
+const STRIP_PER_KIND = 8;
+
+// Film, series, film, series… so the strip reads as both archives.
+const interleave = (films: StripItem[], series: StripItem[]): StripItem[] =>
+  Array.from({ length: Math.max(films.length, series.length) }, (_, index) => [films[index], series[index]])
+    .flat()
+    .filter((item): item is StripItem => item !== undefined);
+
+const StripFrames = ({ strip, isCopy = false }: { strip: StripItem[]; isCopy?: boolean }) => (
+  <div className="flex shrink-0 gap-[3px] pr-[3px]" aria-hidden={isCopy || undefined}>
+    {strip.map((item) => (
+      <Link
+        key={item.key}
+        to={item.to}
+        params={{ tmdbId: String(item.tmdbId) }}
+        aria-label={item.title}
+        tabIndex={isCopy ? -1 : undefined}
+        className="relative aspect-[2/3] w-16 shrink-0 overflow-hidden sm:w-20"
+      >
+        <DuotoneBackdrop tone={item.tone} fade={false}>
+          {item.posterPath ? <img src={getPosterUrl(item.posterPath)} alt="" className="h-full w-full object-cover" /> : null}
+        </DuotoneBackdrop>
+      </Link>
+    ))}
+  </div>
+);
+
 // Sign in, Join and Recover share one frame, so the trending strip survives moving between them.
 export const AuthShell = ({ children }: { children: ReactNode }) => {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const step = STEPS.find((candidate) => pathname.startsWith(candidate.to)) ?? STEPS[0];
-  const movies = useTrendingNow(9).data ?? [];
+  const movies = useTrendingNow(STRIP_PER_KIND).data ?? [];
   const series = useTrendingSeries().data ?? [];
 
-  const strip: StripItem[] = [
-    ...movies.map((movie) => ({ key: `m${movie.tmdbId}`, title: movie.title, posterPath: movie.posterPath, to: "/movies/$tmdbId" as const, tmdbId: movie.tmdbId, tone: "film" as const })),
-    ...series.map((show) => ({ key: `s${show.tmdbId}`, title: show.title, posterPath: show.posterPath, to: "/serials/$tmdbId" as const, tmdbId: show.tmdbId, tone: "series" as const })),
-  ].slice(0, 14);
+  const strip = interleave(
+    movies.slice(0, STRIP_PER_KIND).map((movie): StripItem => ({ key: `m${movie.tmdbId}`, title: movie.title, posterPath: movie.posterPath, to: "/movies/$tmdbId", tmdbId: movie.tmdbId, tone: "film" })),
+    series.slice(0, STRIP_PER_KIND).map((show): StripItem => ({ key: `s${show.tmdbId}`, title: show.title, posterPath: show.posterPath, to: "/serials/$tmdbId", tmdbId: show.tmdbId, tone: "series" })),
+  );
 
   return (
     <section className="mx-auto w-full max-w-5xl px-4 py-8">
@@ -53,20 +80,12 @@ export const AuthShell = ({ children }: { children: ReactNode }) => {
         </div>
 
         {strip.length > 0 ? (
-          <div className="flex gap-[3px] overflow-hidden bg-black px-[3px] py-[3px]">
-            {strip.map((item) => (
-              <Link
-                key={item.key}
-                to={item.to}
-                params={{ tmdbId: String(item.tmdbId) }}
-                aria-label={item.title}
-                className="relative aspect-[2/3] w-16 shrink-0 overflow-hidden sm:w-20"
-              >
-                <DuotoneBackdrop tone={item.tone} fade={false}>
-                  {item.posterPath ? <img src={getPosterUrl(item.posterPath)} alt="" className="h-full w-full object-cover" /> : null}
-                </DuotoneBackdrop>
-              </Link>
-            ))}
+          // Two copies back to back loop seamlessly as the reel runs left.
+          <div className="overflow-hidden bg-black py-[3px] pl-[3px]">
+            <div className="animate-film-strip flex w-max">
+              <StripFrames strip={strip} />
+              <StripFrames strip={strip} isCopy />
+            </div>
           </div>
         ) : null}
 
