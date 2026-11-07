@@ -1,6 +1,6 @@
 import { FilmsService } from "../../films/films.service";
 import { TvService } from "../../tv/tv.service";
-import { TvWatchStatusService } from "../../tv/services/tv-watch-status.service";
+import { TvActivityService } from "../../tv/services/tv-activity.service";
 import {
   ActivityRecorder,
   type ActivitySubject,
@@ -46,8 +46,7 @@ const tvReviewAdapter: ReviewMediaAdapter<Series, { review: ReviewsTableRow; ser
     return series;
   },
   reviewRef: (series) => ({ mediaType: "tv", tmdbId: series.tmdbId, movieId: null }),
-  // A review mid-season mustn't knock the series off "watching".
-  markWatched: (userId, series) => TvWatchStatusService.markCompletedIfUntracked(userId, series.id),
+  markWatched: (userId, series) => TvActivityService.markReviewed(userId, series.id),
   activitySubject: (series) => ({ kind: "series", series }),
   toResult: (review, series) => ({ review, series }),
 };
@@ -162,7 +161,7 @@ export class ReviewsCoreService {
     return deleted;
   }
 
-  // Movie reviews only — TV reviews live in the serials module's own table.
+  // Film and Series reviews share the one review table; Series rows have no movieTitle.
   static async listAllForAdmin(
     filters: { userId?: string; movieId?: number },
     limit: number,
