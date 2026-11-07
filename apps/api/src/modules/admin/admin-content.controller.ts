@@ -3,10 +3,13 @@ import { sendNotFound, sendValidationError } from "../../commons/http/validation
 import { AdminContentService } from "./admin-content.service";
 import {
   AdminCommentParamsSchema,
+  AdminDeleteLogQuerySchema,
   AdminListCommentsQuerySchema,
   AdminListContentQuerySchema,
+  AdminListLogsQuerySchema,
   type AdminListCommentsQuery,
   type AdminListContentQuery,
+  type AdminListLogsQuery,
 } from "./dto/admin-content.dto";
 import { AdminAuditService } from "./admin-audit.service";
 
@@ -40,17 +43,18 @@ export class AdminContentController {
   }
 
   static async listDiaryEntries(
-    req: Request<{}, {}, {}, AdminListContentQuery>,
+    req: Request<{}, {}, {}, AdminListLogsQuery>,
     res: Response,
   ): Promise<void> {
-    const parsed = AdminListContentQuerySchema.safeParse(req.query);
+    const parsed = AdminListLogsQuerySchema.safeParse(req.query);
     if (!parsed.success) {
       sendValidationError(res, parsed.error);
       return;
     }
 
+    const { username, movieId, seriesId, mediaType } = parsed.data;
     const entries = await AdminContentService.listDiaryEntries(
-      { username: parsed.data.username, movieId: parsed.data.movieId },
+      { username, movieId, seriesId, mediaType },
       parsed.data.limit ?? 20,
       parsed.data.offset ?? 0,
     );
@@ -58,12 +62,18 @@ export class AdminContentController {
   }
 
   static async deleteDiaryEntry(req: Request<{ id: string }>, res: Response): Promise<void> {
-    const deleted = await AdminContentService.deleteDiaryEntry(req.params.id);
+    const parsed = AdminDeleteLogQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+    const deleted = await AdminContentService.deleteDiaryEntry(req.params.id, parsed.data.mediaType);
     if (!deleted) {
       sendNotFound(res, "Diary entry not found");
       return;
     }
-    await AdminAuditService.record(req.user, { action: "diary_entry.delete", targetType: "diary_entry", targetId: req.params.id });
+    const targetType = deleted.mediaType === "tv" ? "serial_diary_entry" : "diary_entry";
+    await AdminAuditService.record(req.user, { action: "diary_entry.delete", targetType, targetId: req.params.id });
     res.status(200).json({ success: true });
   }
 

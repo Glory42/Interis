@@ -13,6 +13,8 @@ import {
 } from "@/features/admin/hooks/useAdminContent";
 import { isApiError } from "@/lib/api-client";
 import { formatRelativeTime } from "@/lib/time";
+import { cn } from "@/lib/utils";
+import type { MediaType } from "@/types/api";
 
 const DeleteDiaryEntryAction = ({ entry }: { entry: AdminDiaryEntry }) => {
   const { mutateAsync: deleteEntry, isPending } = useDeleteAdminDiaryEntry();
@@ -22,7 +24,7 @@ const DeleteDiaryEntryAction = ({ entry }: { entry: AdminDiaryEntry }) => {
   const handleConfirm = async () => {
     setError(null);
     try {
-      await deleteEntry(entry.id);
+      await deleteEntry(entry);
       setIsOpen(false);
     } catch (submitError) {
       setError(isApiError(submitError) ? submitError.message : "Could not delete diary entry.");
@@ -46,7 +48,7 @@ const DeleteDiaryEntryAction = ({ entry }: { entry: AdminDiaryEntry }) => {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         title="Delete diary entry"
-        description={`Permanently delete @${entry.authorUsername}'s log of ${entry.movieTitle}?`}
+        description={`Permanently delete @${entry.authorUsername}'s log of ${entry.mediaTitle}?`}
         confirmLabel="Delete"
         variant="danger"
         isLoading={isPending}
@@ -57,11 +59,18 @@ const DeleteDiaryEntryAction = ({ entry }: { entry: AdminDiaryEntry }) => {
   );
 };
 
+const MEDIA_TABS: { value: MediaType; label: string }[] = [
+  { value: "movie", label: "Films" },
+  { value: "tv", label: "TV" },
+];
+
 export const AdminDiaryPanel = () => {
   const [usernameInput, setUsernameInput] = useState("");
+  const [mediaType, setMediaType] = useState<MediaType>("movie");
   const deferredUsername = useDeferredValue(usernameInput.trim());
   const entriesQuery = useAdminDiaryEntries({
     username: deferredUsername.length > 0 ? deferredUsername : undefined,
+    mediaType,
   });
 
   return (
@@ -78,6 +87,20 @@ export const AdminDiaryPanel = () => {
         }
       />
 
+      <div role="toolbar" aria-label="Log media type" className="mono-meta flex items-center gap-4 uppercase">
+        {MEDIA_TABS.map((tab) => (
+          <button
+            key={tab.value}
+            type="button"
+            aria-pressed={mediaType === tab.value}
+            onClick={() => setMediaType(tab.value)}
+            className={cn(mediaType === tab.value ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       <AdminPanelState
         query={entriesQuery}
         emptyMessage="No diary entries found."
@@ -89,7 +112,7 @@ export const AdminDiaryPanel = () => {
               <TableHeader>
                 <TableRow className="border-0 hover:bg-transparent">
                   <TableHead>User</TableHead>
-                  <TableHead>Movie</TableHead>
+                  <TableHead>Title</TableHead>
                   <TableHead>Watched</TableHead>
                   <TableHead>Rating</TableHead>
                   <TableHead>Logged</TableHead>
@@ -100,7 +123,7 @@ export const AdminDiaryPanel = () => {
                 {entries.map((entry) => (
                   <TableRow key={entry.id}>
                     <TableCell className="text-foreground">@{entry.authorUsername}</TableCell>
-                    <TableCell className="text-muted-foreground">{entry.movieTitle}</TableCell>
+                    <TableCell className="text-muted-foreground">{entry.mediaTitle}</TableCell>
                     <TableCell className="text-muted-foreground">{entry.watchedDate}</TableCell>
                     <TableCell className="text-muted-foreground">{entry.rating ?? "—"}</TableCell>
                     <TableCell className="text-muted-foreground">

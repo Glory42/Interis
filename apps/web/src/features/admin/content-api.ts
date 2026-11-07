@@ -1,14 +1,20 @@
 import { z } from "zod";
 import { appendPageParams, type AdminPage } from "@/features/admin/pagination";
 import { apiRequest } from "@/lib/api-client";
-import { mediaTypeSchema, successResponseSchema as actionResponseSchema } from "@/types/api";
+import {
+  mediaTypeSchema,
+  successResponseSchema as actionResponseSchema,
+  type MediaType,
+} from "@/types/api";
 
 export type AdminContentFilters = { username?: string; movieId?: number };
+export type AdminDiaryFilters = AdminContentFilters & { mediaType?: MediaType };
 
-const buildContentQuery = (filters: AdminContentFilters, page?: AdminPage): string => {
+const buildContentQuery = (filters: AdminDiaryFilters, page?: AdminPage): string => {
   const params = new URLSearchParams();
   if (filters.username) params.set("username", filters.username);
   if (filters.movieId) params.set("movieId", String(filters.movieId));
+  if (filters.mediaType) params.set("mediaType", filters.mediaType);
   appendPageParams(params, page);
   const query = params.toString();
   return query ? `?${query}` : "";
@@ -49,14 +55,15 @@ const adminDiaryEntrySchema = z.object({
   watchedDate: z.string(),
   rating: z.number().nullable(),
   rewatch: z.boolean(),
-  movieId: z.number(),
-  movieTitle: z.string(),
+  mediaType: mediaTypeSchema,
+  mediaId: z.number(),
+  mediaTitle: z.string(),
   createdAt: z.coerce.date(),
 });
 export type AdminDiaryEntry = z.infer<typeof adminDiaryEntrySchema>;
 
 export const listAdminDiaryEntries = async (
-  filters: AdminContentFilters,
+  filters: AdminDiaryFilters,
   page?: AdminPage,
 ): Promise<AdminDiaryEntry[]> => {
   const response = await apiRequest<unknown>(`/api/admin/diary${buildContentQuery(filters, page)}`, {
@@ -65,8 +72,13 @@ export const listAdminDiaryEntries = async (
   return z.array(adminDiaryEntrySchema).parse(response);
 };
 
-export const deleteAdminDiaryEntry = async (id: string): Promise<void> => {
-  const response = await apiRequest<unknown>(`/api/admin/diary/${id}`, { method: "DELETE" });
+export const deleteAdminDiaryEntry = async (
+  entry: Pick<AdminDiaryEntry, "id" | "mediaType">,
+): Promise<void> => {
+  const response = await apiRequest<unknown>(
+    `/api/admin/diary/${entry.id}?mediaType=${entry.mediaType}`,
+    { method: "DELETE" },
+  );
   actionResponseSchema.parse(response);
 };
 
