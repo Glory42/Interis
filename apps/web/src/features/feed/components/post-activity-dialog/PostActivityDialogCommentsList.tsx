@@ -1,7 +1,8 @@
-import { PenSquare, Trash2, X } from "lucide-react";
+import { Flag, PenSquare, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { ReportContentDialog } from "@/features/reports/components/ReportContentDialog";
 import { getRelativeTime } from "@/features/feed/components/feed-row.utils";
 import type { PostComment } from "@/features/posts/api";
 import { useDeletePostComment, useUpdatePostComment } from "@/features/posts/hooks/usePosts";
@@ -27,6 +28,7 @@ export const PostActivityDialogCommentsList = ({
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState("");
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [reportingId, setReportingId] = useState<string | null>(null);
 
   const startEditing = (comment: PostComment) => {
     setEditingCommentId(comment.id);
@@ -107,6 +109,15 @@ export const PostActivityDialogCommentsList = ({
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
+              ) : user ? (
+                <button
+                  type="button"
+                  onClick={() => setReportingId(comment.id)}
+                  aria-label="Report comment"
+                  className="shrink-0 text-muted-foreground transition-colors hover:text-destructive"
+                >
+                  <Flag className="h-3.5 w-3.5" />
+                </button>
               ) : null}
             </div>
 
@@ -162,6 +173,12 @@ export const PostActivityDialogCommentsList = ({
           void confirmDelete();
         }}
         onClose={() => setPendingDeleteId(null)}
+      />
+      <ReportContentDialog
+        isOpen={reportingId !== null}
+        onClose={() => setReportingId(null)}
+        targetType="post_comment"
+        targetId={reportingId ?? ""}
       />
     </div>
   );

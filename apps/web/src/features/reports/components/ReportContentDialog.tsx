@@ -17,6 +17,14 @@ type ReportContentDialogProps = {
   targetId: string;
 };
 
+const TARGET_LABEL: Record<ReportTargetType, string> = {
+  review: "review",
+  post: "post",
+  comment: "comment",
+  post_comment: "comment",
+  list: "list",
+};
+
 const REASON_OPTIONS: { value: ReportReason; label: string }[] = [
   { value: "spam", label: "Spam" },
   { value: "harassment", label: "Harassment" },
@@ -63,7 +71,7 @@ const ReportContentDialogContent = ({
   return (
     <ModalShell onClose={onClose} containerClassName="max-w-md" ariaCloseLabel="Close report dialog">
       <section className="theme-modal-panel relative w-full overflow-hidden border border-border/80 bg-card/95 p-0 animate-fade-up">
-        <ModalHeader title={`Report ${targetType}`} onClose={onClose} closeAriaLabel="Close report dialog" align="start" />
+        <ModalHeader title={`Report ${TARGET_LABEL[targetType]}`} onClose={onClose} closeAriaLabel="Close report dialog" align="start" />
 
         {submitted ? (
             <div className="space-y-4 px-4 py-6 text-center">

@@ -6,6 +6,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { SentenceSelect } from "@/components/ui/SentenceSelect";
 import { TickLoader } from "@/components/ui/tick-loader";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { ReportContentDialog } from "@/features/reports/components/ReportContentDialog";
 import { ListDetailPoster, ListDetailRow } from "@/features/lists/components/ListDetailItems";
 import { useDeleteList, useLikeList, useListDetail, useUnlikeList } from "@/features/lists/hooks/useLists";
 import { cn } from "@/lib/utils";
@@ -43,6 +44,7 @@ export const ProfileListDetailPage = ({ username, listId }: ProfileListDetailPag
   const [view, setView] = useState<ListView>("rows");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isReporting, setIsReporting] = useState(false);
 
   if (detailQuery.isPending) {
     return (
@@ -112,7 +114,7 @@ export const ProfileListDetailPage = ({ username, listId }: ProfileListDetailPag
                 <span className="mono-meta text-muted-foreground">{`♥ ${list.likeCount}`}</span>
               ) : null}
 
-              {isOwnProfile ? (
+              {user ? (
                 <div
                   className="relative"
                   onBlur={(event) => !event.currentTarget.contains(event.relatedTarget) && setIsMenuOpen(false)}
@@ -130,25 +132,41 @@ export const ProfileListDetailPage = ({ username, listId }: ProfileListDetailPag
                   </Button>
                   {isMenuOpen ? (
                     <div role="menu" className="surface-card absolute top-full right-0 z-40 mt-1 min-w-32 overflow-hidden">
-                      <button
-                        type="button"
-                        role="menuitem"
-                        className={menuItem}
-                        onClick={() => void navigate({ to: "/profile/$username/lists/$listId/edit", params: { username, listId } })}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        className={cn(menuItem, "text-[color:var(--danger)]")}
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          setIsConfirmingDelete(true);
-                        }}
-                      >
-                        Delete
-                      </button>
+                      {isOwnProfile ? (
+                        <>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className={menuItem}
+                            onClick={() => void navigate({ to: "/profile/$username/lists/$listId/edit", params: { username, listId } })}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className={cn(menuItem, "text-[color:var(--danger)]")}
+                            onClick={() => {
+                              setIsMenuOpen(false);
+                              setIsConfirmingDelete(true);
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          role="menuitem"
+                          className={menuItem}
+                          onClick={() => {
+                            setIsMenuOpen(false);
+                            setIsReporting(true);
+                          }}
+                        >
+                          Report list
+                        </button>
+                      )}
                     </div>
                   ) : null}
                 </div>
@@ -196,6 +214,7 @@ export const ProfileListDetailPage = ({ username, listId }: ProfileListDetailPag
         onConfirm={() => void deleteList()}
         onClose={() => setIsConfirmingDelete(false)}
       />
+      <ReportContentDialog isOpen={isReporting} onClose={() => setIsReporting(false)} targetType="list" targetId={list.id} />
     </div>
   );
 };
