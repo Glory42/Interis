@@ -65,6 +65,17 @@ export class UsersProfileTabsController {
     );
   }
 
+  // GET /api/users/:username/recent/grouped?limit=20
+  static async getRecentGrouped(
+    req: Request<{ username: string }, unknown, unknown, PublicRecentQueryDto>,
+    res: Response,
+  ): Promise<void> {
+    const limit = normalizePublicRecentLimit(req.query.limit);
+    await UsersProfileTabsController.send(req, res, (userId) =>
+      PublicService.getRecentActivityGroupedByUserId(userId, limit),
+    );
+  }
+
   // GET /api/users/:username/serials/currently-watching?limit=10
   static async getSerialsCurrentlyWatching(
     req: Request<{ username: string }, unknown, unknown, PublicCurrentlyWatchingQueryDto>,
