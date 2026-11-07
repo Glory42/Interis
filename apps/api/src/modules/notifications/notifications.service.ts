@@ -37,6 +37,17 @@ export class NotificationsService {
     });
   }
 
+  // A moderator's notice: the recipient is set as the actor so the moderator stays anonymous.
+  static async notifyOfRemoval(input: { recipientId: string; entityId: string; metadata: Record<string, unknown> }): Promise<void> {
+    await NotificationsRepository.insert({
+      recipientId: input.recipientId,
+      actorId: input.recipientId,
+      type: "content_removed",
+      entityId: input.entityId,
+      metadata: JSON.stringify(input.metadata),
+    });
+  }
+
   // Undo of notify(): the follow or like was taken back, so the recipient
   // stops seeing it, and a re-follow or re-like leaves one notification,
   // not one per toggle. Never fails the request, like ActivityRecorder.retract.

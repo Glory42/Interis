@@ -1,5 +1,6 @@
 import { ReviewsService } from "../reviews/reviews.service";
 import { PostsService } from "../posts/posts.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import { ReportTargetsRepository } from "./repositories/report-targets.repository";
 import {
   ReportsRepository,
@@ -76,13 +77,23 @@ export class ReportsService {
   static async removeContent(
     reportId: string,
     adminUserId: string,
+    options: { reason: string | null; notifyAuthor: boolean },
   ): Promise<{ error: string; status: 404 } | { success: true }> {
     const report = await ReportsRepository.findById(reportId);
     if (!report) {
       return { error: "Report not found", status: 404 };
     }
 
+    // Looked up before the delete, which takes the author link with it.
+    const authorId = options.notifyAuthor ? await ReportTargetsRepository.authorOf(report.targetType, report.targetId) : null;
     await removeTarget(report.targetType, report.targetId);
+    if (authorId) {
+      await NotificationsService.notifyOfRemoval({
+        recipientId: authorId,
+        entityId: report.targetId,
+        metadata: { targetType: report.targetType, reason: options.reason, excerpt: report.contentSnapshot.slice(0, 140) },
+      });
+    }
 
     await ReportsRepository.resolvePendingForTarget(report.targetType, report.targetId, adminUserId);
     return { success: true };

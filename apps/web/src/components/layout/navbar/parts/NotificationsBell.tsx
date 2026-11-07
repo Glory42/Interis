@@ -20,6 +20,39 @@ const messageByType: Record<NotificationType, string> = {
   like_activity: "liked your activity",
   comment_review: "commented on your review",
   comment_post: "commented on your post",
+  content_removed: "",
+};
+
+const REMOVED_LABEL: Record<string, string> = { review: "review", post: "post", comment: "comment", post_comment: "comment", list: "list" };
+
+const parseRemoval = (metadata: string | null) => {
+  try {
+    const parsed = JSON.parse(metadata ?? "{}") as { targetType?: string; reason?: string | null; excerpt?: string };
+    return {
+      label: REMOVED_LABEL[parsed.targetType ?? ""] ?? "post",
+      detail: [parsed.excerpt ? `“${parsed.excerpt}”` : null, parsed.reason || null].filter(Boolean).join(" · "),
+    };
+  } catch {
+    return { label: "post", detail: "" };
+  }
+};
+
+// Moderation notices have no actor to show and nothing left to link to.
+const RemovalNotice = ({ notification, onRead }: { notification: NotificationItem; onRead: () => void }) => {
+  const { label, detail } = parseRemoval(notification.metadata);
+  return (
+    <button
+      type="button"
+      onClick={onRead}
+      className={"block w-full border-b text-left border-border/50 px-3 py-2.5 last:border-0 " + (notification.isRead ? "" : "bg-primary/5")}
+    >
+      <span className="block font-mono text-[11px] text-foreground">{`A moderator removed your ${label}`}</span>
+      {detail ? <span className="block font-mono text-[10px] text-muted-foreground">{detail}</span> : null}
+      <span className="block font-mono text-[9px] text-muted-foreground">
+        {formatRelativeTime(notification.createdAt.toISOString())}
+      </span>
+    </button>
+  );
 };
 
 type NotificationLink =
@@ -132,6 +165,16 @@ export const NotificationsBell = () => {
             ) : (
               <ul>
                 {notifications.map((notification) => {
+                  if (notification.type === "content_removed") {
+                    return (
+                      <li key={notification.id}>
+                        <RemovalNotice
+                          notification={notification}
+                          onRead={() => !notification.isRead && markReadMutation.mutate(notification.id)}
+                        />
+                      </li>
+                    );
+                  }
                   const avatarUrl =
                     notification.actorAvatarUrl ?? notification.actorImage ?? null;
                   const link = resolveNotificationLink(notification, user.username);

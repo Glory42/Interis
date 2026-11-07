@@ -1,13 +1,15 @@
 import { eq } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
-import { comments } from "../../reviews/reviews.entity";
-import { postComments } from "../../posts/posts.entity";
+import { comments, reviews } from "../../reviews/reviews.entity";
+import { postComments, posts } from "../../posts/posts.entity";
 import { lists } from "../../lists/lists.entity";
 
 // Comment and list ids are uuids; anything else can't exist, so it reads as not found.
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export type ExtraReportTarget = "comment" | "post_comment" | "list";
+
+const TABLE_OF = { review: reviews, post: posts, comment: comments, post_comment: postComments, list: lists } as const;
 
 export class ReportTargetsRepository {
   // The text a report keeps, so it stays reviewable after an edit or delete.
@@ -30,5 +32,12 @@ export class ReportTargetsRepository {
     }
     const table = targetType === "comment" ? comments : postComments;
     await db.delete(table).where(eq(table.id, targetId));
+  }
+
+  static async authorOf(targetType: keyof typeof TABLE_OF, targetId: string): Promise<string | null> {
+    if (!UUID.test(targetId)) return null;
+    const table = TABLE_OF[targetType];
+    const [row] = await db.select({ userId: table.userId }).from(table).where(eq(table.id, targetId)).limit(1);
+    return row?.userId ?? null;
   }
 }

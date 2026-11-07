@@ -39,3 +39,8 @@ export type ReportTargetParams = z.input<typeof ReportTargetParamsSchema>;
 export const CloseReportTargetSchema = z.object({
   note: z.string().trim().max(500).optional(),
 });
+
+export const RemoveContentSchema = z.object({
+  reason: z.string().trim().max(500).optional(),
+  notifyAuthor: z.boolean().optional(),
+});
