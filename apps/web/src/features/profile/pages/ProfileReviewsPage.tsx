@@ -5,7 +5,7 @@ import { getPosterUrl } from "@/features/movies/components/utils";
 import type { UserReview } from "@/features/profile/api";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import { ReviewCardSkeleton } from "@/features/profile/components/ReviewCardSkeleton";
-import { DiaryRatingStars } from "@/features/profile/components/diary/DiaryRatingStars";
+import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
 import { useUserReviews } from "@/features/profile/hooks/useProfile";
 
 type ProfileReviewsPageProps = {
@@ -169,10 +169,7 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <DiaryRatingStars
-                    rating={entry.rating ?? null}
-                    color={mediaMetaByType[entry.mediaType].color}
-                  />
+                  {entry.rating != null ? <RocketDisplay rating={entry.rating} size="sm" /> : null}
                   <span className="font-mono text-[9px] shell-muted">
                     Reviewed on {formatDate(entry.createdAt)}
                   </span>

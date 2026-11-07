@@ -1,17 +1,12 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { AlignLeft, Heart, Pencil, RefreshCw } from "lucide-react";
+import { Ellipsis } from "lucide-react";
+import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
 import { EditLogDialog } from "@/features/diary/components/EditLogDialog";
-import { feedChannelMeta } from "@/features/feed/components/feed-row.utils";
-import { cn } from "@/lib/utils";
+import { PHONE_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { DiaryMediaLink } from "./DiaryMediaLink";
 import { DiaryPosterCell } from "./DiaryPosterCell";
-import { DiaryRatingStars } from "./DiaryRatingStars";
-import {
-  channelDisplayLabel,
-  diaryGridColumns,
-  type DiaryRow as DiaryRowModel,
-} from "./diary-model";
+import type { DiaryRow as DiaryRowModel } from "./diary-model";
 
 type DiaryRowProps = {
   row: DiaryRowModel;
@@ -20,142 +15,61 @@ type DiaryRowProps = {
   isOwner?: boolean;
 };
 
+// One log line: the day (first row of the day only), poster, title, rockets and ♥ ↻ ✎.
 export const DiaryRow = ({ row, username, isOwner = false }: DiaryRowProps) => {
-  const channelMeta = feedChannelMeta[row.channel];
   const [isEditing, setIsEditing] = useState(false);
+  // Ten rockets don't fit beside the title on a phone; one rocket and the score do.
+  const isPhone = useMediaQuery(PHONE_QUERY);
   const canEdit = isOwner && row.tmdbId !== null;
-
-  const editButton = canEdit ? (
-    <button
-      type="button"
-      onClick={() => setIsEditing(true)}
-      className="inline-flex text-muted-foreground transition-colors hover:text-foreground"
-      aria-label={`Edit log of ${row.title}`}
-    >
-      <Pencil className="h-3 w-3" />
-    </button>
-  ) : null;
+  const isSeries = row.channel === "serial";
+  const kicker = [isSeries ? "Series" : "Film", row.rewatch ? "rewatch" : null].filter(Boolean).join(" · ");
 
   return (
-    <div
-      className={cn(
-        "group grid grid-cols-[1fr] items-center gap-3 border-b px-2 py-3 transition-colors hover:bg-white/[0.015]",
-        diaryGridColumns(isOwner),
-      )}
-      style={{ borderColor: "var(--shell-row-border)" }}
-    >
-      <div className="hidden md:flex">
-        {row.showMonthCell ? (
-          <div
-            className="flex h-14 w-16 flex-col items-center justify-center rounded-lg border"
-            style={{
-              borderColor: "var(--shell-border)",
-              background:
-                "color-mix(in srgb, var(--shell-accent) 12%, var(--shell-bg))",
-            }}
-          >
-            <span className="font-mono text-[9px] font-bold uppercase tracking-widest shell-accent">
-              {row.dateParts.month}
-            </span>
-            <span className="font-mono text-[10px] shell-muted">{row.dateParts.year}</span>
-          </div>
-        ) : (
-          <div className="h-14 w-16" />
-        )}
+    <div className="flex items-center gap-3 border-b border-[color:var(--line)] py-2.5">
+      <div className="w-9 shrink-0 text-center sm:w-11">
+        {row.dayLabel ? (
+          <>
+            <b className="display-3 block leading-none text-foreground">{row.dayLabel.day}</b>
+            <span className="mono-meta text-[9px] text-muted-foreground">{row.dayLabel.weekday}</span>
+          </>
+        ) : null}
       </div>
-
-      <div className="hidden md:block">
-        <span className="font-mono text-xl font-bold shell-muted">{row.dateParts.day}</span>
-      </div>
-
-      <div className="hidden md:block">
-        <DiaryMediaLink row={row} className="block">
-          <DiaryPosterCell title={row.title} posterPath={row.posterPath} />
+      <DiaryMediaLink row={row} className="w-10 shrink-0">
+        <DiaryPosterCell title={row.title} posterPath={row.posterPath} />
+      </DiaryMediaLink>
+      <div className="min-w-0 flex-1">
+        <DiaryMediaLink row={row} className="block truncate text-sm font-semibold text-foreground hover:underline">
+          {row.title}
+          {row.releaseYear ? <span className="mono-meta ml-1.5 font-normal text-muted-foreground">{row.releaseYear}</span> : null}
         </DiaryMediaLink>
+        <p className={`kicker text-[9px] ${isSeries ? "text-[color:var(--series)]" : "text-[color:var(--film)]"}`}>{kicker}</p>
       </div>
-
-      <div className="min-w-0">
-        <div className="mb-1 flex items-center gap-2 md:hidden">
-          <span className="font-mono text-[9px] uppercase tracking-widest shell-accent">
-            {row.dateParts.month} {row.dateParts.day}
-          </span>
-          <span
-            className="rounded-full border px-1.5 py-0.5 font-mono text-[9px]"
-            style={{
-              color: channelMeta.color,
-              borderColor: `color-mix(in srgb, ${channelMeta.color} 38%, transparent)`,
-            }}
-          >
-            {channelDisplayLabel[row.channel]}
-          </span>
-        </div>
-
-        <DiaryMediaLink row={row} className="block truncate font-sans text-sm font-medium">
-          <span style={{ color: "var(--shell-fg)" }}>{row.title}</span>
-        </DiaryMediaLink>
-
-        <div className="mt-1 flex items-center gap-3 md:hidden">
-          <DiaryRatingStars rating={row.rating} color={channelMeta.color} />
-          <span className="font-mono text-[9px] shell-muted">{row.releaseYear ?? "----"}</span>
-          {row.reviewId ? (
-            <Link
-              to="/reviews/$username/$reviewId"
-              params={{ username, reviewId: row.reviewId }}
-              className="font-mono text-[9px] uppercase tracking-widest"
-              style={{ color: channelMeta.color }}
-              viewTransition
-            >
-              Review
-            </Link>
-          ) : null}
-          {editButton ? <span className="ml-auto">{editButton}</span> : null}
-        </div>
-      </div>
-
-      <div className="hidden md:block">
-        <span className="font-mono text-xs shell-muted">{row.releaseYear ?? "----"}</span>
-      </div>
-
-      <div className="hidden items-center md:flex">
-        <DiaryRatingStars rating={row.rating} color={channelMeta.color} />
-      </div>
-
-      <div className="hidden justify-center md:flex">
-        <Heart
-          className="h-3.5 w-3.5 transition-colors"
-          style={{
-            color: row.isLiked ? "var(--shell-accent)" : "var(--shell-muted)",
-            fill: row.isLiked ? "var(--shell-accent)" : "none",
-          }}
-          aria-label={row.isLiked ? "Liked" : "Like"}
-        />
-      </div>
-
-      <div className="hidden justify-center md:flex">
-        {row.rewatch ? (
-          <RefreshCw className="h-3 w-3" style={{ color: channelMeta.color }} aria-label="Rewatch" />
-        ) : (
-          <div className="h-3 w-3" />
-        )}
-      </div>
-
-      <div className="hidden justify-center md:flex">
-        {row.hasReview && row.reviewId ? (
+      {row.rating !== null ? <RocketDisplay rating={row.rating} size="sm" variant={isPhone ? "compact" : "row"} /> : null}
+      <span className="flex w-14 shrink-0 items-center justify-end gap-1.5 text-sm">
+        {row.isLiked ? <span aria-label="Liked" className="text-[color:var(--like)]">♥</span> : null}
+        {row.rewatch ? <span aria-label="Rewatch" className="text-primary">↻</span> : null}
+        {row.reviewId ? (
           <Link
             to="/reviews/$username/$reviewId"
             params={{ username, reviewId: row.reviewId }}
-            className="inline-flex"
+            aria-label="Review"
+            className="text-primary"
             viewTransition
           >
-            <AlignLeft className="h-3 w-3" style={{ color: channelMeta.color }} aria-label="Has review" />
+            ✎
           </Link>
-        ) : (
-          <div className="h-3 w-3" />
-        )}
-      </div>
-
-      {isOwner ? <div className="hidden justify-center md:flex">{editButton}</div> : null}
-
+        ) : null}
+      </span>
+      {canEdit ? (
+        <button
+          type="button"
+          onClick={() => setIsEditing(true)}
+          className="flex size-8 shrink-0 items-center justify-center text-muted-foreground hover:text-foreground"
+          aria-label={`Edit log of ${row.title}`}
+        >
+          <Ellipsis aria-hidden className="size-4" />
+        </button>
+      ) : null}
       {canEdit && row.tmdbId !== null ? (
         <EditLogDialog
           isOpen={isEditing}

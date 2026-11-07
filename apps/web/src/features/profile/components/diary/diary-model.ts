@@ -2,8 +2,6 @@ import type { FeedChannel } from "@/features/feed/components/feed-row.utils";
 import type { DiaryItem } from "@/features/profile/api";
 import { parseDateOnly } from "@/lib/time";
 
-export type RatingToken = "full" | "half" | "empty";
-
 export type DiaryRow = {
   id: string;
   channel: FeedChannel;
@@ -24,14 +22,17 @@ export type DiaryRow = {
     monthKey: string;
   };
   showMonthCell: boolean;
+  // Big day number and weekday, on the first row of each day only.
+  dayLabel: { day: string; weekday: string } | null;
 };
 
-// Desktop columns shared by the header and rows; the owner's diary has an
-// extra column for the edit button. Written out in full so Tailwind sees them.
-export const diaryGridColumns = (isOwner: boolean): string =>
-  isOwner
-    ? "md:grid-cols-[80px_48px_56px_1fr_80px_120px_32px_32px_32px_32px]"
-    : "md:grid-cols-[80px_48px_56px_1fr_80px_120px_32px_32px_32px]";
+export type DiaryMonth = {
+  key: string;
+  label: string;
+  // null while older pages of this month may still be unloaded.
+  count: number | null;
+  rows: DiaryRow[];
+};
 
 export const channelDisplayLabel: Record<FeedChannel, string> = {
   movie: "Movie",
@@ -65,24 +66,11 @@ export const toDateParts = (value: string): {
   return { month, day, year, monthKey };
 };
 
+const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
 const channelByMediaType: Record<DiaryItem["mediaType"], FeedChannel> = {
   movie: "movie",
   tv: "serial",
-};
-
-export const toRatingTokens = (rating: number | null): RatingToken[] => {
-  if (rating === null || Number.isNaN(rating)) {
-    return Array.from({ length: 10 }, () => "empty" as RatingToken);
-  }
-
-  const normalized = Math.max(0, Math.min(10, rating));
-
-  return Array.from({ length: 10 }, (_, index) => {
-    const delta = normalized - index;
-    if (delta >= 1) return "full";
-    if (delta >= 0.5) return "half";
-    return "empty";
-  });
 };
 
 export const toPosterFallbackLabel = (title: string): string => {
@@ -121,13 +109,38 @@ export const toDiaryRows = (diaryItems: DiaryItem[]): DiaryRow[] => {
 
   return normalizedRows.map((row, index) => {
     const dateParts = toDateParts(row.createdAt);
-    const previousMonthKey =
-      index > 0 ? toDateParts(normalizedRows[index - 1]?.createdAt ?? "").monthKey : null;
+    const previous = index > 0 ? normalizedRows[index - 1]?.createdAt : undefined;
+    const previousMonthKey = previous ? toDateParts(previous).monthKey : null;
+    const weekday = parseDateOnly(row.createdAt);
 
     return {
       ...row,
       dateParts,
       showMonthCell: dateParts.monthKey !== previousMonthKey,
+      dayLabel:
+        previous === row.createdAt || Number.isNaN(weekday.getTime())
+          ? null
+          : { day: dateParts.day, weekday: WEEKDAYS[weekday.getDay()]! },
     };
   });
+};
+
+const MONTH_NAMES = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+
+// Month sections with a slate label and count; hasMore means the last month may be cut off.
+export const toDiaryMonths = (rows: DiaryRow[], hasMore: boolean): DiaryMonth[] => {
+  const months: DiaryMonth[] = [];
+  for (const row of rows) {
+    const key = row.dateParts.monthKey;
+    if (months.at(-1)?.key !== key) {
+      const [year, month] = key.split("-");
+      const label = month ? `${MONTH_NAMES[Number(month) - 1]} ${year}` : "UNDATED";
+      months.push({ key, label, count: 0, rows: [] });
+    }
+    const current = months.at(-1)!;
+    current.rows.push(row);
+    current.count = (current.count ?? 0) + 1;
+  }
+  if (hasMore && months.length > 0) months.at(-1)!.count = null;
+  return months;
 };
