@@ -12,6 +12,7 @@ import { useSerialSearch } from "@/features/serials/hooks/useSerials";
 import {
   MAX_RESULTS_PER_SECTION,
   MIN_QUERY_LENGTH,
+  SECTION_LABEL,
 } from "./constants";
 import { toMovieEntry, toSerialEntry, toTitleEntry, toUserEntry } from "./mappers";
 import type {
@@ -39,8 +40,8 @@ export type GlobalSearchState = {
   suggestionsCount: number;
   isAnyLoading: boolean;
   effectiveHighlightedIndex: number;
-  enterScopedMode: (target: ScopedTarget) => void;
-  returnToHomeMode: () => void;
+  // null searches everything; keeps whatever has been typed.
+  setScope: (target: ScopedTarget | null) => void;
   reset: () => void;
 };
 
@@ -91,9 +92,23 @@ export const useGlobalSearchState = (): GlobalSearchState => {
     return (serialsQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toSerialEntry);
   }, [serialsQuery.data]);
 
-  const titleEntries = useMemo(() => {
-    return (titlesQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toTitleEntry);
-  }, [titlesQuery.data]);
+  // Films and TV get their own sections, ordered by whichever TMDB ranked first.
+  const titleSections = useMemo(() => {
+    const results = titlesQuery.data ?? [];
+    type TitleTarget = "movie" | "serials";
+    const targetOf = (mediaType: string): TitleTarget => (mediaType === "tv" ? "serials" : "movie");
+    const order: TitleTarget[] = [...new Set(results.map((result) => targetOf(result.mediaType)))];
+    return (order.length > 0 ? order : (["movie", "serials"] as TitleTarget[])).map((target): SearchSection => ({
+      target,
+      label: SECTION_LABEL[target],
+      items: results
+        .filter((result) => targetOf(result.mediaType) === target)
+        .slice(0, MAX_RESULTS_PER_SECTION)
+        .map(toTitleEntry),
+      isLoading: titlesQuery.isFetching,
+      isError: titlesQuery.isError,
+    }));
+  }, [titlesQuery.data, titlesQuery.isFetching, titlesQuery.isError]);
 
   const sections = useMemo<SearchSection[]>(() => {
     if (!shouldRunSearch) {
@@ -101,56 +116,20 @@ export const useGlobalSearchState = (): GlobalSearchState => {
     }
 
     if (isScopedMode && scopedTarget === "users") {
-      return [
-        {
-          target: "users",
-          label: "Users",
-          items: userEntries,
-          isLoading: usersQuery.isFetching,
-          isError: usersQuery.isError,
-        },
-      ];
+      return [{ target: "users", label: SECTION_LABEL.users, items: userEntries, isLoading: usersQuery.isFetching, isError: usersQuery.isError }];
     }
 
     if (isScopedMode && scopedTarget === "movie") {
-      return [
-        {
-          target: "movie",
-          label: "Movie",
-          items: movieEntries,
-          isLoading: movieQuery.isFetching,
-          isError: movieQuery.isError,
-        },
-      ];
+      return [{ target: "movie", label: SECTION_LABEL.movie, items: movieEntries, isLoading: movieQuery.isFetching, isError: movieQuery.isError }];
     }
 
     if (isScopedMode && scopedTarget === "serials") {
-      return [
-        {
-          target: "serials",
-          label: "Serials",
-          items: serialEntries,
-          isLoading: serialsQuery.isFetching,
-          isError: serialsQuery.isError,
-        },
-      ];
+      return [{ target: "serials", label: SECTION_LABEL.serials, items: serialEntries, isLoading: serialsQuery.isFetching, isError: serialsQuery.isError }];
     }
 
     return [
-      {
-        target: "users",
-        label: "Users",
-        items: userEntries,
-        isLoading: usersQuery.isFetching,
-        isError: usersQuery.isError,
-      },
-      {
-        target: "titles",
-        label: "Titles",
-        items: titleEntries,
-        isLoading: titlesQuery.isFetching,
-        isError: titlesQuery.isError,
-      },
+      ...titleSections,
+      { target: "users", label: SECTION_LABEL.users, items: userEntries, isLoading: usersQuery.isFetching, isError: usersQuery.isError },
     ];
   }, [
     shouldRunSearch,
@@ -159,15 +138,13 @@ export const useGlobalSearchState = (): GlobalSearchState => {
     userEntries,
     movieEntries,
     serialEntries,
-    titleEntries,
+    titleSections,
     usersQuery.isFetching,
     usersQuery.isError,
     movieQuery.isFetching,
     movieQuery.isError,
     serialsQuery.isFetching,
     serialsQuery.isError,
-    titlesQuery.isFetching,
-    titlesQuery.isError,
   ]);
 
   const sectionOffsets = useMemo(() => {
@@ -194,17 +171,9 @@ export const useGlobalSearchState = (): GlobalSearchState => {
         ? 0
         : -1;
 
-  const enterScopedMode = (target: ScopedTarget) => {
-    setMode("scoped");
+  const setScope = (target: ScopedTarget | null) => {
+    setMode(target ? "scoped" : "home");
     setScopedTarget(target);
-    setQueryInput("");
-    setHighlightedIndex(0);
-  };
-
-  const returnToHomeMode = () => {
-    setMode("home");
-    setScopedTarget(null);
-    setQueryInput("");
     setHighlightedIndex(0);
   };
 
@@ -232,8 +201,7 @@ export const useGlobalSearchState = (): GlobalSearchState => {
     suggestionsCount,
     isAnyLoading,
     effectiveHighlightedIndex,
-    enterScopedMode,
-    returnToHomeMode,
+    setScope,
     reset,
   };
 };

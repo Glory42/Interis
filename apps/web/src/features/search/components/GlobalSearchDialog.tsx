@@ -1,12 +1,15 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Search, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 import { ModalShell } from "@/components/ui/ModalShell";
-import { scopedPlaceholder } from "@/features/search/components/global-search/constants";
+import { SentenceSelect } from "@/components/ui/SentenceSelect";
+import { scopeOptions, type SearchScope } from "@/features/search/components/global-search/constants";
 import { GlobalSearchResults } from "@/features/search/components/global-search/GlobalSearchResults";
 import { openSearchEntry } from "@/features/search/components/global-search/navigation";
+import type { SearchResultEntry } from "@/features/search/components/global-search/types";
 import { useGlobalSearchState } from "@/features/search/components/global-search/useGlobalSearchState";
+import { clearRecentSearches, pushRecentSearch, readRecentSearches } from "@/features/search/recent-searches";
+import { PHONE_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
 import { navigateWithViewTransitionFallback } from "@/lib/view-transition";
 
@@ -15,105 +18,58 @@ type GlobalSearchDialogProps = {
   onOpenChange: (nextIsOpen: boolean) => void;
 };
 
-export const GlobalSearchDialog = ({
-  isOpen,
-  onOpenChange,
-}: GlobalSearchDialogProps) => {
+const SCOPE_BY_KEY: Record<string, SearchScope> = { "1": "movie", "2": "serials", "3": "users" };
+
+export const GlobalSearchDialog = ({ isOpen, onOpenChange }: GlobalSearchDialogProps) => {
   const navigate = useNavigate();
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
-
+  const isPhone = useMediaQuery(PHONE_QUERY);
+  const [, setRecentVersion] = useState(0);
   const state = useGlobalSearchState();
-
-  const focusInput = () => {
-    window.requestAnimationFrame(() => {
-      inputRef.current?.focus();
-    });
-  };
+  const scope: SearchScope = state.scopedTarget ?? "everything";
+  const recentSearches = isOpen && state.normalizedQuery.length === 0 ? readRecentSearches() : [];
 
   const closeDialog = () => {
     state.reset();
     onOpenChange(false);
   };
 
-  const openMovie = (tmdbId: number) => {
+  // Leaves the dialog, then navigates with a view transition when the browser supports one.
+  const go = (navigateTo: (withTransition: boolean) => Promise<void>) => {
     closeDialog();
+    void navigateWithViewTransitionFallback(() => navigateTo(true), () => navigateTo(false));
+  };
+  const transition = (withTransition: boolean) => (withTransition ? { viewTransition: true, startTransition: true } : {});
 
-    void navigateWithViewTransitionFallback(
-      () =>
-        navigate({
-          to: "/movies/$tmdbId",
-          params: { tmdbId: String(tmdbId) },
-          viewTransition: true,
-          startTransition: true,
-        }),
-      () =>
-        navigate({
-          to: "/movies/$tmdbId",
-          params: { tmdbId: String(tmdbId) },
-        }),
-    );
+  const openEntry = (entry: SearchResultEntry) => {
+    pushRecentSearch(state.normalizedQuery);
+    openSearchEntry(entry, {
+      openMovie: (tmdbId) =>
+        go((withTransition) => navigate({ to: "/movies/$tmdbId", params: { tmdbId: String(tmdbId) }, ...transition(withTransition) })),
+      openSerial: (tmdbId) =>
+        go((withTransition) => navigate({ to: "/serials/$tmdbId", params: { tmdbId: String(tmdbId) }, ...transition(withTransition) })),
+      openUser: (username) =>
+        go((withTransition) => navigate({ to: "/profile/$username", params: { username }, ...transition(withTransition) })),
+    });
   };
 
-  const openSerial = (tmdbId: number) => {
-    closeDialog();
-
-    void navigateWithViewTransitionFallback(
-      () =>
-        navigate({
-          to: "/serials/$tmdbId",
-          params: { tmdbId: String(tmdbId) },
-          viewTransition: true,
-          startTransition: true,
-        }),
-      () =>
-        navigate({
-          to: "/serials/$tmdbId",
-          params: { tmdbId: String(tmdbId) },
-        }),
-    );
+  const pickRecent = (query: string) => {
+    state.setQueryInput(query);
+    state.setHighlightedIndex(0);
+    inputRef.current?.focus();
   };
 
-  const openUser = (username: string) => {
-    closeDialog();
-
-    void navigateWithViewTransitionFallback(
-      () =>
-        navigate({
-          to: "/profile/$username",
-          params: { username },
-          viewTransition: true,
-          startTransition: true,
-        }),
-      () =>
-        navigate({
-          to: "/profile/$username",
-          params: { username },
-        }),
-    );
-  };
+  const setScope = (next: SearchScope) => state.setScope(next === "everything" ? null : next);
 
   useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
+    if (!isOpen) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-
-    const showFrame = window.requestAnimationFrame(() => {
-      setIsVisible(true);
-    });
-    const focusFrame = window.requestAnimationFrame(() => {
-      inputRef.current?.focus();
-    });
-
+    const focusFrame = window.requestAnimationFrame(() => inputRef.current?.focus());
     return () => {
       document.body.style.overflow = previousOverflow;
-      window.cancelAnimationFrame(showFrame);
       window.cancelAnimationFrame(focusFrame);
-      setIsVisible(false);
     };
   }, [isOpen]);
 
@@ -123,160 +79,125 @@ export const GlobalSearchDialog = ({
       closeDialog();
       return;
     }
-
-    if (!state.shouldRunSearch || state.suggestionsCount === 0) {
-      return;
-    }
-
-    if (event.key === "ArrowDown") {
+    if ((event.metaKey || event.ctrlKey) && SCOPE_BY_KEY[event.key]) {
       event.preventDefault();
-      state.setHighlightedIndex((index) => (index + 1) % state.suggestionsCount);
+      setScope(SCOPE_BY_KEY[event.key]!);
       return;
     }
-
-    if (event.key === "ArrowUp") {
+    if (event.key === "Enter" && state.normalizedQuery.length === 0 && recentSearches[0]) {
       event.preventDefault();
-      state.setHighlightedIndex((index) =>
-        index <= 0 ? state.suggestionsCount - 1 : index - 1,
-      );
+      pickRecent(recentSearches[0]);
       return;
     }
+    if (!state.shouldRunSearch || state.suggestionsCount === 0) return;
 
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      const step = event.key === "ArrowDown" ? 1 : -1;
+      state.setHighlightedIndex((index) => (index + step + state.suggestionsCount) % state.suggestionsCount);
+      return;
+    }
+    if (event.key === "Tab" && !event.shiftKey) {
+      // Jump to the first result of the next section, wrapping around.
+      const current = state.effectiveHighlightedIndex;
+      const next = state.sectionOffsets.find(({ startIndex, section }) => startIndex > current && section.items.length > 0);
+      event.preventDefault();
+      state.setHighlightedIndex(next ? next.startIndex : 0);
+      return;
+    }
     if (event.key === "Enter") {
       event.preventDefault();
-
-      const selectedEntry =
-        state.effectiveHighlightedIndex >= 0
-          ? state.visibleEntries[state.effectiveHighlightedIndex]
-          : state.visibleEntries[0];
-
-      if (!selectedEntry) {
-        return;
-      }
-
-      openSearchEntry(selectedEntry, { openMovie, openSerial, openUser });
+      const selected = state.visibleEntries[Math.max(0, state.effectiveHighlightedIndex)];
+      if (selected) openEntry(selected);
     }
   };
 
-  if (!isOpen) {
-    return null;
-  }
-
-  const currentPlaceholder =
-    state.isScopedMode && state.scopedTarget
-      ? scopedPlaceholder[state.scopedTarget]
-      : "Search users, movie, serials...";
+  if (!isOpen) return null;
 
   return (
     <ModalShell
       onClose={closeDialog}
-      overlayClassName="z-120 bg-background/75"
-      containerClassName="max-w-2xl items-start px-4 pt-16 sm:pt-20"
+      layout={isPhone ? "fullscreen" : "dialog"}
+      overlayClassName="z-120"
+      containerClassName={isPhone ? undefined : "max-w-2xl items-start px-4 pt-16 sm:pt-20"}
       ariaCloseLabel="Close search"
     >
-        <section
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={inputId}
-          className={cn(
-            "theme-modal-panel w-full overflow-hidden border border-border/80 bg-card/95 shadow-2xl shadow-background/45 transition-[opacity,transform] duration-200 ease-(--ease-out)",
-            isVisible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
-          )}
-        >
-          <div
-            className="h-px w-full"
-            style={{
-              background:
-                "linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.35), rgba(0, 207, 255, 0.22), transparent)",
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-label="Search"
+        className={cn(
+          "flex w-full flex-col overflow-hidden bg-background animate-fade-up",
+          isPhone ? "h-dvh" : "max-h-[min(80dvh,40rem)] rounded-[3px] border border-[color:var(--line-strong)] shadow-2xl",
+        )}
+      >
+        <div className="flex items-center gap-3 border-b border-[color:var(--line)] px-4 py-3">
+          <Search aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+          <input
+            id={inputId}
+            ref={inputRef}
+            value={state.queryInput}
+            onChange={(event) => {
+              state.setQueryInput(event.target.value);
+              state.setHighlightedIndex(0);
             }}
+            onKeyDown={handleInputKeyDown}
+            placeholder="Films, shows, members"
+            className="min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground sm:text-sm"
+            autoComplete="off"
+            role="combobox"
+            aria-expanded={state.hasMinQueryLength && state.suggestionsCount > 0}
+            aria-controls={`${inputId}-results`}
+            aria-activedescendant={
+              state.effectiveHighlightedIndex >= 0 ? `${inputId}-result-${state.effectiveHighlightedIndex}` : undefined
+            }
+            aria-autocomplete="list"
           />
-
-          <div className="border-b border-border/70 px-4 py-3">
-            <div className="flex items-center gap-3">
-              {state.isScopedMode ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    state.returnToHomeMode();
-                    focusInput();
-                  }}
-                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary/45 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-                  aria-label="Back to global search"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </button>
-              ) : null}
-
-              <Search className="h-4 w-4 shrink-0 text-muted-foreground/45" />
-
-              <Input
-                id={inputId}
-                ref={inputRef}
-                value={state.queryInput}
-                onChange={(event) => {
-                  state.setQueryInput(event.target.value);
-                  state.setHighlightedIndex(0);
-                }}
-                onKeyDown={handleInputKeyDown}
-                placeholder={currentPlaceholder}
-                className="h-8 border-0 bg-transparent px-0 font-mono text-[12px] shadow-none focus-visible:ring-0"
-                autoComplete="off"
-                role="combobox"
-                aria-expanded={state.hasMinQueryLength && state.suggestionsCount > 0}
-                aria-controls={`${inputId}-results`}
-                aria-activedescendant={
-                  state.effectiveHighlightedIndex >= 0
-                    ? `${inputId}-result-${state.effectiveHighlightedIndex}`
-                    : undefined
-                }
-                aria-autocomplete="list"
-              />
-
-              <div className="ml-auto flex shrink-0 items-center gap-2">
-                <button
-                  type="button"
-                  onClick={closeDialog}
-                  className="rounded-full p-0.5 text-muted-foreground/60 transition-colors hover:text-foreground"
-                  aria-label="Close search"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div
-            id={`${inputId}-results`}
-            className="max-h-[min(62dvh,32rem)] overflow-y-auto py-2"
-          >
-            <GlobalSearchResults
-              inputId={inputId}
-              normalizedQuery={state.normalizedQuery}
-              hasMinQueryLength={state.hasMinQueryLength}
-              isScopedMode={state.isScopedMode}
-              scopedTarget={state.scopedTarget}
-              sectionOffsets={state.sectionOffsets}
-              suggestionsCount={state.suggestionsCount}
-              isAnyLoading={state.isAnyLoading}
-              effectiveHighlightedIndex={state.effectiveHighlightedIndex}
-              onHoverIndex={state.setHighlightedIndex}
-              onSelectEntry={(entry) => {
-                openSearchEntry(entry, { openMovie, openSerial, openUser });
-              }}
-              onEnterScope={(target) => {
-                state.enterScopedMode(target);
-                focusInput();
-              }}
-            />
-          </div>
-
-          <div className="flex items-center justify-between border-t border-border/70 px-4 py-2">
-            <span className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground/45">
-              NULL://SEARCH
+          {isPhone ? (
+            <button type="button" onClick={closeDialog} className="body-s shrink-0 text-foreground">
+              Cancel
+            </button>
+          ) : (
+            <span className="body-s shrink-0 text-muted-foreground">
+              {"in "}
+              <SentenceSelect value={scope} options={scopeOptions} onChange={setScope} />
             </span>
-            <span className="font-mono text-[9px] text-muted-foreground/45">esc to close</span>
+          )}
+        </div>
+        {isPhone ? (
+          <p className="body-s px-4 pt-2 text-muted-foreground">
+            {"in "}
+            <SentenceSelect value={scope} options={scopeOptions} onChange={setScope} />
+          </p>
+        ) : null}
+
+        <div id={`${inputId}-results`} className="min-h-0 flex-1 overflow-y-auto py-1">
+          <GlobalSearchResults
+            inputId={inputId}
+            normalizedQuery={state.normalizedQuery}
+            hasMinQueryLength={state.hasMinQueryLength}
+            sectionOffsets={state.sectionOffsets}
+            suggestionsCount={state.suggestionsCount}
+            isAnyLoading={state.isAnyLoading}
+            effectiveHighlightedIndex={state.effectiveHighlightedIndex}
+            recentSearches={recentSearches}
+            onPickRecent={pickRecent}
+            onClearRecent={() => {
+              clearRecentSearches();
+              setRecentVersion((version) => version + 1);
+            }}
+            onHoverIndex={state.setHighlightedIndex}
+            onSelectEntry={openEntry}
+          />
+        </div>
+
+        {isPhone ? null : (
+          <div className="slate mono-meta uppercase">
+            <span>↑↓ move · ↵ open · ⇥ next section · ⌘1–3 scope</span>
+            {state.hasMinQueryLength ? <span>{`${state.suggestionsCount} results`}</span> : <span>esc</span>}
           </div>
-        </section>
+        )}
+      </section>
     </ModalShell>
   );
 };

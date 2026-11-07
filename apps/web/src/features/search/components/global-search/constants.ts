@@ -1,44 +1,20 @@
-import { Film, Tv, Users } from "lucide-react";
-import type { QuickLink, ScopedTarget } from "./types";
+import type { ScopedTarget } from "./types";
 
 export const MIN_QUERY_LENGTH = 2;
 export const MAX_RESULTS_PER_SECTION = 6;
 
-export const scopedPlaceholder: Record<ScopedTarget, string> = {
-  users: "Search among users",
-  movie: "Search among movie",
-  serials: "Search among serials",
+export const SECTION_LABEL: Record<ScopedTarget, string> = {
+  movie: "Films",
+  serials: "TV",
+  users: "Members",
 };
 
-export const scopedEmptyPrompt: Record<ScopedTarget, string> = {
-  users: "Search among users",
-  movie: "Search among movie",
-  serials: "Search among serials",
-};
+// Words for the scope sentence ("in everything ▾"); ⌘1–3 pick films, TV, members.
+export const scopeOptions = [
+  { value: "everything", word: "everything", label: "Everything" },
+  { value: "movie", word: "films", label: "Films · ⌘1" },
+  { value: "serials", word: "TV", label: "TV · ⌘2" },
+  { value: "users", word: "members", label: "Members · ⌘3" },
+] as const;
 
-export const quickLinks: QuickLink[] = [
-  {
-    target: "users",
-    title: "Discover Users",
-    description: "Search among all members",
-    icon: Users,
-    color: "var(--destructive)",
-    tint: "color-mix(in srgb, var(--destructive) 14%, transparent)",
-  },
-  {
-    target: "movie",
-    title: "Discover Movie",
-    description: "Search among all movies",
-    icon: Film,
-    color: "var(--module-movie)",
-    tint: "rgba(0, 255, 136, 0.1)",
-  },
-  {
-    target: "serials",
-    title: "Discover Serials",
-    description: "Search among all series",
-    icon: Tv,
-    color: "var(--module-serial)",
-    tint: "rgba(0, 207, 255, 0.1)",
-  },
-];
+export type SearchScope = (typeof scopeOptions)[number]["value"];

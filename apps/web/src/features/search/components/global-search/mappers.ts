@@ -23,6 +23,7 @@ export const toMovieEntry = (movie: TmdbSearchMovie): MovieResultEntry => ({
   title: movie.title,
   posterPath: movie.poster_path,
   releaseDate: movie.release_date,
+  credit: null,
 });
 
 export const toSerialEntry = (series: TmdbSearchSeries): SerialResultEntry => ({
@@ -32,6 +33,7 @@ export const toSerialEntry = (series: TmdbSearchSeries): SerialResultEntry => ({
   title: series.name,
   posterPath: series.poster_path,
   firstAirDate: series.first_air_date,
+  credit: null,
 });
 
 export const toTitleEntry = (
@@ -45,6 +47,7 @@ export const toTitleEntry = (
       title: result.title,
       posterPath: result.posterPath,
       releaseDate: result.releaseDate ?? "",
+      credit: result.credit,
     };
   }
 
@@ -55,6 +58,7 @@ export const toTitleEntry = (
     title: result.title,
     posterPath: result.posterPath,
     firstAirDate: result.releaseDate ?? "",
+    credit: result.credit,
   };
 };
 
