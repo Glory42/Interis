@@ -79,10 +79,15 @@ export const SeasonReviewDialog = ({
   };
 
   const remove = async (reviewId: string) => {
-    await (target.type === "episode"
-      ? deleteEpisodeReview.mutateAsync({ episodeNumber: target.episodeNumber, reviewId })
-      : deleteSeasonReview.mutateAsync(reviewId));
-    onClose();
+    setFormError(null);
+    try {
+      await (target.type === "episode"
+        ? deleteEpisodeReview.mutateAsync({ episodeNumber: target.episodeNumber, reviewId })
+        : deleteSeasonReview.mutateAsync(reviewId));
+      onClose();
+    } catch {
+      setFormError("Could not delete the review. Please try again.");
+    }
   };
 
   const seasonCode = `S${pad(season.seasonNumber)}`;

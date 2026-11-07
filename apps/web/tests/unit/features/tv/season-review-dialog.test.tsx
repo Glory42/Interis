@@ -12,6 +12,18 @@ import {
 
 const season = { seasonNumber: 2, name: "Season 2", posterPath: null };
 
+const review: MyTitleReview = {
+  id: "review-7",
+  content: "The best season",
+  containsSpoilers: false,
+  diaryEntryId: null,
+  createdAt: "2026-01-01T00:00:00.000Z",
+  updatedAt: "2026-01-01T00:00:00.000Z",
+  rating: null,
+  rewatch: null,
+  watchedDate: null,
+};
+
 const interaction = {
   watched: true,
   liked: false,
@@ -56,5 +68,20 @@ describe("SeasonReviewDialog", () => {
 
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     expect(body).toEqual({ content: "Tense", containsSpoilers: false, createNew: true });
+  });
+
+  it("keeps the dialog open with an error when deleting fails", async () => {
+    server.use(
+      http.delete("*/api/serials/1399/seasons/2/review", () =>
+        HttpResponse.json({ error: { message: "nope" } }, { status: 500 }),
+      ),
+    );
+    const { onClose, user } = renderDialog({ type: "season" }, review);
+
+    expect(screen.getByRole("textbox", { name: "Review" })).toHaveValue("The best season");
+    await user.click(screen.getByRole("button", { name: "Delete review" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Could not delete the review. Please try again.");
+    expect(onClose).not.toHaveBeenCalled();
   });
 });
