@@ -1,332 +1,83 @@
-import { useState, type FormEvent } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Eye, EyeOff, LogOut } from "lucide-react";
-import {
-  changeCurrentUserEmail,
-  changeCurrentUserPassword,
-} from "@/features/auth/api";
-import { authKeys, useAuth } from "@/features/auth/hooks/useAuth";
-import { isApiError } from "@/lib/api-client";
+import { useState, type ReactNode } from "react";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { EmailForm, PasswordForm, RecoveryQuestionForm } from "@/features/settings/components/account/AccountForms";
+import { maskEmail } from "@/features/settings/model/mask-email";
 import { SettingsDeleteAccountCard } from "./SettingsDeleteAccountCard";
 import { TickLoader } from "@/components/ui/tick-loader";
 
+type OpenForm = "email" | "password" | "question" | null;
+
+type RowProps = {
+  label: string;
+  value: string;
+  action: string;
+  actionLabel: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+};
+
+const AccountRow = ({ label, value, action, actionLabel, isOpen, onToggle, children }: RowProps) => (
+  <div className="border-b border-[color:var(--line)] py-3">
+    <div className="flex items-center gap-3">
+      <span className="body w-36 shrink-0 text-foreground">{label}</span>
+      <span className="body-s min-w-0 flex-1 truncate text-muted-foreground">{isOpen ? "editing ↓" : value}</span>
+      <button type="button" aria-label={actionLabel} aria-expanded={isOpen} onClick={onToggle} className="body-s text-primary hover:underline">
+        {isOpen ? "Close" : action}
+      </button>
+    </div>
+    {isOpen ? <div className="mt-3 max-w-md">{children}</div> : null}
+  </div>
+);
+
+// One form opens at a time; each asks for the current password the same way.
 export const SettingsAuthSection = () => {
-  const queryClient = useQueryClient();
   const { user, isUserLoading } = useAuth();
-
-  const changeEmailMutation = useMutation({
-    mutationFn: changeCurrentUserEmail,
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: authKeys.me });
-    },
-  });
-
-  const changePasswordMutation = useMutation({
-    mutationFn: changeCurrentUserPassword,
-  });
-
-  const [newEmail, setNewEmail] = useState(() => user?.email ?? "");
-  const [emailPassword, setEmailPassword] = useState("");
-  const [showEmailPassword, setShowEmailPassword] = useState(false);
-  const [authEmailError, setAuthEmailError] = useState<string | null>(null);
-  const [authEmailSuccess, setAuthEmailSuccess] = useState<string | null>(null);
-
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [revokeOtherSessions, setRevokeOtherSessions] = useState(true);
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [authPasswordError, setAuthPasswordError] = useState<string | null>(null);
-  const [authPasswordSuccess, setAuthPasswordSuccess] = useState<string | null>(null);
+  const [openForm, setOpenForm] = useState<OpenForm>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   if (isUserLoading || !user) {
     return (
-      <div className="border px-4 py-3 text-sm shell-border shell-muted surface">
-        <p className="flex items-center gap-2">
-          <TickLoader /> Loading auth settings...
-        </p>
-      </div>
+      <p className="body-s flex items-center gap-2 text-muted-foreground">
+        <TickLoader /> Loading account settings…
+      </p>
     );
   }
 
-  const handleChangeEmail = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setAuthEmailError(null);
-    setAuthEmailSuccess(null);
-
-    const normalizedEmail = newEmail.trim().toLowerCase();
-    if (normalizedEmail === user.email.toLowerCase()) {
-      setAuthEmailSuccess("Email is already up to date.");
-      return;
-    }
-
-    try {
-      await changeEmailMutation.mutateAsync({
-        newEmail: normalizedEmail,
-        currentPassword: emailPassword,
-      });
-      setNewEmail(normalizedEmail);
-      setEmailPassword("");
-      setAuthEmailSuccess("Email updated.");
-    } catch (error) {
-      setAuthEmailError(
-        isApiError(error) ? error.message : "Could not update email right now.",
-      );
-    }
+  const toggle = (form: Exclude<OpenForm, null>) => () => {
+    setNotice(null);
+    setOpenForm((current) => (current === form ? null : form));
   };
-
-  const handleChangePassword = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setAuthPasswordError(null);
-    setAuthPasswordSuccess(null);
-
-    if (newPassword !== confirmPassword) {
-      setAuthPasswordError("New password and confirmation do not match.");
-      return;
-    }
-
-    try {
-      await changePasswordMutation.mutateAsync({
-        currentPassword,
-        newPassword,
-        revokeOtherSessions,
-      });
-
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setAuthPasswordSuccess("Password changed.");
-    } catch (error) {
-      setAuthPasswordError(
-        isApiError(error)
-          ? error.message
-          : "Could not change password right now.",
-      );
-    }
-  };
-
-  const renderPasswordToggle = (
-    isVisible: boolean,
-    onToggle: () => void,
-    label: string,
-  ) => {
-    const Icon = isVisible ? EyeOff : Eye;
-
-    return (
-      <button
-        type="button"
-        className="absolute right-3 top-1/2 -translate-y-1/2 shell-muted transition-colors hover:text-foreground"
-        onClick={onToggle}
-        aria-label={label}
-      >
-        <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-      </button>
-    );
+  const close = () => setOpenForm(null);
+  const done = (message: string) => {
+    setOpenForm(null);
+    setNotice(message);
   };
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="border p-5 space-y-4 shell-border surface">
-          <div>
-            <p className="mb-1 text-base font-bold text-foreground">Email</p>
-            <p className="mb-4 text-sm shell-muted">Update your account email.</p>
-          </div>
-
-          <form className="space-y-4" onSubmit={handleChangeEmail}>
-            <div>
-              <label className="mb-1 block text-xs font-medium shell-muted">Current email</label>
-              <p className="mb-4 text-sm shell-muted">{user.email}</p>
-
-              <label
-                className="mb-2 block text-xs font-medium shell-muted"
-                htmlFor="settings-new-email"
-              >
-                New email
-              </label>
-              <input
-                id="settings-new-email"
-                className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--shell-accent)] shell-border shell-input"
-                placeholder="new@mail.com"
-                type="email"
-                value={newEmail}
-                onChange={(event) => setNewEmail(event.target.value)}
-                required
-              />
-
-              <label
-                className="mb-2 mt-4 block text-xs font-medium shell-muted"
-                htmlFor="settings-email-current-password"
-              >
-                Current password
-              </label>
-              <div className="relative">
-                <input
-                  id="settings-email-current-password"
-                  className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--shell-accent)] shell-border shell-input"
-                  placeholder="••••••••"
-                  type={showEmailPassword ? "text" : "password"}
-                  value={emailPassword}
-                  onChange={(event) => setEmailPassword(event.target.value)}
-                  autoComplete="current-password"
-                  required
-                />
-                {renderPasswordToggle(showEmailPassword, () => {
-                  setShowEmailPassword((prev) => !prev);
-                }, "Toggle email current password visibility")}
-              </div>
-            </div>
-
-            {authEmailError ? (
-              <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {authEmailError}
-              </p>
-            ) : null}
-
-            {authEmailSuccess ? (
-              <p role="status" className="border px-3 py-2 text-sm shell-border shell-accent shell-active-pill">
-                {authEmailSuccess}
-              </p>
-            ) : null}
-
-            <button
-              type="submit"
-              disabled={changeEmailMutation.isPending}
-              className="rounded-full px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-              style={{ background: "var(--shell-accent)", color: "var(--primary-foreground)" }}
-            >
-              {changeEmailMutation.isPending ? "Updating..." : "Update email"}
-            </button>
-          </form>
+    <div className="space-y-8">
+      <section>
+        <h2 className="display-4 text-foreground">Account &amp; security</h2>
+        <div className="mt-3 border-t border-[color:var(--line)]">
+          <AccountRow label="Email" value={maskEmail(user.email)} action="Change" actionLabel="Change email" isOpen={openForm === "email"} onToggle={toggle("email")}>
+            <EmailForm onClose={close} onDone={done} />
+          </AccountRow>
+          <AccountRow label="Password" value="••••••••" action="Change" actionLabel="Change password" isOpen={openForm === "password"} onToggle={toggle("password")}>
+            <PasswordForm onClose={close} onDone={done} />
+          </AccountRow>
+          <AccountRow
+            label="Recovery question"
+            value={user.hasSecurityQuestion ? "Set" : "Not set"}
+            action={user.hasSecurityQuestion ? "Replace" : "Set up"}
+            actionLabel={user.hasSecurityQuestion ? "Replace recovery question" : "Set up recovery question"}
+            isOpen={openForm === "question"}
+            onToggle={toggle("question")}
+          >
+            <RecoveryQuestionForm onClose={close} onDone={done} isReplacing={user.hasSecurityQuestion} />
+          </AccountRow>
         </div>
-
-        <div className="border p-5 space-y-4 shell-border surface">
-          <div>
-            <p className="mb-1 text-base font-bold text-foreground">Password</p>
-            <p className="mb-4 text-sm shell-muted">Change your account password.</p>
-          </div>
-
-          <form className="space-y-4" onSubmit={handleChangePassword}>
-            <div>
-              <label
-                className="mb-2 block text-xs font-medium shell-muted"
-                htmlFor="settings-current-password"
-              >
-                Current password
-              </label>
-
-              <div className="relative">
-                <input
-                  id="settings-current-password"
-                  className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--shell-accent)] shell-border shell-input"
-                  placeholder="••••••••"
-                  type={showCurrentPassword ? "text" : "password"}
-                  value={currentPassword}
-                  onChange={(event) => setCurrentPassword(event.target.value)}
-                  autoComplete="current-password"
-                  required
-                />
-                {renderPasswordToggle(showCurrentPassword, () => {
-                  setShowCurrentPassword((prev) => !prev);
-                }, "Toggle current password visibility")}
-              </div>
-            </div>
-
-            <div>
-              <label
-                className="mb-2 block text-xs font-medium shell-muted"
-                htmlFor="settings-new-password"
-              >
-                New password
-              </label>
-
-              <div className="relative">
-                <input
-                  id="settings-new-password"
-                  className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--shell-accent)] shell-border shell-input"
-                  placeholder="••••••••"
-                  type={showNewPassword ? "text" : "password"}
-                  value={newPassword}
-                  onChange={(event) => setNewPassword(event.target.value)}
-                  autoComplete="new-password"
-                  minLength={8}
-                  required
-                />
-                {renderPasswordToggle(showNewPassword, () => {
-                  setShowNewPassword((prev) => !prev);
-                }, "Toggle new password visibility")}
-              </div>
-            </div>
-
-            <div>
-              <label
-                className="mb-2 block text-xs font-medium shell-muted"
-                htmlFor="settings-confirm-password"
-              >
-                Confirm new password
-              </label>
-
-              <div className="relative">
-                <input
-                  id="settings-confirm-password"
-                  className="w-full rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[color:var(--shell-accent)] shell-border shell-input"
-                  placeholder="••••••••"
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                  autoComplete="new-password"
-                  minLength={8}
-                  required
-                />
-                {renderPasswordToggle(showConfirmPassword, () => {
-                  setShowConfirmPassword((prev) => !prev);
-                }, "Toggle confirm password visibility")}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center shell-row-border">
-              <button
-                type="button"
-                className={
-                  "flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition-colors " +
-                  (revokeOtherSessions
-                    ? "shell-danger-option"
-                    : "shell-border shell-muted")
-                }
-                onClick={() => {
-                  setRevokeOtherSessions((prev) => !prev);
-                }}
-              >
-                <LogOut className="h-3 w-3" aria-hidden="true" />
-                <span>Sign out from other sessions</span>
-              </button>
-
-              <button
-                type="submit"
-                disabled={changePasswordMutation.isPending}
-                className="rounded-full px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-                style={{ background: "var(--shell-accent)", color: "var(--primary-foreground)" }}
-              >
-                {changePasswordMutation.isPending ? "Updating..." : "Change password"}
-              </button>
-            </div>
-
-            {authPasswordError ? (
-              <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {authPasswordError}
-              </p>
-            ) : null}
-
-            {authPasswordSuccess ? (
-              <p role="status" className="border px-3 py-2 text-sm shell-border shell-accent shell-active-pill">
-                {authPasswordSuccess}
-              </p>
-            ) : null}
-          </form>
-        </div>
-      </div>
+        {notice ? <p className="body-s mt-3 text-primary">{notice}</p> : null}
+      </section>
 
       <SettingsDeleteAccountCard />
     </div>
