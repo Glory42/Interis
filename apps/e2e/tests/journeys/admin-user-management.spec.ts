@@ -25,8 +25,7 @@ test("an admin suspends, promotes, resets the password of, and deletes a user", 
     });
 
     await test.step("opens the admin Users panel and finds the target", async () => {
-      await adminPage.goto("/admin/");
-      await adminPage.getByRole("button", { name: "Users", exact: true }).click();
+      await adminPage.goto("/admin/users");
       await adminPage
         .getByPlaceholder("Search by username...")
         .fill(target.username);

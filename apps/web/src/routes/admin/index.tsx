@@ -1,31 +1,14 @@
-import { createFileRoute, type SearchSchemaInput } from "@tanstack/react-router";
-import { PageWrapper } from "@/components/layout/PageWrapper";
-import { parseAdminSearch, type AdminSearch } from "@/features/admin/admin-search";
-import { AdminDashboardPage } from "@/features/admin/components/AdminDashboardPage";
-import { requireAdminUser } from "@/lib/router/auth-guards";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { AdminOverviewPage } from "@/features/admin/components/AdminOverviewPage";
+import { parseContentType } from "@/features/admin/content-types";
 
+// Older links used /admin?section=…; send them to the section's own route.
 export const Route = createFileRoute("/admin/")({
-  // Input is partial so plain links to /admin stay valid; the parsed search is always complete.
-  validateSearch: (search: Partial<AdminSearch> & SearchSchemaInput) => parseAdminSearch(search),
-  beforeLoad: async ({ context, location }) => {
-    await requireAdminUser({
-      queryClient: context.queryClient,
-      redirectPath: location.pathname,
-    });
+  beforeLoad: ({ search }) => {
+    const section = (search as { section?: unknown }).section;
+    if (section === "reports") throw redirect({ to: "/admin/reports" });
+    if (section === "users") throw redirect({ to: "/admin/users" });
+    if (typeof section === "string") throw redirect({ to: "/admin/content", search: { type: parseContentType(section) } });
   },
-  component: AdminPage,
+  component: AdminOverviewPage,
 });
-
-function AdminPage() {
-  const search = Route.useSearch();
-  const navigate = Route.useNavigate();
-
-  return (
-    <PageWrapper title="Admin" subtitle="Moderation, user directory, and content oversight">
-      <AdminDashboardPage
-        search={search}
-        onSearchChange={(next) => void navigate({ search: next })}
-      />
-    </PageWrapper>
-  );
-}

@@ -1,4 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getAdminOverview } from "@/features/admin/overview-api";
 import { useAdminPagedList } from "@/features/admin/hooks/useAdminPagedList";
 import {
   deleteUser,
@@ -20,7 +21,11 @@ export const adminKeys = {
   reports: (status?: ReportStatus) => ["admin", "reports", status ?? "all"] as const,
   usersAll: ["admin", "users"] as const,
   users: (query?: string) => ["admin", "users", query ?? ""] as const,
+  overview: ["admin", "overview"] as const,
 };
+
+// Counted on open or Refresh only; no polling (see CLAUDE.md, Neon compute).
+export const useAdminOverview = () => useQuery({ queryKey: adminKeys.overview, queryFn: getAdminOverview });
 
 export const useAdminReports = (status?: ReportStatus) =>
   useAdminPagedList(adminKeys.reports(status), (page) => listReports(status, page));

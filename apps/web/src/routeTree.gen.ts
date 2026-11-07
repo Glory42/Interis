@@ -13,6 +13,7 @@ import { Route as SetupSecurityQuestionRouteImport } from './routes/setup-securi
 import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as AuthLayoutRouteImport } from './routes/_authLayout'
 import { Route as SettingsRouteRouteImport } from './routes/settings/route'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as SerialsIndexRouteImport } from './routes/serials/index'
@@ -28,6 +29,9 @@ import { Route as SettingsAuthRouteImport } from './routes/settings/auth'
 import { Route as SerialsTmdbIdRouteImport } from './routes/serials/$tmdbId'
 import { Route as MoviesTmdbIdRouteImport } from './routes/movies/$tmdbId'
 import { Route as DirectorSlugRouteImport } from './routes/director/$slug'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as AdminReportsRouteImport } from './routes/admin/reports'
+import { Route as AdminContentRouteImport } from './routes/admin/content'
 import { Route as ActorSlugRouteImport } from './routes/actor/$slug'
 import { Route as AuthLayoutRegisterRouteImport } from './routes/_authLayout/register'
 import { Route as AuthLayoutLoginRouteImport } from './routes/_authLayout/login'
@@ -68,6 +72,11 @@ const SettingsRouteRoute = SettingsRouteRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -89,9 +98,9 @@ const MoviesIndexRoute = MoviesIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/admin/',
-  path: '/admin/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const SettingsThemeRoute = SettingsThemeRouteImport.update({
   id: '/theme',
@@ -142,6 +151,21 @@ const DirectorSlugRoute = DirectorSlugRouteImport.update({
   id: '/director/$slug',
   path: '/director/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminReportsRoute = AdminReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminContentRoute = AdminContentRouteImport.update({
+  id: '/content',
+  path: '/content',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const ActorSlugRoute = ActorSlugRouteImport.update({
   id: '/actor/$slug',
@@ -252,6 +276,7 @@ const ProfileUsernameListsListIdEditRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/settings': typeof SettingsRouteRouteWithChildren
   '/developer': typeof DeveloperRoute
   '/setup-security-question': typeof SetupSecurityQuestionRoute
@@ -260,6 +285,9 @@ export interface FileRoutesByFullPath {
   '/login': typeof AuthLayoutLoginRoute
   '/register': typeof AuthLayoutRegisterRoute
   '/actor/$slug': typeof ActorSlugRoute
+  '/admin/content': typeof AdminContentRoute
+  '/admin/reports': typeof AdminReportsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/director/$slug': typeof DirectorSlugRoute
   '/movies/$tmdbId': typeof MoviesTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
@@ -298,6 +326,9 @@ export interface FileRoutesByTo {
   '/login': typeof AuthLayoutLoginRoute
   '/register': typeof AuthLayoutRegisterRoute
   '/actor/$slug': typeof ActorSlugRoute
+  '/admin/content': typeof AdminContentRoute
+  '/admin/reports': typeof AdminReportsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/director/$slug': typeof DirectorSlugRoute
   '/movies/$tmdbId': typeof MoviesTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
@@ -331,6 +362,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/settings': typeof SettingsRouteRouteWithChildren
   '/_authLayout': typeof AuthLayoutRouteWithChildren
   '/developer': typeof DeveloperRoute
@@ -340,6 +372,9 @@ export interface FileRoutesById {
   '/_authLayout/login': typeof AuthLayoutLoginRoute
   '/_authLayout/register': typeof AuthLayoutRegisterRoute
   '/actor/$slug': typeof ActorSlugRoute
+  '/admin/content': typeof AdminContentRoute
+  '/admin/reports': typeof AdminReportsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/director/$slug': typeof DirectorSlugRoute
   '/movies/$tmdbId': typeof MoviesTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
@@ -374,6 +409,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/settings'
     | '/developer'
     | '/setup-security-question'
@@ -382,6 +418,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/actor/$slug'
+    | '/admin/content'
+    | '/admin/reports'
+    | '/admin/users'
     | '/director/$slug'
     | '/movies/$tmdbId'
     | '/serials/$tmdbId'
@@ -420,6 +459,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/actor/$slug'
+    | '/admin/content'
+    | '/admin/reports'
+    | '/admin/users'
     | '/director/$slug'
     | '/movies/$tmdbId'
     | '/serials/$tmdbId'
@@ -452,6 +494,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/settings'
     | '/_authLayout'
     | '/developer'
@@ -461,6 +504,9 @@ export interface FileRouteTypes {
     | '/_authLayout/login'
     | '/_authLayout/register'
     | '/actor/$slug'
+    | '/admin/content'
+    | '/admin/reports'
+    | '/admin/users'
     | '/director/$slug'
     | '/movies/$tmdbId'
     | '/serials/$tmdbId'
@@ -494,6 +540,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
   SettingsRouteRoute: typeof SettingsRouteRouteWithChildren
   AuthLayoutRoute: typeof AuthLayoutRouteWithChildren
   DeveloperRoute: typeof DeveloperRoute
@@ -503,7 +550,6 @@ export interface RootRouteChildren {
   DirectorSlugRoute: typeof DirectorSlugRoute
   MoviesTmdbIdRoute: typeof MoviesTmdbIdRoute
   SerialsTmdbIdRoute: typeof SerialsTmdbIdRoute
-  AdminIndexRoute: typeof AdminIndexRoute
   MoviesIndexRoute: typeof MoviesIndexRoute
   SerialsIndexRoute: typeof SerialsIndexRoute
   ReviewsUsernameReviewIdRoute: typeof ReviewsUsernameReviewIdRoute
@@ -540,6 +586,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -570,10 +623,10 @@ declare module '@tanstack/react-router' {
     }
     '/admin/': {
       id: '/admin/'
-      path: '/admin'
+      path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/settings/theme': {
       id: '/settings/theme'
@@ -644,6 +697,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/director/$slug'
       preLoaderRoute: typeof DirectorSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/reports': {
+      id: '/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/content': {
+      id: '/admin/content'
+      path: '/content'
+      fullPath: '/admin/content'
+      preLoaderRoute: typeof AdminContentRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/actor/$slug': {
       id: '/actor/$slug'
@@ -788,6 +862,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteRouteChildren {
+  AdminContentRoute: typeof AdminContentRoute
+  AdminReportsRoute: typeof AdminReportsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminContentRoute: AdminContentRoute,
+  AdminReportsRoute: AdminReportsRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
+
 interface SettingsRouteRouteChildren {
   SettingsAuthRoute: typeof SettingsAuthRoute
   SettingsBlockedRoute: typeof SettingsBlockedRoute
@@ -867,6 +959,7 @@ const ProfileUsernameRouteRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
   SettingsRouteRoute: SettingsRouteRouteWithChildren,
   AuthLayoutRoute: AuthLayoutRouteWithChildren,
   DeveloperRoute: DeveloperRoute,
@@ -876,7 +969,6 @@ const rootRouteChildren: RootRouteChildren = {
   DirectorSlugRoute: DirectorSlugRoute,
   MoviesTmdbIdRoute: MoviesTmdbIdRoute,
   SerialsTmdbIdRoute: SerialsTmdbIdRoute,
-  AdminIndexRoute: AdminIndexRoute,
   MoviesIndexRoute: MoviesIndexRoute,
   SerialsIndexRoute: SerialsIndexRoute,
   ReviewsUsernameReviewIdRoute: ReviewsUsernameReviewIdRoute,
