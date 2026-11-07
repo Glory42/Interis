@@ -100,6 +100,7 @@ export const createApp = (options: CreateAppOptions = {}) => {
   app.use(requireTrustedOriginForMutations(trustedOrigins));
   app.use("/api/auth", authLimiter);
   app.use("/api/admin/users", adminReauthLimiter);
+  app.use("/api/admin/cache/purge", adminReauthLimiter);
   // Tighter body-size limit for auth payloads than the rest of the API.
   app.use("/api/auth", express.json({ limit: "20kb" }));
 

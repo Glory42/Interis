@@ -477,6 +477,13 @@
       "when": 1794041808971,
       "tag": "0067_content_removed_notice",
       "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1794042377349,
+      "tag": "0068_cached_at_indexes",
+      "breakpoints": true
     }
   ]
 }

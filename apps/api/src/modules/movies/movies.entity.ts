@@ -6,6 +6,7 @@ import {
   timestamp,
   jsonb,
   date,
+  index,
 } from "drizzle-orm/pg-core";
 
 export const movies = pgTable("movie", {
@@ -23,4 +24,7 @@ export const movies = pgTable("movie", {
   tagline: text("tagline"),
   genres: jsonb("genres").$type<{ id: number; name: string }[]>(),
   cachedAt: timestamp("cached_at").defaultNow().notNull(),
-});
+}, (table) => [
+  // Backs the admin "refresh the oldest cached titles" tool.
+  index("movie_cached_at_idx").on(table.cachedAt),
+]);

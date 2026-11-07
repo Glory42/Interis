@@ -40,7 +40,10 @@ export const tvSeries = pgTable("tv_series", {
   languageCode: text("language_code"),
   genres: jsonb("genres").$type<{ id: number; name: string }[]>(),
   cachedAt: timestamp("cached_at").defaultNow().notNull(),
-});
+}, (table) => [
+  // Backs the admin "refresh the oldest cached titles" tool.
+  index("tv_series_cached_at_idx").on(table.cachedAt),
+]);
 
 export const serialDiaryEntries = pgTable("serial_diary_entry", {
   id: uuid("id")
