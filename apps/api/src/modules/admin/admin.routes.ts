@@ -14,6 +14,8 @@ router.use(requireAuth, requireAdmin);
 
 router.get("/audit", asyncHandler(AdminAuditController.list));
 router.get("/users", asyncHandler(AdminController.listUsers));
+router.get("/users/:username", asyncHandler(AdminController.getUserDetail));
+router.post("/users/:username/revoke-sessions", asyncHandler(AdminController.revokeUserSessions));
 router.post(
   "/users/:username/reset-password",
   asyncHandler(AdminController.resetUserPassword),

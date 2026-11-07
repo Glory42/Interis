@@ -34,6 +34,34 @@ export class AdminController {
     res.status(200).json(users);
   }
 
+  // GET /api/admin/users/:username
+  static async getUserDetail(req: Request<{ username: string }>, res: Response): Promise<void> {
+    res.status(200).json(await AdminService.getUserDetail(req.params.username));
+  }
+
+  // POST /api/admin/users/:username/revoke-sessions
+  static async revokeUserSessions(req: Request<{ username: string }>, res: Response): Promise<void> {
+    if (isSelfTarget(req)) {
+      sendBadRequest(res, "Sign out your own devices from account settings");
+      return;
+    }
+
+    const parsed = AdminPasswordConfirmSchema.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    const targetId = await AdminService.revokeUserSessions(req.user.id, parsed.data.adminPassword, req.params.username);
+    await AdminAuditService.record(req.user, {
+      action: "user.revoke_sessions",
+      targetType: "user",
+      targetId,
+      targetLabel: req.params.username,
+    });
+    res.status(200).json({ success: true });
+  }
+
   // POST /api/admin/users/:username/reset-password
   static async resetUserPassword(
     req: Request<{ username: string }>,
