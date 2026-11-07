@@ -470,6 +470,13 @@
       "when": 1794041089994,
       "tag": "0066_report_comments_lists",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1794041808971,
+      "tag": "0067_content_removed_notice",
+      "breakpoints": true
     }
   ]
 }

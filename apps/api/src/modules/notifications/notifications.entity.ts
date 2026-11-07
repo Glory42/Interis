@@ -16,6 +16,7 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "like_activity",
   "comment_review",
   "comment_post",
+  "content_removed",
 ]);
 
 export const notifications = pgTable(

@@ -56,9 +56,13 @@ export const dismissReport = async (id: string): Promise<void> => {
   actionResponseSchema.parse(response);
 };
 
-export const removeReportedContent = async (id: string): Promise<void> => {
-  const response = await apiRequest<unknown>(`/api/reports/${id}/remove-content`, {
+export const removeReportedContent = async (
+  id: string,
+  options: { reason?: string; notifyAuthor?: boolean } = {},
+): Promise<void> => {
+  const response = await apiRequest<unknown, typeof options>(`/api/reports/${id}/remove-content`, {
     method: "POST",
+    body: options,
   });
   actionResponseSchema.parse(response);
 };

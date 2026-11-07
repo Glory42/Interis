@@ -9,6 +9,7 @@ import {
   GroupedReportsQuerySchema,
   ListReportsQuerySchema,
   ReportParamsSchema,
+  RemoveContentSchema,
   ReportTargetParamsSchema,
   SubmitReportSchema,
   type ListReportsQuery,
@@ -93,17 +94,22 @@ export class ReportsController {
 
   static async removeContent(req: Request<ReportParams>, res: Response): Promise<void> {
     const parsed = ReportParamsSchema.safeParse(req.params);
-    if (!parsed.success) {
-      sendValidationError(res, parsed.error);
+    const body = RemoveContentSchema.safeParse(req.body ?? {});
+    if (!parsed.success || !body.success) {
+      sendValidationError(res, (parsed.error ?? body.error)!);
       return;
     }
 
-    const result = await ReportsService.removeContent(parsed.data.id, req.user.id);
+    const reason = body.data.reason || null;
+    const result = await ReportsService.removeContent(parsed.data.id, req.user.id, {
+      reason,
+      notifyAuthor: body.data.notifyAuthor ?? false,
+    });
     if ("error" in result) {
       sendErrorForStatus(res, result.status, result.error);
       return;
     }
-    await AdminAuditService.record(req.user, { action: "report.remove_content", targetType: "report", targetId: parsed.data.id });
+    await AdminAuditService.record(req.user, { action: "report.remove_content", targetType: "report", targetId: parsed.data.id, reason });
     res.status(200).json(result);
   }
 
