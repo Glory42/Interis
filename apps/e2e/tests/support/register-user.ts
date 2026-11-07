@@ -34,7 +34,6 @@ export const registerUser = async (page: Page, user: TestUser): Promise<void> =>
   await page.getByLabel("Username", { exact: true }).fill(user.username);
   await page.getByLabel("Email", { exact: true }).fill(user.email);
   await page.getByLabel("Password", { exact: true }).fill(user.password);
-  await page.getByLabel("Confirm password").fill(user.password);
   await page.getByRole("button", { name: "Create account" }).click();
   await page.waitForURL("/setup-security-question");
 
