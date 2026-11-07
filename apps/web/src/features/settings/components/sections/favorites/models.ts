@@ -99,3 +99,23 @@ export const buildTopPickPayload = (
       .filter((item): item is NonNullable<typeof item> => item !== null),
   };
 };
+
+const slotKey = (slot: TopPickSlot | null) => (slot ? `${slot.mediaType}:${slot.mediaSourceId}` : null);
+
+// One swap reads as "Order changed: 01 ⇄ 02"; anything else is counted by slot.
+export const describeTopPickChanges = (
+  saved: Array<Array<TopPickSlot | null>>,
+  current: Array<Array<TopPickSlot | null>>,
+): string | null => {
+  const changed = saved.flatMap((slots, group) =>
+    slots.flatMap((slot, index) => (slotKey(slot) === slotKey(current[group]?.[index] ?? null) ? [] : [{ group, index }])),
+  );
+  if (changed.length === 0) return null;
+  const [a, b] = changed;
+  const isSwap =
+    changed.length === 2 && a!.group === b!.group &&
+    slotKey(saved[a!.group]![a!.index]!) === slotKey(current[b!.group]![b!.index]!) &&
+    slotKey(saved[b!.group]![b!.index]!) === slotKey(current[a!.group]![a!.index]!);
+  const pad = (index: number) => String(index + 1).padStart(2, "0");
+  return isSwap ? `Order changed: ${pad(a!.index)} ⇄ ${pad(b!.index)}` : `${changed.length} unsaved change${changed.length === 1 ? "" : "s"}`;
+};

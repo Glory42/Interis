@@ -48,7 +48,7 @@ test("edits profile, theme, Top4 favorites, and manages blocked users from setti
 
     await test.step("sets a Top4 movie favorite", async () => {
       await page.goto("/settings/favorites");
-      await page.getByRole("button", { name: "Movie #1" }).click();
+      await page.getByRole("button", { name: "Add a film to slot 01" }).click();
 
       const dialog = page.getByRole("dialog");
       await expect(dialog).toBeVisible({ timeout: 10_000 });
@@ -66,8 +66,8 @@ test("edits profile, theme, Top4 favorites, and manages blocked users from setti
         timeout: 10_000,
       });
 
-      await page.getByRole("button", { name: "Save favorites" }).click();
-      await expect(page.getByText("Favorites saved.")).toBeVisible({ timeout: 10_000 });
+      await page.getByRole("button", { name: "Save top 4" }).click();
+      await expect(page.getByText("Top 4 saved.")).toBeVisible({ timeout: 10_000 });
     });
 
     await test.step("blocks another user and unblocks them from settings", async () => {
