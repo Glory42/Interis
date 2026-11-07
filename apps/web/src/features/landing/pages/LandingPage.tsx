@@ -8,24 +8,15 @@ import { useTrendingSeries } from "@/features/serials/hooks/useSerials";
 
 export const LandingPage = () => {
   // Nine matches the loader's prefetch in routes/index.tsx; the grid shows eight.
-  const films = useTrendingNow(9).data ?? [];
-  const shows = useTrendingSeries().data ?? [];
+  const filmsQuery = useTrendingNow(9);
+  const showsQuery = useTrendingSeries();
+  const films = filmsQuery.data ?? [];
+  const shows = showsQuery.data ?? [];
 
   return (
     <div className="w-full pb-20 sm:pb-0">
       <LandingHero specimen={<LandingDiarySpecimen films={films} />} />
-      <LandingTrending films={films} shows={shows} />
-
-      <div className="mx-auto w-full max-w-6xl px-4">
-        <div className="slate mono-meta rounded-[3px] uppercase">
-          <span>Interis · logged, not filtered.</span>
-          <span className="flex gap-3">
-            <Link to="/developer" className="hover:text-white">
-              Developer
-            </Link>
-          </span>
-        </div>
-      </div>
+      <LandingTrending films={films} shows={shows} isLoadingFilms={filmsQuery.isPending} isLoadingShows={showsQuery.isPending} />
 
       {/* Phones keep sign-up within reach while scrolling. */}
       <div className="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t border-[color:var(--line)] bg-background/95 px-4 py-3 backdrop-blur sm:hidden">

@@ -87,6 +87,7 @@ export const MovieArchivePage = () => {
           tone="film"
           detailRoute="/movies/$tmdbId"
           items={spotlightItems}
+          isLoading={archiveQuery.isPending}
         />
       }
       archiveErrorMessage="Could not load the movie archive right now."

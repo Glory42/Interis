@@ -51,4 +51,13 @@ describe("LandingPage", () => {
     expect(within(tvList).getAllByRole("listitem")).toHaveLength(5);
     expect(within(tvList).getByRole("link", { name: /Show 1/ })).toHaveAttribute("href", "/serials/200");
   });
+
+  it("keeps the trending grid and list as skeletons while they load, and leaves the footer line to the footer", async () => {
+    server.use(http.get("*/api/*/trending", () => new Promise<never>(() => {})));
+    renderWithProviders(<LandingPage />);
+
+    expect(await screen.findByRole("status", { name: "Loading trending films" })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Loading trending TV" })).toBeInTheDocument();
+    expect(screen.queryByText(/logged, not filtered/i)).not.toBeInTheDocument();
+  });
 });

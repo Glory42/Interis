@@ -92,6 +92,7 @@ export const SerialsArchivePage = () => {
           tone="series"
           detailRoute="/serials/$tmdbId"
           items={spotlightItems}
+          isLoading={archiveQuery.isPending}
         />
       }
       archiveErrorMessage="Could not load the serial archive right now."

@@ -1,3 +1,5 @@
+import { LoadingRegion } from "@/components/ui/PageSkeletons";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { DuotoneBackdrop } from "@/components/film/DuotoneBackdrop";
@@ -21,6 +23,8 @@ type ArchiveSpotlightProps = {
   tone: "film" | "series";
   detailRoute: "/movies/$tmdbId" | "/serials/$tmdbId";
   items: SpotlightItem[];
+  // While the first archive page loads, the reel's frame stands in as a skeleton.
+  isLoading?: boolean;
   now?: Date;
 };
 
@@ -31,7 +35,7 @@ const prefersReducedMotion = () =>
   typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // The archive's opening reel: a letterboxed duotone frame that steps through the top titles.
-export const ArchiveSpotlight = ({ kindLabel, modeLabel, tone, detailRoute, items, now }: ArchiveSpotlightProps) => {
+export const ArchiveSpotlight = ({ kindLabel, modeLabel, tone, detailRoute, items, isLoading = false, now }: ArchiveSpotlightProps) => {
   const [index, setIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const count = items.length;
@@ -42,7 +46,31 @@ export const ArchiveSpotlight = ({ kindLabel, modeLabel, tone, detailRoute, item
     return () => window.clearInterval(timer);
   }, [count, isPaused]);
 
-  if (count === 0) return null;
+  if (count === 0) {
+    if (!isLoading) return null;
+    return (
+      <LoadingRegion label={`Loading ${modeLabel.toLowerCase()} ${kindLabel.toLowerCase()}`} className="mb-5 overflow-hidden rounded-[2px]">
+        <div className="slate mono-meta uppercase">
+          <span>{`Interis · ${kindLabel} · ${modeLabel}`}</span>
+          <span>{toWeekLabel(now ?? new Date())}</span>
+        </div>
+        <div className="relative h-[210px] animate-pulse bg-foreground/8 sm:h-[300px]">
+          <div className="absolute bottom-4 left-4 space-y-2">
+            <Skeleton className="h-2.5 w-40 rounded-sm bg-white/10" />
+            <Skeleton className="h-7 w-56 rounded-sm bg-white/10" />
+          </div>
+        </div>
+        <div className="slate mono-meta uppercase">
+          <span className="flex gap-1">
+            {Array.from({ length: 5 }, (_, dot) => (
+              <span key={dot} className="h-2.5 w-4 rounded-[1px] bg-white/20" />
+            ))}
+          </span>
+          <span className="h-2 w-28 rounded-sm bg-white/10" />
+        </div>
+      </LoadingRegion>
+    );
+  }
   const activeIndex = index % count;
   const active = items[activeIndex]!;
   const reelLabel = `Reel ${pad(activeIndex + 1)}/${pad(count)}${
