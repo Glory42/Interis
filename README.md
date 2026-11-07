@@ -1,222 +1,121 @@
-# [Interis](https://interis.gorkemkaryol.dev)
+<div align="center">
 
-A social movie journal app inspired by Letterboxd + timeline-style social apps.
+# Interis
 
-- Log watches with dates, ratings, rewatches, and optional reviews
-- Follow people and browse a personalized activity feed
-- Browse a movie archive with genre/language/time/sort filters
-- Explore public profile pages, stats, lists, likes, and watchlists
-- Power external widgets through a small public API (`https://api.interis.gorkemkaryol.dev/api/public/*`)
+**Every watch, remembered.**
 
+A social diary for films and TV. Log what you watch, rate it with rockets from 1 to 10,
+track shows one episode at a time, and see what the people you follow are watching.
+
+[**Open Interis**](https://interis.gorkemkaryol.dev) ·
+[Public API docs](https://docs.interis.gorkemkaryol.dev) ·
+[Contributing](CONTRIBUTING.md) ·
+[Report a bug](https://github.com/Glory42/Interis/issues/new/choose)
+
+[![Test Suite](https://github.com/Glory42/Interis/actions/workflows/test-suite.yml/badge.svg)](https://github.com/Glory42/Interis/actions/workflows/test-suite.yml)
+[![License: GPL v3](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
+
+![Interis home page with an example diary and this week's trending films and TV](docs/screenshots/home.webp)
+
+</div>
+
+## Features
+
+- **Diary** — log films and episodes with a date, a 1–10 rocket rating, rewatches, likes and an optional review
+- **Films & TV** — browse trending titles and an archive filtered by genre, language and sort, with director and actor pages
+- **TV tracking** — follow series season by season and episode by episode
+- **Social feed** — follow people and get a timeline of their logs, reviews, lists and posts
+- **Profiles** — public pages with favourites, diary, reviews, likes, watchlist, lists and stats
+- **Themes** — four hand-made themes, from a pure-black terminal to a cream cinema lobby
+- **Public API** — read-only endpoints for embedding your diary in your own site
+
+## Screenshots
+
+| Profile | Diary |
+| --- | --- |
+| ![A public profile with favourite films and series and recent activity](docs/screenshots/profile.webp) | ![A profile's diary, grouped by month with rocket ratings](docs/screenshots/diary.webp) |
+| **Film page** | **TV page** |
+| ![The film page for Third Star with ratings, synopsis and credits](docs/screenshots/film.webp) | ![The TV page for Re:ZERO with ratings, synopsis and credits](docs/screenshots/series.webp) |
+
+![The films archive with a trending reel and genre, sort and language filters](docs/screenshots/archive.webp)
+
+### Themes
+
+Rose Pine, NULL://LOG, Nitrate and Marquee — pick one in settings, or
+[add your own](ADDING-THEMES.md).
+
+![The same profile in the Rose Pine, NULL://LOG, Nitrate and Marquee themes](docs/screenshots/themes.webp)
+
+## Public API
+
+Anyone can read a user's public data, with no key, from
+`https://api.interis.gorkemkaryol.dev/api/public/:username/*` — profile,
+recent activity, diary, reviews, lists, likes, watchlist and top 4.
+
+```bash
+curl https://api.interis.gorkemkaryol.dev/api/public/glory42/top4
+```
+
+See the [API docs](https://docs.interis.gorkemkaryol.dev) for every endpoint,
+response shapes and rate limits.
 
 ## Tech stack
 
-| Layer | Tech |
+| | |
 | --- | --- |
-| Runtime | Bun |
-| Backend | Express 5 (Bun.serve) + TypeScript |
-| Database | Neon (PostgreSQL) |
-| ORM | Drizzle ORM |
-| Auth | In-house (JWT access + rotating refresh tokens, argon2id via `Bun.password`) |
-| Frontend | React 19 + Vite |
-| Routing | TanStack Router (file-based) |
-| Data | TanStack Query |
-| UI | Tailwind CSS + Radix/shadcn primitives |
-| External data | TMDB (on-demand fetch + local cache) |
-| Storage | Cloudflare R2 (avatars) |
+| **Frontend** | React 19, Vite, TanStack Router + Query, Tailwind CSS v4, Radix/shadcn |
+| **Backend** | Bun, Express 5, TypeScript, Zod, in-house JWT auth |
+| **Data** | PostgreSQL (Neon) with Drizzle ORM; TMDB fetched on demand and cached |
+| **Storage** | Cloudflare R2 for avatars |
+| **Hosting** | Render (API), Cloudflare Pages (web + docs) |
 
-## Repository layout
+## Running locally
 
-```text
-.
-├── apps/api/          # Express API (Bun.serve), domain modules, Drizzle schema/migrations
-├── apps/docs/             # Astro + Starlight docs site for public API
-├── apps/web/         # React app (TanStack Router + Query)
-├── apps/e2e/              # Playwright smoke and end-to-end tests
-├── CONTRIBUTING.md   # Guidelines for contributors
-├── CODE_OF_CONDUCT.md # Community standards
-├── SECURITY.md       # How to report vulnerabilities
-├── DEPLOYMENT.md      # Render deploy setup for apps/api
-└── README.md
-```
-
-## Quick start
-
-### Option A: Docker Compose (fastest, zero manual setup)
-
-Prerequisites: Docker + Docker Compose.
+With Docker installed:
 
 ```bash
+git clone https://github.com/Glory42/Interis.git
+cd Interis
 docker compose up
 ```
 
-This starts a local Postgres database, migrates it automatically, and boots
-both the API (`http://localhost:5000`) and the frontend
-(`http://localhost:5173`). No `.env` files are required — copy
-[`.env.example`](.env.example) to `.env` at the repo root first if you want
-real TMDB data (otherwise TMDB-backed endpoints return errors, everything
-else works). See [`docker-compose.yml`](docker-compose.yml) for the exact
-service topology.
+This starts Postgres, applies migrations, and runs the API on
+`http://localhost:5000` and the app on `http://localhost:5173`. Copy
+[`.env.example`](.env.example) to `.env` first and add a `TMDB_ACCESS_TOKEN`
+if you want real film and TV data.
 
-### Option B: Manual (per-app)
+For running without Docker, tests and quality checks, see
+[CONTRIBUTING.md](CONTRIBUTING.md#development-setup).
 
-Prerequisites:
-- Bun 1.3+
-- A local PostgreSQL (use `docker compose up postgres db-proxy`) — dev and
-  tests must not run against Neon; Neon is production-only
-- TMDB API access token
+## Project layout
 
-1) Configure backend env (`apps/api/.env`, see [`apps/api/.env.example`](apps/api/.env.example))
-
-```env
-DATABASE_URL=postgres://interis:interis@localhost:5432/interis
-DIRECT_DATABASE_URL=postgres://interis:interis@localhost:5432/interis
-USE_LOCAL_DB_PROXY=true
-JWT_ACCESS_SECRET=
-TMDB_ACCESS_TOKEN=
-CORS_ORIGIN=http://localhost:5173
-PORT=5000
-
-# Optional (required only for uploads)
-R2_ACCOUNT_ID=
-R2_ACCESS_KEY_ID=
-R2_SECRET_ACCESS_KEY=
-R2_BUCKET_NAME=
-R2_PUBLIC_URL=
+```text
+apps/
+├── api/    Express API — domain modules, Drizzle schema and migrations
+├── web/    React app
+├── docs/   Astro + Starlight site for the public API
+└── e2e/    Playwright smoke tests
 ```
 
-Apply the schema with `bun run scripts/docker-migrate.ts` (plain
-`drizzle-kit migrate` targets Neon).
+## Documentation
 
-2) Configure frontend env (`apps/web/.env`)
-
-```env
-VITE_API_PROXY_TARGET=http://localhost:5000
-VITE_API_BASE_URL=
-```
-
-3) Install and run
-
-```bash
-# terminal 1 - backend
-cd apps/api
-bun install
-bun run dev
-
-# terminal 2 - frontend
-cd apps/web
-bun install
-bun run dev
-```
-
-Frontend runs on `http://localhost:5173` and proxies `/api` to backend on port `5000`.
-
-Alternatively, run both from the repo root after installing each app's own
-dependencies once (`bun run install:all`): `bun run dev` starts both
-concurrently, or `bun run dev:api` / `bun run dev:web` individually. See the
-root [`package.json`](package.json) for the full list of orchestration
-scripts (`build`, `test`, `lint`, `typecheck`, `lint:arch`).
-
-## Documentation site
-
-This repository now includes a dedicated docs project in `docs/` for the Interis
-public API (`https://api.interis.gorkemkaryol.dev/api/public/:username/*`).
-
-- Stack: Astro + Starlight
-- Intended host: `https://docs.interis.gorkemkaryol.dev`
-- Public API base (production): `https://api.interis.gorkemkaryol.dev/api/public`
-- Main reference entry: `docs/src/content/docs/api/overview.md`
-
-Run docs locally:
-
-```bash
-cd apps/docs
-bun install
-bun run dev
-```
-
-Build docs:
-
-```bash
-cd apps/docs
-bun run build
-```
-
-## Key API groups
-
-| Prefix | Purpose |
+| Read this | For |
 | --- | --- |
-| `POST /api/auth/*` | In-house auth (sign-up, sign-in, sign-out, update-user, password reset) |
-| `GET /api/movies/*` | Search, detail, logs, archive, trending |
-| `GET /api/serials/*` | TV series search, detail, archive |
-| `GET /api/people/*` | Director/actor pages |
-| `GET\|POST\|PUT\|DELETE /api/diary` | Private diary CRUD |
-| `GET /api/users/*` | Profile, reviews, likes, watchlist |
-| `GET\|POST\|PUT\|DELETE /api/reviews/*` | Reviews, comments, likes |
-| `GET\|POST\|DELETE /api/posts/*` | Short posts, comments, likes |
-| `GET\|POST\|DELETE /api/social/*` | Feed + follow graph |
-| `GET\|PUT /api/interactions/:tmdbId` | Watchlist/like/log interaction state |
-| `POST /api/uploads/*` | Signed upload flow (R2) |
-| `GET /api/public/:username/*` | Widget-friendly public endpoints |
-
-## Quality checks
-
-Backend:
-
-```bash
-cd apps/api
-bunx tsc --noEmit
-bun test
-```
-
-Frontend:
-
-```bash
-cd apps/web
-bun run test
-bun run typecheck
-bun run lint
-bun run build
-```
-
-E2E smoke (optional package):
-
-```bash
-cd apps/e2e
-bun install
-bun run test:smoke
-```
-
-CI note: GitHub Actions runs backend typecheck/lint/architecture checks and
-the full integration, contract, and unit suites on every PR against a
-throwaway `postgres:16-alpine` service container (`DIRECT_DATABASE_URL` points
-at it) — no Neon database is involved. The e2e job uses the same container and
-only needs the `a` [environment](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment) for the real `TMDB_ACCESS_TOKEN` secret.
-
-A pre-commit hook (Husky + lint-staged) runs ESLint on staged `apps/web` and
-`apps/api` files automatically — installed via `bun install` at the repo
-root (`prepare` script).
-
-## Deployment
-
-`apps/api` deploys to Render on push to `master` via Render's GitHub
-integration (no CI/CD workflow file involved). `apps/web` and `apps/docs`
-deploy to Cloudflare Pages the same way. See [DEPLOYMENT.md](DEPLOYMENT.md)
-for environment variable setup and first-time configuration.
-
-## Architecture notes
-
-- **Feature-first backend**: Each domain owns controller/service/repository/dto/helpers/types. See [apps/api/README.md](apps/api/README.md) for details.
-- **TMDB on-demand**: Movie data is fetched from TMDB on demand and cached locally; no bulk mirror/import.
-- **Separate models**: Diary entries (watch logs) and reviews are modeled separately by design.
-- **Read-optimized profiles**: Public profile routes are optimized for read-heavy usage and widget integration.
-- **Route-driven frontend**: Frontend is route-driven and feature-oriented, with route-level error boundaries for major layouts.
-- **API decomposition**: Movie/serial frontend APIs are split into `api/{schemas,types,mappers,requests}` submodules behind stable feature barrels.
-- **DTO normalization**: Backend query parsing is schema-first with explicit default/clamp normalization.
-- **Architecture enforcement**: Frontend lint rules and backend `bun run lint:arch` checks prevent large monolith files, cross-layer imports, and reintroduction of removed transitional wrappers.
-- **Performance-first**: scoped cache invalidation, paginated list endpoints, batched queries (no N+1), and cached external API reads are enforced conventions — see CONTRIBUTING.md's [Performance conventions](CONTRIBUTING.md#performance-conventions) and the `/performance-check` skill.
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Setup, architecture, conventions, testing, CI |
+| [apps/api/README.md](apps/api/README.md) | Backend modules, env vars, API surface |
+| [apps/web/README.md](apps/web/README.md) | Frontend structure |
+| [apps/docs/README.md](apps/docs/README.md) | Working on the API docs site |
+| [ADDING-THEMES.md](ADDING-THEMES.md) | Adding a theme |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | Deploying to Render and Cloudflare Pages |
+| [CONTEXT.md](CONTEXT.md) and [docs/adr](docs/adr) | Domain language and architecture decisions |
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines, architecture overview, coding conventions, and how to get started.
-By participating you agree to the [Code of Conduct](CODE_OF_CONDUCT.md). Please report security issues privately as described in [SECURITY.md](SECURITY.md).
+Issues and pull requests are welcome — start with [CONTRIBUTING.md](CONTRIBUTING.md).
+By taking part you agree to the [Code of Conduct](CODE_OF_CONDUCT.md). Please report
+security issues privately as described in [SECURITY.md](SECURITY.md).
+
+## License
+
+[GPL-3.0](LICENSE). Film and TV data and images come from [TMDB](https://www.themoviedb.org/);
+Interis uses the TMDB API but is not endorsed or certified by TMDB.

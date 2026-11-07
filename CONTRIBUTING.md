@@ -132,6 +132,18 @@ feature/
 └── types.ts         # Local type definitions (if not in api.ts)
 ```
 
+### Design principles
+
+- **Feature-first backend**: each domain owns its controller/service/repository/dto/helpers/types. See [apps/api/README.md](apps/api/README.md).
+- **TMDB on demand**: film and TV data is fetched from TMDB when first needed and cached locally; there is no bulk mirror or import.
+- **Separate models**: diary entries (watch logs) and reviews are modeled separately by design.
+- **Read-optimized profiles**: public profile routes are tuned for read-heavy traffic and widget integration.
+- **Route-driven frontend**: the frontend is route-driven and feature-oriented, with route-level error boundaries for major layouts.
+- **API decomposition**: film/TV frontend APIs are split into `api/{schemas,types,mappers,requests}` submodules behind stable feature barrels.
+- **DTO normalization**: backend query parsing is schema-first with explicit default/clamp normalization.
+- **Architecture enforcement**: frontend lint rules and backend `bun run lint:arch` prevent oversized files, cross-layer imports, and reintroduction of removed transitional wrappers.
+- **Performance-first**: scoped cache invalidation, paginated list endpoints, batched queries (no N+1) and cached external API reads are enforced conventions — see [Performance conventions](#performance-conventions) and the `/performance-check` skill.
+
 ## Development setup
 
 ### Prerequisites
@@ -610,6 +622,17 @@ bun run build
 A Husky pre-commit hook runs ESLint (`--fix`) on staged `apps/web`/`apps/api`
 files automatically — it installs itself the first time you run `bun install`
 at the repo root (`prepare` script), so no separate setup step is needed.
+
+### CI
+
+GitHub Actions ([`.github/workflows/test-suite.yml`](.github/workflows/test-suite.yml))
+runs frontend tests/typecheck/lint, and backend typecheck/lint/architecture
+checks plus the full integration, contract and unit suites, on every PR and
+push to `master`. The backend runs against a throwaway `postgres:16-alpine`
+service container (`DIRECT_DATABASE_URL` points at it) — no Neon database is
+involved. The e2e job uses the same container and only needs the `a`
+[environment](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment)
+for the real `TMDB_ACCESS_TOKEN` secret.
 
 ## Submitting changes
 
