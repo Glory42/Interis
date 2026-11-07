@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { isoDateSchema } from "../../../commons/validation/common.schemas";
-import { watchLogReviewEditShape } from "../../media/dto/watch-log.dto";
+import { REVIEW_MAX_LENGTH, watchLogReviewEditShape } from "../../media/dto/watch-log.dto";
 
 const ratingSchema = z
   .number()
@@ -13,7 +13,7 @@ export const CreateDiarySchema = z.object({
   watchedDate: isoDateSchema,
   rating: ratingSchema.optional(),
   rewatch: z.boolean().optional(),
-  review: z.string().max(5000).optional(),
+  review: z.string().max(REVIEW_MAX_LENGTH).optional(),
   containsSpoilers: z.boolean().optional(),
 });
 
