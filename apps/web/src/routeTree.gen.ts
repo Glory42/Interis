@@ -29,7 +29,6 @@ import { Route as SettingsAuthRouteImport } from './routes/settings/auth'
 import { Route as SerialsTmdbIdRouteImport } from './routes/serials/$tmdbId'
 import { Route as MoviesTmdbIdRouteImport } from './routes/movies/$tmdbId'
 import { Route as DirectorSlugRouteImport } from './routes/director/$slug'
-import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as AdminContentRouteImport } from './routes/admin/content'
 import { Route as ActorSlugRouteImport } from './routes/actor/$slug'
@@ -38,6 +37,7 @@ import { Route as AuthLayoutLoginRouteImport } from './routes/_authLayout/login'
 import { Route as AuthLayoutForgotPasswordRouteImport } from './routes/_authLayout/forgot-password'
 import { Route as ProfileUsernameRouteRouteImport } from './routes/profile/$username/route'
 import { Route as ProfileUsernameIndexRouteImport } from './routes/profile/$username/index'
+import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
 import { Route as ReviewsUsernameReviewIdRouteImport } from './routes/reviews/$username/$reviewId'
 import { Route as ProfileUsernameWatchlistRouteImport } from './routes/profile/$username/watchlist'
 import { Route as ProfileUsernameWatchingRouteImport } from './routes/profile/$username/watching'
@@ -47,6 +47,7 @@ import { Route as ProfileUsernameLikedRouteImport } from './routes/profile/$user
 import { Route as ProfileUsernameFilmsRouteImport } from './routes/profile/$username/films'
 import { Route as ProfileUsernameDiaryRouteImport } from './routes/profile/$username/diary'
 import { Route as ProfileUsernameCinemaRouteImport } from './routes/profile/$username/cinema'
+import { Route as AdminUsersUsernameRouteImport } from './routes/admin/users/$username'
 import { Route as ProfileUsernameListsIndexRouteImport } from './routes/profile/$username/lists/index'
 import { Route as SerialsTmdbIdSeasonSeasonNumberRouteImport } from './routes/serials/$tmdbId_.season.$seasonNumber'
 import { Route as ProfileUsernameListsNewRouteImport } from './routes/profile/$username/lists/new'
@@ -152,11 +153,6 @@ const DirectorSlugRoute = DirectorSlugRouteImport.update({
   path: '/director/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminUsersRoute = AdminUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
 const AdminReportsRoute = AdminReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
@@ -197,6 +193,11 @@ const ProfileUsernameIndexRoute = ProfileUsernameIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ProfileUsernameRouteRoute,
+} as any)
+const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
+  id: '/users/',
+  path: '/users/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const ReviewsUsernameReviewIdRoute = ReviewsUsernameReviewIdRouteImport.update({
   id: '/reviews/$username/$reviewId',
@@ -244,6 +245,11 @@ const ProfileUsernameCinemaRoute = ProfileUsernameCinemaRouteImport.update({
   path: '/cinema',
   getParentRoute: () => ProfileUsernameRouteRoute,
 } as any)
+const AdminUsersUsernameRoute = AdminUsersUsernameRouteImport.update({
+  id: '/users/$username',
+  path: '/users/$username',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const ProfileUsernameListsIndexRoute =
   ProfileUsernameListsIndexRouteImport.update({
     id: '/lists/',
@@ -287,7 +293,6 @@ export interface FileRoutesByFullPath {
   '/actor/$slug': typeof ActorSlugRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/reports': typeof AdminReportsRoute
-  '/admin/users': typeof AdminUsersRoute
   '/director/$slug': typeof DirectorSlugRoute
   '/movies/$tmdbId': typeof MoviesTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
@@ -302,6 +307,7 @@ export interface FileRoutesByFullPath {
   '/movies/': typeof MoviesIndexRoute
   '/serials/': typeof SerialsIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/admin/users/$username': typeof AdminUsersUsernameRoute
   '/profile/$username/cinema': typeof ProfileUsernameCinemaRoute
   '/profile/$username/diary': typeof ProfileUsernameDiaryRoute
   '/profile/$username/films': typeof ProfileUsernameFilmsRoute
@@ -311,6 +317,7 @@ export interface FileRoutesByFullPath {
   '/profile/$username/watching': typeof ProfileUsernameWatchingRoute
   '/profile/$username/watchlist': typeof ProfileUsernameWatchlistRoute
   '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
+  '/admin/users/': typeof AdminUsersIndexRoute
   '/profile/$username/': typeof ProfileUsernameIndexRoute
   '/profile/$username/lists/new': typeof ProfileUsernameListsNewRoute
   '/serials/$tmdbId/season/$seasonNumber': typeof SerialsTmdbIdSeasonSeasonNumberRoute
@@ -328,7 +335,6 @@ export interface FileRoutesByTo {
   '/actor/$slug': typeof ActorSlugRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/reports': typeof AdminReportsRoute
-  '/admin/users': typeof AdminUsersRoute
   '/director/$slug': typeof DirectorSlugRoute
   '/movies/$tmdbId': typeof MoviesTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
@@ -343,6 +349,7 @@ export interface FileRoutesByTo {
   '/movies': typeof MoviesIndexRoute
   '/serials': typeof SerialsIndexRoute
   '/settings': typeof SettingsIndexRoute
+  '/admin/users/$username': typeof AdminUsersUsernameRoute
   '/profile/$username/cinema': typeof ProfileUsernameCinemaRoute
   '/profile/$username/diary': typeof ProfileUsernameDiaryRoute
   '/profile/$username/films': typeof ProfileUsernameFilmsRoute
@@ -352,6 +359,7 @@ export interface FileRoutesByTo {
   '/profile/$username/watching': typeof ProfileUsernameWatchingRoute
   '/profile/$username/watchlist': typeof ProfileUsernameWatchlistRoute
   '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
+  '/admin/users': typeof AdminUsersIndexRoute
   '/profile/$username': typeof ProfileUsernameIndexRoute
   '/profile/$username/lists/new': typeof ProfileUsernameListsNewRoute
   '/serials/$tmdbId/season/$seasonNumber': typeof SerialsTmdbIdSeasonSeasonNumberRoute
@@ -374,7 +382,6 @@ export interface FileRoutesById {
   '/actor/$slug': typeof ActorSlugRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/reports': typeof AdminReportsRoute
-  '/admin/users': typeof AdminUsersRoute
   '/director/$slug': typeof DirectorSlugRoute
   '/movies/$tmdbId': typeof MoviesTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
@@ -389,6 +396,7 @@ export interface FileRoutesById {
   '/movies/': typeof MoviesIndexRoute
   '/serials/': typeof SerialsIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/admin/users/$username': typeof AdminUsersUsernameRoute
   '/profile/$username/cinema': typeof ProfileUsernameCinemaRoute
   '/profile/$username/diary': typeof ProfileUsernameDiaryRoute
   '/profile/$username/films': typeof ProfileUsernameFilmsRoute
@@ -398,6 +406,7 @@ export interface FileRoutesById {
   '/profile/$username/watching': typeof ProfileUsernameWatchingRoute
   '/profile/$username/watchlist': typeof ProfileUsernameWatchlistRoute
   '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
+  '/admin/users/': typeof AdminUsersIndexRoute
   '/profile/$username/': typeof ProfileUsernameIndexRoute
   '/profile/$username/lists/new': typeof ProfileUsernameListsNewRoute
   '/serials/$tmdbId_/season/$seasonNumber': typeof SerialsTmdbIdSeasonSeasonNumberRoute
@@ -420,7 +429,6 @@ export interface FileRouteTypes {
     | '/actor/$slug'
     | '/admin/content'
     | '/admin/reports'
-    | '/admin/users'
     | '/director/$slug'
     | '/movies/$tmdbId'
     | '/serials/$tmdbId'
@@ -435,6 +443,7 @@ export interface FileRouteTypes {
     | '/movies/'
     | '/serials/'
     | '/settings/'
+    | '/admin/users/$username'
     | '/profile/$username/cinema'
     | '/profile/$username/diary'
     | '/profile/$username/films'
@@ -444,6 +453,7 @@ export interface FileRouteTypes {
     | '/profile/$username/watching'
     | '/profile/$username/watchlist'
     | '/reviews/$username/$reviewId'
+    | '/admin/users/'
     | '/profile/$username/'
     | '/profile/$username/lists/new'
     | '/serials/$tmdbId/season/$seasonNumber'
@@ -461,7 +471,6 @@ export interface FileRouteTypes {
     | '/actor/$slug'
     | '/admin/content'
     | '/admin/reports'
-    | '/admin/users'
     | '/director/$slug'
     | '/movies/$tmdbId'
     | '/serials/$tmdbId'
@@ -476,6 +485,7 @@ export interface FileRouteTypes {
     | '/movies'
     | '/serials'
     | '/settings'
+    | '/admin/users/$username'
     | '/profile/$username/cinema'
     | '/profile/$username/diary'
     | '/profile/$username/films'
@@ -485,6 +495,7 @@ export interface FileRouteTypes {
     | '/profile/$username/watching'
     | '/profile/$username/watchlist'
     | '/reviews/$username/$reviewId'
+    | '/admin/users'
     | '/profile/$username'
     | '/profile/$username/lists/new'
     | '/serials/$tmdbId/season/$seasonNumber'
@@ -506,7 +517,6 @@ export interface FileRouteTypes {
     | '/actor/$slug'
     | '/admin/content'
     | '/admin/reports'
-    | '/admin/users'
     | '/director/$slug'
     | '/movies/$tmdbId'
     | '/serials/$tmdbId'
@@ -521,6 +531,7 @@ export interface FileRouteTypes {
     | '/movies/'
     | '/serials/'
     | '/settings/'
+    | '/admin/users/$username'
     | '/profile/$username/cinema'
     | '/profile/$username/diary'
     | '/profile/$username/films'
@@ -530,6 +541,7 @@ export interface FileRouteTypes {
     | '/profile/$username/watching'
     | '/profile/$username/watchlist'
     | '/reviews/$username/$reviewId'
+    | '/admin/users/'
     | '/profile/$username/'
     | '/profile/$username/lists/new'
     | '/serials/$tmdbId_/season/$seasonNumber'
@@ -698,13 +710,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DirectorSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/users': {
-      id: '/admin/users'
-      path: '/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AdminUsersRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
     '/admin/reports': {
       id: '/admin/reports'
       path: '/reports'
@@ -760,6 +765,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/profile/$username/'
       preLoaderRoute: typeof ProfileUsernameIndexRouteImport
       parentRoute: typeof ProfileUsernameRouteRoute
+    }
+    '/admin/users/': {
+      id: '/admin/users/'
+      path: '/users'
+      fullPath: '/admin/users/'
+      preLoaderRoute: typeof AdminUsersIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/reviews/$username/$reviewId': {
       id: '/reviews/$username/$reviewId'
@@ -824,6 +836,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileUsernameCinemaRouteImport
       parentRoute: typeof ProfileUsernameRouteRoute
     }
+    '/admin/users/$username': {
+      id: '/admin/users/$username'
+      path: '/users/$username'
+      fullPath: '/admin/users/$username'
+      preLoaderRoute: typeof AdminUsersUsernameRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/profile/$username/lists/': {
       id: '/profile/$username/lists/'
       path: '/lists'
@@ -865,15 +884,17 @@ declare module '@tanstack/react-router' {
 interface AdminRouteRouteChildren {
   AdminContentRoute: typeof AdminContentRoute
   AdminReportsRoute: typeof AdminReportsRoute
-  AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminUsersUsernameRoute: typeof AdminUsersUsernameRoute
+  AdminUsersIndexRoute: typeof AdminUsersIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminContentRoute: AdminContentRoute,
   AdminReportsRoute: AdminReportsRoute,
-  AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminUsersUsernameRoute: AdminUsersUsernameRoute,
+  AdminUsersIndexRoute: AdminUsersIndexRoute,
 }
 
 const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(

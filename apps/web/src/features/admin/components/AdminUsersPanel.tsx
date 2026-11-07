@@ -48,7 +48,7 @@ export const AdminUsersPanel = () => {
                   <TableRow key={adminUser.id}>
                     <TableCell>
                       <Link
-                        to="/profile/$username"
+                        to="/admin/users/$username"
                         params={{ username: adminUser.username }}
                         className="text-primary hover:underline"
                       >
