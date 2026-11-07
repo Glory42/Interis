@@ -48,7 +48,7 @@ test("a user reports a post, an admin removes it", async ({ browser }) => {
     await test.step("reporter is promoted to admin and resolves the report", async () => {
       promoteToAdmin(reporter.username);
 
-      await pageB.goto("/admin/");
+      await pageB.goto("/admin/reports");
       await expect(pageB.getByText("Reports").first()).toBeVisible({ timeout: 10_000 });
 
       const reportRow = pageB.locator("article, div").filter({ hasText: POST_CONTENT }).last();
