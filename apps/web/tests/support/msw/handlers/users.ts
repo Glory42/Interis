@@ -33,6 +33,7 @@ const meSummary = {
       posterPath: "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
     },
   ],
+  week: { logs: 3, averageRating: 8.5, episodes: 12 },
 };
 
 export const usersHandlers = [

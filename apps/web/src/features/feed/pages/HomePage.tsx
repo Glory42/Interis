@@ -5,8 +5,8 @@ import { FeedFilterSentence } from "@/features/feed/components/FeedFilterSentenc
 import { toFeedDays } from "@/features/feed/components/feed-days";
 import type { FeedFilter } from "@/features/feed/types";
 import { QuickLogComposer } from "@/features/feed/components/QuickLogComposer";
-import { TrendingNowRail } from "@/features/feed/components/TrendingNowRail";
-import { useGroupedFeed, useTrendingNow } from "@/features/feed/hooks/useFeed";
+import { FeedRail } from "@/features/feed/components/FeedRail";
+import { useGroupedFeed, useMyFeedSummary, useTrendingNow } from "@/features/feed/hooks/useFeed";
 import { useTrendingSeries } from "@/features/serials/hooks/useSerials";
 
 export const HomePage = () => {
@@ -17,6 +17,7 @@ export const HomePage = () => {
   const followingFeedQuery = useGroupedFeed(activeFilter, isFollowingEnabled);
   const movieTrendingQuery = useTrendingNow(6);
   const serialTrendingQuery = useTrendingSeries();
+  const summaryQuery = useMyFeedSummary(isFollowingEnabled);
 
   const feedDays = useMemo(
     () => toFeedDays(followingFeedQuery.data?.pages.flatMap((page) => page.items) ?? []),
@@ -36,7 +37,7 @@ export const HomePage = () => {
     <section className="mx-auto w-full max-w-[1032px] px-4 pt-8 pb-16">
       <div className="flex flex-col gap-10 lg:flex-row lg:items-start">
         <div className="min-w-0 flex-1 lg:max-w-2xl">
-          <div id="quick-log-composer" className="surface-card mb-6 p-4">
+          <div id="quick-log-composer" className="mb-4 rounded-[3px] border border-[color:var(--line)] p-3">
             <QuickLogComposer user={user} />
           </div>
 
@@ -64,14 +65,12 @@ export const HomePage = () => {
           ) : null}
         </div>
 
-        <aside className="w-full shrink-0 lg:sticky lg:top-16 lg:w-72">
-          <TrendingNowRail
-            movieIsLoading={movieTrendingQuery.isPending}
-            movieIsError={movieTrendingQuery.isError}
-            movieItems={movieTrendingQuery.data ?? []}
-            serialsIsLoading={serialTrendingQuery.isPending}
-            serialsIsError={serialTrendingQuery.isError}
-            serialsItems={serialTrendingQuery.data ?? []}
+        <aside className="w-full shrink-0 lg:sticky lg:top-16 lg:w-60">
+          <FeedRail
+            films={movieTrendingQuery.data ?? []}
+            shows={serialTrendingQuery.data ?? []}
+            week={summaryQuery.data?.week ?? null}
+            isLoading={movieTrendingQuery.isPending || serialTrendingQuery.isPending}
           />
         </aside>
       </div>

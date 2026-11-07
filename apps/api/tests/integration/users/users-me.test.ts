@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
+import { seedTestMovie } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -51,6 +52,38 @@ describe("users /me", () => {
       const { jar } = await signUpTestUser(getServer().baseUrl, "umesummary");
       const response = await apiRequest(getServer().baseUrl, "/api/users/me/summary", {}, jar);
       expect(response.status).toBe(200);
+    });
+
+    it("sums up your last seven days of watching", async () => {
+      const { jar } = await signUpTestUser(getServer().baseUrl, "umeweek");
+      const [first, second, old] = await Promise.all([
+        seedTestMovie("Week One"),
+        seedTestMovie("Week Two"),
+        seedTestMovie("Month Ago"),
+      ]);
+      const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10);
+      const log = (tmdbId: number, watchedDate: string, rating: number) =>
+        apiRequest(
+          getServer().baseUrl,
+          "/api/diary",
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ tmdbId, watchedDate, rating }),
+          },
+          jar,
+        );
+      for (const response of await Promise.all([
+        log(first.tmdbId, daysAgo(0), 8),
+        log(second.tmdbId, daysAgo(3), 9),
+        log(old.tmdbId, daysAgo(30), 2),
+      ])) {
+        expect(response.ok).toBe(true);
+      }
+
+      const response = await apiRequest(getServer().baseUrl, "/api/users/me/summary", {}, jar);
+      const body = (await response.json()) as { week: { logs: number; averageRating: number | null; episodes: number } };
+      expect(body.week).toEqual({ logs: 2, averageRating: 8.5, episodes: 0 });
     });
   });
 

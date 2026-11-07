@@ -5,7 +5,7 @@ import { diaryEntries } from "../../diary/diary.entity";
 import { lists } from "../../lists/lists.entity";
 import { movies } from "../../movies/movies.entity";
 import { reviews } from "../../reviews/reviews.entity";
-import { serialDiaryEntries } from "../../serials/serials.entity";
+import { serialDiaryEntries, serialEpisodeInteractions } from "../../serials/serials.entity";
 import { follows } from "../../social/social.entity";
 
 export class UsersStatsRepository {
@@ -237,6 +237,43 @@ export class UsersStatsRepository {
       followers: followerCountRows[0]?.count ?? 0,
       following: followingCountRows[0]?.count ?? 0,
       recentRows,
+    };
+  }
+
+  // Logs watched on or after `sinceDate` (YYYY-MM-DD), their mean score, and episodes ticked since `since`.
+  static async getWeekSummary(userId: string, sinceDate: string, since: Date) {
+    const logStats = (table: typeof diaryEntries | typeof serialDiaryEntries) =>
+      db
+        .select({
+          logs: sql<number>`count(*)`.mapWith(Number),
+          ratingSum: sql<number>`coalesce(sum(${table.rating}), 0)`.mapWith(Number),
+          rated: sql<number>`count(${table.rating})`.mapWith(Number),
+        })
+        .from(table)
+        .where(and(eq(table.userId, userId), gte(table.watchedDate, sinceDate)));
+
+    const [[movieRow], [serialRow], [episodeRow]] = await Promise.all([
+      logStats(diaryEntries),
+      logStats(serialDiaryEntries),
+      db
+        .select({ count: sql<number>`count(*)`.mapWith(Number) })
+        .from(serialEpisodeInteractions)
+        .where(
+          and(
+            eq(serialEpisodeInteractions.userId, userId),
+            eq(serialEpisodeInteractions.watched, true),
+            eq(serialEpisodeInteractions.watchedImplicitly, false),
+            gte(serialEpisodeInteractions.updatedAt, since),
+          ),
+        ),
+    ]);
+
+    const rated = (movieRow?.rated ?? 0) + (serialRow?.rated ?? 0);
+    const ratingSum = (movieRow?.ratingSum ?? 0) + (serialRow?.ratingSum ?? 0);
+    return {
+      logs: (movieRow?.logs ?? 0) + (serialRow?.logs ?? 0),
+      averageRating: rated > 0 ? Math.round((ratingSum / rated) * 10) / 10 : null,
+      episodes: episodeRow?.count ?? 0,
     };
   }
 }

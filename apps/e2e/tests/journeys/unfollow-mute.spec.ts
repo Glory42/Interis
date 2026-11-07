@@ -27,8 +27,8 @@ test("follows then unfollows a user, and mutes/unmutes their activity from the f
     });
 
     await test.step("author posts, and it shows up in the viewer's feed", async () => {
-      await pageA.getByPlaceholder("Log a thought…").fill(POST_CONTENT);
-      await pageA.getByPlaceholder("Log a thought…").press("Enter");
+      await pageA.getByPlaceholder("What did you watch tonight?").fill(POST_CONTENT);
+      await pageA.getByPlaceholder("What did you watch tonight?").press("Enter");
       await expect(pageA.getByText(POST_CONTENT)).toBeVisible({ timeout: 10_000 });
 
       await pageB.goto("/");

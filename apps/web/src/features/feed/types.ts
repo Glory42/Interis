@@ -138,6 +138,12 @@ export const meFeedSummarySchema = z.object({
       posterPath: z.string().nullable(),
     }),
   ),
+  // The last seven days, today included.
+  week: z.object({
+    logs: z.number().int().nonnegative(),
+    averageRating: z.number().nullable(),
+    episodes: z.number().int().nonnegative(),
+  }),
 });
 
 export const networkStatsSchema = z.object({
