@@ -1,4 +1,4 @@
-import { ChevronDown, Heart, PenLine } from "lucide-react";
+import { ChevronDown, ChevronRight, Heart, PenLine } from "lucide-react";
 import type { SerialDetailResponse } from "@/features/serials/api";
 import { OutlinedRank } from "@/components/film/OutlinedRank";
 import { ReelCells } from "@/components/film/ReelCells";
@@ -13,6 +13,8 @@ type SeasonHeaderRowProps = {
   season: Season;
   isOpen: boolean;
   showInteractions: boolean;
+  // Phones: progress only; the row opens the season's own screen.
+  compact?: boolean;
   onToggle: () => void;
   onToggleWatched: () => void;
   onToggleLiked: () => void;
@@ -24,7 +26,8 @@ type SeasonHeaderRowProps = {
 export const SeasonHeaderRow = ({
   season,
   isOpen,
-  showInteractions,
+  showInteractions: showInteractionsProp,
+  compact = false,
   onToggle,
   onToggleWatched,
   onToggleLiked,
@@ -32,6 +35,7 @@ export const SeasonHeaderRow = ({
   onOpenReview,
 }: SeasonHeaderRowProps) => {
   const interaction = season.viewerInteraction;
+  const showInteractions = showInteractionsProp && !compact;
   const seasonName = season.name || `Season ${season.seasonNumber}`;
   const episodeCount = season.episodeCount ?? 0;
   const meta = [season.episodeCount !== null ? `${season.episodeCount} EP` : null, season.airDate?.slice(0, 4)]
@@ -47,7 +51,7 @@ export const SeasonHeaderRow = ({
 
         <button
           type="button"
-          aria-expanded={isOpen}
+          aria-expanded={compact ? undefined : isOpen}
           onClick={onToggle}
           className="flex min-w-0 flex-1 items-center gap-3 text-left"
         >
@@ -93,11 +97,15 @@ export const SeasonHeaderRow = ({
             </>
           ) : null}
 
-          <ChevronDown
-            aria-hidden
-            onClick={onToggle}
-            className={cn("size-4 cursor-pointer text-muted-foreground transition-transform", isOpen && "rotate-180")}
-          />
+          {compact ? (
+            <ChevronRight aria-hidden onClick={onToggle} className="size-4 cursor-pointer text-muted-foreground" />
+          ) : (
+            <ChevronDown
+              aria-hidden
+              onClick={onToggle}
+              className={cn("size-4 cursor-pointer text-muted-foreground transition-transform", isOpen && "rotate-180")}
+            />
+          )}
         </div>
       </div>
 
