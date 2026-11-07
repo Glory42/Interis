@@ -30,7 +30,7 @@ test("sign up, log a movie, get followed, and show up in the follower's feed", a
       });
 
       await pageA.getByRole("button", { name: "Log", exact: true }).click();
-      await pageA.getByRole("button", { name: "Post Review" }).click();
+      await pageA.getByRole("button", { name: "Save log" }).click();
       await expect(pageA.getByRole("dialog")).not.toBeVisible({ timeout: 10_000 });
     });
 

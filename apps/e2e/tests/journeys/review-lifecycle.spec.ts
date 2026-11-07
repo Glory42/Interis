@@ -24,7 +24,7 @@ test("writes a review, then views/comments/edits it from its detail page and the
       await page.getByRole("button", { name: "Log", exact: true }).click();
       await expect(page.getByRole("dialog")).toBeVisible({ timeout: 10_000 });
       await page.getByPlaceholder("Share your thoughts about this movie...").fill(REVIEW_TEXT);
-      await page.getByRole("button", { name: "Post Review" }).click();
+      await page.getByRole("button", { name: "Post review" }).click();
       await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 10_000 });
     });
 

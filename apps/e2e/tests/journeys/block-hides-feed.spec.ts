@@ -32,7 +32,7 @@ test("blocking a user removes their activity from your feed", async ({ browser }
         timeout: 15_000,
       });
       await pageB.getByRole("button", { name: "Log", exact: true }).click();
-      await pageB.getByRole("button", { name: "Post Review" }).click();
+      await pageB.getByRole("button", { name: "Save log" }).click();
       await expect(pageB.getByRole("dialog")).not.toBeVisible({ timeout: 10_000 });
     });
 

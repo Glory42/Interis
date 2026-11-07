@@ -29,7 +29,7 @@ test("exports the diary as CSV and imports a fixture back in", async ({ page }) 
       });
 
       await page.getByRole("button", { name: "Log", exact: true }).click();
-      await page.getByRole("button", { name: "Post Review" }).click();
+      await page.getByRole("button", { name: "Save log" }).click();
       await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 10_000 });
     });
 
