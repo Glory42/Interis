@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  markEpisodesWatchedThrough,
   updateEpisodeInteraction,
   updateSeasonInteraction,
   type SerialSeasonDetailResponse,
@@ -8,10 +9,22 @@ import {
   patchEpisodesInSeasonDetailCache,
   patchSeasonsInDetailViewCache,
   restoreQueries,
+  shiftWatchedCountsInDetailViewCache,
 } from "@/features/serials/hooks/serials-cache.helper";
 import { invalidateViewerCurrentlyWatching } from "@/features/profile/hooks/useProfile";
 import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
 import { serialKeys } from "./query-keys";
+
+type CachedEpisode = SerialSeasonDetailResponse["episodes"][number];
+
+// Next up after episode `after`, read from the open season's episode list.
+const firstUnwatchedAfter = (episodes: CachedEpisode[] | undefined, after: number) => {
+  if (!episodes) return { episodeNumber: after + 1, name: `Episode ${after + 1}` };
+  const next = episodes.find(
+    (episode) => episode.episodeNumber > after && !episode.viewerInteraction?.watched,
+  );
+  return next ? { episodeNumber: next.episodeNumber, name: next.name } : null;
+};
 
 export const useUpdateSeasonInteraction = (tmdbId: number) => {
   const queryClient = useQueryClient();
@@ -31,6 +44,14 @@ export const useUpdateSeasonInteraction = (tmdbId: number) => {
         queryClient.cancelQueries({ queryKey: serialKeys.seasonDetail(tmdbId, seasonNumber) }),
       ]);
 
+      const watched = input.watched;
+      const previousCountQueries =
+        watched !== undefined
+          ? shiftWatchedCountsInDetailViewCache(queryClient, tmdbId, seasonNumber, (current, size) =>
+              watched ? (size ?? current) : 0,
+            )
+          : [];
+
       const previousSeasonQueries = patchSeasonsInDetailViewCache(
         queryClient,
         tmdbId,
@@ -47,11 +68,12 @@ export const useUpdateSeasonInteraction = (tmdbId: number) => {
             })
           : [];
 
-      return { previousSeasonQueries, previousEpisodeQueries };
+      return { previousSeasonQueries, previousEpisodeQueries, previousCountQueries };
     },
     onError: (_error, _variables, context) => {
       restoreQueries(queryClient, context?.previousSeasonQueries ?? []);
       restoreQueries(queryClient, context?.previousEpisodeQueries ?? []);
+      restoreQueries(queryClient, context?.previousCountQueries ?? []);
     },
     onSuccess: async (_data, variables) => {
       await Promise.all([
@@ -85,7 +107,27 @@ export const useUpdateEpisodeInteraction = (tmdbId: number, seasonNumber: number
     }) => updateEpisodeInteraction(tmdbId, seasonNumber, episodeNumber, input),
     onMutate: async ({ episodeNumber, input }) => {
       const seasonDetailKey = serialKeys.seasonDetail(tmdbId, seasonNumber);
-      await queryClient.cancelQueries({ queryKey: seasonDetailKey });
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: seasonDetailKey }),
+        queryClient.cancelQueries({ queryKey: serialKeys.detailViewRoot(tmdbId) }),
+      ]);
+
+      const watched = input.watched;
+      const cachedEpisodes = queryClient.getQueryData<SerialSeasonDetailResponse>(seasonDetailKey)?.episodes;
+      const wasWatched = cachedEpisodes?.find((episode) => episode.episodeNumber === episodeNumber)?.viewerInteraction
+        ?.watched;
+      const previousCountQueries =
+        watched !== undefined && wasWatched !== watched
+          ? shiftWatchedCountsInDetailViewCache(
+              queryClient,
+              tmdbId,
+              seasonNumber,
+              (current) => current + (watched ? 1 : -1),
+              watched
+                ? { when: (current) => current === episodeNumber, next: firstUnwatchedAfter(cachedEpisodes, episodeNumber) }
+                : undefined,
+            )
+          : [];
 
       const previousEpisodeQueries = patchEpisodesInSeasonDetailCache(
         queryClient,
@@ -116,11 +158,12 @@ export const useUpdateEpisodeInteraction = (tmdbId: number, seasonNumber: number
         }
       }
 
-      return { previousEpisodeQueries, previousSeasonQueries };
+      return { previousEpisodeQueries, previousSeasonQueries, previousCountQueries };
     },
     onError: (_error, _variables, context) => {
       restoreQueries(queryClient, context?.previousEpisodeQueries ?? []);
       restoreQueries(queryClient, context?.previousSeasonQueries ?? []);
+      restoreQueries(queryClient, context?.previousCountQueries ?? []);
     },
     onSuccess: async () => {
       await Promise.all([
@@ -133,6 +176,71 @@ export const useUpdateEpisodeInteraction = (tmdbId: number, seasonNumber: number
         queryClient.invalidateQueries({
           queryKey: serialKeys.interaction(tmdbId),
         }),
+        invalidateViewerCurrentlyWatching(queryClient),
+        invalidateFollowingFeed(queryClient),
+      ]);
+    },
+  });
+};
+
+export const useMarkWatchedThrough = (tmdbId: number, seasonNumber: number) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    meta: { errorToast: "Couldn't mark those episodes watched" },
+    mutationFn: (episodeNumber: number) => markEpisodesWatchedThrough(tmdbId, seasonNumber, episodeNumber),
+    onMutate: async (episodeNumber) => {
+      const seasonDetailKey = serialKeys.seasonDetail(tmdbId, seasonNumber);
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: seasonDetailKey }),
+        queryClient.cancelQueries({ queryKey: serialKeys.detailViewRoot(tmdbId) }),
+      ]);
+      const cachedEpisodes = queryClient.getQueryData<SerialSeasonDetailResponse>(seasonDetailKey)?.episodes;
+      const newlyWatched = cachedEpisodes?.filter(
+        (episode) => episode.episodeNumber <= episodeNumber && !episode.viewerInteraction?.watched,
+      ).length;
+      const previousCountQueries = shiftWatchedCountsInDetailViewCache(
+        queryClient,
+        tmdbId,
+        seasonNumber,
+        (current) => (newlyWatched === undefined ? Math.max(current, episodeNumber) : current + newlyWatched),
+        { when: (current) => current <= episodeNumber, next: firstUnwatchedAfter(cachedEpisodes, episodeNumber) },
+      );
+      const previousEpisodeQueries = queryClient.getQueriesData<SerialSeasonDetailResponse>({
+        queryKey: seasonDetailKey,
+      });
+      queryClient.setQueriesData<SerialSeasonDetailResponse>({ queryKey: seasonDetailKey }, (old) =>
+        old
+          ? {
+              ...old,
+              episodes: old.episodes.map((episode) =>
+                episode.episodeNumber <= episodeNumber
+                  ? {
+                      ...episode,
+                      viewerInteraction: {
+                        liked: false,
+                        rating: null,
+                        hasReview: false,
+                        ...episode.viewerInteraction,
+                        watched: true,
+                      },
+                    }
+                  : episode,
+              ),
+            }
+          : old,
+      );
+      return { previousEpisodeQueries, previousCountQueries };
+    },
+    onError: (_error, _variables, context) => {
+      restoreQueries(queryClient, context?.previousEpisodeQueries ?? []);
+      restoreQueries(queryClient, context?.previousCountQueries ?? []);
+    },
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: serialKeys.seasonDetail(tmdbId, seasonNumber) }),
+        queryClient.invalidateQueries({ queryKey: serialKeys.detailViewRoot(tmdbId) }),
+        queryClient.invalidateQueries({ queryKey: serialKeys.interaction(tmdbId) }),
         invalidateViewerCurrentlyWatching(queryClient),
         invalidateFollowingFeed(queryClient),
       ]);

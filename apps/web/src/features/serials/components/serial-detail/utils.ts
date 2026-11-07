@@ -21,3 +21,18 @@ export const toYearFromDateLabel = (value: string | null): string => {
 
   return value.slice(0, 4);
 };
+
+type NextUp = { seasonNumber: number; episodeNumber: number } | null;
+
+const pad2 = (value: number) => String(value).padStart(2, "0");
+
+// "398/416 episodes · Next up S02E29", "416/416 episodes · Completed", or just the size before you start.
+export const toReelCounterLabel = (
+  watchedEpisodes: number,
+  totalEpisodes: number | null,
+  nextUp: NextUp,
+): string | null => {
+  if (watchedEpisodes === 0) return totalEpisodes ? `${totalEpisodes} episodes` : null;
+  const progress = nextUp ? `Next up S${pad2(nextUp.seasonNumber)}E${pad2(nextUp.episodeNumber)}` : "Completed";
+  return `${watchedEpisodes}/${totalEpisodes ?? "?"} episodes · ${progress}`;
+};

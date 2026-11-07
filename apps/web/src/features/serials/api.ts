@@ -16,6 +16,7 @@ export {
   updateSeriesInteraction,
   updateSeasonInteraction,
   updateEpisodeInteraction,
+  markEpisodesWatchedThrough,
   upsertSeasonReview,
   deleteSeasonReview,
   upsertEpisodeReview,

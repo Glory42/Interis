@@ -1,64 +1,41 @@
-import type { SerialDetailResponse } from "@/features/serials/api";
+import type { SerialDetailResponse, SerialDetailViewerTracking } from "@/features/serials/api";
 import { SeasonAccordionItem } from "@/features/serials/components/serial-detail/SeasonAccordionItem";
-import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
+import { SeasonsHeading } from "@/features/serials/components/serial-detail/SeasonsHeading";
 
 type SerialSeasonsSectionProps = {
-  tmdbId: number;
-  seasons: SerialDetailResponse["series"]["seasons"];
+  series: Pick<SerialDetailResponse["series"], "tmdbId" | "seasons" | "numberOfEpisodes">;
+  tracking: SerialDetailViewerTracking | null;
   resolvedOpenSeasonNumber: number | null;
   onToggleSeason: (seasonNumber: number) => void;
 };
 
 export const SerialSeasonsSection = ({
-  tmdbId,
-  seasons,
+  series,
+  tracking,
   resolvedOpenSeasonNumber,
   onToggleSeason,
-}: SerialSeasonsSectionProps) => {
-  return (
-    <section className="mt-10">
-      <div
-        className="mb-5 border-b pb-4"
-        style={{ borderColor: SERIAL_MODULE_STYLES.borderSoft }}
-      >
-        <h2
-          className="font-mono text-lg font-bold"
-          style={{ color: SERIAL_MODULE_STYLES.text }}
-        >
-          Seasons & Episodes
-        </h2>
-        <p
-          className="mt-1 font-mono text-[10px]"
-          style={{ color: SERIAL_MODULE_STYLES.faint }}
-        >
-          Expand a season to browse episode details.
-        </p>
-      </div>
+}: SerialSeasonsSectionProps) => (
+  <section className="mt-10">
+    <SeasonsHeading
+      watchedEpisodes={tracking?.watchedEpisodesCount ?? 0}
+      totalEpisodes={series.numberOfEpisodes}
+      nextUp={tracking?.currentEpisode ?? null}
+    />
 
-      {seasons.length === 0 ? (
-        <div
-          className="border p-4 font-mono text-xs"
-          style={{
-            borderColor: SERIAL_MODULE_STYLES.border,
-            color: SERIAL_MODULE_STYLES.muted,
-            background: SERIAL_MODULE_STYLES.panel,
-          }}
-        >
-          No season metadata available.
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {seasons.map((season) => (
-            <SeasonAccordionItem
-              key={`season-${season.id}`}
-              tmdbId={tmdbId}
-              season={season}
-              isOpen={resolvedOpenSeasonNumber === season.seasonNumber}
-              onToggle={() => onToggleSeason(season.seasonNumber)}
-            />
-          ))}
-        </div>
-      )}
-    </section>
-  );
-};
+    {series.seasons.length === 0 ? (
+      <p className="body-s py-4 text-muted-foreground">No season details yet.</p>
+    ) : (
+      <div className="divide-y divide-[color:var(--line)]">
+        {series.seasons.map((season) => (
+          <SeasonAccordionItem
+            key={`season-${season.id}`}
+            tmdbId={series.tmdbId}
+            season={season}
+            isOpen={resolvedOpenSeasonNumber === season.seasonNumber}
+            onToggle={() => onToggleSeason(season.seasonNumber)}
+          />
+        ))}
+      </div>
+    )}
+  </section>
+);

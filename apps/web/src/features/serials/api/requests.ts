@@ -283,3 +283,13 @@ export const updateEpisodeInteraction = async (
   );
   return response;
 };
+
+// "Mark up to here": episodes 1..episodeNumber of the season become watched.
+export const markEpisodesWatchedThrough = (
+  tmdbId: number,
+  seasonNumber: number,
+  episodeNumber: number,
+): Promise<{ seasonNumber: number; watchedThrough: number }> =>
+  apiRequest(`/api/serials/${tmdbId}/seasons/${seasonNumber}/watched-through/${episodeNumber}`, {
+    method: "POST",
+  });

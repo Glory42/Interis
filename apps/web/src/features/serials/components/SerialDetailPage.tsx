@@ -307,8 +307,8 @@ export const SerialDetailPage = ({ tmdbId }: SerialDetailPageProps) => {
         />
 
         <SerialSeasonsSection
-          tmdbId={series.tmdbId}
-          seasons={series.seasons}
+          series={series}
+          tracking={detail.viewerTracking}
           resolvedOpenSeasonNumber={resolvedOpenSeasonNumber}
           onToggleSeason={handleToggleSeason}
         />

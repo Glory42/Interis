@@ -2,15 +2,23 @@ import { z } from "zod";
 import { personLinkSchema } from "@/features/people/shared";
 import { serialGenreSchema, viewerInteractionSchema } from "./shared";
 
-const serialDetailSeasonSchema = z.object({
-  id: z.number().int().positive(),
-  seasonNumber: z.number().int(),
-  name: z.string(),
-  episodeCount: z.number().int().nullable(),
-  airDate: z.string().nullable(),
-  posterPath: z.string().nullable(),
-  viewerInteraction: viewerInteractionSchema,
-});
+// The API nests the watched-episode count in viewerInteraction; it's lifted
+// onto the season so guests simply read 0.
+const serialDetailSeasonSchema = z
+  .object({
+    id: z.number().int().positive(),
+    seasonNumber: z.number().int(),
+    name: z.string(),
+    episodeCount: z.number().int().nullable(),
+    airDate: z.string().nullable(),
+    posterPath: z.string().nullable(),
+    viewerInteraction: viewerInteractionSchema,
+    watchedEpisodeCount: z.number().int().nonnegative().optional(),
+  })
+  .transform(({ watchedEpisodeCount, ...season }) => ({
+    ...season,
+    watchedEpisodeCount: watchedEpisodeCount ?? season.viewerInteraction?.watchedEpisodeCount ?? 0,
+  }));
 
 const serialDetailSeriesSchema = z.object({
   // 0 = a series the API hasn't saved locally yet (read paths don't insert rows).

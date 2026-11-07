@@ -1,8 +1,11 @@
-import { ChevronDown, ChevronUp, Heart, MessageSquare } from "lucide-react";
+import { ChevronDown, Heart, PenLine } from "lucide-react";
 import type { SerialDetailResponse } from "@/features/serials/api";
+import { OutlinedRank } from "@/components/film/OutlinedRank";
+import { ReelCells } from "@/components/film/ReelCells";
 import { SERIAL_MODULE_STYLES } from "@/features/media/styles";
-import { toYearFromDateLabel } from "@/features/serials/components/serial-detail/utils";
 import { RatingSelect } from "@/features/serials/components/serial-detail/RatingSelect";
+import { WatchTick } from "@/features/serials/components/serial-detail/WatchTick";
+import { cn } from "@/lib/utils";
 
 type Season = SerialDetailResponse["series"]["seasons"][number];
 
@@ -17,6 +20,7 @@ type SeasonHeaderRowProps = {
   onOpenReview: () => void;
 };
 
+// One season = one reel: number, size, your score, and a cell per episode filled as you watch.
 export const SeasonHeaderRow = ({
   season,
   isOpen,
@@ -27,103 +31,79 @@ export const SeasonHeaderRow = ({
   onRatingChange,
   onOpenReview,
 }: SeasonHeaderRowProps) => {
-  const seasonWatched = season.viewerInteraction?.watched ?? false;
-  const seasonLiked = season.viewerInteraction?.liked ?? false;
-  const seasonRating = season.viewerInteraction?.rating ?? null;
-  const seasonHasReview = season.viewerInteraction?.hasReview ?? false;
+  const interaction = season.viewerInteraction;
+  const seasonName = season.name || `Season ${season.seasonNumber}`;
+  const episodeCount = season.episodeCount ?? 0;
+  const meta = [season.episodeCount !== null ? `${season.episodeCount} EP` : null, season.airDate?.slice(0, 4)]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
-    <button
-      type="button"
-      className="flex w-full items-center justify-between px-4 py-3 text-left"
-      onClick={onToggle}
-    >
-      <div className="flex flex-1 flex-wrap items-center justify-between gap-3 mr-4">
-        <div className="flex items-center gap-3">
-          <div
-            className="flex h-7 w-7 items-center justify-center rounded-full"
-            style={{ background: SERIAL_MODULE_STYLES.panelStrong }}
-          >
-            <span
-              className="font-mono text-[11px]"
-              style={{ color: SERIAL_MODULE_STYLES.accent }}
-            >
-              {season.seasonNumber}
+    <div className="py-3">
+      <div className="flex items-center gap-3">
+        {showInteractions && interaction ? (
+          <WatchTick label="Season watched" pressed={interaction.watched} onClick={onToggleWatched} />
+        ) : null}
+
+        <button
+          type="button"
+          aria-expanded={isOpen}
+          onClick={onToggle}
+          className="flex min-w-0 flex-1 items-center gap-3 text-left"
+        >
+          <OutlinedRank value={season.seasonNumber} />
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-semibold text-foreground">{seasonName}</span>
+            {meta ? <span className="mono-meta block uppercase text-muted-foreground">{meta}</span> : null}
+          </span>
+        </button>
+
+        <div className="flex shrink-0 items-center gap-3">
+          {episodeCount > 0 ? (
+            <span className="mono-meta" style={{ color: SERIAL_MODULE_STYLES.accent }}>
+              {`${season.watchedEpisodeCount}/${episodeCount}`}
             </span>
-          </div>
+          ) : null}
 
-          <div>
-            <p
-              className="font-mono text-xs font-bold"
-              style={{ color: SERIAL_MODULE_STYLES.text }}
-            >
-              {season.name || `Season ${season.seasonNumber}`}
-            </p>
-            <p
-              className="font-mono text-[10px]"
-              style={{ color: SERIAL_MODULE_STYLES.muted }}
-            >
-              {season.episodeCount ?? "?"} episodes ·{" "}
-              {toYearFromDateLabel(season.airDate)}
-            </p>
-          </div>
+          {showInteractions && interaction ? (
+            <>
+              <RatingSelect value={interaction.rating} onChange={onRatingChange} size="season" />
+              <button
+                type="button"
+                aria-label="Like season"
+                aria-pressed={interaction.liked}
+                onClick={onToggleLiked}
+                className={cn(
+                  "transition-colors",
+                  interaction.liked ? "text-[color:var(--like)]" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <Heart aria-hidden className="size-4" fill={interaction.liked ? "currentColor" : "none"} />
+              </button>
+              <button
+                type="button"
+                aria-label="Review season"
+                onClick={onOpenReview}
+                className="mono-meta inline-flex items-center gap-1 uppercase"
+                style={{ color: interaction.hasReview ? SERIAL_MODULE_STYLES.accent : "var(--muted-foreground)" }}
+              >
+                <PenLine aria-hidden className="size-3" />
+                Review
+              </button>
+            </>
+          ) : null}
+
+          <ChevronDown
+            aria-hidden
+            onClick={onToggle}
+            className={cn("size-4 cursor-pointer text-muted-foreground transition-transform", isOpen && "rotate-180")}
+          />
         </div>
-
-        {showInteractions && season.viewerInteraction && (
-          <div className="flex flex-wrap items-center gap-2" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              onClick={onToggleWatched}
-              className="flex h-7 rounded-full px-2 items-center justify-center border font-mono text-[9px] uppercase font-bold transition-colors hover:bg-secondary/40"
-              style={{
-                borderColor: seasonWatched ? SERIAL_MODULE_STYLES.accent : SERIAL_MODULE_STYLES.borderSoft,
-                color: seasonWatched ? SERIAL_MODULE_STYLES.accent : SERIAL_MODULE_STYLES.muted,
-                background: seasonWatched ? "color-mix(in srgb, var(--module-serial) 12%, transparent)" : "transparent",
-              }}
-              title="Mark Season as Watched"
-            >
-              {seasonWatched ? "Watched" : "Unwatched"}
-            </button>
-
-            <button
-              type="button"
-              onClick={onToggleLiked}
-              className="flex h-7 w-7 items-center justify-center rounded-full border transition-colors hover:bg-secondary/40"
-              style={{
-                borderColor: seasonLiked ? "#ef4444" : SERIAL_MODULE_STYLES.borderSoft,
-                color: seasonLiked ? "#ef4444" : SERIAL_MODULE_STYLES.muted,
-                background: seasonLiked ? "rgba(239, 68, 68, 0.1)" : "transparent",
-              }}
-              title="Like Season"
-            >
-              <Heart className="h-3 w-3" fill={seasonLiked ? "#ef4444" : "none"} />
-            </button>
-
-            <RatingSelect value={seasonRating} onChange={onRatingChange} size="season" />
-
-            <button
-              type="button"
-              onClick={onOpenReview}
-              className="flex h-7 rounded-full px-2 items-center gap-1 border font-mono text-[9px] uppercase font-bold transition-colors hover:bg-secondary/40"
-              style={{
-                borderColor: seasonHasReview ? SERIAL_MODULE_STYLES.accent : SERIAL_MODULE_STYLES.borderSoft,
-                color: seasonHasReview ? SERIAL_MODULE_STYLES.accent : SERIAL_MODULE_STYLES.muted,
-                background: seasonHasReview ? "color-mix(in srgb, var(--module-serial) 12%, transparent)" : "transparent",
-              }}
-              title="Review Season"
-            >
-              <MessageSquare className="h-2.5 w-2.5" />
-              <span>Review</span>
-            </button>
-          </div>
-        )}
       </div>
 
-      {isOpen ? (
-        <ChevronUp className="h-4 w-4" style={{ color: SERIAL_MODULE_STYLES.accent }} />
-      ) : (
-        <ChevronDown className="h-4 w-4" style={{ color: SERIAL_MODULE_STYLES.accent }} />
-      )}
-    </button>
+      {episodeCount > 0 ? (
+        <ReelCells total={episodeCount} watched={season.watchedEpisodeCount} className="mt-2 ml-[46px]" />
+      ) : null}
+    </div>
   );
 };
