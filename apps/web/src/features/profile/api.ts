@@ -3,7 +3,7 @@ import { apiRequest, type QueryRequestOptions } from "@/lib/api-client";
 import { groupedFeedEntrySchema, type GroupedFeedEntry } from "@/features/feed/types";
 import {
   mediaTypeSchema,
-  movieGenreSchema,
+  filmGenreSchema,
   publicTop4ResponseSchema,
   profileUpdateResponseSchema,
   publicProfileSchema,
@@ -40,21 +40,21 @@ const userReviewSchema = z
 
 const userReviewListSchema = z.array(userReviewSchema);
 
-const userInteractionMovieSchema = z
+const userInteractionFilmSchema = z
   .object({
     tmdbId: z.number().int(),
     title: z.string(),
     posterPath: z.string().nullable(),
     releaseYear: z.number().int().nullable(),
     runtime: z.number().int().nullable(),
-    genres: z.array(movieGenreSchema).nullish(),
+    genres: z.array(filmGenreSchema).nullish(),
     mediaType: mediaTypeSchema.default("movie"),
     lastInteractionAt: z.string(),
   })
   .passthrough();
 
 const userMediaShelfSchema = z.object({
-  items: z.array(userInteractionMovieSchema),
+  items: z.array(userInteractionFilmSchema),
   total: z.number().int().nonnegative(),
   counts: z.object({
     movie: z.number().int().nonnegative(),
@@ -101,7 +101,7 @@ const encodePathSegment = (value: string): string => {
 };
 
 export type UserReview = z.infer<typeof userReviewSchema>;
-export type UserInteractionMovie = z.infer<typeof userInteractionMovieSchema>;
+export type UserInteractionFilm = z.infer<typeof userInteractionFilmSchema>;
 export type UserTopPicks = PublicTop4Response;
 export type UserTopPickCategory = UserTopPicks["categories"][number];
 export type UserTopPickItem = UserTopPickCategory["items"][number];
@@ -144,7 +144,7 @@ export const getUserReviews = async (
   return userReviewListSchema.parse(response);
 };
 
-export const getUserLikedMovies = (
+export const getUserLikedFilms = (
   username: string,
   query: { type: UserMediaShelfType; limit: number; offset: number },
   options: QueryRequestOptions = {},

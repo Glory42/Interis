@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
-import { searchMovies } from "@/features/movies/api/requests";
-import { searchSeries } from "@/features/serials/api/requests";
+import { searchFilms } from "@/features/films/api/requests";
+import { searchSeries } from "@/features/tv/api/requests";
 import {
   addListItem,
   createList,
@@ -39,10 +39,10 @@ const invalidateListActivity = (queryClient: QueryClient, ownerUsername: string)
 const FORM_SEARCH_MIN_QUERY_LENGTH = 2;
 const FORM_SEARCH_STALE_TIME_MS = 30_000;
 
-export const useListFormSearchMovies = (query: string) =>
+export const useListFormSearchFilms = (query: string) =>
   useQuery({
     queryKey: listKeys.formSearch("movies", query),
-    queryFn: ({ signal }) => searchMovies(query, { signal }),
+    queryFn: ({ signal }) => searchFilms(query, { signal }),
     enabled: query.trim().length >= FORM_SEARCH_MIN_QUERY_LENGTH,
     staleTime: FORM_SEARCH_STALE_TIME_MS,
   });

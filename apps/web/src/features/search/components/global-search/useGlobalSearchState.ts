@@ -5,16 +5,16 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { useMovieSearch } from "@/features/movies/hooks/useMovies";
+import { useFilmSearch } from "@/features/films/hooks/useFilms";
 import { useUserSearch } from "@/features/profile/hooks/useProfile";
 import { useTitleSearch } from "@/features/search/hooks/useSearch";
-import { useSerialSearch } from "@/features/serials/hooks/useSerials";
+import { useSeriesSearch } from "@/features/tv/hooks/useTv";
 import {
   MAX_RESULTS_PER_SECTION,
   MIN_QUERY_LENGTH,
   SECTION_LABEL,
 } from "./constants";
-import { toMovieEntry, toSerialEntry, toTitleEntry, toUserEntry } from "./mappers";
+import { toFilmEntry, toSeriesEntry, toTitleEntry, toUserEntry } from "./mappers";
 import type {
   ScopedTarget,
   SearchMode,
@@ -76,8 +76,8 @@ export const useGlobalSearchState = (): GlobalSearchState => {
     shouldRunSearch && !isScopedMode ? deferredQuery : "";
 
   const usersQuery = useUserSearch(usersQueryValue, MAX_RESULTS_PER_SECTION);
-  const movieQuery = useMovieSearch(movieQueryValue);
-  const serialsQuery = useSerialSearch(serialsQueryValue);
+  const movieQuery = useFilmSearch(movieQueryValue);
+  const serialsQuery = useSeriesSearch(serialsQueryValue);
   const titlesQuery = useTitleSearch(titlesQueryValue);
 
   const userEntries = useMemo(() => {
@@ -85,11 +85,11 @@ export const useGlobalSearchState = (): GlobalSearchState => {
   }, [usersQuery.data]);
 
   const movieEntries = useMemo(() => {
-    return (movieQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toMovieEntry);
+    return (movieQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toFilmEntry);
   }, [movieQuery.data]);
 
   const serialEntries = useMemo(() => {
-    return (serialsQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toSerialEntry);
+    return (serialsQuery.data ?? []).slice(0, MAX_RESULTS_PER_SECTION).map(toSeriesEntry);
   }, [serialsQuery.data]);
 
   // Films and TV get their own sections, ordered by whichever TMDB ranked first.

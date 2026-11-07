@@ -5,7 +5,7 @@ import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { server } from "../../../support/msw/server";
 import { authKeys } from "@/features/auth/hooks/useAuth";
-import { movieKeys } from "@/features/movies/hooks/useMovies";
+import { filmKeys } from "@/features/films/hooks/useFilms";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import { useDeleteReview } from "@/features/reviews/hooks/useDeleteReview";
 
@@ -33,7 +33,7 @@ describe("useDeleteReview", () => {
     for (const key of [
       profileKeys.reviews("cinefan"),
       profileKeys.diary("cinefan"),
-      movieKeys.detailViewRoot(550),
+      filmKeys.detailViewRoot(550),
     ]) {
       expect(invalidatedKeys).toContainEqual(key);
     }

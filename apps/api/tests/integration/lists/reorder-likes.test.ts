@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
-import { seedTestMovie } from "../../support/factories/media.factory";
+import { seedTestFilm } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -41,8 +41,8 @@ describe("list reorder + likes", () => {
     );
     const list = (await listResponse.json()) as { id: string };
 
-    const movieA = await seedTestMovie("A");
-    const movieB = await seedTestMovie("B");
+    const movieA = await seedTestFilm("A");
+    const movieB = await seedTestFilm("B");
 
     const addEntry = async (tmdbId: number) => {
       const response = await apiRequest(

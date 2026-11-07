@@ -2,9 +2,9 @@ import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
 import { user } from "../../../infrastructure/database/auth.entity";
-import { movies } from "../../movies/movies.entity";
-import { movieInteractions } from "../../interactions/interactions.entity";
-import { serialInteractions, tvSeries } from "../../serials/serials.entity";
+import { films } from "../../films/films.entity";
+import { filmInteractions } from "../../interactions/interactions.entity";
+import { seriesInteractions, tvSeries } from "../../tv/tv.entity";
 import { listEntries, lists } from "../lists.entity";
 
 export class ListsReadRepository {
@@ -61,10 +61,10 @@ export class ListsReadRepository {
         listId: listEntries.listId,
         position: listEntries.position,
         itemType: listEntries.itemType,
-        posterPath: sql<string | null>`COALESCE(${movies.posterPath}, ${tvSeries.posterPath})`,
+        posterPath: sql<string | null>`COALESCE(${films.posterPath}, ${tvSeries.posterPath})`,
       })
       .from(listEntries)
-      .leftJoin(movies, eq(listEntries.movieId, movies.id))
+      .leftJoin(films, eq(listEntries.movieId, films.id))
       .leftJoin(tvSeries, eq(listEntries.tvSeriesId, tvSeries.id))
       .where(inArray(listEntries.listId, listIds))
       .orderBy(asc(listEntries.listId), asc(listEntries.position));
@@ -78,34 +78,34 @@ export class ListsReadRepository {
         position: listEntries.position,
         itemType: listEntries.itemType,
         note: listEntries.note,
-        movieTmdbId: movies.tmdbId,
-        movieTitle: movies.title,
-        moviePosterPath: movies.posterPath,
-        movieReleaseYear: movies.releaseYear,
-        movieDirector: movies.director,
-        movieOwnerRating: movieInteractions.rating,
+        movieTmdbId: films.tmdbId,
+        movieTitle: films.title,
+        moviePosterPath: films.posterPath,
+        movieReleaseYear: films.releaseYear,
+        movieDirector: films.director,
+        movieOwnerRating: filmInteractions.rating,
         serialTmdbId: tvSeries.tmdbId,
         serialTitle: tvSeries.title,
         serialPosterPath: tvSeries.posterPath,
         serialFirstAirYear: tvSeries.firstAirYear,
         serialCreator: tvSeries.creator,
-        serialOwnerRating: serialInteractions.rating,
+        serialOwnerRating: seriesInteractions.rating,
       })
       .from(listEntries)
-      .leftJoin(movies, eq(listEntries.movieId, movies.id))
+      .leftJoin(films, eq(listEntries.movieId, films.id))
       .leftJoin(tvSeries, eq(listEntries.tvSeriesId, tvSeries.id))
       .leftJoin(
-        movieInteractions,
+        filmInteractions,
         and(
-          eq(movieInteractions.movieId, listEntries.movieId),
-          eq(movieInteractions.userId, ownerId),
+          eq(filmInteractions.movieId, listEntries.movieId),
+          eq(filmInteractions.userId, ownerId),
         ),
       )
       .leftJoin(
-        serialInteractions,
+        seriesInteractions,
         and(
-          eq(serialInteractions.seriesId, listEntries.tvSeriesId),
-          eq(serialInteractions.userId, ownerId),
+          eq(seriesInteractions.seriesId, listEntries.tvSeriesId),
+          eq(seriesInteractions.userId, ownerId),
         ),
       )
       .where(eq(listEntries.listId, listId))

@@ -4,8 +4,8 @@ import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { diaryEntries } from "../../diary/diary.entity";
 import { comments, reviewLikes, reviews } from "../../reviews/reviews.entity";
-import { serialDiaryEntries, serialSeasonInteractions, serialEpisodeInteractions, tvSeries } from "../../serials/serials.entity";
-import { movies } from "../../movies/movies.entity";
+import { seriesDiaryEntries, seriesSeasonInteractions, seriesEpisodeInteractions, tvSeries } from "../../tv/tv.entity";
+import { films } from "../../films/films.entity";
 import { profiles } from "../users.entity";
 import {
   TV_EPISODE_REVIEW_TYPE,
@@ -99,15 +99,15 @@ export class UsersReviewsRepository {
         reviewRow.movieId !== null
           ? db
               .select({
-                tmdbId: movies.tmdbId,
-                title: movies.title,
-                posterPath: movies.posterPath,
-                releaseYear: movies.releaseYear,
-                genres: movies.genres,
-                director: movies.director,
+                tmdbId: films.tmdbId,
+                title: films.title,
+                posterPath: films.posterPath,
+                releaseYear: films.releaseYear,
+                genres: films.genres,
+                director: films.director,
               })
-              .from(movies)
-              .where(eq(movies.id, reviewRow.movieId))
+              .from(films)
+              .where(eq(films.id, reviewRow.movieId))
               .limit(1)
           : Promise.resolve([]),
         reviewRow.diaryEntryId
@@ -171,9 +171,9 @@ export class UsersReviewsRepository {
           .limit(1),
         reviewRow.diaryEntryId
           ? db
-              .select({ rating: serialDiaryEntries.rating })
-              .from(serialDiaryEntries)
-              .where(eq(serialDiaryEntries.id, reviewRow.diaryEntryId))
+              .select({ rating: seriesDiaryEntries.rating })
+              .from(seriesDiaryEntries)
+              .where(eq(seriesDiaryEntries.id, reviewRow.diaryEntryId))
               .limit(1)
           : Promise.resolve([]),
       ]);
@@ -228,27 +228,27 @@ export class UsersReviewsRepository {
           .limit(1),
         episodeNumber !== null
           ? db
-              .select({ rating: serialEpisodeInteractions.rating })
-              .from(serialEpisodeInteractions)
-              .innerJoin(tvSeries, eq(serialEpisodeInteractions.seriesId, tvSeries.id))
+              .select({ rating: seriesEpisodeInteractions.rating })
+              .from(seriesEpisodeInteractions)
+              .innerJoin(tvSeries, eq(seriesEpisodeInteractions.seriesId, tvSeries.id))
               .where(
                 and(
-                  eq(serialEpisodeInteractions.userId, reviewRow.authorId),
+                  eq(seriesEpisodeInteractions.userId, reviewRow.authorId),
                   eq(tvSeries.tmdbId, seriesTmdbId),
-                  eq(serialEpisodeInteractions.seasonNumber, seasonNumber),
-                  eq(serialEpisodeInteractions.episodeNumber, episodeNumber),
+                  eq(seriesEpisodeInteractions.seasonNumber, seasonNumber),
+                  eq(seriesEpisodeInteractions.episodeNumber, episodeNumber),
                 ),
               )
               .limit(1)
           : db
-              .select({ rating: serialSeasonInteractions.rating })
-              .from(serialSeasonInteractions)
-              .innerJoin(tvSeries, eq(serialSeasonInteractions.seriesId, tvSeries.id))
+              .select({ rating: seriesSeasonInteractions.rating })
+              .from(seriesSeasonInteractions)
+              .innerJoin(tvSeries, eq(seriesSeasonInteractions.seriesId, tvSeries.id))
               .where(
                 and(
-                  eq(serialSeasonInteractions.userId, reviewRow.authorId),
+                  eq(seriesSeasonInteractions.userId, reviewRow.authorId),
                   eq(tvSeries.tmdbId, seriesTmdbId),
-                  eq(serialSeasonInteractions.seasonNumber, seasonNumber),
+                  eq(seriesSeasonInteractions.seasonNumber, seasonNumber),
                 ),
               )
               .limit(1),

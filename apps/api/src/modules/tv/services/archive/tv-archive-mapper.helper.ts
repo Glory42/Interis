@@ -1,0 +1,123 @@
+import type {
+  TMDBDiscoverSeries,
+  TMDBSeriesGenre,
+} from "../../../../infrastructure/tmdb/tv";
+import {
+  normalizeSeriesGenres,
+  toFirstAirDate,
+  toFirstAirYear,
+} from "../../helpers/tv-format.helper";
+import { toTmdbRatingOutOfTen } from "../../helpers/tv-normalization.helper";
+import { TvArchiveRepository } from "../../repositories/tv-archive.repository";
+import type {
+  SeriesArchiveItem,
+  SeriesGenre,
+} from "../../types/tv.types";
+
+type LocalArchiveRow = Awaited<
+  ReturnType<typeof TvArchiveRepository.getLocalArchiveRows>
+>[number];
+
+type LocalArchiveAggregateRow = Awaited<
+  ReturnType<typeof TvArchiveRepository.getLocalArchiveAggregateRowsByTmdbIds>
+>[number];
+
+export const toArchiveItemFromLocalRow = (row: LocalArchiveRow): SeriesArchiveItem => {
+  const genres = normalizeSeriesGenres(row.genres);
+
+  return {
+    tmdbId: row.tmdbId,
+    title: row.title,
+    posterPath: row.posterPath,
+    backdropPath: row.backdropPath,
+    firstAirDate: row.firstAirDate,
+    firstAirYear: row.firstAirYear,
+    creator: row.creator,
+    network: row.network,
+    languageCode: row.languageCode,
+    genres,
+    primaryGenre: genres[0]?.name ?? null,
+    logCount: row.logCount,
+    avgRatingOutOfTen: row.avgRatingOutOfTen,
+    tmdbRatingOutOfTen: null,
+    tmdbVoteCount: null,
+    ratedLogCount: row.ratedLogCount,
+    numberOfEpisodes: row.numberOfEpisodes,
+    viewerHasLogged: false,
+    viewerWatchlisted: false,
+    viewerFullyWatched: false,
+    viewerHasProgress: false,
+  };
+};
+
+export const getLocalArchiveAggregatesByTmdbIds = async (
+  tmdbIds: number[],
+): Promise<Map<number, LocalArchiveAggregateRow & { genres: SeriesGenre[] }>> => {
+  const rows = await TvArchiveRepository.getLocalArchiveAggregateRowsByTmdbIds(tmdbIds);
+
+  return new Map(
+    rows.map((row) => [
+      row.tmdbId,
+      {
+        ...row,
+        genres: normalizeSeriesGenres(row.genres),
+      },
+    ]),
+  );
+};
+
+export const mapTmdbArchiveSeries = (
+  tmdbSeries: TMDBDiscoverSeries,
+  genreById: Map<number, TMDBSeriesGenre>,
+  localAggregate: (LocalArchiveAggregateRow & { genres: SeriesGenre[] }) | undefined,
+): SeriesArchiveItem => {
+  const firstAirDate = localAggregate?.firstAirDate ?? toFirstAirDate(tmdbSeries.first_air_date);
+  const firstAirYear = localAggregate?.firstAirYear ?? toFirstAirYear(firstAirDate);
+
+  const genresFromTmdb = tmdbSeries.genre_ids
+    .map((genreId) => {
+      const genre = genreById.get(genreId);
+      if (!genre) {
+        return null;
+      }
+
+      return {
+        id: genre.id,
+        name: genre.name,
+      };
+    })
+    .filter((genre): genre is SeriesGenre => genre !== null);
+
+  const genres =
+    genresFromTmdb.length > 0 ? genresFromTmdb : (localAggregate?.genres ?? []);
+
+  return {
+    tmdbId: tmdbSeries.id,
+    title: tmdbSeries.name,
+    posterPath: tmdbSeries.poster_path,
+    backdropPath: tmdbSeries.backdrop_path,
+    firstAirDate,
+    firstAirYear,
+    creator: localAggregate?.creator ?? null,
+    network: localAggregate?.network ?? null,
+    languageCode:
+      tmdbSeries.original_language.trim().length > 0
+        ? tmdbSeries.original_language.toLowerCase()
+        : (localAggregate?.languageCode ?? null),
+    genres,
+    primaryGenre: genres[0]?.name ?? null,
+    logCount: localAggregate?.logCount ?? 0,
+    avgRatingOutOfTen: localAggregate?.avgRatingOutOfTen ?? null,
+    tmdbRatingOutOfTen: toTmdbRatingOutOfTen({
+      voteAverage: tmdbSeries.vote_average,
+      voteCount: tmdbSeries.vote_count,
+    }),
+    tmdbVoteCount: tmdbSeries.vote_count,
+    ratedLogCount: localAggregate?.ratedLogCount ?? 0,
+    numberOfEpisodes: localAggregate?.numberOfEpisodes ?? null,
+    viewerHasLogged: false,
+    viewerWatchlisted: false,
+    viewerFullyWatched: false,
+    viewerHasProgress: false,
+  };
+};

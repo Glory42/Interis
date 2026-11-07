@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
-import { seedTestMovie } from "../../support/factories/media.factory";
+import { seedTestFilm } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -60,9 +60,9 @@ describe("diary", () => {
     it("bounds the list with limit/offset instead of returning everything", async () => {
       const { jar } = await signUpTestUser(getServer().baseUrl, "dpage");
       const movies = await Promise.all([
-        seedTestMovie("Diary Page Movie 1"),
-        seedTestMovie("Diary Page Movie 2"),
-        seedTestMovie("Diary Page Movie 3"),
+        seedTestFilm("Diary Page Movie 1"),
+        seedTestFilm("Diary Page Movie 2"),
+        seedTestFilm("Diary Page Movie 3"),
       ]);
       await createEntry(jar, movies[0]!.tmdbId, { watchedDate: "2026-01-01" });
       await createEntry(jar, movies[1]!.tmdbId, { watchedDate: "2026-01-02" });
@@ -89,7 +89,7 @@ describe("diary", () => {
 
     it("falls back to the default bound on an out-of-range limit instead of erroring", async () => {
       const { jar } = await signUpTestUser(getServer().baseUrl, "dbadlimit");
-      const movie = await seedTestMovie("Diary Bad Limit Movie");
+      const movie = await seedTestFilm("Diary Bad Limit Movie");
       await createEntry(jar, movie.tmdbId);
 
       // DiaryQuerySchema caps limit at 2000 — an out-of-range value should
@@ -109,7 +109,7 @@ describe("diary", () => {
 
   describe("POST /api/diary (create)", () => {
     it("requires auth", async () => {
-      const movie = await seedTestMovie();
+      const movie = await seedTestFilm();
       const response = await apiRequest(getServer().baseUrl, "/api/diary", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -120,14 +120,14 @@ describe("diary", () => {
 
     it("rejects an invalid rating step", async () => {
       const { jar } = await signUpTestUser(getServer().baseUrl, "dcbadrate");
-      const movie = await seedTestMovie();
+      const movie = await seedTestFilm();
       const { response } = await createEntry(jar, movie.tmdbId, { rating: 3.3 });
       expect(response.status).toBe(400);
     });
 
     it("creates an entry, marks the movie watched, and links an inline review", async () => {
       const { jar } = await signUpTestUser(getServer().baseUrl, "dccreate");
-      const movie = await seedTestMovie("Diary Create Movie");
+      const movie = await seedTestFilm("Diary Create Movie");
 
       const { response, body } = await createEntry(jar, movie.tmdbId, {
         rating: 8.5,
@@ -154,7 +154,7 @@ describe("diary", () => {
 
     it("does not create a review when no review text is provided", async () => {
       const { jar } = await signUpTestUser(getServer().baseUrl, "dcnoreview");
-      const movie = await seedTestMovie("Diary No Review Movie");
+      const movie = await seedTestFilm("Diary No Review Movie");
 
       const { body } = await createEntry(jar, movie.tmdbId);
       expect(body.review).toBeNull();
@@ -165,7 +165,7 @@ describe("diary", () => {
     it("hides existence of another user's entry on update/delete (404, not 403)", async () => {
       const owner = await signUpTestUser(getServer().baseUrl, "downer1");
       const intruder = await signUpTestUser(getServer().baseUrl, "dintr1");
-      const movie = await seedTestMovie();
+      const movie = await seedTestFilm();
       const { body } = await createEntry(owner.jar, movie.tmdbId);
 
       const forbiddenUpdate = await apiRequest(
@@ -191,7 +191,7 @@ describe("diary", () => {
 
     it("allows the owner to update and delete their entry", async () => {
       const { jar } = await signUpTestUser(getServer().baseUrl, "downer2");
-      const movie = await seedTestMovie();
+      const movie = await seedTestFilm();
       const { body } = await createEntry(jar, movie.tmdbId, { rating: 6 });
 
       const updateResponse = await apiRequest(

@@ -9,8 +9,8 @@ import { useCreateDiaryEntry } from "@/features/diary/hooks/useDiary";
 import { interactionKeys } from "@/features/interactions/hooks/useInteractions";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import { profileStatsKeys } from "@/features/profile/hooks/useProfileStats";
-import { serialKeys } from "@/features/serials/hooks/serials/query-keys";
-import { useCreateSeriesLog } from "@/features/serials/hooks/useSerials";
+import { seriesKeys } from "@/features/tv/hooks/tv/query-keys";
+import { useCreateSeriesLog } from "@/features/tv/hooks/useTv";
 
 // A rated log sets "Your rating" and logging marks the title watched, so
 // both log hooks refetch the viewer's interaction (#91). A movie log also
@@ -25,7 +25,7 @@ const setup = () => {
   return { queryClient, wrapper, invalidatedKeys };
 };
 
-const mockMovieLogResponse = () =>
+const mockFilmLogResponse = () =>
   server.use(
     http.post("*/api/diary", () =>
       HttpResponse.json({
@@ -59,7 +59,7 @@ const mockMovieLogResponse = () =>
 
 describe("logging refreshes what it changes", () => {
   it("refetches the movie interaction after a movie log", async () => {
-    mockMovieLogResponse();
+    mockFilmLogResponse();
     const { wrapper, invalidatedKeys } = setup();
 
     const { result } = renderHook(() => useCreateDiaryEntry(), { wrapper });
@@ -76,11 +76,11 @@ describe("logging refreshes what it changes", () => {
     const { result } = renderHook(() => useCreateSeriesLog(1399), { wrapper });
     await act(() => result.current.mutateAsync({ watchedDate: "2026-03-01", rating: 8 }));
 
-    expect(invalidatedKeys()).toContainEqual(serialKeys.interaction(1399));
+    expect(invalidatedKeys()).toContainEqual(seriesKeys.interaction(1399));
   });
 
   it("refreshes the viewer's diary, watchlist and stats after a movie log", async () => {
-    mockMovieLogResponse();
+    mockFilmLogResponse();
     const { queryClient, wrapper, invalidatedKeys } = setup();
     queryClient.setQueryData(authKeys.me, { username: "cinefan" });
 

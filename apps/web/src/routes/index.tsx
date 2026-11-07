@@ -3,10 +3,10 @@ import { authQueryOptions, useAuth } from "@/features/auth/hooks/useAuth";
 import { HomePage } from "@/features/feed/pages/HomePage";
 import {
   groupedFeedInfiniteQueryOptions,
-  trendingMoviesQueryOptions,
+  trendingFilmsQueryOptions,
 } from "@/features/feed/hooks/useFeed";
 import { LandingPage } from "@/features/landing/pages/LandingPage";
-import { trendingSeriesQueryOptions } from "@/features/serials/hooks/useSerials";
+import { trendingSeriesQueryOptions } from "@/features/tv/hooks/useTv";
 import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
 
 export const Route = createFileRoute("/")({
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/")({
     const user = await context.queryClient.fetchQuery(authQueryOptions).catch(() => null);
 
     // Limits must match what HomePage (6) / LandingPage (9) actually read.
-    void context.queryClient.prefetchQuery(trendingMoviesQueryOptions(user ? 6 : 9));
+    void context.queryClient.prefetchQuery(trendingFilmsQueryOptions(user ? 6 : 9));
     void context.queryClient.prefetchQuery(trendingSeriesQueryOptions());
 
     if (!user) {

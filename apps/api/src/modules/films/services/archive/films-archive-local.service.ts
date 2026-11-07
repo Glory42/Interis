@@ -1,0 +1,192 @@
+import { createTtlCache } from "../../../../infrastructure/cache/ttl-cache.helper";
+import { getFilmDirector } from "../../../../infrastructure/tmdb/films";
+import {
+  normalizeFilmGenres,
+  toFeaturedFilm,
+} from "../../helpers/films-format.helper";
+import { FilmsRepository } from "../../repositories/films.repository";
+import type {
+  FilmArchiveItem,
+  FilmArchiveResponse,
+} from "../../types/films.types";
+import { getTmdbSignalsByTmdbIds } from "./films-archive-signal.service";
+import {
+  getArchivePeriodWindow,
+  isActivityWindowPeriod,
+  isFilmInArchivePeriod,
+  sortLocalArchiveItems,
+  toAvailableGenresFromItems,
+} from "./films-archive-shared.helper";
+import type { FilmsArchiveQueryInput } from "./films-archive.types";
+
+const LOCAL_ARCHIVE_CACHE_TTL_MS = 2 * 60 * 1000;
+
+// Caches the full unbounded catalog scan so concurrent browsing shares one DB read.
+const getCachedLocalArchiveRows = createTtlCache(
+  (dateRange?: { watchedDateGte: string; watchedDateLte: string }) =>
+    FilmsRepository.getLocalArchiveRows(dateRange),
+  {
+    ttlMs: LOCAL_ARCHIVE_CACHE_TTL_MS,
+    keyFn: (dateRange) =>
+      dateRange ? `${dateRange.watchedDateGte}:${dateRange.watchedDateLte}` : "all",
+  },
+);
+
+const addViewerArchiveState = async (
+  viewerUserId: string | null,
+  pageItems: FilmArchiveItem[],
+): Promise<FilmArchiveItem[]> => {
+  if (!viewerUserId || pageItems.length === 0) {
+    return pageItems;
+  }
+
+  const tmdbIds = pageItems.map((item) => item.tmdbId);
+  const [viewerLoggedTmdbIds, viewerWatchlistedTmdbIds] = await Promise.all([
+    FilmsRepository.getViewerLoggedTmdbIds(viewerUserId, tmdbIds),
+    FilmsRepository.getViewerWatchlistedTmdbIds(viewerUserId, tmdbIds),
+  ]);
+
+  const viewerLoggedTmdbIdSet = new Set<number>(viewerLoggedTmdbIds);
+  const viewerWatchlistedTmdbIdSet = new Set<number>(viewerWatchlistedTmdbIds);
+
+  return pageItems.map((item) => ({
+    ...item,
+    viewerHasLogged: viewerLoggedTmdbIdSet.has(item.tmdbId),
+    viewerWatchlisted: viewerWatchlistedTmdbIdSet.has(item.tmdbId),
+  }));
+};
+
+export const getArchiveFromLocalCatalog = async (
+  input: FilmsArchiveQueryInput,
+): Promise<FilmArchiveResponse> => {
+  const effectivePeriod =
+    input.sortBy === "trending" ? "all_time" : input.selectedPeriod;
+  const periodWindow = getArchivePeriodWindow(effectivePeriod);
+  const shouldFilterByActivityWindow =
+    isActivityWindowPeriod(effectivePeriod) &&
+    (input.sortBy === "logs_desc" || input.sortBy === "rating_user_desc");
+
+  const rows = await getCachedLocalArchiveRows(
+    shouldFilterByActivityWindow &&
+    periodWindow.releaseDateGte !== null &&
+    periodWindow.releaseDateLte !== null
+      ? { watchedDateGte: periodWindow.releaseDateGte, watchedDateLte: periodWindow.releaseDateLte }
+      : undefined,
+  );
+
+  const directorByTmdbId = new Map<number, string | null>(
+    rows.map((row) => [row.tmdbId, row.director]),
+  );
+
+  const missingDirectorRows = rows.filter((row) => !row.director).slice(0, 12);
+  if (missingDirectorRows.length > 0) {
+    await Promise.all(
+      missingDirectorRows.map(async (row) => {
+        const director = await getFilmDirector(row.tmdbId).catch(() => null);
+        if (!director) {
+          return;
+        }
+
+        directorByTmdbId.set(row.tmdbId, director);
+        // Patch the TTL-cached row too, so requests within the TTL don't repeat the UPDATE.
+        row.director = director;
+        await FilmsRepository.updateDirectorByTmdbId(row.tmdbId, director);
+      }),
+    );
+  }
+
+  const allItems: FilmArchiveItem[] = rows.map((row) => {
+    const genres = normalizeFilmGenres(row.genres);
+
+    return {
+      tmdbId: row.tmdbId,
+      title: row.title,
+      posterPath: row.posterPath,
+      backdropPath: row.backdropPath,
+      releaseDate: row.releaseDate,
+      releaseYear: row.releaseYear,
+      director: directorByTmdbId.get(row.tmdbId) ?? row.director,
+      languageCode: null,
+      genres,
+      primaryGenre: genres[0]?.name ?? null,
+      logCount: row.logCount,
+      avgRatingOutOfTen: row.avgRatingOutOfTen,
+      tmdbRatingOutOfTen: null,
+      tmdbVoteCount: null,
+      ratedLogCount: row.ratedLogCount,
+      viewerHasLogged: false,
+      viewerWatchlisted: false,
+    };
+  });
+
+  const shouldHydrateTmdbSignals =
+    input.selectedLanguage !== null || input.sortBy === "rating_tmdb_desc";
+
+  const tmdbSignalsByTmdbId = shouldHydrateTmdbSignals
+    ? await getTmdbSignalsByTmdbIds(allItems.map((item) => item.tmdbId))
+    : new Map<
+        number,
+        {
+          languageCode: string | null;
+          tmdbRatingOutOfTen: number | null;
+          tmdbVoteCount: number | null;
+        }
+      >();
+
+  const itemsWithSignals = shouldHydrateTmdbSignals
+    ? allItems.map((item) => {
+        const tmdbSignal = tmdbSignalsByTmdbId.get(item.tmdbId);
+
+        return {
+          ...item,
+          languageCode: tmdbSignal?.languageCode ?? null,
+          tmdbRatingOutOfTen: tmdbSignal?.tmdbRatingOutOfTen ?? null,
+          tmdbVoteCount: tmdbSignal?.tmdbVoteCount ?? null,
+        };
+      })
+    : allItems;
+
+  const periodFilteredItems = shouldFilterByActivityWindow
+    ? itemsWithSignals
+    : itemsWithSignals.filter((item) =>
+        isFilmInArchivePeriod(item, effectivePeriod, periodWindow),
+      );
+
+  const selectedGenreLower = input.selectedGenre?.toLowerCase() ?? null;
+  const genreFilteredItems = selectedGenreLower
+    ? periodFilteredItems.filter((item) =>
+        item.genres.some((genre) => genre.name.toLowerCase() === selectedGenreLower),
+      )
+    : periodFilteredItems;
+
+  const selectedLanguageLower = input.selectedLanguage?.toLowerCase() ?? null;
+  const filteredItems = selectedLanguageLower
+    ? genreFilteredItems.filter((item) => item.languageCode === selectedLanguageLower)
+    : genreFilteredItems;
+
+  const sortedItems = sortLocalArchiveItems(filteredItems, input.sortBy);
+
+  const startIndex = (input.page - 1) * input.limit;
+  const pageItems = sortedItems.slice(startIndex, startIndex + input.limit);
+  const pageItemsWithViewerState = await addViewerArchiveState(
+    input.viewerUserId,
+    pageItems,
+  );
+  const hasMore = startIndex + input.limit < sortedItems.length;
+
+  return {
+    totalCount: allItems.length,
+    filteredCount: sortedItems.length,
+    selectedGenre: input.selectedGenre,
+    selectedLanguage: input.selectedLanguage,
+    selectedSort: input.sortBy,
+    selectedPeriod: input.selectedPeriod,
+    featuredMovie: toFeaturedFilm(pageItemsWithViewerState),
+    availableGenres: toAvailableGenresFromItems(periodFilteredItems),
+    page: input.page,
+    limit: input.limit,
+    hasMore,
+    nextPage: hasMore ? input.page + 1 : null,
+    items: pageItemsWithViewerState,
+  };
+};

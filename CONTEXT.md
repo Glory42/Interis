@@ -1,6 +1,6 @@
 # Interis
 
-Interis is a social movie journal app. Users log watches, write reviews, follow each other, browse a movie/serial catalog, curate lists, and maintain public profiles.
+Interis is a social film journal app. Users log watches, write reviews, follow each other, browse a catalog of Films and TV, curate lists, and maintain public profiles.
 
 ## Language
 
@@ -17,16 +17,16 @@ _Avoid_: account settings
 ### Media catalog
 
 **Media**:
-The umbrella term for "Movie or Serial" — used where logic, UI, or storage is genuinely shared between the two (e.g. Interaction, rating, archive browsing, detail-page layout). Already the de facto term in code (`modules/media`, `modules/media-interactions`, `features/media-archive`); formalized here as the canonical name for cross-cutting Movie/Serial concepts going forward.
+The umbrella term for "Film or Series" — used where logic, UI, or storage is genuinely shared between the two (e.g. Interaction, rating, archive browsing, detail-page layout, TMDB image urls). Lives in `modules/media`, `modules/media-interactions` and `features/media`; anything Films and TV both use goes there, not into one side.
 _Avoid_: content, title (both too generic)
 
-**Movie**:
-A film, TMDB-sourced and cached locally (title, release year, director, runtime, genres) the first time any user references it — never bulk-imported. Canonical term across backend (`movies` table/module) and, as of the films/serials consolidation refactor, the frontend too — `features/films` and `/cinema/*` were renamed to `features/movies` and `/movies/*` to match. No redirect is kept from the old `/cinema`/`/films` URLs — they were removed outright rather than aliased.
-_Avoid_: film, cinema, title (title is ambiguous with the string field)
+**Film**:
+A film, TMDB-sourced and cached locally (title, release year, director, runtime, genres) the first time any user references it — never bulk-imported. The UI section is **Films**; code is `modules/films`, `features/films` and `Film*` names (ADR 0003). The wire keeps the older name: `/movies/:tmdbId` pages, `/api/movies`, the `movies` table, `movie_id` columns and `mediaType: "movie"`.
+_Avoid_: movie (in new code and copy), cinema, title (title is ambiguous with the string field)
 
-**Serial**:
-A TV series, TMDB-sourced and cached locally like Movie (title, season/episode counts, network, status). Stored as `tv_series`, named "serial" consistently across backend, routes, and UI.
-_Avoid_: TV series, show
+**Series**:
+One TV show, TMDB-sourced and cached locally like Film (title, season/episode counts, network, status). The UI section is **TV**; code is `modules/tv` and `features/tv`, with `Series*` for one show and `Tv*` for the section or module (ADR 0003). The wire keeps the older name: `/serials/:tmdbId` pages, `/api/serials`, the `tv_series` table, `serial_*` columns and `mediaType: "tv"`.
+_Avoid_: serial (in new code and copy), show in code names
 
 **Person**:
 A cast or crew member, TMDB-sourced and cached locally (name, known-for department, popularity). Content metadata, never an Interis account — distinct from User.

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
-import { seedTestMovie } from "../../support/factories/media.factory";
+import { seedTestFilm } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -317,7 +317,7 @@ describe("social feed and activity likes", () => {
     it("returns no more than the requested limit even when dedup would otherwise inflate the page", async () => {
       const viewer = await signUpTestUser(getServer().baseUrl, "sfdedupviewer");
       const followed = await signUpTestUser(getServer().baseUrl, "sfdedupfollowed");
-      const movie = await seedTestMovie("Feed Dedupe Movie");
+      const movie = await seedTestFilm("Feed Dedupe Movie");
 
       await apiRequest(
         getServer().baseUrl,

@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { Link } from "@tanstack/react-router";
 import { ReelCells } from "@/components/film/ReelCells";
-import { useUpdateEpisodeInteraction } from "@/features/serials/hooks/useSerials";
+import { useUpdateEpisodeInteraction } from "@/features/tv/hooks/useTv";
 import type { CurrentlyWatchingSeries } from "@/features/profile/api/schemas";
 import { getPosterUrl } from "@/features/media/tmdb-images";
 

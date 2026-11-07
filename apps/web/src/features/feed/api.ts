@@ -3,11 +3,11 @@ import {
   groupedFeedPageSchema,
   meFeedSummarySchema,
   networkStatsSchema,
-  trendingMovieListSchema,
+  trendingFilmListSchema,
   type GroupedFeedPage,
   type MeFeedSummary,
   type NetworkStats,
-  type TrendingMovie,
+  type TrendingFilm,
 } from "@/features/feed/types";
 import type { MediaType } from "@/types/api";
 
@@ -44,15 +44,15 @@ export const getGroupedFeed = async (
   return groupedFeedPageSchema.parse(response);
 };
 
-export const getTrendingMovies = async (
+export const getTrendingFilms = async (
   options: QueryRequestOptions & { limit?: number } = {},
-): Promise<TrendingMovie[]> => {
+): Promise<TrendingFilm[]> => {
   const response = await apiRequest<unknown>("/api/movies/trending", {
     method: "GET",
     signal: options.signal,
   });
 
-  return trendingMovieListSchema.parse(response).slice(0, options.limit ?? 3);
+  return trendingFilmListSchema.parse(response).slice(0, options.limit ?? 3);
 };
 
 export const getMyFeedSummary = async (

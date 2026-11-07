@@ -14,7 +14,7 @@ export const AdminMediaIdParamsSchema = z.object({
 
 export type AdminMediaIdParams = z.input<typeof AdminMediaIdParamsSchema>;
 
-export const AdminUpdateMovieSchema = z.object({
+export const AdminUpdateFilmSchema = z.object({
   title: z.string().trim().min(1).optional(),
   originalTitle: z.string().trim().nullable().optional(),
   overview: z.string().trim().nullable().optional(),
@@ -25,7 +25,7 @@ export const AdminUpdateMovieSchema = z.object({
   releaseYear: z.number().int().nullable().optional(),
 });
 
-export const AdminUpdateSerialSchema = z.object({
+export const AdminUpdateSeriesSchema = z.object({
   title: z.string().trim().min(1).optional(),
   originalTitle: z.string().trim().nullable().optional(),
   overview: z.string().trim().nullable().optional(),

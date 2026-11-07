@@ -2,8 +2,8 @@ import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
 import { user } from "../../../infrastructure/database/auth.entity";
-import { movies } from "../../movies/movies.entity";
-import { tvSeries } from "../../serials/serials.entity";
+import { films } from "../../films/films.entity";
+import { tvSeries } from "../../tv/tv.entity";
 import { reviews, reviewLikes } from "../../reviews/reviews.entity";
 import { lists, listLikes, listEntries } from "../../lists/lists.entity";
 import type { MediaType } from "../../media/constants/media-type.constant";
@@ -23,15 +23,15 @@ export class UsersLikesRepository {
         reviewerUserId: reviews.userId,
         reviewerUsername: user.username,
         reviewerDisplayUsername: user.displayUsername,
-        movieTitle: movies.title,
-        moviePosterPath: movies.posterPath,
-        movieTmdbId: movies.tmdbId,
-        movieReleaseYear: movies.releaseYear,
+        movieTitle: films.title,
+        moviePosterPath: films.posterPath,
+        movieTmdbId: films.tmdbId,
+        movieReleaseYear: films.releaseYear,
       })
       .from(reviewLikes)
       .innerJoin(reviews, eq(reviewLikes.reviewId, reviews.id))
       .innerJoin(user, eq(reviews.userId, user.id))
-      .leftJoin(movies, eq(reviews.movieId, movies.id))
+      .leftJoin(films, eq(reviews.movieId, films.id))
       .where(eq(reviewLikes.userId, userId))
       .orderBy(desc(reviewLikes.createdAt))
       .$dynamic();

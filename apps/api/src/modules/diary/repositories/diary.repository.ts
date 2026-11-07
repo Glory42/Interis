@@ -1,8 +1,8 @@
 import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
-import { movieInteractions } from "../../interactions/interactions.entity";
-import { movies } from "../../movies/movies.entity";
+import { filmInteractions } from "../../interactions/interactions.entity";
+import { films } from "../../films/films.entity";
 import { reviews } from "../../reviews/reviews.entity";
 import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
 import { diaryEntries } from "../diary.entity";
@@ -39,18 +39,18 @@ export class DiaryRepository {
         movieId: diaryEntries.movieId,
         createdAt: diaryEntries.createdAt,
         updatedAt: diaryEntries.updatedAt,
-        movieTmdbId: movies.tmdbId,
-        movieTitle: movies.title,
-        moviePosterPath: movies.posterPath,
-        movieReleaseYear: movies.releaseYear,
+        movieTmdbId: films.tmdbId,
+        movieTitle: films.title,
+        moviePosterPath: films.posterPath,
+        movieReleaseYear: films.releaseYear,
         reviewId: reviews.id,
         reviewContent: reviews.content,
         reviewContainsSpoilers: reviews.containsSpoilers,
         reviewCreatedAt: reviews.createdAt,
-        liked: sql<boolean>`coalesce(${movieInteractions.liked}, false)`,
+        liked: sql<boolean>`coalesce(${filmInteractions.liked}, false)`,
       })
       .from(diaryEntries)
-      .innerJoin(movies, eq(movies.id, diaryEntries.movieId))
+      .innerJoin(films, eq(films.id, diaryEntries.movieId))
       .leftJoin(
         reviews,
         // A log's review is the one written with it, not any review of the
@@ -58,10 +58,10 @@ export class DiaryRepository {
         and(eq(reviews.diaryEntryId, diaryEntries.id), eq(reviews.mediaType, "movie")),
       )
       .leftJoin(
-        movieInteractions,
+        filmInteractions,
         and(
-          eq(movieInteractions.userId, diaryEntries.userId),
-          eq(movieInteractions.movieId, diaryEntries.movieId),
+          eq(filmInteractions.userId, diaryEntries.userId),
+          eq(filmInteractions.movieId, diaryEntries.movieId),
         ),
       )
       .where(eq(diaryEntries.userId, userId))
@@ -81,17 +81,17 @@ export class DiaryRepository {
         movieId: diaryEntries.movieId,
         createdAt: diaryEntries.createdAt,
         updatedAt: diaryEntries.updatedAt,
-        movieTmdbId: movies.tmdbId,
-        movieTitle: movies.title,
-        moviePosterPath: movies.posterPath,
-        movieReleaseYear: movies.releaseYear,
+        movieTmdbId: films.tmdbId,
+        movieTitle: films.title,
+        moviePosterPath: films.posterPath,
+        movieReleaseYear: films.releaseYear,
         reviewId: reviews.id,
         reviewContent: reviews.content,
         reviewContainsSpoilers: reviews.containsSpoilers,
         reviewCreatedAt: reviews.createdAt,
       })
       .from(diaryEntries)
-      .innerJoin(movies, eq(movies.id, diaryEntries.movieId))
+      .innerJoin(films, eq(films.id, diaryEntries.movieId))
       .leftJoin(
         reviews,
         // A log's review is the one written with it, not any review of the
@@ -220,11 +220,11 @@ export class DiaryRepository {
         rating: diaryEntries.rating,
         rewatch: diaryEntries.rewatch,
         movieId: diaryEntries.movieId,
-        movieTitle: movies.title,
+        movieTitle: films.title,
         createdAt: diaryEntries.createdAt,
       })
       .from(diaryEntries)
-      .innerJoin(movies, eq(movies.id, diaryEntries.movieId))
+      .innerJoin(films, eq(films.id, diaryEntries.movieId))
       .innerJoin(user, eq(user.id, diaryEntries.userId))
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(diaryEntries.createdAt))

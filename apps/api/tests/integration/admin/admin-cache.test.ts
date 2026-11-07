@@ -4,10 +4,10 @@ import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
 import { promoteToAdmin } from "../../support/factories/admin.factory";
-import { seedTestMovie, seedTestSerial } from "../../support/factories/media.factory";
+import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
 import { db } from "../../../src/infrastructure/database/db";
-import { movies } from "../../../src/modules/movies/movies.entity";
+import { films } from "../../../src/modules/films/films.entity";
 
 type CacheSummary = {
   startedAt: string;
@@ -49,15 +49,15 @@ describe("admin cache tools", () => {
     return admin;
   };
   const summary = async (jar: CookieJar) => json<CacheSummary>(await send("/api/admin/cache", "GET", undefined, jar));
-  const movieExists = async (id: number) => (await db.select({ id: movies.id }).from(movies).where(eq(movies.id, id))).length === 1;
+  const movieExists = async (id: number) => (await db.select({ id: films.id }).from(films).where(eq(films.id, id))).length === 1;
 
   it("counts titles nothing references, and leaves referenced ones out", async () => {
     const admin = await makeAdmin("cchsum");
     const before = await summary(admin.jar);
 
-    await seedTestMovie("Nobody logged me");
-    await seedTestSerial("Nobody watched me");
-    const reviewed = await seedTestMovie("Someone reviewed me");
+    await seedTestFilm("Nobody logged me");
+    await seedTestSeries("Nobody watched me");
+    const reviewed = await seedTestFilm("Someone reviewed me");
     await send("/api/reviews", "POST", { tmdbId: reviewed.tmdbId, content: "Kept" }, admin.jar);
 
     const after = await summary(admin.jar);
@@ -70,8 +70,8 @@ describe("admin cache tools", () => {
 
   it("purges only unreferenced titles, and only with the admin's password", async () => {
     const admin = await makeAdmin("cchpurge");
-    const orphan = await seedTestMovie("Purge me");
-    const kept = await seedTestMovie("Keep me");
+    const orphan = await seedTestFilm("Purge me");
+    const kept = await seedTestFilm("Keep me");
     await send("/api/reviews", "POST", { tmdbId: kept.tmdbId, content: "Still here" }, admin.jar);
 
     expect((await send("/api/admin/cache/purge", "POST", {}, admin.jar)).status).toBe(401);
@@ -91,8 +91,8 @@ describe("admin cache tools", () => {
 
   it("refreshes the oldest cached titles first, at most 25", async () => {
     const admin = await makeAdmin("cchold");
-    const stale = await seedTestMovie("Cached long ago");
-    await db.update(movies).set({ cachedAt: new Date("1990-01-01T00:00:00Z") }).where(eq(movies.id, stale.id));
+    const stale = await seedTestFilm("Cached long ago");
+    await db.update(films).set({ cachedAt: new Date("1990-01-01T00:00:00Z") }).where(eq(films.id, stale.id));
 
     const response = await send("/api/admin/cache/refresh-oldest", "POST", { kind: "movie" }, admin.jar);
     expect(response.status).toBe(200);

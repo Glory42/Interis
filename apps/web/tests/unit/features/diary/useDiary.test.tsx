@@ -7,9 +7,9 @@ import { server } from "../../../support/msw/server";
 import { diaryKeys, useCreateDiaryEntry } from "@/features/diary/hooks/useDiary";
 import { authKeys } from "@/features/auth/hooks/useAuth";
 import { feedKeys } from "@/features/feed/hooks/useFeed";
-import { movieKeys } from "@/features/movies/hooks/useMovies";
+import { filmKeys } from "@/features/films/hooks/useFilms";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
-import type { MeProfile, MovieLog } from "@/types/api";
+import type { MeProfile, FilmLog } from "@/types/api";
 
 const createTestQueryClient = (): QueryClient =>
   new QueryClient({
@@ -73,7 +73,7 @@ describe("useCreateDiaryEntry", () => {
 
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(authKeys.me, me);
-    queryClient.setQueryData(movieKeys.logs(550), [] as MovieLog[]);
+    queryClient.setQueryData(filmKeys.logs(550), [] as FilmLog[]);
 
     const { result } = renderHook(() => useCreateDiaryEntry(), {
       wrapper: wrapperFor(queryClient),
@@ -82,7 +82,7 @@ describe("useCreateDiaryEntry", () => {
     result.current.mutate({ tmdbId: 550, watchedDate: "2026-01-15", rating: 8 });
 
     await waitFor(() => {
-      const logs = queryClient.getQueryData<MovieLog[]>(movieKeys.logs(550));
+      const logs = queryClient.getQueryData<FilmLog[]>(filmKeys.logs(550));
       expect(logs).toHaveLength(1);
       expect(logs?.[0]?.username).toBe("cinefan");
       expect(logs?.[0]?.rating).toBe(8);
@@ -95,7 +95,7 @@ describe("useCreateDiaryEntry", () => {
     server.use(http.post("*/api/diary", async () => successResponse()));
 
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(movieKeys.logs(550), [] as MovieLog[]);
+    queryClient.setQueryData(filmKeys.logs(550), [] as FilmLog[]);
 
     const { result } = renderHook(() => useCreateDiaryEntry(), {
       wrapper: wrapperFor(queryClient),
@@ -106,7 +106,7 @@ describe("useCreateDiaryEntry", () => {
     // Give onMutate a tick to run - the logs array must stay empty since
     // there's no `me` in cache to build an optimistic entry from.
     await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
-    expect(queryClient.getQueryData<MovieLog[]>(movieKeys.logs(550))).toEqual([]);
+    expect(queryClient.getQueryData<FilmLog[]>(filmKeys.logs(550))).toEqual([]);
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
   });
@@ -118,7 +118,7 @@ describe("useCreateDiaryEntry", () => {
 
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(authKeys.me, me);
-    const existingLog: MovieLog = {
+    const existingLog: FilmLog = {
       diaryEntryId: "existing",
       watchedDate: "2026-01-01",
       rating: null,
@@ -131,7 +131,7 @@ describe("useCreateDiaryEntry", () => {
       reviewContainsSpoilers: null,
       reviewUpdatedAt: null,
     };
-    queryClient.setQueryData(movieKeys.logs(550), [existingLog]);
+    queryClient.setQueryData(filmKeys.logs(550), [existingLog]);
 
     const { result } = renderHook(() => useCreateDiaryEntry(), {
       wrapper: wrapperFor(queryClient),
@@ -140,7 +140,7 @@ describe("useCreateDiaryEntry", () => {
     result.current.mutate({ tmdbId: 550, watchedDate: "2026-01-15" });
     await waitFor(() => expect(result.current.isError).toBe(true));
 
-    expect(queryClient.getQueryData<MovieLog[]>(movieKeys.logs(550))).toEqual([existingLog]);
+    expect(queryClient.getQueryData<FilmLog[]>(filmKeys.logs(550))).toEqual([existingLog]);
   });
 
   it("removes the logs query entirely on failure when there was nothing cached before the optimistic insert", async () => {
@@ -160,7 +160,7 @@ describe("useCreateDiaryEntry", () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
 
     // Must not be left with a stale single-optimistic-entry array.
-    expect(queryClient.getQueryState(movieKeys.logs(550))).toBeUndefined();
+    expect(queryClient.getQueryState(filmKeys.logs(550))).toBeUndefined();
   });
 
   it("invalidates only this movie's own logs/detail-view, the current user's diary/profile keys - not a different movie or user", async () => {
@@ -168,14 +168,14 @@ describe("useCreateDiaryEntry", () => {
 
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(authKeys.me, me);
-    queryClient.setQueryData(movieKeys.logs(550), [] as MovieLog[]);
-    queryClient.setQueryData(diaryKeys.myLogs, [] as MovieLog[]);
-    queryClient.setQueryData([...movieKeys.detailViewRoot(550), "recent"], { tmdbId: 550 });
+    queryClient.setQueryData(filmKeys.logs(550), [] as FilmLog[]);
+    queryClient.setQueryData(diaryKeys.myLogs, [] as FilmLog[]);
+    queryClient.setQueryData([...filmKeys.detailViewRoot(550), "recent"], { tmdbId: 550 });
     queryClient.setQueryData(profileKeys.detail("cinefan"), { username: "cinefan" });
     queryClient.setQueryData(profileKeys.recentActivity("cinefan", 20), []);
 
     // Unrelated movie and unrelated user's cache must not be touched.
-    queryClient.setQueryData(movieKeys.logs(999), [] as MovieLog[]);
+    queryClient.setQueryData(filmKeys.logs(999), [] as FilmLog[]);
     queryClient.setQueryData(profileKeys.detail("someone-else"), { username: "someone-else" });
 
     const { result } = renderHook(() => useCreateDiaryEntry(), {
@@ -186,16 +186,16 @@ describe("useCreateDiaryEntry", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(queryClient.getQueryState(diaryKeys.myLogs)?.isInvalidated).toBe(true);
-    expect(queryClient.getQueryState(movieKeys.logs(550))?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(filmKeys.logs(550))?.isInvalidated).toBe(true);
     expect(
-      queryClient.getQueryState([...movieKeys.detailViewRoot(550), "recent"])?.isInvalidated,
+      queryClient.getQueryState([...filmKeys.detailViewRoot(550), "recent"])?.isInvalidated,
     ).toBe(true);
     expect(queryClient.getQueryState(profileKeys.detail("cinefan"))?.isInvalidated).toBe(true);
     expect(
       queryClient.getQueryState(profileKeys.recentActivity("cinefan", 20))?.isInvalidated,
     ).toBe(true);
 
-    expect(queryClient.getQueryState(movieKeys.logs(999))?.isInvalidated).toBe(false);
+    expect(queryClient.getQueryState(filmKeys.logs(999))?.isInvalidated).toBe(false);
     expect(queryClient.getQueryState(profileKeys.detail("someone-else"))?.isInvalidated).toBe(
       false,
     );

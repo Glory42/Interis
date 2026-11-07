@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import type { UserInteractionMovie } from "@/features/profile/api";
+import type { UserInteractionFilm } from "@/features/profile/api";
 import { getRelativeTime } from "@/features/profile/utils/profile.utils";
 import { getPosterUrl } from "@/features/media/tmdb-images";
 
@@ -9,7 +9,7 @@ const routeByMediaType: Record<string, "/movies/$tmdbId" | "/serials/$tmdbId" | 
 };
 
 type MediaPosterGridItemProps = {
-  item: UserInteractionMovie;
+  item: UserInteractionFilm;
   interactionVerb: string;
 };
 

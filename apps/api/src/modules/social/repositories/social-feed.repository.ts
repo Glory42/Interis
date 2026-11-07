@@ -3,11 +3,11 @@ import { user } from "../../../infrastructure/database/auth.entity";
 import { db } from "../../../infrastructure/database/db";
 import { diaryEntries } from "../../diary/diary.entity";
 import { lists } from "../../lists/lists.entity";
-import { movies } from "../../movies/movies.entity";
+import { films } from "../../films/films.entity";
 import { postComments, postLikes, posts } from "../../posts/posts.entity";
 import { comments, reviewLikes, reviews } from "../../reviews/reviews.entity";
-import { serialDiaryEntries, tvSeries } from "../../serials/serials.entity";
-import { SocialFeedSerialReviewRepository } from "./social-feed-serial-review.repository";
+import { seriesDiaryEntries, tvSeries } from "../../tv/tv.entity";
+import { SocialFeedSeriesReviewRepository } from "./social-feed-series-review.repository";
 
 export class SocialFeedRepository {
   static async getReviewRowsByReviewOrDiaryIds(
@@ -35,14 +35,14 @@ export class SocialFeedRepository {
           content: reviews.content,
           containsSpoilers: reviews.containsSpoilers,
           rating: diaryEntries.rating,
-          tmdbId: movies.tmdbId,
-          title: movies.title,
-          posterPath: movies.posterPath,
-          releaseYear: movies.releaseYear,
+          tmdbId: films.tmdbId,
+          title: films.title,
+          posterPath: films.posterPath,
+          releaseYear: films.releaseYear,
         })
         .from(reviews)
         .innerJoin(user, eq(reviews.userId, user.id))
-        .innerJoin(movies, eq(reviews.movieId, movies.id))
+        .innerJoin(films, eq(reviews.movieId, films.id))
         .leftJoin(diaryEntries, eq(reviews.diaryEntryId, diaryEntries.id))
         .where(and(eq(reviews.mediaType, "movie"), whereClause(reviews.diaryEntryId))),
       db
@@ -52,16 +52,16 @@ export class SocialFeedRepository {
           reviewAuthorUsername: user.username,
           content: reviews.content,
           containsSpoilers: reviews.containsSpoilers,
-          rating: serialDiaryEntries.rating,
+          rating: seriesDiaryEntries.rating,
           tmdbId: reviews.mediaSourceId,
         })
         .from(reviews)
         .innerJoin(user, eq(reviews.userId, user.id))
-        .leftJoin(serialDiaryEntries, eq(reviews.serialDiaryEntryId, serialDiaryEntries.id))
+        .leftJoin(seriesDiaryEntries, eq(reviews.serialDiaryEntryId, seriesDiaryEntries.id))
         .where(and(eq(reviews.mediaType, "tv"), whereClause(reviews.serialDiaryEntryId))),
       // Season/episode reviews are only ever looked up by review id (they're
       // never linked to a diary entry, so diaryEntryIds can't match them).
-      SocialFeedSerialReviewRepository.getSeasonEpisodeReviewRows(reviewIds),
+      SocialFeedSeriesReviewRepository.getSeasonEpisodeReviewRows(reviewIds),
     ]);
 
     const tvTmdbIds = tvReviewRows
@@ -218,14 +218,14 @@ export class SocialFeedRepository {
     if (movieIds.length === 0) return [];
     return db
       .select({
-        id: movies.id,
-        tmdbId: movies.tmdbId,
-        title: movies.title,
-        posterPath: movies.posterPath,
-        releaseYear: movies.releaseYear,
+        id: films.id,
+        tmdbId: films.tmdbId,
+        title: films.title,
+        posterPath: films.posterPath,
+        releaseYear: films.releaseYear,
       })
-      .from(movies)
-      .where(inArray(movies.id, movieIds));
+      .from(films)
+      .where(inArray(films.id, movieIds));
   }
 
   // Live rating/rewatch for diary_entry activities. Movie and series logs
@@ -243,12 +243,12 @@ export class SocialFeedRepository {
         .where(inArray(diaryEntries.id, entryIds)),
       db
         .select({
-          id: serialDiaryEntries.id,
-          rating: serialDiaryEntries.rating,
-          rewatch: serialDiaryEntries.rewatch,
+          id: seriesDiaryEntries.id,
+          rating: seriesDiaryEntries.rating,
+          rewatch: seriesDiaryEntries.rewatch,
         })
-        .from(serialDiaryEntries)
-        .where(inArray(serialDiaryEntries.id, entryIds)),
+        .from(seriesDiaryEntries)
+        .where(inArray(seriesDiaryEntries.id, entryIds)),
     ]);
     return [...movieEntries, ...serialEntries];
   }

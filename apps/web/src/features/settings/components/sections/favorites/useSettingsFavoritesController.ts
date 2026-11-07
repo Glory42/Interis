@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import { getMovieByTmdbId } from "@/features/movies/api";
+import { getFilmByTmdbId } from "@/features/films/api";
 import { useUpdateMyProfile, useUserTopPicks } from "@/features/profile/hooks/useProfile";
-import { getSeriesByTmdbId, type TmdbSearchSeries } from "@/features/serials/api";
-import type { TmdbSearchMovie } from "@/types/api";
+import { getSeriesByTmdbId, type TmdbSearchSeries } from "@/features/tv/api";
+import type { TmdbSearchFilm } from "@/types/api";
 import { isApiError } from "@/lib/api-client";
 import {
   asTopPickSlot,
@@ -97,7 +97,7 @@ export const useSettingsFavoritesController = (username: string) => {
     });
   };
 
-  const handleSelectMovie = async (movie: TmdbSearchMovie) => {
+  const handleSelectMovie = async (movie: TmdbSearchFilm) => {
     if (!pickerTarget || pickerTarget.category !== "movie") {
       return;
     }
@@ -107,7 +107,7 @@ export const useSettingsFavoritesController = (username: string) => {
     setSaveSuccess(null);
 
     try {
-      const resolvedMovie = await getMovieByTmdbId(movie.id);
+      const resolvedMovie = await getFilmByTmdbId(movie.id);
 
       updateSlotDraft("movie", pickerTarget.slotIndex, {
         slot: pickerTarget.slotIndex + 1,

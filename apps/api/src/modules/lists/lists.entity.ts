@@ -11,8 +11,8 @@ import {
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { user } from "../../infrastructure/database/auth.entity";
-import { movies } from "../movies/movies.entity";
-import { tvSeries } from "../serials/serials.entity";
+import { films } from "../films/films.entity";
+import { tvSeries } from "../tv/tv.entity";
 
 export const lists = pgTable("list", {
   id: uuid("id")
@@ -45,7 +45,7 @@ export const listEntries = pgTable(
     listId: uuid("list_id")
       .notNull()
       .references(() => lists.id, { onDelete: "cascade" }),
-    movieId: integer("movie_id").references(() => movies.id, { onDelete: "cascade" }),
+    movieId: integer("movie_id").references(() => films.id, { onDelete: "cascade" }),
     tvSeriesId: integer("tv_series_id").references(() => tvSeries.id, { onDelete: "cascade" }),
     itemType: text("item_type").notNull(),
     position: integer("position").notNull(),

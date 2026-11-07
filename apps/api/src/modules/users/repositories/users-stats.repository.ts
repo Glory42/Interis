@@ -3,9 +3,9 @@ import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { diaryEntries } from "../../diary/diary.entity";
 import { lists } from "../../lists/lists.entity";
-import { movies } from "../../movies/movies.entity";
+import { films } from "../../films/films.entity";
 import { reviews } from "../../reviews/reviews.entity";
-import { serialDiaryEntries, serialEpisodeInteractions } from "../../serials/serials.entity";
+import { seriesDiaryEntries, seriesEpisodeInteractions } from "../../tv/tv.entity";
 import { follows } from "../../social/social.entity";
 
 export class UsersStatsRepository {
@@ -24,7 +24,7 @@ export class UsersStatsRepository {
   }> {
     // Counted from the logs and reviews themselves, not their feed rows, so
     // deleted content and stale feed metadata never inflate the numbers.
-    const countToday = (table: typeof diaryEntries | typeof serialDiaryEntries | typeof reviews) =>
+    const countToday = (table: typeof diaryEntries | typeof seriesDiaryEntries | typeof reviews) =>
       db
         .select({ count: sql<number>`count(*)`.mapWith(Number) })
         .from(table)
@@ -35,7 +35,7 @@ export class UsersStatsRepository {
         .select({ count: sql<number>`count(*)`.mapWith(Number) })
         .from(user),
       countToday(diaryEntries),
-      countToday(serialDiaryEntries),
+      countToday(seriesDiaryEntries),
       countToday(reviews),
     ]);
 
@@ -62,8 +62,8 @@ export class UsersStatsRepository {
         .where(eq(diaryEntries.userId, userId)),
       db
         .select({ count: sql<number>`count(*)`.mapWith(Number) })
-        .from(serialDiaryEntries)
-        .where(eq(serialDiaryEntries.userId, userId)),
+        .from(seriesDiaryEntries)
+        .where(eq(seriesDiaryEntries.userId, userId)),
       db
         .select({ count: sql<number>`count(*)`.mapWith(Number) })
         .from(reviews)
@@ -221,12 +221,12 @@ export class UsersStatsRepository {
           .where(eq(follows.followerId, userId)),
         db
           .select({
-            tmdbId: movies.tmdbId,
-            title: movies.title,
-            posterPath: movies.posterPath,
+            tmdbId: films.tmdbId,
+            title: films.title,
+            posterPath: films.posterPath,
           })
           .from(diaryEntries)
-          .innerJoin(movies, eq(diaryEntries.movieId, movies.id))
+          .innerJoin(films, eq(diaryEntries.movieId, films.id))
           .where(eq(diaryEntries.userId, userId))
           .orderBy(desc(diaryEntries.watchedDate), desc(diaryEntries.createdAt))
           .limit(20),
@@ -242,7 +242,7 @@ export class UsersStatsRepository {
 
   // Logs watched on or after `sinceDate` (YYYY-MM-DD), their mean score, and episodes ticked since `since`.
   static async getWeekSummary(userId: string, sinceDate: string, since: Date) {
-    const logStats = (table: typeof diaryEntries | typeof serialDiaryEntries) =>
+    const logStats = (table: typeof diaryEntries | typeof seriesDiaryEntries) =>
       db
         .select({
           logs: sql<number>`count(*)`.mapWith(Number),
@@ -254,16 +254,16 @@ export class UsersStatsRepository {
 
     const [[movieRow], [serialRow], [episodeRow]] = await Promise.all([
       logStats(diaryEntries),
-      logStats(serialDiaryEntries),
+      logStats(seriesDiaryEntries),
       db
         .select({ count: sql<number>`count(*)`.mapWith(Number) })
-        .from(serialEpisodeInteractions)
+        .from(seriesEpisodeInteractions)
         .where(
           and(
-            eq(serialEpisodeInteractions.userId, userId),
-            eq(serialEpisodeInteractions.watched, true),
-            eq(serialEpisodeInteractions.watchedImplicitly, false),
-            gte(serialEpisodeInteractions.updatedAt, since),
+            eq(seriesEpisodeInteractions.userId, userId),
+            eq(seriesEpisodeInteractions.watched, true),
+            eq(seriesEpisodeInteractions.watchedImplicitly, false),
+            gte(seriesEpisodeInteractions.updatedAt, since),
           ),
         ),
     ]);

@@ -1,5 +1,5 @@
-import { MoviesCacheService } from "../../movies/services/movies-cache.service";
-import { SerialsCacheService } from "../../serials/services/serials-cache.service";
+import { FilmsCacheService } from "../../films/services/films-cache.service";
+import { TvCacheService } from "../../tv/services/tv-cache.service";
 import { ListsReadRepository } from "../repositories/lists-read.repository";
 import { ListsWriteRepository } from "../repositories/lists-write.repository";
 
@@ -54,10 +54,10 @@ export class ListsReadService {
       let tvSeriesId: number | null = null;
 
       if (checkItemType === "movie") {
-        const movie = await MoviesCacheService.findCached(checkTmdbId);
+        const movie = await FilmsCacheService.findCached(checkTmdbId);
         movieId = movie?.id ?? null;
       } else if (checkItemType === "serial") {
-        const serial = await SerialsCacheService.findCached(checkTmdbId);
+        const serial = await TvCacheService.findCached(checkTmdbId);
         tvSeriesId = serial?.id ?? null;
       }
 

@@ -1,7 +1,7 @@
 import { parseMetadata, resolveActivityKind } from "./social-feed-metadata.helper";
 import { truncateExcerpt } from "../../../commons/helpers/text.helper";
 import {
-  resolveMovie,
+  resolveFilm,
   resolvePost,
   resolvePostFallbackId,
   resolveReviewId,
@@ -78,7 +78,7 @@ export const toFeedItem = (
   }
 
   const movie =
-    reviewDetails?.movie ?? resolveMovie(rawMetadata, row.activity, metadata, fallbackMedia);
+    reviewDetails?.movie ?? resolveFilm(rawMetadata, row.activity, metadata, fallbackMedia);
 
   const review = reviewDetails
     ? {

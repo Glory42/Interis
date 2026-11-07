@@ -11,7 +11,7 @@ const buildMediaQuery = (query: string | undefined, page?: AdminPage): string =>
   return search ? `?${search}` : "";
 };
 
-const adminMovieSchema = z.object({
+const adminFilmSchema = z.object({
   id: z.number(),
   tmdbId: z.number(),
   title: z.string(),
@@ -21,9 +21,9 @@ const adminMovieSchema = z.object({
   director: z.string().nullable(),
   cachedAt: z.coerce.date(),
 });
-export type AdminMovie = z.infer<typeof adminMovieSchema>;
+export type AdminFilm = z.infer<typeof adminFilmSchema>;
 
-export type AdminUpdateMovieInput = Partial<{
+export type AdminUpdateFilmInput = Partial<{
   title: string;
   originalTitle: string | null;
   overview: string | null;
@@ -34,33 +34,33 @@ export type AdminUpdateMovieInput = Partial<{
   releaseYear: number | null;
 }>;
 
-export const listAdminMovies = async (query?: string, page?: AdminPage): Promise<AdminMovie[]> => {
+export const listAdminFilms = async (query?: string, page?: AdminPage): Promise<AdminFilm[]> => {
   const response = await apiRequest<unknown>(`/api/admin/movies${buildMediaQuery(query, page)}`, {
     method: "GET",
   });
-  return z.array(adminMovieSchema).parse(response);
+  return z.array(adminFilmSchema).parse(response);
 };
 
-export const updateAdminMovie = async (
+export const updateAdminFilm = async (
   id: number,
-  fields: AdminUpdateMovieInput,
+  fields: AdminUpdateFilmInput,
 ): Promise<void> => {
-  await apiRequest<unknown, AdminUpdateMovieInput>(`/api/admin/movies/${id}`, {
+  await apiRequest<unknown, AdminUpdateFilmInput>(`/api/admin/movies/${id}`, {
     method: "PATCH",
     body: fields,
   });
 };
 
-export const refreshAdminMovie = async (id: number): Promise<void> => {
+export const refreshAdminFilm = async (id: number): Promise<void> => {
   await apiRequest<unknown>(`/api/admin/movies/${id}/refresh`, { method: "POST" });
 };
 
-export const deleteAdminMovie = async (id: number): Promise<void> => {
+export const deleteAdminFilm = async (id: number): Promise<void> => {
   const response = await apiRequest<unknown>(`/api/admin/movies/${id}`, { method: "DELETE" });
   actionResponseSchema.parse(response);
 };
 
-const adminSerialSchema = z.object({
+const adminSeriesSchema = z.object({
   id: z.number(),
   tmdbId: z.number(),
   title: z.string(),
@@ -70,9 +70,9 @@ const adminSerialSchema = z.object({
   creator: z.string().nullable(),
   cachedAt: z.coerce.date(),
 });
-export type AdminSerial = z.infer<typeof adminSerialSchema>;
+export type AdminSeries = z.infer<typeof adminSeriesSchema>;
 
-export type AdminUpdateSerialInput = Partial<{
+export type AdminUpdateSeriesInput = Partial<{
   title: string;
   originalTitle: string | null;
   overview: string | null;
@@ -83,28 +83,28 @@ export type AdminUpdateSerialInput = Partial<{
   backdropPath: string | null;
 }>;
 
-export const listAdminSerials = async (query?: string, page?: AdminPage): Promise<AdminSerial[]> => {
+export const listAdminTv = async (query?: string, page?: AdminPage): Promise<AdminSeries[]> => {
   const response = await apiRequest<unknown>(`/api/admin/serials${buildMediaQuery(query, page)}`, {
     method: "GET",
   });
-  return z.array(adminSerialSchema).parse(response);
+  return z.array(adminSeriesSchema).parse(response);
 };
 
-export const updateAdminSerial = async (
+export const updateAdminSeries = async (
   id: number,
-  fields: AdminUpdateSerialInput,
+  fields: AdminUpdateSeriesInput,
 ): Promise<void> => {
-  await apiRequest<unknown, AdminUpdateSerialInput>(`/api/admin/serials/${id}`, {
+  await apiRequest<unknown, AdminUpdateSeriesInput>(`/api/admin/serials/${id}`, {
     method: "PATCH",
     body: fields,
   });
 };
 
-export const refreshAdminSerial = async (id: number): Promise<void> => {
+export const refreshAdminSeries = async (id: number): Promise<void> => {
   await apiRequest<unknown>(`/api/admin/serials/${id}/refresh`, { method: "POST" });
 };
 
-export const deleteAdminSerial = async (id: number): Promise<void> => {
+export const deleteAdminSeries = async (id: number): Promise<void> => {
   const response = await apiRequest<unknown>(`/api/admin/serials/${id}`, { method: "DELETE" });
   actionResponseSchema.parse(response);
 };

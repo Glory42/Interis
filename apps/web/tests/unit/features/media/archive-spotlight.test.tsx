@@ -6,7 +6,7 @@ import { renderWithProviders } from "../../../support/render/render-with-provide
 import { toWeekLabel } from "@/features/media/archive/week-label";
 import { ArchiveSpotlight } from "@/features/media/archive/ArchiveSpotlight";
 import { ArchiveFilterControls } from "@/features/media/archive/ArchiveFilterControls";
-import { MOVIE_MODULE_STYLES } from "@/features/media/styles";
+import { FILM_MODULE_STYLES } from "@/features/media/styles";
 import type { ArchiveMenuKey } from "@/features/media/types";
 
 describe("toWeekLabel", () => {
@@ -121,7 +121,7 @@ const FilterSentence = ({
       onSelectSort={onSelectSort}
       onSelectLanguage={vi.fn()}
       onSelectPeriod={vi.fn()}
-      moduleStyles={MOVIE_MODULE_STYLES}
+      moduleStyles={FILM_MODULE_STYLES}
     />
   );
 };

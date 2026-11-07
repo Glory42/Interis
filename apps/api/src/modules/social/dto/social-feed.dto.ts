@@ -1,6 +1,6 @@
 export type {
   FeedActivityKind,
-  FeedMovie,
+  FeedFilm,
   FeedPostMediaType,
   FeedPost,
   FeedReview,

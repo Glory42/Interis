@@ -3,7 +3,7 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "../../../support/render/render-with-providers";
 import { MediaDetailsMainSection } from "@/features/media/detail/MediaDetailsMainSection";
-import { MOVIE_MODULE_STYLES } from "@/features/media/styles";
+import { FILM_MODULE_STYLES } from "@/features/media/styles";
 
 const person = (tmdbPersonId: number, name: string, character: string | null = null) => ({
   tmdbPersonId,
@@ -18,7 +18,7 @@ const person = (tmdbPersonId: number, name: string, character: string | null = n
 });
 
 const baseProps = {
-  moduleStyles: MOVIE_MODULE_STYLES,
+  moduleStyles: FILM_MODULE_STYLES,
   title: "Clayface",
   genres: [
     { id: 1, name: "Horror" },

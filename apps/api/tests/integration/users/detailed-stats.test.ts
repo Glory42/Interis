@@ -7,10 +7,10 @@ import {
   type RunningTestServer,
 } from "../../support/app/test-server";
 import { db } from "../../../src/infrastructure/database/db";
-import { movies } from "../../../src/modules/movies/movies.entity";
-import { tvSeries } from "../../../src/modules/serials/serials.entity";
+import { films } from "../../../src/modules/films/films.entity";
+import { tvSeries } from "../../../src/modules/tv/tv.entity";
 import { eq } from "drizzle-orm";
-import { seedTestSerial } from "../../support/factories/media.factory";
+import { seedTestSeries } from "../../support/factories/media.factory";
 
 const isoWeekOf = (date: Date): number => {
   const day = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
@@ -19,21 +19,21 @@ const isoWeekOf = (date: Date): number => {
   return Math.ceil(((day.getTime() - yearStart.getTime()) / 86_400_000 + 1) / 7);
 };
 
-const seedMovieWithMetadata = async (
+const seedFilmWithMetadata = async (
   title: string,
   director: string,
   genreNames: string[],
 ): Promise<{ id: number; tmdbId: number }> => {
   const tmdbId = randomInt(1_000_000, 999_000_000);
   const [row] = await db
-    .insert(movies)
+    .insert(films)
     .values({
       tmdbId,
       title,
       director,
       genres: genreNames.map((name, index) => ({ id: index, name })),
     })
-    .returning({ id: movies.id, tmdbId: movies.tmdbId });
+    .returning({ id: films.id, tmdbId: films.tmdbId });
 
   if (!row) {
     throw new Error("Failed to seed movie with metadata");
@@ -72,8 +72,8 @@ describe("detailed stats", () => {
 
   it("aggregates months, ratings, genres, and directors from diary entries", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "stat");
-    const movieA = await seedMovieWithMetadata("Movie A", "Jane Director", ["Drama", "Action"]);
-    const movieB = await seedMovieWithMetadata("Movie B", "Jane Director", ["Drama"]);
+    const movieA = await seedFilmWithMetadata("Movie A", "Jane Director", ["Drama", "Action"]);
+    const movieB = await seedFilmWithMetadata("Movie B", "Jane Director", ["Drama"]);
 
     const logMovie = (tmdbId: number, watchedDate: string, rating: number) =>
       apiRequest(
@@ -118,11 +118,11 @@ describe("detailed stats", () => {
 
   it("adds average rating, rated logs, hours watched and this year's logs per week", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "statx");
-    const longFilm = await seedMovieWithMetadata("Long Film", "A", ["Drama"]);
-    const shortFilm = await seedMovieWithMetadata("Short Film", "B", ["Drama"]);
-    await db.update(movies).set({ runtime: 120 }).where(eq(movies.id, longFilm.id));
-    await db.update(movies).set({ runtime: 90 }).where(eq(movies.id, shortFilm.id));
-    const serial = await seedTestSerial("Stats Serial");
+    const longFilm = await seedFilmWithMetadata("Long Film", "A", ["Drama"]);
+    const shortFilm = await seedFilmWithMetadata("Short Film", "B", ["Drama"]);
+    await db.update(films).set({ runtime: 120 }).where(eq(films.id, longFilm.id));
+    await db.update(films).set({ runtime: 90 }).where(eq(films.id, shortFilm.id));
+    const serial = await seedTestSeries("Stats Serial");
     await db.update(tvSeries).set({ episodeRuntime: 45 }).where(eq(tvSeries.id, serial.id));
 
     const today = new Date().toISOString().slice(0, 10);

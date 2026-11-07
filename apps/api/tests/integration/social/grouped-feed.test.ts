@@ -6,7 +6,7 @@ import { user } from "../../../src/infrastructure/database/auth.entity";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
-import { seedTestMovie } from "../../support/factories/media.factory";
+import { seedTestFilm } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
 
 // Likes are recorded fire-and-forget, so give the inserts a moment to land.
@@ -66,7 +66,7 @@ describe("GET /api/social/feed/grouped", () => {
 
   it("merges a log, rating, like and review of one title on one day into one entry", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "grpone");
-    const movie = await seedTestMovie("Grouped Movie");
+    const movie = await seedTestFilm("Grouped Movie");
 
     await send(jar, "/api/diary", "POST", { tmdbId: movie.tmdbId, watchedDate: "2026-02-01", rating: 8 });
     await send(jar, `/api/interactions/${movie.tmdbId}`, "PUT", { liked: true });
@@ -83,7 +83,7 @@ describe("GET /api/social/feed/grouped", () => {
 
   it("keeps only films or only TV when asked", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "grpfilter");
-    const movie = await seedTestMovie("Filtered Movie");
+    const movie = await seedTestFilm("Filtered Movie");
     await send(jar, "/api/diary", "POST", { tmdbId: movie.tmdbId, watchedDate: "2026-02-02", rating: 7 });
 
     const hasMovie = (page: GroupedPage) => titleEntries(page).some((entry) => entry.movie.tmdbId === movie.tmdbId);
@@ -95,9 +95,9 @@ describe("GET /api/social/feed/grouped", () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "grppage");
     const [userRow] = await db.select({ id: user.id }).from(user).where(eq(user.username, username));
     const [oldest, middle, newest] = await Promise.all([
-      seedTestMovie("Grouped Oldest"),
-      seedTestMovie("Grouped Middle"),
-      seedTestMovie("Grouped Newest"),
+      seedTestFilm("Grouped Oldest"),
+      seedTestFilm("Grouped Middle"),
+      seedTestFilm("Grouped Newest"),
     ]);
 
     for (const movie of [oldest, middle, newest]) {

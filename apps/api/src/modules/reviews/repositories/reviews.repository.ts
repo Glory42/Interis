@@ -1,8 +1,8 @@
 import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
-import { movies } from "../../movies/movies.entity";
-import { serialDiaryEntries, tvSeries } from "../../serials/serials.entity";
+import { films } from "../../films/films.entity";
+import { seriesDiaryEntries, tvSeries } from "../../tv/tv.entity";
 import { diaryEntries } from "../../diary/diary.entity";
 import { reviewLikes, reviews } from "../reviews.entity";
 import type { UpdateReviewDto } from "../dto/reviews.dto";
@@ -143,17 +143,17 @@ export class ReviewsRepository {
     const [row] =
       mediaType === "movie"
         ? await db
-            .select({ tmdbId: movies.tmdbId })
+            .select({ tmdbId: films.tmdbId })
             .from(diaryEntries)
-            .innerJoin(movies, eq(movies.id, diaryEntries.movieId))
+            .innerJoin(films, eq(films.id, diaryEntries.movieId))
             .where(and(eq(diaryEntries.id, diaryEntryId), eq(diaryEntries.userId, userId)))
             .limit(1)
         : await db
             .select({ tmdbId: tvSeries.tmdbId })
-            .from(serialDiaryEntries)
-            .innerJoin(tvSeries, eq(tvSeries.id, serialDiaryEntries.seriesId))
+            .from(seriesDiaryEntries)
+            .innerJoin(tvSeries, eq(tvSeries.id, seriesDiaryEntries.seriesId))
             .where(
-              and(eq(serialDiaryEntries.id, diaryEntryId), eq(serialDiaryEntries.userId, userId)),
+              and(eq(seriesDiaryEntries.id, diaryEntryId), eq(seriesDiaryEntries.userId, userId)),
             )
             .limit(1);
     return row?.tmdbId ?? null;
@@ -177,10 +177,10 @@ export class ReviewsRepository {
         >`coalesce(${reviews.diaryEntryId}, ${reviews.serialDiaryEntryId})`,
         createdAt: reviews.createdAt,
         updatedAt: reviews.updatedAt,
-        rating: sql<number | null>`coalesce(${diaryEntries.rating}, ${serialDiaryEntries.rating})`,
+        rating: sql<number | null>`coalesce(${diaryEntries.rating}, ${seriesDiaryEntries.rating})`,
         watchedDate: sql<
           string | null
-        >`coalesce(${diaryEntries.watchedDate}, ${serialDiaryEntries.watchedDate})::text`,
+        >`coalesce(${diaryEntries.watchedDate}, ${seriesDiaryEntries.watchedDate})::text`,
       })
       .from(reviews)
       .leftJoin(
@@ -188,8 +188,8 @@ export class ReviewsRepository {
         and(eq(reviews.mediaType, "movie"), eq(diaryEntries.id, reviews.diaryEntryId)),
       )
       .leftJoin(
-        serialDiaryEntries,
-        and(eq(reviews.mediaType, "tv"), eq(serialDiaryEntries.id, reviews.serialDiaryEntryId)),
+        seriesDiaryEntries,
+        and(eq(reviews.mediaType, "tv"), eq(seriesDiaryEntries.id, reviews.serialDiaryEntryId)),
       )
       .where(
         and(
@@ -285,14 +285,14 @@ export class ReviewsRepository {
         authorUsername: user.username,
         mediaType: reviews.mediaType,
         movieId: reviews.movieId,
-        movieTitle: movies.title,
+        movieTitle: films.title,
         content: reviews.content,
         containsSpoilers: reviews.containsSpoilers,
         createdAt: reviews.createdAt,
       })
       .from(reviews)
       .innerJoin(user, eq(user.id, reviews.userId))
-      .leftJoin(movies, eq(movies.id, reviews.movieId))
+      .leftJoin(films, eq(films.id, reviews.movieId))
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(reviews.createdAt))
       .limit(limit)
@@ -322,13 +322,13 @@ export class ReviewsRepository {
     if (reviewRow.mediaType === "movie" && reviewRow.movieId !== null) {
       const [movieRow] = await db
         .select({
-          tmdbId: movies.tmdbId,
-          title: movies.title,
-          posterPath: movies.posterPath,
-          releaseYear: movies.releaseYear,
+          tmdbId: films.tmdbId,
+          title: films.title,
+          posterPath: films.posterPath,
+          releaseYear: films.releaseYear,
         })
-        .from(movies)
-        .where(eq(movies.id, reviewRow.movieId))
+        .from(films)
+        .where(eq(films.id, reviewRow.movieId))
         .limit(1);
 
       return {

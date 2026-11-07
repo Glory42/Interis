@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import listsRouter from "../../modules/lists/lists.routes";
-import moviesRouter from "../../modules/movies/movies.routes";
-import serialsRouter from "../../modules/serials/serials.routes";
+import moviesRouter from "../../modules/films/films.routes";
+import serialsRouter from "../../modules/tv/tv.routes";
 import peopleRouter from "../../modules/people/people.routes";
 import diaryRouter from "../../modules/diary/diary.routes";
 import usersRouter from "../../modules/users/users.routes";

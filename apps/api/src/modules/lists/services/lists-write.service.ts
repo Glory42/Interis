@@ -1,5 +1,5 @@
-import { MoviesCacheService } from "../../movies/services/movies-cache.service";
-import { SerialsCacheService } from "../../serials/services/serials-cache.service";
+import { FilmsCacheService } from "../../films/services/films-cache.service";
+import { TvCacheService } from "../../tv/services/tv-cache.service";
 import { ActivityRecorder } from "../../social/services/activity-recorder.service";
 import { MAX_LIST_ITEMS } from "../constants/lists.constants";
 import type { CreateListDto, UpdateListDto } from "../dto/lists.dto";
@@ -109,8 +109,8 @@ export class ListsWriteService {
 
     const [media, maxPosition] = await Promise.all([
       itemType === "movie"
-        ? MoviesCacheService.findOrCreate(tmdbId)
-        : SerialsCacheService.findOrCreate(tmdbId),
+        ? FilmsCacheService.findOrCreate(tmdbId)
+        : TvCacheService.findOrCreate(tmdbId),
       ListsReadRepository.getMaxPosition(listId),
     ]);
 

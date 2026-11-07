@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
-import { useListFormSearchMovies, useListFormSearchSeries } from "@/features/lists/hooks/useLists";
-import type { TmdbSearchMovie } from "@/types/api";
-import type { TmdbSearchSeries } from "@/features/serials/api/types";
+import { useListFormSearchFilms, useListFormSearchSeries } from "@/features/lists/hooks/useLists";
+import type { TmdbSearchFilm } from "@/types/api";
+import type { TmdbSearchSeries } from "@/features/tv/api/types";
 import { TickLoader } from "@/components/ui/tick-loader";
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p";
@@ -25,7 +25,7 @@ const normalizeSeries = (s: TmdbSearchSeries): SearchResult => ({
   itemType: "serial",
 });
 
-const normalizeMovie = (m: TmdbSearchMovie): SearchResult => ({
+const normalizeFilm = (m: TmdbSearchFilm): SearchResult => ({
   tmdbId: m.id,
   title: m.title,
   posterPath: m.poster_path,
@@ -59,7 +59,7 @@ export const ListItemSearch = ({ existingTmdbIds, onSelect }: ListItemSearchProp
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const moviesQuery = useListFormSearchMovies(debouncedQuery);
+  const moviesQuery = useListFormSearchFilms(debouncedQuery);
   const seriesQuery = useListFormSearchSeries(debouncedQuery);
 
   const isSearchPending =
@@ -67,7 +67,7 @@ export const ListItemSearch = ({ existingTmdbIds, onSelect }: ListItemSearchProp
     (moviesQuery.isPending || seriesQuery.isPending);
 
   const searchResults: SearchResult[] = [
-    ...(moviesQuery.data?.map(normalizeMovie) ?? []),
+    ...(moviesQuery.data?.map(normalizeFilm) ?? []),
     ...(seriesQuery.data?.map(normalizeSeries) ?? []),
   ].slice(0, 10);
 

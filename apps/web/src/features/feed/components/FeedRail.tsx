@@ -4,12 +4,12 @@ import { Link } from "@tanstack/react-router";
 import { CreditsList } from "@/components/film/CreditsList";
 import { OutlinedRank } from "@/components/film/OutlinedRank";
 import { toIsoWeek } from "@/features/media/archive/week-label";
-import type { MeFeedSummary, TrendingMovie } from "@/features/feed/types";
-import type { TrendingSeries } from "@/features/serials/api";
+import type { MeFeedSummary, TrendingFilm } from "@/features/feed/types";
+import type { TrendingSeries } from "@/features/tv/api";
 import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type FeedRailProps = {
-  films: TrendingMovie[];
+  films: TrendingFilm[];
   shows: TrendingSeries[];
   week: MeFeedSummary["week"] | null;
   isLoading: boolean;

@@ -23,7 +23,7 @@ export type FeedActivityKind =
 
 export type FeedMediaType = MediaType;
 
-export type FeedMovie = {
+export type FeedFilm = {
   tmdbId: number;
   title: string;
   posterPath: string | null;
@@ -85,7 +85,7 @@ export type FeedItem = {
     displayUsername: string | null;
     avatarUrl: string | null;
   };
-  movie: FeedMovie | null;
+  movie: FeedFilm | null;
   post: FeedPost | null;
   review: FeedReview | null;
   metadata: FeedMetadata;
@@ -99,7 +99,7 @@ export type ReviewFeedContext = {
   content: string;
   containsSpoilers: boolean;
   rating: number | null;
-  movie: FeedMovie;
+  movie: FeedFilm;
   likeCount: number;
   commentCount: number;
   viewerHasLiked: boolean | null;
@@ -123,7 +123,7 @@ export type FeedFallbackPostRow = {
   mediaType: FeedPostMediaType | null;
 };
 
-export type FeedFallbackMovieRow = {
+export type FeedFallbackFilmRow = {
   id: number;
   tmdbId: number;
   title: string;
@@ -150,7 +150,7 @@ export type FeedUserRow = {
 
 export type FeedFallbackMediaContext = {
   postsById: Map<string, FeedFallbackPostRow>;
-  moviesById: Map<number, FeedFallbackMovieRow>;
+  moviesById: Map<number, FeedFallbackFilmRow>;
   diaryEntriesById: Map<string, FeedDiaryEntryRow>;
   listsById: Map<string, FeedListRow>;
   usersById: Map<string, FeedUserRow>;
@@ -162,7 +162,7 @@ export type FeedTitleGroup = {
   id: string;
   createdAt: Date;
   actor: FeedItem["actor"];
-  movie: FeedMovie;
+  movie: FeedFilm;
   seasonNumber: number | null;
   episodeNumber: number | null;
   watched: boolean;

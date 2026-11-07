@@ -7,16 +7,16 @@ import { QueryClient } from "@tanstack/react-query";
 import { server } from "../../support/msw/server";
 import { renderWithProviders } from "../../support/render/render-with-providers";
 import { authKeys } from "@/features/auth/hooks/useAuth";
-import { MovieDetailPage } from "@/features/movies/components/MovieDetailPage";
-import { SerialDetailPage } from "@/features/serials/components/SerialDetailPage";
-import { SerialSeasonPage } from "@/features/serials/components/SerialSeasonPage";
+import { FilmDetailPage } from "@/features/films/components/FilmDetailPage";
+import { SeriesDetailPage } from "@/features/tv/components/SeriesDetailPage";
+import { SeriesSeasonPage } from "@/features/tv/components/SeriesSeasonPage";
 import { PersonDetailPage } from "@/features/people/components/PersonDetailPage";
 import { ProfileLayout } from "@/features/profile/layout/ProfileLayout";
 import { ProfileStatsPage } from "@/features/profile/pages/ProfileStatsPage";
 import { ProfileListDetailPage } from "@/features/profile/pages/ProfileListDetailPage";
 import { ProfileReviewDetailPage } from "@/features/reviews/components/ProfileReviewDetailPage";
 import { ListFormPage } from "@/features/lists/pages/ListFormPage";
-import { MovieLogs } from "@/features/movies/components/MovieLogs";
+import { FilmLogs } from "@/features/films/components/FilmLogs";
 import { FeedDayList } from "@/features/feed/components/FeedDayList";
 import { FeedRail } from "@/features/feed/components/FeedRail";
 import { ProfileOverviewActivity } from "@/features/profile/components/overview/ProfileOverviewActivity";
@@ -38,16 +38,16 @@ const signedIn = () => {
 };
 
 const pages: Array<[string, ReactElement]> = [
-  ["Loading film", <MovieDetailPage tmdbId={550} />],
-  ["Loading show", <SerialDetailPage tmdbId={1396} />],
-  ["Loading season", <SerialSeasonPage tmdbId={1396} seasonNumber={1} />],
+  ["Loading film", <FilmDetailPage tmdbId={550} />],
+  ["Loading show", <SeriesDetailPage tmdbId={1396} />],
+  ["Loading season", <SeriesSeasonPage tmdbId={1396} seasonNumber={1} />],
   ["Loading person", <PersonDetailPage role="actor" slug="brad-pitt" />],
   ["Loading profile", <ProfileLayout username="glory42" activeTab="overview">tab</ProfileLayout>],
   ["Loading stats", <ProfileStatsPage username="glory42" />],
   ["Loading list", <ProfileListDetailPage username="glory42" listId="l1" />],
   ["Loading list", <ListFormPage mode="edit" username="glory42" listId="l1" />],
   ["Loading review", <ProfileReviewDetailPage username="glory42" reviewId="r1" />],
-  ["Loading logs", <MovieLogs tmdbId={550} />],
+  ["Loading logs", <FilmLogs tmdbId={550} />],
 ];
 
 describe("page skeletons", () => {

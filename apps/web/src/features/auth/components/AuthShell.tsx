@@ -3,7 +3,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { DuotoneBackdrop } from "@/components/film/DuotoneBackdrop";
 import { useTrendingNow } from "@/features/feed/hooks/useFeed";
 import { toWeekLabel } from "@/features/media/archive/week-label";
-import { useTrendingSeries } from "@/features/serials/hooks/useSerials";
+import { useTrendingSeries } from "@/features/tv/hooks/useTv";
 import { cn } from "@/lib/utils";
 import { getPosterUrl } from "@/features/media/tmdb-images";
 

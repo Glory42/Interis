@@ -35,7 +35,7 @@ export const feedActorSchema = z.object({
   avatarUrl: z.string().nullable(),
 });
 
-export const feedMovieSchema = z
+export const feedFilmSchema = z
   .object({
     tmdbId: z.number().int().positive(),
     title: z.string(),
@@ -98,7 +98,7 @@ export const feedItemSchema = z.object({
   kind: feedActivityKindSchema,
   createdAt: z.string(),
   actor: feedActorSchema,
-  movie: feedMovieSchema,
+  movie: feedFilmSchema,
   post: feedPostSchema,
   review: feedReviewSchema,
   metadata: feedMetadataSchema,
@@ -112,14 +112,14 @@ export const feedPageSchema = z.object({
   nextCursor: z.string().nullable(),
 });
 
-export const trendingMovieSchema = z.object({
+export const trendingFilmSchema = z.object({
   tmdbId: z.number().int().positive(),
   title: z.string(),
   posterPath: z.string().nullable(),
   releaseYear: z.number().int().nullable(),
 });
 
-export const trendingMovieListSchema = z.array(trendingMovieSchema);
+export const trendingFilmListSchema = z.array(trendingFilmSchema);
 
 export const meFeedSummarySchema = z.object({
   id: z.string(),
@@ -158,7 +158,7 @@ export const feedTitleGroupSchema = z.object({
   id: z.string(),
   createdAt: z.string(),
   actor: feedActorSchema,
-  movie: feedMovieSchema.unwrap(),
+  movie: feedFilmSchema.unwrap(),
   seasonNumber: z.number().int().nullable(),
   episodeNumber: z.number().int().nullable(),
   watched: z.boolean(),
@@ -188,6 +188,6 @@ export type FeedItem = z.infer<typeof feedItemSchema>;
 export type FeedFilter = "all" | "movie" | "serial";
 export type FeedPage = z.infer<typeof feedPageSchema>;
 export type FeedActivityKind = z.infer<typeof feedActivityKindSchema>;
-export type TrendingMovie = z.infer<typeof trendingMovieSchema>;
+export type TrendingFilm = z.infer<typeof trendingFilmSchema>;
 export type MeFeedSummary = z.infer<typeof meFeedSummarySchema>;
 export type NetworkStats = z.infer<typeof networkStatsSchema>;

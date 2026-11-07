@@ -1,27 +1,27 @@
 import { and, asc, count, desc, eq, sql, type AnyColumn, type SQL } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
-import { movieInteractions } from "../../interactions/interactions.entity";
-import { movies } from "../../movies/movies.entity";
-import { serialInteractions, tvSeries } from "../../serials/serials.entity";
+import { filmInteractions } from "../../interactions/interactions.entity";
+import { films } from "../../films/films.entity";
+import { seriesInteractions, tvSeries } from "../../tv/tv.entity";
 
 import type { ProfileShelfSort, ProfileShelfType } from "../dto/users.dto";
 import { compareShelfRows } from "../helpers/users-shelf-sort.helper";
 
 export type MediaInteractionFlag = "liked" | "watchlisted";
 
-const movieFlagFilter = (userId: string, flag: MediaInteractionFlag) =>
+const filmFlagFilter = (userId: string, flag: MediaInteractionFlag) =>
   and(
-    eq(movieInteractions.userId, userId),
-    flag === "liked" ? eq(movieInteractions.liked, true) : eq(movieInteractions.watchlisted, true),
+    eq(filmInteractions.userId, userId),
+    flag === "liked" ? eq(filmInteractions.liked, true) : eq(filmInteractions.watchlisted, true),
   );
 
-const serialFlagFilter = (userId: string, flag: MediaInteractionFlag) =>
+const seriesFlagFilter = (userId: string, flag: MediaInteractionFlag) =>
   and(
-    eq(serialInteractions.userId, userId),
+    eq(seriesInteractions.userId, userId),
     flag === "liked"
-      ? eq(serialInteractions.liked, true)
-      : eq(serialInteractions.watchlisted, true),
+      ? eq(seriesInteractions.liked, true)
+      : eq(seriesInteractions.watchlisted, true),
   );
 
 // Must match compareShelfRows so the per-source caps line up with the merge.
@@ -41,19 +41,19 @@ export class UsersMediaInteractionsRepository {
   static async getWatchedMovies(userId: string, limit?: number, offset?: number) {
     const baseQuery = db
       .select({
-        tmdbId: movies.tmdbId,
-        title: movies.title,
-        posterPath: movies.posterPath,
-        releaseYear: movies.releaseYear,
-        runtime: movies.runtime,
-        genres: movies.genres,
+        tmdbId: films.tmdbId,
+        title: films.title,
+        posterPath: films.posterPath,
+        releaseYear: films.releaseYear,
+        runtime: films.runtime,
+        genres: films.genres,
         mediaType: sql<"movie">`'movie'`,
-        lastInteractionAt: movieInteractions.updatedAt,
+        lastInteractionAt: filmInteractions.updatedAt,
       })
-      .from(movieInteractions)
-      .innerJoin(movies, eq(movieInteractions.movieId, movies.id))
-      .where(and(eq(movieInteractions.userId, userId), eq(movieInteractions.isWatched, true)))
-      .orderBy(desc(movieInteractions.updatedAt))
+      .from(filmInteractions)
+      .innerJoin(films, eq(filmInteractions.movieId, films.id))
+      .where(and(eq(filmInteractions.userId, userId), eq(filmInteractions.isWatched, true)))
+      .orderBy(desc(filmInteractions.updatedAt))
       .$dynamic();
 
     return applyOptionalPagination(baseQuery, limit, offset);
@@ -71,19 +71,19 @@ export class UsersMediaInteractionsRepository {
 
     const movieQ = db
       .select({
-        tmdbId: movies.tmdbId,
-        title: movies.title,
-        posterPath: movies.posterPath,
-        releaseYear: movies.releaseYear,
-        runtime: movies.runtime,
-        genres: movies.genres,
+        tmdbId: films.tmdbId,
+        title: films.title,
+        posterPath: films.posterPath,
+        releaseYear: films.releaseYear,
+        runtime: films.runtime,
+        genres: films.genres,
         mediaType: sql<"movie">`'movie'`,
-        lastInteractionAt: movieInteractions.updatedAt,
+        lastInteractionAt: filmInteractions.updatedAt,
       })
-      .from(movieInteractions)
-      .innerJoin(movies, eq(movieInteractions.movieId, movies.id))
-      .where(movieFlagFilter(userId, flag))
-      .orderBy(...shelfOrderBy(sort, movies.releaseYear, movieInteractions.updatedAt))
+      .from(filmInteractions)
+      .innerJoin(films, eq(filmInteractions.movieId, films.id))
+      .where(filmFlagFilter(userId, flag))
+      .orderBy(...shelfOrderBy(sort, films.releaseYear, filmInteractions.updatedAt))
       .limit(fetchCap);
 
     const serialQ = db
@@ -95,12 +95,12 @@ export class UsersMediaInteractionsRepository {
         runtime: tvSeries.episodeRuntime,
         genres: tvSeries.genres,
         mediaType: sql<"tv">`'tv'`,
-        lastInteractionAt: serialInteractions.updatedAt,
+        lastInteractionAt: seriesInteractions.updatedAt,
       })
-      .from(serialInteractions)
-      .innerJoin(tvSeries, eq(serialInteractions.seriesId, tvSeries.id))
-      .where(serialFlagFilter(userId, flag))
-      .orderBy(...shelfOrderBy(sort, tvSeries.firstAirYear, serialInteractions.updatedAt))
+      .from(seriesInteractions)
+      .innerJoin(tvSeries, eq(seriesInteractions.seriesId, tvSeries.id))
+      .where(seriesFlagFilter(userId, flag))
+      .orderBy(...shelfOrderBy(sort, tvSeries.firstAirYear, seriesInteractions.updatedAt))
       .limit(fetchCap);
 
     const [movieRows, serialRows] = await Promise.all([
@@ -118,8 +118,8 @@ export class UsersMediaInteractionsRepository {
     flag: MediaInteractionFlag,
   ): Promise<{ movie: number; tv: number }> {
     const [[movieCount], [serialCount]] = await Promise.all([
-      db.select({ value: count() }).from(movieInteractions).where(movieFlagFilter(userId, flag)),
-      db.select({ value: count() }).from(serialInteractions).where(serialFlagFilter(userId, flag)),
+      db.select({ value: count() }).from(filmInteractions).where(filmFlagFilter(userId, flag)),
+      db.select({ value: count() }).from(seriesInteractions).where(seriesFlagFilter(userId, flag)),
     ]);
 
     return { movie: movieCount?.value ?? 0, tv: serialCount?.value ?? 0 };

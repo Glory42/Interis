@@ -6,7 +6,7 @@ import { renderWithProviders } from "../../../support/render/render-with-provide
 import { authKeys } from "@/features/auth/hooks/useAuth";
 import { MediaActionCard } from "@/features/media/detail/MediaActionCard";
 import type { MediaAction } from "@/features/media/detail/MediaActionsSidebar";
-import { MOVIE_MODULE_STYLES } from "@/features/media/styles";
+import { FILM_MODULE_STYLES } from "@/features/media/styles";
 
 const signedIn = () => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -27,7 +27,7 @@ const action = (key: string, isActive: boolean, active: string, inactive: string
 const renderCard = (overrides: Partial<Parameters<typeof MediaActionCard>[0]> = {}) =>
   renderWithProviders(
     <MediaActionCard
-      moduleStyles={MOVIE_MODULE_STYLES}
+      moduleStyles={FILM_MODULE_STYLES}
       logSlot={<button type="button">Log again</button>}
       tmdbId={550}
       itemType="movie"

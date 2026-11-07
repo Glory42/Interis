@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
-import { seedTestMovie } from "../../support/factories/media.factory";
+import { seedTestFilm } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
 
 // Deleting a log keeps the movie watched unless asked; asked, it is marked
@@ -50,7 +50,7 @@ describe("deleting a movie log and its watched state", () => {
 
   it("keeps the movie watched by default", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "dlukeep");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     const entryId = await logMovie(jar, movie.tmdbId);
 
     expect(await send(jar, "DELETE", `/api/diary/${entryId}`)).toEqual({
@@ -62,7 +62,7 @@ describe("deleting a movie log and its watched state", () => {
 
   it("marks the movie not watched when its last log goes and that is asked", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "dlulast");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     const entryId = await logMovie(jar, movie.tmdbId);
 
     expect(await send(jar, "DELETE", `/api/diary/${entryId}?unwatch=true`)).toEqual({
@@ -74,7 +74,7 @@ describe("deleting a movie log and its watched state", () => {
 
   it("keeps the movie watched while another log of it remains", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "dlumore");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     const firstId = await logMovie(jar, movie.tmdbId);
     await logMovie(jar, movie.tmdbId);
 
@@ -87,7 +87,7 @@ describe("deleting a movie log and its watched state", () => {
 
   it("rejects an unreadable unwatch value", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "dlubad");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     const entryId = await logMovie(jar, movie.tmdbId);
 
     const response = await apiRequest(

@@ -6,7 +6,7 @@ import type { FeedMediaType } from "./types/social-feed.types";
 
 export type {
   FeedActivityKind,
-  FeedMovie,
+  FeedFilm,
   FeedPostMediaType,
   FeedPost,
   FeedReview,

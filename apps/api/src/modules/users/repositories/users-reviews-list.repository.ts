@@ -3,8 +3,8 @@ import { db } from "../../../infrastructure/database/db";
 import { mergeSortedPaginated } from "../../../commons/helpers/merge-sorted-paginated.helper";
 import { diaryEntries } from "../../diary/diary.entity";
 import { reviews } from "../../reviews/reviews.entity";
-import { serialDiaryEntries, tvSeries } from "../../serials/serials.entity";
-import { movies } from "../../movies/movies.entity";
+import { seriesDiaryEntries, tvSeries } from "../../tv/tv.entity";
+import { films } from "../../films/films.entity";
 
 export class UsersReviewsListRepository {
   static async getReviewsWithMovies(userId: string, limit?: number, offset?: number) {
@@ -20,15 +20,15 @@ export class UsersReviewsListRepository {
         containsSpoilers: reviews.containsSpoilers,
         createdAt: reviews.createdAt,
         updatedAt: reviews.updatedAt,
-        tmdbId: movies.tmdbId,
-        title: movies.title,
-        posterPath: movies.posterPath,
-        releaseYear: movies.releaseYear,
+        tmdbId: films.tmdbId,
+        title: films.title,
+        posterPath: films.posterPath,
+        releaseYear: films.releaseYear,
         rating: diaryEntries.rating,
         mediaType: sql<"movie">`'movie'`,
       })
       .from(reviews)
-      .innerJoin(movies, eq(reviews.movieId, movies.id))
+      .innerJoin(films, eq(reviews.movieId, films.id))
       .leftJoin(diaryEntries, eq(reviews.diaryEntryId, diaryEntries.id))
       .where(and(eq(reviews.userId, userId), eq(reviews.mediaType, "movie")));
 
@@ -40,11 +40,11 @@ export class UsersReviewsListRepository {
         createdAt: reviews.createdAt,
         updatedAt: reviews.updatedAt,
         tmdbId: reviews.mediaSourceId,
-        rating: serialDiaryEntries.rating,
+        rating: seriesDiaryEntries.rating,
         mediaType: sql<"tv">`'tv'`,
       })
       .from(reviews)
-      .leftJoin(serialDiaryEntries, eq(reviews.diaryEntryId, serialDiaryEntries.id))
+      .leftJoin(seriesDiaryEntries, eq(reviews.diaryEntryId, seriesDiaryEntries.id))
       .where(and(eq(reviews.userId, userId), eq(reviews.mediaType, "tv")));
 
     const [movieReviewRows, tvReviewRows] = await Promise.all([

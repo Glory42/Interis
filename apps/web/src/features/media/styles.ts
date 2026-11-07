@@ -16,5 +16,5 @@ export const createMediaModuleStyles = (accentVar: string): MediaModuleStyles =>
   badge: `color-mix(in srgb, ${accentVar} 14%, transparent)`,
 });
 
-export const MOVIE_MODULE_STYLES = createMediaModuleStyles("var(--module-movie)");
-export const SERIAL_MODULE_STYLES = createMediaModuleStyles("var(--module-serial)");
+export const FILM_MODULE_STYLES = createMediaModuleStyles("var(--module-movie)");
+export const SERIES_MODULE_STYLES = createMediaModuleStyles("var(--module-serial)");

@@ -3,7 +3,7 @@ import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
 import { promoteToAdmin } from "../../support/factories/admin.factory";
-import { seedTestMovie } from "../../support/factories/media.factory";
+import { seedTestFilm } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
 
 type AuditEntry = {
@@ -78,7 +78,7 @@ describe("admin audit log", () => {
     const admin = await signUpTestUser(getServer().baseUrl, "auditpage");
     await promoteToAdmin(admin.username);
     const author = await signUpTestUser(getServer().baseUrl, "auditauth");
-    const movie = await seedTestMovie("Audit Movie");
+    const movie = await seedTestFilm("Audit Movie");
 
     const created = (await (
       await send(author.jar, "/api/reviews", "POST", { tmdbId: movie.tmdbId, content: "To be removed" })

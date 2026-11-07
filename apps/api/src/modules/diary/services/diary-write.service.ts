@@ -1,5 +1,5 @@
 import { InteractionsService } from "../../interactions/interactions.service";
-import { MoviesService } from "../../movies/movies.service";
+import { FilmsService } from "../../films/films.service";
 import { ActivityRecorder } from "../../social/services/activity-recorder.service";
 import { ReviewsRepository } from "../../reviews/repositories/reviews.repository";
 import { buildDiaryEntryActivityMetadata } from "../helpers/diary-activity.helper";
@@ -9,7 +9,7 @@ import { NotFoundError } from "../../../commons/errors/app-error";
 
 export class DiaryWriteService {
   static async create(userId: string, input: CreateDiaryDto) {
-    const movie = await MoviesService.findOrCreate(input.tmdbId);
+    const movie = await FilmsService.findOrCreate(input.tmdbId);
     if (!movie || !movie.id) {
       throw new NotFoundError("Movie not found");
     }

@@ -1,8 +1,8 @@
 import type { UserSearchResult } from "@/features/profile/api";
 import type { UnifiedSearchResult } from "@/features/search/api";
-import type { TmdbSearchSeries } from "@/features/serials/api";
-import type { TmdbSearchMovie } from "@/types/api";
-import type { MovieResultEntry, SerialResultEntry, UserResultEntry } from "./types";
+import type { TmdbSearchSeries } from "@/features/tv/api";
+import type { TmdbSearchFilm } from "@/types/api";
+import type { FilmResultEntry, SeriesResultEntry, UserResultEntry } from "./types";
 
 export const toUserEntry = (profile: UserSearchResult): UserResultEntry => {
   const profileName = profile.displayUsername?.trim() || profile.username;
@@ -16,7 +16,7 @@ export const toUserEntry = (profile: UserSearchResult): UserResultEntry => {
   };
 };
 
-export const toMovieEntry = (movie: TmdbSearchMovie): MovieResultEntry => ({
+export const toFilmEntry = (movie: TmdbSearchFilm): FilmResultEntry => ({
   kind: "movie",
   id: `movie-${movie.id}`,
   tmdbId: movie.id,
@@ -26,7 +26,7 @@ export const toMovieEntry = (movie: TmdbSearchMovie): MovieResultEntry => ({
   credit: null,
 });
 
-export const toSerialEntry = (series: TmdbSearchSeries): SerialResultEntry => ({
+export const toSeriesEntry = (series: TmdbSearchSeries): SeriesResultEntry => ({
   kind: "serials",
   id: `serials-${series.id}`,
   tmdbId: series.id,
@@ -38,7 +38,7 @@ export const toSerialEntry = (series: TmdbSearchSeries): SerialResultEntry => ({
 
 export const toTitleEntry = (
   result: UnifiedSearchResult,
-): MovieResultEntry | SerialResultEntry => {
+): FilmResultEntry | SeriesResultEntry => {
   if (result.mediaType === "movie") {
     return {
       kind: "movie",

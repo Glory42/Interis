@@ -1,11 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { eq } from "drizzle-orm";
 import { db } from "../../../src/infrastructure/database/db";
-import { tvSeries } from "../../../src/modules/serials/serials.entity";
+import { tvSeries } from "../../../src/modules/tv/tv.entity";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
-import { seedTestMovie, seedTestSerial } from "../../support/factories/media.factory";
+import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
 
 type ViewerStatus = {
@@ -59,9 +59,9 @@ describe("GET /api/viewer-status", () => {
 
   it("returns the signed-in viewer's marks for each requested title, in order", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "vstatus");
-    const rated = await seedTestMovie("Status Rated Movie");
-    const queued = await seedTestMovie("Status Queued Movie");
-    const serial = await seedTestSerial("Status Serial");
+    const rated = await seedTestFilm("Status Rated Movie");
+    const queued = await seedTestFilm("Status Queued Movie");
+    const serial = await seedTestSeries("Status Serial");
     await db.update(tvSeries).set({ numberOfEpisodes: 10 }).where(eq(tvSeries.id, serial.id));
 
     await put(jar, `/api/interactions/${rated.tmdbId}`, { liked: true, rating: 8 });
@@ -86,7 +86,7 @@ describe("GET /api/viewer-status", () => {
   });
 
   it("gives signed-out visitors empty marks", async () => {
-    const movie = await seedTestMovie("Status Anonymous Movie");
+    const movie = await seedTestFilm("Status Anonymous Movie");
     const statuses = await getStatuses(`movie:${movie.tmdbId}`);
 
     expect(statuses).toEqual([

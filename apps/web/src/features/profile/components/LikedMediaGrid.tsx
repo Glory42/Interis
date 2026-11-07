@@ -1,4 +1,4 @@
-import type { UserInteractionMovie } from "@/features/profile/api";
+import type { UserInteractionFilm } from "@/features/profile/api";
 import { MediaPosterGridItem } from "@/features/profile/components/MediaPosterGridItem";
 import { PROFILE_MEDIA_GRID_CLASSES } from "@/features/profile/components/ProfileMediaGridSkeleton";
 import type { MediaShelfFilter } from "@/features/profile/components/media-shelf-filter";
@@ -10,7 +10,7 @@ export const LikedMediaGrid = ({
   items,
   filter,
 }: {
-  items: UserInteractionMovie[];
+  items: UserInteractionFilm[];
   filter: MediaFilter;
 }) => {
   if (items.length === 0) {

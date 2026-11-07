@@ -11,7 +11,7 @@ const sourceRoot = path.join(projectRoot, "src");
 
 const forbiddenTransitionalFiles = new Set([
   "src/modules/users/repositories/users.repository.ts",
-  "src/modules/serials/repositories/serials.repository.ts",
+  "src/modules/tv/repositories/tv.repository.ts",
   "src/modules/people/people.service.ts",
 ]);
 

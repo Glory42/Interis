@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
-import { seedTestMovie } from "../../support/factories/media.factory";
+import { seedTestFilm } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -56,7 +56,7 @@ describe("list item cap", () => {
       })),
     );
 
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     const addResponse = await apiRequest(
       getServer().baseUrl,
       `/api/lists/${list.id}/items`,

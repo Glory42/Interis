@@ -7,7 +7,7 @@ import type { FeedFilter } from "@/features/feed/types";
 import { QuickLogComposer } from "@/features/feed/components/QuickLogComposer";
 import { FeedRail } from "@/features/feed/components/FeedRail";
 import { useGroupedFeed, useMyFeedSummary, useTrendingNow } from "@/features/feed/hooks/useFeed";
-import { useTrendingSeries } from "@/features/serials/hooks/useSerials";
+import { useTrendingSeries } from "@/features/tv/hooks/useTv";
 
 export const HomePage = () => {
   const { user, isUserLoading } = useAuth();

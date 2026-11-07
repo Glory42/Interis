@@ -1,15 +1,15 @@
 import { and, eq } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { db } from "../../infrastructure/database/db";
-import { movieInteractions } from "../interactions/interactions.entity";
-import { serialInteractions } from "../serials/serials.entity";
+import { filmInteractions } from "../interactions/interactions.entity";
+import { seriesInteractions } from "../tv/tv.entity";
 import {
   resolveInteractionUpdate,
   type InteractionStateInput,
   type InteractionStateRow,
 } from "./helpers/interaction-state-rules.helper";
 
-type InteractionTable = typeof movieInteractions | typeof serialInteractions;
+type InteractionTable = typeof filmInteractions | typeof seriesInteractions;
 
 type InteractionAdapterConfig = {
   table: InteractionTable;
@@ -120,15 +120,15 @@ function makeInteractionAdapter({
 export const MediaInteractions = {
   forMovie: (): MediaInteractionAdapter =>
     makeInteractionAdapter({
-      table: movieInteractions,
-      fkColumn: movieInteractions.movieId,
+      table: filmInteractions,
+      fkColumn: filmInteractions.movieId,
       fkKey: "movieId",
       watchedFromStatus: false,
     }),
   forSeries: (): MediaInteractionAdapter =>
     makeInteractionAdapter({
-      table: serialInteractions,
-      fkColumn: serialInteractions.seriesId,
+      table: seriesInteractions,
+      fkColumn: seriesInteractions.seriesId,
       fkKey: "seriesId",
       watchedFromStatus: true,
     }),

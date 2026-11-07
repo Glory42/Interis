@@ -3,15 +3,15 @@ import { OutlinedRank } from "@/components/film/OutlinedRank";
 import { LoadingRegion } from "@/components/ui/PageSkeletons";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { toWeekLabel } from "@/features/media/archive/week-label";
-import type { TrendingMovie } from "@/features/feed/types";
-import type { TrendingSeries } from "@/features/serials/api/types";
+import type { TrendingFilm } from "@/features/feed/types";
+import type { TrendingSeries } from "@/features/tv/api/types";
 import { getPosterUrl } from "@/features/media/tmdb-images";
 
 const pad = (index: number) => String(index + 1).padStart(2, "0");
 
 // A still grid and a numbered list: each title once, nothing scrolls on its own.
 type LandingTrendingProps = {
-  films: TrendingMovie[];
+  films: TrendingFilm[];
   shows: TrendingSeries[];
   isLoadingFilms?: boolean;
   isLoadingShows?: boolean;

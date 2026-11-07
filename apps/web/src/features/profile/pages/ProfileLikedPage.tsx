@@ -12,7 +12,7 @@ import {
 } from "@/features/profile/components/media-shelf-filter";
 import { SentenceSelect, type SentenceOption } from "@/components/ui/SentenceSelect";
 import {
-  useUserLikedMovies,
+  useUserLikedFilms,
   useUserLikedLists,
   useUserLikedReviews,
   useIsOwnProfile,
@@ -44,7 +44,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
   const [reviewFilter, setReviewFilter] = useState<MediaFilter>("all");
   const [listFilter, setListFilter] = useState<ListFilter>("all");
 
-  const mediasQuery = useUserLikedMovies(username, toMediaShelfType(mediaFilter));
+  const mediasQuery = useUserLikedFilms(username, toMediaShelfType(mediaFilter));
   const isOwner = useIsOwnProfile(username);
   const reviewsQuery = useUserLikedReviews(username);
   const listsQuery = useUserLikedLists(username);

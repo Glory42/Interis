@@ -10,9 +10,9 @@ import {
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { user } from "../../infrastructure/database/auth.entity";
-import { movies } from "../movies/movies.entity";
+import { films } from "../films/films.entity";
 
-export const movieInteractions = pgTable(
+export const filmInteractions = pgTable(
   "movie_interaction",
   {
     userId: text("user_id")
@@ -20,7 +20,7 @@ export const movieInteractions = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     movieId: integer("movie_id")
       .notNull()
-      .references(() => movies.id, { onDelete: "cascade" }),
+      .references(() => films.id, { onDelete: "cascade" }),
     liked: boolean("liked").default(false).notNull(),
     watchlisted: boolean("watchlisted").default(false).notNull(),
     rating: real("rating"),

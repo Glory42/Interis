@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
-import { seedTestMovie } from "../../support/factories/media.factory";
+import { seedTestFilm } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
 import { db } from "../../../src/infrastructure/database/db";
 import { diaryEntries } from "../../../src/modules/diary/diary.entity";
@@ -59,7 +59,7 @@ describe("today's network stats count live content only (#83)", () => {
   };
 
   const logMovie = async (jar: CookieJar, review?: string) => {
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     const logged = (await send(jar, "POST", "/api/diary", {
       tmdbId: movie.tmdbId,
       watchedDate: "2026-01-01",

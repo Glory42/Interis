@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import { promoteToAdmin } from "../../support/factories/admin.factory";
-import { seedTestMovie, seedTestSerial } from "../../support/factories/media.factory";
+import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -37,7 +37,7 @@ describe("admin media actions", () => {
   describe("movies", () => {
     it("lists and searches movies", async () => {
       const admin = await makeAdmin("amvadmin1");
-      const movie = await seedTestMovie("Admin Search Movie");
+      const movie = await seedTestFilm("Admin Search Movie");
 
       const listResponse = await apiRequest(getServer().baseUrl, "/api/admin/movies", {}, admin.jar);
       expect(listResponse.status).toBe(200);
@@ -86,7 +86,7 @@ describe("admin media actions", () => {
 
     it("updates and deletes a movie", async () => {
       const admin = await makeAdmin("amvedit");
-      const movie = await seedTestMovie("Original Title");
+      const movie = await seedTestFilm("Original Title");
 
       const updateResponse = await apiRequest(
         getServer().baseUrl,
@@ -116,7 +116,7 @@ describe("admin media actions", () => {
   describe("serials", () => {
     it("lists serials", async () => {
       const admin = await makeAdmin("aserialadmin");
-      await seedTestSerial("Admin Search Serial");
+      await seedTestSeries("Admin Search Serial");
 
       const listResponse = await apiRequest(getServer().baseUrl, "/api/admin/serials", {}, admin.jar);
       expect(listResponse.status).toBe(200);
@@ -135,7 +135,7 @@ describe("admin media actions", () => {
 
     it("updates and deletes a serial", async () => {
       const admin = await makeAdmin("aserialedit");
-      const serial = await seedTestSerial("Original Serial Title");
+      const serial = await seedTestSeries("Original Serial Title");
 
       const updateResponse = await apiRequest(
         getServer().baseUrl,

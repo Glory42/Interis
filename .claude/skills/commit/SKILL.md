@@ -38,8 +38,8 @@ Create git commits following Conventional Commits with project-specific domain s
 | `posts` | Short posts with comments/likes — `modules/posts/`, `features/posts/` |
 | `feed` | Social feed assembly and display — `modules/social/`, `features/feed/` |
 | `social` | Follow graph, activity insertion — `modules/social/` |
-| `movies` | Movie search, detail, archive, movie pages — `modules/movies/`, `features/movies/` |
-| `serials` | TV series search, detail, archive, season/episode tracking — `modules/serials/`, `features/serials/` |
+| `films` | Film search, detail, archive, film pages — `modules/films/`, `features/films/` |
+| `tv` | TV series search, detail, archive, season/episode tracking — `modules/tv/`, `features/tv/` |
 | `profile` | Public profile pages, tabs, top picks — `modules/users/`, `features/profile/` |
 | `public` | Rate-limited widget endpoints — `modules/public/`, `features/public/` |
 | `auth` | Authentication, sessions, guards — `infrastructure/auth/`, `features/auth/` |
@@ -92,9 +92,9 @@ EOF
 ```
 feat(diary): add rewatch toggle and like button to log movie modal
 fix(feed): guard non-uuid diary_entry entity ids in review context builder
-refactor(serials): replace SeasonEpisodeReviewDialog with shared LogMediaDialog
+refactor(tv): replace SeasonEpisodeReviewDialog with shared LogMediaDialog
 feat(rating): replace ratingOutOfFive with real 0.5-10 scale across all modules
-fix(serials): include mediaSource in onConflictDoUpdate target for season reviews
+fix(tv): include mediaSource in onConflictDoUpdate target for season reviews
 feat(social): emit liked_movie activity when user likes a serial season
 style(ui): tighten spacing on FeedActivityCard poster thumbnail
 chore(db): add serial_season_interactions migration

@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
-import { seedTestMovie } from "../../support/factories/media.factory";
+import { seedTestFilm } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
 import { db } from "../../../src/infrastructure/database/db";
 import { user } from "../../../src/infrastructure/database/auth.entity";
@@ -82,7 +82,7 @@ describe("feed caches are cleared when the feed changes (#84)", () => {
 
   it("shows an edited review on the public activity view", async () => {
     const author = await signUpTestUser(getServer().baseUrl, "fciedta");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     const created = (await send(author.jar, "POST", "/api/reviews", {
       tmdbId: movie.tmdbId,
       content: "First draft",

@@ -10,7 +10,7 @@ import {
 } from "@/features/feed/components/EngagementActionBar";
 import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
 import { FeedCardHeader } from "@/features/feed/components/FeedCardHeader";
-import { FeedMoviePreviewCard } from "@/features/feed/components/FeedMoviePreviewCard";
+import { FeedFilmPreviewCard } from "@/features/feed/components/FeedFilmPreviewCard";
 import { PostActivityDialog } from "@/features/feed/components/PostActivityDialog";
 import {
   feedChannelMeta,
@@ -150,7 +150,7 @@ export const PostActivityCard = memo(function PostActivityCard({ item }: PostAct
           ) : null}
 
           {to && item.movie ? (
-            <FeedMoviePreviewCard
+            <FeedFilmPreviewCard
               to={to}
               tmdbId={item.movie.tmdbId}
               title={item.movie.title}

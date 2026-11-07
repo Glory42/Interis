@@ -4,7 +4,7 @@ import { useTrendingNow } from "@/features/feed/hooks/useFeed";
 import { LandingDiarySpecimen } from "@/features/landing/components/LandingDiarySpecimen";
 import { LandingHero } from "@/features/landing/components/LandingHero";
 import { LandingTrending } from "@/features/landing/components/LandingTrending";
-import { useTrendingSeries } from "@/features/serials/hooks/useSerials";
+import { useTrendingSeries } from "@/features/tv/hooks/useTv";
 
 export const LandingPage = () => {
   // Nine matches the loader's prefetch in routes/index.tsx; the grid shows eight.
