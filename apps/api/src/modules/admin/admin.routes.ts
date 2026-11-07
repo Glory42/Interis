@@ -4,6 +4,7 @@ import { AdminContentController } from "./admin-content.controller";
 import { AdminMediaController } from "./admin-media.controller";
 import { AdminCommunityController } from "./admin-community.controller";
 import { AdminAuditController } from "./admin-audit.controller";
+import { AdminOverviewController } from "./admin-overview.controller";
 import { asyncHandler } from "../../commons/utils/asyncHandler";
 import { requireAuth } from "../../commons/middlewares/requireAuth";
 import { requireAdmin } from "../../commons/middlewares/requireAdmin";
@@ -12,6 +13,7 @@ const router = Router();
 
 router.use(requireAuth, requireAdmin);
 
+router.get("/overview", asyncHandler(AdminOverviewController.get));
 router.get("/audit", asyncHandler(AdminAuditController.list));
 router.get("/users", asyncHandler(AdminController.listUsers));
 router.get("/users/:username", asyncHandler(AdminController.getUserDetail));
