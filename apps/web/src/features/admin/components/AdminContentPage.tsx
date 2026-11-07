@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import { SentenceSelect } from "@/components/ui/SentenceSelect";
 import { AdminActivitiesPanel } from "@/features/admin/components/AdminActivitiesPanel";
+import { AdminCommentsPanel } from "@/features/admin/components/AdminCommentsPanel";
 import { AdminDiaryPanel } from "@/features/admin/components/AdminDiaryPanel";
 import { AdminListsPanel } from "@/features/admin/components/AdminListsPanel";
 import { AdminMoviesPanel } from "@/features/admin/components/AdminMoviesPanel";
@@ -13,6 +14,7 @@ const PANELS: Record<ContentType, ComponentType> = {
   reviews: AdminReviewsPanel,
   diary: AdminDiaryPanel,
   posts: AdminPostsPanel,
+  comments: AdminCommentsPanel,
   lists: AdminListsPanel,
   activities: AdminActivitiesPanel,
   movies: AdminMoviesPanel,
