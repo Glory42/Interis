@@ -10,6 +10,15 @@ export type FeedRow =
 
 export type FeedDay = { key: string; label: string; week: string; rows: FeedRow[] };
 
+// What the person did with the title: the strongest action wins.
+export const verbFor = (group: FeedTitleGroup): string => {
+  if (group.watched) return group.rewatch ? "rewatched" : "watched";
+  if (group.review) return "reviewed";
+  if (group.rating !== null) return "rated";
+  if (group.liked) return "liked";
+  return "wants to watch";
+};
+
 const isLikeOnly = (group: FeedTitleGroup) =>
   group.liked && !group.watched && group.rating === null && !group.review && !group.watchlisted;
 
