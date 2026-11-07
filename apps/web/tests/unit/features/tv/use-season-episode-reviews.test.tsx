@@ -44,7 +44,7 @@ describe("useUpsertSeasonReview", () => {
     );
 
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(feedKeys.followingRoot, { pages: [], pageParams: [] });
+    queryClient.setQueryData(feedKeys.grouped("all"), { pages: [], pageParams: [] });
 
     const { result } = renderHook(() => useUpsertSeasonReview(1399, 1), {
       wrapper: wrapperFor(queryClient),
@@ -54,7 +54,7 @@ describe("useUpsertSeasonReview", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(requestBody).toEqual({ content: "great season", createNew: true });
-    expect(queryClient.getQueryState(feedKeys.followingRoot)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(feedKeys.grouped("all"))?.isInvalidated).toBe(true);
   });
 });
 
@@ -69,7 +69,7 @@ describe("useDeleteSeasonReview", () => {
     );
 
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(feedKeys.followingRoot, { pages: [], pageParams: [] });
+    queryClient.setQueryData(feedKeys.grouped("all"), { pages: [], pageParams: [] });
 
     const { result } = renderHook(() => useDeleteSeasonReview(1399, 1), {
       wrapper: wrapperFor(queryClient),
@@ -79,7 +79,7 @@ describe("useDeleteSeasonReview", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(new URL(requestedUrl).searchParams.get("reviewId")).toBe("review-1");
-    expect(queryClient.getQueryState(feedKeys.followingRoot)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(feedKeys.grouped("all"))?.isInvalidated).toBe(true);
   });
 });
 
@@ -90,7 +90,7 @@ describe("useUpsertEpisodeReview", () => {
     );
 
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(feedKeys.followingRoot, { pages: [], pageParams: [] });
+    queryClient.setQueryData(feedKeys.grouped("all"), { pages: [], pageParams: [] });
 
     const { result } = renderHook(() => useUpsertEpisodeReview(1399, 1), {
       wrapper: wrapperFor(queryClient),
@@ -102,7 +102,7 @@ describe("useUpsertEpisodeReview", () => {
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(queryClient.getQueryState(feedKeys.followingRoot)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(feedKeys.grouped("all"))?.isInvalidated).toBe(true);
   });
 });
 
@@ -113,7 +113,7 @@ describe("useDeleteEpisodeReview", () => {
     );
 
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(feedKeys.followingRoot, { pages: [], pageParams: [] });
+    queryClient.setQueryData(feedKeys.grouped("all"), { pages: [], pageParams: [] });
 
     const { result } = renderHook(() => useDeleteEpisodeReview(1399, 1), {
       wrapper: wrapperFor(queryClient),
@@ -122,6 +122,6 @@ describe("useDeleteEpisodeReview", () => {
     result.current.mutate({ episodeNumber: 3, reviewId: "review-1" });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(queryClient.getQueryState(feedKeys.followingRoot)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(feedKeys.grouped("all"))?.isInvalidated).toBe(true);
   });
 });

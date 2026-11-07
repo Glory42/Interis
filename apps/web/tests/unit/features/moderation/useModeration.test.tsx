@@ -98,7 +98,7 @@ describe("useBlockUser", () => {
     queryClient.setQueryData(moderationKeys.blocked, []);
     queryClient.setQueryData(moderationKeys.muted, []);
     queryClient.setQueryData(socialKeys.followState("target"), { isFollowing: true });
-    queryClient.setQueryData(feedKeys.followingRoot, { pages: [], pageParams: [] });
+    queryClient.setQueryData(feedKeys.grouped("all"), { pages: [], pageParams: [] });
 
     const { result } = renderHook(() => useBlockUser("target"), {
       wrapper: wrapperFor(queryClient),
@@ -114,7 +114,7 @@ describe("useBlockUser", () => {
     expect(queryClient.getQueryState(socialKeys.followState("target"))?.isInvalidated).toBe(
       true,
     );
-    expect(queryClient.getQueryState(feedKeys.followingRoot)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(feedKeys.grouped("all"))?.isInvalidated).toBe(true);
 
     // Blocking one user must not invalidate a completely unrelated
     // user's relationship state or the muted list (block and mute are

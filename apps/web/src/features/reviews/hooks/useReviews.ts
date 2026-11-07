@@ -1,6 +1,5 @@
 import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { FeedItem } from "@/features/feed/types";
-import { patchFeedItems, invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
+import { invalidateFollowingFeed, patchFeed, restoreFeed } from "@/features/feed/hooks/feed-cache";
 import { restoreQueries, type QuerySnapshot } from "@/lib/query-optimistic";
 import {
   addReviewComment,
@@ -41,10 +40,6 @@ export const useFetchMyTitleReviews = () => {
       queryFn: () => getMyTitleReviews(query),
       staleTime: 0,
     });
-};
-
-const matchesReview = (item: FeedItem, reviewId: string): boolean => {
-  return item.review?.id === reviewId || item.metadata.reviewId === reviewId;
 };
 
 // Patches every cached "review detail" query for this reviewId (there can be
@@ -118,17 +113,7 @@ export const useAddReviewComment = (reviewId: string, mediaType: ReviewMediaType
         },
       );
 
-      patchFeedItems(
-        queryClient,
-        (item) => matchesReview(item, reviewId),
-        (item) => ({
-          ...item,
-          engagement: {
-            ...item.engagement,
-            commentCount: item.engagement.commentCount + 1,
-          },
-        }),
-      );
+      await patchFeed(queryClient, { review: reviewId }, { type: "comment-added" });
 
       patchReviewDetailQueries(queryClient, reviewId, (detail) => ({
         ...detail,
@@ -161,6 +146,10 @@ export const useUpdateReviewComment = (reviewId: string, mediaType: ReviewMediaT
           ) ?? currentComments,
       );
       // The feed quotes the comment, so its card must pick up the new text.
+      await patchFeed(queryClient, { comment: updatedComment.id }, {
+        type: "comment-edited",
+        content: updatedComment.content,
+      });
       await invalidateFollowingFeed(queryClient);
     },
   });
@@ -177,17 +166,7 @@ export const useDeleteReviewComment = (reviewId: string, mediaType: ReviewMediaT
         (currentComments) => currentComments?.filter((comment) => comment.id !== commentId),
       );
 
-      patchFeedItems(
-        queryClient,
-        (item) => matchesReview(item, reviewId),
-        (item) => ({
-          ...item,
-          engagement: {
-            ...item.engagement,
-            commentCount: Math.max(item.engagement.commentCount - 1, 0),
-          },
-        }),
-      );
+      await patchFeed(queryClient, { review: reviewId }, { type: "comment-removed" });
 
       patchReviewDetailQueries(queryClient, reviewId, (detail) => ({
         ...detail,
@@ -209,20 +188,7 @@ export const useLikeReview = (reviewId: string) => {
     meta: { errorToast: "Couldn't like this review" },
     mutationFn: () => likeReview(reviewId),
     onMutate: async () => {
-      const previousFeedQueries = patchFeedItems(
-        queryClient,
-        (item) => matchesReview(item, reviewId),
-        (item) => ({
-          ...item,
-          engagement: {
-            ...item.engagement,
-            viewerHasLiked: true,
-            likeCount: item.engagement.viewerHasLiked
-              ? item.engagement.likeCount
-              : item.engagement.likeCount + 1,
-          },
-        }),
-      );
+      const previousFeedQueries = await patchFeed(queryClient, { review: reviewId }, { type: "liked" });
 
       const previousDetailQueries = patchReviewDetailQueries(queryClient, reviewId, (detail) => ({
         ...detail,
@@ -238,7 +204,7 @@ export const useLikeReview = (reviewId: string) => {
       return { previousFeedQueries, previousDetailQueries };
     },
     onError: (_error, _variables, context) => {
-      restoreQueries(queryClient, context?.previousFeedQueries ?? []);
+      restoreFeed(queryClient, context?.previousFeedQueries);
       restoreQueries(queryClient, context?.previousDetailQueries ?? []);
     },
     onSettled: async () => {
@@ -254,20 +220,7 @@ export const useUnlikeReview = (reviewId: string) => {
     meta: { errorToast: "Couldn't unlike this review" },
     mutationFn: () => unlikeReview(reviewId),
     onMutate: async () => {
-      const previousFeedQueries = patchFeedItems(
-        queryClient,
-        (item) => matchesReview(item, reviewId),
-        (item) => ({
-          ...item,
-          engagement: {
-            ...item.engagement,
-            viewerHasLiked: false,
-            likeCount: item.engagement.viewerHasLiked
-              ? Math.max(item.engagement.likeCount - 1, 0)
-              : item.engagement.likeCount,
-          },
-        }),
-      );
+      const previousFeedQueries = await patchFeed(queryClient, { review: reviewId }, { type: "unliked" });
 
       const previousDetailQueries = patchReviewDetailQueries(queryClient, reviewId, (detail) => ({
         ...detail,
@@ -283,7 +236,7 @@ export const useUnlikeReview = (reviewId: string) => {
       return { previousFeedQueries, previousDetailQueries };
     },
     onError: (_error, _variables, context) => {
-      restoreQueries(queryClient, context?.previousFeedQueries ?? []);
+      restoreFeed(queryClient, context?.previousFeedQueries);
       restoreQueries(queryClient, context?.previousDetailQueries ?? []);
     },
     onSettled: async () => {
@@ -299,25 +252,11 @@ export const useUpdateReview = (reviewId: string) => {
     mutationFn: (input: { content: string; containsSpoilers?: boolean }) =>
       updateReview(reviewId, input),
     onSuccess: async (updatedReview) => {
-      patchFeedItems(
-        queryClient,
-        (item) => matchesReview(item, reviewId),
-        (item) => ({
-          ...item,
-          review: item.review
-            ? {
-                ...item.review,
-                content: updatedReview.content,
-                containsSpoilers: updatedReview.containsSpoilers,
-              }
-            : item.review,
-          metadata: {
-            ...item.metadata,
-            excerpt: updatedReview.content,
-            containsSpoilers: updatedReview.containsSpoilers,
-          },
-        }),
-      );
+      await patchFeed(queryClient, { review: reviewId }, {
+        type: "review-edited",
+        content: updatedReview.content,
+        containsSpoilers: updatedReview.containsSpoilers,
+      });
 
       patchReviewDetailQueries(queryClient, reviewId, (detail) => ({
         ...detail,

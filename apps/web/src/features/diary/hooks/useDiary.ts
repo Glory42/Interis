@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authKeys } from "@/features/auth/hooks/useAuth";
-import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
+import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache";
 import { createDiaryEntry, getMyFilmLogs } from "@/features/diary/api";
 import { interactionKeys } from "@/features/interactions/hooks/useInteractions";
 import { filmKeys } from "@/features/films/hooks/useFilms";

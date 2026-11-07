@@ -18,7 +18,7 @@ import {
 } from "@/features/profile/hooks/useProfile";
 import { profileStatsKeys } from "@/features/profile/hooks/useProfileStats";
 import type { MeProfile } from "@/types/api";
-import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
+import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache";
 import { seriesKeys } from "./query-keys";
 
 export const useUpdateSeriesInteraction = (tmdbId: number) => {

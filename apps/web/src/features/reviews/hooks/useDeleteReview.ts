@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { authKeys } from "@/features/auth/hooks/useAuth";
-import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
+import { invalidateFollowingFeed, patchFeed } from "@/features/feed/hooks/feed-cache";
 import { filmKeys } from "@/features/films/hooks/useFilms";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import { deleteReview, type ReviewDetail } from "@/features/reviews/api";
@@ -16,7 +16,8 @@ export const useDeleteReview = () => {
 
   return useMutation({
     mutationFn: (review: DeletableReview) => deleteReview(review.id),
-    onSuccess: async (_data, { mediaType, tmdbId }) => {
+    onSuccess: async (_data, { id, mediaType, tmdbId }) => {
+      await patchFeed(queryClient, { review: id }, { type: "review-deleted" });
       const me = queryClient.getQueryData<MeProfile | null>(authKeys.me);
       const keys: QueryKey[] = [
         ["reviews", "mine"],

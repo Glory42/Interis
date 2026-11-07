@@ -7,7 +7,7 @@ import {
   type UpdateFilmInteractionInput,
 } from "@/features/interactions/api";
 import { filmKeys } from "@/features/films/hooks/useFilms";
-import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
+import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import { profileStatsKeys } from "@/features/profile/hooks/useProfileStats";
 import type { MeProfile } from "@/types/api";

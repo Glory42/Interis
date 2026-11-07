@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
-import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
+import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import { searchFilms } from "@/features/films/api/requests";
 import { searchSeries } from "@/features/tv/api/requests";

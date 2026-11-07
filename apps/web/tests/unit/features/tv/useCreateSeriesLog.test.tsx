@@ -31,7 +31,7 @@ describe("useCreateSeriesLog", () => {
       profileKeys.diary("cinefan"),
       profileKeys.currentlyWatching("cinefan"),
       profileStatsKeys.detail("cinefan"),
-      feedKeys.followingRoot,
+      feedKeys.groupedRoot,
     ]) {
       expect(invalidatedKeys).toContainEqual(key);
     }

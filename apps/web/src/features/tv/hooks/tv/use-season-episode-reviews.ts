@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
+import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache";
 import {
   deleteEpisodeReview,
   deleteSeasonReview,

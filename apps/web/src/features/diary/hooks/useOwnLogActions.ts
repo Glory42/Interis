@@ -11,7 +11,7 @@ import {
   type UpdateDiaryEntryInput,
 } from "@/features/diary/api";
 import { diaryKeys } from "@/features/diary/hooks/useDiary";
-import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
+import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache";
 import { interactionKeys } from "@/features/interactions/hooks/useInteractions";
 import { filmKeys } from "@/features/films/hooks/useFilms";
 import { profileKeys } from "@/features/profile/hooks/useProfile";

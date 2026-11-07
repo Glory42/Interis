@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { authKeys } from "@/features/auth/hooks/useAuth";
 import { feedKeys } from "@/features/feed/hooks/useFeed";
-import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
+import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import {
   followUser,

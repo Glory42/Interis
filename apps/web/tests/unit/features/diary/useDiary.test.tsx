@@ -206,7 +206,7 @@ describe("useCreateDiaryEntry", () => {
 
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(authKeys.me, me);
-    queryClient.setQueryData(feedKeys.followingRoot, { pages: [], pageParams: [] });
+    queryClient.setQueryData(feedKeys.grouped("all"), { pages: [], pageParams: [] });
 
     const { result } = renderHook(() => useCreateDiaryEntry(), {
       wrapper: wrapperFor(queryClient),
@@ -215,6 +215,6 @@ describe("useCreateDiaryEntry", () => {
     result.current.mutate({ tmdbId: 550, watchedDate: "2026-01-15" });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(queryClient.getQueryState(feedKeys.followingRoot)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(feedKeys.grouped("all"))?.isInvalidated).toBe(true);
   });
 });
