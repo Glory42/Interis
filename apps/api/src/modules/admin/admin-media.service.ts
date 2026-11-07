@@ -1,38 +1,38 @@
-import { MoviesService } from "../movies/movies.service";
-import type { AdminUpdateMovieFields } from "../movies/repositories/movies.repository";
-import { SerialsService } from "../serials/serials.service";
-import type { AdminUpdateSeriesFields } from "../serials/repositories/serials-cache.repository";
+import { FilmsService } from "../films/films.service";
+import type { AdminUpdateFilmFields } from "../films/repositories/films.repository";
+import { TvService } from "../tv/tv.service";
+import type { AdminUpdateSeriesFields } from "../tv/repositories/tv-cache.repository";
 
 export class AdminMediaService {
   static async listMovies(query: string | undefined, limit: number, offset: number) {
-    return MoviesService.listAllForAdmin(query, limit, offset);
+    return FilmsService.listAllForAdmin(query, limit, offset);
   }
 
-  static async updateMovie(id: number, fields: AdminUpdateMovieFields) {
-    return MoviesService.updateForAdmin(id, fields);
+  static async updateMovie(id: number, fields: AdminUpdateFilmFields) {
+    return FilmsService.updateForAdmin(id, fields);
   }
 
   static async refreshMovie(id: number) {
-    return MoviesService.refreshForAdmin(id);
+    return FilmsService.refreshForAdmin(id);
   }
 
   static async deleteMovie(id: number) {
-    return MoviesService.deleteForAdmin(id);
+    return FilmsService.deleteForAdmin(id);
   }
 
   static async listSerials(query: string | undefined, limit: number, offset: number) {
-    return SerialsService.listAllForAdmin(query, limit, offset);
+    return TvService.listAllForAdmin(query, limit, offset);
   }
 
   static async updateSerial(id: number, fields: AdminUpdateSeriesFields) {
-    return SerialsService.updateForAdmin(id, fields);
+    return TvService.updateForAdmin(id, fields);
   }
 
   static async refreshSerial(id: number) {
-    return SerialsService.refreshForAdmin(id);
+    return TvService.refreshForAdmin(id);
   }
 
   static async deleteSerial(id: number) {
-    return SerialsService.deleteForAdmin(id);
+    return TvService.deleteForAdmin(id);
   }
 }

@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
-import { seedTestMovie, seedTestSerial } from "../../support/factories/media.factory";
+import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
 import { db } from "../../../src/infrastructure/database/db";
 import { user } from "../../../src/infrastructure/database/auth.entity";
@@ -84,7 +84,7 @@ describe("deleted reviews and posts leave the feed (#77, #78)", () => {
   it("drops a deleted review and everything about it", async () => {
     const { author, fan } = await signUpPair("fdrev");
     const authorId = await getUserId(author.username);
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const created = (await send(author.jar, "POST", "/api/reviews", {
       tmdbId: movie.tmdbId,
@@ -110,7 +110,7 @@ describe("deleted reviews and posts leave the feed (#77, #78)", () => {
 
   it("keeps a diary entry whose review was deleted, without the review text", async () => {
     const { author, fan } = await signUpPair("fddiary");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const logged = (await send(author.jar, "POST", "/api/diary", {
       tmdbId: movie.tmdbId,
@@ -132,7 +132,7 @@ describe("deleted reviews and posts leave the feed (#77, #78)", () => {
 
   it("shows the edited review text, not the text from when it was liked", async () => {
     const { author, fan } = await signUpPair("fdedit");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const created = (await send(author.jar, "POST", "/api/reviews", {
       tmdbId: movie.tmdbId,
@@ -169,7 +169,7 @@ describe("deleted reviews and posts leave the feed (#77, #78)", () => {
     const author = await signUpTestUser(getServer().baseUrl, "fdcmta");
     const commenter = await signUpTestUser(getServer().baseUrl, "fdcmtc");
     const commenterId = await getUserId(commenter.username);
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const created = (await send(author.jar, "POST", "/api/reviews", {
       tmdbId: movie.tmdbId,
@@ -198,7 +198,7 @@ describe("deleted reviews and posts leave the feed (#77, #78)", () => {
   it("removes a season review's feed row when the review is deleted", async () => {
     const { author, fan } = await signUpPair("fdseason");
     const authorId = await getUserId(author.username);
-    const serial = await seedTestSerial();
+    const serial = await seedTestSeries();
     const base = `/api/serials/${serial.tmdbId}/seasons/1/review`;
 
     await send(author.jar, "POST", base, { content: "Season take to delete" });

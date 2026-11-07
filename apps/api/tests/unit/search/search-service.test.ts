@@ -1,22 +1,22 @@
 import { describe, expect, it, mock } from "bun:test";
 
-const searchMoviesMock = mock(() => Promise.resolve<unknown[]>([]));
+const searchFilmsMock = mock(() => Promise.resolve<unknown[]>([]));
 const searchSeriesMock = mock(() => Promise.resolve<unknown[]>([]));
 const directorsMock = mock(() => Promise.resolve(new Map<number, string>()));
 const creatorsMock = mock(() => Promise.resolve(new Map<number, string>()));
 
-mock.module("../../../src/modules/movies/movies.service", () => ({
-  MoviesService: { search: searchMoviesMock, findCachedDirectors: directorsMock },
+mock.module("../../../src/modules/films/films.service", () => ({
+  FilmsService: { search: searchFilmsMock, findCachedDirectors: directorsMock },
 }));
-mock.module("../../../src/modules/serials/serials.service", () => ({
-  SerialsService: { search: searchSeriesMock, findCachedCreators: creatorsMock },
+mock.module("../../../src/modules/tv/tv.service", () => ({
+  TvService: { search: searchSeriesMock, findCachedCreators: creatorsMock },
 }));
 
 const { SearchService } = await import("../../../src/modules/search/search.service");
 
 describe("SearchService.searchTitles (unit)", () => {
   it("merges movie and series results, tagging each with its media type", async () => {
-    searchMoviesMock.mockResolvedValueOnce([
+    searchFilmsMock.mockResolvedValueOnce([
       { id: 1, title: "A Movie", poster_path: "/a.jpg", release_date: "2020-01-01", popularity: 5 },
     ]);
     searchSeriesMock.mockResolvedValueOnce([
@@ -31,7 +31,7 @@ describe("SearchService.searchTitles (unit)", () => {
   });
 
   it("sorts merged results by popularity descending", async () => {
-    searchMoviesMock.mockResolvedValueOnce([
+    searchFilmsMock.mockResolvedValueOnce([
       { id: 1, title: "Low", poster_path: null, release_date: "", popularity: 1 },
       { id: 3, title: "High", poster_path: null, release_date: "", popularity: 99 },
     ]);
@@ -45,7 +45,7 @@ describe("SearchService.searchTitles (unit)", () => {
   });
 
   it("caps results at 20", async () => {
-    searchMoviesMock.mockResolvedValueOnce(
+    searchFilmsMock.mockResolvedValueOnce(
       Array.from({ length: 15 }, (_, i) => ({
         id: i,
         title: `Movie ${i}`,
@@ -70,7 +70,7 @@ describe("SearchService.searchTitles (unit)", () => {
   });
 
   it("adds the director or creator from cached titles and leaves uncached ones null", async () => {
-    searchMoviesMock.mockResolvedValueOnce([
+    searchFilmsMock.mockResolvedValueOnce([
       { id: 1, title: "Cached Film", poster_path: null, release_date: "", popularity: 9 },
       { id: 3, title: "Uncached Film", poster_path: null, release_date: "", popularity: 1 },
     ]);

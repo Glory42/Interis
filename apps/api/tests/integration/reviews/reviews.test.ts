@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
-import { seedTestMovie, seedTestSerial } from "../../support/factories/media.factory";
+import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -53,7 +53,7 @@ describe("reviews", () => {
 
   describe("POST /api/reviews (create)", () => {
     it("requires auth", async () => {
-      const movie = await seedTestMovie();
+      const movie = await seedTestFilm();
       const response = await apiRequest(getServer().baseUrl, "/api/reviews", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -64,14 +64,14 @@ describe("reviews", () => {
 
     it("rejects empty content", async () => {
       const { jar } = await signUpTestUser(getServer().baseUrl, "rcempty");
-      const movie = await seedTestMovie();
+      const movie = await seedTestFilm();
       const { response } = await createReview(jar, movie.tmdbId, "");
       expect(response.status).toBe(400);
     });
 
     it("creates a standalone movie review and surfaces it via GET /api/reviews/:id", async () => {
       const { jar } = await signUpTestUser(getServer().baseUrl, "rccreate");
-      const movie = await seedTestMovie("Standalone Review Movie");
+      const movie = await seedTestFilm("Standalone Review Movie");
       const { response, body } = await createReview(jar, movie.tmdbId, "My honest take");
       expect(response.status).toBe(201);
       expect(body.review.content).toBe("My honest take");
@@ -92,7 +92,7 @@ describe("reviews", () => {
 
     it("adds a second review of the same movie instead of overwriting the first (#72)", async () => {
       const { jar } = await signUpTestUser(getServer().baseUrl, "rcsecond");
-      const movie = await seedTestMovie("Second Review Movie");
+      const movie = await seedTestFilm("Second Review Movie");
       const { body: first } = await createReview(jar, movie.tmdbId, "First take");
       const { response: secondResponse, body: second } = await createReview(
         jar,
@@ -110,7 +110,7 @@ describe("reviews", () => {
 
     it("creates a standalone TV review via the same endpoint", async () => {
       const { jar } = await signUpTestUser(getServer().baseUrl, "rctv");
-      const serial = await seedTestSerial("Standalone Review Serial");
+      const serial = await seedTestSeries("Standalone Review Serial");
 
       const response = await apiRequest(
         getServer().baseUrl,
@@ -148,7 +148,7 @@ describe("reviews", () => {
     it("hides existence of another user's review on update/delete (404, not 403)", async () => {
       const owner = await signUpTestUser(getServer().baseUrl, "rowner1");
       const intruder = await signUpTestUser(getServer().baseUrl, "rintr1");
-      const movie = await seedTestMovie();
+      const movie = await seedTestFilm();
       const { body: review } = await createReview(owner.jar, movie.tmdbId, "Owned review");
 
       const forbiddenUpdate = await apiRequest(
@@ -174,7 +174,7 @@ describe("reviews", () => {
 
     it("allows the owner to update and delete their review", async () => {
       const { jar } = await signUpTestUser(getServer().baseUrl, "rowner2");
-      const movie = await seedTestMovie();
+      const movie = await seedTestFilm();
       const { body: review } = await createReview(jar, movie.tmdbId, "Editable review");
 
       const updateResponse = await apiRequest(
@@ -214,7 +214,7 @@ describe("reviews", () => {
   describe("like/unlike", () => {
     it("requires auth for like and unlike", async () => {
       const { jar } = await signUpTestUser(getServer().baseUrl, "rlikeauth");
-      const movie = await seedTestMovie();
+      const movie = await seedTestFilm();
       const { body: review } = await createReview(jar, movie.tmdbId, "Likeable review");
 
       const likeResponse = await apiRequest(
@@ -235,7 +235,7 @@ describe("reviews", () => {
     it("likes a review, is idempotent, then unlikes it", async () => {
       const author = await signUpTestUser(getServer().baseUrl, "rlikeauthor");
       const liker = await signUpTestUser(getServer().baseUrl, "rliker");
-      const movie = await seedTestMovie();
+      const movie = await seedTestFilm();
       const { body: review } = await createReview(author.jar, movie.tmdbId, "Likeable review 2");
 
       const firstLike = await apiRequest(
@@ -280,7 +280,7 @@ describe("reviews", () => {
     it("returns 404 when unliking a review that was never liked", async () => {
       const author = await signUpTestUser(getServer().baseUrl, "rnolikeauthor");
       const other = await signUpTestUser(getServer().baseUrl, "rnoliker");
-      const movie = await seedTestMovie();
+      const movie = await seedTestFilm();
       const { body: review } = await createReview(author.jar, movie.tmdbId, "Never liked");
 
       const response = await apiRequest(

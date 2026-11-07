@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
-import { seedTestMovie, seedTestSerial } from "../../support/factories/media.factory";
+import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
 import { db } from "../../../src/infrastructure/database/db";
 import { user } from "../../../src/infrastructure/database/auth.entity";
@@ -63,7 +63,7 @@ describe("undoing an action retracts its feed activity (#76)", () => {
 
   it("removes a movie like and watchlist row when they are undone", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "rtmovie");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     const userId = await getUserId(username);
 
     await send(jar, "PUT", `/api/interactions/${movie.tmdbId}`, { liked: true, watchlisted: true });
@@ -81,7 +81,7 @@ describe("undoing an action retracts its feed activity (#76)", () => {
 
   it("resending a movie like or watchlist adds no second row (#79)", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "rtresend");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     const userId = await getUserId(username);
     const path = `/api/interactions/${movie.tmdbId}`;
 
@@ -101,7 +101,7 @@ describe("undoing an action retracts its feed activity (#76)", () => {
 
   it("unliking one level of a series leaves the other levels' likes and ratings", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "rtseries");
-    const serial = await seedTestSerial();
+    const serial = await seedTestSeries();
     const userId = await getUserId(username);
     const base = `/api/serials/${serial.tmdbId}`;
 
@@ -132,7 +132,7 @@ describe("undoing an action retracts its feed activity (#76)", () => {
 
   it("removes a series watchlist row when it is undone", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "rtserieswl");
-    const serial = await seedTestSerial();
+    const serial = await seedTestSeries();
     const userId = await getUserId(username);
 
     await send(jar, "PUT", `/api/serials/${serial.tmdbId}/interaction`, { watchlisted: true });
@@ -164,7 +164,7 @@ describe("undoing an action retracts its feed activity (#76)", () => {
     const author = await signUpTestUser(getServer().baseUrl, "rtauthor");
     const fan = await signUpTestUser(getServer().baseUrl, "rtfan");
     const fanId = await getUserId(fan.username);
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const logged = (await send(author.jar, "POST", "/api/diary", {
       tmdbId: movie.tmdbId,

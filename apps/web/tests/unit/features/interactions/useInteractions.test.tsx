@@ -6,13 +6,13 @@ import type { ReactNode } from "react";
 import { server } from "../../../support/msw/server";
 import {
   interactionKeys,
-  useUpdateMovieInteraction,
+  useUpdateFilmInteraction,
 } from "@/features/interactions/hooks/useInteractions";
-import { movieKeys } from "@/features/movies/hooks/useMovies";
+import { filmKeys } from "@/features/films/hooks/useFilms";
 import { authKeys } from "@/features/auth/hooks/useAuth";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import { profileStatsKeys } from "@/features/profile/hooks/useProfileStats";
-import type { MovieInteraction } from "@/features/interactions/api";
+import type { FilmInteraction } from "@/features/interactions/api";
 
 const createTestQueryClient = (): QueryClient =>
   new QueryClient({
@@ -26,14 +26,14 @@ const wrapperFor = (queryClient: QueryClient) => {
   return Wrapper;
 };
 
-const baseInteraction: MovieInteraction = {
+const baseInteraction: FilmInteraction = {
   liked: false,
   watchlisted: false,
   rating: null,
   watched: false,
 };
 
-describe("useUpdateMovieInteraction", () => {
+describe("useUpdateFilmInteraction", () => {
   it("optimistically merges only the fields sent, without clobbering the rest", async () => {
     server.use(
       http.put("*/api/interactions/550", async () => {
@@ -46,16 +46,16 @@ describe("useUpdateMovieInteraction", () => {
     queryClient.setQueryData(interactionKeys.detail(550), {
       ...baseInteraction,
       liked: true,
-    } satisfies MovieInteraction);
+    } satisfies FilmInteraction);
 
-    const { result } = renderHook(() => useUpdateMovieInteraction(550), {
+    const { result } = renderHook(() => useUpdateFilmInteraction(550), {
       wrapper: wrapperFor(queryClient),
     });
 
     result.current.mutate({ watchlisted: true });
 
     await waitFor(() => {
-      const cached = queryClient.getQueryData<MovieInteraction>(interactionKeys.detail(550));
+      const cached = queryClient.getQueryData<FilmInteraction>(interactionKeys.detail(550));
       expect(cached).toEqual({
         liked: true,
         watchlisted: true,
@@ -77,14 +77,14 @@ describe("useUpdateMovieInteraction", () => {
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(interactionKeys.detail(550), baseInteraction);
 
-    const { result } = renderHook(() => useUpdateMovieInteraction(550), {
+    const { result } = renderHook(() => useUpdateFilmInteraction(550), {
       wrapper: wrapperFor(queryClient),
     });
 
     result.current.mutate({ rating: 8 });
 
     await waitFor(() => {
-      const cached = queryClient.getQueryData<MovieInteraction>(interactionKeys.detail(550));
+      const cached = queryClient.getQueryData<FilmInteraction>(interactionKeys.detail(550));
       expect(cached?.rating).toBe(8);
       expect(cached?.watched).toBe(true);
     });
@@ -100,14 +100,14 @@ describe("useUpdateMovieInteraction", () => {
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(interactionKeys.detail(550), baseInteraction);
 
-    const { result } = renderHook(() => useUpdateMovieInteraction(550), {
+    const { result } = renderHook(() => useUpdateFilmInteraction(550), {
       wrapper: wrapperFor(queryClient),
     });
 
     result.current.mutate({ liked: true, watched: false });
 
     await waitFor(() => {
-      const cached = queryClient.getQueryData<MovieInteraction>(interactionKeys.detail(550));
+      const cached = queryClient.getQueryData<FilmInteraction>(interactionKeys.detail(550));
       expect(cached?.watched).toBe(true);
     });
   });
@@ -122,14 +122,14 @@ describe("useUpdateMovieInteraction", () => {
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(interactionKeys.detail(550), baseInteraction);
 
-    const { result } = renderHook(() => useUpdateMovieInteraction(550), {
+    const { result } = renderHook(() => useUpdateFilmInteraction(550), {
       wrapper: wrapperFor(queryClient),
     });
 
     result.current.mutate({ liked: true });
     await waitFor(() => expect(result.current.isError).toBe(true));
 
-    expect(queryClient.getQueryData<MovieInteraction>(interactionKeys.detail(550))).toEqual(
+    expect(queryClient.getQueryData<FilmInteraction>(interactionKeys.detail(550))).toEqual(
       baseInteraction,
     );
   });
@@ -143,15 +143,15 @@ describe("useUpdateMovieInteraction", () => {
 
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(interactionKeys.detail(550), baseInteraction);
-    queryClient.setQueryData(movieKeys.detail(550), { tmdbId: 550 });
-    queryClient.setQueryData([...movieKeys.detailViewRoot(550), "recent"], { tmdbId: 550 });
-    queryClient.setQueryData(movieKeys.logs(550), []);
+    queryClient.setQueryData(filmKeys.detail(550), { tmdbId: 550 });
+    queryClient.setQueryData([...filmKeys.detailViewRoot(550), "recent"], { tmdbId: 550 });
+    queryClient.setQueryData(filmKeys.logs(550), []);
 
     // A different, unrelated movie's cache must not be touched.
     queryClient.setQueryData(interactionKeys.detail(999), baseInteraction);
-    queryClient.setQueryData(movieKeys.detail(999), { tmdbId: 999 });
+    queryClient.setQueryData(filmKeys.detail(999), { tmdbId: 999 });
 
-    const { result } = renderHook(() => useUpdateMovieInteraction(550), {
+    const { result } = renderHook(() => useUpdateFilmInteraction(550), {
       wrapper: wrapperFor(queryClient),
     });
 
@@ -159,14 +159,14 @@ describe("useUpdateMovieInteraction", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(queryClient.getQueryState(interactionKeys.detail(550))?.isInvalidated).toBe(true);
-    expect(queryClient.getQueryState(movieKeys.detail(550))?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(filmKeys.detail(550))?.isInvalidated).toBe(true);
     expect(
-      queryClient.getQueryState([...movieKeys.detailViewRoot(550), "recent"])?.isInvalidated,
+      queryClient.getQueryState([...filmKeys.detailViewRoot(550), "recent"])?.isInvalidated,
     ).toBe(true);
-    expect(queryClient.getQueryState(movieKeys.logs(550))?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(filmKeys.logs(550))?.isInvalidated).toBe(true);
 
     expect(queryClient.getQueryState(interactionKeys.detail(999))?.isInvalidated).toBe(false);
-    expect(queryClient.getQueryState(movieKeys.detail(999))?.isInvalidated).toBe(false);
+    expect(queryClient.getQueryState(filmKeys.detail(999))?.isInvalidated).toBe(false);
   });
 
   it("refreshes the viewer's profile pages the change shows up on (#96)", async () => {
@@ -179,7 +179,7 @@ describe("useUpdateMovieInteraction", () => {
     queryClient.setQueryData(authKeys.me, { username: "cinefan" });
     const invalidate = vi.spyOn(queryClient, "invalidateQueries");
 
-    const { result } = renderHook(() => useUpdateMovieInteraction(550), {
+    const { result } = renderHook(() => useUpdateFilmInteraction(550), {
       wrapper: wrapperFor(queryClient),
     });
     await act(() => result.current.mutateAsync({ liked: true }));

@@ -2,7 +2,7 @@ import { memo } from "react";
 import { Link } from "@tanstack/react-router";
 import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
 import { FeedCardHeader } from "@/features/feed/components/FeedCardHeader";
-import { FeedMoviePreviewCard } from "@/features/feed/components/FeedMoviePreviewCard";
+import { FeedFilmPreviewCard } from "@/features/feed/components/FeedFilmPreviewCard";
 import { PostActivityCard } from "@/features/feed/components/PostActivityCard";
 import { ReviewActivityCard } from "@/features/feed/components/ReviewActivityCard";
 import {
@@ -66,7 +66,7 @@ const AttachedMediaCard = ({ item }: { item: FeedItem }) => {
   const to = item.movie.mediaType === "tv" ? "/serials/$tmdbId" : "/movies/$tmdbId";
 
   return (
-    <FeedMoviePreviewCard
+    <FeedFilmPreviewCard
       to={to}
       tmdbId={item.movie.tmdbId}
       title={item.movie.title}

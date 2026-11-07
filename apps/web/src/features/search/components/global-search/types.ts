@@ -1,6 +1,6 @@
 import type { UserSearchResult } from "@/features/profile/api";
-import type { TmdbSearchSeries } from "@/features/serials/api";
-import type { TmdbSearchMovie } from "@/types/api";
+import type { TmdbSearchSeries } from "@/features/tv/api";
+import type { TmdbSearchFilm } from "@/types/api";
 
 export type SearchMode = "home" | "scoped";
 export type ScopedTarget = "users" | "movie" | "serials";
@@ -14,7 +14,7 @@ export type UserResultEntry = {
   avatarUrl: string | null;
 };
 
-export type MovieResultEntry = {
+export type FilmResultEntry = {
   kind: "movie";
   id: string;
   tmdbId: number;
@@ -24,7 +24,7 @@ export type MovieResultEntry = {
   credit: string | null;
 };
 
-export type SerialResultEntry = {
+export type SeriesResultEntry = {
   kind: "serials";
   id: string;
   tmdbId: number;
@@ -36,8 +36,8 @@ export type SerialResultEntry = {
 
 export type SearchResultEntry =
   | UserResultEntry
-  | MovieResultEntry
-  | SerialResultEntry;
+  | FilmResultEntry
+  | SeriesResultEntry;
 
 export type SearchSection = {
   target: SectionTarget;
@@ -54,6 +54,6 @@ export type SearchSectionOffset = {
 
 export type SearchResultMappers = {
   toUserEntry: (profile: UserSearchResult) => UserResultEntry;
-  toMovieEntry: (movie: TmdbSearchMovie) => MovieResultEntry;
-  toSerialEntry: (series: TmdbSearchSeries) => SerialResultEntry;
+  toMovieEntry: (movie: TmdbSearchFilm) => FilmResultEntry;
+  toSerialEntry: (series: TmdbSearchSeries) => SeriesResultEntry;
 };

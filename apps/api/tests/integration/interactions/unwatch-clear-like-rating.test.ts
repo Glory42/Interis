@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
-import { seedTestMovie } from "../../support/factories/media.factory";
+import { seedTestFilm } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
 import { db } from "../../../src/infrastructure/database/db";
 import { user } from "../../../src/infrastructure/database/auth.entity";
@@ -57,7 +57,7 @@ describe("marking a liked, rated movie not watched", () => {
 
   const likeAndRate = async (prefix: string) => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, prefix);
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     await put(jar, movie.tmdbId, { liked: true, rating: 8 });
     await waitForActivityWrite();
     return { jar, username, tmdbId: movie.tmdbId };

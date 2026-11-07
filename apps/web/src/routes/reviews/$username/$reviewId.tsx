@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getProfileReviewDetail } from "@/features/reviews/api";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import { ProfileReviewDetailPage } from "@/features/reviews/components/ProfileReviewDetailPage";
 import { reviewKeys } from "@/features/reviews/hooks/useReviews";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 const REVIEW_EXCERPT_MAX_LENGTH = 160;
 

@@ -1,16 +1,16 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAdminPagedList } from "@/features/admin/hooks/useAdminPagedList";
 import {
-  deleteAdminMovie,
-  deleteAdminSerial,
-  listAdminMovies,
-  listAdminSerials,
-  refreshAdminMovie,
-  refreshAdminSerial,
-  updateAdminMovie,
-  updateAdminSerial,
-  type AdminUpdateMovieInput,
-  type AdminUpdateSerialInput,
+  deleteAdminFilm,
+  deleteAdminSeries,
+  listAdminFilms,
+  listAdminTv,
+  refreshAdminFilm,
+  refreshAdminSeries,
+  updateAdminFilm,
+  updateAdminSeries,
+  type AdminUpdateFilmInput,
+  type AdminUpdateSeriesInput,
 } from "@/features/admin/media-api";
 
 export const adminMediaKeys = {
@@ -20,13 +20,13 @@ export const adminMediaKeys = {
   serials: (query?: string) => ["admin", "serials", query ?? ""] as const,
 };
 
-export const useAdminMovies = (query?: string) =>
-  useAdminPagedList(adminMediaKeys.movies(query), (page) => listAdminMovies(query, page));
+export const useAdminFilms = (query?: string) =>
+  useAdminPagedList(adminMediaKeys.movies(query), (page) => listAdminFilms(query, page));
 
-export const useAdminSerials = (query?: string) =>
-  useAdminPagedList(adminMediaKeys.serials(query), (page) => listAdminSerials(query, page));
+export const useAdminTv = (query?: string) =>
+  useAdminPagedList(adminMediaKeys.serials(query), (page) => listAdminTv(query, page));
 
-const useMovieAction = <TInput>(mutationFn: (input: TInput) => Promise<void>) => {
+const useFilmAction = <TInput>(mutationFn: (input: TInput) => Promise<void>) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn,
@@ -36,7 +36,7 @@ const useMovieAction = <TInput>(mutationFn: (input: TInput) => Promise<void>) =>
   });
 };
 
-const useSerialAction = <TInput>(mutationFn: (input: TInput) => Promise<void>) => {
+const useSeriesAction = <TInput>(mutationFn: (input: TInput) => Promise<void>) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn,
@@ -46,16 +46,16 @@ const useSerialAction = <TInput>(mutationFn: (input: TInput) => Promise<void>) =
   });
 };
 
-export const useUpdateAdminMovie = () =>
-  useMovieAction(({ id, fields }: { id: number; fields: AdminUpdateMovieInput }) =>
-    updateAdminMovie(id, fields),
+export const useUpdateAdminFilm = () =>
+  useFilmAction(({ id, fields }: { id: number; fields: AdminUpdateFilmInput }) =>
+    updateAdminFilm(id, fields),
   );
-export const useRefreshAdminMovie = () => useMovieAction(refreshAdminMovie);
-export const useDeleteAdminMovie = () => useMovieAction(deleteAdminMovie);
+export const useRefreshAdminFilm = () => useFilmAction(refreshAdminFilm);
+export const useDeleteAdminFilm = () => useFilmAction(deleteAdminFilm);
 
-export const useUpdateAdminSerial = () =>
-  useSerialAction(({ id, fields }: { id: number; fields: AdminUpdateSerialInput }) =>
-    updateAdminSerial(id, fields),
+export const useUpdateAdminSeries = () =>
+  useSeriesAction(({ id, fields }: { id: number; fields: AdminUpdateSeriesInput }) =>
+    updateAdminSeries(id, fields),
   );
-export const useRefreshAdminSerial = () => useSerialAction(refreshAdminSerial);
-export const useDeleteAdminSerial = () => useSerialAction(deleteAdminSerial);
+export const useRefreshAdminSeries = () => useSeriesAction(refreshAdminSeries);
+export const useDeleteAdminSeries = () => useSeriesAction(deleteAdminSeries);

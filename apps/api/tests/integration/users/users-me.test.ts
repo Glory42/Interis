@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
-import { seedTestMovie } from "../../support/factories/media.factory";
+import { seedTestFilm } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -57,9 +57,9 @@ describe("users /me", () => {
     it("sums up your last seven days of watching", async () => {
       const { jar } = await signUpTestUser(getServer().baseUrl, "umeweek");
       const [first, second, old] = await Promise.all([
-        seedTestMovie("Week One"),
-        seedTestMovie("Week Two"),
-        seedTestMovie("Month Ago"),
+        seedTestFilm("Week One"),
+        seedTestFilm("Week Two"),
+        seedTestFilm("Month Ago"),
       ]);
       const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10);
       const log = (tmdbId: number, watchedDate: string, rating: number) =>

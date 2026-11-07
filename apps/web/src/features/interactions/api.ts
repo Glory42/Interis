@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { apiRequest } from "@/lib/api-client";
 
-const movieInteractionSchema = z
+const filmInteractionSchema = z
   .object({
     liked: z.boolean(),
     watchlisted: z.boolean(),
@@ -10,7 +10,7 @@ const movieInteractionSchema = z
   })
   .passthrough();
 
-const updateMovieInteractionInputSchema = z
+const updateFilmInteractionInputSchema = z
   .object({
     liked: z.boolean().optional(),
     watchlisted: z.boolean().optional(),
@@ -28,28 +28,28 @@ const updateMovieInteractionInputSchema = z
     },
   );
 
-export type MovieInteraction = z.infer<typeof movieInteractionSchema>;
+export type FilmInteraction = z.infer<typeof filmInteractionSchema>;
 
-export type UpdateMovieInteractionInput = z.infer<
-  typeof updateMovieInteractionInputSchema
+export type UpdateFilmInteractionInput = z.infer<
+  typeof updateFilmInteractionInputSchema
 >;
 
-export const getMovieInteraction = async (
+export const getFilmInteraction = async (
   tmdbId: number,
-): Promise<MovieInteraction> => {
+): Promise<FilmInteraction> => {
   const response = await apiRequest<unknown>(`/api/interactions/${tmdbId}`, {
     method: "GET",
   });
 
-  return movieInteractionSchema.parse(response);
+  return filmInteractionSchema.parse(response);
 };
 
-export const updateMovieInteraction = async (
+export const updateFilmInteraction = async (
   tmdbId: number,
-  input: UpdateMovieInteractionInput,
-): Promise<MovieInteraction> => {
-  const payload = updateMovieInteractionInputSchema.parse(input);
-  const response = await apiRequest<unknown, UpdateMovieInteractionInput>(
+  input: UpdateFilmInteractionInput,
+): Promise<FilmInteraction> => {
+  const payload = updateFilmInteractionInputSchema.parse(input);
+  const response = await apiRequest<unknown, UpdateFilmInteractionInput>(
     `/api/interactions/${tmdbId}`,
     {
       method: "PUT",
@@ -57,5 +57,5 @@ export const updateMovieInteraction = async (
     },
   );
 
-  return movieInteractionSchema.parse(response);
+  return filmInteractionSchema.parse(response);
 };

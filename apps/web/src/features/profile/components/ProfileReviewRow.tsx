@@ -2,8 +2,8 @@ import { memo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
 import { toIsoWeek } from "@/features/media/archive/week-label";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import type { UserReview } from "@/features/profile/api";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -40,7 +40,14 @@ export const ProfileReviewRow = memo(function ProfileReviewRow({ review, usernam
             ⚠ Spoilers · reveal
           </button>
         ) : (
-          <p className="tagline mt-1.5 text-lg text-foreground">{`“${review.content}”`}</p>
+          <Link
+            to="/reviews/$username/$reviewId"
+            params={{ username, reviewId: review.id }}
+            className="tagline mt-1.5 block text-lg text-foreground hover:underline hover:decoration-[color:var(--line-strong)]"
+            viewTransition
+          >
+            {`“${review.content}”`}
+          </Link>
         )}
         <Link
           to="/reviews/$username/$reviewId"

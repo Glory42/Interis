@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useState, type KeyboardEvent } from "react";
-import { SendHorizontal } from "lucide-react";
+import { PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,13 +40,13 @@ export const QuickLogComposer = ({ user }: QuickLogComposerProps) => {
     trimmedContent.length <= 250 &&
     !createPostMutation.isPending;
 
-  const handleSubmit = async () => {
+  // mutate, not mutateAsync: a failed post shows its error below instead of an unhandled rejection.
+  const handleSubmit = () => {
     if (!canSubmit) {
       return;
     }
 
-    await createPostMutation.mutateAsync({ content: trimmedContent });
-    setContent("");
+    createPostMutation.mutate({ content: trimmedContent }, { onSuccess: () => setContent("") });
   };
 
   const handleTextareaKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -55,57 +55,49 @@ export const QuickLogComposer = ({ user }: QuickLogComposerProps) => {
     }
 
     event.preventDefault();
-    void handleSubmit();
+    handleSubmit();
   };
 
   return (
     <div>
-      <div className="flex items-start gap-3">
-        <div className="flex shrink-0 flex-col items-center gap-2">
-          <FeedActorAvatar
-            avatarUrl={avatarUrl}
-            username={user.username}
-            initial={profileInitial}
-            className="flex h-9 w-9 items-center justify-center overflow-hidden bg-primary/10 text-xs font-bold text-primary"
-          />
+      <div className="flex items-center gap-3">
+        <FeedActorAvatar
+          avatarUrl={avatarUrl}
+          username={user.username}
+          initial={profileInitial}
+          className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-bold text-primary"
+        />
 
-          <Button
-            type="button"
-            size="sm"
-            className="h-7 w-9 px-0"
-            disabled={!canSubmit}
-            onClick={() => {
-              void handleSubmit();
-            }}
-          >
-            {createPostMutation.isPending ? (
-              <TickLoader />
-            ) : (
-              <SendHorizontal className="h-3.5 w-3.5" />
-            )}
-          </Button>
-        </div>
+        <Textarea
+          rows={1}
+          value={content}
+          onKeyDown={handleTextareaKeyDown}
+          onChange={(event) => {
+            if (event.target.value.length <= 250) {
+              setContent(event.target.value);
+            }
+          }}
+          placeholder="What did you watch tonight?"
+          aria-label="What did you watch tonight?"
+          className="field-sizing-content min-h-0 flex-1 resize-none border-0 bg-transparent px-0 py-2 text-base shadow-none focus-visible:ring-0"
+        />
 
-        <div className="min-w-0 flex-1 space-y-2">
-          <Textarea
-            value={content}
-            onKeyDown={handleTextareaKeyDown}
-            onChange={(event) => {
-              if (event.target.value.length <= 250) {
-                setContent(event.target.value);
-              }
-            }}
-            placeholder="What did you watch tonight?"
-            className="min-h-18 resize-y border-border/50 bg-background/40 text-sm"
-          />
-
-          <div className="flex items-center justify-between gap-2">
-            <span className="theme-kicker text-[9px] text-muted-foreground">
-              Enter submits · Shift+Enter newline · {content.length}/250
-            </span>
-          </div>
-        </div>
+        <Button
+          type="button"
+          className="shrink-0 gap-1.5 px-4 font-bold"
+          disabled={!canSubmit}
+          onClick={handleSubmit}
+        >
+          {createPostMutation.isPending ? <TickLoader /> : <PenLine aria-hidden className="size-4" />}
+          Log
+        </Button>
       </div>
+
+      {content.length > 0 ? (
+        <p className="theme-kicker mt-1 pl-13 text-[9px] text-muted-foreground">
+          Enter posts · Shift+Enter newline · {content.length}/250
+        </p>
+      ) : null}
 
       {createPostMutation.isError ? (
         <p className="mt-2 text-xs text-destructive">

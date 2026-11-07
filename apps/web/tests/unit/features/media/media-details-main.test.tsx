@@ -3,7 +3,7 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "../../../support/render/render-with-providers";
 import { MediaDetailsMainSection } from "@/features/media/detail/MediaDetailsMainSection";
-import { MOVIE_MODULE_STYLES } from "@/features/media/styles";
+import { FILM_MODULE_STYLES } from "@/features/media/styles";
 
 const person = (tmdbPersonId: number, name: string, character: string | null = null) => ({
   tmdbPersonId,
@@ -18,7 +18,7 @@ const person = (tmdbPersonId: number, name: string, character: string | null = n
 });
 
 const baseProps = {
-  moduleStyles: MOVIE_MODULE_STYLES,
+  moduleStyles: FILM_MODULE_STYLES,
   title: "Clayface",
   genres: [
     { id: 1, name: "Horror" },
@@ -50,6 +50,26 @@ describe("MediaDetailsMainSection", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Clayface" })).toBeInTheDocument();
     expect(screen.getByText("Some faces should stay buried.")).toBeInTheDocument();
     expect(screen.getByText("Horror / Thriller")).toBeInTheDocument();
+  });
+
+  it("puts the runtime on the score line under the title, and phone actions right after it", async () => {
+    renderWithProviders(
+      <MediaDetailsMainSection
+        {...baseProps}
+        creditPeople={[]}
+        tagline={null}
+        cast={[]}
+        factRows={[]}
+        runtimeLabel="2h 15min"
+        actionsSlot={<button type="button">Log</button>}
+      />,
+    );
+
+    const scoreLine = await screen.findByRole("list", { name: "At a glance" });
+    expect(scoreLine).toHaveTextContent("2h 15min");
+    const log = screen.getByRole("button", { name: "Log" });
+    expect(scoreLine.compareDocumentPosition(log) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(log.compareDocumentPosition(screen.getByText("Matt Hagen's rise is cut short.")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("never shows Unknown: missing credits and facts simply don't appear", async () => {

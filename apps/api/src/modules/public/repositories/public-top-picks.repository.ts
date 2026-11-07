@@ -1,7 +1,7 @@
 import { inArray } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
-import { movies } from "../../movies/movies.entity";
-import { tvSeries } from "../../serials/serials.entity";
+import { films } from "../../films/films.entity";
+import { tvSeries } from "../../tv/tv.entity";
 import { UsersTopPicksRepository } from "../../users/repositories/users-top-picks.repository";
 
 export class PublicTopPicksRepository {
@@ -16,14 +16,14 @@ export class PublicTopPicksRepository {
 
     return db
       .select({
-        id: movies.id,
-        tmdbId: movies.tmdbId,
-        title: movies.title,
-        posterPath: movies.posterPath,
-        releaseYear: movies.releaseYear,
+        id: films.id,
+        tmdbId: films.tmdbId,
+        title: films.title,
+        posterPath: films.posterPath,
+        releaseYear: films.releaseYear,
       })
-      .from(movies)
-      .where(inArray(movies.tmdbId, tmdbIds));
+      .from(films)
+      .where(inArray(films.tmdbId, tmdbIds));
   }
 
   static async getSeriesByTmdbIds(tmdbIds: number[]) {

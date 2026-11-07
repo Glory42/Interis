@@ -3,8 +3,8 @@ import { ArrowLeft } from "lucide-react";
 import { DuotoneBackdrop } from "@/components/film/DuotoneBackdrop";
 import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
 import { toIsoWeek } from "@/features/media/archive/week-label";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import type { ReviewDetail } from "@/features/reviews/api";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type ProfileReviewDetailHeroProps = {
   username: string;

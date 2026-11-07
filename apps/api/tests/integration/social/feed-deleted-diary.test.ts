@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
-import { seedTestMovie, seedTestSerial } from "../../support/factories/media.factory";
+import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
 import { db } from "../../../src/infrastructure/database/db";
 import { user } from "../../../src/infrastructure/database/auth.entity";
@@ -77,7 +77,7 @@ describe("deleted and edited diary logs in the feed (#82)", () => {
   };
 
   const logMovie = async (jar: CookieJar) => {
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     const logged = (await send(jar, "POST", "/api/diary", {
       tmdbId: movie.tmdbId,
       watchedDate: "2026-01-01",
@@ -99,7 +99,7 @@ describe("deleted and edited diary logs in the feed (#82)", () => {
 
   it("drops a deleted series log", async () => {
     const { author, fan } = await signUpPair("fdlogs");
-    const serial = await seedTestSerial();
+    const serial = await seedTestSeries();
     const logged = (await send(author.jar, "POST", `/api/serials/${serial.tmdbId}/log`, {
       watchedDate: "2026-01-01",
     })) as { entry: { id: string } };

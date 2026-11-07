@@ -1,7 +1,7 @@
-import { getPosterUrl } from "@/features/movies/components/utils";
 import { cn } from "@/lib/utils";
 import { toYear } from "./mappers";
 import type { SearchResultEntry } from "./types";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type SearchResultRowProps = {
   inputId: string;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { PersonLink } from "@/features/people/shared";
 import { PersonRouteLink } from "@/features/people/components/PersonRouteLink";
 import { RatingBreakdownChart } from "@/features/media/detail/RatingBreakdownChart";
@@ -39,6 +39,10 @@ type MediaDetailsMainSectionProps = {
   ratingBuckets: RatingBucket[];
   // Phones show a small poster beside the title; desktop has it in the sidebar.
   posterUrl?: string | null;
+  // "2h 15min" for films, per-episode length for TV.
+  runtimeLabel?: string | null;
+  // Phones only: the action card, right under the score line.
+  actionsSlot?: ReactNode;
 };
 
 const VISIBLE_CAST = 3;
@@ -60,6 +64,8 @@ export const MediaDetailsMainSection = ({
   factRows,
   ratingBuckets,
   posterUrl,
+  runtimeLabel,
+  actionsSlot,
 }: MediaDetailsMainSectionProps) => {
   const [isCastExpanded, setIsCastExpanded] = useState(false);
   const visibleCast = isCastExpanded ? cast : cast.slice(0, VISIBLE_CAST);
@@ -115,30 +121,41 @@ export const MediaDetailsMainSection = ({
         </div>
       </div>
 
-      <div className="mt-5 mb-6 flex flex-wrap items-baseline gap-x-6 gap-y-2 border-b border-[color:var(--line)] pb-5">
-        <span className="flex items-baseline gap-1.5">
+      <ul
+        aria-label="At a glance"
+        className="mt-5 mb-6 flex flex-wrap items-baseline gap-x-6 gap-y-2 border-b border-[color:var(--line)] pb-5"
+      >
+        <li className="flex items-baseline gap-1.5">
           <span className="mono-num" style={{ color: moduleStyles.accent }}>
             {communityRatingLabel}
           </span>
           <span className="mono-meta text-muted-foreground uppercase">
             Interis · {formatCountLabel(logsCount, "log")}
           </span>
-        </span>
-        <span className="flex items-baseline gap-1.5">
+        </li>
+        <li className="flex items-baseline gap-1.5">
           <span className="mono-num text-muted-foreground">
             {tmdbRatingLabel}
           </span>
           <span className="mono-meta text-muted-foreground">TMDB</span>
-        </span>
+        </li>
+        {runtimeLabel ? (
+          <li className="flex items-baseline gap-1.5">
+            <span className="mono-num text-foreground">{runtimeLabel}</span>
+            <span className="mono-meta text-muted-foreground uppercase">Runtime</span>
+          </li>
+        ) : null}
         {genres.length > 0 ? (
-          <span className="mono-meta text-muted-foreground uppercase">
+          <li className="mono-meta text-muted-foreground uppercase">
             {genres
               .slice(0, 3)
               .map((genre) => genre.name)
               .join(" / ")}
-          </span>
+          </li>
         ) : null}
-      </div>
+      </ul>
+
+      {actionsSlot ? <div className="mb-8">{actionsSlot}</div> : null}
 
       <p className="body mb-8 text-foreground">
         {overview || overviewFallback}

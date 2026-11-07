@@ -45,7 +45,7 @@ export const SettingsIndex = () => {
         </section>
       ))}
       <div className="mt-6 flex flex-col items-start gap-3">
-        <Link to="/settings/data" hash="delete-account" className="body text-[color:var(--danger)]">
+        <Link to="/settings/delete-account" className="body text-[color:var(--danger)]">
           Delete account
         </Link>
         <button type="button" disabled={isLogoutPending} onClick={() => void logout()} className="body text-foreground disabled:opacity-50">

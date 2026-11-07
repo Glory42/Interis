@@ -8,7 +8,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import {
-  getUserLikedMovies,
+  getUserLikedFilms,
   getUserLikedReviews,
   getUserLikedLists,
   getUserProfile,
@@ -117,11 +117,11 @@ const selectShelf = (data: InfiniteData<UserMediaShelfPage>) => ({
   counts: data.pages[data.pages.length - 1]?.counts ?? { movie: 0, tv: 0 },
 });
 
-export const useUserLikedMovies = (username: string, type: UserMediaShelfType = "all") =>
+export const useUserLikedFilms = (username: string, type: UserMediaShelfType = "all") =>
   useInfiniteQuery({
     queryKey: [...profileKeys.likes(username), type],
     queryFn: ({ signal, pageParam }) =>
-      getUserLikedMovies(
+      getUserLikedFilms(
         username,
         { type, limit: PROFILE_LIST_PAGE_SIZE, offset: pageParam },
         { signal },

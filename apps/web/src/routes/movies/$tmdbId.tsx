@@ -1,10 +1,10 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { getMovieDetail } from "@/features/movies/api";
-import { getPosterUrl } from "@/features/movies/components/utils";
-import { MovieDetailPage } from "@/features/movies/components/MovieDetailPage";
-import { movieKeys } from "@/features/movies/hooks/useMovies";
+import { getFilmDetail } from "@/features/films/api";
+import { FilmDetailPage } from "@/features/films/components/FilmDetailPage";
+import { filmKeys } from "@/features/films/hooks/useFilms";
 import { parsePositiveIntParam } from "@/lib/router/params";
 import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 export const Route = createFileRoute("/movies/$tmdbId")({
   beforeLoad: ({ params }) => {
@@ -21,9 +21,9 @@ export const Route = createFileRoute("/movies/$tmdbId")({
     }
 
     return context.queryClient.fetchQuery({
-      queryKey: movieKeys.detailView(tmdbId, "popular"),
+      queryKey: filmKeys.detailView(tmdbId, "popular"),
       queryFn: ({ signal }) =>
-        getMovieDetail(tmdbId, { reviewsSort: "popular" }, { signal }),
+        getFilmDetail(tmdbId, { reviewsSort: "popular" }, { signal }),
     });
   },
   head: ({ loaderData }) => {
@@ -46,13 +46,13 @@ export const Route = createFileRoute("/movies/$tmdbId")({
       ],
     };
   },
-  component: MovieDetailRoute,
+  component: FilmDetailRoute,
   errorComponent: (props) => <RouteErrorBoundary {...props} title="Movie detail unavailable" />,
 });
 
-function MovieDetailRoute() {
+function FilmDetailRoute() {
   const { tmdbId: tmdbIdParam } = Route.useParams();
   const tmdbId = parsePositiveIntParam(tmdbIdParam) ?? 0;
 
-  return <MovieDetailPage tmdbId={tmdbId} />;
+  return <FilmDetailPage tmdbId={tmdbId} />;
 }

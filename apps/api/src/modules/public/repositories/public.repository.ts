@@ -2,13 +2,13 @@ import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { listEntries, lists } from "../../lists/lists.entity";
-import { movies } from "../../movies/movies.entity";
+import { films } from "../../films/films.entity";
 import { reviews } from "../../reviews/reviews.entity";
 import {
-  serialDiaryEntries,
-  serialInteractions,
+  seriesDiaryEntries,
+  seriesInteractions,
   tvSeries,
-} from "../../serials/serials.entity";
+} from "../../tv/tv.entity";
 
 export class PublicRepository {
   static async findUserIdByUsername(username: string): Promise<string | null> {
@@ -24,12 +24,12 @@ export class PublicRepository {
   static async findSerialDiaryEntriesByUser(userId: string, fetchCap: number) {
     return db
       .select({
-        id: serialDiaryEntries.id,
-        watchedDate: serialDiaryEntries.watchedDate,
-        rating: serialDiaryEntries.rating,
-        rewatch: serialDiaryEntries.rewatch,
-        createdAt: serialDiaryEntries.createdAt,
-        updatedAt: serialDiaryEntries.updatedAt,
+        id: seriesDiaryEntries.id,
+        watchedDate: seriesDiaryEntries.watchedDate,
+        rating: seriesDiaryEntries.rating,
+        rewatch: seriesDiaryEntries.rewatch,
+        createdAt: seriesDiaryEntries.createdAt,
+        updatedAt: seriesDiaryEntries.updatedAt,
         tmdbId: tvSeries.tmdbId,
         title: tvSeries.title,
         posterPath: tvSeries.posterPath,
@@ -38,27 +38,27 @@ export class PublicRepository {
         reviewContent: reviews.content,
         reviewContainsSpoilers: reviews.containsSpoilers,
         reviewCreatedAt: reviews.createdAt,
-        liked: sql<boolean>`coalesce(${serialInteractions.liked}, false)`,
+        liked: sql<boolean>`coalesce(${seriesInteractions.liked}, false)`,
       })
-      .from(serialDiaryEntries)
-      .innerJoin(tvSeries, eq(tvSeries.id, serialDiaryEntries.seriesId))
+      .from(seriesDiaryEntries)
+      .innerJoin(tvSeries, eq(tvSeries.id, seriesDiaryEntries.seriesId))
       .leftJoin(
         reviews,
         and(
-          eq(reviews.userId, serialDiaryEntries.userId),
-          eq(reviews.serialDiaryEntryId, serialDiaryEntries.id),
+          eq(reviews.userId, seriesDiaryEntries.userId),
+          eq(reviews.serialDiaryEntryId, seriesDiaryEntries.id),
           eq(reviews.mediaType, "tv"),
         ),
       )
       .leftJoin(
-        serialInteractions,
+        seriesInteractions,
         and(
-          eq(serialInteractions.userId, serialDiaryEntries.userId),
-          eq(serialInteractions.seriesId, serialDiaryEntries.seriesId),
+          eq(seriesInteractions.userId, seriesDiaryEntries.userId),
+          eq(seriesInteractions.seriesId, seriesDiaryEntries.seriesId),
         ),
       )
-      .where(eq(serialDiaryEntries.userId, userId))
-      .orderBy(desc(serialDiaryEntries.watchedDate), desc(serialDiaryEntries.createdAt))
+      .where(eq(seriesDiaryEntries.userId, userId))
+      .orderBy(desc(seriesDiaryEntries.watchedDate), desc(seriesDiaryEntries.createdAt))
       .limit(fetchCap);
   }
 
@@ -88,13 +88,13 @@ export class PublicRepository {
         listId: listEntries.listId,
         position: listEntries.position,
         note: listEntries.note,
-        tmdbId: movies.tmdbId,
-        title: movies.title,
-        posterPath: movies.posterPath,
-        releaseYear: movies.releaseYear,
+        tmdbId: films.tmdbId,
+        title: films.title,
+        posterPath: films.posterPath,
+        releaseYear: films.releaseYear,
       })
       .from(listEntries)
-      .innerJoin(movies, eq(movies.id, listEntries.movieId))
+      .innerJoin(films, eq(films.id, listEntries.movieId))
       .where(inArray(listEntries.listId, listIds))
       .orderBy(asc(listEntries.listId), asc(listEntries.position), asc(listEntries.createdAt));
   }

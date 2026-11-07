@@ -1,8 +1,9 @@
+import { LoadingRegion, TitleRowsSkeleton } from "@/components/ui/PageSkeletons";
 import { Link } from "@tanstack/react-router";
 import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
 import { toFeedDays, verbFor, type FeedRow } from "@/features/feed/components/feed-days";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import type { FeedItem, GroupedFeedEntry } from "@/features/feed/types";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type ProfileOverviewActivityProps = {
   entries: GroupedFeedEntry[];
@@ -68,7 +69,14 @@ const Row = ({ row }: { row: FeedRow }) => {
           {group.review ? <span aria-label="Reviewed" className="text-primary">✎</span> : null}
         </p>
         {group.review && !group.review.containsSpoilers ? (
-          <p className="tagline mt-0.5 line-clamp-2 text-foreground">{`“${group.review.content}”`}</p>
+          <Link
+            to="/reviews/$username/$reviewId"
+            params={{ username: group.actor.username, reviewId: group.review.id }}
+            className="tagline mt-0.5 line-clamp-2 text-foreground hover:underline hover:decoration-[color:var(--line-strong)]"
+            viewTransition
+          >
+            {`“${group.review.content}”`}
+          </Link>
         ) : null}
       </div>
     </div>
@@ -77,7 +85,13 @@ const Row = ({ row }: { row: FeedRow }) => {
 
 // The profile's recent activity, one row per title per day under thin date lines.
 export const ProfileOverviewActivity = ({ entries, isPending, isError }: ProfileOverviewActivityProps) => {
-  if (isPending) return <div className="h-40 animate-pulse rounded-[3px] bg-muted/20" />;
+  if (isPending) {
+    return (
+      <LoadingRegion label="Loading activity">
+        <TitleRowsSkeleton count={3} posterWidth="w-9" />
+      </LoadingRegion>
+    );
+  }
   if (isError) return <p className="body-s text-[color:var(--danger)]">Could not load recent activity.</p>;
   if (entries.length === 0) return null;
 

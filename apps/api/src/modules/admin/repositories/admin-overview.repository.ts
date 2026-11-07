@@ -7,9 +7,9 @@ import { reports } from "../../reports/reports.entity";
 import { reviews, comments } from "../../reviews/reviews.entity";
 import { posts, postComments } from "../../posts/posts.entity";
 import { diaryEntries } from "../../diary/diary.entity";
-import { serialDiaryEntries } from "../../serials/serials.entity";
-import { movies } from "../../movies/movies.entity";
-import { tvSeries } from "../../serials/serials.entity";
+import { seriesDiaryEntries } from "../../tv/tv.entity";
+import { films } from "../../films/films.entity";
+import { tvSeries } from "../../tv/tv.entity";
 import { adminAuditLog } from "../admin-audit-log.entity";
 
 const countRows = async (table: PgTable, where?: SQL): Promise<number> => {
@@ -49,7 +49,7 @@ export class AdminOverviewRepository {
     return Promise.all([
       countRows(user, gte(user.createdAt, since)),
       countRows(diaryEntries, gte(diaryEntries.createdAt, since)),
-      countRows(serialDiaryEntries, gte(serialDiaryEntries.createdAt, since)),
+      countRows(seriesDiaryEntries, gte(seriesDiaryEntries.createdAt, since)),
       countRows(reviews, gte(reviews.createdAt, since)),
       countRows(posts, gte(posts.createdAt, since)),
       countRows(comments, gte(comments.createdAt, since)),
@@ -58,7 +58,7 @@ export class AdminOverviewRepository {
   }
 
   static cachedMedia() {
-    return Promise.all([countRows(movies), countRows(tvSeries)]);
+    return Promise.all([countRows(films), countRows(tvSeries)]);
   }
 
   static latestActions(limit: number) {

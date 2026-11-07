@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
-import { seedTestMovie, seedTestSerial } from "../../support/factories/media.factory";
+import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
 
 // "Your rating" follows the latest rated log: logging or editing the latest
@@ -53,7 +53,7 @@ describe("log rating and the star rating", () => {
 
   it("logging with a rating replaces the star rating", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "lrsnew");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     await rateMovie(jar, movie.tmdbId, 4);
 
     await logMovie(jar, movie.tmdbId, "2026-03-01", 8);
@@ -62,7 +62,7 @@ describe("log rating and the star rating", () => {
 
   it("logging an older watch keeps the latest log's rating", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "lrsold");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     await logMovie(jar, movie.tmdbId, "2026-03-01", 8);
 
     await logMovie(jar, movie.tmdbId, "2026-01-01", 6);
@@ -71,7 +71,7 @@ describe("log rating and the star rating", () => {
 
   it("editing the latest log's rating updates the star rating", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "lrsedit");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     const olderId = await logMovie(jar, movie.tmdbId, "2026-01-01", 6);
     const latestId = await logMovie(jar, movie.tmdbId, "2026-03-01", 8);
 
@@ -84,7 +84,7 @@ describe("log rating and the star rating", () => {
 
   it("logging without a rating leaves the star rating alone", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "lrsnone");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     await rateMovie(jar, movie.tmdbId, 4);
 
     await logMovie(jar, movie.tmdbId, "2026-03-01");
@@ -93,7 +93,7 @@ describe("log rating and the star rating", () => {
 
   it("does the same for series logs", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "lrsser");
-    const serial = await seedTestSerial();
+    const serial = await seedTestSeries();
     const seriesRating = async () =>
       (await send(jar, "GET", `/api/serials/${serial.tmdbId}/interaction`))?.rating;
     await send(jar, "PUT", `/api/serials/${serial.tmdbId}/interaction`, { rating: 4 });

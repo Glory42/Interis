@@ -1,9 +1,9 @@
 import { ReelCells } from "@/components/film/ReelCells";
-import { TickLoader } from "@/components/ui/tick-loader";
 import { MonthBars, RankedBars, RatingBars, WeekReel } from "@/features/profile/components/stats/StatsCharts";
 import { STATS_MIN_LOGS, fillLastTwelveMonths, toRatingBuckets, toWeekReel } from "@/features/profile/components/stats/stats-model";
 import { useIsOwnProfile, useUserProfile } from "@/features/profile/hooks/useProfile";
 import { useDetailedStats } from "@/features/profile/hooks/useProfileStats";
+import { StatsSkeleton } from "@/components/ui/PageSkeletons";
 
 type ProfileStatsPageProps = {
   username: string;
@@ -32,11 +32,7 @@ export const ProfileStatsPage = ({ username, now: nowProp }: ProfileStatsPagePro
   const logged = (profileQuery.data?.stats?.movieEntryCount ?? 0) + (profileQuery.data?.stats?.serialEntryCount ?? 0);
 
   if (statsQuery.isPending || profileQuery.isPending) {
-    return (
-      <div className="body-s flex items-center gap-2 py-10 text-muted-foreground">
-        <TickLoader /> Loading stats…
-      </div>
-    );
+    return <StatsSkeleton />;
   }
 
   if (statsQuery.isError) {

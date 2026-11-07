@@ -1,22 +1,22 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authKeys } from "@/features/auth/hooks/useAuth";
 import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
-import { createDiaryEntry, getMyMovieLogs } from "@/features/diary/api";
+import { createDiaryEntry, getMyFilmLogs } from "@/features/diary/api";
 import { interactionKeys } from "@/features/interactions/hooks/useInteractions";
-import { movieKeys } from "@/features/movies/hooks/useMovies";
+import { filmKeys } from "@/features/films/hooks/useFilms";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import { profileStatsKeys } from "@/features/profile/hooks/useProfileStats";
-import type { CreateDiaryEntryInput, MeProfile, MovieLog } from "@/types/api";
+import type { CreateDiaryEntryInput, MeProfile, FilmLog } from "@/types/api";
 
 export const diaryKeys = {
   all: ["diary"] as const,
   myLogs: ["diary", "my-logs"] as const,
 };
 
-export const useMyMovieLogs = () =>
+export const useMyFilmLogs = () =>
   useQuery({
     queryKey: diaryKeys.myLogs,
-    queryFn: getMyMovieLogs,
+    queryFn: getMyFilmLogs,
   });
 
 export const useCreateDiaryEntry = () => {
@@ -25,10 +25,10 @@ export const useCreateDiaryEntry = () => {
   return useMutation({
     mutationFn: (input: CreateDiaryEntryInput) => createDiaryEntry(input),
     onMutate: async (variables) => {
-      const logsKey = movieKeys.logs(variables.tmdbId);
+      const logsKey = filmKeys.logs(variables.tmdbId);
       await queryClient.cancelQueries({ queryKey: logsKey });
 
-      const previousLogs = queryClient.getQueryData<MovieLog[]>(logsKey);
+      const previousLogs = queryClient.getQueryData<FilmLog[]>(logsKey);
       const me = queryClient.getQueryData<MeProfile | null>(authKeys.me);
 
       if (!me) {
@@ -36,7 +36,7 @@ export const useCreateDiaryEntry = () => {
       }
 
       const now = new Date().toISOString();
-      const optimisticLog: MovieLog = {
+      const optimisticLog: FilmLog = {
         diaryEntryId: `optimistic-${now}`,
         watchedDate: variables.watchedDate,
         rating: variables.rating ?? null,
@@ -50,7 +50,7 @@ export const useCreateDiaryEntry = () => {
         reviewUpdatedAt: variables.review ? now : null,
       };
 
-      queryClient.setQueryData<MovieLog[]>(logsKey, (old) => [
+      queryClient.setQueryData<FilmLog[]>(logsKey, (old) => [
         optimisticLog,
         ...(old ?? []),
       ]);
@@ -72,9 +72,9 @@ export const useCreateDiaryEntry = () => {
       const me = queryClient.getQueryData<MeProfile | null>(authKeys.me);
       const tasks = [
         queryClient.invalidateQueries({ queryKey: diaryKeys.myLogs }),
-        queryClient.invalidateQueries({ queryKey: movieKeys.logs(variables.tmdbId) }),
+        queryClient.invalidateQueries({ queryKey: filmKeys.logs(variables.tmdbId) }),
         queryClient.invalidateQueries({
-          queryKey: movieKeys.detailViewRoot(variables.tmdbId),
+          queryKey: filmKeys.detailViewRoot(variables.tmdbId),
         }),
         // Logging marks the movie watched and a rated log sets "Your rating".
         queryClient.invalidateQueries({ queryKey: interactionKeys.detail(variables.tmdbId) }),

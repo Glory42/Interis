@@ -1,7 +1,7 @@
 import { randomInt } from "node:crypto";
 import { db } from "../../../src/infrastructure/database/db";
-import { movies } from "../../../src/modules/movies/movies.entity";
-import { tvSeries } from "../../../src/modules/serials/serials.entity";
+import { films } from "../../../src/modules/films/films.entity";
+import { tvSeries } from "../../../src/modules/tv/tv.entity";
 
 // MoviesCacheService/SerialsCacheService.findOrCreate() checks the DB by
 // tmdbId before ever hitting the TMDB API — seeding rows directly here lets
@@ -9,14 +9,14 @@ import { tvSeries } from "../../../src/modules/serials/serials.entity";
 // call or a live TMDB_ACCESS_TOKEN.
 const randomTmdbId = (): number => randomInt(1_000_000, 999_000_000);
 
-export const seedTestMovie = async (
+export const seedTestFilm = async (
   title = "Test Movie",
 ): Promise<{ id: number; tmdbId: number }> => {
   const tmdbId = randomTmdbId();
   const [row] = await db
-    .insert(movies)
+    .insert(films)
     .values({ tmdbId, title })
-    .returning({ id: movies.id, tmdbId: movies.tmdbId });
+    .returning({ id: films.id, tmdbId: films.tmdbId });
 
   if (!row) {
     throw new Error("Failed to seed test movie");
@@ -25,7 +25,7 @@ export const seedTestMovie = async (
   return row;
 };
 
-export const seedTestSerial = async (
+export const seedTestSeries = async (
   title = "Test Serial",
 ): Promise<{ id: number; tmdbId: number }> => {
   const tmdbId = randomTmdbId();

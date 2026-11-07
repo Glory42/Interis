@@ -17,7 +17,7 @@ export const userSummarySchema = z.object({
   avatarUrl: z.string().nullable(),
 });
 
-export const tmdbSearchMovieSchema = z.object({
+export const tmdbSearchFilmSchema = z.object({
   id: z.number().int(),
   title: z.string(),
   poster_path: z.string().nullable(),
@@ -25,7 +25,7 @@ export const tmdbSearchMovieSchema = z.object({
   overview: z.string(),
 });
 
-export const movieGenreSchema = z.object({
+export const filmGenreSchema = z.object({
   id: z.number().int(),
   name: z.string(),
 });
@@ -53,7 +53,7 @@ export const favoriteGenreValues = [
 
 export const favoriteGenreSchema = z.enum(favoriteGenreValues);
 
-export const movieSchema = z
+export const filmSchema = z
   .object({
     id: z.number().int(),
     tmdbId: z.number().int(),
@@ -67,7 +67,7 @@ export const movieSchema = z
     runtime: z.number().int().nullable(),
     overview: z.string().nullable(),
     tagline: z.string().nullable(),
-    genres: z.array(movieGenreSchema).nullish(),
+    genres: z.array(filmGenreSchema).nullish(),
     cachedAt: z.string(),
   })
   .passthrough();
@@ -105,7 +105,7 @@ export const diaryEntrySchema = z
   })
   .passthrough();
 
-export const movieLogSchema = z
+export const filmLogSchema = z
   .object({
     diaryEntryId: z.string(),
     watchedDate: z.string(),
@@ -147,7 +147,7 @@ export const diaryReviewSchema = z
 export const createDiaryEntryResponseSchema = z
   .object({
     entry: createdDiaryEntrySchema,
-    movie: movieSchema,
+    movie: filmSchema,
     review: diaryReviewSchema,
   })
   .passthrough();
@@ -278,11 +278,11 @@ export const registerInputSchema = z.object({
   password: z.string().min(8).max(128),
 });
 
-export type TmdbSearchMovie = z.infer<typeof tmdbSearchMovieSchema>;
+export type TmdbSearchFilm = z.infer<typeof tmdbSearchFilmSchema>;
 export type FavoriteGenre = z.infer<typeof favoriteGenreSchema>;
-export type Movie = z.infer<typeof movieSchema>;
+export type Film = z.infer<typeof filmSchema>;
 export type DiaryEntry = z.infer<typeof diaryEntrySchema>;
-export type MovieLog = z.infer<typeof movieLogSchema>;
+export type FilmLog = z.infer<typeof filmLogSchema>;
 export type CreateDiaryEntryInput = z.infer<typeof createDiaryEntryInputSchema>;
 export type CreateDiaryEntryResponse = z.infer<
   typeof createDiaryEntryResponseSchema

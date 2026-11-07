@@ -12,9 +12,9 @@ import type {
   PublicList,
   PublicListEntry,
 } from "./dto/public.dto";
-import { SerialsProgressService } from "../serials/services/serials-progress.service";
-import { SerialsCurrentlyWatchingService } from "../serials/services/serials-currently-watching.service";
-import { SerialsService } from "../serials/serials.service";
+import { TvProgressService } from "../tv/services/tv-progress.service";
+import { TvCurrentlyWatchingService } from "../tv/services/tv-currently-watching.service";
+import { TvService } from "../tv/tv.service";
 
 const toTimestamp = (value: string | Date): number => {
   if (value instanceof Date) {
@@ -102,7 +102,7 @@ export class PublicService {
       return null;
     }
 
-    const watched = await SerialsService.getWatchedSeries(userId, limit);
+    const watched = await TvService.getWatchedSeries(userId, limit);
     return watched.slice(0, limit);
   }
 
@@ -287,7 +287,7 @@ export class PublicService {
     userId: string,
     limit: number,
   ): Promise<PublicCurrentlyWatchingSeries[]> {
-    return SerialsCurrentlyWatchingService.getCurrentlyWatching(userId, limit);
+    return TvCurrentlyWatchingService.getCurrentlyWatching(userId, limit);
   }
 
   static async getSerialsCurrentlyWatching(
@@ -297,13 +297,13 @@ export class PublicService {
     const userId = await PublicService.findUserIdByUsername(username);
     if (!userId) return null;
 
-    return SerialsCurrentlyWatchingService.getCurrentlyWatching(userId, limit);
+    return TvCurrentlyWatchingService.getCurrentlyWatching(userId, limit);
   }
 
   static async getSerialProgress(username: string, tmdbId: number) {
     const userId = await PublicService.findUserIdByUsername(username);
     if (!userId) return null;
 
-    return SerialsProgressService.getProgress(tmdbId, userId);
+    return TvProgressService.getProgress(tmdbId, userId);
   }
 }

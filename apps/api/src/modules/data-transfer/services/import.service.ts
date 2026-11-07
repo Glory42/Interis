@@ -1,8 +1,8 @@
-import { MoviesService } from "../../movies/movies.service";
-import { SerialsService } from "../../serials/serials.service";
+import { FilmsService } from "../../films/films.service";
+import { TvService } from "../../tv/tv.service";
 import { DiaryRepository } from "../../diary/repositories/diary.repository";
-import { SerialsInteractionsRepository } from "../../serials/repositories/serials-interactions.repository";
-import { SerialsReviewsRepository } from "../../serials/repositories/serials-reviews.repository";
+import { TvInteractionsRepository } from "../../tv/repositories/tv-interactions.repository";
+import { TvReviewsRepository } from "../../tv/repositories/tv-reviews.repository";
 import { ReviewsRepository } from "../../reviews/repositories/reviews.repository";
 import { MediaInteractions, type MediaInteractionAdapter } from "../../media-interactions/media-interactions.repository";
 import { parseCsv, getCsvHeaders } from "../helpers/csv-parser";
@@ -58,9 +58,9 @@ type DiaryImportAdapter<TMedia extends DiaryImportMedia> = {
   }) => Promise<unknown>;
 };
 
-const movieImportAdapter: DiaryImportAdapter<DiaryImportMedia> = {
+const filmImportAdapter: DiaryImportAdapter<DiaryImportMedia> = {
   interactions: MediaInteractions.forMovie(),
-  findOrCreateMedia: (tmdbId) => MoviesService.findOrCreate(tmdbId),
+  findOrCreateMedia: (tmdbId) => FilmsService.findOrCreate(tmdbId),
   fetchFailedReason: "Failed to fetch movie details.",
   existsByUserAndMedia: (userId, movieId) => DiaryRepository.existsByUserAndMovie(userId, movieId),
   existsByUserMediaAndDate: (userId, movieId, watchedDate) =>
@@ -81,16 +81,16 @@ const movieImportAdapter: DiaryImportAdapter<DiaryImportMedia> = {
 
 const seriesImportAdapter: DiaryImportAdapter<DiaryImportMedia> = {
   interactions: MediaInteractions.forSeries(),
-  findOrCreateMedia: (tmdbId) => SerialsService.findOrCreate(tmdbId),
+  findOrCreateMedia: (tmdbId) => TvService.findOrCreate(tmdbId),
   fetchFailedReason: "Failed to fetch series details.",
   existsByUserAndMedia: (userId, seriesId) =>
-    SerialsInteractionsRepository.existsByUserAndSeries(userId, seriesId),
+    TvInteractionsRepository.existsByUserAndSeries(userId, seriesId),
   existsByUserMediaAndDate: (userId, seriesId, watchedDate) =>
-    SerialsInteractionsRepository.existsByUserSeriesAndDate(userId, seriesId, watchedDate),
+    TvInteractionsRepository.existsByUserSeriesAndDate(userId, seriesId, watchedDate),
   insertDiaryEntry: ({ userId, mediaId, watchedDate, rating, rewatch }) =>
-    SerialsInteractionsRepository.insertDiaryEntry({ userId, seriesId: mediaId, watchedDate, rating, rewatch }),
+    TvInteractionsRepository.insertDiaryEntry({ userId, seriesId: mediaId, watchedDate, rating, rewatch }),
   createReview: ({ userId, media, diaryEntryId, content, containsSpoilers }) =>
-    SerialsReviewsRepository.createReview({
+    TvReviewsRepository.createReview({
       userId,
       seriesTmdbId: media.tmdbId,
       diaryEntryId,
@@ -100,7 +100,7 @@ const seriesImportAdapter: DiaryImportAdapter<DiaryImportMedia> = {
 };
 
 const adapterFor = (mediaType: ResolvedMedia["mediaType"]): DiaryImportAdapter<DiaryImportMedia> =>
-  mediaType === "series" ? seriesImportAdapter : movieImportAdapter;
+  mediaType === "series" ? seriesImportAdapter : filmImportAdapter;
 
 type RowOutcome = { status: "imported" | "skipped" | "failed"; reason?: string };
 

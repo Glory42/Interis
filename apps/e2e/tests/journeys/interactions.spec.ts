@@ -21,8 +21,8 @@ test("toggling watchlist/watch/like/rating on a movie reflects on the profile ta
     });
 
     await test.step("toggles watchlist", async () => {
-      await page.getByRole("button", { name: "watchlist" }).click();
-      await expect(page.getByRole("button", { name: "watchlisted" })).toBeVisible({
+      await page.getByRole("button", { name: "Watchlist", exact: true }).click();
+      await expect(page.getByRole("button", { name: "Watchlisted", exact: true })).toBeVisible({
         timeout: 10_000,
       });
     });
@@ -32,7 +32,7 @@ test("toggling watchlist/watch/like/rating on a movie reflects on the profile ta
       await expect(page.getByText(KNOWN_MOVIE_TITLE).first()).toBeVisible({ timeout: 10_000 });
 
       await page.goto(`/movies/${KNOWN_MOVIE_TMDB_ID}`);
-      await expect(page.getByRole("button", { name: "watchlisted" })).toBeVisible({
+      await expect(page.getByRole("button", { name: "Watchlisted", exact: true })).toBeVisible({
         timeout: 10_000,
       });
     });
@@ -45,7 +45,7 @@ test("toggling watchlist/watch/like/rating on a movie reflects on the profile ta
       await expect(page.getByRole("button", { name: "Watched" })).toBeVisible({
         timeout: 10_000,
       });
-      await expect(page.getByRole("button", { name: "watchlist", exact: true })).toBeVisible({
+      await expect(page.getByRole("button", { name: "Watchlist", exact: true })).toBeVisible({
         timeout: 10_000,
       });
     });

@@ -6,7 +6,7 @@ import { renderWithProviders } from "../../../support/render/render-with-provide
 import { toWeekLabel } from "@/features/media/archive/week-label";
 import { ArchiveSpotlight } from "@/features/media/archive/ArchiveSpotlight";
 import { ArchiveFilterControls } from "@/features/media/archive/ArchiveFilterControls";
-import { MOVIE_MODULE_STYLES } from "@/features/media/styles";
+import { FILM_MODULE_STYLES } from "@/features/media/styles";
 import type { ArchiveMenuKey } from "@/features/media/types";
 
 describe("toWeekLabel", () => {
@@ -26,6 +26,17 @@ const spotlightItems = [
 ];
 
 describe("ArchiveSpotlight", () => {
+  it("keeps the reel's frame as a skeleton while the titles load", async () => {
+    renderWithProviders(
+      <ArchiveSpotlight kindLabel="Films" modeLabel="Trending" tone="film" detailRoute="/movies/$tmdbId" items={[]} isLoading now={new Date(2026, 10, 6)} />,
+    );
+
+    const reel = await screen.findByRole("status", { name: "Loading trending films" });
+    expect(reel).toHaveTextContent("Interis · Films · Trending");
+    expect(reel).toHaveTextContent("WK 45 · NOV 2–8");
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+
   it("frames the first title like a reel, linking to it", async () => {
     renderWithProviders(
       <ArchiveSpotlight
@@ -110,7 +121,7 @@ const FilterSentence = ({
       onSelectSort={onSelectSort}
       onSelectLanguage={vi.fn()}
       onSelectPeriod={vi.fn()}
-      moduleStyles={MOVIE_MODULE_STYLES}
+      moduleStyles={FILM_MODULE_STYLES}
     />
   );
 };

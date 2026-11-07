@@ -4,7 +4,7 @@ import {
   getGroupedFeed,
   getMyFeedSummary,
   getNetworkStats,
-  getTrendingMovies,
+  getTrendingFilms,
   type FeedMediaTypeFilter,
 } from "@/features/feed/api";
 
@@ -46,13 +46,13 @@ export const useGroupedFeed = (filter: FeedFilter = "all", enabled = true) =>
   });
 
 // Shared with the home route loader so its prefetch can't drift onto a key nothing reads.
-export const trendingMoviesQueryOptions = (limit = 3) => ({
+export const trendingFilmsQueryOptions = (limit = 3) => ({
   queryKey: feedKeys.trending(limit),
-  queryFn: ({ signal }: { signal: AbortSignal }) => getTrendingMovies({ signal, limit }),
+  queryFn: ({ signal }: { signal: AbortSignal }) => getTrendingFilms({ signal, limit }),
   staleTime: 300_000,
 });
 
-export const useTrendingNow = (limit = 3) => useQuery(trendingMoviesQueryOptions(limit));
+export const useTrendingNow = (limit = 3) => useQuery(trendingFilmsQueryOptions(limit));
 
 export const useMyFeedSummary = (enabled = true) =>
   useQuery({

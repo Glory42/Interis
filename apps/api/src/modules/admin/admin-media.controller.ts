@@ -4,8 +4,8 @@ import { AdminMediaService } from "./admin-media.service";
 import {
   AdminListMediaQuerySchema,
   AdminMediaIdParamsSchema,
-  AdminUpdateMovieSchema,
-  AdminUpdateSerialSchema,
+  AdminUpdateFilmSchema,
+  AdminUpdateSeriesSchema,
   type AdminListMediaQuery,
 } from "./dto/admin-media.dto";
 import { AdminAuditService } from "./admin-audit.service";
@@ -31,7 +31,7 @@ export class AdminMediaController {
 
   static async updateMovie(req: Request<{ id: string }>, res: Response): Promise<void> {
     const params = AdminMediaIdParamsSchema.safeParse(req.params);
-    const body = AdminUpdateMovieSchema.safeParse(req.body);
+    const body = AdminUpdateFilmSchema.safeParse(req.body);
     if (!params.success) {
       sendValidationError(res, params.error);
       return;
@@ -102,7 +102,7 @@ export class AdminMediaController {
 
   static async updateSerial(req: Request<{ id: string }>, res: Response): Promise<void> {
     const params = AdminMediaIdParamsSchema.safeParse(req.params);
-    const body = AdminUpdateSerialSchema.safeParse(req.body);
+    const body = AdminUpdateSeriesSchema.safeParse(req.body);
     if (!params.success) {
       sendValidationError(res, params.error);
       return;

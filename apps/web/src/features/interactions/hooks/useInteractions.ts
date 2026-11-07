@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { authKeys } from "@/features/auth/hooks/useAuth";
 import {
-  getMovieInteraction,
-  updateMovieInteraction,
-  type MovieInteraction,
-  type UpdateMovieInteractionInput,
+  getFilmInteraction,
+  updateFilmInteraction,
+  type FilmInteraction,
+  type UpdateFilmInteractionInput,
 } from "@/features/interactions/api";
-import { movieKeys } from "@/features/movies/hooks/useMovies";
+import { filmKeys } from "@/features/films/hooks/useFilms";
 import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import { profileStatsKeys } from "@/features/profile/hooks/useProfileStats";
@@ -20,7 +20,7 @@ export const interactionKeys = {
 // counts and stats always, the liked tab for a like, the watchlist for any
 // change (liking, rating or watching also takes a movie off it), and recent
 // activity for the like and watchlist feed rows.
-const viewerProfileKeys = (username: string, input: UpdateMovieInteractionInput): QueryKey[] => [
+const viewerProfileKeys = (username: string, input: UpdateFilmInteractionInput): QueryKey[] => [
   profileKeys.detail(username),
   profileStatsKeys.detail(username),
   profileKeys.watchlist(username),
@@ -30,32 +30,32 @@ const viewerProfileKeys = (username: string, input: UpdateMovieInteractionInput)
     : []),
 ];
 
-export const useMovieInteraction = (tmdbId: number, enabled = true) =>
+export const useFilmInteraction = (tmdbId: number, enabled = true) =>
   useQuery({
     queryKey: interactionKeys.detail(tmdbId),
-    queryFn: () => getMovieInteraction(tmdbId),
+    queryFn: () => getFilmInteraction(tmdbId),
     enabled,
   });
 
-export const useUpdateMovieInteraction = (tmdbId: number) => {
+export const useUpdateFilmInteraction = (tmdbId: number) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     meta: { errorToast: "Couldn't update this movie" },
-    mutationFn: (input: UpdateMovieInteractionInput) =>
-      updateMovieInteraction(tmdbId, input),
+    mutationFn: (input: UpdateFilmInteractionInput) =>
+      updateFilmInteraction(tmdbId, input),
     onMutate: async (input) => {
       const queryKey = interactionKeys.detail(tmdbId);
       await queryClient.cancelQueries({ queryKey });
 
-      const previousState = queryClient.getQueryData<MovieInteraction>(queryKey);
+      const previousState = queryClient.getQueryData<FilmInteraction>(queryKey);
       if (previousState) {
         // Any rating/like interaction implicitly watched: true
         const isImplicitlyWatched =
           input.liked === true ||
           (input.rating !== undefined && input.rating !== null);
 
-        queryClient.setQueryData<MovieInteraction>(queryKey, {
+        queryClient.setQueryData<FilmInteraction>(queryKey, {
           ...previousState,
           ...(input.liked !== undefined ? { liked: input.liked } : {}),
           ...(input.watchlisted !== undefined
@@ -91,14 +91,14 @@ export const useUpdateMovieInteraction = (tmdbId: number) => {
           queryKey: interactionKeys.detail(tmdbId),
         }),
         queryClient.invalidateQueries({
-          queryKey: movieKeys.detail(tmdbId),
+          queryKey: filmKeys.detail(tmdbId),
         }),
         // Prefix-matches every reviewsSort variant for this movie only.
         queryClient.invalidateQueries({
-          queryKey: movieKeys.detailViewRoot(tmdbId),
+          queryKey: filmKeys.detailViewRoot(tmdbId),
         }),
         queryClient.invalidateQueries({
-          queryKey: movieKeys.logs(tmdbId),
+          queryKey: filmKeys.logs(tmdbId),
         }),
         // Likes and watchlist adds are feed rows, and undoing them removes
         // the row server-side (#76).

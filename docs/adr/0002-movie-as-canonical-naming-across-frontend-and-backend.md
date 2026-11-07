@@ -1,5 +1,7 @@
 # "Movie" is the canonical term for a film, across both backend and frontend
 
+> Superseded for code naming by [0003](0003-films-and-tv-as-code-naming-wire-names-unchanged.md). The `/movies` URLs and the `"movie"` values it set up still stand.
+
 The backend has always called this entity `Movie` (the `movies` table/module, `movieId` FK columns, `movie_interaction`). The frontend diverged: the feature directory is `features/films`, and the live public route is `/cinema/*` (itself a prior rename off an even older `/films/*`, which now survives only as a redirect stub). `CONTEXT.md` had flagged this split as unresolved since before this decision.
 
 While planning a films/serials shared-component consolidation, we considered going the other direction — renaming the backend entity to `Cinema` to match the frontend's current route name — but rejected it. Renaming the backend would require a real migration (renaming the `movies` table, `movieId` FK columns referenced from `diary_entry`, `movie_interaction`, `lists`, `reviews`, `activity`, etc.), on top of a semantic mismatch: "Cinema" conventionally means a movie theater or the art form, not one individual film ("log this Cinema" reads wrong). "Movie" also matches TMDB's own API vocabulary, which the backend caches from directly, minimizing translation at that boundary.

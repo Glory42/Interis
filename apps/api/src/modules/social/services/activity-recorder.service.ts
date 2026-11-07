@@ -13,7 +13,7 @@ import { SocialFeedService } from "./social-feed.service";
 // then remembering to invalidate the following-feed cache. Owning the
 // invalidation here is the point: it stopped leaking into ~15 call sites.
 
-export type MovieActivityInfo = {
+export type FilmActivityInfo = {
   id: number;
   tmdbId: number;
   title: string;
@@ -34,7 +34,7 @@ export type SeriesActivityInfo = {
 // replacing the two sibling recorder classes and their six near-identical
 // metadata builders.
 export type ActivitySubject =
-  | { kind: "movie"; movie: MovieActivityInfo }
+  | { kind: "movie"; movie: FilmActivityInfo }
   | { kind: "series"; series: SeriesActivityInfo }
   | { kind: "season"; series: SeriesActivityInfo; seasonNumber: number }
   | {

@@ -11,8 +11,8 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "../../infrastructure/database/auth.entity";
 import { diaryEntries } from "../diary/diary.entity";
-import { movies } from "../movies/movies.entity";
-import { serialDiaryEntries } from "../serials/serials.entity";
+import { films } from "../films/films.entity";
+import { seriesDiaryEntries } from "../tv/tv.entity";
 
 // mediaSource/mediaSourceId identify the external media record (e.g. TMDB id).
 export const reviews = pgTable(
@@ -27,13 +27,13 @@ export const reviews = pgTable(
     mediaType: text("media_type").notNull().default("movie"),
     mediaSource: text("media_source").notNull().default("tmdb"),
     mediaSourceId: text("media_source_id").notNull(),
-    movieId: integer("movie_id").references(() => movies.id, { onDelete: "cascade" }),
+    movieId: integer("movie_id").references(() => films.id, { onDelete: "cascade" }),
     // The log the review was written with: a movie log for movie reviews, a
     // series log for tv reviews. Deleting the log keeps the review (#87).
     diaryEntryId: uuid("diary_entry_id").references(() => diaryEntries.id, {
       onDelete: "set null",
     }),
-    serialDiaryEntryId: uuid("serial_diary_entry_id").references(() => serialDiaryEntries.id, {
+    serialDiaryEntryId: uuid("serial_diary_entry_id").references(() => seriesDiaryEntries.id, {
       onDelete: "set null",
     }),
     content: text("content").notNull(),

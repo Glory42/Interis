@@ -23,7 +23,7 @@ import {
 } from "@/features/moderation/hooks/useModeration";
 import { isApiError } from "@/lib/api-client";
 import type { PublicProfile } from "@/types/api";
-import { TickLoader } from "@/components/ui/tick-loader";
+import { ProfileHeaderSkeleton } from "@/components/ui/PageSkeletons";
 
 type ProfileLayoutProps = {
   username: string;
@@ -67,13 +67,7 @@ export const ProfileLayout = ({
   const unmuteMutation = useUnmuteUser(username);
 
   if (profileQuery.isPending) {
-    return (
-      <div className="mx-auto flex min-h-[55vh] w-full max-w-6xl items-center px-4 py-8">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <TickLoader /> Loading profile...
-        </div>
-      </div>
-    );
+    return <ProfileHeaderSkeleton />;
   }
 
   if (profileQuery.isError || !profileQuery.data) {

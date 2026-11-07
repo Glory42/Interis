@@ -1,3 +1,4 @@
+import { LoadingRegion } from "@/components/ui/PageSkeletons";
 import { useMemo } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
@@ -20,11 +21,11 @@ export const ProfileDiaryPage = ({ username }: ProfileDiaryPageProps) => {
   return (
     <>
       {diaryQuery.isPending ? (
-        <div className="space-y-0">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <DiaryRowSkeleton key={`diary-row-skeleton-${index}`} />
+        <LoadingRegion label="Loading diary">
+          {Array.from({ length: 6 }, (_, index) => (
+            <DiaryRowSkeleton key={index} />
           ))}
-        </div>
+        </LoadingRegion>
       ) : null}
 
       {diaryQuery.isError ? (

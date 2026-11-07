@@ -1,8 +1,8 @@
 import { Badge } from "@/components/ui/badge";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import { formatDateOnlyLabel } from "@/lib/time";
 import { formatRatingLabel } from "@/lib/rating";
 import type { DiaryEntry } from "@/types/api";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type DiaryEntryProps = {
   entry: DiaryEntry;

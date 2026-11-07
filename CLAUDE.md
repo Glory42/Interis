@@ -150,7 +150,7 @@ src/
 
 - **Diary entries and reviews are separate models.** A diary entry (watch log) can optionally have a review; reviews can also exist standalone.
 - **The existing `lists` entity** (`apps/api/src/modules/lists/lists.entity.ts`) currently only supports movies (`movieId` FK). The frontend stubs (`features/lists/api.ts`, `features/profile/pages/ProfileListsPage.tsx`) are placeholders awaiting full implementation.
-- **Serial support:** TV series are `tvSeries` in the DB (`tv_series` table), accessed via `src/modules/serials/`.
+- **Films and TV:** code says Film/Series/Tv (`modules/films`, `modules/tv`, `features/films`, `features/tv`); URLs, API paths, tables and JSON keep `movies`/`serials`/`movie`/`tv` (see ADR 0003). TV series are `tvSeries` in the DB (`tv_series` table). Anything both use goes in `media`.
 - **Interactions** (liked, watchlisted, rating) are stored in `movie_interaction` table — one row per user+movie pair, updated in place.
 - **Theme system:** themes are full-stack — backend validates `themeId`, frontend loads from `public/theme-registry.js` before React hydrates. See `ADDING-THEMES.md` for the complete guide.
 - **Public API** (`/api/public/*`) uses open CORS and is intended for external widgets — keep these routes read-only and unauthenticated.

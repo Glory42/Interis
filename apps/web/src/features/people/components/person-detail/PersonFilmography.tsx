@@ -1,11 +1,12 @@
+import { LineRowsSkeleton, LoadingRegion } from "@/components/ui/PageSkeletons";
 import { memo } from "react";
 import { Link } from "@tanstack/react-router";
 import { SentenceSelect } from "@/components/ui/SentenceSelect";
 import type { PersonCreditItem, PersonDetailResponse } from "@/features/people/api";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import { cn } from "@/lib/utils";
 import { toCreditLine, toDecades } from "./filmography-model";
 import type { CreditMediaTab, CreditRoleTab } from "./types";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type PersonFilmographyProps = {
   counts: PersonDetailResponse["credits"]["counts"];
@@ -102,7 +103,9 @@ export const PersonFilmography = ({
       </p>
 
       {isLoading ? (
-        <div className="h-40 animate-pulse rounded-[3px] bg-muted/20" />
+        <LoadingRegion label="Loading credits">
+          <LineRowsSkeleton count={6} withAvatar={false} />
+        </LoadingRegion>
       ) : credits.length === 0 ? (
         <p className="body-s border-t border-[color:var(--line)] pt-3 text-muted-foreground">No credits in this view.</p>
       ) : (

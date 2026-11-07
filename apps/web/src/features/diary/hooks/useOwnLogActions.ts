@@ -13,10 +13,10 @@ import {
 import { diaryKeys } from "@/features/diary/hooks/useDiary";
 import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
 import { interactionKeys } from "@/features/interactions/hooks/useInteractions";
-import { movieKeys } from "@/features/movies/hooks/useMovies";
+import { filmKeys } from "@/features/films/hooks/useFilms";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
-import { deleteSerialLog, updateSerialLog } from "@/features/serials/api";
-import { serialKeys } from "@/features/serials/hooks/serials/query-keys";
+import { deleteSeriesLog, updateSeriesLog } from "@/features/tv/api";
+import { seriesKeys } from "@/features/tv/hooks/tv/query-keys";
 import type { MeProfile } from "@/types/api";
 
 // One of the viewer's own logs: a movie log or a series log.
@@ -34,17 +34,17 @@ export const invalidateOwnLogQueries = async (queryClient: QueryClient, log: Own
     log.mediaType === "movie"
       ? [
           diaryKeys.myLogs,
-          movieKeys.logs(log.tmdbId),
-          movieKeys.detailViewRoot(log.tmdbId),
+          filmKeys.logs(log.tmdbId),
+          filmKeys.detailViewRoot(log.tmdbId),
           interactionKeys.detail(log.tmdbId),
         ]
       : [
-          serialKeys.myLogs,
-          serialKeys.logs(log.tmdbId),
-          serialKeys.detailViewRoot(log.tmdbId),
-          serialKeys.detail(log.tmdbId),
-          serialKeys.interaction(log.tmdbId),
-          serialKeys.seasonDetailRoot(log.tmdbId),
+          seriesKeys.myLogs,
+          seriesKeys.logs(log.tmdbId),
+          seriesKeys.detailViewRoot(log.tmdbId),
+          seriesKeys.detail(log.tmdbId),
+          seriesKeys.interaction(log.tmdbId),
+          seriesKeys.seasonDetailRoot(log.tmdbId),
         ];
 
   if (me?.username) {
@@ -70,7 +70,7 @@ export const useUpdateOwnLog = () => {
         await updateDiaryEntry(log.id, input);
         return;
       }
-      await updateSerialLog(log.id, input);
+      await updateSeriesLog(log.id, input);
     },
     onSuccess: (_data, { log }) => invalidateOwnLogQueries(queryClient, log),
   });
@@ -85,7 +85,7 @@ export const useDeleteOwnLog = () => {
     mutationFn: ({ log, unwatch = false }: { log: OwnLog; unwatch?: boolean }) =>
       log.mediaType === "movie"
         ? deleteDiaryEntry(log.id, { unwatch })
-        : deleteSerialLog(log.id, { unwatch }),
+        : deleteSeriesLog(log.id, { unwatch }),
     onSuccess: (_data, { log }) => invalidateOwnLogQueries(queryClient, log),
   });
 };

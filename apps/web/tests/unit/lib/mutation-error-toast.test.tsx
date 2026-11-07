@@ -5,7 +5,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { server } from "../../support/msw/server";
 import { Toaster } from "@/components/ui/Toaster";
-import { useUpdateSeasonInteraction } from "@/features/serials/hooks/serials/use-season-episode-interactions";
+import { useUpdateSeasonInteraction } from "@/features/tv/hooks/tv/use-season-episode-interactions";
 import { showMutationErrorToast } from "@/lib/mutation-error-toast";
 import { clearToasts, showToast, useToasts } from "@/lib/toast";
 

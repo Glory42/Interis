@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
-import { seedTestMovie } from "../../support/factories/media.factory";
+import { seedTestFilm } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -89,7 +89,7 @@ describe("notifications", () => {
 
   it("does not notify on self-follow-adjacent actions (liking your own review)", async () => {
     const owner = await signUpTestUser(getServer().baseUrl, "nsa");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const createReview = await apiRequest(
       getServer().baseUrl,
@@ -128,7 +128,7 @@ describe("notifications", () => {
   it("notifies the review author when someone else likes and comments", async () => {
     const author = await signUpTestUser(getServer().baseUrl, "reva");
     const liker = await signUpTestUser(getServer().baseUrl, "revb");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const createReview = await apiRequest(
       getServer().baseUrl,

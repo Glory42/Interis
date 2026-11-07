@@ -1,3 +1,4 @@
+import { LineRowsSkeleton, LoadingRegion } from "@/components/ui/PageSkeletons";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { SentenceSelect } from "@/components/ui/SentenceSelect";
@@ -9,7 +10,6 @@ import {
   useUnblockUser,
   useUnmuteUser,
 } from "@/features/moderation/hooks/useModeration";
-import { TickLoader } from "@/components/ui/tick-loader";
 
 const UnblockButton = ({ username }: { username: string }) => {
   const unblockMutation = useUnblockUser(username);
@@ -117,9 +117,9 @@ export const SettingsBlockedSection = () => {
       </p>
 
       {query.isPending ? (
-        <div className="flex justify-center py-8">
-          <TickLoader />
-        </div>
+        <LoadingRegion label={`Loading ${kind} users`}>
+          <LineRowsSkeleton count={3} />
+        </LoadingRegion>
       ) : query.isError ? (
         <p className="body-s py-6 text-muted-foreground">{`Could not load ${kind} users.`}</p>
       ) : query.data.length === 0 ? (

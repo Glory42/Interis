@@ -1,9 +1,9 @@
 import { MediaInteractions } from "../media-interactions/media-interactions.repository";
 import { ActivityRecorder } from "../social/services/activity-recorder.service";
-import { MoviesService } from "../movies/movies.service";
+import { FilmsService } from "../films/films.service";
 import type { UpdateInteractionDto } from "./dto/interactions.dto";
 
-const movieInteractionStore = MediaInteractions.forMovie();
+const filmInteractionStore = MediaInteractions.forMovie();
 
 const toInteractionResponse = (row: {
   liked: boolean;
@@ -22,8 +22,8 @@ const toInteractionResponse = (row: {
 export class InteractionsService {
   // GET current state — null means no row yet (both false)
   static async get(userId: string, tmdbId: number) {
-    const movie = await MoviesService.findOrCreate(tmdbId);
-    const row = await movieInteractionStore.find(userId, movie.id);
+    const movie = await FilmsService.findOrCreate(tmdbId);
+    const row = await filmInteractionStore.find(userId, movie.id);
 
     return toInteractionResponse(
       row ?? {
@@ -41,10 +41,10 @@ export class InteractionsService {
     tmdbId: number,
     input: UpdateInteractionDto,
   ) {
-    const movie = await MoviesService.findOrCreate(tmdbId);
-    const previous = await movieInteractionStore.find(userId, movie.id);
+    const movie = await FilmsService.findOrCreate(tmdbId);
+    const previous = await filmInteractionStore.find(userId, movie.id);
 
-    const upserted = await movieInteractionStore.upsertState(userId, movie.id, {
+    const upserted = await filmInteractionStore.upsertState(userId, movie.id, {
       liked: input.liked,
       watchlisted: input.watchlisted,
       rating: input.rating,
@@ -104,22 +104,22 @@ export class InteractionsService {
   }
 
   static async setWatched(userId: string, movieId: number): Promise<void> {
-    await movieInteractionStore.markWatched(userId, movieId);
+    await filmInteractionStore.markWatched(userId, movieId);
   }
 
   static async setUnwatched(userId: string, movieId: number): Promise<void> {
-    await movieInteractionStore.upsertState(userId, movieId, { watched: false });
+    await filmInteractionStore.upsertState(userId, movieId, { watched: false });
   }
 
   static async setWatchlisted(userId: string, movieId: number): Promise<void> {
-    await movieInteractionStore.setWatchlisted(userId, movieId);
+    await filmInteractionStore.setWatchlisted(userId, movieId);
   }
 
   static async setRating(userId: string, movieId: number, ratingOutOfTen: number): Promise<void> {
-    await movieInteractionStore.setRating(userId, movieId, ratingOutOfTen);
+    await filmInteractionStore.setRating(userId, movieId, ratingOutOfTen);
   }
 
   static async hasRating(userId: string, movieId: number): Promise<boolean> {
-    return movieInteractionStore.hasRating(userId, movieId);
+    return filmInteractionStore.hasRating(userId, movieId);
   }
 }

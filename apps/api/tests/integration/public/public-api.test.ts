@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
-import { seedTestMovie, seedTestSerial } from "../../support/factories/media.factory";
+import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -105,7 +105,7 @@ describe("public widget API (/api/public/*)", () => {
 
   it("surfaces a movie diary entry with its review across diary/reviews/movies-watched", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "pdiary");
-    const movie = await seedTestMovie("Public Diary Movie");
+    const movie = await seedTestFilm("Public Diary Movie");
 
     const createResponse = await apiRequest(
       getServer().baseUrl,
@@ -160,9 +160,9 @@ describe("public widget API (/api/public/*)", () => {
   it("paginates diary with limit/offset across mixed movie+serial entries", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "ppage");
 
-    const movieA = await seedTestMovie("Page Movie A");
-    const movieB = await seedTestMovie("Page Movie B");
-    const serial = await seedTestSerial("Page Serial");
+    const movieA = await seedTestFilm("Page Movie A");
+    const movieB = await seedTestFilm("Page Movie B");
+    const serial = await seedTestSeries("Page Serial");
 
     await apiRequest(
       getServer().baseUrl,
@@ -220,7 +220,7 @@ describe("public widget API (/api/public/*)", () => {
 
   it("only surfaces public lists with their movie items", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "plist");
-    const movie = await seedTestMovie("Public List Movie");
+    const movie = await seedTestFilm("Public List Movie");
 
     const publicListResponse = await apiRequest(
       getServer().baseUrl,
@@ -278,8 +278,8 @@ describe("public widget API (/api/public/*)", () => {
 
   it("surfaces liked and watchlisted movies", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "pinter");
-    const liked = await seedTestMovie("Liked Movie");
-    const watchlisted = await seedTestMovie("Watchlisted Movie");
+    const liked = await seedTestFilm("Liked Movie");
+    const watchlisted = await seedTestFilm("Watchlisted Movie");
 
     await apiRequest(
       getServer().baseUrl,
@@ -321,7 +321,7 @@ describe("public widget API (/api/public/*)", () => {
 
   it("surfaces a serial diary log in serials/watched", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "pserial");
-    const serial = await seedTestSerial("Public Serial Watched");
+    const serial = await seedTestSeries("Public Serial Watched");
 
     await apiRequest(
       getServer().baseUrl,

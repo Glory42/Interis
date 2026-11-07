@@ -3,7 +3,7 @@ import type {
   FeedFallbackMediaContext,
   FeedMetadata,
   FeedMediaType,
-  FeedMovie,
+  FeedFilm,
   FeedPost,
   FeedRawMetadata,
   SocialActivity,
@@ -96,7 +96,7 @@ export const resolvePost = (
 // The internal movie id to fetch as a fallback when metadata doesn't
 // already embed the movie's tmdbId+title - null when no DB lookup is
 // needed at all (either embedded data suffices, or there's no movie).
-export const resolveMovieFallbackId = (
+export const resolveFilmFallbackId = (
   rawMetadata: FeedRawMetadata,
   activity: SocialActivity,
   metadata: FeedMetadata,
@@ -124,12 +124,12 @@ export const resolveMovieFallbackId = (
   return fallbackMovieId;
 };
 
-export const resolveMovie = (
+export const resolveFilm = (
   rawMetadata: FeedRawMetadata,
   activity: SocialActivity,
   metadata: FeedMetadata,
   fallbackMedia: FeedFallbackMediaContext,
-): FeedMovie | null => {
+): FeedFilm | null => {
   const tmdbId = readNumber(rawMetadata, "tmdbId");
   const title = readString(rawMetadata, "title");
   const mediaType = toFeedMediaType(readPostMediaType(rawMetadata, "mediaType"));
@@ -144,7 +144,7 @@ export const resolveMovie = (
     };
   }
 
-  const fallbackMovieId = resolveMovieFallbackId(rawMetadata, activity, metadata);
+  const fallbackMovieId = resolveFilmFallbackId(rawMetadata, activity, metadata);
   if (fallbackMovieId === null) {
     return null;
   }

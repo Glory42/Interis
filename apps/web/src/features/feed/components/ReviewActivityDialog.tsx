@@ -1,3 +1,5 @@
+import { LoadingRegion } from "@/components/ui/PageSkeletons";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { X } from "lucide-react";
@@ -104,7 +106,7 @@ export const ReviewActivityDialog = ({
             <div className="min-w-0">
               <p className="theme-kicker text-[10px] text-muted-foreground">Review thread</p>
               <p className="truncate text-sm font-semibold text-foreground">
-                {detail?.media.title ?? "Loading…"}
+                {detail?.media.title ?? <Skeleton className="mt-1 h-3.5 w-40 rounded-sm" />}
               </p>
             </div>
             <button
@@ -119,7 +121,11 @@ export const ReviewActivityDialog = ({
 
           <div className="space-y-4 overflow-y-auto px-4 py-4">
             {detailQuery.isPending ? (
-              <p className="text-xs text-muted-foreground">Loading review…</p>
+              <LoadingRegion label="Loading review" className="space-y-2">
+                <Skeleton shape="line" />
+                <Skeleton shape="line" />
+                <Skeleton shape="line" className="w-2/3" />
+              </LoadingRegion>
             ) : null}
 
             {detailQuery.isError || !detail ? (

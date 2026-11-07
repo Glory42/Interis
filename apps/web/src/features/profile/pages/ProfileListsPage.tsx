@@ -1,3 +1,4 @@
+import { LoadingRegion, TitleRowsSkeleton } from "@/components/ui/PageSkeletons";
 import { useMemo, useState } from "react";
 import { Layers3 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
@@ -106,14 +107,9 @@ export const ProfileListsPage = ({ username }: ProfileListsPageProps) => {
       )}
 
       {listsQuery.isPending ? (
-        <div className="space-y-1">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-24 animate-pulse border-b border-border/30 bg-muted/10"
-            />
-          ))}
-        </div>
+        <LoadingRegion label="Loading lists">
+          <TitleRowsSkeleton count={3} />
+        </LoadingRegion>
       ) : listsQuery.isError ? (
         <div className="rounded-lg border border-border/60 bg-card/30 p-4 text-sm text-destructive">
           Could not load lists.

@@ -1,5 +1,5 @@
-import { searchMovieByTitleAndYear } from "../../../infrastructure/tmdb/movies";
-import { searchSeriesByTitleAndYear } from "../../../infrastructure/tmdb/serials";
+import { searchFilmByTitleAndYear } from "../../../infrastructure/tmdb/films";
+import { searchSeriesByTitleAndYear } from "../../../infrastructure/tmdb/tv";
 import type { MediaType } from "../../media/constants/media-type.constant";
 
 export type ImportStreamEvent =
@@ -185,12 +185,12 @@ export async function resolveMedia(row: NormalizedRow): Promise<ResolvedMedia | 
 
   // 1. Movie search with year
   if (row.year) {
-    const results = await searchMovieByTitleAndYear(row.title, row.year);
+    const results = await searchFilmByTitleAndYear(row.title, row.year);
     if (results.length > 0 && results[0]) return { mediaType: "movie", tmdbId: results[0].id };
   }
 
   // 2. Movie search without year (year mismatch fallback)
-  const movieFallback = await searchMovieByTitleAndYear(row.title, 0);
+  const movieFallback = await searchFilmByTitleAndYear(row.title, 0);
   if (movieFallback.length > 0 && movieFallback[0]) return { mediaType: "movie", tmdbId: movieFallback[0].id };
 
   // 3. TV series search with year

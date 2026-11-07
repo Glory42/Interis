@@ -1,0 +1,178 @@
+import { z } from "zod";
+import { personLinkSchema } from "@/features/people/shared";
+import {
+  filmLogSchema,
+  filmGenreSchema,
+  filmSchema,
+  tmdbSearchFilmSchema,
+  userSummarySchema,
+} from "@/types/api";
+
+export { filmLogSchema, filmSchema, tmdbSearchFilmSchema };
+
+export const filmSearchResponseSchema = z.array(tmdbSearchFilmSchema);
+export const filmLogsResponseSchema = z.array(filmLogSchema);
+
+const archiveGenreSchema = filmGenreSchema;
+
+const archiveFilmSchema = z.object({
+  tmdbId: z.number().int(),
+  title: z.string(),
+  posterPath: z.string().nullable(),
+  backdropPath: z.string().nullable(),
+  releaseDate: z.string().nullable(),
+  releaseYear: z.number().int().nullable(),
+  director: z.string().nullable(),
+  languageCode: z.string().nullable(),
+  genres: z.array(archiveGenreSchema),
+  primaryGenre: z.string().nullable(),
+  logCount: z.number().int().nonnegative(),
+  avgRatingOutOfTen: z.number().nullable(),
+  tmdbRatingOutOfTen: z.number().nullable(),
+  ratedLogCount: z.number().int().nonnegative(),
+  viewerHasLogged: z.boolean(),
+  viewerWatchlisted: z.boolean(),
+});
+
+const archiveFeaturedFilmSchema = z.object({
+  tmdbId: z.number().int(),
+  title: z.string(),
+  posterPath: z.string().nullable(),
+  backdropPath: z.string().nullable(),
+  releaseDate: z.string().nullable(),
+  releaseYear: z.number().int().nullable(),
+  director: z.string().nullable(),
+});
+
+const archiveGenreCountSchema = z.object({
+  id: z.number().int().nullable().optional(),
+  name: z.string(),
+  count: z.number().int().nonnegative().nullable(),
+});
+
+export const archiveSortSchema = z.enum([
+  "trending",
+  "release_desc",
+  "release_asc",
+  "logs_desc",
+  "rating_user_desc",
+  "rating_tmdb_desc",
+  "title_asc",
+]);
+
+export const archivePeriodSchema = z.enum([
+  "all_time",
+  "this_year",
+  "last_10_years",
+  "this_week",
+  "today",
+]);
+
+export const filmDetailReviewSortSchema = z.enum(["popular", "recent"]);
+
+const filmDetailFilmSchema = z.object({
+  id: z.number().int(),
+  tmdbId: z.number().int(),
+  title: z.string(),
+  originalTitle: z.string().nullable(),
+  posterPath: z.string().nullable(),
+  backdropPath: z.string().nullable(),
+  releaseDate: z.string().nullable(),
+  releaseYear: z.number().int().nullable(),
+  director: z.string().nullable(),
+  directors: z.array(personLinkSchema).default([]),
+  cast: z.array(personLinkSchema).default([]),
+  runtime: z.number().int().nullable(),
+  overview: z.string().nullable(),
+  tagline: z.string().nullable(),
+  genres: z.array(archiveGenreSchema),
+  languageCode: z.string().nullable(),
+  productionCountries: z.array(z.string()),
+  budget: z.number().nullable(),
+  revenue: z.number().nullable(),
+  globalRating: z.number().nullable(),
+  globalRatingVoteCount: z.number().int().nullable(),
+});
+
+const filmDetailUserRatingSchema = z
+  .object({
+    diaryEntryId: z.string().nullable(),
+    reviewId: z.string().nullable(),
+    watchedDate: z.string().nullable(),
+    rewatch: z.boolean(),
+    rating: z.number().nullable(),
+    reviewContent: z.string().nullable(),
+    reviewContainsSpoilers: z.boolean().nullable(),
+  })
+  .nullable();
+
+const filmDetailReviewSchema = z.object({
+  id: z.string(),
+  content: z.string(),
+  containsSpoilers: z.boolean(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  watchedDate: z.string().nullable(),
+  rating: z.number().nullable(),
+  likeCount: z.number().int().nonnegative(),
+  viewerHasLiked: z.boolean(),
+  author: userSummarySchema,
+});
+
+const filmDetailRatingBreakdownBucketSchema = z.object({
+  ratingValue: z.number().int().min(1).max(10),
+  count: z.number().int().nonnegative(),
+  percentage: z.number().int().min(0).max(100),
+});
+
+const similarFilmItemSchema = z.object({
+  tmdbId: z.number().int(),
+  title: z.string(),
+  posterPath: z.string().nullable(),
+  releaseYear: z.number().int().nullable(),
+});
+
+export const filmDetailResponseSchema = z.object({
+  movie: filmDetailFilmSchema,
+  logsCount: z.number().int().nonnegative(),
+  reviewCount: z.number().int().nonnegative(),
+  userRating: filmDetailUserRatingSchema,
+  reviewsSort: filmDetailReviewSortSchema,
+  reviews: z.array(filmDetailReviewSchema),
+  reviewsPage: z.number().int().positive(),
+  reviewsLimit: z.number().int().positive(),
+  reviewsHasMore: z.boolean(),
+  ratingBreakdown: z.object({
+    totalRatedReviews: z.number().int().nonnegative(),
+    averageRating: z.number().nullable(),
+    buckets: z.array(filmDetailRatingBreakdownBucketSchema),
+  }),
+  similar: z.array(similarFilmItemSchema),
+});
+
+export const filmReviewsPageResponseSchema = z.object({
+  items: z.array(filmDetailReviewSchema),
+  sort: filmDetailReviewSortSchema,
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  totalCount: z.number().int().nonnegative(),
+  hasMore: z.boolean(),
+});
+
+export const filmArchiveResponseSchema = z.object({
+  totalCount: z.number().int().nonnegative(),
+  filteredCount: z.number().int().nonnegative(),
+  selectedGenre: z.string().nullable(),
+  selectedLanguage: z.string().nullable(),
+  selectedSort: archiveSortSchema,
+  selectedPeriod: archivePeriodSchema,
+  featuredMovie: archiveFeaturedFilmSchema.nullable(),
+  availableGenres: z.array(archiveGenreCountSchema),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  hasMore: z.boolean(),
+  nextPage: z.number().int().positive().nullable(),
+  items: z.array(archiveFilmSchema),
+});
+
+export { archiveFilmSchema };

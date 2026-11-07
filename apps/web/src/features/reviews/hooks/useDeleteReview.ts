@@ -1,12 +1,12 @@
 import { useMutation, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { authKeys } from "@/features/auth/hooks/useAuth";
 import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
-import { movieKeys } from "@/features/movies/hooks/useMovies";
+import { filmKeys } from "@/features/films/hooks/useFilms";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import { deleteReview, type ReviewDetail } from "@/features/reviews/api";
 
 type DeletableReview = { id: string; mediaType: ReviewDetail["mediaType"]; tmdbId: number };
-import { serialKeys } from "@/features/serials/hooks/serials/query-keys";
+import { seriesKeys } from "@/features/tv/hooks/tv/query-keys";
 import type { MeProfile } from "@/types/api";
 
 // Deletes one of the viewer's own reviews. The review's own detail query is
@@ -21,8 +21,8 @@ export const useDeleteReview = () => {
       const keys: QueryKey[] = [
         ["reviews", "mine"],
         ...(mediaType === "movie"
-          ? [movieKeys.logs(tmdbId), movieKeys.detailViewRoot(tmdbId)]
-          : [serialKeys.logs(tmdbId), serialKeys.detailViewRoot(tmdbId)]),
+          ? [filmKeys.logs(tmdbId), filmKeys.detailViewRoot(tmdbId)]
+          : [seriesKeys.logs(tmdbId), seriesKeys.detailViewRoot(tmdbId)]),
       ];
 
       if (me?.username) {

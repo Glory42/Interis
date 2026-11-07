@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { deleteCurrentUserAccount } from "@/features/auth/api";
 import { authKeys, useAuth } from "@/features/auth/hooks/useAuth";
 import { AccountField } from "@/features/settings/components/account/AccountField";
@@ -34,7 +34,10 @@ export const SettingsDangerZone = () => {
     <section id="delete-account" className="scroll-mt-20 rounded-[3px] border border-[color:var(--danger)]/50 p-4 sm:p-5">
       <h2 className="display-4 text-[color:var(--danger)]">Danger zone</h2>
       <p className="body-s mt-1 max-w-xl text-muted-foreground">
-        {`Deletes @${user.username} with every log, review, list, post and comment. This can't be undone. Download your diary first.`}
+        {`Deletes @${user.username} with every log, review, list, post and comment. This can't be undone. `}
+        <Link to="/settings/data" className="text-primary hover:underline">
+          Download your diary first.
+        </Link>
       </p>
       <form onSubmit={submit} className="mt-4 max-w-sm space-y-3">
         {/* Lets password managers pick the right account for the field below. */}

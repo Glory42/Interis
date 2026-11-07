@@ -1,0 +1,83 @@
+import { asc, eq, inArray, sql } from "drizzle-orm";
+import { db } from "../../../infrastructure/database/db";
+import { seriesDiaryEntries, seriesInteractions, tvSeries } from "../tv.entity";
+import {
+  buildCommunityRatingAggregateSql,
+  type CommunityRatingAggregateSource,
+} from "../../media/helpers/media-community-rating.helper";
+
+const SERIES_COMMUNITY_RATING_SOURCE: CommunityRatingAggregateSource = {
+  diaryTableName: "serial_diary_entry",
+  diaryEntityIdColumn: seriesDiaryEntries.seriesId,
+  diaryRatingColumn: seriesDiaryEntries.rating,
+  diaryUserIdColumn: seriesDiaryEntries.userId,
+  diaryWatchedDateColumn: seriesDiaryEntries.watchedDate,
+  diaryCreatedAtColumn: seriesDiaryEntries.createdAt,
+  interactionTableName: "serial_interaction",
+  interactionEntityIdColumn: seriesInteractions.seriesId,
+  interactionRatingColumn: seriesInteractions.rating,
+  interactionUserIdColumn: seriesInteractions.userId,
+};
+
+export class TvArchiveRepository {
+  static async getLocalArchiveAggregateRowsByTmdbIds(tmdbIds: number[]) {
+    const uniqueTmdbIds = [...new Set(tmdbIds)];
+    if (uniqueTmdbIds.length === 0) {
+      return [];
+    }
+
+    const communityRating = buildCommunityRatingAggregateSql(
+      SERIES_COMMUNITY_RATING_SOURCE,
+      tvSeries.id,
+    );
+
+    return db
+      .select({
+        tmdbId: tvSeries.tmdbId,
+        firstAirDate: tvSeries.firstAirDate,
+        firstAirYear: tvSeries.firstAirYear,
+        creator: tvSeries.creator,
+        network: tvSeries.network,
+        languageCode: tvSeries.languageCode,
+        genres: tvSeries.genres,
+        numberOfEpisodes: tvSeries.numberOfEpisodes,
+        logCount: sql<number>`count(${seriesDiaryEntries.id})::int`.as("logCount"),
+        avgRatingOutOfTen: communityRating.avgRatingOutOfTen.as("avgRatingOutOfTen"),
+        ratedLogCount: communityRating.ratedLogCount.as("ratedLogCount"),
+      })
+      .from(tvSeries)
+      .leftJoin(seriesDiaryEntries, eq(seriesDiaryEntries.seriesId, tvSeries.id))
+      .where(inArray(tvSeries.tmdbId, uniqueTmdbIds))
+      .groupBy(tvSeries.id);
+  }
+
+  static async getLocalArchiveRows() {
+    const communityRating = buildCommunityRatingAggregateSql(
+      SERIES_COMMUNITY_RATING_SOURCE,
+      tvSeries.id,
+    );
+
+    return db
+      .select({
+        tmdbId: tvSeries.tmdbId,
+        title: tvSeries.title,
+        posterPath: tvSeries.posterPath,
+        backdropPath: tvSeries.backdropPath,
+        firstAirDate: tvSeries.firstAirDate,
+        firstAirYear: tvSeries.firstAirYear,
+        creator: tvSeries.creator,
+        network: tvSeries.network,
+        languageCode: tvSeries.languageCode,
+        genres: tvSeries.genres,
+        numberOfEpisodes: tvSeries.numberOfEpisodes,
+        logCount: sql<number>`count(${seriesDiaryEntries.id})::int`.as("logCount"),
+        avgRatingOutOfTen: communityRating.avgRatingOutOfTen.as("avgRatingOutOfTen"),
+        ratedLogCount: communityRating.ratedLogCount.as("ratedLogCount"),
+      })
+      .from(tvSeries)
+      .leftJoin(seriesDiaryEntries, eq(seriesDiaryEntries.seriesId, tvSeries.id))
+      .groupBy(tvSeries.id)
+      .orderBy(asc(tvSeries.title));
+  }
+
+}

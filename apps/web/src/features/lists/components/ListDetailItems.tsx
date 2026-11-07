@@ -2,8 +2,8 @@ import { memo } from "react";
 import { Link } from "@tanstack/react-router";
 import { OutlinedRank } from "@/components/film/OutlinedRank";
 import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import type { ListDetail } from "@/features/lists/api";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type ListItem = ListDetail["items"][number];
 

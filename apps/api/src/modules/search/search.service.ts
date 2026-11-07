@@ -1,5 +1,5 @@
-import { MoviesService } from "../movies/movies.service";
-import { SerialsService } from "../serials/serials.service";
+import { FilmsService } from "../films/films.service";
+import { TvService } from "../tv/tv.service";
 import type { MediaType } from "../media/constants/media-type.constant";
 
 const MAX_RESULTS = 20;
@@ -18,8 +18,8 @@ export type UnifiedSearchResult = {
 export class SearchService {
   static async searchTitles(query: string): Promise<UnifiedSearchResult[]> {
     const [movies, series] = await Promise.all([
-      MoviesService.search(query),
-      SerialsService.search(query),
+      FilmsService.search(query),
+      TvService.search(query),
     ]);
 
     const movieResults: UnifiedSearchResult[] = movies.map((movie) => ({
@@ -49,8 +49,8 @@ export class SearchService {
     const idsOf = (mediaType: MediaType) =>
       results.filter((result) => result.mediaType === mediaType).map((result) => result.tmdbId);
     const [directors, creators] = await Promise.all([
-      MoviesService.findCachedDirectors(idsOf("movie")),
-      SerialsService.findCachedCreators(idsOf("tv")),
+      FilmsService.findCachedDirectors(idsOf("movie")),
+      TvService.findCachedCreators(idsOf("tv")),
     ]);
 
     return results.map((result) => ({

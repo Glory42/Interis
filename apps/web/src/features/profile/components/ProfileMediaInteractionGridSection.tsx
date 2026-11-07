@@ -8,7 +8,7 @@ import {
   ProfileTabEmptyState,
   type ProfileTabEmptyStateCta,
 } from "@/features/profile/components/ProfileTabEmptyState";
-import type { UserInteractionMovie } from "@/features/profile/api";
+import type { UserInteractionFilm } from "@/features/profile/api";
 import {
   mediaShelfCount,
   mediaShelfOptions,
@@ -28,7 +28,7 @@ type ProfileMediaInteractionGridSectionProps = {
   interactionVerb: string;
   isPending: boolean;
   isError: boolean;
-  items: UserInteractionMovie[];
+  items: UserInteractionFilm[];
   counts: MediaShelfCounts;
   activeFilter: MediaShelfFilter;
   onFilterChange: (filter: MediaShelfFilter) => void;

@@ -6,7 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { server } from "../../../support/msw/server";
 import { EditLogDialog, type EditableLog } from "@/features/diary/components/EditLogDialog";
 
-const movieLog: EditableLog = {
+const filmLog: EditableLog = {
   id: "entry-1",
   mediaType: "movie",
   tmdbId: 550,
@@ -37,7 +37,7 @@ describe("EditLogDialog", () => {
     );
     const user = userEvent.setup();
     let closed = false;
-    renderDialog(movieLog, () => {
+    renderDialog(filmLog, () => {
       closed = true;
     });
 
@@ -61,7 +61,7 @@ describe("EditLogDialog", () => {
     );
     const user = userEvent.setup();
     let closed = false;
-    renderDialog({ ...movieLog, id: "entry-2", mediaType: "tv", title: "Dark" }, () => {
+    renderDialog({ ...filmLog, id: "entry-2", mediaType: "tv", title: "Dark" }, () => {
       closed = true;
     });
 
@@ -84,7 +84,7 @@ describe("EditLogDialog", () => {
       }),
     );
     const user = userEvent.setup();
-    renderDialog(movieLog, () => {});
+    renderDialog(filmLog, () => {});
 
     await user.click(screen.getByRole("button", { name: /delete log/i }));
     await user.click(screen.getByRole("checkbox", { name: /also mark as not watched/i }));
@@ -102,7 +102,7 @@ describe("EditLogDialog", () => {
       }),
     );
     const user = userEvent.setup();
-    renderDialog({ ...movieLog, id: "entry-2", mediaType: "tv", title: "Dark" }, () => {});
+    renderDialog({ ...filmLog, id: "entry-2", mediaType: "tv", title: "Dark" }, () => {});
 
     await user.click(screen.getByRole("button", { name: /delete log/i }));
     await user.click(screen.getByRole("checkbox", { name: /unmark the series and its episodes/i }));
@@ -119,7 +119,7 @@ describe("EditLogDialog", () => {
     );
     const user = userEvent.setup();
     let closed = false;
-    renderDialog(movieLog, () => {
+    renderDialog(filmLog, () => {
       closed = true;
     });
 

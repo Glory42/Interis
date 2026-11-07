@@ -14,7 +14,7 @@ export const ProfileWatchingPage = ({ username }: ProfileWatchingPageProps) => {
 
   return (
     <>
-      {currentlyWatchingQuery.isPending ? <ProfileMediaGridSkeleton /> : null}
+      {currentlyWatchingQuery.isPending ? <ProfileMediaGridSkeleton label="Loading watching" /> : null}
 
       {currentlyWatchingQuery.isError ? (
         <p className="body-s text-[color:var(--danger)]">Could not load what this profile is watching.</p>

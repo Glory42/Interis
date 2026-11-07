@@ -1,22 +1,17 @@
+import { Skeleton } from "@/components/ui/Skeleton";
+import { LoadingRegion, SettingsSectionSkeleton } from "@/components/ui/PageSkeletons";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { FavoritesPickerDialogs } from "./favorites/FavoritesPickerDialogs";
 import { TopPickSlots } from "./favorites/TopPickSlots";
 import { Button } from "@/components/ui/button";
 import { useSettingsFavoritesController } from "./favorites/useSettingsFavoritesController";
-import { TickLoader } from "@/components/ui/tick-loader";
 
 export const SettingsFavoritesSection = () => {
   const { user, isUserLoading } = useAuth();
   const controller = useSettingsFavoritesController(user?.username ?? "");
 
   if (isUserLoading || !user) {
-    return (
-      <div className="border px-4 py-3 text-sm shell-border shell-muted surface">
-        <p className="flex items-center gap-2">
-          <TickLoader /> Loading favorites settings...
-        </p>
-      </div>
-    );
+    return <SettingsSectionSkeleton label="Loading favorites settings" />;
   }
 
   const groups = [
@@ -46,9 +41,11 @@ export const SettingsFavoritesSection = () => {
       </div>
 
       {controller.topPicksQuery.isPending ? (
-        <p className="body-s mt-4 flex items-center gap-2 text-muted-foreground">
-          <TickLoader /> Loading your Top 4…
-        </p>
+        <LoadingRegion label="Loading your Top 4" className="mt-4 grid max-w-md grid-cols-4 gap-3">
+          {Array.from({ length: 4 }, (_, index) => (
+            <Skeleton key={index} shape="poster" className="rounded-[3px]" />
+          ))}
+        </LoadingRegion>
       ) : null}
       {controller.topPicksQuery.isError ? (
         <p className="body-s mt-4 text-[color:var(--danger)]">Could not load your Top 4.</p>

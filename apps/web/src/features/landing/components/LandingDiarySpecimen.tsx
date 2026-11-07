@@ -1,7 +1,7 @@
 import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
 import { toWeekLabel } from "@/features/media/archive/week-label";
-import { getPosterUrl } from "@/features/movies/components/utils";
-import type { TrendingMovie } from "@/features/feed/types";
+import type { TrendingFilm } from "@/features/feed/types";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 const EXAMPLE = [
   { day: "Fri 06", rating: 9 },
@@ -10,7 +10,7 @@ const EXAMPLE = [
 ];
 
 // An example of what a diary week looks like, built from this week's trending posters.
-export const LandingDiarySpecimen = ({ films }: { films: TrendingMovie[] }) => (
+export const LandingDiarySpecimen = ({ films }: { films: TrendingFilm[] }) => (
   <div className="overflow-hidden rounded-[3px] border border-[color:var(--line)]">
     <div className="slate mono-meta uppercase">
       <span>Your diary · Example</span>

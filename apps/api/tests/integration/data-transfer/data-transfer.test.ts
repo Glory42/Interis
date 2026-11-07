@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
-import { seedTestMovie, seedTestSerial } from "../../support/factories/media.factory";
+import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -35,7 +35,7 @@ describe("data-transfer", () => {
 
     it("exports the user's diary as CSV with the expected headers", async () => {
       const { jar } = await signUpTestUser(getServer().baseUrl, "dtexport");
-      const movie = await seedTestMovie("Export Test Movie");
+      const movie = await seedTestFilm("Export Test Movie");
 
       await apiRequest(
         getServer().baseUrl,
@@ -116,7 +116,7 @@ describe("data-transfer", () => {
       // short-circuits before ever calling out to TMDB search - safe to
       // exercise the full import pipeline offline in this test env.
       const { jar } = await signUpTestUser(getServer().baseUrl, "dtimportinteris");
-      const movie = await seedTestMovie("Import Test Movie");
+      const movie = await seedTestFilm("Import Test Movie");
 
       const csv = [
         "WatchedDate,MediaType,Title,Year,TmdbId,Rating,Rewatch,Review,Spoilers",
@@ -151,7 +151,7 @@ describe("data-transfer", () => {
 
     it("saves the row's review text for an imported TV series diary entry, same as for a movie", async () => {
       const { jar } = await signUpTestUser(getServer().baseUrl, "dtimportserialreview");
-      const serial = await seedTestSerial("Import Test Serial");
+      const serial = await seedTestSeries("Import Test Serial");
 
       const csv = [
         "WatchedDate,MediaType,Title,Year,TmdbId,Rating,Rewatch,Review,Spoilers",
@@ -184,7 +184,7 @@ describe("data-transfer", () => {
 
     it("skips a re-import of the same diary entry instead of duplicating it", async () => {
       const { jar } = await signUpTestUser(getServer().baseUrl, "dtimportdupe");
-      const movie = await seedTestMovie("Duplicate Import Movie");
+      const movie = await seedTestFilm("Duplicate Import Movie");
       const csv = [
         "WatchedDate,MediaType,Title,Year,TmdbId,Rating,Rewatch,Review,Spoilers",
         `2024-03-01,movie,Duplicate Import Movie,2020,${movie.tmdbId},,false,,false`,

@@ -1,51 +1,25 @@
-import { Check, PenLine } from "lucide-react";
+import { PenLine } from "lucide-react";
 import type { ReactNode } from "react";
 
-export type LogTriggerVariant = "sidebar" | "bar" | "review";
-
 type LogTriggerProps = {
-  triggerVariant: "outline" | "ghost";
+  triggerVariant: "primary";
   triggerLabel: string;
   triggerClassName: string;
   triggerContent: ReactNode;
 };
 
-// The same log modal opens from the desktop sidebar, the phone action bar and the phone rating sheet.
-export const logTriggerProps = (variant: LogTriggerVariant, hasLogged: boolean): LogTriggerProps => {
+// The detail page's one primary action: a full-width Log (or Log again) pill.
+export const logTriggerProps = (hasLogged: boolean): LogTriggerProps => {
   const label = hasLogged ? "Log again" : "Log";
 
-  if (variant === "bar") {
-    return {
-      triggerVariant: "ghost",
-      triggerLabel: "Log",
-      triggerClassName:
-        "flex min-h-11 flex-col items-center justify-center gap-0.5 border-0 bg-transparent px-1 font-mono text-[10px] font-semibold tracking-[0.08em] text-[#dddddd] uppercase",
-      triggerContent: (
-        <>
-          <PenLine className="size-4" />
-          <span>Log</span>
-        </>
-      ),
-    };
-  }
-
-  if (variant === "review") {
-    return {
-      triggerVariant: "ghost",
-      triggerLabel: "Write a review",
-      triggerClassName: "h-auto border-0 bg-transparent px-0 text-xs text-primary underline underline-offset-2",
-      triggerContent: <span>✎ Write a review</span>,
-    };
-  }
-
   return {
-    triggerVariant: "outline",
+    triggerVariant: "primary",
     triggerLabel: label,
     triggerClassName:
-      "h-auto flex-1 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em]",
+      "h-12 w-full rounded-full text-base font-bold shadow-[0_0_24px_color-mix(in_srgb,var(--primary)_35%,transparent)] sm:h-12",
     triggerContent: (
       <>
-        <Check className="h-3 w-3" />
+        <PenLine aria-hidden className="size-4" />
         <span>{label}</span>
       </>
     ),

@@ -1,6 +1,6 @@
-import { MoviesService } from "../../movies/movies.service";
-import { SerialsService } from "../../serials/serials.service";
-import { SerialsWatchStatusService } from "../../serials/services/serials-watch-status.service";
+import { FilmsService } from "../../films/films.service";
+import { TvService } from "../../tv/tv.service";
+import { TvWatchStatusService } from "../../tv/services/tv-watch-status.service";
 import {
   ActivityRecorder,
   type ActivitySubject,
@@ -14,8 +14,8 @@ import { ConflictError, NotFoundError } from "../../../commons/errors/app-error"
 
 const MY_TITLE_REVIEWS_LIMIT = 50;
 
-type Movie = Awaited<ReturnType<typeof MoviesService.findOrCreate>>;
-type Series = NonNullable<Awaited<ReturnType<typeof SerialsService.findOrCreate>>>;
+type Film = Awaited<ReturnType<typeof FilmsService.findOrCreate>>;
+type Series = NonNullable<Awaited<ReturnType<typeof TvService.findOrCreate>>>;
 type ReviewsTableRow = NonNullable<Awaited<ReturnType<typeof ReviewsRepository.createReview>>>;
 
 // Only the genuinely per-media-type facts: how to resolve the media, how to
@@ -31,8 +31,8 @@ type ReviewMediaAdapter<TMedia, TResult> = {
   toResult: (review: ReviewsTableRow, media: TMedia) => TResult;
 };
 
-const movieReviewAdapter: ReviewMediaAdapter<Movie, { review: ReviewsTableRow; movie: Movie }> = {
-  findOrCreateMedia: (tmdbId) => MoviesService.findOrCreate(tmdbId),
+const filmReviewAdapter: ReviewMediaAdapter<Film, { review: ReviewsTableRow; movie: Film }> = {
+  findOrCreateMedia: (tmdbId) => FilmsService.findOrCreate(tmdbId),
   reviewRef: (movie) => ({ mediaType: "movie", tmdbId: movie.tmdbId, movieId: movie.id }),
   markWatched: (userId, movie) => InteractionsService.setWatched(userId, movie.id),
   activitySubject: (movie) => ({ kind: "movie", movie }),
@@ -41,13 +41,13 @@ const movieReviewAdapter: ReviewMediaAdapter<Movie, { review: ReviewsTableRow; m
 
 const tvReviewAdapter: ReviewMediaAdapter<Series, { review: ReviewsTableRow; series: Series }> = {
   findOrCreateMedia: async (tmdbId) => {
-    const series = await SerialsService.findOrCreate(tmdbId);
+    const series = await TvService.findOrCreate(tmdbId);
     if (!series) throw new NotFoundError("Series not found");
     return series;
   },
   reviewRef: (series) => ({ mediaType: "tv", tmdbId: series.tmdbId, movieId: null }),
   // A review mid-season mustn't knock the series off "watching".
-  markWatched: (userId, series) => SerialsWatchStatusService.markCompletedIfUntracked(userId, series.id),
+  markWatched: (userId, series) => TvWatchStatusService.markCompletedIfUntracked(userId, series.id),
   activitySubject: (series) => ({ kind: "series", series }),
   toResult: (review, series) => ({ review, series }),
 };
@@ -57,7 +57,7 @@ export class ReviewsCoreService {
     if (input.mediaType === "tv") {
       return ReviewsCoreService.createWithAdapter(userId, input, tvReviewAdapter);
     }
-    return ReviewsCoreService.createWithAdapter(userId, input, movieReviewAdapter);
+    return ReviewsCoreService.createWithAdapter(userId, input, filmReviewAdapter);
   }
 
   private static async createWithAdapter<TMedia, TResult>(

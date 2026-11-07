@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
-import { seedTestMovie } from "../../support/factories/media.factory";
+import { seedTestFilm } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -47,7 +47,7 @@ describe("reviews comments", () => {
 
   it("requires auth to add a comment", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "rcommentauth");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     const review = await createReview(jar, movie.tmdbId, "Commentable review");
 
     const response = await apiRequest(
@@ -64,7 +64,7 @@ describe("reviews comments", () => {
 
   it("rejects empty comment content", async () => {
     const author = await signUpTestUser(getServer().baseUrl, "rcemptyauthor");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     const review = await createReview(author.jar, movie.tmdbId, "Review for empty comment");
 
     const response = await apiRequest(
@@ -98,7 +98,7 @@ describe("reviews comments", () => {
   it("adds a comment and surfaces it via GET /api/reviews/:id/comments", async () => {
     const author = await signUpTestUser(getServer().baseUrl, "rcaddauthor");
     const commenter = await signUpTestUser(getServer().baseUrl, "rcaddcommenter");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     const review = await createReview(author.jar, movie.tmdbId, "Review to comment on");
 
     const addResponse = await apiRequest(
@@ -131,7 +131,7 @@ describe("reviews comments", () => {
     // scoped strictly to the comment's own userId.
     const reviewOwner = await signUpTestUser(getServer().baseUrl, "rcownerreview");
     const commenter = await signUpTestUser(getServer().baseUrl, "rcownercomment");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     const review = await createReview(reviewOwner.jar, movie.tmdbId, "Ownership boundary review");
 
     const addResponse = await apiRequest(

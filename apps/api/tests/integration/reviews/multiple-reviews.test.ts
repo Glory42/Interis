@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
-import { seedTestMovie, seedTestSerial } from "../../support/factories/media.factory";
+import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -73,7 +73,7 @@ describe("multiple reviews per title", () => {
 
   it("each log of a rewatched movie keeps its own review", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "mrlogs");
-    const movie = await seedTestMovie("Rewatched Movie");
+    const movie = await seedTestFilm("Rewatched Movie");
     const first = await logMovie(jar, movie.tmdbId, "2026-01-01", "Didn't get it");
     const second = await logMovie(jar, movie.tmdbId, "2026-03-01", "Now I get it");
     expect(second.review.id).not.toBe(first.review.id);
@@ -119,7 +119,7 @@ describe("multiple reviews per title", () => {
 
   it("a log holds at most one review", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "mrlogone");
-    const movie = await seedTestMovie("One Review Per Log");
+    const movie = await seedTestFilm("One Review Per Log");
     const logged = await logMovie(jar, movie.tmdbId, "2026-01-01", "Written with the log");
 
     const extra = await post(jar, "/api/reviews", {
@@ -132,7 +132,7 @@ describe("multiple reviews per title", () => {
 
   it("logging a series twice with reviews keeps both", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "mrseries");
-    const serial = await seedTestSerial("Rewatched Serial");
+    const serial = await seedTestSeries("Rewatched Serial");
     for (const [watchedDate, review] of [
       ["2026-01-01", "First run"],
       ["2026-02-01", "Second run"],
@@ -148,7 +148,7 @@ describe("multiple reviews per title", () => {
 
   it("the season review endpoint edits the newest season review", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "mrseason");
-    const serial = await seedTestSerial("Season Review Serial");
+    const serial = await seedTestSeries("Season Review Serial");
     const path = `/api/serials/${serial.tmdbId}/seasons/1/review`;
 
     expect((await post(jar, path, { content: "Draft" })).status).toBeLessThan(300);
@@ -161,7 +161,7 @@ describe("multiple reviews per title", () => {
   it("the season review endpoint writes another review or edits a chosen one", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "mrseasonpick");
     const other = await signUpTestUser(getServer().baseUrl, "mrseasonother");
-    const serial = await seedTestSerial("Season Picker Serial");
+    const serial = await seedTestSeries("Season Picker Serial");
     const path = `/api/serials/${serial.tmdbId}/seasons/1/review`;
     const seasonQuery = `mediaType=tv_season&tmdbId=${serial.tmdbId}&seasonNumber=1`;
 
@@ -209,7 +209,7 @@ describe("multiple reviews per title", () => {
   it("only lists the viewer's own reviews, and checks the query", async () => {
     const author = await signUpTestUser(getServer().baseUrl, "mrauthor");
     const viewer = await signUpTestUser(getServer().baseUrl, "mrviewer");
-    const movie = await seedTestMovie("Someone Else's Review");
+    const movie = await seedTestFilm("Someone Else's Review");
     await post(author.jar, "/api/reviews", { tmdbId: movie.tmdbId, content: "Mine" });
 
     expect((await getMine(viewer.jar, `mediaType=movie&tmdbId=${movie.tmdbId}`)).body).toEqual([]);

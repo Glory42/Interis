@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
-import { seedTestMovie, seedTestSerial } from "../../support/factories/media.factory";
+import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
 
 describe("profile diary liked mark", () => {
@@ -35,9 +35,9 @@ describe("profile diary liked mark", () => {
 
   it("marks each diary entry liked from the title's own like, films and series alike", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "dlike");
-    const likedMovie = await seedTestMovie("Liked Diary Movie");
-    const plainMovie = await seedTestMovie("Plain Diary Movie");
-    const likedSerial = await seedTestSerial("Liked Diary Serial");
+    const likedMovie = await seedTestFilm("Liked Diary Movie");
+    const plainMovie = await seedTestFilm("Plain Diary Movie");
+    const likedSerial = await seedTestSeries("Liked Diary Serial");
 
     await send(jar, "/api/diary", "POST", { tmdbId: likedMovie.tmdbId, watchedDate: "2026-02-01" });
     await send(jar, "/api/diary", "POST", { tmdbId: plainMovie.tmdbId, watchedDate: "2026-02-02" });

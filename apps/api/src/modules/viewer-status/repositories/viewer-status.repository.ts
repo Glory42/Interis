@@ -1,26 +1,26 @@
 import { and, count, eq, inArray } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
-import { movieInteractions } from "../../interactions/interactions.entity";
-import { movies } from "../../movies/movies.entity";
+import { filmInteractions } from "../../interactions/interactions.entity";
+import { films } from "../../films/films.entity";
 import {
-  serialEpisodeInteractions,
-  serialInteractions,
+  seriesEpisodeInteractions,
+  seriesInteractions,
   tvSeries,
-} from "../../serials/serials.entity";
+} from "../../tv/tv.entity";
 
 export class ViewerStatusRepository {
   static async findMovieStatuses(userId: string, tmdbIds: number[]) {
     return db
       .select({
-        tmdbId: movies.tmdbId,
-        watched: movieInteractions.isWatched,
-        rating: movieInteractions.rating,
-        liked: movieInteractions.liked,
-        watchlisted: movieInteractions.watchlisted,
+        tmdbId: films.tmdbId,
+        watched: filmInteractions.isWatched,
+        rating: filmInteractions.rating,
+        liked: filmInteractions.liked,
+        watchlisted: filmInteractions.watchlisted,
       })
-      .from(movieInteractions)
-      .innerJoin(movies, eq(movies.id, movieInteractions.movieId))
-      .where(and(eq(movieInteractions.userId, userId), inArray(movies.tmdbId, tmdbIds)));
+      .from(filmInteractions)
+      .innerJoin(films, eq(films.id, filmInteractions.movieId))
+      .where(and(eq(filmInteractions.userId, userId), inArray(films.tmdbId, tmdbIds)));
   }
 
   // Left join so a cached series still reports its episode total with no interaction row.
@@ -29,15 +29,15 @@ export class ViewerStatusRepository {
       .select({
         tmdbId: tvSeries.tmdbId,
         totalEpisodes: tvSeries.numberOfEpisodes,
-        watchStatus: serialInteractions.watchStatus,
-        rating: serialInteractions.rating,
-        liked: serialInteractions.liked,
-        watchlisted: serialInteractions.watchlisted,
+        watchStatus: seriesInteractions.watchStatus,
+        rating: seriesInteractions.rating,
+        liked: seriesInteractions.liked,
+        watchlisted: seriesInteractions.watchlisted,
       })
       .from(tvSeries)
       .leftJoin(
-        serialInteractions,
-        and(eq(serialInteractions.seriesId, tvSeries.id), eq(serialInteractions.userId, userId)),
+        seriesInteractions,
+        and(eq(seriesInteractions.seriesId, tvSeries.id), eq(seriesInteractions.userId, userId)),
       )
       .where(inArray(tvSeries.tmdbId, tmdbIds));
   }
@@ -45,12 +45,12 @@ export class ViewerStatusRepository {
   static async countWatchedEpisodes(userId: string, tmdbIds: number[]) {
     return db
       .select({ tmdbId: tvSeries.tmdbId, watched: count() })
-      .from(serialEpisodeInteractions)
-      .innerJoin(tvSeries, eq(tvSeries.id, serialEpisodeInteractions.seriesId))
+      .from(seriesEpisodeInteractions)
+      .innerJoin(tvSeries, eq(tvSeries.id, seriesEpisodeInteractions.seriesId))
       .where(
         and(
-          eq(serialEpisodeInteractions.userId, userId),
-          eq(serialEpisodeInteractions.watched, true),
+          eq(seriesEpisodeInteractions.userId, userId),
+          eq(seriesEpisodeInteractions.watched, true),
           inArray(tvSeries.tmdbId, tmdbIds),
         ),
       )

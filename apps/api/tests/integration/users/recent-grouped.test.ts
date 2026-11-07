@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
-import { seedTestMovie } from "../../support/factories/media.factory";
+import { seedTestFilm } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
 
 // Likes are recorded fire-and-forget, so give the inserts a moment to land.
@@ -42,7 +42,7 @@ describe("GET /api/users/:username/recent/grouped", () => {
 
   it("shows one row per title per day on a profile, readable by anyone", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "recgrp");
-    const movie = await seedTestMovie("Profile Grouped Movie");
+    const movie = await seedTestFilm("Profile Grouped Movie");
 
     await send(jar, "/api/diary", "POST", { tmdbId: movie.tmdbId, watchedDate: "2026-02-01", rating: 8 });
     await send(jar, `/api/interactions/${movie.tmdbId}`, "PUT", { liked: true });

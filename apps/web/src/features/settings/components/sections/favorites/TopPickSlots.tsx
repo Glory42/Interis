@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Ellipsis, Plus } from "lucide-react";
 import { OutlinedRank } from "@/components/film/OutlinedRank";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import { cn } from "@/lib/utils";
 import type { TopPickCategoryKey, TopPickSlot } from "./models";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type TopPickSlotsProps = {
   category: TopPickCategoryKey;

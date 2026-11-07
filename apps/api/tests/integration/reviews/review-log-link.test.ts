@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
-import { seedTestMovie, seedTestSerial } from "../../support/factories/media.factory";
+import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
 
 type MyReview = { id: string; content: string; diaryEntryId: string | null };
@@ -67,7 +67,7 @@ describe("reviews linked to logs", () => {
 
   it("deleting a movie log keeps its review, detached", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "rllmov");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     const entryId = await logMovie(jar, movie.tmdbId, "Kept after the log");
     expect((await getMine(jar, "movie", movie.tmdbId))[0]?.diaryEntryId).toBe(entryId);
 
@@ -79,7 +79,7 @@ describe("reviews linked to logs", () => {
 
   it("deleting a series log keeps its review, detached", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "rllser");
-    const serial = await seedTestSerial();
+    const serial = await seedTestSeries();
     const entryId = await logSerial(jar, serial.tmdbId, "Kept after the series log");
     expect((await getMine(jar, "tv", serial.tmdbId))[0]?.diaryEntryId).toBe(entryId);
 
@@ -91,7 +91,7 @@ describe("reviews linked to logs", () => {
 
   it("attaches a review to the author's own series log", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "rllatt");
-    const serial = await seedTestSerial();
+    const serial = await seedTestSeries();
     const entryId = await logSerial(jar, serial.tmdbId);
 
     const created = await send(jar, "POST", "/api/reviews", {
@@ -107,8 +107,8 @@ describe("reviews linked to logs", () => {
   it("refuses a log that isn't the author's or isn't of that title", async () => {
     const owner = await signUpTestUser(getServer().baseUrl, "rllown");
     const other = await signUpTestUser(getServer().baseUrl, "rlloth");
-    const movie = await seedTestMovie();
-    const otherMovie = await seedTestMovie();
+    const movie = await seedTestFilm();
+    const otherMovie = await seedTestFilm();
     const ownerEntryId = await logMovie(owner.jar, movie.tmdbId);
     const otherEntryId = await logMovie(other.jar, otherMovie.tmdbId);
 

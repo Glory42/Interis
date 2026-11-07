@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
-import { seedTestMovie } from "../../support/factories/media.factory";
+import { seedTestFilm } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -28,7 +28,7 @@ describe("movie-level interaction", () => {
   });
 
   it("requires auth to read or write a movie interaction", async () => {
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const getResponse = await apiRequest(
       getServer().baseUrl,
@@ -61,7 +61,7 @@ describe("movie-level interaction", () => {
 
   it("rejects an update body with no recognized fields", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "iiempty");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const response = await apiRequest(
       getServer().baseUrl,
@@ -78,7 +78,7 @@ describe("movie-level interaction", () => {
 
   it("defaults to all-false/null before any interaction exists", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "iidef");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const response = await apiRequest(
       getServer().baseUrl,
@@ -97,7 +97,7 @@ describe("movie-level interaction", () => {
 
   it("persists a partial update without clobbering other fields", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "iipar");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const likeResponse = await apiRequest(
       getServer().baseUrl,
@@ -143,7 +143,7 @@ describe("movie-level interaction", () => {
 
   it("rating implicitly marks the movie watched", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "iiratewat");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const response = await apiRequest(
       getServer().baseUrl,
@@ -163,7 +163,7 @@ describe("movie-level interaction", () => {
 
   it("liking implicitly marks the movie watched", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "iilikewat");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const response = await apiRequest(
       getServer().baseUrl,
@@ -187,7 +187,7 @@ describe("movie-level interaction", () => {
     // (no prior interaction) honors an explicit watched:false even while
     // also liking the movie in the same request.
     const { jar } = await signUpTestUser(getServer().baseUrl, "iiasymins");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const response = await apiRequest(
       getServer().baseUrl,
@@ -211,7 +211,7 @@ describe("movie-level interaction", () => {
     // movie while also explicitly sending watched:false still results in
     // watched:true - the opposite of the insert-path behavior above.
     const { jar } = await signUpTestUser(getServer().baseUrl, "iiasymupd");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     await apiRequest(
       getServer().baseUrl,
@@ -241,7 +241,7 @@ describe("movie-level interaction", () => {
 
   it("explicit watched:true is respected when there is no implicit signal", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "iiexplicit");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const response = await apiRequest(
       getServer().baseUrl,
@@ -261,7 +261,7 @@ describe("movie-level interaction", () => {
 
   it("liking a watchlisted movie removes it from the watchlist", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "iiwlclrlik");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     await apiRequest(
       getServer().baseUrl,
@@ -292,7 +292,7 @@ describe("movie-level interaction", () => {
 
   it("rating a watchlisted movie removes it from the watchlist", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "iiwlclrrate");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     await apiRequest(
       getServer().baseUrl,
@@ -323,7 +323,7 @@ describe("movie-level interaction", () => {
 
   it("watchlisting a movie in the same request as liking it is respected over the auto-clear", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "iiwlexplicit");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const response = await apiRequest(
       getServer().baseUrl,
@@ -343,7 +343,7 @@ describe("movie-level interaction", () => {
 
   it("clearing a rating sets it back to null without erroring", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "iiclear");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     await apiRequest(
       getServer().baseUrl,

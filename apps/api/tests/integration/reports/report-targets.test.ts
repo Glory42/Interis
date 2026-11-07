@@ -3,7 +3,7 @@ import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
 import { promoteToAdmin } from "../../support/factories/admin.factory";
-import { seedTestMovie } from "../../support/factories/media.factory";
+import { seedTestFilm } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
 
 type Report = { id: string; targetType: string; targetId: string; contentSnapshot: string };
@@ -67,7 +67,7 @@ describe("reporting comments and lists", () => {
 
   it("reports a comment on a review", async () => {
     const { author, reporter, admin } = await setup("rtrc");
-    const movie = await seedTestMovie("Report Target Movie");
+    const movie = await seedTestFilm("Report Target Movie");
     const { review } = await json<{ review: { id: string } }>(
       await send("/api/reviews", "POST", { tmdbId: movie.tmdbId, content: "A review" }, author.jar),
     );

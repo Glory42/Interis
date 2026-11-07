@@ -4,10 +4,10 @@ import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
 import { EditButton, LikeButton } from "@/features/feed/components/EngagementActionBar";
 import { FeedReviewEditDialog } from "@/features/feed/components/FeedReviewEditDialog";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { getPosterUrl } from "@/features/movies/components/utils";
 import { useLikeReview, useUnlikeReview } from "@/features/reviews/hooks/useReviews";
 import type { FeedTitleGroup } from "@/features/feed/types";
 import { verbFor } from "@/features/feed/components/feed-days";
+import { getPosterUrl } from "@/features/media/tmdb-images";
 
 const pad = (value: number) => String(value).padStart(2, "0");
 
@@ -96,7 +96,14 @@ export const FeedTitleCard = memo(function FeedTitleCard({ group }: { group: Fee
                 Show spoilers
               </button>
             ) : (
-              <p className="tagline mt-2 text-foreground">{`“${review.content}”`}</p>
+              <Link
+                to="/reviews/$username/$reviewId"
+                params={{ username: actor.username, reviewId: review.id }}
+                className="tagline mt-2 block text-foreground hover:underline hover:decoration-[color:var(--line-strong)]"
+                viewTransition
+              >
+                {`“${review.content}”`}
+              </Link>
             )}
             <div className="mono-meta mt-2 flex items-center gap-4 text-[color:var(--faint)]">
               <ReviewLike reviewId={review.id} engagement={group.engagement} />

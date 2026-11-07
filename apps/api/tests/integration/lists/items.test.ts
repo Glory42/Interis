@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
-import { seedTestMovie, seedTestSerial } from "../../support/factories/media.factory";
+import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -44,7 +44,7 @@ describe("list items (dual-media)", () => {
   it("adds a movie item and derives type 'movie'", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "mov");
     const list = await createList(jar);
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const addResponse = await apiRequest(
       getServer().baseUrl,
@@ -69,8 +69,8 @@ describe("list items (dual-media)", () => {
   it("transitions derivedType through movie -> mixed -> serial as items change", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "mix");
     const list = await createList(jar);
-    const movie = await seedTestMovie();
-    const serial = await seedTestSerial();
+    const movie = await seedTestFilm();
+    const serial = await seedTestSeries();
 
     const addMovie = await apiRequest(
       getServer().baseUrl,
@@ -117,7 +117,7 @@ describe("list items (dual-media)", () => {
     const owner = await signUpTestUser(getServer().baseUrl, "iown");
     const intruder = await signUpTestUser(getServer().baseUrl, "iint");
     const list = await createList(owner.jar);
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const forbiddenAdd = await apiRequest(
       getServer().baseUrl,

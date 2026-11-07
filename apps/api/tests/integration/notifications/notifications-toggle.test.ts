@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
-import { seedTestMovie } from "../../support/factories/media.factory";
+import { seedTestFilm } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
 import { db } from "../../../src/infrastructure/database/db";
 import { user } from "../../../src/infrastructure/database/auth.entity";
@@ -83,7 +83,7 @@ describe("undoing a follow or like takes its notification back (#80)", () => {
   it("review like", async () => {
     const author = await signUpTestUser(getServer().baseUrl, "ntgva");
     const fan = await signUpTestUser(getServer().baseUrl, "ntgvf");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
     const created = (await send(author.jar, "POST", "/api/reviews", {
       tmdbId: movie.tmdbId,
       content: "Toggle me",

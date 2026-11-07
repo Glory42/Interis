@@ -5,7 +5,7 @@ import { user } from "../../../src/infrastructure/database/auth.entity";
 import { reviews } from "../../../src/modules/reviews/reviews.entity";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
-import { seedTestMovie, seedTestSerial } from "../../support/factories/media.factory";
+import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
 import {
   startTestServer,
   type RunningTestServer,
@@ -46,7 +46,7 @@ describe("users profile-list endpoints", () => {
 
   it("bounds the likes list with limit/offset instead of returning everything", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "upllikes");
-    const movies = await Promise.all([seedTestMovie(), seedTestMovie(), seedTestMovie()]);
+    const movies = await Promise.all([seedTestFilm(), seedTestFilm(), seedTestFilm()]);
     for (const movie of movies) {
       await apiRequest(
         getServer().baseUrl,
@@ -77,8 +77,8 @@ describe("users profile-list endpoints", () => {
 
   it("surfaces a liked movie under likes and a watchlisted movie under watchlist", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "uplinter");
-    const liked = await seedTestMovie();
-    const watchlisted = await seedTestMovie();
+    const liked = await seedTestFilm();
+    const watchlisted = await seedTestFilm();
 
     await apiRequest(
       getServer().baseUrl,
@@ -117,7 +117,7 @@ describe("users profile-list endpoints", () => {
 
   it("surfaces a review under reviews and its detail via reviews/:reviewId", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "upreview");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const createResponse = await apiRequest(
       getServer().baseUrl,
@@ -154,7 +154,7 @@ describe("users profile-list endpoints", () => {
   it("surfaces a liked review under liked-reviews and a liked list under liked-lists", async () => {
     const author = await signUpTestUser(getServer().baseUrl, "upliauthor");
     const liker = await signUpTestUser(getServer().baseUrl, "upliker");
-    const movie = await seedTestMovie();
+    const movie = await seedTestFilm();
 
     const reviewResponse = await apiRequest(
       getServer().baseUrl,
@@ -210,7 +210,7 @@ describe("users profile-list endpoints", () => {
   it("surfaces a liked episode review as its series under liked-reviews", async () => {
     const author = await signUpTestUser(getServer().baseUrl, "upliepauthor");
     const liker = await signUpTestUser(getServer().baseUrl, "upliepliker");
-    const serial = await seedTestSerial("Liked Episode Serial");
+    const serial = await seedTestSeries("Liked Episode Serial");
     const [authorRow] = await db
       .select({ id: user.id })
       .from(user)

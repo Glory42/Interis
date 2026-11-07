@@ -1,8 +1,8 @@
 import { memoryCacheCounters } from "../../infrastructure/cache/ttl-cache.helper";
 import { logger } from "../../commons/utils/logger";
 import { AuthService } from "../auth/auth.service";
-import { MoviesService } from "../movies/movies.service";
-import { SerialsService } from "../serials/serials.service";
+import { FilmsService } from "../films/films.service";
+import { TvService } from "../tv/tv.service";
 import { AdminCacheRepository, type CacheKind } from "./repositories/admin-cache.repository";
 
 const REFRESH_COUNT = 25;
@@ -12,7 +12,7 @@ const PURGE_MAX_BATCHES = 200;
 
 const refreshOne = async (kind: CacheKind, id: number): Promise<boolean> => {
   try {
-    const refreshed = kind === "movie" ? await MoviesService.refreshForAdmin(id) : await SerialsService.refreshForAdmin(id);
+    const refreshed = kind === "movie" ? await FilmsService.refreshForAdmin(id) : await TvService.refreshForAdmin(id);
     return refreshed !== null;
   } catch (error) {
     logger.warn({ err: error, kind, id }, "Cache refresh failed");

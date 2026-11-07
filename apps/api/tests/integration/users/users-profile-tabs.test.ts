@@ -2,14 +2,14 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { eq } from "drizzle-orm";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
-import { seedTestSerial } from "../../support/factories/media.factory";
+import { seedTestSeries } from "../../support/factories/media.factory";
 import type { CookieJar } from "../../support/app/cookie-jar";
 import {
   startTestServer,
   type RunningTestServer,
 } from "../../support/app/test-server";
 import { db } from "../../../src/infrastructure/database/db";
-import { tvSeries } from "../../../src/modules/serials/serials.entity";
+import { tvSeries } from "../../../src/modules/tv/tv.entity";
 
 // The in-app profile tabs read these uncached /api/users routes instead of the
 // widget API, whose 5-minute response cache would hide a user's own changes.
@@ -45,7 +45,7 @@ describe("users profile tabs (uncached in-app routes)", () => {
 
   it("reflects watching and unwatching an episode on the next read", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "tabswatching");
-    const serial = await seedTestSerial("Profile Tabs Serial");
+    const serial = await seedTestSeries("Profile Tabs Serial");
     await db
       .update(tvSeries)
       .set({ numberOfEpisodes: 10, numberOfSeasons: 1 })

@@ -1,10 +1,10 @@
 import { and, asc, count, inArray, sql, type SQL } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
-import { movies } from "../../movies/movies.entity";
-import { tvSeries, serialDiaryEntries, serialInteractions, serialSeasonInteractions, serialEpisodeInteractions } from "../../serials/serials.entity";
+import { films } from "../../films/films.entity";
+import { tvSeries, seriesDiaryEntries, seriesInteractions, seriesSeasonInteractions, seriesEpisodeInteractions } from "../../tv/tv.entity";
 import { diaryEntries } from "../../diary/diary.entity";
-import { movieInteractions } from "../../interactions/interactions.entity";
+import { filmInteractions } from "../../interactions/interactions.entity";
 import { reviews } from "../../reviews/reviews.entity";
 import { listEntries } from "../../lists/lists.entity";
 import { posts } from "../../posts/posts.entity";
@@ -14,33 +14,33 @@ import { activities } from "../../social/social.entity";
 export type CacheKind = "movie" | "serial";
 
 // Conservative on purpose: anything that might point at a title keeps it.
-const movieIsUnreferenced: SQL = sql`
-  not exists (select 1 from ${diaryEntries} where ${diaryEntries.movieId} = ${movies.id})
-  and not exists (select 1 from ${movieInteractions} where ${movieInteractions.movieId} = ${movies.id})
-  and not exists (select 1 from ${reviews} where ${reviews.movieId} = ${movies.id}
-    or (${reviews.mediaType} = 'movie' and ${reviews.mediaSourceId} = ${movies.tmdbId}::text))
-  and not exists (select 1 from ${listEntries} where ${listEntries.movieId} = ${movies.id})
-  and not exists (select 1 from ${posts} where ${posts.mediaType} = 'movie' and ${posts.mediaId} in (${movies.id}, ${movies.tmdbId}))
-  and not exists (select 1 from ${profileTopPicks} where ${profileTopPicks.mediaType} = 'movie' and ${profileTopPicks.mediaSourceId} = ${movies.tmdbId}::text)
+const filmIsUnreferenced: SQL = sql`
+  not exists (select 1 from ${diaryEntries} where ${diaryEntries.movieId} = ${films.id})
+  and not exists (select 1 from ${filmInteractions} where ${filmInteractions.movieId} = ${films.id})
+  and not exists (select 1 from ${reviews} where ${reviews.movieId} = ${films.id}
+    or (${reviews.mediaType} = 'movie' and ${reviews.mediaSourceId} = ${films.tmdbId}::text))
+  and not exists (select 1 from ${listEntries} where ${listEntries.movieId} = ${films.id})
+  and not exists (select 1 from ${posts} where ${posts.mediaType} = 'movie' and ${posts.mediaId} in (${films.id}, ${films.tmdbId}))
+  and not exists (select 1 from ${profileTopPicks} where ${profileTopPicks.mediaType} = 'movie' and ${profileTopPicks.mediaSourceId} = ${films.tmdbId}::text)
   and not exists (select 1 from ${activities} where
-    (${activities.type} in ('liked_movie', 'watchlisted_movie') and ${activities.entityId} = ${movies.id}::text)
-    or (case when ${activities.metadata} like '{%' then ${activities.metadata}::jsonb ->> 'movieId' end) = ${movies.id}::text)`;
+    (${activities.type} in ('liked_movie', 'watchlisted_movie') and ${activities.entityId} = ${films.id}::text)
+    or (case when ${activities.metadata} like '{%' then ${activities.metadata}::jsonb ->> 'movieId' end) = ${films.id}::text)`;
 
 const seriesTmdbPrefix = (column: AnyPgColumn) => sql`split_part(${column}, ':', 1) = ${tvSeries.tmdbId}::text`;
 
-const serialIsUnreferenced: SQL = sql`
-  not exists (select 1 from ${serialDiaryEntries} where ${serialDiaryEntries.seriesId} = ${tvSeries.id})
-  and not exists (select 1 from ${serialInteractions} where ${serialInteractions.seriesId} = ${tvSeries.id})
-  and not exists (select 1 from ${serialSeasonInteractions} where ${serialSeasonInteractions.seriesId} = ${tvSeries.id})
-  and not exists (select 1 from ${serialEpisodeInteractions} where ${serialEpisodeInteractions.seriesId} = ${tvSeries.id})
+const seriesIsUnreferenced: SQL = sql`
+  not exists (select 1 from ${seriesDiaryEntries} where ${seriesDiaryEntries.seriesId} = ${tvSeries.id})
+  and not exists (select 1 from ${seriesInteractions} where ${seriesInteractions.seriesId} = ${tvSeries.id})
+  and not exists (select 1 from ${seriesSeasonInteractions} where ${seriesSeasonInteractions.seriesId} = ${tvSeries.id})
+  and not exists (select 1 from ${seriesEpisodeInteractions} where ${seriesEpisodeInteractions.seriesId} = ${tvSeries.id})
   and not exists (select 1 from ${reviews} where ${reviews.mediaType} <> 'movie' and ${seriesTmdbPrefix(reviews.mediaSourceId)})
   and not exists (select 1 from ${listEntries} where ${listEntries.tvSeriesId} = ${tvSeries.id})
   and not exists (select 1 from ${posts} where ${posts.mediaType} = 'tv' and ${posts.mediaId} in (${tvSeries.id}, ${tvSeries.tmdbId}))
   and not exists (select 1 from ${profileTopPicks} where ${profileTopPicks.mediaType} <> 'movie' and ${seriesTmdbPrefix(profileTopPicks.mediaSourceId)})`;
 
 const TABLES = {
-  movie: { table: movies, unreferenced: movieIsUnreferenced },
-  serial: { table: tvSeries, unreferenced: serialIsUnreferenced },
+  movie: { table: films, unreferenced: filmIsUnreferenced },
+  serial: { table: tvSeries, unreferenced: seriesIsUnreferenced },
 } as const;
 
 export class AdminCacheRepository {

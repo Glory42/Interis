@@ -1,3 +1,4 @@
+import { SettingsSectionSkeleton } from "@/components/ui/PageSkeletons";
 import { useState } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useUpdateMyTheme } from "@/features/theme/hooks/useTheme";
@@ -5,7 +6,6 @@ import { getDefaultThemeId, listThemes, resolveThemeId, type ThemeDefinition } f
 import { cn } from "@/lib/utils";
 import { applyAndPersistTheme } from "@/features/theme/theme-runtime";
 import { isApiError } from "@/lib/api-client";
-import { TickLoader } from "@/components/ui/tick-loader";
 
 export const SettingsThemeSection = () => {
   const { user, isUserLoading } = useAuth();
@@ -20,13 +20,7 @@ export const SettingsThemeSection = () => {
   const [themeSuccess, setThemeSuccess] = useState<string | null>(null);
 
   if (isUserLoading || !user) {
-    return (
-      <div className="border px-4 py-3 text-sm shell-border shell-muted surface">
-        <p className="flex items-center gap-2">
-          <TickLoader /> Loading theme settings...
-        </p>
-      </div>
-    );
+    return <SettingsSectionSkeleton label="Loading theme settings" />;
   }
 
   const handleSelectTheme = async (themeId: string) => {

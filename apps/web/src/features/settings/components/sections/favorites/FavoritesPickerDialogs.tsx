@@ -1,6 +1,6 @@
-import type { TmdbSearchMovie } from "@/types/api";
-import type { TmdbSearchSeries } from "@/features/serials/api";
-import { Top4MovieSearchDialog } from "@/features/settings/components/profile/Top4MovieSearchDialog";
+import type { TmdbSearchFilm } from "@/types/api";
+import type { TmdbSearchSeries } from "@/features/tv/api";
+import { Top4FilmSearchDialog } from "@/features/settings/components/profile/Top4FilmSearchDialog";
 import { Top4SeriesSearchDialog } from "@/features/settings/components/profile/Top4SeriesSearchDialog";
 import type { PickerTarget } from "./models";
 
@@ -11,7 +11,7 @@ type FavoritesPickerDialogsProps = {
   isSelectingSeries: boolean;
   onClose: () => void;
   onQueryChange: (value: string) => void;
-  onSelectMovie: (movie: TmdbSearchMovie) => void;
+  onSelectMovie: (movie: TmdbSearchFilm) => void;
   onSelectSeries: (series: TmdbSearchSeries) => void;
 };
 
@@ -27,7 +27,7 @@ export const FavoritesPickerDialogs = ({
 }: FavoritesPickerDialogsProps) => {
   return (
     <>
-      <Top4MovieSearchDialog
+      <Top4FilmSearchDialog
         isOpen={pickerTarget?.category === "movie"}
         onClose={onClose}
         query={searchQuery}

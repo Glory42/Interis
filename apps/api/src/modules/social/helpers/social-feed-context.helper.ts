@@ -3,7 +3,7 @@ import { parseMetadata, readString } from "./social-feed-metadata.helper";
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const isUuid = (s: string) => UUID_RE.test(s);
 import {
-  resolveMovieFallbackId,
+  resolveFilmFallbackId,
   resolvePostFallbackId,
   resolveReviewId,
   toFeedMetadata,
@@ -195,7 +195,7 @@ export const buildFeedFallbackMediaContext = async (
         : null);
 
     if (!reviewDetails?.movie) {
-      const movieId = resolveMovieFallbackId(rawMetadata, row.activity, metadata);
+      const movieId = resolveFilmFallbackId(rawMetadata, row.activity, metadata);
       if (movieId !== null) {
         movieIds.add(movieId);
       }

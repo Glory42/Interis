@@ -27,7 +27,7 @@ describe("ProfileReviewRow", () => {
     expect(await screen.findByText("Film · reviewed Mon Nov 2 · WK 45")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Clayface/ })).toHaveAttribute("href", "/movies/1");
     expect(screen.getByLabelText("8 of 10")).toBeInTheDocument();
-    expect(screen.getByText("“Dc character when someone is not happly married”")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "“Dc character when someone is not happly married”" })).toHaveAttribute("href", "/reviews/glory42/r1");
     expect(screen.getByRole("link", { name: "Read →" })).toHaveAttribute("href", "/reviews/glory42/r1");
   });
 

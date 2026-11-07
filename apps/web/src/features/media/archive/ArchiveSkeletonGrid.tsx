@@ -1,3 +1,4 @@
+import { LoadingRegion } from "@/components/ui/PageSkeletons";
 import { Skeleton } from "@/components/ui/Skeleton";
 import type { ArchiveCardModuleStyles } from "@/features/media/types";
 
@@ -7,7 +8,7 @@ type ArchiveSkeletonGridProps = {
 
 export const ArchiveSkeletonGrid = ({ moduleStyles }: ArchiveSkeletonGridProps) => {
   return (
-    <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+    <LoadingRegion label="Loading titles" className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
       {Array.from({ length: 12 }).map((_, index) => (
         <div key={`archive-skeleton-${index}`}>
           <Skeleton
@@ -18,6 +19,6 @@ export const ArchiveSkeletonGrid = ({ moduleStyles }: ArchiveSkeletonGridProps) 
           <Skeleton className="mt-1 h-2.5 w-3/4" style={{ background: moduleStyles.borderSoft }} />
         </div>
       ))}
-    </div>
+    </LoadingRegion>
   );
 };

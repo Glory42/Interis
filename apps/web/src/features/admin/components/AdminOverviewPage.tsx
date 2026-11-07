@@ -1,6 +1,7 @@
+import { Skeleton } from "@/components/ui/Skeleton";
+import { LoadingRegion } from "@/components/ui/PageSkeletons";
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { TickLoader } from "@/components/ui/tick-loader";
 import { useAdminOverview } from "@/features/admin/hooks/useAdmin";
 
 const HOUR_MS = 3_600_000;
@@ -27,9 +28,14 @@ export const AdminOverviewPage = () => {
 
   if (isPending) {
     return (
-      <p className="body-s flex items-center gap-2 text-muted-foreground">
-        <TickLoader /> Counting…
-      </p>
+      <LoadingRegion label="Loading overview" className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {Array.from({ length: 4 }, (_, index) => (
+          <div key={index} className="space-y-2 rounded-[3px] border border-[color:var(--line)] p-3">
+            <Skeleton className="h-2.5 w-16 rounded-sm" />
+            <Skeleton className="h-7 w-20 rounded-sm" />
+          </div>
+        ))}
+      </LoadingRegion>
     );
   }
   if (isError) return <p className="body-s text-[color:var(--danger)]">Could not load the overview.</p>;
