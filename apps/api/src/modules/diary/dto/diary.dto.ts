@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isoDateSchema } from "../../../commons/validation/common.schemas";
+import { watchLogReviewEditShape } from "../../media/dto/watch-log.dto";
 
 const ratingSchema = z
   .number()
@@ -20,6 +21,7 @@ export const UpdateDiarySchema = z.object({
   watchedDate: isoDateSchema.optional(),
   rating: ratingSchema.nullable().optional(),
   rewatch: z.boolean().optional(),
+  ...watchLogReviewEditShape,
 });
 
 // Bounds GET /api/diary so a large diary can't be fetched in one

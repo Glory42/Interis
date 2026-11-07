@@ -67,7 +67,7 @@ export class ReviewsRepository {
   // The single low-level insert into the review table. A user can review
   // the same title more than once (#72), so this always adds a row:
   // standalone movie/tv reviews (createReview below), diary-linked reviews
-  // (DiaryWriteService, DataImportService) and season/episode reviews
+  // (WatchLogService, DataImportService) and season/episode reviews
   // (SerialsSeasonEpisodeReviewsRepository) all go through here.
   // `mediaSourceId` is pre-composed by the caller (a bare tmdbId for
   // movie/tv, a `tmdb:season[:episode]` key for the nested serial levels).
@@ -271,7 +271,7 @@ export class ReviewsRepository {
     return deleted ?? null;
   }
 
-  // Movie reviews only — TV reviews live in the serials module's own table.
+  // Film and Series reviews share the one review table; Series rows have no movieTitle.
   static async listAllForAdmin(
     filters: { userId?: string; movieId?: number },
     limit: number,

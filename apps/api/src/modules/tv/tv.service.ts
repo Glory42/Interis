@@ -8,6 +8,8 @@ import { TvArchiveService } from "./services/tv-archive.service";
 import { TvActivityService } from "./services/tv-activity.service";
 import { TvCacheService } from "./services/tv-cache.service";
 import { TvDetailService } from "./services/tv-detail.service";
+import { seriesWatchLog } from "./services/series-watch-log.adapter";
+import { WatchLogService } from "../media/services/watch-log.service";
 import { TvInteractionsRepository } from "./repositories/tv-interactions.repository";
 import {
   TvCacheRepository,
@@ -105,7 +107,7 @@ export class TvService {
   }
 
   static async createLog(userId: string, tmdbId: number, input: CreateSeriesLogDto) {
-    return TvActivityService.createLog(userId, tmdbId, input);
+    return WatchLogService.create(seriesWatchLog, userId, tmdbId, input);
   }
 
   static async getMyLogs(userId: string, limit?: number, offset?: number) {
@@ -113,11 +115,29 @@ export class TvService {
   }
 
   static async updateLog(entryId: string, userId: string, input: UpdateSeriesLogDto) {
-    return TvActivityService.updateLog(entryId, userId, input);
+    return WatchLogService.update(seriesWatchLog, entryId, userId, input);
   }
 
-  static async deleteLog(entryId: string, userId: string, options?: DeleteSeriesLogQueryDto) {
-    return TvActivityService.deleteLog(entryId, userId, options);
+  static async deleteLog(entryId: string, userId: string, options: DeleteSeriesLogQueryDto = {}) {
+    return WatchLogService.remove(seriesWatchLog, entryId, { userId, unwatch: options.unwatch });
+  }
+
+  // No ownership check — admin moderation only.
+  static async deleteLogById(entryId: string) {
+    return WatchLogService.remove(seriesWatchLog, entryId);
+  }
+
+  static async listLogsForAdmin(
+    filters: { userId?: string; seriesId?: number },
+    limit: number,
+    offset: number,
+  ) {
+    return WatchLogService.listForAdmin(
+      seriesWatchLog,
+      { userId: filters.userId, mediaId: filters.seriesId },
+      limit,
+      offset,
+    );
   }
 
   static async getLogs(tmdbId: number, limit?: number, offset?: number) {

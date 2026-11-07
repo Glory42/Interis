@@ -1,10 +1,12 @@
 import { FilmsService } from "../../films/films.service";
 import { TvService } from "../../tv/tv.service";
-import { DiaryRepository } from "../../diary/repositories/diary.repository";
-import { TvInteractionsRepository } from "../../tv/repositories/tv-interactions.repository";
 import { TvReviewsRepository } from "../../tv/repositories/tv-reviews.repository";
 import { ReviewsRepository } from "../../reviews/repositories/reviews.repository";
 import { MediaInteractions, type MediaInteractionAdapter } from "../../media-interactions/media-interactions.repository";
+import { YourRatingService } from "../../media-interactions/services/your-rating.service";
+import { WatchLogStores } from "../../media/repositories/watch-log.repository";
+import type { WatchLogStore } from "../../media/types/watch-log.types";
+import type { MediaType } from "../../media/constants/media-type.constant";
 import { parseCsv, getCsvHeaders } from "../helpers/csv-parser";
 import {
   type ImportFormat,
@@ -33,22 +35,11 @@ export type { ImportStreamEvent };
 type DiaryImportMedia = { id: number; tmdbId: number };
 
 type DiaryImportAdapter<TMedia extends DiaryImportMedia> = {
+  mediaType: MediaType;
   interactions: MediaInteractionAdapter;
+  logs: WatchLogStore;
   findOrCreateMedia: (tmdbId: number) => Promise<TMedia>;
   fetchFailedReason: string;
-  existsByUserAndMedia: (userId: string, mediaId: number) => Promise<boolean>;
-  existsByUserMediaAndDate: (
-    userId: string,
-    mediaId: number,
-    watchedDate: string,
-  ) => Promise<boolean>;
-  insertDiaryEntry: (input: {
-    userId: string;
-    mediaId: number;
-    watchedDate: string;
-    rating: number | null;
-    rewatch: boolean;
-  }) => Promise<{ id: string } | null>;
   createReview: (input: {
     userId: string;
     media: TMedia;
@@ -59,14 +50,11 @@ type DiaryImportAdapter<TMedia extends DiaryImportMedia> = {
 };
 
 const filmImportAdapter: DiaryImportAdapter<DiaryImportMedia> = {
+  mediaType: "movie",
   interactions: MediaInteractions.forMovie(),
+  logs: WatchLogStores.film,
   findOrCreateMedia: (tmdbId) => FilmsService.findOrCreate(tmdbId),
   fetchFailedReason: "Failed to fetch movie details.",
-  existsByUserAndMedia: (userId, movieId) => DiaryRepository.existsByUserAndMovie(userId, movieId),
-  existsByUserMediaAndDate: (userId, movieId, watchedDate) =>
-    DiaryRepository.existsByUserMovieAndDate(userId, movieId, watchedDate),
-  insertDiaryEntry: ({ userId, mediaId, watchedDate, rating, rewatch }) =>
-    DiaryRepository.insertEntry({ userId, movieId: mediaId, watchedDate, rating, rewatch }),
   createReview: ({ userId, media, diaryEntryId, content, containsSpoilers }) =>
     ReviewsRepository.createReview({
       userId,
@@ -80,15 +68,11 @@ const filmImportAdapter: DiaryImportAdapter<DiaryImportMedia> = {
 };
 
 const seriesImportAdapter: DiaryImportAdapter<DiaryImportMedia> = {
+  mediaType: "tv",
   interactions: MediaInteractions.forSeries(),
+  logs: WatchLogStores.series,
   findOrCreateMedia: (tmdbId) => TvService.findOrCreate(tmdbId),
   fetchFailedReason: "Failed to fetch series details.",
-  existsByUserAndMedia: (userId, seriesId) =>
-    TvInteractionsRepository.existsByUserAndSeries(userId, seriesId),
-  existsByUserMediaAndDate: (userId, seriesId, watchedDate) =>
-    TvInteractionsRepository.existsByUserSeriesAndDate(userId, seriesId, watchedDate),
-  insertDiaryEntry: ({ userId, mediaId, watchedDate, rating, rewatch }) =>
-    TvInteractionsRepository.insertDiaryEntry({ userId, seriesId: mediaId, watchedDate, rating, rewatch }),
   createReview: ({ userId, media, diaryEntryId, content, containsSpoilers }) =>
     TvReviewsRepository.createReview({
       userId,
@@ -121,10 +105,11 @@ async function importDiaryRow(
     return { status: "failed", reason: adapter.fetchFailedReason };
   }
 
-  const alreadyExists =
-    format === "letterboxd-watched"
-      ? await adapter.existsByUserAndMedia(userId, media.id)
-      : await adapter.existsByUserMediaAndDate(userId, media.id, normalized.watchedDate);
+  const alreadyExists = await adapter.logs.hasLog(
+    userId,
+    media.id,
+    format === "letterboxd-watched" ? undefined : normalized.watchedDate,
+  );
 
   if (alreadyExists) {
     return { status: "skipped", reason: "Already in diary." };
@@ -134,7 +119,7 @@ async function importDiaryRow(
 
   let entry: { id: string } | null;
   try {
-    entry = await adapter.insertDiaryEntry({
+    entry = await adapter.logs.insert({
       userId,
       mediaId: media.id,
       watchedDate: normalized.watchedDate,
@@ -151,7 +136,10 @@ async function importDiaryRow(
 
   if (rating) {
     try {
-      await adapter.interactions.setRating(userId, media.id, rating);
+      await YourRatingService.followLatestRatedLog(adapter.mediaType, userId, media.id, {
+        before: null,
+        writtenLogId: entry.id,
+      });
     } catch {
       // non-fatal
     }
