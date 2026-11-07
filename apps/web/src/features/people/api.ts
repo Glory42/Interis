@@ -78,6 +78,8 @@ const personDetailResponseSchema = z.object({
       isCanonicalSlug: z.boolean(),
     }),
   }),
+  // The 8 most-voted titles across cast and crew, one per title (PR-14).
+  knownFor: z.array(personCreditItemSchema).default([]),
   credits: z.object({
     counts: z.object({
       combined: personCreditCountSchema,

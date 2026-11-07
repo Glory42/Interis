@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { usePersonCredits, usePersonDetail } from "@/features/people/hooks/usePeople";
 import { getPersonModuleStyles } from "@/features/people/components/styles";
 import type { PersonRouteRole } from "@/features/people/shared";
-import { buildPersonExternalLinks } from "./person-detail/external-links";
 import { PersonCreditsGrid } from "./person-detail/PersonCreditsGrid";
 import { PersonCreditTabs } from "./person-detail/PersonCreditTabs";
-import { PersonDetailHeader } from "./person-detail/PersonDetailHeader";
-import { PersonDetailSidebar } from "./person-detail/PersonDetailSidebar";
+import { PersonHero } from "./person-detail/PersonHero";
+import { PersonKnownFor } from "./person-detail/PersonKnownFor";
 import { type CreditMediaTab, type CreditRoleTab } from "./person-detail/types";
 
 type PersonDetailPageProps = {
@@ -73,9 +71,7 @@ export const PersonDetailPage = ({ role, slug }: PersonDetailPageProps) => {
   }
 
   const detail = detailQuery.data;
-  const person = detail.person;
   const counts = detail.credits.counts;
-  const externalLinks = buildPersonExternalLinks(person);
 
   const totalByMediaTab: Record<CreditMediaTab, number> = {
     combined: counts.combined.cast + counts.combined.crew,
@@ -86,51 +82,12 @@ export const PersonDetailPage = ({ role, slug }: PersonDetailPageProps) => {
   const totalByRoleTab: Record<CreditRoleTab, number> = counts[mediaTab];
 
   return (
-    <div className="min-h-screen">
-      <div
-        className="sticky top-12 z-20 flex items-center gap-3 border-b px-4 py-3"
-        style={{
-          background: "color-mix(in srgb, var(--card) 94%, var(--background) 6%)",
-          borderColor: styles.border,
-          backdropFilter: "blur(12px)",
-        }}
-      >
-        <Link
-          to="/movies"
-          className="font-mono text-[11px]"
-          style={{ color: styles.muted }}
-          viewTransition
-        >
-          Films
-        </Link>
-        <span className="font-mono text-[11px]" style={{ color: styles.faint }}>
-          /
-        </span>
-        <span className="font-mono text-[11px]" style={{ color: styles.muted }}>
-          {role === "director" ? "Director" : "Actor"}
-        </span>
-        <span className="font-mono text-[11px]" style={{ color: styles.faint }}>
-          /
-        </span>
-        <span
-          className="truncate font-mono text-[11px] uppercase"
-          style={{ color: styles.accent }}
-        >
-          {person.name}
-        </span>
-      </div>
+    <main className="mx-auto w-full max-w-5xl space-y-8 px-4 py-6">
+      <PersonHero role={role} detail={detail} />
+      <PersonKnownFor credits={detail.knownFor} />
 
-      <main className="mx-auto w-full max-w-5xl px-4 py-10">
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-[220px_1fr]">
-          <PersonDetailSidebar
-            person={person}
-            styles={styles}
-            externalLinks={externalLinks}
-          />
-
-          <section>
-            <PersonDetailHeader person={person} styles={styles} />
-
+      <section aria-label="Filmography">
+        <h2 className="display-3 mb-3 text-foreground">Filmography</h2>
             <PersonCreditTabs
               styles={styles}
               mediaTab={mediaTab}
@@ -150,9 +107,7 @@ export const PersonDetailPage = ({ role, slug }: PersonDetailPageProps) => {
               isLoadingMore={creditsQuery.isFetchingNextPage}
               onLoadMore={() => void creditsQuery.fetchNextPage()}
             />
-          </section>
-        </div>
-      </main>
-    </div>
+      </section>
+    </main>
   );
 };
