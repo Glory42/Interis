@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { ProfileHeaderCompact } from "@/features/profile/components/ProfileHeaderCompact";
 import { ProfileActions } from "@/features/profile/components/ProfileActions";
+import { STATS_MIN_LOGS } from "@/features/profile/components/stats/stats-model";
 import {
   ProfileTabs,
   type ProfileTab,
@@ -191,7 +192,11 @@ export const ProfileLayout = ({
           />
         </div>
 
-        <ProfileTabs username={username} activeTab={activeTab} />
+        <ProfileTabs
+          username={username}
+          activeTab={activeTab}
+          hideStats={!isOwnProfile && entryCount < STATS_MIN_LOGS && activeTab !== "stats"}
+        />
 
         <div className="mt-8">
           {typeof children === "function" ? children(profile) : children}

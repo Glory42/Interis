@@ -8,6 +8,11 @@ const detailedStatsSchema = z.object({
   topDirectors: z.array(
     z.object({ director: z.string(), count: z.number(), slug: z.string().nullable() }),
   ),
+  // This year's logs per ISO week, and the year-to-date headline numbers (PR-12).
+  logsPerWeek: z.array(z.object({ week: z.number(), count: z.number() })).default([]),
+  averageRating: z.number().nullable().default(null),
+  ratedLogCount: z.number().default(0),
+  hoursWatched: z.number().default(0),
 });
 
 export type DetailedStats = z.infer<typeof detailedStatsSchema>;

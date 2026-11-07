@@ -24,6 +24,8 @@ export type ProfileTab =
 type ProfileTabsProps = {
   username: string;
   activeTab: ProfileTab;
+  // Stats stay hidden from visitors until the profile has enough logs.
+  hideStats?: boolean;
 };
 
 const tabClass =
@@ -91,7 +93,7 @@ const tabItems: Array<{
 
 type IndicatorRect = { left: number; width: number };
 
-export const ProfileTabs = ({ username, activeTab }: ProfileTabsProps) => {
+export const ProfileTabs = ({ username, activeTab, hideStats = false }: ProfileTabsProps) => {
   const tabRefs = useRef<Partial<Record<ProfileTab, HTMLAnchorElement>>>({});
   const [indicator, setIndicator] = useState<IndicatorRect | null>(null);
 
@@ -120,7 +122,7 @@ export const ProfileTabs = ({ username, activeTab }: ProfileTabsProps) => {
         />
       ) : null}
 
-      {tabItems.map((tab) => {
+      {tabItems.filter((tab) => !(hideStats && tab.id === "stats")).map((tab) => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id;
 
