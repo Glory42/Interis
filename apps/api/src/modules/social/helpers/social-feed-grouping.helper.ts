@@ -83,32 +83,38 @@ export const groupFeedItems = (items: FeedItem[]): GroupedFeedEntry[] => {
   return entries;
 };
 
-const isLikeOnly = (entry: GroupedFeedEntry): entry is FeedTitleGroup =>
-  entry.kind === "title" &&
-  entry.liked &&
-  !entry.watched &&
-  entry.rating === null &&
-  !entry.review &&
-  !entry.watchlisted;
+const isOnly = (group: FeedTitleGroup, action: "liked" | "watchlisted"): boolean =>
+  group[action] &&
+  !(action === "liked" ? group.watchlisted : group.liked) &&
+  !group.watched &&
+  group.rating === null &&
+  !group.review;
 
-// Where each row the web shows ends: a same-day run of one person's likes
-// collapses into a single "liked N titles" row.
+// Back-to-back entries sharing a key show as one row on the web (a same-day run
+// of one person's likes, watchlist adds, follows, or one show's seasons and
+// episodes). Mirrors foldKey in the web's feed-days.ts.
+const foldKey = (entry: GroupedFeedEntry): string | null => {
+  if (entry.kind === "activity") {
+    const { item } = entry;
+    return item.kind === "followed_user" ? `follows:${item.actor.id}:${toUtcDayKey(item.createdAt)}` : null;
+  }
+  const scope = `${entry.actor.id}:${toUtcDayKey(entry.createdAt)}`;
+  if (entry.seasonNumber !== null && !entry.review) {
+    return `episodes:${scope}:${entry.movie.mediaType}:${entry.movie.tmdbId}`;
+  }
+  if (isOnly(entry, "liked")) return `liked:${scope}`;
+  if (isOnly(entry, "watchlisted")) return `watchlisted:${scope}`;
+  return null;
+};
+
+// Where each row the web shows ends.
 const visibleRowEnds = (entries: GroupedFeedEntry[]): number[] => {
   const ends: number[] = [];
   let index = 0;
   while (index < entries.length) {
-    const entry = entries[index]!;
+    const key = foldKey(entries[index]!);
     index += 1;
-    if (!isLikeOnly(entry)) {
-      ends.push(index);
-      continue;
-    }
-    const day = toUtcDayKey(entry.createdAt);
-    while (index < entries.length) {
-      const next = entries[index]!;
-      if (!isLikeOnly(next) || next.actor.id !== entry.actor.id || toUtcDayKey(next.createdAt) !== day) break;
-      index += 1;
-    }
+    while (key !== null && index < entries.length && foldKey(entries[index]!) === key) index += 1;
     ends.push(index);
   }
   return ends;
