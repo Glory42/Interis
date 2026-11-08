@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "../../../src/infrastructure/database/db";
 import { user } from "../../../src/infrastructure/database/auth.entity";
 import { reviews } from "../../../src/modules/reviews/reviews.entity";
+import { MAX_PROFILE_LIST_OFFSET } from "../../../src/modules/users/helpers/users-pagination.helper";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
@@ -73,6 +74,23 @@ describe("users profile-list endpoints", () => {
     );
     const secondPage = (await secondPageResponse.json()) as { items: unknown[] };
     expect(secondPage.items.length).toBe(1);
+  });
+
+  it("rejects an offset past the cap on every profile-list endpoint", async () => {
+    const { username } = await signUpTestUser(getServer().baseUrl, "uploffset");
+    for (const endpoint of [...endpoints, "lists"]) {
+      const atCap = await apiRequest(
+        getServer().baseUrl,
+        `/api/users/${username}/${endpoint}?offset=${MAX_PROFILE_LIST_OFFSET}`,
+      );
+      expect(atCap.status).toBe(200);
+
+      const pastCap = await apiRequest(
+        getServer().baseUrl,
+        `/api/users/${username}/${endpoint}?offset=${MAX_PROFILE_LIST_OFFSET + 1}`,
+      );
+      expect(pastCap.status).toBe(400);
+    }
   });
 
   it("surfaces a liked movie under likes and a watchlisted movie under watchlist", async () => {

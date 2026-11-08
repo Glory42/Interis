@@ -1,3 +1,4 @@
+import { BadRequestError } from "../../../commons/errors/app-error";
 import {
   ProfileListQuerySchema,
   ProfileShelfQuerySchema,
@@ -6,6 +7,9 @@ import {
 } from "../dto/users.dto";
 
 const DEFAULT_PROFILE_LIST_LIMIT = 60;
+// Merged Film+Series tabs read offset+limit rows from each table, so a huge
+// offset would pull a whole collection to return one page.
+export const MAX_PROFILE_LIST_OFFSET = 5_000;
 
 // Always returns a bounded limit/offset (even with no query params) so
 // profile list endpoints (likes, watchlist, reviews, liked-reviews,
@@ -18,10 +22,12 @@ export const parseProfileListPagination = (
     return { limit: DEFAULT_PROFILE_LIST_LIMIT, offset: 0 };
   }
 
-  return {
-    limit: parsed.data.limit ?? DEFAULT_PROFILE_LIST_LIMIT,
-    offset: parsed.data.offset ?? 0,
-  };
+  const offset = parsed.data.offset ?? 0;
+  if (offset > MAX_PROFILE_LIST_OFFSET) {
+    throw new BadRequestError(`offset must be at most ${MAX_PROFILE_LIST_OFFSET}`);
+  }
+
+  return { limit: parsed.data.limit ?? DEFAULT_PROFILE_LIST_LIMIT, offset };
 };
 
 export const parseProfileShelfQuery = (
