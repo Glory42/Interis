@@ -1,34 +1,26 @@
 import { LineRowsSkeleton, LoadingRegion } from "@/components/ui/PageSkeletons";
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import type { SeriesDetailResponse } from "@/features/tv/api";
 import {
   useSeriesSeasonDetail,
   useUpdateSeasonInteraction,
   useUpdateEpisodeInteraction,
   useMarkWatchedThrough,
-  useUpsertSeasonReview,
-  useDeleteSeasonReview,
-  useUpsertEpisodeReview,
-  useDeleteEpisodeReview,
 } from "@/features/tv/hooks/useTv";
-import { useReviewDraft } from "@/features/tv/hooks/tv/use-review-draft";
-import { useReviewSubmission } from "@/features/tv/hooks/tv/use-review-submission";
 import type { MyTitleReview } from "@/features/reviews/api";
 import { ReviewChooserDialog } from "@/features/reviews/components/ReviewChooserDialog";
 import { useReviewChooser } from "@/features/reviews/hooks/useReviewChooser";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { LogMediaDialog } from "@/features/diary/components/log-media/LogMediaDialog";
+import {
+  SeasonReviewDialog,
+  type SeasonReviewInteraction,
+  type SeasonReviewTarget,
+} from "@/features/tv/components/series-detail/SeasonReviewDialog";
 import { SeasonHeaderRow } from "@/features/tv/components/series-detail/SeasonHeaderRow";
 import { EpisodeRow } from "@/features/tv/components/series-detail/EpisodeRow";
 import { ReelCells } from "@/components/film/ReelCells";
 import { BELOW_MD_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
-import { getPosterUrl } from "@/features/media/tmdb-images";
-
-type ReviewSubject =
-  | { type: "season" }
-  | { type: "episode"; episodeNumber: number; episodeName: string };
 
 type SeasonAccordionItemProps = {
   tmdbId: number;
@@ -60,28 +52,21 @@ export const SeasonAccordionItem = ({
   // The open review editor: which season/episode, and the review being
   // edited (null = writing a new one, #74).
   const [activeReviewModal, setActiveReviewModal] = useState<
-    (ReviewSubject & { editingReview: MyTitleReview | null }) | null
+    { target: SeasonReviewTarget; editingReview: MyTitleReview | null } | null
   >(null);
   // The season/episode the review chooser was opened for.
-  const [chooserSubject, setChooserSubject] = useState<ReviewSubject | null>(null);
+  const [chooserSubject, setChooserSubject] = useState<SeasonReviewTarget | null>(null);
   const reviewChooser = useReviewChooser();
-  const reviewDraft = useReviewDraft();
 
   const updateSeasonInteractionMutation = useUpdateSeasonInteraction(tmdbId);
   const updateEpisodeInteractionMutation = useUpdateEpisodeInteraction(tmdbId, season.seasonNumber);
   const markWatchedThroughMutation = useMarkWatchedThrough(tmdbId, season.seasonNumber);
 
-  const upsertSeasonReviewMutation = useUpsertSeasonReview(tmdbId, season.seasonNumber);
-  const deleteSeasonReviewMutation = useDeleteSeasonReview(tmdbId, season.seasonNumber);
-  const upsertEpisodeReviewMutation = useUpsertEpisodeReview(tmdbId, season.seasonNumber);
-  const deleteEpisodeReviewMutation = useDeleteEpisodeReview(tmdbId, season.seasonNumber);
-
-  const openReviewEditor = (subject: ReviewSubject, review: MyTitleReview | null) => {
-    reviewDraft.start(review);
-    setActiveReviewModal({ ...subject, editingReview: review });
+  const openReviewEditor = (target: SeasonReviewTarget, review: MyTitleReview | null) => {
+    setActiveReviewModal({ target, editingReview: review });
   };
 
-  const handleOpenReview = (subject: ReviewSubject) => {
+  const handleOpenReview = (subject: SeasonReviewTarget) => {
     setChooserSubject(subject);
     reviewChooser.start(
       subject.type === "season"
@@ -95,33 +80,6 @@ export const SeasonAccordionItem = ({
       () => openReviewEditor(subject, null),
     );
   };
-
-  const editingReviewId = activeReviewModal?.editingReview?.id;
-
-  const reviewSubmission = useReviewSubmission({
-    draft: reviewDraft,
-    saveReview: (draftInput) => {
-      const input = editingReviewId
-        ? { ...draftInput, reviewId: editingReviewId }
-        : { ...draftInput, createNew: true };
-      return activeReviewModal?.type === "episode"
-        ? upsertEpisodeReviewMutation.mutateAsync({
-            episodeNumber: activeReviewModal.episodeNumber,
-            input,
-          })
-        : upsertSeasonReviewMutation.mutateAsync(input);
-    },
-    deleteReview: async () => {
-      if (!editingReviewId) return;
-      await (activeReviewModal?.type === "episode"
-        ? deleteEpisodeReviewMutation.mutateAsync({
-            episodeNumber: activeReviewModal.episodeNumber,
-            reviewId: editingReviewId,
-          })
-        : deleteSeasonReviewMutation.mutateAsync(editingReviewId));
-    },
-    onClose: () => setActiveReviewModal(null),
-  });
 
   const handleSeasonWatchedChange = (nextWatched: boolean) => {
     updateSeasonInteractionMutation.mutate({
@@ -200,6 +158,29 @@ export const SeasonAccordionItem = ({
   const seasonLiked = season.viewerInteraction?.liked ?? false;
   const seasonRating = season.viewerInteraction?.rating ?? null;
 
+  const reviewInteraction = (target: SeasonReviewTarget): SeasonReviewInteraction => {
+    if (target.type === "season") {
+      return {
+        watched: seasonWatched,
+        liked: seasonLiked,
+        rating: seasonRating,
+        onWatchedChange: handleSeasonWatchedChange,
+        onLikedChange: handleSeasonLikedChange,
+        onRatingChange: handleSeasonRatingChange,
+      };
+    }
+    const { episodeNumber } = target;
+    const episodeInteraction = episodes.find((e) => e.episodeNumber === episodeNumber)?.viewerInteraction;
+    return {
+      watched: episodeInteraction?.watched ?? false,
+      liked: episodeInteraction?.liked ?? false,
+      rating: episodeInteraction?.rating ?? null,
+      onWatchedChange: (nextWatched) => handleEpisodeWatchedChange(episodeNumber, nextWatched),
+      onLikedChange: (nextLiked) => handleEpisodeLikedChange(episodeNumber, nextLiked),
+      onRatingChange: (nextRating) => handleEpisodeRatingChange(episodeNumber, nextRating),
+    };
+  };
+
   return (
     <section aria-label={season.name || `Season ${season.seasonNumber}`}>
       {variant === "screen" ? (
@@ -248,68 +229,16 @@ export const SeasonAccordionItem = ({
         </div>
       ) : null}
 
-      {activeReviewModal?.type === "season" && createPortal(
-        <LogMediaDialog
-          accent="serial"
-          title={season.name || `Season ${season.seasonNumber}`}
-          subtitle={`S${String(season.seasonNumber).padStart(2, "0")}`}
-          posterUrl={getPosterUrl(season.posterPath)}
-          review={reviewDraft.content}
-          onReviewChange={reviewDraft.onContentChange}
-          containsSpoilers={reviewDraft.containsSpoilers}
-          onContainsSpoilersChange={reviewDraft.setContainsSpoilers}
-          rating={seasonRating}
-          onRatingChange={handleSeasonRatingChange}
-          liked={seasonLiked}
-          onLikedChange={handleSeasonLikedChange}
-          watched={seasonWatched}
-          onWatchedChange={handleSeasonWatchedChange}
-          isSubmitting={upsertSeasonReviewMutation.isPending || deleteSeasonReviewMutation.isPending}
-          onClose={reviewSubmission.close}
-          onSubmit={reviewSubmission.handleSubmit}
-          onDelete={editingReviewId ? reviewSubmission.handleDelete : undefined}
-          submitLabel="Save"
-          formError={reviewSubmission.formError}
-          reviewMaxLength={10000}
-          reviewPlaceholder="Share your thoughts about this season..."
-        />,
-        document.body,
-      )}
-
-      {activeReviewModal?.type === "episode" && (() => {
-        const selectedEpisode = episodes.find((e) => e.episodeNumber === activeReviewModal.episodeNumber);
-        const epWatched = selectedEpisode?.viewerInteraction?.watched ?? false;
-        const epLiked = selectedEpisode?.viewerInteraction?.liked ?? false;
-        const epRating = selectedEpisode?.viewerInteraction?.rating ?? null;
-
-        return createPortal(
-          <LogMediaDialog
-            accent="serial"
-            title={activeReviewModal.episodeName || `Episode ${activeReviewModal.episodeNumber}`}
-            subtitle={`S${String(season.seasonNumber).padStart(2, "0")} · E${String(activeReviewModal.episodeNumber).padStart(2, "0")}`}
-            posterUrl={getPosterUrl(season.posterPath)}
-            review={reviewDraft.content}
-            onReviewChange={reviewDraft.onContentChange}
-            containsSpoilers={reviewDraft.containsSpoilers}
-            onContainsSpoilersChange={reviewDraft.setContainsSpoilers}
-            rating={epRating}
-            onRatingChange={(nextRating) => handleEpisodeRatingChange(activeReviewModal.episodeNumber, nextRating)}
-            liked={epLiked}
-            onLikedChange={(nextLiked) => handleEpisodeLikedChange(activeReviewModal.episodeNumber, nextLiked)}
-            watched={epWatched}
-            onWatchedChange={(nextWatched) => handleEpisodeWatchedChange(activeReviewModal.episodeNumber, nextWatched)}
-            isSubmitting={upsertEpisodeReviewMutation.isPending || deleteEpisodeReviewMutation.isPending}
-            onClose={reviewSubmission.close}
-            onSubmit={reviewSubmission.handleSubmit}
-            onDelete={editingReviewId ? reviewSubmission.handleDelete : undefined}
-            submitLabel="Save"
-            formError={reviewSubmission.formError}
-            reviewMaxLength={10000}
-            reviewPlaceholder="Share your thoughts about this episode..."
-          />,
-          document.body,
-        );
-      })()}
+      {activeReviewModal ? (
+        <SeasonReviewDialog
+          tmdbId={tmdbId}
+          season={season}
+          target={activeReviewModal.target}
+          editingReview={activeReviewModal.editingReview}
+          interaction={reviewInteraction(activeReviewModal.target)}
+          onClose={() => setActiveReviewModal(null)}
+        />
+      ) : null}
 
       <ReviewChooserDialog
         reviews={reviewChooser.reviews}

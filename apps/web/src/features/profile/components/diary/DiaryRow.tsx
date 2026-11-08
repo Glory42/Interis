@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Ellipsis } from "lucide-react";
 import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
-import { EditLogDialog } from "@/features/diary/components/EditLogDialog";
+import { LogEditor } from "@/features/media/log-editor/LogEditor";
 import { PHONE_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { DiaryMediaLink } from "./DiaryMediaLink";
 import { DiaryPosterCell } from "./DiaryPosterCell";
@@ -48,10 +48,10 @@ export const DiaryRow = ({ row, username, isOwner = false }: DiaryRowProps) => {
       <span className="flex w-14 shrink-0 items-center justify-end gap-1.5 text-sm">
         {row.isLiked ? <span aria-label="Liked" className="text-[color:var(--like)]">♥</span> : null}
         {row.rewatch ? <span aria-label="Rewatch" className="text-primary">↻</span> : null}
-        {row.reviewId ? (
+        {row.review ? (
           <Link
             to="/reviews/$username/$reviewId"
-            params={{ username, reviewId: row.reviewId }}
+            params={{ username, reviewId: row.review.id }}
             aria-label="Review"
             className="text-primary"
             viewTransition
@@ -71,18 +71,21 @@ export const DiaryRow = ({ row, username, isOwner = false }: DiaryRowProps) => {
         </button>
       ) : null}
       {canEdit && row.tmdbId !== null ? (
-        <EditLogDialog
+        <LogEditor
           isOpen={isEditing}
           onClose={() => setIsEditing(false)}
-          log={{
-            id: row.id,
-            mediaType: row.channel === "movie" ? "movie" : "tv",
+          subject={{
+            type: "existing",
+            kind: isSeries ? "tv" : "film",
             tmdbId: row.tmdbId,
             title: row.title,
-            watchedDate: row.createdAt,
+            year: row.releaseYear,
+            posterPath: row.posterPath,
+            logId: row.id,
+            watchedDate: row.watchedDate,
             rating: row.rating,
             rewatch: row.rewatch,
-            hasReview: row.hasReview,
+            review: row.review,
           }}
         />
       ) : null}

@@ -1,4 +1,5 @@
 import type { FeedChannel } from "@/features/feed/components/feed-row.utils";
+import type { AttachedReview } from "@/features/media/log-editor/log-subject";
 import type { DiaryItem } from "@/features/profile/api";
 import { parseDateOnly } from "@/lib/time";
 
@@ -9,11 +10,11 @@ export type DiaryRow = {
   posterPath: string | null;
   tmdbId: number | null;
   releaseYear: number | null;
-  createdAt: string;
+  watchedDate: string;
   rating: number | null;
   rewatch: boolean;
-  reviewId: string | null;
-  hasReview: boolean;
+  // The Review written with this log, editable together with it.
+  review: AttachedReview | null;
   isLiked: boolean;
   dateParts: {
     month: string;
@@ -98,27 +99,30 @@ export const toDiaryRows = (diaryItems: DiaryItem[]): DiaryRow[] => {
       posterPath: item.media.posterPath,
       tmdbId,
       releaseYear: item.media.releaseYear,
-      createdAt: item.watchedDate,
+      watchedDate: item.watchedDate,
       rating: item.rating,
       rewatch: item.rewatch,
-      reviewId: item.review?.id ?? null,
-      hasReview: item.review !== null,
+      review: item.review && {
+        id: item.review.id,
+        content: item.review.content,
+        containsSpoilers: item.review.containsSpoilers,
+      },
       isLiked: item.liked,
     };
   });
 
   return normalizedRows.map((row, index) => {
-    const dateParts = toDateParts(row.createdAt);
-    const previous = index > 0 ? normalizedRows[index - 1]?.createdAt : undefined;
+    const dateParts = toDateParts(row.watchedDate);
+    const previous = index > 0 ? normalizedRows[index - 1]?.watchedDate : undefined;
     const previousMonthKey = previous ? toDateParts(previous).monthKey : null;
-    const weekday = parseDateOnly(row.createdAt);
+    const weekday = parseDateOnly(row.watchedDate);
 
     return {
       ...row,
       dateParts,
       showMonthCell: dateParts.monthKey !== previousMonthKey,
       dayLabel:
-        previous === row.createdAt || Number.isNaN(weekday.getTime())
+        previous === row.watchedDate || Number.isNaN(weekday.getTime())
           ? null
           : { day: dateParts.day, weekday: WEEKDAYS[weekday.getDay()]! },
     };

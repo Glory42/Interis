@@ -1,30 +1,22 @@
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { Award, CircleCheck, CircleDot, CirclePlus, Heart } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { type FilmDetailReviewSort } from "@/features/films/api";
-import { LogFilmModal } from "@/features/diary/components/LogFilmModal";
 import { FilmDetailsMainSection } from "@/features/films/components/film-detail/FilmDetailsMainSection";
 import { MediaDetailStatusPanel } from "@/features/media/detail/MediaDetailStatusPanel";
 import { MediaDetailSkeleton } from "@/components/ui/PageSkeletons";
 import { FilmReviewsSection } from "@/features/films/components/film-detail/FilmReviewsSection";
 import { UnwatchFilmDialog } from "@/features/films/components/film-detail/UnwatchFilmDialog";
 import { FILM_MODULE_STYLES } from "@/features/media/styles";
-import {
-  filmKeys,
-  useFilmDetailView,
-} from "@/features/films/hooks/useFilms";
-import { diaryKeys } from "@/features/diary/hooks/useDiary";
-import { useReviewChooser } from "@/features/reviews/hooks/useReviewChooser";
-import { MediaReviewChooser } from "@/features/media/detail/MediaReviewChooser";
+import { useFilmDetailView } from "@/features/films/hooks/useFilms";
 import {
   useFilmInteraction,
   useUpdateFilmInteraction,
 } from "@/features/interactions/hooks/useInteractions";
 import { LetterboxHero } from "@/features/media/detail/LetterboxHero";
-import { logTriggerProps } from "@/features/media/detail/log-trigger";
+import { MediaLogButton } from "@/features/media/detail/MediaLogButton";
 import { MediaActionCard } from "@/features/media/detail/MediaActionCard";
 import { BELOW_MD_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { MediaSimilarSection } from "@/features/media/detail/MediaSimilarSection";
@@ -53,9 +45,7 @@ export function FilmDetailPage({ tmdbId }: FilmDetailPageProps) {
     Boolean(user) && isValidTmdbId,
   );
   const updateInteractionMutation = useUpdateFilmInteraction(tmdbId);
-  const reviewChooser = useReviewChooser();
   const isBelowMd = useMediaQuery(BELOW_MD_QUERY);
-  const queryClient = useQueryClient();
 
   if (!isValidTmdbId) {
     return (
@@ -93,21 +83,6 @@ export function FilmDetailPage({ tmdbId }: FilmDetailPageProps) {
   const isInteractionLoading = Boolean(user) && interactionQuery.isLoading;
   const isInteractionBusy =
     interactionQuery.isPending || updateInteractionMutation.isPending;
-
-  const modalInitialState = {
-    rating: currentRating,
-    rewatch: Boolean(detail.userRating?.diaryEntryId),
-  };
-
-  const handleReviewEdited = () => {
-    void Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: filmKeys.detailViewRoot(tmdbId),
-      }),
-      queryClient.invalidateQueries({ queryKey: filmKeys.logs(tmdbId) }),
-      queryClient.invalidateQueries({ queryKey: diaryKeys.myLogs }),
-    ]);
-  };
 
   const handleToggleWatchlist = () => {
     void updateInteractionMutation.mutateAsync({ watchlisted: !watchlisted });
@@ -180,17 +155,16 @@ export function FilmDetailPage({ tmdbId }: FilmDetailPageProps) {
     <MediaActionCard
       moduleStyles={FILM_MODULE_STYLES}
       logSlot={
-        <LogFilmModal
-          tmdbId={movie.tmdbId}
-          movieTitle={movie.title}
-          movieReleaseYear={movie.releaseYear}
-          moviePosterPath={movie.posterPath}
-          initialState={modalInitialState}
-          onRequestOpen={(openLog) =>
-            reviewChooser.start({ mediaType: "movie", tmdbId: movie.tmdbId }, openLog)
-          }
-          isTriggerBusy={reviewChooser.isChecking}
-          {...logTriggerProps(Boolean(detail.userRating?.watchedDate))}
+        <MediaLogButton
+          media={{
+            kind: "film",
+            tmdbId: movie.tmdbId,
+            title: movie.title,
+            year: movie.releaseYear,
+            posterPath: movie.posterPath,
+          }}
+          rating={currentRating}
+          hasLogged={Boolean(detail.userRating?.diaryEntryId)}
         />
       }
       tmdbId={movie.tmdbId}
@@ -272,12 +246,6 @@ export function FilmDetailPage({ tmdbId }: FilmDetailPageProps) {
 
           <FilmDetailsMainSection detail={detail} actionsSlot={isBelowMd ? actionCard : null} />
         </div>
-
-        <MediaReviewChooser
-          chooser={reviewChooser}
-          title={{ mediaType: "movie", tmdbId: movie.tmdbId, title: movie.title }}
-          onReviewEdited={handleReviewEdited}
-        />
 
         {isConfirmingUnwatch ? (
           <UnwatchFilmDialog

@@ -2,6 +2,8 @@ import { ActivityRecorder } from "../../social/services/activity-recorder.servic
 import { buildPostCommentedActivityMetadata } from "../helpers/posts-activity.helper";
 import { PostsRepository } from "../repositories/posts.repository";
 import { NotificationsService } from "../../notifications/notifications.service";
+import { isUuid } from "../../../commons/helpers/uuid.helper";
+import { removalOwnerId, type ContentRemoval } from "../../../commons/types/content-removal.types";
 
 export class PostsCommentsService {
   static async getComments(postId: string) {
@@ -40,12 +42,20 @@ export class PostsCommentsService {
     return comment;
   }
 
-  static async deleteComment(commentId: string, userId: string) {
-    const deleted = await PostsRepository.deleteCommentByIdAndUser(commentId, userId);
-    if (deleted) {
-      await ActivityRecorder.retract({ userId, type: "commented", entityId: commentId });
+  // The one way a post comment goes, whoever removes it.
+  static async removeComment(commentId: string, removal: ContentRemoval) {
+    if (!isUuid(commentId)) {
+      return null;
     }
-    return deleted;
+
+    const removed = await PostsRepository.deleteComment(commentId, removalOwnerId(removal));
+    if (removed) {
+      await Promise.all([
+        ActivityRecorder.retract({ userId: removed.userId, type: "commented", entityId: commentId }),
+        NotificationsService.notifyOfRemoval(removal, { authorId: removed.userId, id: commentId, targetType: "post_comment" }),
+      ]);
+    }
+    return removed;
   }
 
   static async updateComment(commentId: string, userId: string, content: string) {

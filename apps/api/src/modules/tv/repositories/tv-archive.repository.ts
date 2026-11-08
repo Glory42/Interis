@@ -1,23 +1,7 @@
 import { asc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
-import { seriesDiaryEntries, seriesInteractions, tvSeries } from "../tv.entity";
-import {
-  buildCommunityRatingAggregateSql,
-  type CommunityRatingAggregateSource,
-} from "../../media/helpers/media-community-rating.helper";
-
-const SERIES_COMMUNITY_RATING_SOURCE: CommunityRatingAggregateSource = {
-  diaryTableName: "serial_diary_entry",
-  diaryEntityIdColumn: seriesDiaryEntries.seriesId,
-  diaryRatingColumn: seriesDiaryEntries.rating,
-  diaryUserIdColumn: seriesDiaryEntries.userId,
-  diaryWatchedDateColumn: seriesDiaryEntries.watchedDate,
-  diaryCreatedAtColumn: seriesDiaryEntries.createdAt,
-  interactionTableName: "serial_interaction",
-  interactionEntityIdColumn: seriesInteractions.seriesId,
-  interactionRatingColumn: seriesInteractions.rating,
-  interactionUserIdColumn: seriesInteractions.userId,
-};
+import { seriesDiaryEntries, tvSeries } from "../tv.entity";
+import { YourRatingRepository } from "../../media-interactions/repositories/your-rating.repository";
 
 export class TvArchiveRepository {
   static async getLocalArchiveAggregateRowsByTmdbIds(tmdbIds: number[]) {
@@ -26,10 +10,7 @@ export class TvArchiveRepository {
       return [];
     }
 
-    const communityRating = buildCommunityRatingAggregateSql(
-      SERIES_COMMUNITY_RATING_SOURCE,
-      tvSeries.id,
-    );
+    const communityRating = YourRatingRepository.communityAggregateSql("tv", tvSeries.id);
 
     return db
       .select({
@@ -52,10 +33,7 @@ export class TvArchiveRepository {
   }
 
   static async getLocalArchiveRows() {
-    const communityRating = buildCommunityRatingAggregateSql(
-      SERIES_COMMUNITY_RATING_SOURCE,
-      tvSeries.id,
-    );
+    const communityRating = YourRatingRepository.communityAggregateSql("tv", tvSeries.id);
 
     return db
       .select({

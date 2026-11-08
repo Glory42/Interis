@@ -14,7 +14,6 @@ import type { getSeriesDetails, getSimilarSeries } from "../../../infrastructure
 import type { PersonLinkItem } from "../../people/types/people.types";
 import type { TvCacheService } from "../services/tv-cache.service";
 import type { TvReviewsRepository } from "../repositories/tv-reviews.repository";
-import type { TvInteractionsRepository } from "../repositories/tv-interactions.repository";
 import type { TvSeasonInteractionsRepository } from "../repositories/tv-season-interactions.repository";
 import { countWatchedEpisodesBySeason, type calculateViewerTracking } from "./tv-tracking.helper";
 import type { SeriesDetailReviewSort } from "../dto/tv.dto";
@@ -24,6 +23,7 @@ import type {
   SeriesDetailReviewItem,
   SeriesReviewsPageResponse,
 } from "../types/tv.types";
+import type { WatchLogRow } from "../../media/types/watch-log.types";
 
 // The pure half of SerialsDetailService.getDetail. gather() has resolved
 // every await - TMDB reads, the three person-link groups, review
@@ -43,9 +43,8 @@ type SeriesReviewRow = Awaited<
 type ViewerSeasonInteraction = Awaited<
   ReturnType<typeof TvSeasonInteractionsRepository.getViewerSeasonInteractions>
 >[number];
-type ViewerDiaryRow = Awaited<
-  ReturnType<typeof TvInteractionsRepository.getViewerDiaryRows>
->[number];
+// The viewer's newest log; their rating is resolved separately (Your Rating).
+type ViewerDiaryRow = Pick<WatchLogRow, "id" | "watchedDate" | "rewatch">;
 type ViewerReviewRow = Awaited<
   ReturnType<typeof TvReviewsRepository.getViewerReviewRows>
 >[number];
@@ -66,6 +65,7 @@ export type SeriesDetailInputs = {
   tmdbSimilar: TmdbSimilarSeries;
   userSeasonInteractions: ViewerSeasonInteraction[];
   viewerDiary: ViewerDiaryRow | null;
+  viewerRating: number | null;
   viewerReview: ViewerReviewRow | null;
   viewerTracking: ViewerTracking | null;
   viewerUserId: string | null;
@@ -218,7 +218,7 @@ export const assembleSeriesDetail = (inputs: SeriesDetailInputs): SeriesDetailRe
           reviewId: inputs.viewerReview?.id ?? null,
           watchedDate: inputs.viewerDiary?.watchedDate ?? null,
           rewatch: inputs.viewerDiary?.rewatch ?? false,
-          rating: inputs.viewerDiary?.rating ?? null,
+          rating: inputs.viewerRating,
           reviewContent: inputs.viewerReview?.content ?? null,
           reviewContainsSpoilers: inputs.viewerReview?.containsSpoilers ?? null,
         }

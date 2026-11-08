@@ -8,13 +8,14 @@ import {
   listAdminPosts,
   listAdminReviews,
   type AdminContentFilters,
+  type AdminDiaryFilters,
 } from "@/features/admin/content-api";
 
 export const adminContentKeys = {
   reviewsAll: ["admin", "reviews"] as const,
   reviews: (filters: AdminContentFilters) => ["admin", "reviews", filters] as const,
   diaryAll: ["admin", "diary"] as const,
-  diary: (filters: AdminContentFilters) => ["admin", "diary", filters] as const,
+  diary: (filters: AdminDiaryFilters) => ["admin", "diary", filters] as const,
   postsAll: ["admin", "posts"] as const,
   posts: (filters: Pick<AdminContentFilters, "username">) =>
     ["admin", "posts", filters] as const,
@@ -29,7 +30,7 @@ const adminContentAllKeys = {
 export const useAdminReviews = (filters: AdminContentFilters) =>
   useAdminPagedList(adminContentKeys.reviews(filters), (page) => listAdminReviews(filters, page));
 
-export const useAdminDiaryEntries = (filters: AdminContentFilters) =>
+export const useAdminDiaryEntries = (filters: AdminDiaryFilters) =>
   useAdminPagedList(adminContentKeys.diary(filters), (page) =>
     listAdminDiaryEntries(filters, page),
   );
@@ -37,8 +38,8 @@ export const useAdminDiaryEntries = (filters: AdminContentFilters) =>
 export const useAdminPosts = (filters: Pick<AdminContentFilters, "username">) =>
   useAdminPagedList(adminContentKeys.posts(filters), (page) => listAdminPosts(filters, page));
 
-const useContentDelete = (
-  mutationFn: (id: string) => Promise<void>,
+const useContentDelete = <TTarget = string>(
+  mutationFn: (target: TTarget) => Promise<void>,
   keyPrefix: keyof typeof adminContentAllKeys,
 ) => {
   const queryClient = useQueryClient();

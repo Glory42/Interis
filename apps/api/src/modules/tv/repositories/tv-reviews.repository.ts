@@ -60,7 +60,7 @@ export class TvReviewsRepository {
       .from(reviews)
       .innerJoin(user, eq(user.id, reviews.userId))
       .leftJoin(profiles, eq(profiles.userId, reviews.userId))
-      .leftJoin(seriesDiaryEntries, eq(seriesDiaryEntries.id, reviews.diaryEntryId))
+      .leftJoin(seriesDiaryEntries, eq(seriesDiaryEntries.id, reviews.serialDiaryEntryId))
       .where(
         and(
           eq(reviews.mediaType, "tv"),
@@ -99,42 +99,6 @@ export class TvReviewsRepository {
 
   static async getViewerLikedReviewRows(viewerUserId: string, reviewIds: string[]) {
     return ReviewsRepository.getViewerLikedReviewIds(viewerUserId, reviewIds);
-  }
-
-  static async insertReviewLike(userId: string, reviewId: string) {
-    const [row] = await db
-      .insert(reviewLikes)
-      .values({ userId, reviewId })
-      .onConflictDoNothing()
-      .returning({ reviewId: reviewLikes.reviewId });
-
-    return row ?? null;
-  }
-
-  static async deleteReviewLikeByUser(userId: string, reviewId: string) {
-    const [row] = await db
-      .delete(reviewLikes)
-      .where(and(eq(reviewLikes.userId, userId), eq(reviewLikes.reviewId, reviewId)))
-      .returning({ reviewId: reviewLikes.reviewId });
-
-    return row ?? null;
-  }
-
-  static async insertReviewComment(input: {
-    userId: string;
-    reviewId: string;
-    content: string;
-  }) {
-    const [comment] = await db
-      .insert(comments)
-      .values({
-        userId: input.userId,
-        reviewId: input.reviewId,
-        content: input.content,
-      })
-      .returning();
-
-    return comment ?? null;
   }
 
   static async getViewerReviewRows(viewerUserId: string, seriesId: number) {

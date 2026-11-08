@@ -6,6 +6,8 @@ import { normalizeBoundedLimit } from "../../../commons/helpers/pagination.helpe
 import type {
   ActivityType,
   FeedActivityKind,
+  FeedMediaType,
+  FeedMetadata,
   FeedPostMediaType,
   FeedRawMetadata,
 } from "../types/social-feed.types";
@@ -63,6 +65,38 @@ export const readPostMediaType = (
   }
 
   return null;
+};
+
+export const toFeedMediaType = (value: string | null): FeedMediaType | null =>
+  value === "tv" || value === "movie" ? value : null;
+
+// The metadata snapshot taken when the activity was recorded; feed kinds
+// replace parts of it with live values.
+export const toFeedMetadata = (rawMetadata: FeedRawMetadata): FeedMetadata => {
+  const mediaType = toFeedMediaType(readPostMediaType(rawMetadata, "mediaType"));
+
+  return {
+    action: readString(rawMetadata, "action"),
+    excerpt: readString(rawMetadata, "excerpt"),
+    targetUsername: readString(rawMetadata, "targetUsername"),
+    rating: readNumber(rawMetadata, "rating"),
+    rewatch: readBoolean(rawMetadata, "rewatch"),
+    hasReview: readBoolean(rawMetadata, "hasReview"),
+    mediaType,
+    containsSpoilers: readBoolean(rawMetadata, "containsSpoilers"),
+    reviewId: readString(rawMetadata, "reviewId"),
+    commentId: readString(rawMetadata, "commentId"),
+    movieId: readNumber(rawMetadata, "movieId"),
+    postId: readString(rawMetadata, "postId"),
+    postMediaId: readNumber(rawMetadata, "mediaId"),
+    postMediaType: readPostMediaType(rawMetadata, "mediaType"),
+    seasonNumber: readNumber(rawMetadata, "seasonNumber"),
+    episodeNumber: readNumber(rawMetadata, "episodeNumber"),
+    listId: null,
+    listTitle: null,
+    logId: null,
+    watchedDate: null,
+  };
 };
 
 export const resolveActivityKind = (

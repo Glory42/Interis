@@ -18,11 +18,7 @@ const toMediaTypeFilter = (filter: FeedFilter): FeedMediaTypeFilter | undefined 
 
 export const feedKeys = {
   all: ["feed"] as const,
-  // Root prefix for invalidating/patching every filter variant at once
-  // (e.g. after liking a post, regardless of which tab is active).
-  followingRoot: ["feed", "following"] as const,
-  following: (filter: FeedFilter = "all") => ["feed", "following", filter] as const,
-  // The grouped feed lives apart from "following": patchFeedItems assumes flat FeedItem pages.
+  // The Following Feed, every filter; feed-cache.ts patches and refreshes it by this prefix.
   groupedRoot: ["feed", "grouped"] as const,
   grouped: (filter: FeedFilter = "all") => ["feed", "grouped", filter] as const,
   trending: (limit = 3) => ["feed", "trending", limit] as const,

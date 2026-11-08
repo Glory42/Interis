@@ -119,14 +119,14 @@ export type PostEngagement = {
   viewerHasLiked: boolean | null;
 };
 
-export type FeedFallbackPostRow = {
+export type FeedPostRow = {
   id: string;
   content: string;
   mediaId: number | null;
   mediaType: FeedPostMediaType | null;
 };
 
-export type FeedFallbackFilmRow = {
+export type FeedFilmRow = {
   id: number;
   tmdbId: number;
   title: string;
@@ -150,14 +150,6 @@ export type FeedListRow = {
 export type FeedUserRow = {
   id: string;
   username: string;
-};
-
-export type FeedFallbackMediaContext = {
-  postsById: Map<string, FeedFallbackPostRow>;
-  moviesById: Map<number, FeedFallbackFilmRow>;
-  diaryEntriesById: Map<string, FeedDiaryEntryRow>;
-  listsById: Map<string, FeedListRow>;
-  usersById: Map<string, FeedUserRow>;
 };
 
 // One person's actions on one title (or season/episode) on one UTC day.

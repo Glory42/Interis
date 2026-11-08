@@ -26,6 +26,9 @@ import {
 import { authKeys, useAuth } from "@/features/auth/hooks/useAuth";
 import type { MeProfile, UpdateProfileInput } from "@/types/api";
 
+// The profile overview's recent-activity length; refreshes match every limit via recentActivityRoot.
+export const PROFILE_RECENT_ACTIVITY_LIMIT = 20;
+
 export const profileKeys = {
   all: ["profile"] as const,
   search: (query: string, limit: number) =>
@@ -40,6 +43,7 @@ export const profileKeys = {
   diary: (username: string) => ["profile", "diary", username] as const,
   reviews: (username: string) => ["profile", "reviews", username] as const,
   topPicks: (username: string) => ["profile", "top-picks", username] as const,
+  recentActivityRoot: (username: string) => ["profile", "recent-activity", username] as const,
   recentActivity: (username: string, limit: number) =>
     ["profile", "recent-activity", username, limit] as const,
 };
@@ -183,7 +187,7 @@ export const useUserTopPicks = (username: string) =>
     enabled: username.trim().length > 0,
   });
 
-export const useUserRecentActivity = (username: string, limit = 20) =>
+export const useUserRecentActivity = (username: string, limit = PROFILE_RECENT_ACTIVITY_LIMIT) =>
   useQuery({
     queryKey: profileKeys.recentActivity(username, limit),
     queryFn: ({ signal }) => getUserRecentActivity(username, limit, { signal }),

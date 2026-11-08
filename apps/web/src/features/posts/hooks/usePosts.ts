@@ -1,7 +1,5 @@
 import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { FeedItem } from "@/features/feed/types";
-import { patchFeedItems, invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
-import { restoreQueries } from "@/lib/query-optimistic";
+import { invalidateFollowingFeed, patchFeed, restoreFeed } from "@/features/feed/hooks/feed-cache";
 import {
   addPostComment,
   createPost,
@@ -22,18 +20,6 @@ import {
 export const postKeys = {
   detail: (postId: string) => ["posts", "detail", postId] as const,
   comments: (postId: string) => ["posts", "comments", postId] as const,
-};
-
-const matchesPost = (item: FeedItem, postId: string): boolean => {
-  if (item.post?.id === postId) {
-    return true;
-  }
-
-  if (item.metadata.postId === postId) {
-    return true;
-  }
-
-  return false;
 };
 
 const patchPostDetailCache = (
@@ -67,23 +53,7 @@ export const useUpdatePost = (postId: string) => {
   return useMutation({
     mutationFn: (payload: UpdatePostInput) => updatePost(postId, payload),
     onSuccess: async (updatedPost) => {
-      patchFeedItems(
-        queryClient,
-        (item) => matchesPost(item, postId),
-        (item) => ({
-          ...item,
-          post: item.post
-            ? {
-                ...item.post,
-                content: updatedPost.content,
-              }
-            : item.post,
-          metadata: {
-            ...item.metadata,
-            excerpt: updatedPost.content,
-          },
-        }),
-      );
+      await patchFeed(queryClient, { post: postId }, { type: "post-edited", content: updatedPost.content });
 
       await Promise.all([
         invalidateFollowingFeed(queryClient),
@@ -113,22 +83,12 @@ export const useAddPostComment = (postId: string) => {
   return useMutation({
     mutationFn: (payload: PostCommentInput) => addPostComment(postId, payload),
     onMutate: async () => {
-      const previousFeedQueries = patchFeedItems(
-        queryClient,
-        (item) => matchesPost(item, postId),
-        (item) => ({
-          ...item,
-          engagement: {
-            ...item.engagement,
-            commentCount: item.engagement.commentCount + 1,
-          },
-        }),
-      );
+      const previousFeedQueries = await patchFeed(queryClient, { post: postId }, { type: "comment-added" });
 
       return { previousFeedQueries };
     },
     onError: (_error, _variables, context) => {
-      restoreQueries(queryClient, context?.previousFeedQueries ?? []);
+      restoreFeed(queryClient, context?.previousFeedQueries);
     },
     onSettled: async () => {
       await Promise.all([
@@ -152,6 +112,10 @@ export const useUpdatePostComment = (postId: string) => {
         ),
       );
       // The feed quotes the comment, so its card must pick up the new text.
+      await patchFeed(queryClient, { comment: updatedComment.id }, {
+        type: "comment-edited",
+        content: updatedComment.content,
+      });
       await invalidateFollowingFeed(queryClient);
     },
   });
@@ -167,17 +131,7 @@ export const useDeletePostComment = (postId: string) => {
         currentComments?.filter((comment) => comment.id !== commentId),
       );
 
-      patchFeedItems(
-        queryClient,
-        (item) => matchesPost(item, postId),
-        (item) => ({
-          ...item,
-          engagement: {
-            ...item.engagement,
-            commentCount: Math.max(item.engagement.commentCount - 1, 0),
-          },
-        }),
-      );
+      await patchFeed(queryClient, { post: postId }, { type: "comment-removed" });
 
       await invalidateFollowingFeed(queryClient);
     },
@@ -191,20 +145,7 @@ export const useLikePost = (postId: string) => {
     meta: { errorToast: "Couldn't like this post" },
     mutationFn: () => likePost(postId),
     onMutate: async () => {
-      const previousFeedQueries = patchFeedItems(
-        queryClient,
-        (item) => matchesPost(item, postId),
-        (item) => ({
-          ...item,
-          engagement: {
-            ...item.engagement,
-            viewerHasLiked: true,
-            likeCount: item.engagement.viewerHasLiked
-              ? item.engagement.likeCount
-              : item.engagement.likeCount + 1,
-          },
-        }),
-      );
+      const previousFeedQueries = await patchFeed(queryClient, { post: postId }, { type: "liked" });
 
       const previousDetail = patchPostDetailCache(queryClient, postId, (detail) => ({
         ...detail,
@@ -214,7 +155,7 @@ export const useLikePost = (postId: string) => {
       return { previousFeedQueries, previousDetail };
     },
     onError: (_error, _variables, context) => {
-      restoreQueries(queryClient, context?.previousFeedQueries ?? []);
+      restoreFeed(queryClient, context?.previousFeedQueries);
       if (context?.previousDetail) {
         queryClient.setQueryData(postKeys.detail(postId), context.previousDetail);
       }
@@ -235,20 +176,7 @@ export const useUnlikePost = (postId: string) => {
     meta: { errorToast: "Couldn't unlike this post" },
     mutationFn: () => unlikePost(postId),
     onMutate: async () => {
-      const previousFeedQueries = patchFeedItems(
-        queryClient,
-        (item) => matchesPost(item, postId),
-        (item) => ({
-          ...item,
-          engagement: {
-            ...item.engagement,
-            viewerHasLiked: false,
-            likeCount: item.engagement.viewerHasLiked
-              ? Math.max(item.engagement.likeCount - 1, 0)
-              : item.engagement.likeCount,
-          },
-        }),
-      );
+      const previousFeedQueries = await patchFeed(queryClient, { post: postId }, { type: "unliked" });
 
       const previousDetail = patchPostDetailCache(queryClient, postId, (detail) => ({
         ...detail,
@@ -258,7 +186,7 @@ export const useUnlikePost = (postId: string) => {
       return { previousFeedQueries, previousDetail };
     },
     onError: (_error, _variables, context) => {
-      restoreQueries(queryClient, context?.previousFeedQueries ?? []);
+      restoreFeed(queryClient, context?.previousFeedQueries);
       if (context?.previousDetail) {
         queryClient.setQueryData(postKeys.detail(postId), context.previousDetail);
       }

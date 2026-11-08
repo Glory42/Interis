@@ -67,7 +67,7 @@ export class ReviewsRepository {
   // The single low-level insert into the review table. A user can review
   // the same title more than once (#72), so this always adds a row:
   // standalone movie/tv reviews (createReview below), diary-linked reviews
-  // (DiaryWriteService, DataImportService) and season/episode reviews
+  // (WatchLogService, DataImportService) and season/episode reviews
   // (SerialsSeasonEpisodeReviewsRepository) all go through here.
   // `mediaSourceId` is pre-composed by the caller (a bare tmdbId for
   // movie/tv, a `tmdb:season[:episode]` key for the nested serial levels).
@@ -252,26 +252,17 @@ export class ReviewsRepository {
     return updated ?? null;
   }
 
-  static async deleteByIdAndUser(reviewId: string, userId: string) {
+  // ownerId limits the delete to that user's review.
+  static async deleteById(reviewId: string, ownerId?: string) {
     const [deleted] = await db
       .delete(reviews)
-      .where(and(eq(reviews.id, reviewId), eq(reviews.userId, userId)))
+      .where(and(eq(reviews.id, reviewId), ownerId ? eq(reviews.userId, ownerId) : undefined))
       .returning({ id: reviews.id, userId: reviews.userId });
 
     return deleted ?? null;
   }
 
-  // No ownership check — admin moderation only.
-  static async deleteById(reviewId: string) {
-    const [deleted] = await db
-      .delete(reviews)
-      .where(eq(reviews.id, reviewId))
-      .returning({ id: reviews.id, userId: reviews.userId });
-
-    return deleted ?? null;
-  }
-
-  // Movie reviews only — TV reviews live in the serials module's own table.
+  // Film and Series reviews share the one review table; Series rows have no movieTitle.
   static async listAllForAdmin(
     filters: { userId?: string; movieId?: number },
     limit: number,

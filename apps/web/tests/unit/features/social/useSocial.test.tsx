@@ -90,7 +90,7 @@ describe("useFollowUser", () => {
     queryClient.setQueryData(socialKeys.followState("someone-else"), {
       isFollowing: false,
     } satisfies FollowState);
-    queryClient.setQueryData(feedKeys.followingRoot, { pages: [], pageParams: [] });
+    queryClient.setQueryData(feedKeys.grouped("all"), { pages: [], pageParams: [] });
     queryClient.setQueryData(feedKeys.meSummary, {});
 
     const { result } = renderHook(() => useFollowUser("target"), {
@@ -103,7 +103,7 @@ describe("useFollowUser", () => {
     expect(queryClient.getQueryState(socialKeys.followState("target"))?.isInvalidated).toBe(
       true,
     );
-    expect(queryClient.getQueryState(feedKeys.followingRoot)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(feedKeys.grouped("all"))?.isInvalidated).toBe(true);
     expect(queryClient.getQueryState(feedKeys.meSummary)?.isInvalidated).toBe(true);
 
     expect(

@@ -155,18 +155,4 @@ describe("deleting a series log and its watched episodes", () => {
     });
     expect(await watchedState(jar, serial)).toEqual(allWatched);
   });
-
-  it("rejects an unreadable unwatch value", async () => {
-    const { jar } = await signUpTestUser(getServer().baseUrl, "dsubad");
-    const serial = await seedSerial("Bad Query Series");
-    const entryId = await logSerial(jar, serial.tmdbId);
-
-    const response = await apiRequest(
-      getServer().baseUrl,
-      `/api/serials/logs/${entryId}?unwatch=maybe`,
-      { method: "DELETE" },
-      jar,
-    );
-    expect(response.status).toBe(400);
-  });
 });

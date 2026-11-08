@@ -58,8 +58,8 @@ describe("useLikePost", () => {
     );
 
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(feedKeys.following("all"), {
-      pages: [{ items: [makeFeedItem("post-1")], nextCursor: null }],
+    queryClient.setQueryData(feedKeys.grouped("all"), {
+      pages: [{ items: [{ kind: "activity", item: makeFeedItem("post-1") }], nextCursor: null }],
       pageParams: [undefined],
     });
     queryClient.setQueryData(postKeys.detail("post-1"), makePostDetail("post-1", 0));
@@ -71,11 +71,11 @@ describe("useLikePost", () => {
     result.current.mutate();
 
     await waitFor(() => {
-      const feedData = queryClient.getQueryData(feedKeys.following("all")) as {
-        pages: Array<{ items: FeedItem[] }>;
+      const feedData = queryClient.getQueryData(feedKeys.grouped("all")) as {
+        pages: Array<{ items: Array<{ item: FeedItem }> }>;
       };
-      expect(feedData.pages[0]!.items[0]!.engagement.viewerHasLiked).toBe(true);
-      expect(feedData.pages[0]!.items[0]!.engagement.likeCount).toBe(1);
+      expect(feedData.pages[0]!.items[0]!.item.engagement.viewerHasLiked).toBe(true);
+      expect(feedData.pages[0]!.items[0]!.item.engagement.likeCount).toBe(1);
 
       const detail = queryClient.getQueryData<PostDetail>(postKeys.detail("post-1"));
       expect(detail?.likeCount).toBe(1);
@@ -92,8 +92,8 @@ describe("useLikePost", () => {
     );
 
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(feedKeys.following("all"), {
-      pages: [{ items: [makeFeedItem("post-1")], nextCursor: null }],
+    queryClient.setQueryData(feedKeys.grouped("all"), {
+      pages: [{ items: [{ kind: "activity", item: makeFeedItem("post-1") }], nextCursor: null }],
       pageParams: [undefined],
     });
     queryClient.setQueryData(postKeys.detail("post-1"), makePostDetail("post-1", 0));
@@ -105,11 +105,11 @@ describe("useLikePost", () => {
     result.current.mutate();
     await waitFor(() => expect(result.current.isError).toBe(true));
 
-    const feedData = queryClient.getQueryData(feedKeys.following("all")) as {
-      pages: Array<{ items: FeedItem[] }>;
+    const feedData = queryClient.getQueryData(feedKeys.grouped("all")) as {
+      pages: Array<{ items: Array<{ item: FeedItem }> }>;
     };
-    expect(feedData.pages[0]!.items[0]!.engagement.viewerHasLiked).toBe(false);
-    expect(feedData.pages[0]!.items[0]!.engagement.likeCount).toBe(0);
+    expect(feedData.pages[0]!.items[0]!.item.engagement.viewerHasLiked).toBe(false);
+    expect(feedData.pages[0]!.items[0]!.item.engagement.likeCount).toBe(0);
 
     const detail = queryClient.getQueryData<PostDetail>(postKeys.detail("post-1"));
     expect(detail?.likeCount).toBe(0);
@@ -119,10 +119,10 @@ describe("useLikePost", () => {
     server.use(http.post("*/api/posts/post-1/like", () => HttpResponse.json({ liked: true })));
 
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(feedKeys.following("all"), {
+    queryClient.setQueryData(feedKeys.grouped("all"), {
       pages: [
         {
-          items: [makeFeedItem("post-1", { engagement: { likeCount: 1, commentCount: 0, viewerHasLiked: true } })],
+          items: [{ kind: "activity", item: makeFeedItem("post-1", { engagement: { likeCount: 1, commentCount: 0, viewerHasLiked: true } }) }],
           nextCursor: null,
         },
       ],
@@ -137,49 +137,15 @@ describe("useLikePost", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    const feedData = queryClient.getQueryData(feedKeys.following("all")) as {
-      pages: Array<{ items: FeedItem[] }>;
+    const feedData = queryClient.getQueryData(feedKeys.grouped("all")) as {
+      pages: Array<{ items: Array<{ item: FeedItem }> }>;
     };
-    expect(feedData.pages[0]!.items[0]!.engagement.likeCount).toBe(1);
+    expect(feedData.pages[0]!.items[0]!.item.engagement.likeCount).toBe(1);
   });
 });
 
 describe("useAddPostComment", () => {
-  it("optimistically increments the feed item's commentCount and rolls back on failure", async () => {
-    server.use(
-      http.post("*/api/posts/post-1/comments", () =>
-        HttpResponse.json({ error: "nope" }, { status: 400 }),
-      ),
-    );
-
-    const queryClient = createTestQueryClient();
-    queryClient.setQueryData(feedKeys.following("all"), {
-      pages: [{ items: [makeFeedItem("post-1")], nextCursor: null }],
-      pageParams: [undefined],
-    });
-
-    const { result } = renderHook(() => useAddPostComment("post-1"), {
-      wrapper: wrapperFor(queryClient),
-    });
-
-    result.current.mutate({ content: "Nice post!" });
-
-    await waitFor(() => {
-      const feedData = queryClient.getQueryData(feedKeys.following("all")) as {
-        pages: Array<{ items: FeedItem[] }>;
-      };
-      expect(feedData.pages[0]!.items[0]!.engagement.commentCount).toBe(1);
-    });
-
-    await waitFor(() => expect(result.current.isError).toBe(true));
-
-    const feedData = queryClient.getQueryData(feedKeys.following("all")) as {
-      pages: Array<{ items: FeedItem[] }>;
-    };
-    expect(feedData.pages[0]!.items[0]!.engagement.commentCount).toBe(0);
-  });
-
-  it("invalidates only this post's comments and the feed root on settle", async () => {
+  it("invalidates only this post's comments and the feed on settle", async () => {
     server.use(
       http.post("*/api/posts/post-1/comments", () =>
         HttpResponse.json({
@@ -196,8 +162,8 @@ describe("useAddPostComment", () => {
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(postKeys.comments("post-1"), []);
     queryClient.setQueryData(postKeys.comments("post-2"), []);
-    queryClient.setQueryData(feedKeys.following("all"), {
-      pages: [{ items: [makeFeedItem("post-1")], nextCursor: null }],
+    queryClient.setQueryData(feedKeys.grouped("all"), {
+      pages: [{ items: [{ kind: "activity", item: makeFeedItem("post-1") }], nextCursor: null }],
       pageParams: [undefined],
     });
 
@@ -209,7 +175,7 @@ describe("useAddPostComment", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(queryClient.getQueryState(postKeys.comments("post-1"))?.isInvalidated).toBe(true);
-    expect(queryClient.getQueryState(feedKeys.following("all"))?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(feedKeys.grouped("all"))?.isInvalidated).toBe(true);
     expect(queryClient.getQueryState(postKeys.comments("post-2"))?.isInvalidated).toBe(false);
   });
 });

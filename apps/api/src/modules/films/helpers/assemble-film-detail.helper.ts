@@ -17,6 +17,7 @@ import type {
   FilmDetailReviewItem,
   FilmReviewsPageResponse,
 } from "../types/films.types";
+import type { WatchLogRow } from "../../media/types/watch-log.types";
 
 // The pure half of MoviesDetailService.getDetail: every IO the response
 // depends on has already been resolved into this object by the service's
@@ -31,9 +32,8 @@ type TmdbSimilarFilms = Awaited<ReturnType<typeof getSimilarFilms>>;
 type FilmReviewRow = Awaited<
   ReturnType<typeof FilmsReviewsRepository.getReviewRowsByMovieId>
 >["rows"][number];
-type ViewerDiaryRow = Awaited<
-  ReturnType<typeof FilmsRepository.getViewerDiaryRows>
->[number];
+// The viewer's newest log; their rating is resolved separately (Your Rating).
+type ViewerDiaryRow = Pick<WatchLogRow, "id" | "watchedDate" | "rewatch">;
 type ViewerReviewRow = Awaited<
   ReturnType<typeof FilmsRepository.getViewerReviewRows>
 >[number];
@@ -52,6 +52,7 @@ export type FilmDetailInputs = {
   communityRatings: { rating: number }[];
   tmdbSimilar: TmdbSimilarFilms;
   viewerDiary: ViewerDiaryRow | null;
+  viewerRating: number | null;
   viewerReview: ViewerReviewRow | null;
   viewerUserId: string | null;
   reviewsSort: FilmDetailReviewSort;
@@ -177,7 +178,7 @@ export const assembleFilmDetail = (inputs: FilmDetailInputs): FilmDetailResponse
           reviewId: inputs.viewerReview?.id ?? null,
           watchedDate: inputs.viewerDiary?.watchedDate ?? null,
           rewatch: inputs.viewerDiary?.rewatch ?? false,
-          rating: inputs.viewerDiary?.rating ?? null,
+          rating: inputs.viewerRating,
           reviewContent: inputs.viewerReview?.content ?? null,
           reviewContainsSpoilers: inputs.viewerReview?.containsSpoilers ?? null,
         }

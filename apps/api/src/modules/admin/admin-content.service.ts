@@ -1,6 +1,8 @@
 import { DiaryService } from "../diary/diary.service";
 import { PostsService } from "../posts/posts.service";
 import { ReviewsService } from "../reviews/reviews.service";
+import { TvService } from "../tv/tv.service";
+import type { MediaType } from "../media/constants/media-type.constant";
 import { resolveUserId } from "./helpers/resolve-user-id.helper";
 import { AdminCommentsRepository, type AdminCommentKind } from "./repositories/admin-comments.repository";
 
@@ -13,16 +15,26 @@ export class AdminContentService {
   }
 
   static async deleteReview(reviewId: string) {
-    return ReviewsService.deleteById(reviewId);
+    return ReviewsService.remove(reviewId, { by: "moderator" });
   }
 
-  static async listDiaryEntries(filters: ContentFilters, limit: number, offset: number) {
+  static async listDiaryEntries(
+    filters: ContentFilters & { mediaType: MediaType; seriesId?: number },
+    limit: number,
+    offset: number,
+  ) {
     const userId = await resolveUserId(filters.username);
-    return DiaryService.listAllForAdmin({ userId, movieId: filters.movieId }, limit, offset);
+    return filters.mediaType === "tv"
+      ? TvService.listLogsForAdmin({ userId, seriesId: filters.seriesId }, limit, offset)
+      : DiaryService.listAllForAdmin({ userId, movieId: filters.movieId }, limit, offset);
   }
 
-  static async deleteDiaryEntry(entryId: string) {
-    return DiaryService.deleteById(entryId);
+  // Through the Watch Log module, so Your Rating and the feed stay in step.
+  static async deleteDiaryEntry(entryId: string, mediaType?: MediaType) {
+    const film = mediaType === "tv" ? null : await DiaryService.deleteById(entryId);
+    if (film) return { mediaType: "movie" as const };
+    const series = mediaType === "movie" ? null : await TvService.deleteLogById(entryId);
+    return series ? { mediaType: "tv" as const } : null;
   }
 
   static async listPosts(filters: ContentFilters, limit: number, offset: number) {
@@ -31,7 +43,7 @@ export class AdminContentService {
   }
 
   static async deletePost(postId: string) {
-    return PostsService.deleteById(postId);
+    return PostsService.remove(postId, { by: "moderator" });
   }
 
   static async listComments(limit: number, offset: number) {
@@ -39,6 +51,9 @@ export class AdminContentService {
   }
 
   static async deleteComment(kind: AdminCommentKind, commentId: string) {
-    return AdminCommentsRepository.deleteById(kind, commentId);
+    const removed = kind === "review"
+      ? await ReviewsService.removeComment(commentId, { by: "moderator" })
+      : await PostsService.removeComment(commentId, { by: "moderator" });
+    return removed !== null;
   }
 }

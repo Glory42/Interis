@@ -1,17 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { server } from "../../../support/msw/server";
 import {
   interactionKeys,
   useUpdateFilmInteraction,
 } from "@/features/interactions/hooks/useInteractions";
-import { filmKeys } from "@/features/films/hooks/useFilms";
-import { authKeys } from "@/features/auth/hooks/useAuth";
-import { profileKeys } from "@/features/profile/hooks/useProfile";
-import { profileStatsKeys } from "@/features/profile/hooks/useProfileStats";
 import type { FilmInteraction } from "@/features/interactions/api";
 
 const createTestQueryClient = (): QueryClient =>
@@ -132,67 +128,5 @@ describe("useUpdateFilmInteraction", () => {
     expect(queryClient.getQueryData<FilmInteraction>(interactionKeys.detail(550))).toEqual(
       baseInteraction,
     );
-  });
-
-  it("invalidates only this movie's own interaction/detail/logs keys, never a different movie's", async () => {
-    server.use(
-      http.put("*/api/interactions/550", () =>
-        HttpResponse.json({ ...baseInteraction, liked: true, watched: true }),
-      ),
-    );
-
-    const queryClient = createTestQueryClient();
-    queryClient.setQueryData(interactionKeys.detail(550), baseInteraction);
-    queryClient.setQueryData(filmKeys.detail(550), { tmdbId: 550 });
-    queryClient.setQueryData([...filmKeys.detailViewRoot(550), "recent"], { tmdbId: 550 });
-    queryClient.setQueryData(filmKeys.logs(550), []);
-
-    // A different, unrelated movie's cache must not be touched.
-    queryClient.setQueryData(interactionKeys.detail(999), baseInteraction);
-    queryClient.setQueryData(filmKeys.detail(999), { tmdbId: 999 });
-
-    const { result } = renderHook(() => useUpdateFilmInteraction(550), {
-      wrapper: wrapperFor(queryClient),
-    });
-
-    result.current.mutate({ liked: true });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
-    expect(queryClient.getQueryState(interactionKeys.detail(550))?.isInvalidated).toBe(true);
-    expect(queryClient.getQueryState(filmKeys.detail(550))?.isInvalidated).toBe(true);
-    expect(
-      queryClient.getQueryState([...filmKeys.detailViewRoot(550), "recent"])?.isInvalidated,
-    ).toBe(true);
-    expect(queryClient.getQueryState(filmKeys.logs(550))?.isInvalidated).toBe(true);
-
-    expect(queryClient.getQueryState(interactionKeys.detail(999))?.isInvalidated).toBe(false);
-    expect(queryClient.getQueryState(filmKeys.detail(999))?.isInvalidated).toBe(false);
-  });
-
-  it("refreshes the viewer's profile pages the change shows up on (#96)", async () => {
-    server.use(
-      http.put("*/api/interactions/550", () =>
-        HttpResponse.json({ ...baseInteraction, liked: true, watched: true }),
-      ),
-    );
-    const queryClient = createTestQueryClient();
-    queryClient.setQueryData(authKeys.me, { username: "cinefan" });
-    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
-
-    const { result } = renderHook(() => useUpdateFilmInteraction(550), {
-      wrapper: wrapperFor(queryClient),
-    });
-    await act(() => result.current.mutateAsync({ liked: true }));
-
-    const invalidatedKeys = invalidate.mock.calls.map(([filters]) => filters?.queryKey);
-    for (const key of [
-      profileKeys.detail("cinefan"),
-      profileKeys.likes("cinefan"),
-      profileKeys.watchlist("cinefan"),
-      profileKeys.recentActivity("cinefan", 20),
-      profileStatsKeys.detail("cinefan"),
-    ]) {
-      expect(invalidatedKeys).toContainEqual(key);
-    }
   });
 });

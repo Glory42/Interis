@@ -117,6 +117,7 @@ const makeInputs = (over: Partial<SeriesDetailInputs> = {}): SeriesDetailInputs 
   tmdbSimilar: [],
   userSeasonInteractions: [],
   viewerDiary: null,
+  viewerRating: null,
   viewerReview: null,
   viewerTracking: null,
   viewerUserId: null,
@@ -244,8 +245,8 @@ describe("assembleSeriesDetail", () => {
             id: "diary-1",
             watchedDate: "2026-02-02",
             rewatch: false,
-            rating: 9,
-          } as SeriesDetailInputs["viewerDiary"],
+          },
+          viewerRating: 9,
           viewerReview: {
             id: "review-1",
             content: "great",

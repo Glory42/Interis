@@ -12,7 +12,7 @@ import {
   shiftWatchedCountsInDetailViewCache,
 } from "@/features/tv/hooks/tv-cache.helper";
 import { invalidateViewerCurrentlyWatching } from "@/features/profile/hooks/useProfile";
-import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache.helper";
+import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache";
 import { seriesKeys } from "./query-keys";
 
 type CachedEpisode = SeriesSeasonDetailResponse["episodes"][number];

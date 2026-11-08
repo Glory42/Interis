@@ -12,18 +12,15 @@ import { isCardBackgroundClick } from "@/lib/card-click";
 
 const pad = (value: number) => String(value).padStart(2, "0");
 
-
+// The like mutations patch the feed cache, so the engagement here is already optimistic.
 const ReviewLike = ({ reviewId, engagement }: { reviewId: string; engagement: FeedTitleGroup["engagement"] }) => {
   const like = useLikeReview(reviewId);
   const unlike = useUnlikeReview(reviewId);
-  // Shown optimistically from the pending mutation; the feed refetches once it settles.
-  const isLiked = like.isPending ? true : unlike.isPending ? false : Boolean(engagement.viewerHasLiked);
-  const count =
-    engagement.likeCount + (like.isPending && !engagement.viewerHasLiked ? 1 : 0) - (unlike.isPending && engagement.viewerHasLiked ? 1 : 0);
+  const isLiked = Boolean(engagement.viewerHasLiked);
 
   return (
     <LikeButton
-      count={count}
+      count={engagement.likeCount}
       isLiked={isLiked}
       isPending={false}
       onToggle={() => (isLiked ? unlike.mutate() : like.mutate())}

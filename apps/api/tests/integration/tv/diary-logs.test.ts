@@ -7,6 +7,7 @@ import {
   type RunningTestServer,
 } from "../../support/app/test-server";
 
+// Reading Series logs. The log lifecycle is in watch-log/.
 describe("serials diary logs", () => {
   let testServer: RunningTestServer | null = null;
 
@@ -27,21 +28,7 @@ describe("serials diary logs", () => {
     testServer = null;
   });
 
-  it("requires auth to create a log", async () => {
-    const serial = await seedTestSeries();
-    const response = await apiRequest(
-      getServer().baseUrl,
-      `/api/serials/${serial.tmdbId}/log`,
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ watchedDate: "2026-01-01" }),
-      },
-    );
-    expect(response.status).toBe(401);
-  });
-
-  it("creates a log with a review and surfaces it in both 'my logs' and the series' logs", async () => {
+  it("surfaces a log with its review in both 'my logs' and the series' logs", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "dlog");
     const serial = await seedTestSeries("Diary Test Serial");
 
@@ -93,76 +80,6 @@ describe("serials diary logs", () => {
     expect(seriesLogs.some((log) => log.diaryEntryId === created.entry.id && log.username === username)).toBe(
       true,
     );
-  });
-
-  it("lets the owner update and delete a log, and hides other users' logs from mutation", async () => {
-    const owner = await signUpTestUser(getServer().baseUrl, "dlogo");
-    const intruder = await signUpTestUser(getServer().baseUrl, "dlogi");
-    const serial = await seedTestSeries();
-
-    const createResponse = await apiRequest(
-      getServer().baseUrl,
-      `/api/serials/${serial.tmdbId}/log`,
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ watchedDate: "2026-01-02", rating: 5 }),
-      },
-      owner.jar,
-    );
-    const created = (await createResponse.json()) as { entry: { id: string } };
-    const entryId = created.entry.id;
-
-    const intruderUpdate = await apiRequest(
-      getServer().baseUrl,
-      `/api/serials/logs/${entryId}`,
-      {
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ rating: 1 }),
-      },
-      intruder.jar,
-    );
-    expect(intruderUpdate.status).toBe(404);
-
-    const intruderDelete = await apiRequest(
-      getServer().baseUrl,
-      `/api/serials/logs/${entryId}`,
-      { method: "DELETE" },
-      intruder.jar,
-    );
-    expect(intruderDelete.status).toBe(404);
-
-    const ownerUpdate = await apiRequest(
-      getServer().baseUrl,
-      `/api/serials/logs/${entryId}`,
-      {
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ rating: 9 }),
-      },
-      owner.jar,
-    );
-    expect(ownerUpdate.status).toBe(200);
-    const updated = (await ownerUpdate.json()) as { rating: number };
-    expect(updated.rating).toBe(9);
-
-    const ownerDelete = await apiRequest(
-      getServer().baseUrl,
-      `/api/serials/logs/${entryId}`,
-      { method: "DELETE" },
-      owner.jar,
-    );
-    expect(ownerDelete.status).toBe(200);
-
-    const myLogsAfterDelete = await apiRequest(
-      getServer().baseUrl,
-      "/api/serials/logs",
-      {},
-      owner.jar,
-    );
-    const logsAfterDelete = (await myLogsAfterDelete.json()) as Array<{ id: string }>;
-    expect(logsAfterDelete.some((log) => log.id === entryId)).toBe(false);
   });
 
   it("bounds 'my logs' with limit/offset instead of returning everything", async () => {

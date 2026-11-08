@@ -1,6 +1,7 @@
 import { ReviewsService } from "../reviews/reviews.service";
 import { PostsService } from "../posts/posts.service";
-import { NotificationsService } from "../notifications/notifications.service";
+import { ListsService } from "../lists/lists.service";
+import type { ContentRemoval } from "../../commons/types/content-removal.types";
 import { ReportTargetsRepository } from "./repositories/report-targets.repository";
 import {
   ReportsRepository,
@@ -10,6 +11,7 @@ import {
 } from "./repositories/reports.repository";
 
 const CONTENT_SNAPSHOT_MAX_LENGTH = 2000;
+const REMOVAL_NOTICE_EXCERPT_LENGTH = 140;
 
 const TARGET_LABEL: Record<ReportTargetType, string> = {
   review: "Review",
@@ -25,10 +27,13 @@ const snapshotOf = async (targetType: ReportTargetType, targetId: string): Promi
   return ReportTargetsRepository.snapshot(targetType, targetId);
 };
 
-const removeTarget = async (targetType: ReportTargetType, targetId: string): Promise<void> => {
-  if (targetType === "review") await ReviewsService.deleteById(targetId);
-  else if (targetType === "post") await PostsService.deleteById(targetId);
-  else await ReportTargetsRepository.remove(targetType, targetId);
+// Each content module's own remove op retracts the activity and sends the notice.
+const removeTarget = async (targetType: ReportTargetType, targetId: string, removal: ContentRemoval) => {
+  if (targetType === "review") return ReviewsService.remove(targetId, removal);
+  if (targetType === "post") return PostsService.remove(targetId, removal);
+  if (targetType === "comment") return ReviewsService.removeComment(targetId, removal);
+  if (targetType === "post_comment") return PostsService.removeComment(targetId, removal);
+  return ListsService.remove(targetId, removal);
 };
 
 export class ReportsService {
@@ -84,16 +89,10 @@ export class ReportsService {
       return { error: "Report not found", status: 404 };
     }
 
-    // Looked up before the delete, which takes the author link with it.
-    const authorId = options.notifyAuthor ? await ReportTargetsRepository.authorOf(report.targetType, report.targetId) : null;
-    await removeTarget(report.targetType, report.targetId);
-    if (authorId) {
-      await NotificationsService.notifyOfRemoval({
-        recipientId: authorId,
-        entityId: report.targetId,
-        metadata: { targetType: report.targetType, reason: options.reason, excerpt: report.contentSnapshot.slice(0, 140) },
-      });
-    }
+    const notice = options.notifyAuthor
+      ? { reason: options.reason, excerpt: report.contentSnapshot.slice(0, REMOVAL_NOTICE_EXCERPT_LENGTH) }
+      : undefined;
+    await removeTarget(report.targetType, report.targetId, { by: "moderator", notice });
 
     await ReportsRepository.resolvePendingForTarget(report.targetType, report.targetId, adminUserId);
     return { success: true };

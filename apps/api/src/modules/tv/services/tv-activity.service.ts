@@ -1,13 +1,6 @@
-import type {
-  CreateSeriesLogDto,
-  DeleteSeriesLogQueryDto,
-  UpdateSeriesInteractionDto,
-  UpdateSeriesLogDto,
-} from "../dto/tv.dto";
-import { buildDiaryEntryExtraMetadata } from "../helpers/tv-activity.helper";
+import type { UpdateSeriesInteractionDto } from "../dto/tv.dto";
 import { ActivityRecorder } from "../../social/services/activity-recorder.service";
 import { TvInteractionsRepository } from "../repositories/tv-interactions.repository";
-import { TvReviewsRepository } from "../repositories/tv-reviews.repository";
 import { TvCacheService } from "./tv-cache.service";
 import { TvEpisodeInteractionsRepository } from "../repositories/tv-episode-interactions.repository";
 import { TvSeasonInteractionsRepository } from "../repositories/tv-season-interactions.repository";
@@ -19,7 +12,7 @@ export class TvActivityService {
   // Every regular season's episode numbers, resolved before any write so a
   // TMDB failure fails "mark series watched" / "log" outright instead of
   // saving some seasons and not others (#69).
-  private static async resolveSeasonEpisodeNumbers(series: {
+  static async resolveSeasonEpisodeNumbers(series: {
     tmdbId: number;
     numberOfSeasons: number | null;
   }): Promise<Map<number, number[]>> {
@@ -35,11 +28,9 @@ export class TvActivityService {
     return new Map(seasonNumbers.map((seasonNumber, index) => [seasonNumber, episodeNumbers[index]!]));
   }
 
-  // Shared by updateInteraction (the sidebar "Watch" toggle) and createLog
-  // (the "Log" modal) - both are ways for the user to say "I watched this
-  // series," so both must cascade the same watched state down to every
-  // season/episode instead of only flipping the series-level flag.
-  private static async cascadeSeasonsWatched(
+  // The sidebar "Watch" toggle and a Series log both say "I watched this", so
+  // both cascade it to every season/episode, not just the series flag.
+  static async cascadeSeasonsWatched(
     userId: string,
     series: { id: number; tmdbId: number },
     seasonEpisodeNumbers: Map<number, number[]> | null,
@@ -192,112 +183,13 @@ export class TvActivityService {
     );
   }
 
-  static async createLog(userId: string, tmdbId: number, input: CreateSeriesLogDto) {
-    const series = await TvCacheService.findOrCreate(tmdbId);
-    if (!series) {
-      return null;
-    }
-
-    const rating = input.rating ?? null;
-    const rewatch = input.rewatch ?? false;
-    const seasonEpisodeNumbers = await TvActivityService.resolveSeasonEpisodeNumbers(series);
-
-    const entry = await TvInteractionsRepository.insertDiaryEntry({
-      userId,
-      seriesId: series.id,
-      watchedDate: input.watchedDate,
-      rating: rating,
-      rewatch,
-    });
-
-    if (!entry) {
-      throw new Error("Failed to create serial diary entry");
-    }
-
-    const reviewContent = input.review?.trim();
-
-    let review:
-      | {
-          id: string;
-          content: string;
-          containsSpoilers: boolean;
-        }
-      | null = null;
-
-    if (reviewContent) {
-      review = await TvReviewsRepository.createReview({
-        userId,
-        seriesTmdbId: series.tmdbId,
-        diaryEntryId: entry.id,
-        content: reviewContent,
-        containsSpoilers: input.containsSpoilers ?? false,
-      });
-    }
-
-    ActivityRecorder.recordMedia({
-      userId,
-      subject: { kind: "series", series },
-      type: "diary_entry",
-      entityId: entry.id,
-      extraMetadata: buildDiaryEntryExtraMetadata({ rating, rewatch, review }),
-    });
-
-    await Promise.all([
-      TvWatchStatusService.setStatus(userId, series.id, "completed"),
-      TvActivityService.cascadeSeasonsWatched(userId, series, seasonEpisodeNumbers),
-      rating !== null ? TvActivityService.syncRatingFromLog(userId, series.id, entry.id) : null,
-    ]);
-
-    return { entry, series, review };
-  }
-
   static async getMyLogs(userId: string, limit?: number, offset?: number) {
     return TvInteractionsRepository.findAllDiaryByUser(userId, limit, offset);
   }
 
-  static async updateLog(entryId: string, userId: string, input: UpdateSeriesLogDto) {
-    const updated = await TvInteractionsRepository.updateDiaryEntry(entryId, userId, {
-      watchedDate: input.watchedDate,
-      rating: input.rating,
-      rewatch: input.rewatch,
-    });
-    if (!updated) return null;
-
-    ActivityRecorder.invalidateFeeds(userId);
-    if (updated.rating !== null && (input.rating !== undefined || input.watchedDate !== undefined)) {
-      await TvActivityService.syncRatingFromLog(userId, updated.seriesId, updated.id);
-    }
-    return updated;
-  }
-
-  // "Your rating" follows the latest rated log (#91). A log only sets it
-  // when it is that log, so logging or editing an older watch leaves it.
-  private static async syncRatingFromLog(userId: string, seriesId: number, entryId: string) {
-    const latest = await TvInteractionsRepository.findLatestRatedLog(userId, seriesId);
-    if (latest?.id === entryId && latest.rating !== null) {
-      await TvInteractionsRepository.setRating(userId, seriesId, latest.rating);
-    }
-  }
-
-  // `unwatch` also unmarks the series and every episode, but only once no
-  // log of it is left: another log still says it was watched (#88).
-  static async deleteLog(entryId: string, userId: string, options: DeleteSeriesLogQueryDto = {}) {
-    const deleted = await TvInteractionsRepository.deleteDiaryEntry(entryId, userId);
-    if (!deleted) return null;
-
-    const unwatch =
-      options.unwatch === true &&
-      !(await TvInteractionsRepository.hasLogOfSeries(userId, deleted.seriesId));
-    await Promise.all([
-      ActivityRecorder.retract({ userId, type: "diary_entry", entityId: deleted.id }),
-      unwatch ? TvActivityService.unwatchSeries(userId, deleted.seriesId) : null,
-    ]);
-    return { ...deleted, unwatched: unwatch };
-  }
-
   // The same end state as the sidebar "Watch" toggle turned off: no season or
   // episode marked, no watch status. Like and rating stay.
-  private static async unwatchSeries(userId: string, seriesId: number) {
+  static async unwatchSeries(userId: string, seriesId: number) {
     await Promise.all([
       TvEpisodeInteractionsRepository.unwatchAllForSeries(userId, seriesId),
       TvSeasonInteractionsRepository.unwatchAllForSeries(userId, seriesId),
@@ -305,6 +197,15 @@ export class TvActivityService {
     await Promise.all([
       TvInteractionsRepository.upsertInteraction({ userId, seriesId, watched: false }),
       TvWatchStatusService.setStatus(userId, seriesId, null),
+    ]);
+  }
+
+  // A review says it was watched, so it leaves the Watchlist as a Film does,
+  // but a review mid-season mustn't knock the series off "watching".
+  static async markReviewed(userId: string, seriesId: number) {
+    await Promise.all([
+      TvWatchStatusService.markCompletedIfUntracked(userId, seriesId),
+      TvInteractionsRepository.upsertInteraction({ userId, seriesId, watched: true }),
     ]);
   }
 

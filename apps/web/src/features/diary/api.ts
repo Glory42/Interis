@@ -36,6 +36,9 @@ export type UpdateDiaryEntryInput = {
   watchedDate?: string;
   rating?: number | null;
   rewatch?: boolean;
+  // Text writes the attached Review, null or blank deletes it, omitted leaves it.
+  review?: string | null;
+  containsSpoilers?: boolean;
 };
 
 export const updateDiaryEntry = async (

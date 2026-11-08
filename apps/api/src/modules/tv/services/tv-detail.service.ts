@@ -13,7 +13,8 @@ import {
   toNullableTrimmedText,
 } from "../helpers/tv-normalization.helper";
 import { loadReviewEngagement } from "../../media/helpers/review-engagement.helper";
-import { TvInteractionsRepository } from "../repositories/tv-interactions.repository";
+import { WatchLogStores } from "../../media/repositories/watch-log.repository";
+import { YourRatingService } from "../../media-interactions/services/your-rating.service";
 import { TvReviewsRepository } from "../repositories/tv-reviews.repository";
 import { TvSeasonEpisodeReviewsRepository } from "../repositories/tv-season-episode-reviews.repository";
 import { resolveSeasonEpisodeReviewItems } from "../helpers/tv-review-context.helper";
@@ -214,7 +215,7 @@ export class TvDetailService {
         offset: reviewsOffset,
       }),
       tmdbClient.getSimilar(input.tmdbId).catch(() => []),
-      TvInteractionsRepository.getCommunityRatingsBySeriesId(cachedSeries.id),
+      YourRatingService.communityRatings("tv", cachedSeries.id),
       TvSeasonEpisodeReviewsRepository.getReviewRowsBySeriesId(input.tmdbId, cachedSeries.id),
     ]);
     const { rows: reviewRows, totalCount: reviewsTotalCount } = reviewsPage;
@@ -239,10 +240,11 @@ export class TvDetailService {
 
     // Only viewerTracking depends on userSeasonInteractions, so the other
     // two fetches run concurrent with it instead of sequentially.
-    const [[viewerDiaryRow, viewerReviewRow], userSeasonInteractions] = viewerUserId
+    const [[viewerDiary, viewerRating, viewerReviewRow], userSeasonInteractions] = viewerUserId
       ? await Promise.all([
           Promise.all([
-            TvInteractionsRepository.getViewerDiaryRows(viewerUserId, cachedSeries.id),
+            WatchLogStores.series.findLatest(viewerUserId, cachedSeries.id),
+            YourRatingService.resolve("tv", viewerUserId, cachedSeries.id),
             TvReviewsRepository.getViewerReviewRows(viewerUserId, cachedSeries.id),
           ]),
           TvSeasonInteractionsRepository.getViewerSeasonInteractions(
@@ -251,7 +253,7 @@ export class TvDetailService {
             cachedSeries.tmdbId,
           ),
         ])
-      : [[[], []], []];
+      : [[null, null, []], []];
 
     const viewerTracking = viewerUserId
       ? await calculateViewerTracking(
@@ -276,7 +278,8 @@ export class TvDetailService {
       communityRatings,
       tmdbSimilar,
       userSeasonInteractions,
-      viewerDiary: viewerDiaryRow[0] ?? null,
+      viewerDiary,
+      viewerRating,
       viewerReview: viewerReviewRow[0] ?? null,
       viewerTracking,
       viewerUserId,

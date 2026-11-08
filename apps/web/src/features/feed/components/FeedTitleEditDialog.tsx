@@ -1,6 +1,7 @@
-import { EditLogDialog } from "@/features/diary/components/EditLogDialog";
 import { FeedReviewEditDialog } from "@/features/feed/components/FeedReviewEditDialog";
 import type { FeedTitleGroup } from "@/features/feed/types";
+import { LogEditor } from "@/features/media/log-editor/LogEditor";
+import { toMediaKind } from "@/features/media/media-refresh";
 
 type FeedTitleEditDialogProps = {
   group: FeedTitleGroup;
@@ -14,17 +15,22 @@ export const FeedTitleEditDialog = ({ group, onClose }: FeedTitleEditDialogProps
 
   if (log) {
     return (
-      <EditLogDialog
+      <LogEditor
         isOpen
         onClose={onClose}
-        log={{
-          ...log,
-          mediaType: movie.mediaType === "tv" ? "tv" : "movie",
+        subject={{
+          type: "existing",
+          kind: toMediaKind(movie.mediaType),
           tmdbId: movie.tmdbId,
           title: movie.title,
-          hasReview: review !== null,
+          year: movie.releaseYear,
+          posterPath: movie.posterPath,
+          logId: log.id,
+          watchedDate: log.watchedDate,
+          rating: log.rating,
+          rewatch: log.rewatch,
+          review: review && { id: review.id, content: review.content, containsSpoilers: review.containsSpoilers },
         }}
-        review={review}
       />
     );
   }

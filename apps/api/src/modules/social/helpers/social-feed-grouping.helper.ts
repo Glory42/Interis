@@ -1,19 +1,17 @@
+import { FEED_KINDS } from "./feed-kinds/feed-kind.registry";
 import type {
   FeedItem,
   FeedTitleGroup,
   GroupedFeedEntry,
 } from "../types/social-feed.types";
 
-const TITLE_ACTIVITY_TYPES = new Set(["diary_entry", "review", "liked_movie", "watchlisted_movie"]);
-const LIKE_KINDS = new Set(["liked_review", "liked_comment", "liked_post"]);
-
 export const toUtcDayKey = (date: Date): string => date.toISOString().slice(0, 10);
 
 const isLikeOfOwnContent = (item: FeedItem): boolean =>
-  LIKE_KINDS.has(item.kind) && item.metadata.targetUsername === item.actor.username;
+  FEED_KINDS[item.kind].isLike === true && item.metadata.targetUsername === item.actor.username;
 
 const groupKey = (item: FeedItem): string | null => {
-  if (!item.movie || !TITLE_ACTIVITY_TYPES.has(item.type)) {
+  if (!item.movie || !FEED_KINDS[item.kind].joinTitleGroup) {
     return null;
   }
 
@@ -49,30 +47,7 @@ const startGroup = (item: FeedItem): FeedTitleGroup => ({
 // Items arrive newest first, so the first value seen for a field is the latest one.
 const addToGroup = (group: FeedTitleGroup, item: FeedItem): void => {
   group.itemIds.push(item.id);
-
-  if (item.type === "diary_entry") {
-    group.watched = true;
-    group.rewatch = group.rewatch || item.metadata.rewatch === true;
-    const { logId, watchedDate } = item.metadata;
-    if (!group.log && logId && watchedDate) {
-      group.log = {
-        id: logId,
-        watchedDate,
-        rating: item.metadata.rating,
-        rewatch: item.metadata.rewatch === true,
-      };
-    }
-  }
-
-  // Ratings are recorded as liked_movie rows that carry a rating.
-  const isRating = item.type === "liked_movie" && item.metadata.rating !== null;
-  if (item.type === "liked_movie" && !isRating) {
-    group.liked = true;
-  }
-  if (item.type === "watchlisted_movie") {
-    group.watchlisted = true;
-  }
-
+  FEED_KINDS[item.kind].joinTitleGroup?.(group, item);
   group.rating ??= item.metadata.rating ?? item.review?.rating ?? null;
 
   if (!group.review && item.review) {

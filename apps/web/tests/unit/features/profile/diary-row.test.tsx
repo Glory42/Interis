@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "../../../support/msw/server";
 import { renderWithProviders } from "../../../support/render/render-with-providers";
 import { DiaryRow } from "@/features/profile/components/diary/DiaryRow";
 import type { DiaryRow as DiaryRowModel } from "@/features/profile/components/diary/diary-model";
@@ -11,11 +14,10 @@ const row = (overrides: Partial<DiaryRowModel> = {}): DiaryRowModel => ({
   posterPath: null,
   tmdbId: 7,
   releaseYear: 2026,
-  createdAt: "2026-10-28",
+  watchedDate: "2026-10-28",
   rating: 7.5,
   rewatch: true,
-  reviewId: "r1",
-  hasReview: true,
+  review: { id: "r1", content: "Loud and lovely.", containsSpoilers: false },
   isLiked: true,
   dateParts: { month: "OCT", day: "28", year: "2026", monthKey: "2026-10" },
   showMonthCell: true,
@@ -48,5 +50,19 @@ describe("DiaryRow", () => {
   it("gives the owner ⋯ to edit the log", async () => {
     renderWithProviders(<DiaryRow row={row()} username="glory42" isOwner />);
     expect(await screen.findByRole("button", { name: "Edit log of Godzilla Minus Zero" })).toBeInTheDocument();
+  });
+
+  it("opens the owner's log with the Review written with it", async () => {
+    server.use(
+      http.get("*/api/interactions/:tmdbId", () =>
+        HttpResponse.json({ liked: true, watchlisted: false, rating: 7.5, watched: true }),
+      ),
+    );
+    renderWithProviders(<DiaryRow row={row()} username="glory42" isOwner />);
+
+    await userEvent.click(await screen.findByRole("button", { name: "Edit log of Godzilla Minus Zero" }));
+
+    expect(screen.getByRole("dialog", { name: /Edit log · Film · 2026/ })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Review" })).toHaveValue("Loud and lovely.");
   });
 });

@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "../../../support/msw/server";
 import { QueryClient } from "@tanstack/react-query";
 import { authKeys } from "@/features/auth/hooks/useAuth";
 import { renderWithProviders } from "../../../support/render/render-with-providers";
@@ -166,6 +168,14 @@ describe("FeedTitleCard on your own review", () => {
   });
 
   it("edits the whole log, review included, when the card has one", async () => {
+    server.use(
+      http.get("*/api/interactions/:tmdbId", () =>
+        HttpResponse.json({ liked: false, watchlisted: false, rating: 8, watched: true }),
+      ),
+      http.get("*/api/serials/:tmdbId/interaction", () =>
+        HttpResponse.json({ liked: false, watchlisted: false, rating: 8, watched: true }),
+      ),
+    );
     const user = userEvent.setup();
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     queryClient.setQueryData(authKeys.me, { id: "user_1", username: "cinefan" });
@@ -176,8 +186,8 @@ describe("FeedTitleCard on your own review", () => {
     renderWithProviders(<FeedTitleCard group={mine} />, { queryClient });
 
     await user.click(await screen.findByRole("button", { name: "Edit" }));
-    expect(await screen.findByText("EDIT LOG & REVIEW")).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: /watched this before/i })).not.toBeChecked();
+    expect(await screen.findByRole("dialog", { name: /^Edit log/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /First watch/ })).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByRole("textbox", { name: "Review" })).toHaveValue(
       "Dc character when someone is not happly married",
     );

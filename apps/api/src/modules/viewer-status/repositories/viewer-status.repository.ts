@@ -7,6 +7,7 @@ import {
   seriesInteractions,
   tvSeries,
 } from "../../tv/tv.entity";
+import { YourRatingRepository } from "../../media-interactions/repositories/your-rating.repository";
 
 export class ViewerStatusRepository {
   static async findMovieStatuses(userId: string, tmdbIds: number[]) {
@@ -14,7 +15,7 @@ export class ViewerStatusRepository {
       .select({
         tmdbId: films.tmdbId,
         watched: filmInteractions.isWatched,
-        rating: filmInteractions.rating,
+        rating: YourRatingRepository.resolveSql("movie", userId, films.id),
         liked: filmInteractions.liked,
         watchlisted: filmInteractions.watchlisted,
       })
@@ -30,7 +31,7 @@ export class ViewerStatusRepository {
         tmdbId: tvSeries.tmdbId,
         totalEpisodes: tvSeries.numberOfEpisodes,
         watchStatus: seriesInteractions.watchStatus,
-        rating: seriesInteractions.rating,
+        rating: YourRatingRepository.resolveSql("tv", userId, tvSeries.id),
         liked: seriesInteractions.liked,
         watchlisted: seriesInteractions.watchlisted,
       })

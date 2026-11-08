@@ -10,7 +10,7 @@ export class AdminCommunityService {
   }
 
   static async deleteList(listId: string) {
-    return ListsService.deleteForAdmin(listId);
+    return { deleted: (await ListsService.remove(listId, { by: "moderator" })) !== null };
   }
 
   static async listActivities(

@@ -1,62 +1,38 @@
-import { parseMetadata, readString } from "./social-feed-metadata.helper";
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const isUuid = (s: string) => UUID_RE.test(s);
-import {
-  resolveFilmFallbackId,
-  resolvePostFallbackId,
-  resolveReviewId,
-  toFeedMetadata,
-} from "./social-feed-resolvers.helper";
 import { SocialFeedRepository } from "../repositories/social-feed.repository";
 import { SocialRepository } from "../repositories/social.repository";
 import type {
-  ActivityRow,
   FeedEngagement,
-  FeedFallbackMediaContext,
   PostEngagement,
   ReviewContext,
   ReviewFeedContext,
 } from "../types/social-feed.types";
+import type { FeedContext, FeedIds } from "../types/social-feed-kind.types";
 
-export const buildReviewContext = async (
-  rows: ActivityRow[],
+export const emptyFeedIds = (): FeedIds => ({
+  reviews: new Set(),
+  logs: new Set(),
+  posts: new Set(),
+  films: new Set(),
+  lists: new Set(),
+  users: new Set(),
+  reviewComments: new Set(),
+  postComments: new Set(),
+  likedActivities: new Set(),
+});
+
+const byId = <Row extends { id: string | number }>(rows: Row[]) =>
+  new Map<Row["id"], Row>(rows.map((row) => [row.id, row]));
+
+// Reviews named by id or attached to a loaded log, with their likes and comment counts.
+const loadReviews = async (
+  reviewIds: string[],
+  logIds: string[],
   viewerId?: string,
 ): Promise<ReviewContext> => {
-  const reviewIds = new Set<string>();
-  const diaryEntryIds = new Set<string>();
-
-  for (const row of rows) {
-    const metadata = toFeedMetadata(parseMetadata(row.activity.metadata));
-    const reviewId = resolveReviewId(row.activity, metadata);
-
-    if (reviewId) {
-      reviewIds.add(reviewId);
-    }
-
-    if (row.activity.type === "diary_entry" && isUuid(row.activity.entityId)) {
-      diaryEntryIds.add(row.activity.entityId);
-    }
-  }
-
-  if (reviewIds.size === 0 && diaryEntryIds.size === 0) {
-    return {
-      byReviewId: new Map(),
-      byDiaryEntryId: new Map(),
-    };
-  }
-
-  const reviewRows = await SocialFeedRepository.getReviewRowsByReviewOrDiaryIds(
-    [...reviewIds],
-    [...diaryEntryIds],
-  );
-
+  const reviewRows = await SocialFeedRepository.getReviewRowsByReviewOrDiaryIds(reviewIds, logIds);
   const hydratedReviewIds = reviewRows.map((row) => row.id);
   if (hydratedReviewIds.length === 0) {
-    return {
-      byReviewId: new Map(),
-      byDiaryEntryId: new Map(),
-    };
+    return { byReviewId: new Map(), byDiaryEntryId: new Map() };
   }
 
   const [reviewLikeRows, commentRows, viewerLikeRows] = await Promise.all([
@@ -95,47 +71,23 @@ export const buildReviewContext = async (
     };
 
     byReviewId.set(row.id, context);
-
     if (row.diaryEntryId) {
       byDiaryEntryId.set(row.diaryEntryId, context);
     }
   }
 
-  return {
-    byReviewId,
-    byDiaryEntryId,
-  };
+  return { byReviewId, byDiaryEntryId };
 };
 
-export const buildPostEngagementContext = async (
-  rows: ActivityRow[],
-  viewerId?: string,
-): Promise<Map<string, PostEngagement>> => {
-  const postIds = new Set<string>();
-
-  for (const row of rows) {
-    const metadata = parseMetadata(row.activity.metadata);
-    const postIdFromMetadata = readString(metadata, "postId");
-
-    if (row.activity.type !== "post" && !postIdFromMetadata) {
-      continue;
-    }
-
-    const postId = postIdFromMetadata ?? row.activity.entityId;
-    postIds.add(postId);
-  }
-
-  if (postIds.size === 0) {
+const loadPostEngagement = async (postIds: string[], viewerId?: string): Promise<Map<string, PostEngagement>> => {
+  if (postIds.length === 0) {
     return new Map();
   }
 
-  const uniquePostIds = [...postIds];
   const [postLikeRows, postCommentRows, viewerPostLikeRows] = await Promise.all([
-    SocialFeedRepository.getPostLikeCountRows(uniquePostIds),
-    SocialFeedRepository.getPostCommentCountRows(uniquePostIds),
-    viewerId
-      ? SocialFeedRepository.getViewerPostLikeRows(viewerId, uniquePostIds)
-      : Promise.resolve([]),
+    SocialFeedRepository.getPostLikeCountRows(postIds),
+    SocialFeedRepository.getPostCommentCountRows(postIds),
+    viewerId ? SocialFeedRepository.getViewerPostLikeRows(viewerId, postIds) : Promise.resolve([]),
   ]);
 
   const likeCountsByPostId = new Map(postLikeRows.map((row) => [row.postId, row.count]));
@@ -143,7 +95,7 @@ export const buildPostEngagementContext = async (
   const viewerLikedPostIds = new Set(viewerPostLikeRows.map((row) => row.postId));
 
   return new Map(
-    uniquePostIds.map((postId) => [
+    postIds.map((postId) => [
       postId,
       {
         likeCount: likeCountsByPostId.get(postId) ?? 0,
@@ -154,91 +106,21 @@ export const buildPostEngagementContext = async (
   );
 };
 
-// Batches the per-row post/movie fallback lookups (used when an activity's
-// metadata doesn't already embed the full movie/post data) and the live
-// diary entries and lists behind diary_entry / created_list rows into one
-// round of queries instead of one query per feed row.
-export const buildFeedFallbackMediaContext = async (
-  rows: ActivityRow[],
-  reviewContext: ReviewContext,
-): Promise<FeedFallbackMediaContext> => {
-  const postIds = new Set<string>();
-  const movieIds = new Set<number>();
-  const diaryEntryIds = new Set<string>();
-  const listIds = new Set<string>();
-  const followedUserIds = new Set<string>();
-
-  for (const row of rows) {
-    if (row.activity.type === "followed_user") {
-      followedUserIds.add(row.activity.entityId);
-    }
-    if (row.activity.type === "diary_entry" && isUuid(row.activity.entityId)) {
-      diaryEntryIds.add(row.activity.entityId);
-    }
-    if (row.activity.type === "created_list" && isUuid(row.activity.entityId)) {
-      listIds.add(row.activity.entityId);
-    }
-
-    const rawMetadata = parseMetadata(row.activity.metadata);
-    const metadata = toFeedMetadata(rawMetadata);
-
-    const postId = resolvePostFallbackId(rawMetadata, row.activity);
-    if (postId) {
-      postIds.add(postId);
-    }
-
-    const reviewId = resolveReviewId(row.activity, metadata);
-    const reviewDetails =
-      (reviewId ? reviewContext.byReviewId.get(reviewId) : null) ??
-      (row.activity.type === "diary_entry"
-        ? reviewContext.byDiaryEntryId.get(row.activity.entityId)
-        : null);
-
-    if (!reviewDetails?.movie) {
-      const movieId = resolveFilmFallbackId(rawMetadata, row.activity, metadata);
-      if (movieId !== null) {
-        movieIds.add(movieId);
-      }
-    }
-  }
-
-  const [postRows, movieRows, diaryEntryRows, listRows, userRows] = await Promise.all([
-    SocialFeedRepository.getPostsByIds([...postIds]),
-    SocialFeedRepository.getMoviesByIds([...movieIds]),
-    SocialFeedRepository.getDiaryEntriesByIds([...diaryEntryIds]),
-    SocialFeedRepository.getListsByIds([...listIds]),
-    SocialFeedRepository.getUsersByIds([...followedUserIds]),
-  ]);
-
-  return {
-    postsById: new Map(postRows.map((post) => [post.id, post])),
-    moviesById: new Map(movieRows.map((movie) => [movie.id, movie])),
-    diaryEntriesById: new Map(diaryEntryRows.map((entry) => [entry.id, entry])),
-    listsById: new Map(listRows.map((list) => [list.id, list])),
-    usersById: new Map(userRows.map((row) => [row.id, row])),
-  };
-};
-
-const REVIEW_TYPES = new Set(["diary_entry", "review", "liked_review", "commented"]);
-const POST_TYPES = new Set(["post"]);
-
-export const buildActivityEngagementContext = async (
-  rows: ActivityRow[],
+const loadActivityEngagement = async (
+  activityIds: string[],
   viewerId?: string,
 ): Promise<Map<string, FeedEngagement>> => {
-  const activityIds = rows
-    .filter((r) => !REVIEW_TYPES.has(r.activity.type) && !POST_TYPES.has(r.activity.type))
-    .map((r) => r.activity.id);
-
-  if (activityIds.length === 0) return new Map();
+  if (activityIds.length === 0) {
+    return new Map();
+  }
 
   const [likeCounts, viewerLikes] = await Promise.all([
     SocialRepository.getActivityLikeCounts(activityIds),
     viewerId ? SocialRepository.getViewerActivityLikes(viewerId, activityIds) : Promise.resolve([]),
   ]);
 
-  const likeCountById = new Map(likeCounts.map((r) => [r.activityId, r.count]));
-  const viewerLikedIds = new Set(viewerLikes.map((r) => r.activityId));
+  const likeCountById = new Map(likeCounts.map((row) => [row.activityId, row.count]));
+  const viewerLikedIds = new Set(viewerLikes.map((row) => row.activityId));
 
   return new Map(
     activityIds.map((id) => [
@@ -250,4 +132,45 @@ export const buildActivityEngagementContext = async (
       } satisfies FeedEngagement,
     ]),
   );
+};
+
+// One round of batched queries for a whole page, one per table, in parallel.
+export const loadFeedContext = async (ids: FeedIds, viewerId?: string): Promise<FeedContext> => {
+  const postIds = [...ids.posts];
+  const [
+    reviews,
+    postEngagement,
+    activityEngagement,
+    postRows,
+    filmRows,
+    logRows,
+    listRows,
+    userRows,
+    reviewCommentRows,
+    postCommentRows,
+  ] = await Promise.all([
+    loadReviews([...ids.reviews], [...ids.logs], viewerId),
+    loadPostEngagement(postIds, viewerId),
+    loadActivityEngagement([...ids.likedActivities], viewerId),
+    SocialFeedRepository.getPostsByIds(postIds),
+    SocialFeedRepository.getMoviesByIds([...ids.films]),
+    SocialFeedRepository.getDiaryEntriesByIds([...ids.logs]),
+    SocialFeedRepository.getListsByIds([...ids.lists]),
+    SocialFeedRepository.getUsersByIds([...ids.users]),
+    SocialFeedRepository.getReviewCommentsByIds([...ids.reviewComments]),
+    SocialFeedRepository.getPostCommentsByIds([...ids.postComments]),
+  ]);
+
+  return {
+    reviews,
+    posts: byId(postRows),
+    postEngagement,
+    films: byId(filmRows),
+    logs: byId(logRows),
+    lists: byId(listRows),
+    users: byId(userRows),
+    reviewComments: byId(reviewCommentRows),
+    postComments: byId(postCommentRows),
+    activityEngagement,
+  };
 };

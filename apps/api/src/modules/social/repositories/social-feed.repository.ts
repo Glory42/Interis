@@ -264,6 +264,23 @@ export class SocialFeedRepository {
       .where(inArray(lists.id, listIds));
   }
 
+  // Live text for commented activities; a missing id is a deleted comment.
+  static async getReviewCommentsByIds(commentIds: string[]) {
+    if (commentIds.length === 0) return [];
+    return db
+      .select({ id: comments.id, content: comments.content })
+      .from(comments)
+      .where(inArray(comments.id, commentIds));
+  }
+
+  static async getPostCommentsByIds(commentIds: string[]) {
+    if (commentIds.length === 0) return [];
+    return db
+      .select({ id: postComments.id, content: postComments.content })
+      .from(postComments)
+      .where(inArray(postComments.id, commentIds));
+  }
+
   // Live usernames for followed_user activities; a missing id is a deleted
   // account.
   static async getUsersByIds(userIds: string[]) {

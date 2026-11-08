@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isoDateSchema } from "../../../commons/validation/common.schemas";
+import { REVIEW_MAX_LENGTH, watchLogReviewEditShape } from "../../media/dto/watch-log.dto";
 import { USER_SET_WATCH_STATUSES } from "../constants/tv-watch-status.constants";
 import {
   DEFAULT_ARCHIVE_LIMIT,
@@ -240,14 +241,15 @@ export const CreateSeriesLogSchema = z.object({
   watchedDate: isoDateSchema,
   rating: ratingSchema.optional(),
   rewatch: z.boolean().optional(),
-  review: z.string().max(5000).optional(),
+  review: z.string().max(REVIEW_MAX_LENGTH).optional(),
   containsSpoilers: z.boolean().optional(),
 });
 
 export const UpdateSeriesLogSchema = z.object({
   watchedDate: isoDateSchema.optional(),
-  rating: z.number().min(0.5).max(10).multipleOf(0.5).nullable().optional(),
+  rating: ratingSchema.nullable().optional(),
   rewatch: z.boolean().optional(),
+  ...watchLogReviewEditShape,
 });
 
 // DELETE /api/serials/logs/:id?unwatch=true also unmarks the series and its
