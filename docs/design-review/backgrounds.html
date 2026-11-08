@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en" data-theme="nitrate">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PROTOTYPE · Interis backgrounds (ideas 1–6)</title>
+<!-- Throwaway prototype: compares six theme-aware background ideas. Not production code. -->
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Playfair+Display:wght@600;700&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet" />
+<style>
+/* ---------- Theme tokens (copied from apps/web/src/index.css) ---------- */
+:root[data-theme="rose-pine"]{--bg:#191724;--fg:#e0def4;--card:#1f1d2e;--primary:#c4a7e7;--pfg:#191724;--muted:#908caa;--border:#494756;--line:rgba(224,222,244,.12);--film:#ebbcba;--series:#9ccfd8;--like:#eb6f92;--grain:.18;--display:"Space Grotesk",sans-serif;--slate:#000;--slate-fg:#8a8a8a;--light:0}
+:root[data-theme="null-log"]{--bg:#000;--fg:#e6e6e6;--card:#0a0a0a;--primary:#00ff88;--pfg:#001a0d;--muted:#9a9a9a;--border:#3d3d3d;--line:rgba(255,255,255,.11);--film:#ffb000;--series:#00cfff;--like:#ff4d6d;--grain:.22;--display:"Space Grotesk",sans-serif;--slate:#000;--slate-fg:#8a8a8a;--light:0}
+:root[data-theme="nitrate"]{--bg:#14100c;--fg:#efe4d2;--card:#1c1712;--primary:#f2a33a;--pfg:#1a1108;--muted:#ab9c86;--border:#49433c;--line:rgba(239,228,210,.12);--film:#e2765a;--series:#7fb8ad;--like:#f0708a;--grain:.3;--display:"Space Grotesk",sans-serif;--slate:#000;--slate-fg:#8a8a8a;--light:0}
+:root[data-theme="marquee"]{--bg:#faf6ee;--fg:#2b211a;--card:#fff;--primary:#b8123a;--pfg:#fffaf0;--muted:#6b5b4a;--border:#c4bfb7;--line:rgba(43,33,26,.12);--film:#9a5b12;--series:#0f766e;--like:#b8123a;--grain:.12;--display:"Playfair Display",Georgia,serif;--slate:#2b211a;--slate-fg:#e9dcc8;--light:1}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body.standalone{overflow:hidden}
+.stage{position:relative;overflow:hidden;background:var(--bg);color:var(--fg);font:14px/1.55 Sora,sans-serif;border-radius:var(--radius,6px);transition:background-color .3s}
+.mono{font-family:"JetBrains Mono",monospace}
+.kick{font:600 10px "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.display{font-family:var(--display);letter-spacing:-.03em;font-weight:700}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+.app{position:absolute;inset:0;z-index:1;overflow-y:auto;overflow-x:hidden}
+.app>main{padding-bottom:220px}
+
+/* ---------- App chrome ---------- */
+.nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:22px;height:52px;padding:0 24px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(10px)}
+.nav b{font:700 15px "JetBrains Mono",monospace;color:var(--primary);letter-spacing:.04em}
+.nav span{font-size:13px;color:var(--muted)}
+.nav span.on{color:var(--fg)}
+.nav .sp{flex:1}
+.nav .av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:700 12px "JetBrains Mono",monospace;color:var(--primary);border:1.5px solid color-mix(in srgb,var(--primary) 40%,transparent)}
+.slate{display:flex;justify-content:space-between;padding:7px 10px;background:var(--slate);color:var(--slate-fg);font:600 10px "JetBrains Mono",monospace;letter-spacing:.08em}
+.card{background:var(--card);border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.poster{aspect-ratio:2/3;background:#141414 center/cover;border:1px solid var(--line);border-radius:2px;flex:none}
+.np{aspect-ratio:2/3;border:1px solid var(--line);border-radius:2px;background:color-mix(in srgb,var(--fg) 6%,var(--card));display:flex;align-items:flex-end;padding:6px;font:600 9px/1.2 "JetBrains Mono",monospace;color:var(--muted);text-transform:uppercase}
+.row{display:flex;gap:12px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:11px 22px;font-weight:700;background:var(--primary);color:var(--pfg);box-shadow:0 0 24px color-mix(in srgb,var(--primary) 35%,transparent)}
+.gh{display:inline-flex;align-items:center;padding:8px 14px;border:1px solid var(--line);border-radius:3px;font-size:13px}
+.rk{display:inline-flex;gap:1px;vertical-align:middle}
+.r{width:12px;height:12px;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.r.on{fill:var(--primary);stroke:var(--primary)}.r.off{fill:none;stroke:color-mix(in srgb,var(--fg) 25%,transparent)}
+.dv{display:flex;gap:10px;align-items:center;margin:34px 0 12px}
+.dv i{flex:1;border-top:1px solid var(--line)}
+.credits{font:12.5px "JetBrains Mono",monospace}
+.credits div{display:flex;gap:8px;padding:4px 0}
+.credits i{flex:1;border-bottom:1px dotted var(--line);transform:translateY(-4px)}
+.page{display:none;position:relative}
+.stage[data-page="home"] .p-home,.stage[data-page="film"] .p-film,.stage[data-page="profile"] .p-profile{display:block}
+
+/* ---------- Home ---------- */
+.greet{padding:72px 0 40px}
+.greet h1{font-size:44px;margin:6px 0 4px;line-height:1.05}
+.feed{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.fc{display:flex;gap:14px;padding:14px}
+.fc .poster,.fc .np{width:64px}
+.fc p{margin:6px 0 0;font-size:13px;color:color-mix(in srgb,var(--fg) 85%,transparent)}
+.pop{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.empty{margin-top:14px;padding:46px 20px;text-align:center;border:1px dashed var(--line);border-radius:4px}
+
+/* ---------- Film detail ---------- */
+.hero{position:relative;height:440px;overflow:hidden}
+.hero>div{position:absolute;inset:0}
+.hero .img{background:url(https://image.tmdb.org/t/p/w780/xSDoxv4pHvs4xZjvTb0Iqg1A6ro.jpg) center 30%/cover;filter:grayscale(1) contrast(1.2) brightness(.9);will-change:transform}
+.hero .tint{background:var(--film);mix-blend-mode:color;opacity:.8}
+.hero .grain{opacity:var(--grain);mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.hero .shade{background:linear-gradient(0deg,var(--bg) 0%,color-mix(in srgb,var(--bg) 40%,transparent) 45%,transparent 75%)}
+:root[data-theme="marquee"] .hero .img{filter:grayscale(1) contrast(1.05) brightness(1.15)}
+:root[data-theme="marquee"] .hero .tint{mix-blend-mode:multiply;opacity:.55}
+.film-top{display:flex;gap:32px;margin-top:-170px;position:relative}
+.film-top .poster{width:210px;box-shadow:0 20px 50px rgba(0,0,0,.45)}
+.film-top h1{font-size:64px;margin:4px 0 6px;line-height:1}
+.score{display:flex;align-items:baseline;gap:16px;margin:18px 0;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.score b{font:700 34px "JetBrains Mono",monospace;color:var(--film)}
+.overview{font-size:17px;line-height:1.7;max-width:720px;margin:26px 0 0}
+.reviews{display:grid;gap:12px}
+.rv{padding:16px}
+.rv q{display:block;font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-size:20px;quotes:none;margin-top:6px}
+.similar{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+
+/* ---------- Profile ---------- */
+.ph{padding:56px 0 26px;display:flex;gap:22px;align-items:flex-start;position:relative}
+.ph .pav{width:96px;height:96px;border-radius:50%;flex:none;display:grid;place-items:center;font:700 36px "JetBrains Mono",monospace;color:var(--primary);border:2px solid color-mix(in srgb,var(--primary) 40%,transparent);background:color-mix(in srgb,var(--primary) 8%,var(--bg))}
+.ph h1{font-size:40px;margin:0;line-height:1}
+.tabs{display:flex;gap:26px;border-bottom:1px solid var(--line);font-size:13.5px;position:relative}
+.tabs span{padding:12px 0;color:var(--muted)}
+.tabs .on{color:var(--fg);box-shadow:inset 0 -2px var(--primary)}
+.favs{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:520px}
+.act{display:grid;grid-template-columns:44px 40px 1fr auto;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.act .day{font:600 9px "JetBrains Mono",monospace;letter-spacing:.1em;color:var(--muted);text-align:center}
+.act .day b{display:block;font:700 22px/1 "Space Grotesk",sans-serif;color:var(--fg)}
+
+/* ======================================================================
+   BACKGROUND LAYERS — each idea is gated by a body class (fx1…fx6)
+   ====================================================================== */
+.bg{position:absolute;inset:0;pointer-events:none;overflow:hidden;display:none}
+.stage.motion-off *, .stage.motion-off *::before, .stage.motion-off *::after{animation-play-state:paused!important}
+
+/* ----- 1 · Page texture ----- */
+.tex{z-index:0}
+.stage.fx1 .tex{display:block}
+.stage.fx1.layer-over .tex{z-index:60}
+.tex .noise{position:absolute;inset:-50%;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");opacity:calc(var(--grain) * .9);mix-blend-mode:overlay}
+.tex .vig{position:absolute;inset:0}
+.tex .extra{position:absolute;inset:0}
+.stage.layer-over .tex .noise{opacity:calc(var(--grain) * .55)}
+/* Rose Pine: barely-there grain */
+:root[data-theme="rose-pine"] .tex .noise{opacity:calc(var(--grain) * .5)}
+:root[data-theme="rose-pine"] .tex .vig{background:radial-gradient(ellipse at 50% 40%,transparent 60%,rgba(10,8,18,.45) 100%)}
+/* NULL://LOG: CRT scanlines + phosphor bloom, no grain */
+:root[data-theme="null-log"] .tex .noise{display:none}
+:root[data-theme="null-log"] .tex .extra{background:repeating-linear-gradient(0deg,rgba(0,255,136,.045) 0 1px,transparent 1px 3px);animation:crt-roll 9s linear infinite}
+:root[data-theme="null-log"] .tex .vig{background:radial-gradient(ellipse at 50% 50%,rgba(0,255,136,.035) 0%,transparent 55%),radial-gradient(ellipse at 50% 50%,transparent 62%,rgba(0,0,0,.75) 100%)}
+@keyframes crt-roll{to{background-position:0 300px}}
+/* Nitrate: boiling grain, vignette, film scratches */
+:root[data-theme="nitrate"] .tex .noise{animation:grain-boil .35s steps(1) infinite}
+:root[data-theme="nitrate"] .tex .vig{background:radial-gradient(ellipse at 50% 45%,transparent 45%,rgba(5,3,1,.72) 100%);animation:projector-flicker 5s infinite}
+:root[data-theme="nitrate"] .tex .extra{background:
+  linear-gradient(90deg,transparent calc(var(--s1) - 1px),rgba(239,228,210,.10) var(--s1),transparent calc(var(--s1) + 1px)),
+  linear-gradient(90deg,transparent calc(var(--s2) - 1px),rgba(0,0,0,.35) var(--s2),transparent calc(var(--s2) + 1px));
+  --s1:23%;--s2:71%;animation:scratch 1.6s steps(1) infinite}
+@keyframes grain-boil{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-4%)}60%{transform:translate(-4%,-1%)}80%{transform:translate(3%,3%)}}
+@keyframes projector-flicker{0%,100%{opacity:1}6%{opacity:.86}7%{opacity:1}41%{opacity:.93}42%{opacity:1}77%{opacity:.88}78%{opacity:1}}
+@keyframes scratch{0%{--s1:23%;--s2:71%;opacity:1}25%{--s1:61%;--s2:12%;opacity:.4}50%{--s1:38%;--s2:84%;opacity:0}75%{--s1:8%;--s2:52%;opacity:.8}}
+@property --s1{syntax:"<percentage>";inherits:true;initial-value:23%}
+@property --s2{syntax:"<percentage>";inherits:true;initial-value:71%}
+/* Marquee: warm paper fibres, multiply on cream */
+:root[data-theme="marquee"] .tex .noise{mix-blend-mode:multiply;opacity:calc(var(--grain) * .8)}
+:root[data-theme="marquee"] .tex .extra{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='.012 .04' numOctaves='3'/><feColorMatrix values='0 0 0 0 .55  0 0 0 0 .42  0 0 0 0 .25  0 0 0 .9 0'/></filter><rect width='100%' height='100%' filter='url(%23p)'/></svg>");opacity:.10;mix-blend-mode:multiply}
+:root[data-theme="marquee"] .tex .vig{background:radial-gradient(ellipse at 50% 40%,transparent 55%,rgba(120,80,30,.16) 100%)}
+
+/* ----- 2 · Ambient light ----- */
+.amb{z-index:0}
+.stage.fx2 .amb{display:block}
+.amb>div{position:absolute;display:none}
+/* Rose Pine: three drifting colour clouds */
+:root[data-theme="rose-pine"] .amb .blob{display:block;width:75%;aspect-ratio:1;border-radius:50%;filter:blur(70px)}
+.amb .b1{background:radial-gradient(circle,rgba(196,167,231,.22),transparent 65%);left:-20%;top:-40%;animation:drift1 46s ease-in-out infinite alternate}
+.amb .b2{background:radial-gradient(circle,rgba(235,188,186,.16),transparent 65%);right:-30%;top:15%;animation:drift2 61s ease-in-out infinite alternate}
+.amb .b3{background:radial-gradient(circle,rgba(156,207,216,.14),transparent 65%);left:20%;bottom:-60%;animation:drift3 74s ease-in-out infinite alternate}
+@keyframes drift1{to{transform:translate(40%,30%) scale(1.15)}}
+@keyframes drift2{to{transform:translate(-40%,-20%) scale(.9)}}
+@keyframes drift3{to{transform:translate(25%,-35%) scale(1.2)}}
+/* Nitrate: projector beam from the top corner, flickering */
+:root[data-theme="nitrate"] .amb .beam{display:block;left:-10%;top:-10%;width:150%;height:130%;background:conic-gradient(from 104deg at 0 0,transparent 0deg,rgba(242,163,58,.13) 9deg,rgba(242,163,58,.06) 22deg,rgba(242,163,58,.11) 30deg,transparent 40deg);filter:blur(18px);animation:projector-flicker 3.2s infinite,beam-sway 22s ease-in-out infinite alternate;transform-origin:0 0}
+:root[data-theme="nitrate"] .amb .lamp{display:block;left:-15%;top:-25%;width:40%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(242,163,58,.28),transparent 65%);filter:blur(30px);animation:projector-flicker 3.2s infinite}
+@keyframes beam-sway{to{transform:rotate(4deg)}}
+/* NULL://LOG: radar sweep from the bottom-right corner */
+:root[data-theme="null-log"] .amb .radar{display:block;right:0;bottom:0;translate:50% 50%;width:300%;aspect-ratio:1;border-radius:50%;background:conic-gradient(from 0deg,rgba(0,255,136,.11),rgba(0,255,136,.02) 40deg,transparent 70deg);animation:spin 14s linear infinite}
+:root[data-theme="null-log"] .amb .rings{display:block;right:0;bottom:0;translate:50% 50%;width:300%;aspect-ratio:1;border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 120px,rgba(0,255,136,.06) 120px 121px)}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Marquee: warm spotlight swaying over cream, crimson house light below */
+:root[data-theme="marquee"] .amb .spot{display:block;left:15%;top:-30%;width:70%;height:110%;background:radial-gradient(ellipse 50% 60% at 50% 20%,rgba(240,180,80,.30),transparent 70%);mix-blend-mode:multiply;animation:spot-sway 20s ease-in-out infinite alternate}
+:root[data-theme="marquee"] .amb .house{display:block;left:-20%;bottom:-40%;width:80%;height:80%;border-radius:50%;background:radial-gradient(circle,rgba(184,18,58,.10),transparent 65%);mix-blend-mode:multiply}
+@keyframes spot-sway{0%{transform:translateX(-25%) rotate(-6deg)}100%{transform:translateX(25%) rotate(6deg)}}
+
+/* ----- 3 · Rocket starfield (canvas) ----- */
+.stars{z-index:0}
+.stage.fx3 .stars{display:block}
+:root[data-theme="marquee"] .stars{mix-blend-mode:multiply}
+
+/* ----- 4 · Poster glow on the film page ----- */
+.glow{position:absolute;left:0;right:0;top:0;height:1100px;overflow:hidden;pointer-events:none;display:none;z-index:0;-webkit-mask-image:linear-gradient(180deg,#000 35%,transparent 100%);mask-image:linear-gradient(180deg,#000 35%,transparent 100%)}
+.stage.fx4 .glow{display:block}
+.glow .gi{position:absolute;inset:-10% -10% 20%;background:url(https://image.tmdb.org/t/p/w342/9l1NuFjel2j89hiuiJbsxfblqjy.jpg) center/cover;filter:blur(90px) saturate(1.7);opacity:.55;transform:scale(1.2)}
+.glow .gt{position:absolute;inset:0;background:var(--film);mix-blend-mode:color;opacity:0}
+.stage.glow-tinted .glow .gi{filter:blur(90px) grayscale(1) contrast(1.3);opacity:.32}
+.stage.glow-tinted .glow .gt{opacity:.75}
+:root[data-theme="marquee"] .glow .gi{opacity:.24;mix-blend-mode:multiply}
+:root[data-theme="null-log"] .glow .gi{opacity:.42}
+.p-film>*:not(.glow){position:relative;z-index:1}
+.stage.fx4 .hero .shade{background:linear-gradient(0deg,transparent 0%,color-mix(in srgb,var(--bg) 20%,transparent) 45%,transparent 75%)}
+.stage.fx4 .hero{-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent);mask-image:linear-gradient(180deg,#000 55%,transparent)}
+
+/* ----- 5 · Scroll parallax backdrop ----- */
+.stage.fx5 .hero{height:520px;-webkit-mask-image:linear-gradient(180deg,#000 30%,transparent 100%);mask-image:linear-gradient(180deg,#000 30%,transparent 100%)}
+.stage.fx5 .hero .shade{background:linear-gradient(0deg,color-mix(in srgb,var(--bg) 30%,transparent),transparent 60%)}
+.stage.fx5 .film-top{margin-top:-230px}
+.stage:not(.fx5) .hero{border-bottom:1px solid var(--line)}
+.stage.fx4:not(.fx5) .hero{border-bottom:0}
+
+/* ----- 6 · Profile taste tint ----- */
+.taste{position:absolute;left:0;right:0;top:0;height:640px;overflow:hidden;pointer-events:none;display:none;z-index:0;-webkit-mask-image:linear-gradient(180deg,#000 30%,transparent);mask-image:linear-gradient(180deg,#000 30%,transparent)}
+.stage.fx6 .taste{display:block}
+.taste .tp{position:absolute;inset:-15% 20% 10% -15%;background:url(https://image.tmdb.org/t/p/w342/9l1NuFjel2j89hiuiJbsxfblqjy.jpg) center/cover;filter:blur(110px) saturate(1.6);opacity:.6;display:none}
+.taste .tg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 90% at 22% 0%,color-mix(in oklab,var(--taste) 34%,transparent),transparent 70%),radial-gradient(ellipse 40% 60% at 85% 10%,color-mix(in oklab,var(--taste) 14%,transparent),transparent 70%);display:none}
+.stage.taste-poster .taste .tp{display:block}
+.stage:not(.taste-poster) .taste .tg{display:block}
+:root[data-theme="marquee"] .taste .tp{opacity:.3;mix-blend-mode:multiply}
+:root[data-theme="marquee"] .taste .tg{mix-blend-mode:multiply}
+.p-profile>*:not(.taste){position:relative;z-index:1}
+.stage.fx6:not(.taste-poster) .ph .pav{border-color:var(--taste);color:var(--taste);box-shadow:0 0 30px color-mix(in srgb,var(--taste) 40%,transparent)}
+.stage.fx6:not(.taste-poster) .enjoys{color:var(--taste)}
+
+@media (max-width:820px){
+  .wrap{padding:0 16px}.nav{gap:14px;padding:0 16px}.nav span:nth-child(n+5):not(.av){display:none}
+  .greet h1{font-size:32px}.feed{grid-template-columns:1fr}.pop,.similar{grid-template-columns:repeat(4,1fr)}.pop>:nth-child(n+5),.similar>:nth-child(n+5){display:none}
+  .film-top{gap:18px;margin-top:-150px}.film-top .poster{width:130px}.film-top h1{font-size:42px}.film-top>div{padding-top:70px!important}
+  .stage.fx5 .film-top{margin-top:-200px}.hero{height:360px}.stage.fx5 .hero{height:430px}
+  .ph h1{font-size:30px}.ph .gh{display:none}.tabs{gap:16px;overflow:hidden}
+}
+
+/* ======================================================================
+   Prototype control bar (deliberately not themed)
+   ====================================================================== */
+.ctl{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:100;width:min(1000px,calc(100% - 20px));background:rgba(14,14,14,.94);border:1px solid #333;border-radius:10px;padding:10px 12px;font:11px/1.4 "JetBrains Mono",monospace;color:#cfcfcf;box-shadow:0 10px 40px rgba(0,0,0,.5);backdrop-filter:blur(8px)}
+.ctl .ln{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ctl .ln+.ln{margin-top:7px}
+.ctl .lb{color:#777;margin-right:2px;min-width:52px}
+.ctl .gap{width:14px}
+.ctl button{font:inherit;color:#ddd;background:#1c1c1c;border:1px solid #333;border-radius:5px;padding:4px 9px;cursor:pointer}
+.ctl button:hover{border-color:#666}
+.ctl button[aria-pressed="true"]{background:#f2f2f2;color:#111;border-color:#f2f2f2}
+.ctl .note{color:#9a9a9a;font-size:11px;padding-top:7px;margin-top:7px;border-top:1px solid #262626}
+.ctl .note b{color:#eee;font-weight:600}
+.ctl .state{color:#6a6a6a;margin-left:auto}
+.ctl .hide{margin-left:6px}
+.ctl.min{width:auto;padding:6px}
+.ctl.min>*:not(.mini){display:none}
+.ctl .mini{display:none}
+.ctl.min .mini{display:inline-block}
+</style>
+</head>
+<body>
+<div class="stage" id="stage" data-page="home">
+<svg width="0" height="0" style="position:absolute"><symbol id="rk" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol></svg>
+
+<!-- Fixed background layers -->
+<div class="bg amb"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="lamp"></div><div class="beam"></div><div class="rings"></div><div class="radar"></div><div class="spot"></div><div class="house"></div></div>
+<canvas class="bg stars" id="stars"></canvas>
+<div class="bg tex"><div class="noise"></div><div class="extra"></div><div class="vig"></div></div>
+
+<div class="app">
+  <nav class="nav"><b>INTERIS</b><span data-nav="home">Home</span><span>Archive</span><span data-nav="film">Films</span><span>TV</span><span>Lists</span><div class="sp"></div><span>Search ⌘K</span><span class="av" data-nav="profile">g</span></nav>
+
+  <!-- HOME -->
+  <main class="page p-home">
+    <div class="wrap">
+      <section class="greet">
+        <div class="kick">Sunday · Nov 8 · Wk 45</div>
+        <h1 class="display">Good evening, glory42.</h1>
+        <div class="muted">3 people you follow logged something tonight.</div>
+      </section>
+      <div class="dv"><span class="kick">From people you follow</span><i></i></div>
+      <div class="feed">
+        <div class="card fc"><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/9l1NuFjel2j89hiuiJbsxfblqjy.jpg)"></div><div><div class="kick">mert · logged · Film</div><div class="display" style="font-size:18px">Clayface</div><span class="rk" data-r="8"></span><p>Way better than it had any right to be. The practical effects carry it.</p></div></div>
+        <div class="card fc"><div class="np">Severance</div><div><div class="kick">ayse · watched S02E04 · TV</div><div class="display" style="font-size:18px">Severance</div><span class="rk" data-r="9"></span><p>That last scene. I need a minute.</p></div></div>
+        <div class="card fc"><div class="np">Akira</div><div><div class="kick">deniz · rewatched · Film</div><div class="display" style="font-size:18px">Akira</div><span class="rk" data-r="10"></span><p>Still the best-looking film ever made.</p></div></div>
+        <div class="card fc"><div class="np">Dead Poets Society</div><div><div class="kick">can · logged · Film</div><div class="display" style="font-size:18px">Dead Poets Society</div><span class="rk" data-r="7"></span><p>Carpe diem, I guess.</p></div></div>
+      </div>
+      <div class="dv"><span class="kick">Popular this week</span><i></i></div>
+      <div class="pop">
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/gAgWJhUSQWCgtKR8170nMkYlBda.jpg)"></div>
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/6sYemVUn79UPKz1ZsSG6kPU4RVy.jpg)"></div>
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/1ERGPNiKtnEcsvJS1ywsmqmcIDO.jpg)"></div>
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/lmrulvLbmaejTix1YaMxo1oGhH1.jpg)"></div>
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/hSmIJluOJmTWvJs4d7kHRxjc8s8.jpg)"></div>
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/iaLRzWdQHP6PCRzxgOYzsOtJf8T.jpg)"></div>
+      </div>
+      <div class="dv"><span class="kick">Your watchlist</span><i></i></div>
+      <div class="empty"><div class="kick">Nothing here yet</div><div class="muted" style="margin-top:6px">Titles you want to watch will show up here.</div></div>
+    </div>
+  </main>
+
+  <!-- FILM DETAIL -->
+  <main class="page p-film">
+    <div class="glow"><div class="gi"></div><div class="gt"></div></div>
+    <header class="hero"><div class="img"></div><div class="tint"></div><div class="grain"></div><div class="shade"></div></header>
+    <div class="wrap">
+      <div class="film-top">
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w342/9l1NuFjel2j89hiuiJbsxfblqjy.jpg)"></div>
+        <div style="flex:1;min-width:0;padding-top:96px">
+          <div class="kick">Directed by James Watkins</div>
+          <h1 class="display">Clayface</h1>
+          <div class="mono muted" style="font-size:12px">2026 · DC STUDIOS</div>
+          <div class="score"><b>8.0</b><span class="rk" data-r="8"></span><span class="kick" style="margin-left:auto">Horror / Thriller</span></div>
+          <span class="btn"><svg class="r" style="stroke:currentColor;fill:none;width:15px;height:15px"><use href="#rk"/></svg>Log again</span>
+        </div>
+      </div>
+      <p class="overview">A rising leading man is left horribly disfigured after crossing a local crime boss. With nothing left, he turns to an untested treatment that gives him back a face, and much more than he asked for. <span class="muted">(illustrative synopsis)</span></p>
+      <div class="dv"><span class="kick">Credits</span><i></i></div>
+      <div class="credits" style="max-width:520px">
+        <div><span>Director</span><i></i><span>James Watkins</span></div>
+        <div><span>Studio</span><i></i><span>DC Studios</span></div>
+        <div><span>Released</span><i></i><span>2026</span></div>
+        <div><span>Genres</span><i></i><span>Horror, Thriller</span></div>
+      </div>
+      <div class="dv"><span class="kick">Reviews</span><i></i></div>
+      <div class="reviews">
+        <div class="card rv"><div class="row"><span class="kick">glory42 · Oct 27</span><span class="rk" data-r="8"></span></div><q>Dc character when someone is not happly married</q></div>
+        <div class="card rv"><div class="row"><span class="kick">mert · Nov 2</span><span class="rk" data-r="7"></span></div><q>The clay work is gorgeous and gross in equal measure.</q></div>
+        <div class="card rv"><div class="row"><span class="kick">ayse · Nov 5</span><span class="rk" data-r="9"></span></div><q>A body-horror film hiding inside a superhero film.</q></div>
+      </div>
+      <div class="dv"><span class="kick">More like this</span><i></i></div>
+      <div class="similar">
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/gAgWJhUSQWCgtKR8170nMkYlBda.jpg)"></div>
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/6sYemVUn79UPKz1ZsSG6kPU4RVy.jpg)"></div>
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/1ERGPNiKtnEcsvJS1ywsmqmcIDO.jpg)"></div>
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/lmrulvLbmaejTix1YaMxo1oGhH1.jpg)"></div>
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/jAZAKCs9wcq4PLxbGzTZ7WxkzPn.jpg)"></div>
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/oEoZgYyxQtZmx3Y3eV5BkOO5Kqn.jpg)"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- PROFILE -->
+  <main class="page p-profile">
+    <div class="taste"><div class="tp"></div><div class="tg"></div></div>
+    <div class="wrap">
+      <section class="ph">
+        <span class="pav">g</span>
+        <div style="flex:1">
+          <h1 class="display">glory42</h1>
+          <div class="mono" style="font-size:12px;margin-top:9px"><b>1,563</b> <span class="muted">logged</span> · <b>85</b> <span class="muted">reviews</span> · <b>6</b> <span class="muted">following</span> · <b>3</b> <span class="muted">followers</span></div>
+          <div style="font-size:15px;margin-top:10px">Selamlar :))</div>
+          <div class="muted" style="font-size:13px;margin-top:4px">◎ Andromeda · <span class="enjoys">enjoys</span> Science Fiction · Thriller · Animation · Horror</div>
+        </div>
+        <span class="gh">Edit profile</span>
+      </section>
+      <div class="tabs"><span class="on">Overview</span><span>Diary</span><span>Watching</span><span>Reviews</span><span>Likes</span><span>Watchlist</span><span>Lists</span><span>Stats</span></div>
+      <div class="dv"><span class="kick">Favourite films</span><i></i></div>
+      <div class="favs">
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/gAgWJhUSQWCgtKR8170nMkYlBda.jpg)"></div>
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/6sYemVUn79UPKz1ZsSG6kPU4RVy.jpg)"></div>
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/1ERGPNiKtnEcsvJS1ywsmqmcIDO.jpg)"></div>
+        <div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w185/lmrulvLbmaejTix1YaMxo1oGhH1.jpg)"></div>
+      </div>
+      <div class="dv"><span class="kick">Recent activity</span><i></i></div>
+      <div>
+        <div class="act"><div class="day">OCT<b>27</b></div><div class="poster" style="background-image:url(https://image.tmdb.org/t/p/w92/9l1NuFjel2j89hiuiJbsxfblqjy.jpg)"></div><div><b>Clayface</b> <span class="muted mono" style="font-size:11px">2026</span><div class="muted" style="font-size:12.5px">Dc character when someone is not happly married</div></div><span class="rk" data-r="8"></span></div>
+        <div class="act"><div class="day">OCT<b>24</b></div><div class="np" style="font-size:6px">Akira</div><div><b>Akira</b> <span class="muted mono" style="font-size:11px">1988</span></div><span class="rk" data-r="10"></span></div>
+        <div class="act"><div class="day">OCT<b>19</b></div><div class="np" style="font-size:6px">Severance</div><div><b>Severance</b> <span class="muted mono" style="font-size:11px">S02</span></div><span class="rk" data-r="9"></span></div>
+        <div class="act"><div class="day">OCT<b>11</b></div><div class="np" style="font-size:6px">Dead Poets</div><div><b>Dead Poets Society</b> <span class="muted mono" style="font-size:11px">1989</span></div><span class="rk" data-r="7"></span></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Prototype controls -->
+<div class="ctl" id="ctl">
+  <button class="mini" data-act="show">⚙ Backgrounds</button>
+  <div class="ln">
+    <span class="lb">THEME</span>
+    <button data-theme="rose-pine">Rose Pine</button><button data-theme="null-log">NULL://LOG</button><button data-theme="nitrate">Nitrate</button><button data-theme="marquee">Marquee</button>
+    <span class="gap"></span><span class="lb">PAGE</span>
+    <button data-page="home">Home</button><button data-page="film">Film</button><button data-page="profile">Profile</button>
+    <span class="gap"></span><button data-act="motion">Motion</button>
+    <button class="hide" data-act="hide" title="Hide (H)">–</button>
+  </div>
+  <div class="ln">
+    <span class="lb">IDEAS</span>
+    <button data-act="none">Off (today)</button>
+    <button data-idea="1">1 Texture</button><button data-idea="2">2 Light</button><button data-idea="3">3 Stars</button><button data-idea="4">4 Poster glow</button><button data-idea="5">5 Parallax</button><button data-idea="6">6 Taste tint</button>
+    <span class="state" id="state"></span>
+  </div>
+  <div class="ln" id="opts"></div>
+  <div class="note" id="note"></div>
+</div>
+</div>
+
+<script>
+const THEMES = ["rose-pine", "null-log", "nitrate", "marquee"];
+const IDEA_PAGE = { 4: "film", 5: "film", 6: "profile" };
+const TASTES = { poster: null, horror: "#d23b3b", scifi: "#3fa7d6", animation: "#f4a259", drama: "#9b7fd1" };
+
+// What each idea does in each theme, shown under the bar.
+const NOTES = {
+  1: {
+    "rose-pine": "Barely-there grain and a soft violet vignette. Quiet, just takes the flatness off.",
+    "null-log": "CRT scanlines rolling slowly, a faint phosphor bloom in the middle, dark corners. No grain.",
+    nitrate: "Heavy grain that boils like real film, a flickering projector vignette and scratches that jump around.",
+    marquee: "Warm paper fibres and grain multiplied into the cream, with a light sepia edge.",
+  },
+  2: {
+    "rose-pine": "Three blurred clouds (iris, rose, foam) drifting over about a minute.",
+    "null-log": "A green radar sweep turning from the bottom-right corner, with faint range rings.",
+    nitrate: "An amber projector beam from the top-left corner. It flickers and sways slightly.",
+    marquee: "A warm spotlight swaying over the cream, with a faint crimson house light low left.",
+  },
+  3: {
+    "rose-pine": "Soft lavender stars twinkling; every ~10s a rocket crosses with a trail in iris.",
+    "null-log": "Square phosphor pixels instead of round stars; the rocket trail is green.",
+    nitrate: "Warm dust specks floating like dust in a projector beam; the rocket is amber.",
+    marquee: "Gold flecks on the cream; the rocket is crimson.",
+  },
+  4: {
+    all: "The poster is blurred heavily and spreads behind the top of the page, so every title gets its own colour. 'Theme-tinted' recolours it with the theme's Film colour instead.",
+  },
+  5: {
+    all: "Scroll the page: the backdrop moves slower than the content and fades out, with no hard edge where it ends. Turn it off to compare with today's hero.",
+  },
+  6: {
+    all: "The profile header picks up a colour from the user: the poster of their latest log, or their top genre mixed with the theme's accent (the avatar ring changes too).",
+  },
+};
+
+const params = new URLSearchParams(location.search);
+const S = {
+  theme: THEMES.includes(params.get("theme")) ? params.get("theme") : "nitrate",
+  page: params.get("page") || "home",
+  ideas: new Set((params.get("ideas") ?? "1").split(",").filter(Boolean).map(Number)),
+  layer: params.get("layer") || "behind",
+  glow: params.get("glow") || "poster",
+  taste: params.get("taste") || "poster",
+  motion: !matchMedia("(prefers-reduced-motion: reduce)").matches,
+  lastIdea: null,
+};
+
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => [...document.querySelectorAll(s)];
+const stage = $("#stage");
+const app = $(".app");
+// Inline frames size to their content, so embedded the stage gets a fixed height; standalone it fills the window.
+const embedded = window.self !== window.top;
+function sizeStage() { stage.style.height = embedded ? "900px" : `${window.innerHeight}px`; }
+if (!embedded) { document.body.classList.add("standalone"); addEventListener("resize", sizeStage); }
+sizeStage();
+
+// Rocket ratings
+$$(".rk[data-r]").forEach((el) => {
+  const n = Number(el.dataset.r);
+  el.innerHTML = Array.from({ length: 10 }, (_, i) => `<svg class="r ${i < n ? "on" : "off"}"><use href="#rk"/></svg>`).join("");
+});
+
+function optButtons(label, key, options) {
+  return `<span class="lb">${label}</span>` + options.map(([v, t]) => `<button data-opt="${key}" data-val="${v}" aria-pressed="${S[key] === v}">${t}</button>`).join("");
+}
+
+function apply() {
+  document.documentElement.dataset.theme = S.theme;
+  stage.dataset.page = S.page;
+  for (let i = 1; i <= 6; i++) stage.classList.toggle(`fx${i}`, S.ideas.has(i));
+  stage.classList.toggle("layer-over", S.layer === "over");
+  stage.classList.toggle("glow-tinted", S.glow === "tinted");
+  stage.classList.toggle("taste-poster", S.taste === "poster");
+  stage.classList.toggle("motion-off", !S.motion);
+  if (TASTES[S.taste]) stage.style.setProperty("--taste", `color-mix(in oklab, ${TASTES[S.taste]} 70%, var(--primary))`);
+
+  $$("button[data-theme]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.theme === S.theme));
+  $$("button[data-page]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.page === S.page));
+  $$("[data-idea]").forEach((b) => b.setAttribute("aria-pressed", S.ideas.has(Number(b.dataset.idea))));
+  $('[data-act="none"]').setAttribute("aria-pressed", S.ideas.size === 0);
+  $('[data-act="motion"]').setAttribute("aria-pressed", S.motion);
+  $('[data-act="motion"]').textContent = S.motion ? "Motion on" : "Motion off";
+
+  const opts = [];
+  if (S.ideas.has(1)) opts.push(optButtons("1 LAYER", "layer", [["behind", "Behind content"], ["over", "Over everything"]]));
+  if (S.ideas.has(4)) opts.push(optButtons("4 COLOUR", "glow", [["poster", "Poster colours"], ["tinted", "Theme-tinted"]]));
+  if (S.ideas.has(6)) opts.push(optButtons("6 FROM", "taste", [["poster", "Latest log"], ["horror", "Horror"], ["scifi", "Sci-Fi"], ["animation", "Animation"], ["drama", "Drama"]]));
+  $("#opts").innerHTML = opts.join('<span class="gap"></span>');
+  $("#opts").style.display = opts.length ? "flex" : "none";
+
+  const shown = [...S.ideas].sort();
+  const idea = S.lastIdea && S.ideas.has(S.lastIdea) ? S.lastIdea : shown[shown.length - 1];
+  const wrongPage = shown.filter((i) => IDEA_PAGE[i] && IDEA_PAGE[i] !== S.page);
+  $("#note").innerHTML = idea
+    ? `<b>${idea} · ${S.theme}:</b> ${NOTES[idea][S.theme] ?? NOTES[idea].all}` +
+      (wrongPage.length ? ` <span style="color:#d9a441">· Idea ${wrongPage.join(", ")} only shows on the ${wrongPage.map((i) => IDEA_PAGE[i]).filter((v, i, a) => a.indexOf(v) === i).join(" / ")} page.</span>` : "")
+    : "<b>Off:</b> today's flat background, for comparison.";
+  $("#state").textContent = `${S.theme} · ${S.page} · [${shown.join(",") || "none"}]`;
+
+  const q = new URLSearchParams({ theme: S.theme, page: S.page, ideas: shown.join(","), layer: S.layer, glow: S.glow, taste: S.taste });
+  try { history.replaceState(null, "", `?${q}`); } catch {}
+  stars.recolor();
+  parallax();
+}
+
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("button, [data-nav]");
+  if (!b) return;
+  if (b.dataset.nav) { S.page = b.dataset.nav; app.scrollTo(0, 0); }
+  else if (b.dataset.theme) S.theme = b.dataset.theme;
+  else if (b.dataset.page) { S.page = b.dataset.page; app.scrollTo(0, 0); }
+  else if (b.dataset.idea) {
+    const i = Number(b.dataset.idea);
+    if (S.ideas.has(i)) S.ideas.delete(i);
+    else { S.ideas.add(i); S.lastIdea = i; if (IDEA_PAGE[i] && IDEA_PAGE[i] !== S.page) { S.page = IDEA_PAGE[i]; app.scrollTo(0, 0); } }
+  } else if (b.dataset.opt) S[b.dataset.opt] = b.dataset.val;
+  else if (b.dataset.act === "none") S.ideas.clear();
+  else if (b.dataset.act === "motion") S.motion = !S.motion;
+  else if (b.dataset.act === "hide") $("#ctl").classList.add("min");
+  else if (b.dataset.act === "show") $("#ctl").classList.remove("min");
+  apply();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.target.closest("input, textarea")) return;
+  if (e.key >= "1" && e.key <= "6") $(`[data-idea="${e.key}"]`).click();
+  else if (e.key === "0") $('[data-act="none"]').click();
+  else if (e.key.toLowerCase() === "t") { S.theme = THEMES[(THEMES.indexOf(S.theme) + 1) % THEMES.length]; apply(); }
+  else if (e.key.toLowerCase() === "h") $("#ctl").classList.toggle("min");
+});
+
+// ---------- 5 · Parallax ----------
+const heroImg = $(".hero .img");
+function parallax() {
+  const y = app.scrollTop;
+  if (S.ideas.has(5) && S.page === "film") {
+    heroImg.style.transform = `translateY(${y * 0.45}px) scale(1.08)`;
+    heroImg.style.opacity = String(Math.max(0, 1 - y / 520));
+  } else {
+    heroImg.style.transform = "";
+    heroImg.style.opacity = "";
+  }
+}
+let ticking = false;
+app.addEventListener("scroll", () => {
+  if (ticking) return;
+  ticking = true;
+  requestAnimationFrame(() => { parallax(); ticking = false; });
+}, { passive: true });
+
+// ---------- 3 · Rocket starfield ----------
+const stars = (() => {
+  const cv = $("#stars");
+  const ctx = cv.getContext("2d");
+  const rocketPath = new Path2D("M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09zm7.5-1.5-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2zM9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0m1 3v5s3.03-.55 4-2c1.08-1.62 0-5 0-5");
+  // Per theme: star colour, accent colour for a few, alpha, shape.
+  const LOOK = {
+    "rose-pine": { star: "224,222,244", alt: "196,167,231", alpha: 0.7, shape: "dot", density: 7000 },
+    "null-log": { star: "0,255,136", alt: "0,207,255", alpha: 0.55, shape: "pixel", density: 7500 },
+    nitrate: { star: "239,228,210", alt: "242,163,58", alpha: 0.4, shape: "dust", density: 5200 },
+    marquee: { star: "154,91,18", alt: "184,18,58", alpha: 0.45, shape: "fleck", density: 9000 },
+  };
+  let W, H, dpr, pts = [], look = LOOK.nitrate, primary = "#f2a33a", rocket = null, nextRocket = 0;
+
+  function seed() {
+    dpr = Math.min(devicePixelRatio || 1, 2);
+    W = stage.clientWidth; H = stage.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    cv.style.width = W + "px"; cv.style.height = H + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const n = Math.round((W * H) / look.density);
+    pts = Array.from({ length: n }, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      r: Math.random() < 0.08 ? 1.6 + Math.random() : 0.4 + Math.random() * 0.9,
+      p: Math.random() * Math.PI * 2, s: 0.4 + Math.random() * 1.2,
+      alt: Math.random() < 0.15,
+      vx: (Math.random() - 0.5) * 0.08, vy: -0.03 - Math.random() * 0.06,
+    }));
+  }
+
+  function recolor() {
+    look = LOOK[S.theme];
+    primary = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim();
+    seed();
+  }
+
+  function spawnRocket(t) {
+    const fromLeft = Math.random() < 0.5;
+    const angle = fromLeft ? -0.35 - Math.random() * 0.3 : Math.PI + 0.35 + Math.random() * 0.3;
+    rocket = { x: fromLeft ? -40 : W + 40, y: H * (0.45 + Math.random() * 0.45), a: angle, v: 3.2 + Math.random() * 1.5, trail: [] };
+    nextRocket = t + 8000 + Math.random() * 6000;
+  }
+
+  function drawStar(pt, a) {
+    const col = pt.alt ? look.alt : look.star;
+    ctx.fillStyle = `rgba(${col},${a})`;
+    if (look.shape === "pixel") {
+      const s = pt.r > 1.5 ? 2 : 1;
+      ctx.fillRect(Math.round(pt.x), Math.round(pt.y), s, s);
+      return;
+    }
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, pt.r, 0, Math.PI * 2);
+    ctx.fill();
+    // The few big ones get a four-point glint.
+    if (pt.r > 1.5 && look.shape !== "dust") {
+      ctx.strokeStyle = `rgba(${col},${a * 0.5})`;
+      ctx.lineWidth = 0.6;
+      const L = pt.r * 3.5;
+      ctx.beginPath();
+      ctx.moveTo(pt.x - L, pt.y); ctx.lineTo(pt.x + L, pt.y);
+      ctx.moveTo(pt.x, pt.y - L); ctx.lineTo(pt.x, pt.y + L);
+      ctx.stroke();
+    }
+  }
+
+  function frame(t) {
+    requestAnimationFrame(frame);
+    if (!S.ideas.has(3)) return;
+    const moving = S.motion;
+    ctx.clearRect(0, 0, W, H);
+    const off = (app.scrollTop * 0.06) % H;
+    for (const pt of pts) {
+      if (moving && look.shape === "dust") {
+        pt.x += pt.vx; pt.y += pt.vy;
+        if (pt.y < -5) pt.y = H + 5;
+        if (pt.x < -5) pt.x = W + 5; else if (pt.x > W + 5) pt.x = -5;
+      }
+      const tw = moving ? 0.55 + 0.45 * Math.sin(t * 0.001 * pt.s + pt.p) : 0.8;
+      const y = (pt.y - off + H) % H;
+      drawStar({ ...pt, y }, look.alpha * tw);
+    }
+    if (!moving) return;
+    if (!rocket && t > nextRocket) spawnRocket(t);
+    if (rocket) {
+      rocket.x += Math.cos(rocket.a) * rocket.v;
+      rocket.y += Math.sin(rocket.a) * rocket.v;
+      rocket.trail.push([rocket.x, rocket.y]);
+      if (rocket.trail.length > 60) rocket.trail.shift();
+      for (let i = 1; i < rocket.trail.length; i++) {
+        const k = i / rocket.trail.length;
+        ctx.strokeStyle = primary;
+        ctx.globalAlpha = k * 0.55;
+        ctx.lineWidth = k * 2.2;
+        ctx.beginPath();
+        ctx.moveTo(...rocket.trail[i - 1]);
+        ctx.lineTo(...rocket.trail[i]);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.save();
+      ctx.translate(rocket.x, rocket.y);
+      ctx.rotate(rocket.a + Math.PI / 4);
+      ctx.scale(0.75, 0.75);
+      ctx.translate(-13, -11);
+      ctx.shadowColor = primary;
+      ctx.shadowBlur = 12;
+      ctx.strokeStyle = primary;
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.stroke(rocketPath);
+      ctx.restore();
+      if (rocket.x < -80 || rocket.x > W + 80 || rocket.y < -80 || rocket.y > H + 80) rocket = null;
+    }
+  }
+
+  addEventListener("resize", seed);
+  requestAnimationFrame((t) => { nextRocket = t + 1500; frame(t); });
+  return { recolor };
+})();
+
+apply();
+</script>
+</body>
+</html>
