@@ -6,10 +6,11 @@ import { server } from "../../../support/msw/server";
 import { QueryClient } from "@tanstack/react-query";
 import { authKeys } from "@/features/auth/hooks/useAuth";
 import { renderWithProviders } from "../../../support/render/render-with-providers";
-import { toFeedDays } from "@/features/feed/components/feed-days";
+import { episodesSummary, toFeedDays } from "@/features/feed/components/feed-days";
 import { FeedTitleCard } from "@/features/feed/components/FeedTitleCard";
+import { FeedDayList } from "@/features/feed/components/FeedDayList";
 import { FeedFilterSentence } from "@/features/feed/components/FeedFilterSentence";
-import type { FeedTitleGroup, GroupedFeedEntry } from "@/features/feed/types";
+import type { FeedItem, FeedTitleGroup, GroupedFeedEntry } from "@/features/feed/types";
 
 const actor = { id: "u1", username: "glory42", displayUsername: null, avatarUrl: null };
 const otherActor = { id: "u2", username: "reel_drifter", displayUsername: null, avatarUrl: null };
@@ -46,6 +47,28 @@ const likeOnly = (id: string, title: string, createdAt: string, who = actor): Fe
     liked: true,
   });
 
+const watchlistOnly = (id: string, title: string, createdAt: string): FeedTitleGroup =>
+  group({ ...likeOnly(id, title, createdAt), liked: false, watchlisted: true });
+
+const episode = (id: string, createdAt: string, episodeNumber: number | null, overrides: Partial<FeedTitleGroup> = {}) =>
+  group({
+    id,
+    createdAt,
+    movie: { tmdbId: 46648, title: "True Detective", posterPath: null, releaseYear: 2014, mediaType: "tv" },
+    seasonNumber: 1,
+    episodeNumber,
+    watched: false,
+    rating: null,
+    liked: true,
+    review: null,
+    ...overrides,
+  });
+
+const follow = (id: string, targetUsername: string, createdAt: string): GroupedFeedEntry => ({
+  kind: "activity",
+  item: { id, kind: "followed_user", createdAt, actor, metadata: { targetUsername } } as unknown as FeedItem,
+});
+
 describe("toFeedDays", () => {
   it("splits entries into days labelled like a slate", () => {
     const days = toFeedDays([
@@ -67,15 +90,79 @@ describe("toFeedDays", () => {
     ];
     const [day] = toFeedDays(entries);
 
-    expect(day!.rows.map((row) => row.kind)).toEqual(["title", "likes", "title"]);
+    expect(day!.rows.map((row) => row.kind)).toEqual(["title", "titles", "title"]);
     const likes = day!.rows[1];
-    expect(likes).toMatchObject({ kind: "likes", actor: { username: "glory42" } });
-    expect(likes!.kind === "likes" && likes.titles.map((title) => title.title)).toEqual(["Bleach", "Third Star"]);
+    expect(likes).toMatchObject({ kind: "titles", action: "liked", actor: { username: "glory42" } });
+    expect(likes!.kind === "titles" && likes.titles.map((title) => title.title)).toEqual(["Bleach", "Third Star"]);
+  });
+
+  it("folds a run of watchlist adds, apart from a run of likes", () => {
+    const [day] = toFeedDays([
+      watchlistOnly("w1", "Dune", "2026-11-02T20:00:00"),
+      watchlistOnly("w2", "Arrival", "2026-11-02T19:00:00"),
+      likeOnly("l1", "Bleach", "2026-11-02T18:00:00"),
+      likeOnly("l2", "Third Star", "2026-11-02T17:00:00"),
+    ]);
+
+    expect(day!.rows).toMatchObject([
+      { kind: "titles", action: "watchlisted", titles: [{ title: "Dune" }, { title: "Arrival" }] },
+      { kind: "titles", action: "liked", titles: [{ title: "Bleach" }, { title: "Third Star" }] },
+    ]);
+  });
+
+  it("folds a run of follows into one line naming each person", () => {
+    const [day] = toFeedDays([
+      follow("f1", "reel_drifter", "2026-11-02T20:00:00"),
+      follow("f2", "nightowl", "2026-11-02T19:00:00"),
+    ]);
+
+    expect(day!.rows).toMatchObject([{ kind: "follows", usernames: ["reel_drifter", "nightowl"] }]);
+  });
+
+  it("folds one show's episode likes and ratings into one card, not a run of liked titles", () => {
+    const [day] = toFeedDays([
+      episode("e1", "2026-11-02T20:00:00", 1, { rating: 9 }),
+      episode("e2", "2026-11-02T19:00:00", 2),
+      episode("s1", "2026-11-02T18:00:00", null),
+      likeOnly("l1", "Bleach", "2026-11-02T17:00:00"),
+    ]);
+
+    expect(day!.rows.map((row) => row.kind)).toEqual(["episodes", "title"]);
+    const episodes = day!.rows[0]!;
+    expect(episodes.kind === "episodes" && episodesSummary(episodes.groups)).toBe("rated and liked 3 seasons and episodes");
+  });
+
+  it("keeps an episode review as its own card", () => {
+    const [day] = toFeedDays([
+      episode("e1", "2026-11-02T20:00:00", 1),
+      episode("e2", "2026-11-02T19:00:00", 2, { review: { id: "r9", content: "Carcosa", containsSpoilers: false, rating: null } }),
+    ]);
+
+    expect(day!.rows.map((row) => row.kind)).toEqual(["title", "title"]);
   });
 
   it("keeps a single like as its own card", () => {
     const [day] = toFeedDays([likeOnly("l1", "Bleach", "2026-11-02T20:00:00")]);
     expect(day!.rows.map((row) => row.kind)).toEqual(["title"]);
+  });
+});
+
+describe("folded feed rows", () => {
+  it("reads a show's episodes as one card and a run of follows as one line", async () => {
+    const days = toFeedDays([
+      episode("e1", "2026-11-02T20:00:00", 1, { rating: 9 }),
+      episode("e2", "2026-11-02T19:00:00", 2),
+      follow("f1", "reel_drifter", "2026-11-02T18:00:00"),
+      follow("f2", "nightowl", "2026-11-02T17:00:00"),
+    ]);
+    renderWithProviders(<FeedDayList isLoading={false} isError={false} days={days} />);
+
+    expect(await screen.findByText("rated and liked 2 episodes")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /True Detective/ })).toHaveAttribute("href", "/serials/46648");
+    expect(screen.getByText("S01E01")).toBeInTheDocument();
+    expect(screen.getByText("9/10")).toBeInTheDocument();
+    expect(screen.getByText("followed 2 people")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "@nightowl" })).toHaveAttribute("href", "/profile/nightowl");
   });
 });
 

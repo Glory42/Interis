@@ -2,7 +2,8 @@ import { LoadingRegion, TitleRowsSkeleton } from "@/components/ui/PageSkeletons"
 import type { MouseEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
-import { toFeedDays, verbFor, type FeedRow } from "@/features/feed/components/feed-days";
+import { episodesSummary, followsVerb, titlesVerb, toFeedDays, verbFor, type FeedRow } from "@/features/feed/components/feed-days";
+import { EpisodeList } from "@/features/feed/components/FeedFoldedRows";
 import type { FeedItem, GroupedFeedEntry } from "@/features/feed/types";
 import { getPosterUrl } from "@/features/media/tmdb-images";
 import { isCardBackgroundClick } from "@/lib/card-click";
@@ -22,27 +23,39 @@ const ACTIVITY_LINES: Partial<Record<FeedItem["kind"], string>> = {
   commented: "Commented on a review",
 };
 
-// A long run of likes names this many titles, then "and N more".
-const MAX_LIKED_TITLES = 12;
+// A long folded run names this many titles or people, then "and N more".
+const MAX_FOLDED_NAMES = 12;
 
 const titleRoute =(mediaType: string) => (mediaType === "tv" ? "/serials/$tmdbId" : "/movies/$tmdbId");
 
 const Row = ({ row }: { row: FeedRow }) => {
   const navigate = useNavigate();
 
-  if (row.kind === "likes") {
-    const hidden = row.titles.length - MAX_LIKED_TITLES;
+  if (row.kind === "titles" || row.kind === "follows") {
+    const names = row.kind === "titles" ? row.titles.map((title) => title.title) : row.usernames.map((username) => `@${username}`);
+    const hidden = names.length - MAX_FOLDED_NAMES;
+    const verb = row.kind === "titles" ? titlesVerb(row) : followsVerb(row);
     return (
       <p className="body-s text-muted-foreground">
-        {`Liked ${row.titles.length} titles · `}
-        <span className="text-foreground">
-          {row.titles
-            .slice(0, MAX_LIKED_TITLES)
-            .map((title) => title.title)
-            .join(", ")}
-        </span>
+        {`${verb.charAt(0).toUpperCase()}${verb.slice(1)} · `}
+        <span className="text-foreground">{names.slice(0, MAX_FOLDED_NAMES).join(", ")}</span>
         {hidden > 0 ? ` and ${hidden} more` : null}
       </p>
+    );
+  }
+
+  if (row.kind === "episodes") {
+    return (
+      <div className="flex items-start gap-3">
+        <img src={getPosterUrl(row.movie.posterPath)} alt="" className="aspect-2/3 w-9 shrink-0 rounded-[2px] object-cover" loading="lazy" />
+        <div className="min-w-0">
+          <p className="kicker text-[color:var(--series)]">{`Series · ${episodesSummary(row.groups)}`}</p>
+          <Link to="/serials/$tmdbId" params={{ tmdbId: String(row.movie.tmdbId) }} className="display-4 text-foreground hover:underline">
+            {row.movie.title}
+          </Link>
+          <EpisodeList groups={row.groups} />
+        </div>
+      </div>
     );
   }
 

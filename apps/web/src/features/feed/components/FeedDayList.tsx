@@ -1,10 +1,9 @@
 import { LoadingRegion, TitleRowsSkeleton } from "@/components/ui/PageSkeletons";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { Link } from "@tanstack/react-router";
 import { FeedActivityCard } from "@/features/feed/components/FeedActivityCard";
 import { FeedTitleCard } from "@/features/feed/components/FeedTitleCard";
+import { EpisodesCard, FollowsLine, TitlesLine } from "@/features/feed/components/FeedFoldedRows";
 import type { FeedDay, FeedRow } from "@/features/feed/components/feed-days";
-import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type FeedDayListProps = {
   isLoading: boolean;
@@ -12,28 +11,22 @@ type FeedDayListProps = {
   days: FeedDay[];
 };
 
-const LikesLine = ({ row }: { row: Extract<FeedRow, { kind: "likes" }> }) => (
-  <div className="flex items-center gap-2 rounded-[3px] border border-[color:var(--line)] px-3 py-2 text-xs">
-    <Link to="/profile/$username" params={{ username: row.actor.username }} className="font-semibold text-foreground">
-      {row.actor.username}
-    </Link>
-    <span className="text-muted-foreground">{`liked ${row.titles.length} titles`}</span>
-    <span className="ml-auto flex min-w-0 items-center gap-1.5">
-      {row.titles.slice(0, 3).map((title) => (
-        <img key={title.tmdbId} src={getPosterUrl(title.posterPath)} alt="" className="aspect-2/3 w-[18px] rounded-[1px] object-cover" />
-      ))}
-      <span className="mono-meta truncate text-muted-foreground">{row.titles.map((title) => title.title).join(", ")}</span>
-    </span>
-  </div>
-);
-
 const renderRow = (row: FeedRow) => {
-  if (row.kind === "title") return <FeedTitleCard key={row.key} group={row.group} />;
-  if (row.kind === "likes") return <LikesLine key={row.key} row={row} />;
-  return <FeedActivityCard key={row.key} item={row.item} />;
+  switch (row.kind) {
+    case "title":
+      return <FeedTitleCard key={row.key} group={row.group} />;
+    case "titles":
+      return <TitlesLine key={row.key} row={row} />;
+    case "follows":
+      return <FollowsLine key={row.key} row={row} />;
+    case "episodes":
+      return <EpisodesCard key={row.key} row={row} />;
+    default:
+      return <FeedActivityCard key={row.key} item={row.item} />;
+  }
 };
 
-// The feed as days: a slate line per day, then one card per watch and one line per run of likes.
+// The feed as days: a slate line per day, then one card per watch and one row per folded run.
 export const FeedDayList = ({ isLoading, isError, days }: FeedDayListProps) => {
   if (isLoading) {
     return (
