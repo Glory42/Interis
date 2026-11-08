@@ -22,16 +22,26 @@ const ACTIVITY_LINES: Partial<Record<FeedItem["kind"], string>> = {
   commented: "Commented on a review",
 };
 
-const titleRoute = (mediaType: string) => (mediaType === "tv" ? "/serials/$tmdbId" : "/movies/$tmdbId");
+// A long run of likes names this many titles, then "and N more".
+const MAX_LIKED_TITLES = 12;
+
+const titleRoute =(mediaType: string) => (mediaType === "tv" ? "/serials/$tmdbId" : "/movies/$tmdbId");
 
 const Row = ({ row }: { row: FeedRow }) => {
   const navigate = useNavigate();
 
   if (row.kind === "likes") {
+    const hidden = row.titles.length - MAX_LIKED_TITLES;
     return (
       <p className="body-s text-muted-foreground">
         {`Liked ${row.titles.length} titles · `}
-        <span className="text-foreground">{row.titles.map((title) => title.title).join(", ")}</span>
+        <span className="text-foreground">
+          {row.titles
+            .slice(0, MAX_LIKED_TITLES)
+            .map((title) => title.title)
+            .join(", ")}
+        </span>
+        {hidden > 0 ? ` and ${hidden} more` : null}
       </p>
     );
   }

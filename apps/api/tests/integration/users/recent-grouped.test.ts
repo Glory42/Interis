@@ -61,6 +61,27 @@ describe("GET /api/users/:username/recent/grouped", () => {
     expect(rows[0]!.review?.content).toBe("Profile grouped review");
   });
 
+  it("counts a run of likes as one row, so older activity still shows", async () => {
+    const { jar, username } = await signUpTestUser(getServer().baseUrl, "recrun");
+    const logged = await seedTestFilm("Logged Before The Likes");
+    await send(jar, "/api/diary", "POST", { tmdbId: logged.tmdbId, watchedDate: "2026-02-01" });
+    await waitForActivityWrites();
+
+    for (let index = 0; index < 25; index += 1) {
+      const liked = await seedTestFilm(`Run Like ${index}`);
+      await send(jar, `/api/interactions/${liked.tmdbId}`, "PUT", { liked: true });
+    }
+    await waitForActivityWrites();
+
+    const response = await apiRequest(getServer().baseUrl, `/api/users/${username}/recent/grouped?limit=2`);
+    expect(response.status).toBe(200);
+    const entries = (await response.json()) as Entry[];
+    const titles = entries.filter((entry): entry is Extract<Entry, { kind: "title" }> => entry.kind === "title");
+
+    expect(titles).toHaveLength(26);
+    expect(titles.at(-1)).toMatchObject({ movie: { tmdbId: logged.tmdbId }, watched: true });
+  });
+
   it("404s for an unknown user", async () => {
     const response = await apiRequest(getServer().baseUrl, "/api/users/no-such-user-xyz/recent/grouped");
     expect(response.status).toBe(404);
