@@ -148,4 +148,28 @@ describe("GET /api/social/feed/grouped", () => {
     expect(seen[1]).toMatchObject({ watched: true, liked: true, watchlisted: true });
     expect(seen[1]!.itemIds).toHaveLength(3);
   });
+
+  it("counts a run of likes as one row, so the first page still reaches older days", async () => {
+    const { jar, username } = await signUpTestUser(getServer().baseUrl, "grpburst");
+    const [userRow] = await db.select({ id: user.id }).from(user).where(eq(user.username, username));
+    const logged = await seedTestFilm("Logged Before The Burst");
+    await send(jar, "/api/diary", "POST", { tmdbId: logged.tmdbId, watchedDate: "2026-01-01" });
+    await waitForActivityWrites();
+    // The log happened a day before the burst of likes.
+    await db
+      .update(activities)
+      .set({ createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000) })
+      .where(eq(activities.userId, userRow!.id));
+
+    for (let index = 0; index < 25; index += 1) {
+      const liked = await seedTestFilm(`Burst Like ${index}`);
+      await send(jar, `/api/interactions/${liked.tmdbId}`, "PUT", { liked: true });
+    }
+    await waitForActivityWrites();
+
+    const page = await getPage(jar, "limit=2");
+    const titles = titleEntries(page);
+    expect(titles).toHaveLength(26);
+    expect(titles.at(-1)).toMatchObject({ movie: { tmdbId: logged.tmdbId }, watched: true });
+  });
 });

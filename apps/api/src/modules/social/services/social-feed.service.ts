@@ -4,6 +4,7 @@ import { toFeedItems } from "../helpers/feed-kinds/feed-kind.registry";
 import { dedupeReviewFeedItems } from "../helpers/social-feed-dedupe.helper";
 import { inferFeedItemMediaType } from "../helpers/social-feed-channel.helper";
 import { groupFeedItems, toUtcDayKey } from "../helpers/social-feed-grouping.helper";
+import { cutGroupedPage } from "../helpers/social-feed-grouped-page.helper";
 import { decodeFeedCursor, encodeFeedCursor } from "../helpers/social-feed-cursor.helper";
 import { SocialRepository } from "../repositories/social.repository";
 import { ModerationRepository } from "../../moderation/repositories/moderation.repository";
@@ -19,6 +20,10 @@ import type {
 // almost no movies at all, with the "movie" filter active) - bounds one
 // request's latency instead of scanning the whole feed history.
 const MEDIA_FILTER_SCAN_ROW_CAP = 300;
+
+// Raw rows a grouped page reads, so a burst of likes (one row each) still
+// leaves room for older days on the page.
+const GROUPED_FEED_ROW_WINDOW = 100;
 
 export type FeedPage = {
   items: FeedItem[];
@@ -157,8 +162,6 @@ export type GroupedFeedPage = {
   nextCursor: string | null;
 };
 
-// Pages end on a day boundary when the next row is from the same day, so a
-// title's same-day group never splits across two pages.
 // A title group or activity's film/TV kind; null for follows, lists and plain posts.
 const entryMediaType = (entry: GroupedFeedEntry): FeedMediaType | null =>
   entry.kind === "title" ? entry.movie.mediaType : (entry.item.movie?.mediaType ?? entry.item.post?.mediaType ?? null);
@@ -169,31 +172,27 @@ const getGroupedFollowingFeedUncached = async (
   cursor?: string,
   mediaType?: FeedMediaType,
 ): Promise<GroupedFeedPage> => {
-  const fetchLimit = normalizeLimit(limit) * 2;
+  const normalizedLimit = normalizeLimit(limit);
+  const rowWindow = Math.max(normalizedLimit * 2, GROUPED_FEED_ROW_WINDOW);
   const feedUserIds = await getFeedUserIds(userId);
   const rows = await SocialRepository.getFeedActivityRows(
     feedUserIds,
-    fetchLimit + 1,
+    rowWindow + 1,
     decodeFeedCursor(cursor),
   );
 
-  const peekRow = rows.length > fetchLimit ? rows[fetchLimit] : undefined;
-  let pageRows = rows.slice(0, fetchLimit);
-  const lastDay = pageRows.at(-1) ? toUtcDayKey(pageRows.at(-1)!.activity.createdAt) : null;
-  const firstDay = pageRows[0] ? toUtcDayKey(pageRows[0].activity.createdAt) : null;
-  if (peekRow && lastDay !== firstDay && toUtcDayKey(peekRow.activity.createdAt) === lastDay) {
-    pageRows = pageRows.filter((row) => toUtcDayKey(row.activity.createdAt) !== lastDay);
-  }
-
-  const grouped = groupFeedItems(await buildFeedItems(pageRows, userId));
+  const peekRow = rows.length > rowWindow ? rows[rowWindow] : undefined;
+  const windowRows = rows.slice(0, rowWindow);
+  const grouped = groupFeedItems(await buildFeedItems(windowRows, userId));
   // Filtered after grouping, so a filtered page can come back short; the cursor still advances.
-  const items = mediaType ? grouped.filter((entry) => entryMediaType(entry) === mediaType) : grouped;
-  const lastRow = pageRows.at(-1);
+  const filtered = mediaType ? grouped.filter((entry) => entryMediaType(entry) === mediaType) : grouped;
+  const openDay = peekRow ? toUtcDayKey(peekRow.activity.createdAt) : null;
+  const { items, lastRow, coversAllRows } = cutGroupedPage(windowRows, filtered, normalizedLimit, openDay);
 
   return {
     items,
     nextCursor:
-      peekRow && lastRow
+      lastRow && (peekRow || !coversAllRows)
         ? encodeFeedCursor({ createdAt: lastRow.activity.createdAt, id: lastRow.activity.id })
         : null,
   };

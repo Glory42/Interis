@@ -91,25 +91,30 @@ const isLikeOnly = (entry: GroupedFeedEntry): entry is FeedTitleGroup =>
   !entry.review &&
   !entry.watchlisted;
 
-// Keeps the first `limit` rows as the web shows them: a same-day run of one
-// person's likes collapses into a single "liked N titles" row.
-export const takeVisibleRows = (entries: GroupedFeedEntry[], limit: number): GroupedFeedEntry[] => {
-  let rows = 0;
+// Where each row the web shows ends: a same-day run of one person's likes
+// collapses into a single "liked N titles" row.
+const visibleRowEnds = (entries: GroupedFeedEntry[]): number[] => {
+  const ends: number[] = [];
   let index = 0;
   while (index < entries.length) {
     const entry = entries[index]!;
-    let end = index + 1;
-    if (isLikeOnly(entry)) {
-      const day = toUtcDayKey(new Date(entry.createdAt));
-      while (end < entries.length) {
-        const next = entries[end]!;
-        if (!isLikeOnly(next) || next.actor.id !== entry.actor.id || toUtcDayKey(new Date(next.createdAt)) !== day) break;
-        end += 1;
-      }
+    index += 1;
+    if (!isLikeOnly(entry)) {
+      ends.push(index);
+      continue;
     }
-    if (rows === limit) break;
-    rows += 1;
-    index = end;
+    const day = toUtcDayKey(entry.createdAt);
+    while (index < entries.length) {
+      const next = entries[index]!;
+      if (!isLikeOnly(next) || next.actor.id !== entry.actor.id || toUtcDayKey(next.createdAt) !== day) break;
+      index += 1;
+    }
+    ends.push(index);
   }
-  return entries.slice(0, index);
+  return ends;
 };
+
+export const countVisibleRows = (entries: GroupedFeedEntry[]): number => visibleRowEnds(entries).length;
+
+export const takeVisibleRows = (entries: GroupedFeedEntry[], limit: number): GroupedFeedEntry[] =>
+  limit > 0 ? entries.slice(0, visibleRowEnds(entries)[limit - 1] ?? entries.length) : [];
