@@ -107,6 +107,10 @@ _Avoid_: block (Mute and Block are separate relationships)
 A user's flag of a Review, Post, comment, or List for moderator review, snapshotting the content at submit time so it stays reviewable even if the original is later edited or deleted.
 _Avoid_: flag
 
+**Moderator Action**:
+An admin's removal of a Review, Post, Comment or List, from the admin panels or the report queue alike: removes the content, resolves every pending Report on it and writes an audit entry, as one operation (`ModeratorActionService`).
+_Avoid_: takedown, admin delete
+
 **Suspension**:
 An admin-applied, platform-wide restriction on a Profile (`isSuspended`) — distinct from Block/Mute, which are relationships between two ordinary users.
 _Avoid_: ban, block

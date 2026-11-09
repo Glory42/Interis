@@ -1,25 +1,24 @@
 import { useDeferredValue, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AdminMediaRowActions } from "@/features/admin/components/AdminMediaRowActions";
 import { AdminPanelHeader } from "@/features/admin/components/AdminPanelHeader";
 import { AdminPanelState } from "@/features/admin/components/AdminPanelState";
 import { AdminSearchInput } from "@/features/admin/components/AdminSearchInput";
-import {
-  DeleteFilmAction,
-  EditFilmAction,
-  RefreshFilmAction,
-} from "@/features/admin/components/AdminFilmRowActions";
-import { useAdminFilms } from "@/features/admin/hooks/useAdminMedia";
+import { useAdminMediaList } from "@/features/admin/hooks/useAdminMedia";
+import type { AdminMediaKind } from "@/features/admin/media-api";
+import { ADMIN_MEDIA_KINDS } from "@/features/admin/media-kinds";
 
-export const AdminFilmsPanel = () => {
+export const AdminMediaPanel = ({ kind }: { kind: AdminMediaKind }) => {
+  const { pluralNoun, panelTitle, panelDescription, yearLabel, creditLabel } = ADMIN_MEDIA_KINDS[kind];
   const [queryInput, setQueryInput] = useState("");
   const deferredQuery = useDeferredValue(queryInput.trim());
-  const moviesQuery = useAdminFilms(deferredQuery.length > 0 ? deferredQuery : undefined);
+  const mediaQuery = useAdminMediaList(kind, deferredQuery.length > 0 ? deferredQuery : undefined);
 
   return (
     <div className="space-y-4">
       <AdminPanelHeader
-        title="Movies"
-        description="Manage locally cached movie records."
+        title={panelTitle}
+        description={panelDescription}
         action={
           <AdminSearchInput
             value={queryInput}
@@ -30,35 +29,31 @@ export const AdminFilmsPanel = () => {
       />
 
       <AdminPanelState
-        query={moviesQuery}
-        emptyMessage="No cached movies found."
-        errorMessage="Could not load movies."
+        query={mediaQuery}
+        emptyMessage={`No cached ${pluralNoun} found.`}
+        errorMessage={`Could not load ${pluralNoun}.`}
       >
-        {(movies) => (
+        {(titles) => (
           <div className="surface">
             <Table>
               <TableHeader>
                 <TableRow className="border-0 hover:bg-transparent">
                   <TableHead>Title</TableHead>
-                  <TableHead>Year</TableHead>
-                  <TableHead>Director</TableHead>
+                  <TableHead>{yearLabel}</TableHead>
+                  <TableHead>{creditLabel}</TableHead>
                   <TableHead>TMDB ID</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {movies.map((movie) => (
-                  <TableRow key={movie.id}>
-                    <TableCell className="text-foreground">{movie.title}</TableCell>
-                    <TableCell className="text-muted-foreground">{movie.releaseYear ?? "—"}</TableCell>
-                    <TableCell className="text-muted-foreground">{movie.director ?? "—"}</TableCell>
-                    <TableCell className="text-muted-foreground">{movie.tmdbId}</TableCell>
+                {titles.map((media) => (
+                  <TableRow key={media.id}>
+                    <TableCell className="text-foreground">{media.title}</TableCell>
+                    <TableCell className="text-muted-foreground">{media.year ?? "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">{media.credit ?? "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">{media.tmdbId}</TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1">
-                        <EditFilmAction movie={movie} />
-                        <RefreshFilmAction movie={movie} />
-                        <DeleteFilmAction movie={movie} />
-                      </div>
+                      <AdminMediaRowActions kind={kind} media={media} />
                     </TableCell>
                   </TableRow>
                 ))}

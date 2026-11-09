@@ -40,14 +40,16 @@ router.delete("/posts/:id", asyncHandler(AdminContentController.deletePost));
 router.get("/comments", asyncHandler(AdminContentController.listComments));
 router.delete("/comments/:kind/:id", asyncHandler(AdminContentController.deleteComment));
 
-router.get("/movies", asyncHandler(AdminMediaController.listMovies));
-router.patch("/movies/:id", asyncHandler(AdminMediaController.updateMovie));
-router.post("/movies/:id/refresh", asyncHandler(AdminMediaController.refreshMovie));
-router.delete("/movies/:id", asyncHandler(AdminMediaController.deleteMovie));
-router.get("/serials", asyncHandler(AdminMediaController.listSerials));
-router.patch("/serials/:id", asyncHandler(AdminMediaController.updateSerial));
-router.post("/serials/:id/refresh", asyncHandler(AdminMediaController.refreshSerial));
-router.delete("/serials/:id", asyncHandler(AdminMediaController.deleteSerial));
+const adminFilms = AdminMediaController.forKind("movie");
+router.get("/movies", asyncHandler(adminFilms.list));
+router.patch("/movies/:id", asyncHandler(adminFilms.update));
+router.post("/movies/:id/refresh", asyncHandler(adminFilms.refresh));
+router.delete("/movies/:id", asyncHandler(adminFilms.remove));
+const adminSeries = AdminMediaController.forKind("serial");
+router.get("/serials", asyncHandler(adminSeries.list));
+router.patch("/serials/:id", asyncHandler(adminSeries.update));
+router.post("/serials/:id/refresh", asyncHandler(adminSeries.refresh));
+router.delete("/serials/:id", asyncHandler(adminSeries.remove));
 
 router.get("/cache", asyncHandler(AdminCacheController.summary));
 router.post("/cache/refresh-oldest", asyncHandler(AdminCacheController.refreshOldest));
