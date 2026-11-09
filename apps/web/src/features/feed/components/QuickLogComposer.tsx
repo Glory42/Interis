@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCreatePost } from "@/features/posts/hooks/usePosts";
 import type { MeProfile } from "@/types/api";
 import { TickLoader } from "@/components/ui/tick-loader";
+import { PHONE_QUERY, useMediaQuery } from "@/lib/use-media-query";
 
 type QuickLogComposerProps = {
   user: MeProfile | null;
@@ -15,6 +16,7 @@ type QuickLogComposerProps = {
 export const QuickLogComposer = ({ user }: QuickLogComposerProps) => {
   const createPostMutation = useCreatePost();
   const [content, setContent] = useState("");
+  const prompt = useMediaQuery(PHONE_QUERY) ? "What did you watch?" : "What did you watch tonight?";
 
   if (!user) {
     return (
@@ -60,12 +62,12 @@ export const QuickLogComposer = ({ user }: QuickLogComposerProps) => {
 
   return (
     <div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <FeedActorAvatar
           avatarUrl={avatarUrl}
           username={user.username}
           initial={profileInitial}
-          className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-bold text-primary"
+          className="flex size-8 shrink-0 sm:size-10 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-bold text-primary"
         />
 
         <Textarea
@@ -77,24 +79,25 @@ export const QuickLogComposer = ({ user }: QuickLogComposerProps) => {
               setContent(event.target.value);
             }
           }}
-          placeholder="What did you watch tonight?"
-          aria-label="What did you watch tonight?"
-          className="field-sizing-content min-h-0 flex-1 resize-none border-0 bg-transparent px-0 py-2 text-base shadow-none focus-visible:ring-0"
+          placeholder={prompt}
+          aria-label={prompt}
+          // 16px keeps iOS from zooming in on focus; phones get the shorter prompt instead.
+          className="field-sizing-content min-h-0 min-w-0 flex-1 resize-none border-0 bg-transparent px-0 py-2 text-base shadow-none focus-visible:ring-0"
         />
 
         <Button
           type="button"
-          className="shrink-0 gap-1.5 px-4 font-bold"
+          className="shrink-0 gap-1.5 px-3 font-bold sm:px-4"
           disabled={!canSubmit}
           onClick={handleSubmit}
         >
           {createPostMutation.isPending ? <TickLoader /> : <PenLine aria-hidden className="size-4" />}
-          Log
+          <span className="max-[359px]:sr-only">Log</span>
         </Button>
       </div>
 
       {content.length > 0 ? (
-        <p className="theme-kicker mt-1 pl-13 text-[9px] text-muted-foreground">
+        <p className="theme-kicker mt-1 truncate pl-10 text-[9px] text-muted-foreground sm:pl-13">
           Enter posts · Shift+Enter newline · {content.length}/250
         </p>
       ) : null}
