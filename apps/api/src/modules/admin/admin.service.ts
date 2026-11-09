@@ -3,7 +3,16 @@ import { AuthService } from "../auth/auth.service";
 import { AuthUsersRepository } from "../auth/repositories/auth-users.repository";
 import { SessionService } from "../auth/services/session.service";
 import { UsersService } from "../users/users.service";
+import { AdminAuditService, type AuditActor } from "./admin-audit.service";
 import { AdminRepository } from "./repositories/admin.repository";
+
+const auditUserAction = (actor: AuditActor, action: string, targetId: string, username: string, reason?: string | null) =>
+  AdminAuditService.record(actor, { action: `user.${action}`, targetType: "user", targetId, targetLabel: username, reason });
+
+const suspensionReason = (reason: string | undefined, durationDays: number | undefined): string | null => {
+  const length = durationDays ? `${durationDays} ${durationDays === 1 ? "day" : "days"}` : null;
+  return [reason, length && `(${length})`].filter(Boolean).join(" ") || null;
+};
 
 export class AdminService {
   static async listUsers(query: string | undefined, limit: number, offset: number) {
@@ -38,12 +47,12 @@ export class AdminService {
   }
 
   static async revokeUserSessions(
-    actorId: string,
+    actor: AuditActor,
     adminPassword: string | undefined,
     username: string,
-  ): Promise<string> {
+  ): Promise<void> {
     const [, userRow] = await Promise.all([
-      AuthService.assertCurrentPassword(actorId, adminPassword),
+      AuthService.assertCurrentPassword(actor.id, adminPassword),
       AuthUsersRepository.findByUsername(username),
     ]);
     if (!userRow) {
@@ -51,16 +60,16 @@ export class AdminService {
     }
 
     await SessionService.revokeAllSessionsForUser(userRow.id);
-    return userRow.id;
+    await auditUserAction(actor, "revoke_sessions", userRow.id, username);
   }
 
   static async forcePasswordReset(
-    actorId: string,
+    actor: AuditActor,
     adminPassword: string | undefined,
     username: string,
-  ): Promise<string> {
+  ): Promise<void> {
     const [, userRow] = await Promise.all([
-      AuthService.assertCurrentPassword(actorId, adminPassword),
+      AuthService.assertCurrentPassword(actor.id, adminPassword),
       AuthUsersRepository.findByUsername(username),
     ]);
     if (!userRow) {
@@ -71,30 +80,30 @@ export class AdminService {
     if (!hasRecoveryQuestion) {
       throw new ConflictError("This account has no recovery question, so a forced reset would lock it out");
     }
-    return userRow.id;
+    await auditUserAction(actor, "force_password_reset", userRow.id, username);
   }
 
   static async resetUserPassword(
-    actorId: string,
+    actor: AuditActor,
     adminPassword: string | undefined,
     username: string,
     newPassword: string,
-  ): Promise<string> {
-    await AuthService.assertCurrentPassword(actorId, adminPassword);
+  ): Promise<void> {
+    await AuthService.assertCurrentPassword(actor.id, adminPassword);
     const userRow = await AuthUsersRepository.findByUsername(username);
     await AuthService.adminResetPassword(username, newPassword);
-    return userRow?.id ?? username;
+    await auditUserAction(actor, "reset_password", userRow?.id ?? username, username);
   }
 
   static async suspendUser(
-    actorId: string,
+    actor: AuditActor,
     adminPassword: string | undefined,
     username: string,
     reason: string | undefined,
     durationDays?: number,
-  ): Promise<string> {
+  ): Promise<void> {
     const [, userRow] = await Promise.all([
-      AuthService.assertCurrentPassword(actorId, adminPassword),
+      AuthService.assertCurrentPassword(actor.id, adminPassword),
       AuthUsersRepository.findByUsername(username),
     ]);
     if (!userRow) {
@@ -102,27 +111,27 @@ export class AdminService {
     }
 
     const until = durationDays ? new Date(Date.now() + durationDays * 86_400_000) : null;
-    await UsersService.setSuspended(userRow.id, true, reason, { until, by: actorId });
-    return userRow.id;
+    await UsersService.setSuspended(userRow.id, true, reason, { until, by: actor.id });
+    await auditUserAction(actor, "suspend", userRow.id, username, suspensionReason(reason, durationDays));
   }
 
-  static async unsuspendUser(username: string): Promise<string> {
+  static async unsuspendUser(actor: AuditActor, username: string): Promise<void> {
     const userRow = await AuthUsersRepository.findByUsername(username);
     if (!userRow) {
       throw new BadRequestError("User not found");
     }
 
     await UsersService.setSuspended(userRow.id, false);
-    return userRow.id;
+    await auditUserAction(actor, "unsuspend", userRow.id, username);
   }
 
   static async promoteUser(
-    actorId: string,
+    actor: AuditActor,
     adminPassword: string | undefined,
     username: string,
-  ): Promise<string> {
+  ): Promise<void> {
     const [, userRow] = await Promise.all([
-      AuthService.assertCurrentPassword(actorId, adminPassword),
+      AuthService.assertCurrentPassword(actor.id, adminPassword),
       AuthUsersRepository.findByUsername(username),
     ]);
     if (!userRow) {
@@ -130,16 +139,16 @@ export class AdminService {
     }
 
     await UsersService.setAdminStatus(userRow.id, true);
-    return userRow.id;
+    await auditUserAction(actor, "promote", userRow.id, username);
   }
 
   static async demoteUser(
-    actorId: string,
+    actor: AuditActor,
     adminPassword: string | undefined,
     username: string,
-  ): Promise<string> {
+  ): Promise<void> {
     const [, userRow] = await Promise.all([
-      AuthService.assertCurrentPassword(actorId, adminPassword),
+      AuthService.assertCurrentPassword(actor.id, adminPassword),
       AuthUsersRepository.findByUsername(username),
     ]);
     if (!userRow) {
@@ -147,17 +156,17 @@ export class AdminService {
     }
 
     await UsersService.setAdminStatus(userRow.id, false);
-    return userRow.id;
+    await auditUserAction(actor, "demote", userRow.id, username);
   }
 
   static async deleteUser(
-    actorId: string,
+    actor: AuditActor,
     adminPassword: string | undefined,
     username: string,
-  ): Promise<string> {
-    await AuthService.assertCurrentPassword(actorId, adminPassword);
+  ): Promise<void> {
+    await AuthService.assertCurrentPassword(actor.id, adminPassword);
     const userRow = await AuthUsersRepository.findByUsername(username);
     await AuthService.adminDeleteUser(username);
-    return userRow?.id ?? username;
+    await auditUserAction(actor, "delete", userRow?.id ?? username, username);
   }
 }
