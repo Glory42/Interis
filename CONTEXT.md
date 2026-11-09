@@ -14,6 +14,10 @@ _Avoid_: account, member
 The mutable, user-facing side of a User: bio, location, avatar, favorite genres, theme, and admin/suspension status. One-to-one with User.
 _Avoid_: account settings
 
+**Profile Tab**:
+One section of a Profile read by username — Diary, Reviews, Likes, Watchlist, Liked Reviews, Liked Lists, Lists, Top 4, Recent, Currently Watching. The in-app Profile and the widget API read them through one module (`ProfileTabsService`) with one set of paging rules.
+_Avoid_: profile list, profile endpoint
+
 ### Media catalog
 
 **Media**:
