@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import {
   sendBadRequest,
+  sendNotFound,
   sendValidationError,
 } from "../../commons/http/validation-response.helper";
 import { parseTmdbIdParam } from "../../commons/validation/params.helper";
@@ -20,6 +21,10 @@ export class InteractionsController {
     }
 
     const state = await InteractionsService.get(req.user.id, tmdbId);
+    if (!state) {
+      sendNotFound(res, "Movie not found");
+      return;
+    }
     res.status(200).json(state);
   }
 
@@ -45,6 +50,10 @@ export class InteractionsController {
       tmdbId,
       parsed.data,
     );
+    if (!result) {
+      sendNotFound(res, "Movie not found");
+      return;
+    }
     res.status(200).json(result);
   }
 }

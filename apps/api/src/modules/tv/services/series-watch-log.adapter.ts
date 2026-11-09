@@ -1,6 +1,6 @@
 import { WatchLogStores } from "../../media/repositories/watch-log.repository";
 import type { AttachedReview, WatchLogAdapter, WatchLogRow } from "../../media/types/watch-log.types";
-import { TvInteractionsRepository } from "../repositories/tv-interactions.repository";
+import { MediaInteractionService } from "../../media-interactions/services/media-interaction.service";
 import { TvActivityService } from "./tv-activity.service";
 import { TvCacheService } from "./tv-cache.service";
 import { TvWatchStatusService } from "./tv-watch-status.service";
@@ -25,7 +25,7 @@ export const seriesWatchLog: WatchLogAdapter<
         TvWatchStatusService.setStatus(userId, series.id, "completed"),
         TvActivityService.cascadeSeasonsWatched(userId, series, seasonEpisodeNumbers),
         // Clears the Watchlist, as watching a Film does.
-        TvInteractionsRepository.upsertInteraction({ userId, seriesId: series.id, watched: true }),
+        MediaInteractionService.setWatched("tv", userId, series.id, true),
       ]);
     };
   },

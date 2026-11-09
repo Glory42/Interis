@@ -5,7 +5,7 @@ import {
   ActivityRecorder,
   type ActivitySubject,
 } from "../../social/services/activity-recorder.service";
-import { InteractionsService } from "../../interactions/interactions.service";
+import { MediaInteractionService } from "../../media-interactions/services/media-interaction.service";
 import { ReviewsRepository } from "../repositories/reviews.repository";
 import { buildReviewCreatedActivityMetadata } from "../helpers/reviews-activity.helper";
 import type { CreateReviewDto, MyTitleReviewsQueryDto, UpdateReviewDto } from "../dto/reviews.dto";
@@ -37,7 +37,7 @@ type ReviewMediaAdapter<TMedia, TResult> = {
 const filmReviewAdapter: ReviewMediaAdapter<Film, { review: ReviewsTableRow; movie: Film }> = {
   findOrCreateMedia: (tmdbId) => FilmsService.findOrCreate(tmdbId),
   reviewRef: (movie) => ({ mediaType: "movie", tmdbId: movie.tmdbId, movieId: movie.id }),
-  markWatched: (userId, movie) => InteractionsService.setWatched(userId, movie.id),
+  markWatched: (userId, movie) => MediaInteractionService.setWatched("movie", userId, movie.id, true),
   activitySubject: (movie) => ({ kind: "movie", movie }),
   toResult: (review, movie) => ({ review, movie }),
 };

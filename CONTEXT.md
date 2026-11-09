@@ -47,7 +47,7 @@ A reply to a Review or a Post — a distinct model per parent, not a shared one.
 _Avoid_: reply
 
 **Interaction**:
-A user's standing relationship to one Film or Series — liked, watchlisted, watched, and rating — held as one row per user+media pair and updated in place, never a history of events (`movie_interaction` for Films, `serial_interaction` for Series). Season- and episode-level variants exist for Series.
+A user's standing relationship to one Film or Series — liked, watchlisted, watched, and rating — held as one row per user+media pair and updated in place, never a history of events (`movie_interaction` for Films, `serial_interaction` for Series). Season- and episode-level variants exist for Series. A Series is watched when its watch status is completed. Liking or watchlisting adds an Activity when it newly sets the flag; explicitly undoing it removes that Activity, but an implied clear (watching takes a title off the Watchlist) does not. Writes are owned by `modules/media-interactions` (`MediaInteractionService`).
 _Avoid_: reaction, status
 
 **Your Rating**:

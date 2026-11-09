@@ -4,6 +4,7 @@ import { db } from "../../infrastructure/database/db";
 import { filmInteractions } from "../interactions/interactions.entity";
 import { seriesInteractions } from "../tv/tv.entity";
 import {
+  isSeriesWatched,
   resolveInteractionUpdate,
   type InteractionStateInput,
   type InteractionStateRow,
@@ -25,13 +26,13 @@ type StoredRow = Omit<InteractionStateRow, "isWatched"> & {
   watchStatus?: string | null;
 };
 
-export type MediaInteractionAdapter = {
-  find: (userId: string, mediaId: number) => Promise<InteractionStateRow | null>;
-  upsertState: (
-    userId: string,
-    mediaId: number,
-    input: InteractionStateInput,
-  ) => Promise<InteractionStateRow | null>;
+export type SeriesInteractionStateRow = InteractionStateRow & {
+  watchStatus: (typeof seriesInteractions.$inferSelect)["watchStatus"];
+};
+
+export type MediaInteractionStore<TRow extends InteractionStateRow = InteractionStateRow> = {
+  find: (userId: string, mediaId: number) => Promise<TRow | null>;
+  upsertState: (userId: string, mediaId: number, input: InteractionStateInput) => Promise<TRow | null>;
   markWatched: (userId: string, mediaId: number) => Promise<void>;
   setWatchlisted: (userId: string, mediaId: number) => Promise<void>;
   setRating: (userId: string, mediaId: number, rating: number) => Promise<void>;
@@ -42,20 +43,20 @@ export type MediaInteractionAdapter = {
 // shape - userId, <fk>Id, liked, watchlisted, rating - so one generic
 // implementation drives both adapters; only movies store isWatched. The table/column typing
 // gets loose inside this factory (Drizzle can't express "same shape, two
-// tables" cleanly); MediaInteractionAdapter above is the fully-typed surface
+// tables" cleanly); MediaInteractionStore above is the fully-typed surface
 // every caller actually sees.
 function makeInteractionAdapter({
   table,
   fkColumn,
   fkKey,
   watchedFromStatus,
-}: InteractionAdapterConfig): MediaInteractionAdapter {
+}: InteractionAdapterConfig): MediaInteractionStore {
   const userIdColumn = table.userId;
 
   const toStateRow = (row: StoredRow | undefined): InteractionStateRow | null => {
     if (!row) return null;
     return watchedFromStatus
-      ? { ...row, isWatched: row.watchStatus === "completed" }
+      ? { ...row, isWatched: isSeriesWatched(row.watchStatus) }
       : (row as InteractionStateRow);
   };
 
@@ -118,18 +119,19 @@ function makeInteractionAdapter({
 }
 
 export const MediaInteractions = {
-  forMovie: (): MediaInteractionAdapter =>
+  forMovie: (): MediaInteractionStore =>
     makeInteractionAdapter({
       table: filmInteractions,
       fkColumn: filmInteractions.movieId,
       fkKey: "movieId",
       watchedFromStatus: false,
     }),
-  forSeries: (): MediaInteractionAdapter =>
+  // Series rows keep their watch_status alongside the derived isWatched.
+  forSeries: (): MediaInteractionStore<SeriesInteractionStateRow> =>
     makeInteractionAdapter({
       table: seriesInteractions,
       fkColumn: seriesInteractions.seriesId,
       fkKey: "seriesId",
       watchedFromStatus: true,
-    }),
+    }) as MediaInteractionStore<SeriesInteractionStateRow>,
 };
