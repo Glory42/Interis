@@ -33,6 +33,11 @@ router.get(
   requireAuth,
   asyncHandler(SocialController.checkIsFollowing),
 );
+router.get(
+  "/following-status",
+  requireAuth,
+  asyncHandler(SocialController.getFollowingStatus),
+);
 
 // Activity likes
 router.post(

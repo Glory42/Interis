@@ -4,11 +4,16 @@ import { UsersService } from "../users/users.service";
 import { resolveTimeZone } from "./helpers/feed-day.helper";
 import { DEFAULT_FEED_PAGE_SIZE } from "./constants/social-feed.constants";
 import { parseIntParam } from "../../commons/helpers/parse-int-param.helper";
-import type { FeedQueryDto, UsernameParamsDto } from "./dto/social.dto";
+import {
+  FollowingStatusQuerySchema,
+  type FeedQueryDto,
+  type UsernameParamsDto,
+} from "./dto/social.dto";
 import {
   resolveOrNotFound,
   sendBadRequest,
   sendNotFound,
+  sendValidationError,
 } from "../../commons/http/validation-response.helper";
 
 export class SocialController {
@@ -78,6 +83,19 @@ export class SocialController {
 
     const isFollowing = await SocialService.isFollowing(req.user.id, target.id);
     res.status(200).json({ isFollowing });
+  }
+
+  // GET /api/social/following-status?userIds=a,b,c → which of them the viewer follows.
+  static async getFollowingStatus(req: Request, res: Response): Promise<void> {
+    const parsed = FollowingStatusQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    const followingIds = await SocialService.getFollowedAmong(req.user.id, parsed.data.userIds);
+    res.setHeader("Cache-Control", "private, no-store");
+    res.status(200).json({ followingIds });
   }
 
   static async getFollowers(
