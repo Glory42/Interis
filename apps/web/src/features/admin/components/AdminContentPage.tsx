@@ -4,10 +4,9 @@ import { AdminActivitiesPanel } from "@/features/admin/components/AdminActivitie
 import { AdminCommentsPanel } from "@/features/admin/components/AdminCommentsPanel";
 import { AdminDiaryPanel } from "@/features/admin/components/AdminDiaryPanel";
 import { AdminListsPanel } from "@/features/admin/components/AdminListsPanel";
-import { AdminFilmsPanel } from "@/features/admin/components/AdminFilmsPanel";
+import { AdminMediaPanel } from "@/features/admin/components/AdminMediaPanel";
 import { AdminPostsPanel } from "@/features/admin/components/AdminPostsPanel";
 import { AdminReviewsPanel } from "@/features/admin/components/AdminReviewsPanel";
-import { AdminTvPanel } from "@/features/admin/components/AdminTvPanel";
 import { CONTENT_TYPES, type ContentType } from "@/features/admin/content-types";
 
 const PANELS: Record<ContentType, ComponentType> = {
@@ -17,8 +16,8 @@ const PANELS: Record<ContentType, ComponentType> = {
   comments: AdminCommentsPanel,
   lists: AdminListsPanel,
   activities: AdminActivitiesPanel,
-  movies: AdminFilmsPanel,
-  serials: AdminTvPanel,
+  movies: () => <AdminMediaPanel kind="movie" />,
+  serials: () => <AdminMediaPanel kind="serial" />,
 };
 
 export const AdminContentPage = ({ type, onTypeChange }: { type: ContentType; onTypeChange: (type: ContentType) => void }) => {
