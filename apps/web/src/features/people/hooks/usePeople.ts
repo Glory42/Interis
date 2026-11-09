@@ -6,6 +6,7 @@ import {
 } from "@/features/people/api";
 import type {
   CreditMediaTab,
+  CreditOrder,
   CreditRoleTab,
   PersonRouteRole,
 } from "@/features/people/shared";
@@ -14,8 +15,13 @@ export const peopleKeys = {
   all: ["people"] as const,
   detail: (role: PersonRouteRole, slug: string) =>
     ["people", "detail", role, slug] as const,
-  credits: (role: PersonRouteRole, slug: string, media: CreditMediaTab, type: CreditRoleTab) =>
-    ["people", "credits", role, slug, media, type] as const,
+  credits: (
+    role: PersonRouteRole,
+    slug: string,
+    media: CreditMediaTab,
+    type: CreditRoleTab,
+    order: CreditOrder,
+  ) => ["people", "credits", role, slug, media, type, order] as const,
 };
 
 export const usePersonDetail = (
@@ -32,14 +38,13 @@ export const usePersonDetail = (
 export const usePersonCredits = (
   role: PersonRouteRole,
   slug: string,
-  media: CreditMediaTab,
-  type: CreditRoleTab,
+  view: { media: CreditMediaTab; type: CreditRoleTab; order: CreditOrder },
   enabled = true,
 ) =>
   useInfiniteQuery({
-    queryKey: peopleKeys.credits(role, slug, media, type),
+    queryKey: peopleKeys.credits(role, slug, view.media, view.type, view.order),
     queryFn: ({ pageParam, signal }) =>
-      getPersonCredits(role, slug, { media, type, offset: pageParam }, { signal }),
+      getPersonCredits(role, slug, { ...view, offset: pageParam }, { signal }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       const loaded = allPages.reduce((sum, page) => sum + page.items.length, 0);

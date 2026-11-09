@@ -4,16 +4,18 @@ import { Link } from "@tanstack/react-router";
 import { SentenceSelect } from "@/components/ui/SentenceSelect";
 import type { PersonCreditItem, PersonDetailResponse } from "@/features/people/api";
 import { cn } from "@/lib/utils";
-import { toCreditLine, toDecades } from "./filmography-model";
-import type { CreditMediaTab, CreditRoleTab } from "./types";
+import { CREDIT_ORDER_OPTIONS, toCreditGroups, toCreditLine } from "./filmography-model";
+import type { CreditMediaTab, CreditOrder, CreditRoleTab } from "./types";
 import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type PersonFilmographyProps = {
   counts: PersonDetailResponse["credits"]["counts"];
   mediaTab: CreditMediaTab;
   roleTab: CreditRoleTab;
+  order: CreditOrder;
   onMediaTabChange: (tab: CreditMediaTab) => void;
   onRoleTabChange: (tab: CreditRoleTab) => void;
+  onOrderChange: (order: CreditOrder) => void;
   credits: PersonCreditItem[];
   isLoading: boolean;
   hasMore: boolean;
@@ -54,13 +56,15 @@ const CreditRow = memo(function CreditRow({ credit, now }: { credit: PersonCredi
   );
 });
 
-// Crew or cast as tabs, a film/TV sentence, then one row per title grouped by decade.
+// Crew or cast as tabs, a film/TV + order sentence, then one row per title grouped by decade.
 export const PersonFilmography = ({
   counts,
   mediaTab,
   roleTab,
+  order,
   onMediaTabChange,
   onRoleTabChange,
+  onOrderChange,
   credits,
   isLoading,
   hasMore,
@@ -99,7 +103,9 @@ export const PersonFilmography = ({
       <p className="body-s my-3 text-muted-foreground">
         {"Showing "}
         <SentenceSelect value={mediaTab} options={mediaOptions} onChange={onMediaTabChange} />
-        {", newest first."}
+        {", "}
+        <SentenceSelect value={order} options={CREDIT_ORDER_OPTIONS} onChange={onOrderChange} />
+        {"."}
       </p>
 
       {isLoading ? (
@@ -109,7 +115,7 @@ export const PersonFilmography = ({
       ) : credits.length === 0 ? (
         <p className="body-s border-t border-[color:var(--line)] pt-3 text-muted-foreground">No credits in this view.</p>
       ) : (
-        toDecades(credits).map((decade) => (
+        toCreditGroups(credits, order).map((decade) => (
           <section key={decade.label} role="group" aria-label={decade.label} className="mb-3">
             <p className="kicker mb-1 text-muted-foreground">{decade.label}</p>
             <ol>

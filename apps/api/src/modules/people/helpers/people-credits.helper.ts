@@ -14,6 +14,14 @@ const matchesMedia = (credit: PersonCreditItem, media: PersonCreditMedia): boole
 const compareByPopularity = (left: PersonCreditItem, right: PersonCreditItem): number =>
   (right.voteCount ?? 0) - (left.voteCount ?? 0) || right.tmdbId - left.tmdbId;
 
+// Earliest release first; undated titles stay last, as they do newest first.
+const compareByOldest = (left: PersonCreditItem, right: PersonCreditItem): number => {
+  if (!left.releaseDate || !right.releaseDate) {
+    return Number(!left.releaseDate) - Number(!right.releaseDate) || compareByPopularity(left, right);
+  }
+  return Date.parse(left.releaseDate) - Date.parse(right.releaseDate) || compareByPopularity(left, right);
+};
+
 export const countPersonCredits = (
   credits: NormalizedPersonCredits,
 ): PersonDetailResponse["credits"]["counts"] => {
@@ -38,7 +46,7 @@ export const countPersonJobs = (crew: PersonCreditItem[]): { job: string; count:
     .sort((left, right) => right.count - left.count || left.job.localeCompare(right.job));
 };
 
-// Credits arrive sorted newest first; "popular" re-sorts by TMDB vote count.
+// Credits arrive sorted newest first; "oldest" and "popular" re-sort a copy.
 export const selectPersonCredits = (
   credits: NormalizedPersonCredits,
   query: {
@@ -53,7 +61,9 @@ export const selectPersonCredits = (
       matchesMedia(credit, query.media) && (!query.job || credit.jobs.includes(query.job)),
   );
 
-  return query.order === "popular" ? [...selected].sort(compareByPopularity) : selected;
+  if (query.order === "popular") return [...selected].sort(compareByPopularity);
+  if (query.order === "oldest") return [...selected].sort(compareByOldest);
+  return selected;
 };
 
 const KNOWN_FOR_LIMIT = 8;

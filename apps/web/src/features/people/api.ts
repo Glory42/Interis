@@ -3,6 +3,7 @@ import { apiRequest, type QueryRequestOptions } from "@/lib/api-client";
 import {
   personRouteRoleSchema,
   type CreditMediaTab,
+  type CreditOrder,
   type CreditRoleTab,
 } from "@/features/people/shared";
 import { mediaTypeSchema } from "@/types/api";
@@ -112,12 +113,13 @@ export const getPersonDetailBySlug = async (
 export const getPersonCredits = async (
   role: z.infer<typeof personRouteRoleSchema>,
   slug: string,
-  query: { media: CreditMediaTab; type: CreditRoleTab; offset: number },
+  query: { media: CreditMediaTab; type: CreditRoleTab; order: CreditOrder; offset: number },
   options: QueryRequestOptions = {},
 ): Promise<PersonCreditsPage> => {
   const params = new URLSearchParams({
     media: query.media,
     type: query.type,
+    order: query.order,
     limit: String(PERSON_CREDITS_PAGE_SIZE),
     offset: String(query.offset),
   });

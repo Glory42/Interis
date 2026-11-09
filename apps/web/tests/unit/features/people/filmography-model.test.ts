@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toCreditLine, toDecades } from "@/features/people/components/person-detail/filmography-model";
+import { toCreditGroups, toCreditLine, toDecades } from "@/features/people/components/person-detail/filmography-model";
 import type { PersonCreditItem } from "@/features/people/api";
 
 const credit = (overrides: Partial<PersonCreditItem> = {}): PersonCreditItem => ({
@@ -51,5 +51,27 @@ describe("toDecades", () => {
       ["2010s", [2, 3]],
       ["Undated", [4]],
     ]);
+  });
+});
+
+describe("toCreditGroups", () => {
+  const credits = [
+    credit({ tmdbId: 1, releaseYear: 1998 }),
+    credit({ tmdbId: 2, releaseYear: 2014 }),
+    credit({ tmdbId: 3, releaseYear: null, releaseDate: null }),
+  ];
+  const shape = (groups: ReturnType<typeof toCreditGroups>) =>
+    groups.map((group) => [group.label, group.credits.map((entry) => entry.tmdbId)]);
+
+  it("keeps decades in the server's oldest-first order, undated still last", () => {
+    expect(shape(toCreditGroups(credits, "oldest"))).toEqual([
+      ["1990s", [1]],
+      ["2010s", [2]],
+      ["Undated", [3]],
+    ]);
+  });
+
+  it("drops the decade split for most popular", () => {
+    expect(shape(toCreditGroups(credits, "popular"))).toEqual([["Most popular", [1, 2, 3]]]);
   });
 });

@@ -1,4 +1,5 @@
 import type { PersonCreditItem } from "@/features/people/api";
+import type { CreditOrder } from "./types";
 
 export type CreditLine = { text: string; badges: string[] };
 export type CreditDecade = { label: string; credits: PersonCreditItem[] };
@@ -21,7 +22,17 @@ export const toCreditLine = (credit: PersonCreditItem, now: Date): CreditLine =>
   return { text, badges };
 };
 
-// Decade groups in the order credits arrive (newest first); undated titles go last.
+export const CREDIT_ORDER_OPTIONS = [
+  { value: "recent", word: "newest first", label: "Newest first" },
+  { value: "oldest", word: "oldest first", label: "Oldest first" },
+  { value: "popular", word: "most popular first", label: "Most popular" },
+] as const satisfies ReadonlyArray<{ value: CreditOrder; word: string; label: string }>;
+
+// Decades follow the server's order; popularity has no timeline, so it's one flat group.
+export const toCreditGroups = (credits: PersonCreditItem[], order: CreditOrder): CreditDecade[] =>
+  order === "popular" ? [{ label: "Most popular", credits }] : toDecades(credits);
+
+// Decade groups in the order credits arrive (newest or oldest first); undated titles go last.
 export const toDecades = (credits: PersonCreditItem[]): CreditDecade[] => {
   const decades: CreditDecade[] = [];
   const undated: PersonCreditItem[] = [];

@@ -6,7 +6,7 @@ export type PersonRouteRole = (typeof personRouteRoleValues)[number];
 
 export const personCreditMediaValues = ["combined", "movies", "tv"] as const;
 export const personCreditTypeValues = ["cast", "crew"] as const;
-export const personCreditOrderValues = ["recent", "popular"] as const;
+export const personCreditOrderValues = ["recent", "oldest", "popular"] as const;
 
 export type PersonCreditMedia = (typeof personCreditMediaValues)[number];
 export type PersonCreditType = (typeof personCreditTypeValues)[number];

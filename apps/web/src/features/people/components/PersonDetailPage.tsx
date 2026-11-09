@@ -4,7 +4,7 @@ import type { PersonRouteRole } from "@/features/people/shared";
 import { PersonFilmography } from "./person-detail/PersonFilmography";
 import { PersonHero } from "./person-detail/PersonHero";
 import { PersonKnownFor } from "./person-detail/PersonKnownFor";
-import { type CreditMediaTab, type CreditRoleTab } from "./person-detail/types";
+import { type CreditMediaTab, type CreditOrder, type CreditRoleTab } from "./person-detail/types";
 import { DocumentSkeleton, PosterGridSkeleton } from "@/components/ui/PageSkeletons";
 
 type PersonDetailPageProps = {
@@ -19,9 +19,15 @@ export const PersonDetailPage = ({ role, slug }: PersonDetailPageProps) => {
   const [roleTab, setRoleTab] = useState<CreditRoleTab>(
     role === "director" ? "crew" : "cast",
   );
+  const [order, setOrder] = useState<CreditOrder>("recent");
 
   const detailQuery = usePersonDetail(role, slug, isValidSlug);
-  const creditsQuery = usePersonCredits(role, slug, mediaTab, roleTab, isValidSlug);
+  const creditsQuery = usePersonCredits(
+    role,
+    slug,
+    { media: mediaTab, type: roleTab, order },
+    isValidSlug,
+  );
 
   if (!isValidSlug) {
     return (
@@ -62,8 +68,10 @@ export const PersonDetailPage = ({ role, slug }: PersonDetailPageProps) => {
           counts={counts}
           mediaTab={mediaTab}
           roleTab={roleTab}
+          order={order}
           onMediaTabChange={setMediaTab}
           onRoleTabChange={setRoleTab}
+          onOrderChange={setOrder}
           credits={creditsQuery.data ?? []}
           isLoading={creditsQuery.isPending}
           hasMore={creditsQuery.hasNextPage}
