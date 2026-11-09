@@ -102,4 +102,14 @@ export class NotificationsService {
   static async markAllAsRead(userId: string): Promise<void> {
     await NotificationsRepository.markAllRead(userId);
   }
+
+  // Returns false when no notification of the user's has that id.
+  static async deleteForUser(userId: string, notificationId: string): Promise<boolean> {
+    const deleted = await NotificationsRepository.deleteForRecipient(userId, notificationId);
+    return deleted !== null;
+  }
+
+  static async deleteAllForUser(userId: string): Promise<void> {
+    await NotificationsRepository.deleteAllForRecipient(userId);
+  }
 }
