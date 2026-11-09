@@ -1,7 +1,9 @@
 import { RotateCcw } from "lucide-react";
 import { MIN_QUERY_LENGTH } from "./constants";
+import { viewerStatusKey } from "@/features/viewer-status/api";
 import { SearchResultRow } from "./SearchResultRow";
 import type { SearchResultEntry, SearchSectionOffset } from "./types";
+import { useSearchViewerMarks } from "./useSearchViewerMarks";
 
 type GlobalSearchResultsProps = {
   inputId: string;
@@ -48,6 +50,8 @@ export const GlobalSearchResults = ({
   onHoverIndex,
   onSelectEntry,
 }: GlobalSearchResultsProps) => {
+  const { statuses, followedIds } = useSearchViewerMarks(sectionOffsets);
+
   if (normalizedQuery.length === 0) {
     return recentSearches.length > 0 ? (
       <div>
@@ -108,6 +112,12 @@ export const GlobalSearchResults = ({
                   isHighlighted={effectiveHighlightedIndex === startIndex + index}
                   onHover={onHoverIndex}
                   onSelect={onSelectEntry}
+                  status={
+                    entry.kind === "users"
+                      ? null
+                      : statuses.get(viewerStatusKey({ mediaType: entry.kind === "movie" ? "movie" : "tv", tmdbId: entry.tmdbId }))
+                  }
+                  isFollowed={entry.kind === "users" && followedIds.has(entry.userId)}
                 />
               ))}
             </ul>
