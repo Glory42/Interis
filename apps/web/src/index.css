@@ -406,6 +406,8 @@
     position: relative;
     font-family: var(--theme-body-font);
     text-rendering: optimizeLegibility;
+    /* A word longer than its line breaks instead of running out of its box. */
+    overflow-wrap: break-word;
   }
 
   h1,
@@ -807,6 +809,12 @@
   .tagline {
     font-family: "Instrument Serif", Georgia, serif;
     font-style: italic;
+  }
+
+  /* Text people write (reviews, comments, bios, lists, names): a long unbroken word wraps
+     anywhere, so it never widens a card, a flex row or a grid column. */
+  .user-text {
+    overflow-wrap: anywhere;
   }
 
   .animate-route-enter {

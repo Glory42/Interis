@@ -54,7 +54,7 @@ export const LikedReviewCard = memo(function LikedReviewCard({
             ) : null}
           </div>
 
-          <p className="mb-2 line-clamp-3 font-mono text-[11px] leading-relaxed text-muted-foreground">
+          <p className="user-text mb-2 line-clamp-3 font-mono text-[11px] leading-relaxed text-muted-foreground">
             {review.content}
           </p>
 

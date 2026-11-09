@@ -64,7 +64,7 @@ export const FeedCompactRow = ({ row }: { row: FeedRow }) => {
             {item.movie.title}
           </Link>
         ) : item.metadata.listTitle ? (
-          <span className="text-foreground">{item.metadata.listTitle}</span>
+          <span className="user-text text-foreground">{item.metadata.listTitle}</span>
         ) : item.metadata.targetUsername ? (
           <span className="text-foreground">{`@${item.metadata.targetUsername}`}</span>
         ) : null}
@@ -104,7 +104,7 @@ export const FeedCompactRow = ({ row }: { row: FeedRow }) => {
           <Link
             to="/reviews/$username/$reviewId"
             params={{ username: group.actor.username, reviewId: group.review.id }}
-            className="tagline mt-0.5 line-clamp-2 text-foreground hover:underline hover:decoration-[color:var(--line-strong)]"
+            className="user-text tagline mt-0.5 line-clamp-2 text-foreground hover:underline hover:decoration-[color:var(--line-strong)]"
             viewTransition
           >
             {`“${group.review.content}”`}

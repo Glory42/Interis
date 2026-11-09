@@ -14,7 +14,7 @@ export const FeedCardHeader = ({ username, displayName, createdAt }: FeedCardHea
     <Link
       to="/profile/$username"
       params={{ username }}
-      className="font-bold text-foreground hover:underline"
+      className="user-text min-w-0 font-bold text-foreground hover:underline"
       style={{ fontFamily: "var(--theme-display-font)" }}
       viewTransition
     >

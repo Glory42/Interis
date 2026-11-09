@@ -136,14 +136,14 @@ export const PostActivityCard = memo(function PostActivityCard({ item }: PostAct
           ) : null}
 
           {primaryText ? (
-            <p className="mt-0.5 w-full whitespace-pre-wrap text-[15px] leading-snug text-foreground/90 transition-colors group-hover:text-foreground">
+            <p className="user-text mt-0.5 w-full whitespace-pre-wrap text-[15px] leading-snug text-foreground/90 transition-colors group-hover:text-foreground">
               {primaryText}
             </p>
           ) : null}
 
           {quotedOriginal ? (
             <div className="mt-2 border-l-2 border-border/50 pl-3">
-              <p className="text-xs leading-relaxed text-muted-foreground">
+              <p className="user-text text-xs leading-relaxed text-muted-foreground">
                 "{truncateQuote(quotedOriginal, 140)}"
               </p>
             </div>

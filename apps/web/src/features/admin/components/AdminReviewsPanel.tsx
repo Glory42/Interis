@@ -101,7 +101,7 @@ export const AdminReviewsPanel = () => {
                       <DeleteReviewAction review={review} />
                     </div>
                   </div>
-                  <p className="line-clamp-3 whitespace-pre-wrap text-sm text-foreground/90">
+                  <p className="user-text line-clamp-3 whitespace-pre-wrap text-sm text-foreground/90">
                     {review.content}
                   </p>
                 </div>

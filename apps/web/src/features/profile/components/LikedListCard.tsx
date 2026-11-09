@@ -59,15 +59,15 @@ export const LikedListCard = memo(function LikedListCard({ list }: { list: Liked
       <div className="min-w-0 flex-1">
         <p className="mb-0.5 font-mono text-[10px] text-muted-foreground">
           by{" "}
-          <span className="shell-accent">
+          <span className="user-text shell-accent">
             {list.ownerDisplayUsername ?? list.ownerUsername}
           </span>
         </p>
-        <h3 className="mb-1 font-mono text-base font-semibold text-foreground group-hover:text-foreground/90">
+        <h3 className="user-text mb-1 font-mono text-base font-semibold text-foreground group-hover:text-foreground/90">
           {list.title}
         </h3>
         {list.description ? (
-          <p className="mb-2 line-clamp-1 font-mono text-xs text-muted-foreground">
+          <p className="user-text mb-2 line-clamp-1 font-mono text-xs text-muted-foreground">
             {list.description}
           </p>
         ) : null}

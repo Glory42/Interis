@@ -93,7 +93,7 @@ export const AdminPostsPanel = () => {
                       <DeletePostAction post={post} />
                     </div>
                   </div>
-                  <p className="line-clamp-3 whitespace-pre-wrap text-sm text-foreground/90">
+                  <p className="user-text line-clamp-3 whitespace-pre-wrap text-sm text-foreground/90">
                     {post.content}
                   </p>
                 </div>

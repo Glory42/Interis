@@ -74,7 +74,7 @@ export const ProfileHeaderCompact = ({
         )}
 
         <div className="min-w-0 flex-1">
-          <h1 className="display-2 leading-none text-foreground">{displayName}</h1>
+          <h1 className="user-text display-2 leading-none text-foreground">{displayName}</h1>
           <p className="mono-meta mt-2 text-muted-foreground">
             <Count value={stats.logged} label="logged" />
             {" · "}
@@ -84,9 +84,9 @@ export const ProfileHeaderCompact = ({
             {" · "}
             <Count value={stats.followers} label="followers" onClick={onFollowersClick} />
           </p>
-          {bio ? <p className="body mt-2.5 max-w-xl text-foreground">{bio}</p> : null}
+          {bio ? <p className="user-text body mt-2.5 max-w-xl text-foreground">{bio}</p> : null}
           {location || genres.length > 0 ? (
-            <p className="body-s mt-1 text-muted-foreground">
+            <p className="user-text body-s mt-1 text-muted-foreground">
               {location ? `◎ ${location}` : null}
               {location && genres.length > 0 ? " · " : null}
               {genres.length > 0 ? (

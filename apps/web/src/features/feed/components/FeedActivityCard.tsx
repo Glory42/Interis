@@ -47,10 +47,10 @@ const AttachedMediaCard = ({ item }: { item: FeedItem }) => {
       <Link
         to="/profile/$username/lists/$listId"
         params={{ username: item.actor.username, listId: item.metadata.listId }}
-        className="mt-2 inline-flex max-w-xs items-center rounded-lg border border-border/50 px-3 py-2.5 transition-colors hover:bg-secondary/15"
+        className="mt-2 inline-flex max-w-full items-center sm:max-w-xs rounded-lg border border-border/50 px-3 py-2.5 transition-colors hover:bg-secondary/15"
         viewTransition
       >
-        <span className="truncate text-sm font-semibold text-foreground">
+        <span className="min-w-0 truncate text-sm font-semibold text-foreground">
           {item.metadata.listTitle ?? "a list"}
         </span>
       </Link>

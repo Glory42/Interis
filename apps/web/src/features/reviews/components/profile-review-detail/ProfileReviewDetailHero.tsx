@@ -73,7 +73,7 @@ export const ProfileReviewDetailHero = ({ username, detail, displayAuthorName, a
             {detail.author.username.slice(0, 1).toLowerCase()}
           </span>
         )}
-        <Link to="/profile/$username" params={{ username: detail.author.username }} className="text-sm font-semibold text-foreground hover:underline" viewTransition>
+        <Link to="/profile/$username" params={{ username: detail.author.username }} className="user-text min-w-0 text-sm font-semibold text-foreground hover:underline" viewTransition>
           {displayAuthorName}
         </Link>
         {hasDate ? (

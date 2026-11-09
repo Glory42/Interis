@@ -15,7 +15,7 @@ const ageSince = (date: Date) => {
 
 const ReportDetails = ({ item }: { item: GroupedReport }) => (
   <>
-    <p className="body-s whitespace-pre-wrap text-foreground">{`“${item.contentSnapshot}”`}</p>
+    <p className="user-text body-s whitespace-pre-wrap text-foreground">{`“${item.contentSnapshot}”`}</p>
     <ul aria-label="Reports on this item" className="space-y-1">
       {item.reports.map((report, index) => (
         <li key={index} className="body-s text-muted-foreground">

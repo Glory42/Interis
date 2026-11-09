@@ -134,7 +134,7 @@ export const MediaReviewCard = memo(function MediaReviewCard({
             <Link
               to="/profile/$username"
               params={{ username: review.author.username }}
-              className="font-mono text-xs font-bold"
+              className="user-text font-mono text-xs font-bold"
               style={{ color: moduleStyles.text }}
               viewTransition
             >
@@ -209,7 +209,7 @@ export const MediaReviewCard = memo(function MediaReviewCard({
             </p>
           ) : null}
 
-          <p className="whitespace-pre-wrap text-sm leading-relaxed" style={{ color: moduleStyles.muted }}>
+          <p className="user-text whitespace-pre-wrap text-sm leading-relaxed" style={{ color: moduleStyles.muted }}>
             {review.content}
           </p>
         </>
