@@ -99,6 +99,18 @@ describe("createPublicResponseCache", () => {
     expect(run(disabled, "/a", respond).handlerCalls).toBe(1);
   });
 
+  it("never stores a viewer-specific response", () => {
+    const cache = createPublicResponseCache({ ttlMs: 60_000, maxEntries: 10 });
+    const respond = (res: Response) => {
+      res.locals.viewerSpecific = true;
+      res.status(200).json({ privateLists: 1 });
+    };
+
+    run(cache, "/api/users/alice/lists", respond);
+    const second = run(cache, "/api/users/alice/lists", respond);
+    expect(second.handlerCalls).toBe(1);
+  });
+
   describe("with resolveViewerId (owner bypass)", () => {
     // Async variant of run(): the middleware awaits the viewer before deciding.
     const runAs = async (
