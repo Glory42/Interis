@@ -10,6 +10,8 @@ import { TvCacheService } from "./services/tv-cache.service";
 import { TvDetailService } from "./services/tv-detail.service";
 import { seriesWatchLog } from "./services/series-watch-log.adapter";
 import { WatchLogService } from "../media/services/watch-log.service";
+import { MediaInteractionService } from "../media-interactions/services/media-interaction.service";
+import { seriesInteraction } from "./services/series-interaction.adapter";
 import { TvInteractionsRepository } from "./repositories/tv-interactions.repository";
 import {
   TvCacheRepository,
@@ -95,7 +97,7 @@ export class TvService {
   }
 
   static async getInteraction(userId: string, tmdbId: number) {
-    return TvActivityService.getInteraction(userId, tmdbId);
+    return MediaInteractionService.get(seriesInteraction, userId, tmdbId);
   }
 
   static async updateInteraction(
@@ -103,7 +105,7 @@ export class TvService {
     tmdbId: number,
     input: UpdateSeriesInteractionDto,
   ) {
-    return TvActivityService.updateInteraction(userId, tmdbId, input);
+    return MediaInteractionService.update(seriesInteraction, userId, tmdbId, input);
   }
 
   static async createLog(userId: string, tmdbId: number, input: CreateSeriesLogDto) {

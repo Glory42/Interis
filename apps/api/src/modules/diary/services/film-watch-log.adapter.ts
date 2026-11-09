@@ -1,5 +1,5 @@
 import { FilmsService } from "../../films/films.service";
-import { InteractionsService } from "../../interactions/interactions.service";
+import { MediaInteractionService } from "../../media-interactions/services/media-interaction.service";
 import { WatchLogStores } from "../../media/repositories/watch-log.repository";
 import type { AttachedReview, WatchLogAdapter, WatchLogRow } from "../../media/types/watch-log.types";
 
@@ -18,8 +18,9 @@ export const filmWatchLog: WatchLogAdapter<
     const movie = await FilmsService.findOrCreate(tmdbId);
     return movie?.id ? movie : null;
   },
-  prepareMarkWatched: async (movie) => (userId) => InteractionsService.setWatched(userId, movie.id),
-  unwatch: (userId, movieId) => InteractionsService.setUnwatched(userId, movieId),
+  prepareMarkWatched: async (movie) => (userId) =>
+    MediaInteractionService.setWatched("movie", userId, movie.id, true),
+  unwatch: (userId, movieId) => MediaInteractionService.setWatched("movie", userId, movieId, false),
   activitySubject: (movie) => ({ kind: "movie", movie }),
   toEntry: ({ mediaId, ...row }) => ({ ...row, movieId: mediaId }),
   toCreated: ({ entry, title, review }) => ({ entry, movie: title, review }),

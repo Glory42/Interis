@@ -4,10 +4,7 @@ import { user } from "../../../infrastructure/database/auth.entity";
 import { profiles } from "../../users/users.entity";
 import { reviews } from "../../reviews/reviews.entity";
 import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
-import { MediaInteractions } from "../../media-interactions/media-interactions.repository";
 import { seriesDiaryEntries, seriesInteractions, tvSeries } from "../tv.entity";
-
-const seriesInteractionStore = MediaInteractions.forSeries();
 
 export class TvInteractionsRepository {
   // Diary-entry half of "logged" - the other half (rated without a diary
@@ -62,37 +59,6 @@ export class TvInteractionsRepository {
           inArray(tvSeries.tmdbId, uniqueTmdbIds),
         ),
       );
-  }
-
-  static async getInteractionRow(userId: string, seriesId: number) {
-    const [row] = await db
-      .select({
-        liked: seriesInteractions.liked,
-        watchlisted: seriesInteractions.watchlisted,
-        rating: seriesInteractions.rating,
-        watchStatus: seriesInteractions.watchStatus,
-      })
-      .from(seriesInteractions)
-      .where(and(eq(seriesInteractions.userId, userId), eq(seriesInteractions.seriesId, seriesId)))
-      .limit(1);
-
-    return row ?? null;
-  }
-
-  static async upsertInteraction(input: {
-    userId: string;
-    seriesId: number;
-    liked?: boolean;
-    watchlisted?: boolean;
-    rating?: number | null;
-    watched?: boolean;
-  }) {
-    return seriesInteractionStore.upsertState(input.userId, input.seriesId, {
-      liked: input.liked,
-      watchlisted: input.watchlisted,
-      rating: input.rating,
-      watched: input.watched,
-    });
   }
 
   // Completed series, most recently updated first. watch_status covers both
