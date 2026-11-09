@@ -7,7 +7,6 @@ import {
   type AdminListActivitiesQuery,
   type AdminListListsQuery,
 } from "./dto/admin-community.dto";
-import { AdminAuditService } from "./admin-audit.service";
 
 export class AdminCommunityController {
   static async listLists(
@@ -29,12 +28,11 @@ export class AdminCommunityController {
   }
 
   static async deleteList(req: Request<{ id: string }>, res: Response): Promise<void> {
-    const result = await AdminCommunityService.deleteList(req.params.id);
-    if (!result.deleted) {
+    const deleted = await AdminCommunityService.deleteList(req.params.id, req.user);
+    if (!deleted) {
       sendNotFound(res, "List not found");
       return;
     }
-    await AdminAuditService.record(req.user, { action: "list.delete", targetType: "list", targetId: req.params.id });
     res.status(200).json({ success: true });
   }
 
@@ -57,12 +55,11 @@ export class AdminCommunityController {
   }
 
   static async deleteActivity(req: Request<{ id: string }>, res: Response): Promise<void> {
-    const deleted = await AdminCommunityService.deleteActivity(req.params.id);
+    const deleted = await AdminCommunityService.deleteActivity(req.params.id, req.user);
     if (!deleted) {
       sendNotFound(res, "Activity not found");
       return;
     }
-    await AdminAuditService.record(req.user, { action: "activity.delete", targetType: "activity", targetId: req.params.id });
     res.status(200).json({ success: true });
   }
 }

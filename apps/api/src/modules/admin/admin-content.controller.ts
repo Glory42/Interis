@@ -11,7 +11,6 @@ import {
   type AdminListContentQuery,
   type AdminListLogsQuery,
 } from "./dto/admin-content.dto";
-import { AdminAuditService } from "./admin-audit.service";
 
 export class AdminContentController {
   static async listReviews(
@@ -33,12 +32,11 @@ export class AdminContentController {
   }
 
   static async deleteReview(req: Request<{ id: string }>, res: Response): Promise<void> {
-    const deleted = await AdminContentService.deleteReview(req.params.id);
+    const deleted = await AdminContentService.deleteReview(req.params.id, req.user);
     if (!deleted) {
       sendNotFound(res, "Review not found");
       return;
     }
-    await AdminAuditService.record(req.user, { action: "review.delete", targetType: "review", targetId: req.params.id });
     res.status(200).json({ success: true });
   }
 
@@ -67,13 +65,11 @@ export class AdminContentController {
       sendValidationError(res, parsed.error);
       return;
     }
-    const deleted = await AdminContentService.deleteDiaryEntry(req.params.id, parsed.data.mediaType);
+    const deleted = await AdminContentService.deleteDiaryEntry(req.params.id, req.user, parsed.data.mediaType);
     if (!deleted) {
       sendNotFound(res, "Diary entry not found");
       return;
     }
-    const targetType = deleted.mediaType === "tv" ? "serial_diary_entry" : "diary_entry";
-    await AdminAuditService.record(req.user, { action: "diary_entry.delete", targetType, targetId: req.params.id });
     res.status(200).json({ success: true });
   }
 
@@ -96,12 +92,11 @@ export class AdminContentController {
   }
 
   static async deletePost(req: Request<{ id: string }>, res: Response): Promise<void> {
-    const deleted = await AdminContentService.deletePost(req.params.id);
+    const deleted = await AdminContentService.deletePost(req.params.id, req.user);
     if (!deleted) {
       sendNotFound(res, "Post not found");
       return;
     }
-    await AdminAuditService.record(req.user, { action: "post.delete", targetType: "post", targetId: req.params.id });
     res.status(200).json({ success: true });
   }
 
@@ -122,16 +117,11 @@ export class AdminContentController {
       sendValidationError(res, parsed.error);
       return;
     }
-    const deleted = await AdminContentService.deleteComment(parsed.data.kind, parsed.data.id);
+    const deleted = await AdminContentService.deleteComment(parsed.data.kind, parsed.data.id, req.user);
     if (!deleted) {
       sendNotFound(res, "Comment not found");
       return;
     }
-    await AdminAuditService.record(req.user, {
-      action: "comment.delete",
-      targetType: parsed.data.kind === "review" ? "comment" : "post_comment",
-      targetId: parsed.data.id,
-    });
     res.status(200).json({ success: true });
   }
 }

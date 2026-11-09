@@ -16,7 +16,6 @@ import {
   type ReportParams,
   type ReportTargetParams,
 } from "./dto/reports.dto";
-import { AdminAuditService } from "../admin/admin-audit.service";
 
 export class ReportsController {
   static async submit(req: Request, res: Response): Promise<void> {
@@ -67,12 +66,11 @@ export class ReportsController {
       return;
     }
 
-    const result = await ReportsService.resolveReport(parsed.data.id, req.user.id, "resolved");
+    const result = await ReportsService.resolveReport(parsed.data.id, req.user, "resolved");
     if ("error" in result) {
       sendErrorForStatus(res, result.status, result.error);
       return;
     }
-    await AdminAuditService.record(req.user, { action: "report.resolve", targetType: "report", targetId: parsed.data.id });
     res.status(200).json(result);
   }
 
@@ -83,12 +81,11 @@ export class ReportsController {
       return;
     }
 
-    const result = await ReportsService.resolveReport(parsed.data.id, req.user.id, "dismissed");
+    const result = await ReportsService.resolveReport(parsed.data.id, req.user, "dismissed");
     if ("error" in result) {
       sendErrorForStatus(res, result.status, result.error);
       return;
     }
-    await AdminAuditService.record(req.user, { action: "report.dismiss", targetType: "report", targetId: parsed.data.id });
     res.status(200).json(result);
   }
 
@@ -101,7 +98,7 @@ export class ReportsController {
     }
 
     const reason = body.data.reason || null;
-    const result = await ReportsService.removeContent(parsed.data.id, req.user.id, {
+    const result = await ReportsService.removeContent(parsed.data.id, req.user, {
       reason,
       notifyAuthor: body.data.notifyAuthor ?? false,
     });
@@ -109,7 +106,6 @@ export class ReportsController {
       sendErrorForStatus(res, result.status, result.error);
       return;
     }
-    await AdminAuditService.record(req.user, { action: "report.remove_content", targetType: "report", targetId: parsed.data.id, reason });
     res.status(200).json(result);
   }
 
@@ -149,20 +145,13 @@ export class ReportsController {
       targetType: params.data.targetType,
       targetId: params.data.targetId,
       status,
-      adminUserId: req.user.id,
+      actor: req.user,
       note,
     });
     if (closed === 0) {
       sendErrorForStatus(res, 404, "No open reports on this item");
       return;
     }
-
-    await AdminAuditService.record(req.user, {
-      action: status === "resolved" ? "report.resolve_all" : "report.dismiss_all",
-      targetType: params.data.targetType,
-      targetId: params.data.targetId,
-      reason: note,
-    });
     res.status(200).json({ closed });
   }
 }
