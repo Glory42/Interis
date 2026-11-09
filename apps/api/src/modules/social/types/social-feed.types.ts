@@ -152,7 +152,7 @@ export type FeedUserRow = {
   username: string;
 };
 
-// One person's actions on one title (or season/episode) on one UTC day.
+// One person's actions on one title (or season/episode) on one day in the viewer's time zone.
 export type FeedTitleGroup = {
   kind: "title";
   id: string;
@@ -174,3 +174,20 @@ export type FeedTitleGroup = {
 };
 
 export type GroupedFeedEntry = FeedTitleGroup | { kind: "activity"; item: FeedItem };
+
+type FeedRowBase = {
+  key: string;
+  // The viewer's local day ("2026-11-02") the row falls on.
+  day: string;
+};
+
+// One row the viewer sees: a title card, a plain activity, or a folded run of
+// one person's likes or watchlist adds, follows, or one show's seasons and episodes.
+export type FeedRow = FeedRowBase &
+  (
+    | { kind: "title"; group: FeedTitleGroup }
+    | { kind: "activity"; item: FeedItem }
+    | { kind: "titles"; action: "liked" | "watchlisted"; actor: FeedItem["actor"]; titles: FeedFilm[] }
+    | { kind: "follows"; actor: FeedItem["actor"]; usernames: string[] }
+    | { kind: "episodes"; actor: FeedItem["actor"]; movie: FeedFilm; groups: FeedTitleGroup[] }
+  );

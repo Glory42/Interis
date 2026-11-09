@@ -35,7 +35,7 @@ export const ProfileOverviewContent = ({ username }: ProfileOverviewContentProps
       </section>
 
       <ProfileOverviewActivity
-        entries={recentActivityQuery.data ?? []}
+        rows={recentActivityQuery.data ?? []}
         isPending={recentActivityQuery.isPending}
         isError={recentActivityQuery.isError}
       />

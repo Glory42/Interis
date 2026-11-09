@@ -77,7 +77,7 @@ describe("activities about a deleted account", () => {
     await send(gone.jar, "DELETE", "/api/auth/account", { currentPassword: gone.password });
 
     expect(await followRowsAbout(goneId)).toHaveLength(0);
-    expect(await send(fan.jar, "GET", "/api/social/feed")).not.toContain(gone.username);
+    expect(await send(fan.jar, "GET", "/api/social/feed/grouped")).not.toContain(gone.username);
     expect(await send(undefined, "GET", `/api/public/${author.username}/activity`)).not.toContain(
       gone.username,
     );

@@ -104,3 +104,6 @@ export const formatDateOnlyLabel = (
 
   return date.toLocaleDateString(undefined, options);
 };
+
+// The viewer's IANA time zone ("Europe/Istanbul"); the API splits feed days by it.
+export const viewerTimeZone = (): string => Intl.DateTimeFormat().resolvedOptions().timeZone;

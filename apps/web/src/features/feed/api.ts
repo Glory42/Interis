@@ -10,6 +10,7 @@ import {
   type TrendingFilm,
 } from "@/features/feed/types";
 import type { MediaType } from "@/types/api";
+import { viewerTimeZone } from "@/lib/time";
 
 const normalizeLimit = (limit: number, fallback: number): number => {
   if (!Number.isFinite(limit)) {
@@ -21,14 +22,14 @@ const normalizeLimit = (limit: number, fallback: number): number => {
 
 export type FeedMediaTypeFilter = MediaType;
 
-// Same-day actions on a title arrive merged (PR-10); a filtered page can come back short.
+// Rows arrive grouped, folded and split into the viewer's days; a filtered page can come back short.
 export const getGroupedFeed = async (
   limit = 20,
   cursor?: string,
   mediaType?: FeedMediaTypeFilter,
   options: QueryRequestOptions = {},
 ): Promise<GroupedFeedPage> => {
-  const params = new URLSearchParams({ limit: String(normalizeLimit(limit, 20)) });
+  const params = new URLSearchParams({ limit: String(normalizeLimit(limit, 20)), tz: viewerTimeZone() });
   if (cursor) {
     params.set("cursor", cursor);
   }

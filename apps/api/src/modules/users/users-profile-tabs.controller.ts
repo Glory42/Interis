@@ -6,6 +6,7 @@ import { normalizePublicRecentLimit } from "../public/helpers/public-query-norma
 import type { PublicRecentQueryDto } from "../public/dto/public.dto";
 import { UsersService } from "./users.service";
 import type { ProfileTab } from "./services/profile-tabs.service";
+import { resolveTimeZone } from "../social/helpers/feed-day.helper";
 
 // The in-app Profile tabs, mounted behind the owner-aware response cache (users.routes.ts).
 // res.locals tells the cache whose Profile it is and whether the response is viewer-specific.
@@ -45,14 +46,15 @@ export class UsersProfileTabsController {
     res.status(200).json(data);
   }
 
-  // GET /api/users/:username/recent/grouped?limit=20
+  // GET /api/users/:username/recent/grouped?limit=20&tz=Europe/Istanbul
   static async getRecentGrouped(
-    req: Request<{ username: string }, unknown, unknown, PublicRecentQueryDto>,
+    req: Request<{ username: string }, unknown, unknown, PublicRecentQueryDto & { tz?: string }>,
     res: Response,
   ): Promise<void> {
     const limit = normalizePublicRecentLimit(req.query.limit);
+    const timeZone = resolveTimeZone(req.query.tz);
     await UsersProfileTabsController.send(req, res, (userId) =>
-      PublicService.getRecentActivityGroupedByUserId(userId, limit),
+      PublicService.getRecentActivityGroupedByUserId(userId, limit, timeZone),
     );
   }
 }

@@ -3,6 +3,7 @@ import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
 import { seedTestFilm } from "../../support/factories/media.factory";
+import { activityItems, readFollowingFeed } from "../../support/app/following-feed";
 import {
   startTestServer,
   type RunningTestServer,
@@ -210,13 +211,10 @@ describe("reviews comments", () => {
     const comment = (await added.json()) as { id: string };
     expect((await send(`/api/reviews/comments/${comment.id}`, "PUT", "Second draft")).status).toBe(200);
 
-    const feed = await apiRequest(getServer().baseUrl, "/api/social/feed/grouped?limit=20", {}, jar);
-    const body = (await feed.json()) as {
-      items: Array<{ kind: string; item?: { kind: string; metadata: { commentId: string | null; excerpt: string | null } } }>;
-    };
-    const commented = body.items.find(
-      (entry) => entry.item?.kind === "commented" && entry.item.metadata.commentId === comment.id,
+    const { rows } = await readFollowingFeed(getServer().baseUrl, jar, "limit=20");
+    const commented = activityItems(rows).find(
+      (item) => item.kind === "commented" && item.metadata.commentId === comment.id,
     );
-    expect(commented?.item?.metadata.excerpt).toBe("Second draft");
+    expect(commented?.metadata.excerpt).toBe("Second draft");
   });
 });

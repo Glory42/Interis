@@ -2,7 +2,7 @@ import { SocialFeedService } from "./services/social-feed.service";
 import { SocialFollowService } from "./services/social-follow.service";
 import { SocialRepository, type ActivityType } from "./repositories/social.repository";
 import { NotificationsService } from "../notifications/notifications.service";
-import type { FeedMediaType } from "./types/social-feed.types";
+import type { GroupedFeedPageOptions } from "./services/grouped-feed.service";
 
 export type {
   FeedActivityKind,
@@ -44,26 +44,8 @@ export class SocialService {
     return SocialFollowService.removeFollower(userId, followerUserId);
   }
 
-  static async getFeed(userId: string, cursor?: string, limit?: number) {
-    return SocialFeedService.getFeed(userId, cursor, limit);
-  }
-
-  static async getFollowingFeed(
-    userId: string,
-    limit?: number,
-    cursor?: string,
-    mediaType?: FeedMediaType,
-  ) {
-    return SocialFeedService.getFollowingFeed(userId, limit, cursor, mediaType);
-  }
-
-  static async getGroupedFollowingFeed(
-    userId: string,
-    limit?: number,
-    cursor?: string,
-    mediaType?: FeedMediaType,
-  ) {
-    return SocialFeedService.getGroupedFollowingFeed(userId, limit, cursor, mediaType);
+  static async getGroupedFollowingFeed(viewerId: string, options: GroupedFeedPageOptions) {
+    return SocialFeedService.getGroupedFollowingFeed(viewerId, options);
   }
 
   static async likeActivity(

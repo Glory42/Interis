@@ -1,29 +1,12 @@
 import { LoadingRegion, TitleRowsSkeleton } from "@/components/ui/PageSkeletons";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { FeedActivityCard } from "@/features/feed/components/FeedActivityCard";
-import { FeedTitleCard } from "@/features/feed/components/FeedTitleCard";
-import { EpisodesCard, FollowsLine, TitlesLine } from "@/features/feed/components/FeedFoldedRows";
-import type { FeedDay, FeedRow } from "@/features/feed/components/feed-days";
+import { FeedRowView } from "@/features/feed/components/FeedRowView";
+import type { FeedDay } from "@/features/feed/components/feed-days";
 
 type FeedDayListProps = {
   isLoading: boolean;
   isError: boolean;
   days: FeedDay[];
-};
-
-const renderRow = (row: FeedRow) => {
-  switch (row.kind) {
-    case "title":
-      return <FeedTitleCard key={row.key} group={row.group} />;
-    case "titles":
-      return <TitlesLine key={row.key} row={row} />;
-    case "follows":
-      return <FollowsLine key={row.key} row={row} />;
-    case "episodes":
-      return <EpisodesCard key={row.key} row={row} />;
-    default:
-      return <FeedActivityCard key={row.key} item={row.item} />;
-  }
 };
 
 // The feed as days: a slate line per day, then one card per watch and one row per folded run.
@@ -53,7 +36,11 @@ export const FeedDayList = ({ isLoading, isError, days }: FeedDayListProps) => {
             <span>{day.label}</span>
             <span>{day.week}</span>
           </div>
-          <div className="space-y-2">{day.rows.map(renderRow)}</div>
+          <div className="space-y-2">
+            {day.rows.map((row) => (
+              <FeedRowView key={row.key} row={row} />
+            ))}
+          </div>
         </section>
       ))}
     </div>

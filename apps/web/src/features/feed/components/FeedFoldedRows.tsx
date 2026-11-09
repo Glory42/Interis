@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { episodeCode, episodesSummary, followsVerb, titlesVerb, type FeedRow } from "@/features/feed/components/feed-days";
-import type { FeedTitleGroup } from "@/features/feed/types";
+import { episodeCode, episodesSummary, followsVerb, titlesVerb } from "@/features/feed/components/feed-days";
+import type { FeedRow, FeedTitleGroup } from "@/features/feed/types";
 import { getPosterUrl } from "@/features/media/tmdb-images";
 
 const LINE_CLASS = "flex items-center gap-2 rounded-[3px] border border-[color:var(--line)] px-3 py-2 text-xs";

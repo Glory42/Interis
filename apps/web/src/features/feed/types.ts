@@ -109,11 +109,6 @@ export const feedItemSchema = z.object({
 
 export const feedListSchema = z.array(feedItemSchema);
 
-export const feedPageSchema = z.object({
-  items: z.array(feedItemSchema),
-  nextCursor: z.string().nullable(),
-});
-
 export const trendingFilmSchema = z.object({
   tmdbId: z.number().int().positive(),
   title: z.string(),
@@ -183,22 +178,44 @@ export const feedTitleGroupSchema = z.object({
   itemIds: z.array(z.string()),
 });
 
-export const groupedFeedEntrySchema = z.discriminatedUnion("kind", [
-  feedTitleGroupSchema,
-  z.object({ kind: z.literal("activity"), item: feedItemSchema }),
+const feedRowBase = {
+  key: z.string(),
+  // The viewer's local day ("2026-11-02"), worked out by the API from the sent time zone.
+  day: z.string(),
+};
+
+// One row the viewer sees, already folded by the API: a title card, a plain
+// activity, or a run of likes/watchlist adds, follows, or one show's episodes.
+export const feedRowSchema = z.discriminatedUnion("kind", [
+  z.object({ ...feedRowBase, kind: z.literal("title"), group: feedTitleGroupSchema }),
+  z.object({ ...feedRowBase, kind: z.literal("activity"), item: feedItemSchema }),
+  z.object({
+    ...feedRowBase,
+    kind: z.literal("titles"),
+    action: z.enum(["liked", "watchlisted"]),
+    actor: feedActorSchema,
+    titles: z.array(feedFilmSchema.unwrap()),
+  }),
+  z.object({ ...feedRowBase, kind: z.literal("follows"), actor: feedActorSchema, usernames: z.array(z.string()) }),
+  z.object({
+    ...feedRowBase,
+    kind: z.literal("episodes"),
+    actor: feedActorSchema,
+    movie: feedFilmSchema.unwrap(),
+    groups: z.array(feedTitleGroupSchema),
+  }),
 ]);
 
 export const groupedFeedPageSchema = z.object({
-  items: z.array(groupedFeedEntrySchema),
+  rows: z.array(feedRowSchema),
   nextCursor: z.string().nullable(),
 });
 
 export type FeedTitleGroup = z.infer<typeof feedTitleGroupSchema>;
-export type GroupedFeedEntry = z.infer<typeof groupedFeedEntrySchema>;
+export type FeedRow = z.infer<typeof feedRowSchema>;
 export type GroupedFeedPage = z.infer<typeof groupedFeedPageSchema>;
 export type FeedItem = z.infer<typeof feedItemSchema>;
 export type FeedFilter = "all" | "movie" | "serial";
-export type FeedPage = z.infer<typeof feedPageSchema>;
 export type FeedActivityKind = z.infer<typeof feedActivityKindSchema>;
 export type TrendingFilm = z.infer<typeof trendingFilmSchema>;
 export type MeFeedSummary = z.infer<typeof meFeedSummarySchema>;

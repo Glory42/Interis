@@ -86,8 +86,12 @@ A short, Twitter-style standalone update a user writes, optionally attached to o
 _Avoid_: status, tweet
 
 **Following Feed**:
-The personalized, authenticated activity stream showing Activities from the users the viewer follows (plus their own), scoped via the Follow relationship. Backs `GET /api/social/feed/following`.
+The personalized, authenticated activity stream showing Activities from the users the viewer follows (plus their own), scoped via the Follow relationship. Shown as Feed Rows split into the viewer's days. Backs `GET /api/social/feed/grouped`.
 _Avoid_: feed (too ambiguous alone — always qualify as "Following Feed" or "Trending Now")
+
+**Feed Row**:
+One row the viewer sees in the Following Feed or a profile overview: a title card (one person's Activities on one Film/Series, season or episode on one day), a plain Activity, or a folded run of one person's same-day likes, watchlist adds, follows, or one show's seasons and episodes. Days are the viewer's local days (their IANA time zone, UTC if unknown); the API folds and pages rows, the web only renders them.
+_Avoid_: entry, item (an item is one Activity before grouping)
 
 **Trending Now**:
 TMDB's industry-wide popularity ranking for Films and Series, fetched on demand and cached locally like any other TMDB data — carries no Interis user activity and is not personalized or Follow-scoped. Shown as two separate rankings, one for Films and one for TV, never blended into a single list.

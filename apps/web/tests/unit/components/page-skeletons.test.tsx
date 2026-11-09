@@ -63,7 +63,7 @@ describe("page skeletons", () => {
 const sections: Array<[string, ReactElement]> = [
   ["Loading feed", <FeedDayList isLoading isError={false} days={[]} />],
   ["Loading now showing", <FeedRail films={[]} shows={[]} week={null} isLoading />],
-  ["Loading activity", <ProfileOverviewActivity entries={[]} isPending isError={false} />],
+  ["Loading activity", <ProfileOverviewActivity rows={[]} isPending isError={false} />],
   [
     "Loading comments",
     <ProfileReviewCommentsSection
