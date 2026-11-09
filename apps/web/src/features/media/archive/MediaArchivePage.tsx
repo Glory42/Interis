@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { ArchiveFilterControls } from "@/features/media/archive/ArchiveFilterControls";
 import { ArchiveSkeletonGrid } from "@/features/media/archive/ArchiveSkeletonGrid";
 import type { MediaModuleStyles } from "@/features/media/styles";
-import type { ArchiveMenuKey } from "@/features/media/types";
 
 type ArchiveFilterOption<TValue extends string> = {
   value: TValue;
@@ -71,8 +70,6 @@ export function MediaArchivePage<TItem, TSort extends string, TPeriod extends st
   loadingMoreSlot,
   renderCard,
 }: MediaArchivePageProps<TItem, TSort, TPeriod>) {
-  const [openMenu, setOpenMenu] = useState<ArchiveMenuKey | null>(null);
-  const controlsRef = useRef<HTMLDivElement | null>(null);
   const [hasStaggeredInitialLoad, setHasStaggeredInitialLoad] = useState(false);
 
   // Latches one frame after the first non-empty result set has painted, so
@@ -95,37 +92,6 @@ export function MediaArchivePage<TItem, TSort extends string, TPeriod extends st
     };
   }, [hasStaggeredInitialLoad, items.length]);
 
-  useEffect(() => {
-    if (!openMenu) {
-      return;
-    }
-
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target;
-      if (!(target instanceof Node)) {
-        return;
-      }
-
-      if (!controlsRef.current?.contains(target)) {
-        setOpenMenu(null);
-      }
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setOpenMenu(null);
-      }
-    };
-
-    window.addEventListener("pointerdown", handlePointerDown);
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("pointerdown", handlePointerDown);
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [openMenu]);
-
   return (
     <main className="relative mx-auto w-full max-w-400">
       <div className="px-4 py-6">
@@ -137,26 +103,6 @@ export function MediaArchivePage<TItem, TSort extends string, TPeriod extends st
         {spotlight}
 
         <ArchiveFilterControls
-          controlsRef={controlsRef}
-          openMenu={openMenu}
-          onBlurCapture={(event) => {
-            if (!openMenu) {
-              return;
-            }
-
-            const nextTarget = event.relatedTarget;
-            if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
-              setOpenMenu(null);
-            }
-          }}
-          onToggleMenu={(menu) => {
-            if (isPeriodDisabled && menu === "period") {
-              return;
-            }
-
-            setOpenMenu((current) => (current === menu ? null : menu));
-          }}
-          onCloseMenu={() => setOpenMenu(null)}
           selectedGenre={selectedGenre}
           selectedLanguage={selectedLanguage}
           selectedSort={selectedSort}

@@ -79,9 +79,9 @@ describe("navigation controls", () => {
     render(<SortSentence />);
 
     await userEvent.click(screen.getByRole("button", { name: "Sort: newest first" }));
-    await userEvent.click(screen.getByRole("option", { name: "highest rated" }));
+    await userEvent.click(screen.getByRole("menuitemradio", { name: "highest rated" }));
 
-    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sort: highest rated" })).toBeInTheDocument();
   });
 
@@ -101,8 +101,8 @@ describe("navigation controls", () => {
     );
 
     await userEvent.click(screen.getByRole("button", { name: "Year: every year" }));
-    expect(screen.getByRole("listbox")).toBeInTheDocument();
+    expect(screen.getByRole("menu")).toBeInTheDocument();
     await userEvent.keyboard("{Escape}");
-    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 });

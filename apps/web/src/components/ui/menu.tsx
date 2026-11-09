@@ -1,19 +1,22 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { cn } from "@/lib/utils";
+import { useCallback, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { MenuPanel, type MenuOption } from "@/components/ui/MenuPanel";
 
-export type MenuOption<T extends string> = { value: T; label: string };
+export type { MenuOption };
 
 type MenuProps<T extends string> = {
-  // Accessible name of the trigger, e.g. "Sort: newest first".
-  ariaLabel: string;
+  // Accessible name of the trigger, e.g. "Sort: newest first". Defaults to the trigger's text.
+  ariaLabel?: string;
   trigger: ReactNode;
   triggerClassName?: string;
-  options: MenuOption<T>[];
+  options: ReadonlyArray<MenuOption<T>>;
   value: T;
   onSelect: (value: T) => void;
+  // CSS colour exposed to the trigger and panel as --menu-accent. Defaults to the primary colour.
+  accent?: string;
 };
 
-// Hairline popover with no blur; closes on pick, Escape or an outside click.
+// A button that opens a single-choice menu. Arrow keys, Home/End and typing move between options,
+// Enter/Space picks, Escape or Tab closes and returns focus to the trigger.
 export const Menu = <T extends string>({
   ariaLabel,
   trigger,
@@ -21,70 +24,56 @@ export const Menu = <T extends string>({
   options,
   value,
   onSelect,
+  accent = "var(--primary)",
 }: MenuProps<T>) => {
   const [isOpen, setIsOpen] = useState(false);
-  const rootRef = useRef<HTMLSpanElement>(null);
-  const listId = useId();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const triggerId = useId();
+  const panelId = useId();
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const onPointerDown = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setIsOpen(false);
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsOpen(false);
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [isOpen]);
+  const close = useCallback((returnFocus: boolean) => {
+    setIsOpen(false);
+    if (returnFocus) triggerRef.current?.focus();
+  }, []);
 
   return (
-    <span ref={rootRef} className="relative inline-block">
+    <>
       <button
+        ref={triggerRef}
+        id={triggerId}
         type="button"
         aria-label={ariaLabel}
-        aria-haspopup="listbox"
+        aria-haspopup="menu"
         aria-expanded={isOpen}
-        aria-controls={isOpen ? listId : undefined}
+        aria-controls={isOpen ? panelId : undefined}
         onClick={() => setIsOpen((open) => !open)}
+        onKeyDown={(event) => {
+          if (!isOpen && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+            event.preventDefault();
+            setIsOpen(true);
+          }
+        }}
+        style={{ "--menu-accent": accent } as CSSProperties}
         className={triggerClassName}
       >
         {trigger}
       </button>
       {isOpen ? (
-        <span
-          id={listId}
-          role="listbox"
-          className="absolute top-full left-0 z-50 mt-1 flex min-w-44 flex-col rounded-lg border border-[color:var(--line-strong)] bg-card py-1 text-[12.5px] shadow-[0_18px_40px_-20px_rgb(0_0_0)]"
-        >
-          {options.map((option) => {
-            const isSelected = option.value === value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                role="option"
-                aria-selected={isSelected}
-                onClick={() => {
-                  onSelect(option.value);
-                  setIsOpen(false);
-                }}
-                className={cn(
-                  "min-h-11 px-3 py-1.5 text-left text-foreground transition-colors hover:bg-foreground/5 sm:min-h-0",
-                  isSelected && "bg-foreground/5 shadow-[inset_2px_0_var(--primary)]",
-                )}
-              >
-                {option.label}
-              </button>
-            );
-          })}
-        </span>
+        <MenuPanel
+          id={panelId}
+          anchorRef={triggerRef}
+          labelledBy={triggerId}
+          options={options}
+          value={value}
+          accent={accent}
+          onPick={(next) => {
+            // Focus goes back first so onSelect can move it elsewhere (e.g. a search input).
+            close(true);
+            onSelect(next);
+          }}
+          onDismiss={close}
+        />
       ) : null}
-    </span>
+    </>
   );
 };

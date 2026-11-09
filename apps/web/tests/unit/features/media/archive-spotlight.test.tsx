@@ -1,4 +1,3 @@
-import { useRef, useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -7,7 +6,6 @@ import { toWeekLabel } from "@/features/media/archive/week-label";
 import { ArchiveSpotlight } from "@/features/media/archive/ArchiveSpotlight";
 import { ArchiveFilterControls } from "@/features/media/archive/ArchiveFilterControls";
 import { FILM_MODULE_STYLES } from "@/features/media/styles";
-import type { ArchiveMenuKey } from "@/features/media/types";
 
 describe("toWeekLabel", () => {
   it("names the ISO week and its Monday-to-Sunday dates", () => {
@@ -99,15 +97,8 @@ const FilterSentence = ({
   sort: "trending" | "release_desc";
   onSelectSort: (sort: "trending" | "release_desc") => void;
 }) => {
-  const controlsRef = useRef<HTMLDivElement | null>(null);
-  const [openMenu, setOpenMenu] = useState<ArchiveMenuKey | null>(null);
   return (
     <ArchiveFilterControls
-      controlsRef={controlsRef}
-      openMenu={openMenu}
-      onBlurCapture={() => {}}
-      onToggleMenu={(menu) => setOpenMenu((current) => (current === menu ? null : menu))}
-      onCloseMenu={() => setOpenMenu(null)}
       selectedGenre="all"
       selectedLanguage="all"
       selectedSort={sort}

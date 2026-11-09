@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Menu } from "@/components/ui/menu";
 
 export type SentenceOption<T extends string> = {
   value: T;
@@ -8,57 +7,38 @@ export type SentenceOption<T extends string> = {
   word: string;
   // The menu entry ("Films and series · 94").
   label: string;
+  // Muted metadata shown right-aligned in the menu, e.g. "⌘1" or a count.
+  hint?: string;
 };
 
 type SentenceSelectProps<T extends string> = {
   value: T;
   options: ReadonlyArray<SentenceOption<T>>;
   onChange: (value: T) => void;
+  // Names the choice for screen readers, e.g. "Sort: newest first". Defaults to the word.
+  ariaLabel?: string;
+  // CSS colour of the dashed underline and selected marker, e.g. "var(--film)".
+  accent?: string;
 };
 
 // A dashed word inside a filter sentence that opens a short menu ("Showing every genre ▾ …").
-export const SentenceSelect = <T extends string>({ value, options, onChange }: SentenceSelectProps<T>) => {
-  const [isOpen, setIsOpen] = useState(false);
+export const SentenceSelect = <T extends string>({ value, options, onChange, ariaLabel, accent }: SentenceSelectProps<T>) => {
   const current = options.find((option) => option.value === value) ?? options[0];
 
   return (
-    <span
-      className="relative inline-block"
-      onBlur={(event) => !event.currentTarget.contains(event.relatedTarget) && setIsOpen(false)}
-      onKeyDown={(event) => event.key === "Escape" && setIsOpen(false)}
-    >
-      <button
-        type="button"
-        aria-haspopup="menu"
-        aria-expanded={isOpen}
-        onClick={() => setIsOpen((open) => !open)}
-        className="inline-flex items-baseline gap-0.5 border-b border-dashed border-[color:var(--primary)] text-foreground"
-      >
-        {current?.word}
-        <ChevronDown aria-hidden className="size-3 self-center text-muted-foreground" />
-      </button>
-      {isOpen ? (
-        <span role="menu" className="surface-card absolute top-full left-0 z-40 mt-1 block min-w-40 overflow-hidden">
-          {options.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              role="menuitemradio"
-              aria-checked={option.value === value}
-              onClick={() => {
-                onChange(option.value);
-                setIsOpen(false);
-              }}
-              className={cn(
-                "block w-full whitespace-nowrap px-4 py-2 text-left font-mono text-[11px]",
-                option.value === value ? "text-primary" : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {option.label}
-            </button>
-          ))}
-        </span>
-      ) : null}
-    </span>
+    <Menu
+      ariaLabel={ariaLabel}
+      accent={accent}
+      trigger={
+        <>
+          {current?.word}
+          <ChevronDown aria-hidden className="size-3 self-center text-muted-foreground" />
+        </>
+      }
+      triggerClassName="inline-flex items-baseline gap-0.5 border-b border-dashed border-[color:var(--menu-accent)] text-foreground"
+      options={options}
+      value={value}
+      onSelect={onChange}
+    />
   );
 };

@@ -60,7 +60,11 @@ export const GlobalSearchDialog = ({ isOpen, onOpenChange }: GlobalSearchDialogP
     inputRef.current?.focus();
   };
 
-  const setScope = (next: SearchScope) => state.setScope(next === "everything" ? null : next);
+  // Focus returns to the input so typing carries on after a pick from the scope menu.
+  const setScope = (next: SearchScope) => {
+    state.setScope(next === "everything" ? null : next);
+    inputRef.current?.focus();
+  };
 
   useEffect(() => {
     if (!isOpen) return;

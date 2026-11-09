@@ -1,5 +1,6 @@
 import { Fragment } from "react";
-import { Menu, type MenuOption } from "@/components/ui/menu";
+import type { MenuOption } from "@/components/ui/menu";
+import { SentenceSelect } from "@/components/ui/SentenceSelect";
 
 export type SentencePhrase = {
   key: string;
@@ -25,14 +26,12 @@ export const SentenceFilter = ({ parts, className }: SentenceFilterProps) => (
 
       const current = part.options.find((option) => option.value === part.value)?.label ?? part.value;
       return (
-        <Menu
+        <SentenceSelect
           key={part.key}
           ariaLabel={`${part.label}: ${current}`}
-          trigger={current}
-          triggerClassName="border-b border-dashed border-primary text-foreground"
-          options={part.options}
           value={part.value}
-          onSelect={part.onChange}
+          options={part.options.map((option) => ({ ...option, word: option.label }))}
+          onChange={part.onChange}
         />
       );
     })}
