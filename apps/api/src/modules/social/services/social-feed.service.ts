@@ -1,34 +1,17 @@
 import { createTtlCache } from "../../../infrastructure/cache/ttl-cache.helper";
-import { normalizeLimit } from "../helpers/social-feed-metadata.helper";
+import { normalizeBoundedLimit } from "../../../commons/helpers/pagination.helper";
+import { DEFAULT_FEED_PAGE_SIZE, MAX_FEED_PAGE_SIZE } from "../constants/social-feed.constants";
 import { toFeedItems } from "../helpers/feed-kinds/feed-kind.registry";
 import { dedupeReviewFeedItems } from "../helpers/social-feed-dedupe.helper";
-import { inferFeedItemMediaType } from "../helpers/social-feed-channel.helper";
-import { groupFeedItems, toUtcDayKey } from "../helpers/social-feed-grouping.helper";
-import { cutGroupedPage } from "../helpers/social-feed-grouped-page.helper";
-import { decodeFeedCursor, encodeFeedCursor } from "../helpers/social-feed-cursor.helper";
 import { SocialRepository } from "../repositories/social.repository";
 import { ModerationRepository } from "../../moderation/repositories/moderation.repository";
-import type {
-  ActivityRow,
-  FeedItem,
-  FeedMediaType,
-  GroupedFeedEntry,
-} from "../types/social-feed.types";
-
-// Safety cap on how many raw activity rows a single filtered request will
-// scan looking for matches (e.g. a viewer whose followed users have logged
-// almost no movies at all, with the "movie" filter active) - bounds one
-// request's latency instead of scanning the whole feed history.
-const MEDIA_FILTER_SCAN_ROW_CAP = 300;
-
-// Raw rows a grouped page reads, so a burst of likes (one row each) still
-// leaves room for older days on the page.
-const GROUPED_FEED_ROW_WINDOW = 100;
-
-export type FeedPage = {
-  items: FeedItem[];
-  nextCursor: string | null;
-};
+import {
+  GroupedFeedService,
+  type GroupedFeedPage,
+  type GroupedFeedPageOptions,
+  type GroupedFeedSource,
+} from "./grouped-feed.service";
+import type { ActivityRow, FeedItem, FeedRow } from "../types/social-feed.types";
 
 // Feed rows/engagement counts change quickly, so the TTL stays short — this
 // only exists to absorb request bursts (e.g. React Query refetch-on-focus,
@@ -63,158 +46,46 @@ const getFeedUserIds = async (userId: string): Promise<string[]> => {
   ];
 };
 
-const getFollowingFeedUncached = async (
-  userId: string,
-  limit?: number,
-  cursor?: string,
-  mediaType?: FeedMediaType,
-): Promise<FeedPage> => {
-  const normalizedLimit = normalizeLimit(limit);
-  const fetchLimit = normalizedLimit * 2;
-  const feedUserIds = await getFeedUserIds(userId);
-
-  if (!mediaType) {
-    const decodedCursor = decodeFeedCursor(cursor);
-    const rows = await SocialRepository.getFeedActivityRows(feedUserIds, fetchLimit, decodedCursor);
-    const dedupedItems = await buildFeedItems(rows, userId);
-
-    // dedupedItems can be shorter than rows (items about deleted content
-    // are dropped, and dedupeReviewFeedItems only ever *drops* items, it
-    // never merges two rows into one - each surviving item's id/createdAt
-    // is still a genuine row's identity, see toFeedItems), so it can also
-    // be longer than normalizedLimit
-    // since fetchLimit over-fetches 2x as headroom for that dedup step.
-    // Slicing here (rather than returning dedupedItems as-is) is the fix:
-    // the page must never return more than what was asked for.
-    const items = dedupedItems.slice(0, normalizedLimit);
-    const lastReturnedItem = items.at(-1);
-    const lastFetchedRow = rows.at(-1);
-
-    let nextCursor: string | null = null;
-    if (dedupedItems.length > normalizedLimit && lastReturnedItem) {
-      // More already-built items exist beyond this page - resume right
-      // after the last one actually returned.
-      nextCursor = encodeFeedCursor({
-        createdAt: lastReturnedItem.createdAt,
-        id: lastReturnedItem.id,
-      });
-    } else if (rows.length === fetchLimit && lastFetchedRow) {
-      // Dedup left us with a page at or under the limit, but the fetch
-      // cap was hit - there may be more beyond what was fetched, even if
-      // nothing new survived dedup this time. Resume from the last
-      // *fetched* row (not the last item, which may not exist) so the
-      // next page keeps scanning forward instead of re-fetching the same
-      // window - same "advance by rows scanned" principle as the
-      // mediaType-filtered branch below.
-      nextCursor = encodeFeedCursor({
-        createdAt: lastFetchedRow.activity.createdAt,
-        id: lastFetchedRow.activity.id,
-      });
-    }
-
-    return { items, nextCursor };
-  }
-
-  // Media-type filter: the raw activities table is polymorphic (reviews,
-  // posts, follows, likes, ...) with no single column to filter on directly,
-  // so instead of one query we scan successive batches, resolve each into a
-  // full FeedItem (same pipeline as the unfiltered path), and keep only the
-  // ones matching the requested channel - advancing the cursor by rows
-  // *scanned*, not rows *matched*, so a later page resumes from the right
-  // place instead of re-scanning what was already filtered out.
-  let decodedCursor = decodeFeedCursor(cursor);
-  const collected: FeedItem[] = [];
-  let scannedRows = 0;
-  let nextCursor: string | null = null;
-
-  while (collected.length < normalizedLimit && scannedRows < MEDIA_FILTER_SCAN_ROW_CAP) {
-    const rows = await SocialRepository.getFeedActivityRows(feedUserIds, fetchLimit, decodedCursor);
-    if (rows.length === 0) {
-      nextCursor = null;
-      break;
-    }
-
-    scannedRows += rows.length;
-    const items = await buildFeedItems(rows, userId);
-    collected.push(...items.filter((item) => inferFeedItemMediaType(item) === mediaType));
-
-    const lastRow = rows.at(-1);
-    decodedCursor = lastRow
-      ? { createdAt: lastRow.activity.createdAt, id: lastRow.activity.id }
-      : decodedCursor;
-
-    if (rows.length < fetchLimit) {
-      // Reached the true end of the underlying feed.
-      nextCursor = null;
-      break;
-    }
-
-    nextCursor = lastRow
-      ? encodeFeedCursor({ createdAt: lastRow.activity.createdAt, id: lastRow.activity.id })
-      : null;
-  }
-
-  return { items: collected, nextCursor };
-};
-
-export type GroupedFeedPage = {
-  items: GroupedFeedEntry[];
-  nextCursor: string | null;
-};
-
-// A title group or activity's film/TV kind; null for follows, lists and plain posts.
-const entryMediaType = (entry: GroupedFeedEntry): FeedMediaType | null =>
-  entry.kind === "title" ? entry.movie.mediaType : (entry.item.movie?.mediaType ?? entry.item.post?.mediaType ?? null);
-
-const getGroupedFollowingFeedUncached = async (
-  userId: string,
-  limit?: number,
-  cursor?: string,
-  mediaType?: FeedMediaType,
-): Promise<GroupedFeedPage> => {
-  const normalizedLimit = normalizeLimit(limit);
-  const rowWindow = Math.max(normalizedLimit * 2, GROUPED_FEED_ROW_WINDOW);
-  const feedUserIds = await getFeedUserIds(userId);
-  const rows = await SocialRepository.getFeedActivityRows(
-    feedUserIds,
-    rowWindow + 1,
-    decodeFeedCursor(cursor),
-  );
-
-  const peekRow = rows.length > rowWindow ? rows[rowWindow] : undefined;
-  const windowRows = rows.slice(0, rowWindow);
-  const grouped = groupFeedItems(await buildFeedItems(windowRows, userId));
-  // Filtered after grouping, so a filtered page can come back short; the cursor still advances.
-  const filtered = mediaType ? grouped.filter((entry) => entryMediaType(entry) === mediaType) : grouped;
-  const openDay = peekRow ? toUtcDayKey(peekRow.activity.createdAt) : null;
-  const { items, lastRow, coversAllRows } = cutGroupedPage(windowRows, filtered, normalizedLimit, openDay);
-
+// The viewer's own activity plus everyone they follow, minus blocks and mutes.
+const followingFeedSource = async (viewerId: string): Promise<GroupedFeedSource> => {
+  const feedUserIds = await getFeedUserIds(viewerId);
   return {
-    items,
-    nextCursor:
-      lastRow && (peekRow || !coversAllRows)
-        ? encodeFeedCursor({ createdAt: lastRow.activity.createdAt, id: lastRow.activity.id })
-        : null,
+    paged: true,
+    readRows: (limit, cursor) => SocialRepository.getFeedActivityRows(feedUserIds, limit, cursor),
+    toItems: (rows) => buildFeedItems(rows, viewerId),
   };
 };
 
-const cachedGetGroupedFollowingFeed = createTtlCache(getGroupedFollowingFeedUncached, {
-  ttlMs: FEED_CACHE_TTL_MS,
-  keyFn: (userId: string, limit?: number, cursor?: string, mediaType?: FeedMediaType) =>
-    `${userId}:${limit ?? ""}:${cursor ?? ""}:${mediaType ?? ""}`,
+const actorFeedSource = (actorId: string): GroupedFeedSource => ({
+  paged: false,
+  readRows: (limit) => SocialRepository.getFeedActivityRows([actorId], limit),
+  toItems: (rows) => buildFeedItems(rows),
 });
 
-const cachedGetFollowingFeed = createTtlCache(getFollowingFeedUncached, {
-  ttlMs: FEED_CACHE_TTL_MS,
-  keyFn: (userId: string, limit?: number, cursor?: string, mediaType?: FeedMediaType) =>
-    `${userId}:${limit ?? ""}:${cursor ?? ""}:${mediaType ?? ""}`,
-});
+const cachedGetGroupedFollowingFeed = createTtlCache(
+  async (viewerId: string, options: GroupedFeedPageOptions) =>
+    GroupedFeedService.readPage(await followingFeedSource(viewerId), options),
+  {
+    ttlMs: FEED_CACHE_TTL_MS,
+    keyFn: (viewerId, { limit, cursor, mediaType, timeZone }) =>
+      `${viewerId}:${limit ?? ""}:${cursor ?? ""}:${mediaType ?? ""}:${timeZone}`,
+  },
+);
+
+const cachedGetActorGroupedFeed = createTtlCache(
+  async (actorId: string, limit: number, timeZone: string) =>
+    (await GroupedFeedService.readPage(actorFeedSource(actorId), { limit, timeZone })).rows,
+  {
+    ttlMs: FEED_CACHE_TTL_MS,
+    keyFn: (actorId, limit, timeZone) => `${actorId}:${limit}:${timeZone}`,
+  },
+);
 
 const getUserActivityFeedUncached = async (
   userId: string,
   limit?: number,
 ): Promise<FeedItem[]> => {
-  const normalizedLimit = normalizeLimit(limit);
+  const normalizedLimit = normalizeBoundedLimit(limit, { default: DEFAULT_FEED_PAGE_SIZE, max: MAX_FEED_PAGE_SIZE });
   const fetchLimit = normalizedLimit * 2;
 
   const rows = await SocialRepository.getFeedActivityRows([userId], fetchLimit);
@@ -229,28 +100,19 @@ const cachedGetUserActivityFeed = createTtlCache(getUserActivityFeedUncached, {
 });
 
 export class SocialFeedService {
-  static async getFeed(userId: string, cursor?: string, limit?: number): Promise<FeedPage> {
-    return SocialFeedService.getFollowingFeed(userId, limit, cursor);
-  }
-
-  static async getFollowingFeed(
-    userId: string,
-    limit?: number,
-    cursor?: string,
-    mediaType?: FeedMediaType,
-  ): Promise<FeedPage> {
-    return cachedGetFollowingFeed(userId, limit, cursor, mediaType);
-  }
-
   static async getGroupedFollowingFeed(
-    userId: string,
-    limit?: number,
-    cursor?: string,
-    mediaType?: FeedMediaType,
+    viewerId: string,
+    options: GroupedFeedPageOptions,
   ): Promise<GroupedFeedPage> {
-    return cachedGetGroupedFollowingFeed(userId, limit, cursor, mediaType);
+    return cachedGetGroupedFollowingFeed(viewerId, options);
   }
 
+  // The profile overview: one actor's newest `limit` rows, no cursor.
+  static async getActorGroupedFeed(actorId: string, limit: number, timeZone: string): Promise<FeedRow[]> {
+    return cachedGetActorGroupedFeed(actorId, limit, timeZone);
+  }
+
+  // The public widget's flat activity list.
   static async getUserActivityFeed(userId: string, limit?: number): Promise<FeedItem[]> {
     return cachedGetUserActivityFeed(userId, limit);
   }
@@ -261,12 +123,12 @@ export class SocialFeedService {
   // user's activity, which contradicts this cache's whole "absorb bursts,
   // not serve meaningfully stale data" premise.
   static invalidateFollowingFeed(userId: string): void {
-    cachedGetFollowingFeed.invalidatePrefix(`${userId}:`);
     cachedGetGroupedFollowingFeed.invalidatePrefix(`${userId}:`);
   }
 
-  // The public profile's activity list, cached per actor.
+  // The public profile's activity lists, cached per actor.
   static invalidateUserActivityFeed(userId: string): void {
     cachedGetUserActivityFeed.invalidatePrefix(`${userId}:`);
+    cachedGetActorGroupedFeed.invalidatePrefix(`${userId}:`);
   }
 }

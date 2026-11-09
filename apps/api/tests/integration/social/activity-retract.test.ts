@@ -5,6 +5,7 @@ import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
 import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
+import { readFollowingFeed } from "../../support/app/following-feed";
 import { db } from "../../../src/infrastructure/database/db";
 import { user } from "../../../src/infrastructure/database/auth.entity";
 import { activities } from "../../../src/modules/social/social.entity";
@@ -154,10 +155,8 @@ describe("undoing an action retracts its feed activity (#76)", () => {
     await send(follower.jar, "DELETE", `/api/social/follow/${target.username}`);
     expect(await activityMetadataFor(followerId, "followed_user")).toHaveLength(0);
 
-    const feed = (await send(follower.jar, "GET", "/api/social/feed")) as {
-      items: Array<{ type: string }>;
-    };
-    expect(feed.items.map((item) => item.type)).not.toContain("followed_user");
+    const { rows } = await readFollowingFeed(getServer().baseUrl, follower.jar);
+    expect(JSON.stringify(rows)).not.toContain(target.username);
   });
 
   it("removes a review like and a post like when they are undone", async () => {

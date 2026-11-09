@@ -5,6 +5,7 @@ import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
 import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
+import { readFollowingFeed, titleGroups } from "../../support/app/following-feed";
 import { db } from "../../../src/infrastructure/database/db";
 import { user } from "../../../src/infrastructure/database/auth.entity";
 import { diaryEntries } from "../../../src/modules/diary/diary.entity";
@@ -13,11 +14,6 @@ import { activities } from "../../../src/modules/social/social.entity";
 // Media activities are recorded fire-and-forget, so give the insert a
 // moment to land before asserting on it.
 const waitForActivityWrite = () => new Promise((resolve) => setTimeout(resolve, 150));
-
-type FeedItem = {
-  type: string;
-  metadata: { rating: number | null; rewatch: boolean | null };
-};
 
 const countDiaryActivities = async (username: string) => {
   const [author] = await db.select({ id: user.id }).from(user).where(eq(user.username, username));
@@ -62,10 +58,9 @@ describe("deleted and edited diary logs in the feed (#82)", () => {
     return (await response.json().catch(() => null)) as Record<string, unknown> | null;
   };
 
+  // The logged titles the viewer sees.
   const getDiaryItems = async (jar: CookieJar) =>
-    ((await send(jar, "GET", "/api/social/feed")) as { items: FeedItem[] }).items.filter(
-      (item) => item.type === "diary_entry",
-    );
+    titleGroups((await readFollowingFeed(getServer().baseUrl, jar)).rows).filter((group) => group.watched);
 
   // Follower and author, with the follower's feed not fetched yet so the
   // 20s feed cache can't hide what the change did.
@@ -124,13 +119,13 @@ describe("deleted and edited diary logs in the feed (#82)", () => {
   it("shows an edited log's current rating, including to its author", async () => {
     const { author, fan } = await signUpPair("fdloge");
     const entryId = await logMovie(author.jar);
-    expect((await getDiaryItems(author.jar))[0]?.metadata.rating).toBe(3);
+    expect((await getDiaryItems(author.jar))[0]?.rating).toBe(3);
 
     await send(author.jar, "PUT", `/api/diary/${entryId}`, { rating: 4.5, rewatch: true });
 
     // The author's feed was cached by the read above; the edit must clear it.
     for (const jar of [author.jar, fan.jar]) {
-      expect((await getDiaryItems(jar))[0]?.metadata).toMatchObject({ rating: 4.5, rewatch: true });
+      expect((await getDiaryItems(jar))[0]?.log).toMatchObject({ rating: 4.5, rewatch: true });
     }
   });
 });

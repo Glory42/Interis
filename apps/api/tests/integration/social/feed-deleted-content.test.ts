@@ -5,6 +5,7 @@ import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
 import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
+import { activityItems, readFollowingFeed, titleGroups } from "../../support/app/following-feed";
 import { db } from "../../../src/infrastructure/database/db";
 import { user } from "../../../src/infrastructure/database/auth.entity";
 import { activities } from "../../../src/modules/social/social.entity";
@@ -13,14 +14,6 @@ import type { ActivityType } from "../../../src/modules/social/repositories/soci
 // Media activities are recorded fire-and-forget, so give the insert a
 // moment to land before asserting on it.
 const waitForActivityWrite = () => new Promise((resolve) => setTimeout(resolve, 150));
-
-type FeedItem = {
-  type: string;
-  kind: string;
-  review: { id: string; content: string } | null;
-  post: { id: string; content: string } | null;
-  metadata: { excerpt: string | null; hasReview?: boolean | null; reviewId: string | null };
-};
 
 const getUserId = async (username: string): Promise<string> => {
   const [row] = await db.select({ id: user.id }).from(user).where(eq(user.username, username));
@@ -69,8 +62,7 @@ describe("deleted reviews and posts leave the feed (#77, #78)", () => {
     return (await response.json().catch(() => null)) as Record<string, unknown> | null;
   };
 
-  const getFeed = async (jar: CookieJar) =>
-    ((await send(jar, "GET", "/api/social/feed")) as { items: FeedItem[] }).items;
+  const getFeed = async (jar: CookieJar) => (await readFollowingFeed(getServer().baseUrl, jar)).rows;
 
   // Follower and author, with the follower's feed not fetched yet so the
   // 20s feed cache can't hide what the delete changed.
@@ -121,12 +113,9 @@ describe("deleted reviews and posts leave the feed (#77, #78)", () => {
     await send(author.jar, "DELETE", `/api/reviews/${logged.review.id}`);
 
     const feed = await getFeed(fan.jar);
-    const diaryItems = feed.filter((item) => item.type === "diary_entry");
-    expect(diaryItems).toHaveLength(1);
-    expect(diaryItems[0]).toMatchObject({
-      review: null,
-      metadata: { excerpt: null, hasReview: false, reviewId: null },
-    });
+    const loggedTitles = titleGroups(feed).filter((group) => group.watched);
+    expect(loggedTitles).toHaveLength(1);
+    expect(loggedTitles[0]).toMatchObject({ review: null });
     expect(JSON.stringify(feed)).not.toContain("Diary review to delete");
   });
 
@@ -142,7 +131,7 @@ describe("deleted reviews and posts leave the feed (#77, #78)", () => {
     await send(author.jar, "PUT", `/api/reviews/${created.review.id}`, { content: "Final take" });
 
     const feed = await getFeed(fan.jar);
-    const likeItem = feed.find((item) => item.kind === "liked_review");
+    const likeItem = activityItems(feed).find((item) => item.kind === "liked_review");
     expect(likeItem?.metadata.excerpt).toBe("Final take");
     expect(JSON.stringify(feed)).not.toContain("First draft");
   });

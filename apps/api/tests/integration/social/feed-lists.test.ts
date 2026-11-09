@@ -4,14 +4,10 @@ import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
+import { activityItems, readFollowingFeed } from "../../support/app/following-feed";
 import { db } from "../../../src/infrastructure/database/db";
 import { user } from "../../../src/infrastructure/database/auth.entity";
 import { activities } from "../../../src/modules/social/social.entity";
-
-type FeedItem = {
-  type: string;
-  metadata: { listId: string | null; listTitle: string | null };
-};
 
 describe("created_list items follow the live list (#81)", () => {
   let testServer: RunningTestServer | null = null;
@@ -47,7 +43,7 @@ describe("created_list items follow the live list (#81)", () => {
   };
 
   const listItems = async (jar: CookieJar) =>
-    ((await send(jar, "GET", "/api/social/feed")) as { items: FeedItem[] }).items.filter(
+    activityItems((await readFollowingFeed(getServer().baseUrl, jar)).rows).filter(
       (item) => item.type === "created_list",
     );
 
@@ -62,8 +58,8 @@ describe("created_list items follow the live list (#81)", () => {
     await createList(author.jar, "Secret guilty pleasures", false);
 
     for (const response of [
-      await send(fan.jar, "GET", "/api/social/feed"),
-      await send(author.jar, "GET", "/api/social/feed"),
+      await send(fan.jar, "GET", "/api/social/feed/grouped"),
+      await send(author.jar, "GET", "/api/social/feed/grouped"),
       await send(undefined, "GET", `/api/public/${author.username}/activity`),
     ]) {
       expect(JSON.stringify(response)).not.toContain("Secret guilty pleasures");

@@ -8,25 +8,10 @@ import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
 import { seedTestFilm } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
+import { readFollowingFeed, titleGroups, type FeedRowJson, type TitleGroupJson } from "../../support/app/following-feed";
 
 // Likes are recorded fire-and-forget, so give the inserts a moment to land.
 const waitForActivityWrites = () => new Promise((resolve) => setTimeout(resolve, 200));
-
-type GroupedEntry =
-  | {
-      kind: "title";
-      movie: { tmdbId: number };
-      watched: boolean;
-      rating: number | null;
-      liked: boolean;
-      watchlisted: boolean;
-      review: { content: string } | null;
-      log: { id: string; watchedDate: string; rating: number | null; rewatch: boolean } | null;
-      itemIds: string[];
-    }
-  | { kind: "activity"; item: { id: string } };
-
-type GroupedPage = { items: GroupedEntry[]; nextCursor: string | null };
 
 describe("GET /api/social/feed/grouped", () => {
   let testServer: RunningTestServer | null = null;
@@ -56,14 +41,25 @@ describe("GET /api/social/feed/grouped", () => {
     expect(response.ok).toBe(true);
   };
 
-  const getPage = async (jar: CookieJar, query: string): Promise<GroupedPage> => {
-    const response = await apiRequest(getServer().baseUrl, `/api/social/feed/grouped?${query}`, {}, jar);
-    expect(response.status).toBe(200);
-    return (await response.json()) as GroupedPage;
+  const getRows = async (jar: CookieJar, query: string): Promise<FeedRowJson[]> =>
+    (await readFollowingFeed(getServer().baseUrl, jar, query)).rows;
+
+  const userIdOf = async (username: string): Promise<string> => {
+    const [row] = await db.select({ id: user.id }).from(user).where(eq(user.username, username));
+    return row!.id;
   };
 
-  const titleEntries = (page: GroupedPage) =>
-    page.items.filter((entry): entry is Extract<GroupedEntry, { kind: "title" }> => entry.kind === "title");
+  // Moves each of the user's activities about a film to the time given for it.
+  const setTimesByFilm = async (userId: string, times: Map<number, string>) => {
+    const rows = await db.select().from(activities).where(eq(activities.userId, userId));
+    for (const row of rows) {
+      const movieId = (JSON.parse(row.metadata ?? "{}") as { movieId?: number }).movieId;
+      const at = movieId === undefined ? undefined : times.get(movieId);
+      if (at) await db.update(activities).set({ createdAt: new Date(at) }).where(eq(activities.id, row.id));
+    }
+  };
+
+  const shape = (rows: FeedRowJson[]) => rows.map((row) => `${row.day} ${row.kind}`);
 
   it("merges a log, rating, like and review of one title on one day into one entry", async () => {
     const { jar } = await signUpTestUser(getServer().baseUrl, "grpone");
@@ -74,14 +70,16 @@ describe("GET /api/social/feed/grouped", () => {
     await send(jar, "/api/reviews", "POST", { tmdbId: movie.tmdbId, content: "Grouped review text" });
     await waitForActivityWrites();
 
-    const page = await getPage(jar, "limit=20");
-    const entries = titleEntries(page).filter((entry) => entry.movie.tmdbId === movie.tmdbId);
+    const rows = (await getRows(jar, "limit=20")).filter(
+      (row) => row.kind === "title" && row.group.movie.tmdbId === movie.tmdbId,
+    );
 
-    expect(entries).toHaveLength(1);
-    expect(entries[0]).toMatchObject({ watched: true, rating: 8, liked: true });
-    expect(entries[0]!.review?.content).toBe("Grouped review text");
+    expect(rows).toHaveLength(1);
+    const { group } = rows[0] as Extract<FeedRowJson, { kind: "title" }>;
+    expect(group).toMatchObject({ watched: true, rating: 8, liked: true });
+    expect(group.review?.content).toBe("Grouped review text");
     // The day it was watched, not the day it was logged.
-    expect(entries[0]!.log).toMatchObject({ watchedDate: "2026-02-01", rating: 8, rewatch: false });
+    expect(group.log).toMatchObject({ watchedDate: "2026-02-01", rating: 8, rewatch: false });
   });
 
   it("keeps only films or only TV when asked", async () => {
@@ -89,9 +87,9 @@ describe("GET /api/social/feed/grouped", () => {
     const movie = await seedTestFilm("Filtered Movie");
     await send(jar, "/api/diary", "POST", { tmdbId: movie.tmdbId, watchedDate: "2026-02-02", rating: 7 });
 
-    const hasMovie = (page: GroupedPage) => titleEntries(page).some((entry) => entry.movie.tmdbId === movie.tmdbId);
-    expect(hasMovie(await getPage(jar, "limit=20&mediaType=movie"))).toBe(true);
-    expect(hasMovie(await getPage(jar, "limit=20&mediaType=tv"))).toBe(false);
+    const hasMovie = (rows: FeedRowJson[]) => titleGroups(rows).some((group) => group.movie.tmdbId === movie.tmdbId);
+    expect(hasMovie(await getRows(jar, "limit=20&mediaType=movie"))).toBe(true);
+    expect(hasMovie(await getRows(jar, "limit=20&mediaType=tv"))).toBe(false);
   });
 
   it("pages across a day boundary without splitting or repeating a group", async () => {
@@ -131,11 +129,12 @@ describe("GET /api/social/feed/grouped", () => {
     }
 
     // limit=2 scans 4 rows: newest's 2 rows, then middle's day straddles the page.
-    const seen: Extract<GroupedEntry, { kind: "title" }>[] = [];
+    const seen: TitleGroupJson[] = [];
     let cursor: string | null = null;
     for (let pageIndex = 0; pageIndex < 6; pageIndex += 1) {
-      const page = await getPage(jar, `limit=2${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`);
-      seen.push(...titleEntries(page));
+      const query = `limit=2${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`;
+      const page = await readFollowingFeed(getServer().baseUrl, jar, query);
+      seen.push(...titleGroups(page.rows));
       cursor = page.nextCursor;
       if (!cursor) break;
     }
@@ -168,10 +167,40 @@ describe("GET /api/social/feed/grouped", () => {
       }
       await waitForActivityWrites();
 
-      const page = await getPage(jar, "limit=2");
-      const titles = titleEntries(page);
-      expect(titles).toHaveLength(26);
-      expect(titles.at(-1)).toMatchObject({ movie: { tmdbId: logged.tmdbId }, watched: true });
+      const rows = await getRows(jar, "limit=2");
+      expect(rows).toMatchObject([
+        { kind: "titles", action },
+        { kind: "title", group: { movie: { tmdbId: logged.tmdbId }, watched: true } },
+      ]);
+      expect(rows[0]!.kind === "titles" && rows[0]!.titles).toHaveLength(25);
     });
   }
+
+  describe("days in the viewer's time zone", () => {
+    // Two likes by one person, at the given UTC times.
+    const likeTwoAt = async (prefix: string, first: string, second: string) => {
+      const { jar, username } = await signUpTestUser(getServer().baseUrl, prefix);
+      const films = await Promise.all([seedTestFilm(`${prefix} one`), seedTestFilm(`${prefix} two`)]);
+      for (const film of films) await send(jar, `/api/interactions/${film.tmdbId}`, "PUT", { liked: true });
+      await waitForActivityWrites();
+      await setTimesByFilm(await userIdOf(username), new Map([[films[0].id, first], [films[1].id, second]]));
+      return jar;
+    };
+
+    it("folds a run that straddles UTC midnight but is one day in Istanbul", async () => {
+      // 01:30 and 03:30 on Mar 3 in Istanbul (UTC+3).
+      const jar = await likeTwoAt("grptzone", "2026-03-02T22:30:00Z", "2026-03-03T00:30:00Z");
+
+      expect(shape(await getRows(jar, "tz=Europe/Istanbul"))).toEqual(["2026-03-03 titles"]);
+      expect(shape(await getRows(jar, ""))).toEqual(["2026-03-03 title", "2026-03-02 title"]);
+    });
+
+    it("splits a run that is one UTC day but straddles midnight in Istanbul", async () => {
+      // 23:30 on Mar 2 and 00:30 on Mar 3 in Istanbul.
+      const jar = await likeTwoAt("grptztwo", "2026-03-02T20:30:00Z", "2026-03-02T21:30:00Z");
+
+      expect(shape(await getRows(jar, "tz=Europe/Istanbul"))).toEqual(["2026-03-03 title", "2026-03-02 title"]);
+      expect(shape(await getRows(jar, "tz=Not/AZone"))).toEqual(["2026-03-02 titles"]);
+    });
+  });
 });

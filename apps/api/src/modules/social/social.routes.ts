@@ -7,16 +7,10 @@ const router = Router();
 
 // Protected
 router.get(
-  "/feed/following",
-  requireAuth,
-  asyncHandler(SocialController.getFollowingFeed),
-);
-router.get(
   "/feed/grouped",
   requireAuth,
   asyncHandler(SocialController.getGroupedFollowingFeed),
 );
-router.get("/feed", requireAuth, asyncHandler(SocialController.getFeed));
 router.post(
   "/follow/:username",
   requireAuth,

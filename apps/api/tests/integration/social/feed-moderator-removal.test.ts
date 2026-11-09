@@ -6,6 +6,7 @@ import type { CookieJar } from "../../support/app/cookie-jar";
 import { promoteToAdmin } from "../../support/factories/admin.factory";
 import { seedTestFilm } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
+import { activityItems, readFollowingFeed } from "../../support/app/following-feed";
 import { db } from "../../../src/infrastructure/database/db";
 import { user } from "../../../src/infrastructure/database/auth.entity";
 import { activities } from "../../../src/modules/social/social.entity";
@@ -63,12 +64,8 @@ describe("content a moderator removes leaves the Following Feed", () => {
         .where(and(eq(activities.userId, userId), eq(activities.type, type), eq(activities.entityId, entityId)))
     ).length;
 
-  // Both feed endpoints, read once each: the fan's feed must not be cached before the removal.
-  const feedsOf = async (jar: CookieJar) =>
-    JSON.stringify([
-      await send(jar, "GET", "/api/social/feed/following"),
-      await send(jar, "GET", "/api/social/feed/grouped"),
-    ]);
+  // Read once: the fan's feed must not be cached before the removal.
+  const feedsOf = async (jar: CookieJar) => JSON.stringify(await send(jar, "GET", "/api/social/feed/grouped"));
 
   // The author writes one piece of content of the given kind; the fan follows them.
   const setup = async (prefix: string, kind: Kind, text: string) => {
@@ -175,10 +172,8 @@ describe("a comment's feed card follows the live comment", () => {
     return (await response.json().catch(() => null)) as Record<string, unknown> | null;
   };
 
-  type FeedItem = { kind: string; metadata: { commentId: string | null; excerpt: string | null } };
-
   const commentItems = async (jar: CookieJar) =>
-    ((await send(jar, "GET", "/api/social/feed/following")) as { items: FeedItem[] }).items.filter(
+    activityItems((await readFollowingFeed(testServer!.baseUrl, jar)).rows).filter(
       (item) => item.kind === "commented" || item.kind === "commented_post",
     );
 

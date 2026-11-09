@@ -1,7 +1,6 @@
 import { DiaryRepository } from "../diary/repositories/diary.repository";
 import { UsersService } from "../users/users.service";
 import { SocialFeedService } from "../social/services/social-feed.service";
-import { groupFeedItems, takeVisibleRows } from "../social/helpers/social-feed-grouping.helper";
 import { PublicRepository } from "./repositories/public.repository";
 import { PublicTopPicksService } from "./services/public-top-picks.service";
 
@@ -15,9 +14,6 @@ import type {
 import { TvProgressService } from "../tv/services/tv-progress.service";
 import { TvCurrentlyWatchingService } from "../tv/services/tv-currently-watching.service";
 import { TvService } from "../tv/tv.service";
-
-// Raw activity rows read for the grouped view, so a run of likes can't crowd out older days.
-const RECENT_GROUPED_WINDOW = 100;
 
 const toTimestamp = (value: string | Date): number => {
   if (value instanceof Date) {
@@ -65,10 +61,9 @@ export class PublicService {
     return SocialFeedService.getUserActivityFeed(userId, limit);
   }
 
-  // One entry per title per day, `limit` visible rows long (a run of likes counts once).
-  static async getRecentActivityGroupedByUserId(userId: string, limit = 10) {
-    const items = await SocialFeedService.getUserActivityFeed(userId, RECENT_GROUPED_WINDOW);
-    return takeVisibleRows(groupFeedItems(items), limit);
+  // The profile overview's newest `limit` rows, days in the viewer's time zone.
+  static getRecentActivityGroupedByUserId(userId: string, limit: number, timeZone: string) {
+    return SocialFeedService.getActorGroupedFeed(userId, limit, timeZone);
   }
 
   static async getActivity(username: string, limit = 30) {
