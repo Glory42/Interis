@@ -1,7 +1,5 @@
 export type ArchiveRatingSource = "user" | "tmdb";
 
-export type ArchiveMenuKey = "genre" | "sort" | "language" | "period";
-
 export type ArchiveCardModuleStyles = {
   accent: string;
   text: string;

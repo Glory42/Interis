@@ -1,7 +1,5 @@
-import type { FocusEventHandler, RefObject } from "react";
-import { ArchiveMenuRadioOption } from "@/features/media/archive/ArchiveMenuRadioOption";
-import { ArchiveMenuTrigger } from "@/features/media/archive/ArchiveMenuTrigger";
-import type { ArchiveCardModuleStyles, ArchiveMenuKey } from "@/features/media/types";
+import { SentenceSelect, type SentenceOption } from "@/components/ui/SentenceSelect";
+import type { ArchiveCardModuleStyles } from "@/features/media/types";
 
 type ArchiveFilterOption<TValue extends string> = {
   value: TValue;
@@ -9,11 +7,6 @@ type ArchiveFilterOption<TValue extends string> = {
 };
 
 type ArchiveFilterControlsProps<TSort extends string, TPeriod extends string> = {
-  controlsRef: RefObject<HTMLDivElement | null>;
-  openMenu: ArchiveMenuKey | null;
-  onBlurCapture: FocusEventHandler<HTMLDivElement>;
-  onToggleMenu: (menu: ArchiveMenuKey) => void;
-  onCloseMenu: () => void;
   selectedGenre: string;
   selectedLanguage: string;
   selectedSort: TSort;
@@ -27,15 +20,18 @@ type ArchiveFilterControlsProps<TSort extends string, TPeriod extends string> = 
   onSelectSort: (sort: TSort) => void;
   onSelectLanguage: (language: string) => void;
   onSelectPeriod: (period: TPeriod) => void;
-  moduleStyles: ArchiveCardModuleStyles;
+  moduleStyles: Pick<ArchiveCardModuleStyles, "accent">;
 };
 
+// The word in the sentence is the lower-cased menu label ("Newest release" → "newest release").
+const toSentenceOptions = <T extends string>(options: ReadonlyArray<ArchiveFilterOption<T>>): SentenceOption<T>[] =>
+  options.map((option) => ({ ...option, word: option.label.toLowerCase() }));
+
+// A genre or language from the URL still reads correctly before its list has loaded.
+const withSelected = (selected: string, options: SentenceOption<string>[]): SentenceOption<string>[] =>
+  options.some((option) => option.value === selected) ? options : [...options, { value: selected, word: selected, label: selected }];
+
 export const ArchiveFilterControls = <TSort extends string, TPeriod extends string>({
-  controlsRef,
-  openMenu,
-  onBlurCapture,
-  onToggleMenu,
-  onCloseMenu,
   selectedGenre,
   selectedLanguage,
   selectedSort,
@@ -51,101 +47,41 @@ export const ArchiveFilterControls = <TSort extends string, TPeriod extends stri
   onSelectPeriod,
   moduleStyles,
 }: ArchiveFilterControlsProps<TSort, TPeriod>) => {
-  // Derived here so callers only ever hand over a raw selection, never
-  // a pre-computed label that could drift from the option list.
-  const sortLabel = (sortOptions.find((option) => option.value === selectedSort)?.label ?? "Trending").toLowerCase();
-  const languageLabel =
-    selectedLanguage === "all"
-      ? "any language"
-      : (languageOptions.find((option) => option.value === selectedLanguage)?.label ?? selectedLanguage);
-  const periodLabel = (periodOptions.find((option) => option.value === selectedPeriod)?.label ?? "This year").toLowerCase();
-  const trigger = { openMenu, onToggleMenu, moduleStyles, variant: "sentence" as const };
+  const accent = moduleStyles.accent;
+  const genreOptions = withSelected(selectedGenre, [
+    { value: "all", word: "every genre", label: "Every genre" },
+    ...(availableGenres ?? []).map((genre) => ({
+      value: genre.name,
+      word: genre.name,
+      label: genre.name,
+      hint: typeof genre.count === "number" ? genre.count.toLocaleString("en-US") : undefined,
+    })),
+  ]);
+  const languageSentenceOptions = withSelected(
+    selectedLanguage,
+    languageOptions.map((option) => ({ ...option, word: option.value === "all" ? "any language" : option.label })),
+  );
 
   // "Showing every genre, trending, in any language." Each underlined word opens its menu.
   return (
-    <div ref={controlsRef} onBlurCapture={onBlurCapture} className="body mb-6 text-muted-foreground">
+    <div className="body mb-6 text-muted-foreground">
       {"Showing "}
-      <ArchiveMenuTrigger {...trigger} menu="genre" label={selectedGenre === "all" ? "every genre" : selectedGenre} menuClassName="min-w-42.5">
-        <div className="max-h-48 overflow-y-auto">
-          <ArchiveMenuRadioOption
-            isSelected={selectedGenre === "all"}
-            onSelect={() => {
-              onSelectGenre("all");
-              onCloseMenu();
-            }}
-            moduleStyles={moduleStyles}
-          >
-            Every genre
-          </ArchiveMenuRadioOption>
-          {(availableGenres ?? []).map((genre) => (
-            <ArchiveMenuRadioOption
-              key={`genre-option-${genre.name}`}
-              isSelected={selectedGenre === genre.name}
-              onSelect={() => {
-                onSelectGenre(genre.name);
-                onCloseMenu();
-              }}
-              moduleStyles={moduleStyles}
-            >
-              {typeof genre.count === "number" ? `${genre.name} (${genre.count})` : genre.name}
-            </ArchiveMenuRadioOption>
-          ))}
-        </div>
-      </ArchiveMenuTrigger>
+      <SentenceSelect value={selectedGenre} options={genreOptions} onChange={onSelectGenre} accent={accent} />
       {", "}
-      <ArchiveMenuTrigger {...trigger} menu="sort" label={sortLabel} menuClassName="min-w-45">
-        {sortOptions.map((option) => (
-          <ArchiveMenuRadioOption
-            key={`sort-option-${option.value}`}
-            isSelected={selectedSort === option.value}
-            onSelect={() => {
-              onSelectSort(option.value);
-              onCloseMenu();
-            }}
-            moduleStyles={moduleStyles}
-          >
-            {option.label}
-          </ArchiveMenuRadioOption>
-        ))}
-      </ArchiveMenuTrigger>
+      <SentenceSelect value={selectedSort} options={toSentenceOptions(sortOptions)} onChange={onSelectSort} accent={accent} />
       {isPeriodDisabled ? null : (
         <>
           {", "}
-          <ArchiveMenuTrigger {...trigger} menu="period" label={periodLabel} menuClassName="min-w-40">
-            {periodOptions.map((option) => (
-              <ArchiveMenuRadioOption
-                key={`period-option-${option.value}`}
-                isSelected={selectedPeriod === option.value}
-                onSelect={() => {
-                  onSelectPeriod(option.value);
-                  onCloseMenu();
-                }}
-                moduleStyles={moduleStyles}
-              >
-                {option.label}
-              </ArchiveMenuRadioOption>
-            ))}
-          </ArchiveMenuTrigger>
+          <SentenceSelect
+            value={selectedPeriod}
+            options={toSentenceOptions(periodOptions)}
+            onChange={onSelectPeriod}
+            accent={accent}
+          />
         </>
       )}
       {", in "}
-      <ArchiveMenuTrigger {...trigger} menu="language" label={languageLabel} menuClassName="min-w-45">
-        <div className="max-h-48 overflow-y-auto">
-          {languageOptions.map((option) => (
-            <ArchiveMenuRadioOption
-              key={`language-option-${option.value}`}
-              isSelected={selectedLanguage === option.value}
-              onSelect={() => {
-                onSelectLanguage(option.value);
-                onCloseMenu();
-              }}
-              moduleStyles={moduleStyles}
-            >
-              {option.label}
-            </ArchiveMenuRadioOption>
-          ))}
-        </div>
-      </ArchiveMenuTrigger>
+      <SentenceSelect value={selectedLanguage} options={languageSentenceOptions} onChange={onSelectLanguage} accent={accent} />
       {"."}
     </div>
   );
