@@ -6,9 +6,9 @@ import type { ReactNode } from "react";
 import { server } from "../../../support/msw/server";
 import {
   socialKeys,
+  useFollowToggle,
   useFollowUser,
   useRemoveFollowerFromList,
-  useUnfollowFromList,
   useUnfollowUser,
 } from "@/features/social/hooks/useSocial";
 import { authKeys } from "@/features/auth/hooks/useAuth";
@@ -112,10 +112,19 @@ describe("useFollowUser", () => {
   });
 });
 
-describe("useUnfollowFromList", () => {
-  it("optimistically removes the target from the cached following list, then invalidates its own scoped keys", async () => {
+describe("useFollowToggle", () => {
+  const seedViewerFollows = (queryClient: QueryClient) => {
+    queryClient.setQueryData(socialKeys.viewerFollows("u1,u2"), ["u2"]);
+    // A batch that never asked about bob stays untouched.
+    queryClient.setQueryData(socialKeys.viewerFollows("u1,u3"), ["u3"]);
+  };
+
+  it("flips the row at once in every batch that asked about the user, keeping the following list", async () => {
     server.use(
-      http.delete("*/api/social/follow/bob", () => HttpResponse.json({ success: true })),
+      http.delete("*/api/social/follow/bob", async () => {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        return HttpResponse.json({ success: true });
+      }),
     );
 
     const queryClient = createTestQueryClient();
@@ -123,55 +132,67 @@ describe("useUnfollowFromList", () => {
       { id: "u1", username: "alice", displayUsername: null, avatarUrl: null },
       { id: "u2", username: "bob", displayUsername: null, avatarUrl: null },
     ];
+    queryClient.setQueryData(authKeys.me, { username: "viewer" });
     queryClient.setQueryData(socialKeys.following("viewer"), followingList);
-    queryClient.setQueryData(profileKeys.detail("viewer"), { username: "viewer" });
     queryClient.setQueryData(socialKeys.followState("bob"), { isFollowing: true });
-    // A different profile's following list must not be touched.
-    queryClient.setQueryData(socialKeys.following("someone-else"), followingList);
+    seedViewerFollows(queryClient);
 
-    const { result } = renderHook(() => useUnfollowFromList("viewer"), {
+    const { result } = renderHook(() => useFollowToggle(), {
       wrapper: wrapperFor(queryClient),
     });
 
-    result.current.mutate("bob");
+    result.current.mutate({ userId: "u2", username: "bob", follow: false });
 
     await waitFor(() => {
-      const cached = queryClient.getQueryData<FollowUser[]>(socialKeys.following("viewer"));
-      expect(cached?.map((u) => u.username)).toEqual(["alice"]);
+      expect(queryClient.getQueryData(socialKeys.viewerFollows("u1,u2"))).toEqual([]);
     });
+    expect(queryClient.getQueryData(socialKeys.followState("bob"))).toEqual({ isFollowing: false });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
+    expect(queryClient.getQueryData(socialKeys.viewerFollows("u1,u3"))).toEqual(["u3"]);
+    // The open dialog keeps bob's row (now "Follow") until it is reopened.
+    expect(queryClient.getQueryData<FollowUser[]>(socialKeys.following("viewer"))).toEqual(followingList);
+    expect(queryClient.getQueryState(socialKeys.following("viewer"))?.isInvalidated).toBe(true);
     expect(queryClient.getQueryState(socialKeys.followState("bob"))?.isInvalidated).toBe(true);
-    expect(queryClient.getQueryState(profileKeys.detail("viewer"))?.isInvalidated).toBe(true);
-    expect(
-      queryClient.getQueryData<FollowUser[]>(socialKeys.following("someone-else"))?.length,
-    ).toBe(2);
   });
 
-  it("restores the removed entry on failure", async () => {
+  it("flips the row back when the request fails", async () => {
     server.use(
-      http.delete("*/api/social/follow/bob", () =>
+      http.post("*/api/social/follow/alice", () =>
         HttpResponse.json({ error: "nope" }, { status: 400 }),
       ),
     );
 
     const queryClient = createTestQueryClient();
-    const followingList: FollowUser[] = [
-      { id: "u2", username: "bob", displayUsername: null, avatarUrl: null },
-    ];
-    queryClient.setQueryData(socialKeys.following("viewer"), followingList);
+    seedViewerFollows(queryClient);
 
-    const { result } = renderHook(() => useUnfollowFromList("viewer"), {
+    const { result } = renderHook(() => useFollowToggle(), {
       wrapper: wrapperFor(queryClient),
     });
 
-    result.current.mutate("bob");
+    result.current.mutate({ userId: "u1", username: "alice", follow: true });
     await waitFor(() => expect(result.current.isError).toBe(true));
 
-    expect(queryClient.getQueryData<FollowUser[]>(socialKeys.following("viewer"))).toEqual(
-      followingList,
-    );
+    expect(queryClient.getQueryData(socialKeys.viewerFollows("u1,u2"))).toEqual(["u2"]);
+    expect(queryClient.getQueryData(socialKeys.viewerFollows("u1,u3"))).toEqual(["u3"]);
+  });
+});
+
+describe("profile follow button and viewer-follows", () => {
+  it("following from a profile marks that user followed in cached batches", async () => {
+    server.use(http.post("*/api/social/follow/target", () => HttpResponse.json({ success: true })));
+    const queryClient = createTestQueryClient();
+    queryClient.setQueryData(profileKeys.detail("target"), { id: "t1", username: "target" });
+    queryClient.setQueryData(socialKeys.viewerFollows("t1,u9"), []);
+
+    const { result } = renderHook(() => useFollowUser("target"), {
+      wrapper: wrapperFor(queryClient),
+    });
+    result.current.mutate();
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(queryClient.getQueryData(socialKeys.viewerFollows("t1,u9"))).toEqual(["t1"]);
   });
 });
 
@@ -231,15 +252,16 @@ describe("follow changes refresh both users", () => {
     expectBothEndsInvalidated(queryClient, "viewer", "target");
   });
 
-  it("unfollowing from the list refreshes the target's followers", async () => {
+  it("toggling from a list refreshes both ends", async () => {
     server.use(http.delete("*/api/social/follow/bob", () => HttpResponse.json({ success: true })));
     const queryClient = createTestQueryClient();
+    queryClient.setQueryData(authKeys.me, { username: "viewer" });
     seedBothEnds(queryClient, "viewer", "bob");
 
-    const { result } = renderHook(() => useUnfollowFromList("viewer"), {
+    const { result } = renderHook(() => useFollowToggle(), {
       wrapper: wrapperFor(queryClient),
     });
-    result.current.mutate("bob");
+    result.current.mutate({ userId: "u2", username: "bob", follow: false });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expectBothEndsInvalidated(queryClient, "viewer", "bob");
