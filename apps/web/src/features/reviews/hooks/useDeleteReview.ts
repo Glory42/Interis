@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { patchFeed } from "@/features/feed/hooks/feed-cache";
-import { refreshAfter, toMediaKind } from "@/features/media/media-refresh";
+import { refreshAfter, toMediaKind } from "@/features/media/media-cache";
 import { deleteReview, type ReviewDetail } from "@/features/reviews/api";
 
 type DeletableReview = { id: string; mediaType: ReviewDetail["mediaType"]; tmdbId: number };

@@ -4,12 +4,7 @@ import type {
   SeriesSeasonDetailResponse,
 } from "@/features/tv/api";
 import { seriesKeys } from "@/features/tv/hooks/tv/query-keys";
-
-export type ViewerInteractionPatch = {
-  watched?: boolean;
-  liked?: boolean;
-  rating?: number | null;
-};
+import type { SeasonInteractionInput as ViewerInteractionPatch } from "./media-events";
 
 type ViewerInteraction = { watched: boolean; liked: boolean; rating: number | null; hasReview: boolean } | null;
 
@@ -153,5 +148,3 @@ export const patchEpisodesInSeasonDetailCache = (
 
   return previousQueries;
 };
-
-export { restoreQueries } from "@/lib/query-optimistic";

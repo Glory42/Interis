@@ -1,4 +1,4 @@
-import type { MediaKind } from "@/features/media/media-refresh";
+import type { MediaKind } from "@/features/media/media-cache";
 
 // The Film or Series a log is about, as the editor's header shows it.
 export type LogMediaTitle = {

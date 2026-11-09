@@ -3,7 +3,7 @@ import { QueryClient } from "@tanstack/react-query";
 import {
   patchEpisodesInSeasonDetailCache,
   patchSeasonsInDetailViewCache,
-} from "@/features/tv/hooks/tv-cache.helper";
+} from "@/features/media/cache/series-patches";
 import { seriesKeys } from "@/features/tv/hooks/tv/query-keys";
 import { restoreQueries } from "@/lib/query-optimistic";
 import type {

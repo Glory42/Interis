@@ -1,7 +1,5 @@
-import type { QueryClient, QueryKey } from "@tanstack/react-query";
-import { authKeys } from "@/features/auth/hooks/useAuth";
+import type { QueryKey } from "@tanstack/react-query";
 import { diaryKeys } from "@/features/diary/hooks/diary-keys";
-import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache";
 import { feedKeys } from "@/features/feed/hooks/useFeed";
 import { filmKeys } from "@/features/films/hooks/useFilms";
 import { interactionKeys } from "@/features/interactions/hooks/interaction-keys";
@@ -9,46 +7,7 @@ import { profileKeys } from "@/features/profile/hooks/useProfile";
 import { profileStatsKeys } from "@/features/profile/hooks/useProfileStats";
 import { reviewKeys } from "@/features/reviews/hooks/review-keys";
 import { seriesKeys } from "@/features/tv/hooks/tv/query-keys";
-import type { MeProfile } from "@/types/api";
-
-export type MediaKind = "film" | "tv";
-export type MediaTitle = { kind: MediaKind; tmdbId: number };
-export type InteractionField = "liked" | "watchlisted" | "watched" | "rating" | "watchStatus";
-
-// Something the viewer did to a Film or Series; refreshAfter refetches whatever shows it.
-export type MediaEvent =
-  | (MediaTitle & { type: "log-created"; hasReview: boolean })
-  | (MediaTitle & { type: "log-edited" })
-  | (MediaTitle & { type: "log-deleted"; unwatch: boolean })
-  | (MediaTitle & { type: "review-created" })
-  | { type: "review-edited"; title: MediaTitle | null }
-  | (MediaTitle & { type: "review-deleted" })
-  | (MediaTitle & { type: "interaction-changed"; changed: InteractionField[] })
-  | { type: "season-review-changed"; tmdbId: number; seasonNumber: number; episodeNumber: number | null };
-
-export const toMediaKind = (mediaType: "movie" | "tv"): MediaKind => (mediaType === "movie" ? "film" : "tv");
-
-const INTERACTION_FIELDS: InteractionField[] = ["liked", "watchlisted", "watched", "rating", "watchStatus"];
-
-// The fields an Interaction update actually sent.
-export const changedInteractionFields = (input: Partial<Record<InteractionField, unknown>>): InteractionField[] =>
-  INTERACTION_FIELDS.filter((field) => input[field] !== undefined);
-
-// The event a saved review's edit fires, read from its wire media fields.
-export const reviewEditedEvent = (review: { mediaType?: string; mediaSourceId?: string }): MediaEvent => {
-  const [tmdbId = 0, seasonNumber = -1, episodeNumber = -1] = (review.mediaSourceId ?? "").split(":").map(Number);
-  if (!Number.isInteger(tmdbId) || tmdbId <= 0) return { type: "review-edited", title: null };
-  if (review.mediaType === "movie" || review.mediaType === "tv") {
-    return { type: "review-edited", title: { kind: toMediaKind(review.mediaType), tmdbId } };
-  }
-  if (review.mediaType === "tv_season" && seasonNumber >= 0) {
-    return { type: "season-review-changed", tmdbId, seasonNumber, episodeNumber: null };
-  }
-  if (review.mediaType === "tv_episode" && seasonNumber >= 0 && episodeNumber >= 0) {
-    return { type: "season-review-changed", tmdbId, seasonNumber, episodeNumber };
-  }
-  return { type: "review-edited", title: null };
-};
+import type { MediaEvent, MediaKind, MediaTitle, SeasonInteractionInput } from "./media-events";
 
 const titleKeys = ({ kind, tmdbId }: MediaTitle): QueryKey[] =>
   kind === "film"
@@ -85,6 +44,9 @@ const logKeys = (title: MediaTitle, viewer: string | null): QueryKey[] => [
       ]
     : []),
 ];
+
+// Likes and ratings write Activity rows, so they show in recent activity.
+const socialChanged = (input: SeasonInteractionInput) => input.liked !== undefined || input.rating !== undefined;
 
 const viewerKeys = (viewer: string | null, build: (username: string) => QueryKey[]) => (viewer ? build(viewer) : []);
 
@@ -141,21 +103,35 @@ export const mediaRefreshKeys = (event: MediaEvent, viewer: string | null): Quer
         ]),
       ];
     case "interaction-changed": {
-      const changed = new Set(event.changed);
-      const watchedChanged = changed.has("watched") || changed.has("watchStatus");
+      const { input } = event;
+      const watchedChanged = input.watched !== undefined || input.watchStatus !== undefined;
       return [
         ...titleKeys(event),
-        ...(event.kind === "tv" && changed.has("watched") ? [seriesKeys.seasonDetailRoot(event.tmdbId)] : []),
+        ...(event.kind === "tv" && input.watched !== undefined ? [seriesKeys.seasonDetailRoot(event.tmdbId)] : []),
         // Liking, rating or watching also takes a title off the Watchlist (#96).
         ...viewerKeys(viewer, (username) => [
           profileKeys.detail(username),
           profileStatsKeys.detail(username),
           profileKeys.watchlist(username),
-          ...(changed.has("liked") ? [profileKeys.likes(username)] : []),
-          ...(changed.has("liked") || changed.has("watchlisted") || changed.has("rating")
-            ? [profileKeys.recentActivityRoot(username)]
-            : []),
+          ...(input.liked !== undefined ? [profileKeys.likes(username)] : []),
+          ...(socialChanged(input) || input.watchlisted !== undefined ? [profileKeys.recentActivityRoot(username)] : []),
           ...(event.kind === "tv" && watchedChanged ? [profileKeys.currentlyWatching(username)] : []),
+        ]),
+      ];
+    }
+    case "season-interaction-changed":
+    case "episode-interaction-changed":
+    case "episodes-watched-through": {
+      const input: SeasonInteractionInput = event.type === "episodes-watched-through" ? { watched: true } : event.input;
+      // An episode's like or rating can mark it watched (or take an implicit watch back).
+      const watchedChanged = input.watched !== undefined || event.type === "episode-interaction-changed";
+      return [
+        seriesKeys.detailViewRoot(event.tmdbId),
+        seriesKeys.seasonDetail(event.tmdbId, event.seasonNumber),
+        seriesKeys.interaction(event.tmdbId),
+        ...viewerKeys(viewer, (username) => [
+          ...(watchedChanged ? [profileKeys.currentlyWatching(username), profileStatsKeys.detail(username)] : []),
+          ...(socialChanged(input) ? [profileKeys.recentActivityRoot(username)] : []),
         ]),
       ];
     }
@@ -174,17 +150,3 @@ export const mediaRefreshKeys = (event: MediaEvent, viewer: string | null): Quer
   }
 };
 
-const viewerUsername = (queryClient: QueryClient): string | null =>
-  queryClient.getQueryData<MeProfile | null>(authKeys.me)?.username ?? null;
-
-// Every event also lands in (or changes) the Following Feed.
-export const refreshAfter = async (
-  queryClient: QueryClient,
-  event: MediaEvent,
-  viewer: string | null = viewerUsername(queryClient),
-): Promise<void> => {
-  await Promise.all([
-    ...mediaRefreshKeys(event, viewer).map((queryKey) => queryClient.invalidateQueries({ queryKey })),
-    invalidateFollowingFeed(queryClient),
-  ]);
-};
