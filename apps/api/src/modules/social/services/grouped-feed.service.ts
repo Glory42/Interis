@@ -50,9 +50,8 @@ const entryMediaType = (entry: GroupedFeedEntry): FeedMediaType | null =>
 const toCursor = (row: ActivityRow): string =>
   encodeFeedCursor({ createdAt: row.activity.createdAt, id: row.activity.id });
 
-// Keeps whole days, newest first, until about `limit` rows show. The peek row's
-// day continues past the window, so it waits for the next page unless it's the
-// only day (then the page ends mid-day).
+// Keeps whole days until about `limit` rows show. The peek row's day runs past the
+// window, so it waits for the next page unless it's the only day (then it's cut mid-day).
 const cutWholeDays = (
   windowRows: ActivityRow[],
   peekRow: ActivityRow | undefined,
