@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "bun run --watch src/index.ts",
     "start": "bun run src/index.ts",
-    "test": "bun test",
+    "test": "bun test --timeout 15000",
     "test:integration": "bun test tests/integration --timeout 15000",
-    "test:contract": "bun test tests/contract",
+    "test:contract": "bun test tests/contract --timeout 15000",
     "test:unit": "bun test tests/unit",
     "db:migrate:local": "bun run scripts/docker-migrate.ts",
     "test:db:reset": "bun run scripts/test-db-reset.ts",

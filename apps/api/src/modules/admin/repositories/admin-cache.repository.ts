@@ -14,17 +14,19 @@ import { activities } from "../../social/social.entity";
 export type CacheKind = "movie" | "serial";
 
 // Conservative on purpose: anything that might point at a title keeps it.
+// One `not exists` per condition — an `or` inside one blocks the hashed anti-join (52s vs 77ms).
 const filmIsUnreferenced: SQL = sql`
   not exists (select 1 from ${diaryEntries} where ${diaryEntries.movieId} = ${films.id})
   and not exists (select 1 from ${filmInteractions} where ${filmInteractions.movieId} = ${films.id})
-  and not exists (select 1 from ${reviews} where ${reviews.movieId} = ${films.id}
-    or (${reviews.mediaType} = 'movie' and ${reviews.mediaSourceId} = ${films.tmdbId}::text))
+  and not exists (select 1 from ${reviews} where ${reviews.movieId} = ${films.id})
+  and not exists (select 1 from ${reviews} where ${reviews.mediaType} = 'movie' and ${reviews.mediaSourceId} = ${films.tmdbId}::text)
   and not exists (select 1 from ${listEntries} where ${listEntries.movieId} = ${films.id})
   and not exists (select 1 from ${posts} where ${posts.mediaType} = 'movie' and ${posts.mediaId} in (${films.id}, ${films.tmdbId}))
   and not exists (select 1 from ${profileTopPicks} where ${profileTopPicks.mediaType} = 'movie' and ${profileTopPicks.mediaSourceId} = ${films.tmdbId}::text)
   and not exists (select 1 from ${activities} where
-    (${activities.type} in ('liked_movie', 'watchlisted_movie') and ${activities.entityId} = ${films.id}::text)
-    or (case when ${activities.metadata} like '{%' then ${activities.metadata}::jsonb ->> 'movieId' end) = ${films.id}::text)`;
+    ${activities.type} in ('liked_movie', 'watchlisted_movie') and ${activities.entityId} = ${films.id}::text)
+  and not exists (select 1 from ${activities} where
+    (case when ${activities.metadata} like '{%' then ${activities.metadata}::jsonb ->> 'movieId' end) = ${films.id}::text)`;
 
 const seriesTmdbPrefix = (column: AnyPgColumn) => sql`split_part(${column}, ':', 1) = ${tvSeries.tmdbId}::text`;
 
@@ -46,10 +48,12 @@ const TABLES = {
 export class AdminCacheRepository {
   static async countTitles(kind: CacheKind): Promise<{ total: number; unreferenced: number }> {
     const { table, unreferenced } = TABLES[kind];
-    const [row] = await db
-      .select({ total: count(), unreferenced: sql<number>`count(*) filter (where ${unreferenced})`.mapWith(Number) })
-      .from(table);
-    return { total: row?.total ?? 0, unreferenced: row?.unreferenced ?? 0 };
+    // The condition stays in a WHERE: inside count(*) filter it runs per row instead of as anti-joins.
+    const [[totalRow], [unreferencedRow]] = await Promise.all([
+      db.select({ value: count() }).from(table),
+      db.select({ value: count() }).from(table).where(unreferenced),
+    ]);
+    return { total: totalRow?.value ?? 0, unreferenced: unreferencedRow?.value ?? 0 };
   }
 
   static async oldestIds(kind: CacheKind, limit: number): Promise<{ id: number; title: string }[]> {
