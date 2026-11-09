@@ -29,7 +29,7 @@ const ReviewLike = ({ reviewId, engagement }: { reviewId: string; engagement: Fe
 };
 
 // One watch, one card: who, when, the title, the score, the like and the review.
-export const FeedTitleCard = memo(function FeedTitleCard({ group }: { group: FeedTitleGroup }) {
+export const FeedTitleCard = memo(function FeedTitleCard({ group, day }: { group: FeedTitleGroup; day: string }) {
   const [showSpoilers, setShowSpoilers] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const { user } = useAuth();
@@ -37,7 +37,7 @@ export const FeedTitleCard = memo(function FeedTitleCard({ group }: { group: Fee
   const { actor, movie, review } = group;
   const isOwn = Boolean(user && user.id === actor.id);
   const canEdit = isOwn && (group.log !== null || review !== null);
-  const watchedLabel = watchedDayLabel(group);
+  const watchedLabel = watchedDayLabel(group, day);
   const createdAt = new Date(group.createdAt);
   const isTv = movie.mediaType === "tv";
   const episodeLabel =

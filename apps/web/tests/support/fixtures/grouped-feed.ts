@@ -3,8 +3,8 @@ import { groupedFeedInfiniteQueryOptions } from "@/features/feed/hooks/useFeed";
 import type {
   FeedFilter,
   FeedItem,
+  FeedRow,
   FeedTitleGroup,
-  GroupedFeedEntry,
   GroupedFeedPage,
 } from "@/features/feed/types";
 
@@ -63,25 +63,27 @@ export const makeTitleGroup = (overrides: Partial<FeedTitleGroup> = {}): FeedTit
   ...overrides,
 });
 
-export const activity = (item: FeedItem): GroupedFeedEntry => ({ kind: "activity", item });
+export const activity = (item: FeedItem, day = "2026-01-01"): FeedRow => ({ kind: "activity", key: item.id, day, item });
+
+export const titleRow = (group: FeedTitleGroup, day = "2026-01-01"): FeedRow => ({ kind: "title", key: group.id, day, group });
 
 type GroupedFeedData = InfiniteData<GroupedFeedPage, string | undefined>;
 
 // Seeds the grouped Following Feed under the exact key useGroupedFeed reads.
 export const seedGroupedFeed = (
   queryClient: QueryClient,
-  pages: GroupedFeedEntry[][],
+  pages: FeedRow[][],
   filter: FeedFilter = "all",
 ): GroupedFeedData => {
   const data: GroupedFeedData = {
-    pages: pages.map((items, index) => ({ items, nextCursor: index < pages.length - 1 ? `c${index}` : null })),
+    pages: pages.map((rows, index) => ({ rows, nextCursor: index < pages.length - 1 ? `c${index}` : null })),
     pageParams: pages.map((_, index) => (index === 0 ? undefined : `c${index - 1}`)),
   };
   queryClient.setQueryData(groupedFeedInfiniteQueryOptions(filter).queryKey, data);
   return data;
 };
 
-export const readGroupedFeed = (queryClient: QueryClient, filter: FeedFilter = "all"): GroupedFeedEntry[] =>
+export const readGroupedFeed = (queryClient: QueryClient, filter: FeedFilter = "all"): FeedRow[] =>
   queryClient
     .getQueryData<GroupedFeedData>(groupedFeedInfiniteQueryOptions(filter).queryKey)
-    ?.pages.flatMap((page) => page.items) ?? [];
+    ?.pages.flatMap((page) => page.rows) ?? [];

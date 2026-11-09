@@ -10,10 +10,9 @@ import { episodesSummary, toFeedDays } from "@/features/feed/components/feed-day
 import { FeedTitleCard } from "@/features/feed/components/FeedTitleCard";
 import { FeedDayList } from "@/features/feed/components/FeedDayList";
 import { FeedFilterSentence } from "@/features/feed/components/FeedFilterSentence";
-import type { FeedItem, FeedTitleGroup, GroupedFeedEntry } from "@/features/feed/types";
+import type { FeedRow, FeedTitleGroup } from "@/features/feed/types";
 
 const actor = { id: "u1", username: "glory42", displayUsername: null, avatarUrl: null };
-const otherActor = { id: "u2", username: "reel_drifter", displayUsername: null, avatarUrl: null };
 
 const group = (overrides: Partial<FeedTitleGroup> = {}): FeedTitleGroup => ({
   kind: "title",
@@ -35,25 +34,9 @@ const group = (overrides: Partial<FeedTitleGroup> = {}): FeedTitleGroup => ({
   ...overrides,
 });
 
-const likeOnly = (id: string, title: string, createdAt: string, who = actor): FeedTitleGroup =>
+const episode = (id: string, episodeNumber: number | null, overrides: Partial<FeedTitleGroup> = {}) =>
   group({
     id,
-    createdAt,
-    actor: who,
-    movie: { tmdbId: Number(id.slice(1)) + 100, title, posterPath: null, releaseYear: null, mediaType: "tv" },
-    watched: false,
-    rating: null,
-    review: null,
-    liked: true,
-  });
-
-const watchlistOnly = (id: string, title: string, createdAt: string): FeedTitleGroup =>
-  group({ ...likeOnly(id, title, createdAt), liked: false, watchlisted: true });
-
-const episode = (id: string, createdAt: string, episodeNumber: number | null, overrides: Partial<FeedTitleGroup> = {}) =>
-  group({
-    id,
-    createdAt,
     movie: { tmdbId: 46648, title: "True Detective", posterPath: null, releaseYear: 2014, mediaType: "tv" },
     seasonNumber: 1,
     episodeNumber,
@@ -64,96 +47,46 @@ const episode = (id: string, createdAt: string, episodeNumber: number | null, ov
     ...overrides,
   });
 
-const follow = (id: string, targetUsername: string, createdAt: string): GroupedFeedEntry => ({
-  kind: "activity",
-  item: { id, kind: "followed_user", createdAt, actor, metadata: { targetUsername } } as unknown as FeedItem,
-});
+const titleRow = (titleGroup: FeedTitleGroup, day = "2026-11-02"): FeedRow => ({ kind: "title", key: titleGroup.id, day, group: titleGroup });
 
 describe("toFeedDays", () => {
-  it("splits entries into days labelled like a slate", () => {
+  it("splits rows into the API's days, labelled like a slate", () => {
     const days = toFeedDays([
-      group(),
-      group({ id: "b1", createdAt: "2026-10-30T10:00:00" }),
+      titleRow(group()),
+      titleRow(group({ id: "a2" })),
+      titleRow(group({ id: "b1" }), "2026-10-30"),
     ]);
-    expect(days.map((day) => [day.label, day.week])).toEqual([
-      ["MON · NOV 2", "WK 45"],
-      ["FRI · OCT 30", "WK 44"],
-    ]);
-  });
-
-  it("collapses one person's likes on the same day into a single line", () => {
-    const entries: GroupedFeedEntry[] = [
-      group(),
-      likeOnly("l1", "Bleach", "2026-11-02T20:00:00"),
-      likeOnly("l2", "Third Star", "2026-11-02T19:00:00"),
-      likeOnly("l3", "Other", "2026-11-02T18:00:00", otherActor),
-    ];
-    const [day] = toFeedDays(entries);
-
-    expect(day!.rows.map((row) => row.kind)).toEqual(["title", "titles", "title"]);
-    const likes = day!.rows[1];
-    expect(likes).toMatchObject({ kind: "titles", action: "liked", actor: { username: "glory42" } });
-    expect(likes!.kind === "titles" && likes.titles.map((title) => title.title)).toEqual(["Bleach", "Third Star"]);
-  });
-
-  it("folds a run of watchlist adds, apart from a run of likes", () => {
-    const [day] = toFeedDays([
-      watchlistOnly("w1", "Dune", "2026-11-02T20:00:00"),
-      watchlistOnly("w2", "Arrival", "2026-11-02T19:00:00"),
-      likeOnly("l1", "Bleach", "2026-11-02T18:00:00"),
-      likeOnly("l2", "Third Star", "2026-11-02T17:00:00"),
-    ]);
-
-    expect(day!.rows).toMatchObject([
-      { kind: "titles", action: "watchlisted", titles: [{ title: "Dune" }, { title: "Arrival" }] },
-      { kind: "titles", action: "liked", titles: [{ title: "Bleach" }, { title: "Third Star" }] },
+    expect(days.map((day) => [day.key, day.label, day.week, day.rows.length])).toEqual([
+      ["2026-11-02", "MON · NOV 2", "WK 45", 2],
+      ["2026-10-30", "FRI · OCT 30", "WK 44", 1],
     ]);
   });
 
-  it("folds a run of follows into one line naming each person", () => {
-    const [day] = toFeedDays([
-      follow("f1", "reel_drifter", "2026-11-02T20:00:00"),
-      follow("f2", "nightowl", "2026-11-02T19:00:00"),
-    ]);
-
-    expect(day!.rows).toMatchObject([{ kind: "follows", usernames: ["reel_drifter", "nightowl"] }]);
+  it("goes by the row's day, not the browser's reading of its time", () => {
+    // 23:30 UTC on Nov 1 is already Nov 2 for a viewer in Istanbul.
+    const [day] = toFeedDays([titleRow(group({ createdAt: "2026-11-01T23:30:00Z" }))]);
+    expect(day!.label).toBe("MON · NOV 2");
   });
 
-  it("folds one show's episode likes and ratings into one card, not a run of liked titles", () => {
-    const [day] = toFeedDays([
-      episode("e1", "2026-11-02T20:00:00", 1, { rating: 9 }),
-      episode("e2", "2026-11-02T19:00:00", 2),
-      episode("s1", "2026-11-02T18:00:00", null),
-      likeOnly("l1", "Bleach", "2026-11-02T17:00:00"),
-    ]);
-
-    expect(day!.rows.map((row) => row.kind)).toEqual(["episodes", "title"]);
-    const episodes = day!.rows[0]!;
-    expect(episodes.kind === "episodes" && episodesSummary(episodes.groups)).toBe("rated and liked 3 seasons and episodes");
-  });
-
-  it("keeps an episode review as its own card", () => {
-    const [day] = toFeedDays([
-      episode("e1", "2026-11-02T20:00:00", 1),
-      episode("e2", "2026-11-02T19:00:00", 2, { review: { id: "r9", content: "Carcosa", containsSpoilers: false, rating: null } }),
-    ]);
-
-    expect(day!.rows.map((row) => row.kind)).toEqual(["title", "title"]);
-  });
-
-  it("keeps a single like as its own card", () => {
-    const [day] = toFeedDays([likeOnly("l1", "Bleach", "2026-11-02T20:00:00")]);
-    expect(day!.rows.map((row) => row.kind)).toEqual(["title"]);
+  it("sums up a show's folded episodes", () => {
+    const groups = [episode("e1", 1, { rating: 9 }), episode("e2", 2), episode("s1", null)];
+    expect(episodesSummary(groups)).toBe("rated and liked 3 seasons and episodes");
   });
 });
 
 describe("folded feed rows", () => {
-  it("reads a show's episodes as one card and a run of follows as one line", async () => {
+  it("reads a show's episodes as one card and runs of follows and likes as one line each", async () => {
     const days = toFeedDays([
-      episode("e1", "2026-11-02T20:00:00", 1, { rating: 9 }),
-      episode("e2", "2026-11-02T19:00:00", 2),
-      follow("f1", "reel_drifter", "2026-11-02T18:00:00"),
-      follow("f2", "nightowl", "2026-11-02T17:00:00"),
+      { kind: "episodes", key: "e1+e2", day: "2026-11-02", actor, movie: episode("e1", 1).movie, groups: [episode("e1", 1, { rating: 9 }), episode("e2", 2)] },
+      { kind: "follows", key: "f1+f2", day: "2026-11-02", actor, usernames: ["reel_drifter", "nightowl"] },
+      {
+        kind: "titles",
+        key: "l1+l2",
+        day: "2026-11-02",
+        action: "liked",
+        actor,
+        titles: [group().movie, { ...group().movie, tmdbId: 2, title: "Bleach" }],
+      },
     ]);
     renderWithProviders(<FeedDayList isLoading={false} isError={false} days={days} />);
 
@@ -163,12 +96,14 @@ describe("folded feed rows", () => {
     expect(screen.getByText("9/10")).toBeInTheDocument();
     expect(screen.getByText("followed 2 people")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "@nightowl" })).toHaveAttribute("href", "/profile/nightowl");
+    expect(screen.getByText("liked 2 titles")).toBeInTheDocument();
+    expect(screen.getByText("Clayface, Bleach")).toBeInTheDocument();
   });
 });
 
 describe("FeedTitleCard", () => {
   it("reads as one watch: who, when, the title, the score, the like and the review", async () => {
-    renderWithProviders(<FeedTitleCard group={group()} />);
+    renderWithProviders(<FeedTitleCard day="2026-11-02" group={group()} />);
 
     expect(await screen.findByText("glory42")).toBeInTheDocument();
     expect(screen.getByText("watched")).toBeInTheDocument();
@@ -183,6 +118,7 @@ describe("FeedTitleCard", () => {
   it("says rewatched, and names the episode for TV", async () => {
     renderWithProviders(
       <FeedTitleCard
+        day="2026-11-02"
         group={group({
           rewatch: true,
           seasonNumber: 1,
@@ -198,18 +134,18 @@ describe("FeedTitleCard", () => {
 
   it("says when it was watched if that was before the day it was logged", async () => {
     const log = { id: "e1", watchedDate: "2026-10-26", rating: 8, rewatch: false };
-    const { unmount } = renderWithProviders(<FeedTitleCard group={group({ log })} />);
+    const { unmount } = renderWithProviders(<FeedTitleCard day="2026-11-02" group={group({ log })} />);
     expect(await screen.findByText("Watched OCT 26")).toBeInTheDocument();
     unmount();
 
-    renderWithProviders(<FeedTitleCard group={group({ log: { ...log, watchedDate: "2026-11-02" } })} />);
+    renderWithProviders(<FeedTitleCard day="2026-11-02" group={group({ log: { ...log, watchedDate: "2026-11-02" } })} />);
     await screen.findByText("glory42");
     expect(screen.queryByText(/^Watched/)).not.toBeInTheDocument();
   });
 
   it("opens the review from anywhere on the card, but leaves its links alone", async () => {
     const user = userEvent.setup();
-    const { router } = renderWithProviders(<FeedTitleCard group={group()} />);
+    const { router } = renderWithProviders(<FeedTitleCard day="2026-11-02" group={group()} />);
 
     await user.click(await screen.findByText("8/10"));
     await vi.waitFor(() => expect(router.state.location.pathname).toBe("/reviews/glory42/r1"));
@@ -217,7 +153,7 @@ describe("FeedTitleCard", () => {
 
   it("opens the title when the card has no review", async () => {
     const user = userEvent.setup();
-    const { router } = renderWithProviders(<FeedTitleCard group={group({ review: null })} />);
+    const { router } = renderWithProviders(<FeedTitleCard day="2026-11-02" group={group({ review: null })} />);
 
     await user.click(await screen.findByText("8/10"));
     await vi.waitFor(() => expect(router.state.location.pathname).toBe("/movies/1"));
@@ -226,7 +162,7 @@ describe("FeedTitleCard", () => {
   it("hides a spoiler review behind a reveal", async () => {
     const user = userEvent.setup();
     renderWithProviders(
-      <FeedTitleCard group={group({ review: { id: "r1", content: "Snape kills Dumbledore", containsSpoilers: true, rating: 8 } })} />,
+      <FeedTitleCard day="2026-11-02" group={group({ review: { id: "r1", content: "Snape kills Dumbledore", containsSpoilers: true, rating: 8 } })} />,
     );
     expect(screen.queryByText(/Snape/)).not.toBeInTheDocument();
     await user.click(await screen.findByRole("button", { name: "Show spoilers" }));
@@ -243,13 +179,13 @@ describe("FeedTitleCard on your own review", () => {
       queryClient.setQueryData(authKeys.me, { id: "user_1", username: "cinefan" });
       return queryClient;
     };
-    const { unmount } = renderWithProviders(<FeedTitleCard group={mine} />, { queryClient: signedIn() });
+    const { unmount } = renderWithProviders(<FeedTitleCard day="2026-11-02" group={mine} />, { queryClient: signedIn() });
 
     await user.click(await screen.findByRole("button", { name: "Edit" }));
     expect(await screen.findByText("EDIT REVIEW")).toBeInTheDocument();
     unmount();
 
-    renderWithProviders(<FeedTitleCard group={group()} />, { queryClient: signedIn() });
+    renderWithProviders(<FeedTitleCard day="2026-11-02" group={group()} />, { queryClient: signedIn() });
     await screen.findByText("glory42");
     expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
   });
@@ -270,7 +206,7 @@ describe("FeedTitleCard on your own review", () => {
       actor: { id: "user_1", username: "cinefan", displayUsername: null, avatarUrl: null },
       log: { id: "e1", watchedDate: "2026-10-26", rating: 8, rewatch: false },
     });
-    renderWithProviders(<FeedTitleCard group={mine} />, { queryClient });
+    renderWithProviders(<FeedTitleCard day="2026-11-02" group={mine} />, { queryClient });
 
     await user.click(await screen.findByRole("button", { name: "Edit" }));
     expect(await screen.findByRole("dialog", { name: /^Edit log/ })).toBeInTheDocument();

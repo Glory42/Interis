@@ -1,6 +1,6 @@
 import type { InfiniteData, QueryClient } from "@tanstack/react-query";
 import { feedKeys } from "@/features/feed/hooks/useFeed";
-import type { FeedItem, FeedTitleGroup, GroupedFeedEntry, GroupedFeedPage } from "@/features/feed/types";
+import type { FeedItem, FeedRow, FeedTitleGroup, GroupedFeedPage } from "@/features/feed/types";
 import { restoreQueries, type QuerySnapshot } from "@/lib/query-optimistic";
 
 // What a change is about: one Review, Post or Comment, wherever the feed shows it.
@@ -106,13 +106,23 @@ const patchGroup = (group: FeedTitleGroup, change: FeedChange): FeedTitleGroup =
   }
 };
 
-const patchEntry = (entry: GroupedFeedEntry, target: FeedTarget, change: FeedChange): GroupedFeedEntry | null => {
-  if (entry.kind === "title") {
-    return groupMatches(entry, target) ? patchGroup(entry, change) : entry;
+// Returns null when the change removes the row from the feed.
+const patchRow = (row: FeedRow, target: FeedTarget, change: FeedChange): FeedRow | null => {
+  switch (row.kind) {
+    case "title":
+      return groupMatches(row.group, target) ? { ...row, group: patchGroup(row.group, change) } : row;
+    case "episodes":
+      return row.groups.some((group) => groupMatches(group, target))
+        ? { ...row, groups: row.groups.map((group) => (groupMatches(group, target) ? patchGroup(group, change) : group)) }
+        : row;
+    case "activity": {
+      if (!itemMatches(row.item, target)) return row;
+      const item = patchItem(row.item, change);
+      return item ? { ...row, item } : null;
+    }
+    default:
+      return row;
   }
-  if (!itemMatches(entry.item, target)) return entry;
-  const item = patchItem(entry.item, change);
-  return item ? { kind: "activity", item } : null;
 };
 
 export type FeedSnapshot = QuerySnapshot;
@@ -135,7 +145,7 @@ export const patchFeed = async (
           ...old,
           pages: old.pages.map((page) => ({
             ...page,
-            items: page.items.flatMap((entry) => patchEntry(entry, target, change) ?? []),
+            rows: page.rows.flatMap((row) => patchRow(row, target, change) ?? []),
           })),
         }
       : old,
