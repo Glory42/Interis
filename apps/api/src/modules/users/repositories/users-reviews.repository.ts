@@ -26,6 +26,14 @@ const buildAuthorFromRow = (row: ReviewAuthorRow) => ({
   avatarUrl: row.authorAvatarUrl,
 });
 
+// The log a review was written with, so its author can edit both together.
+const logSelection = <T extends typeof diaryEntries | typeof seriesDiaryEntries>(table: T) => ({
+  id: table.id,
+  watchedDate: table.watchedDate,
+  rating: table.rating,
+  rewatch: table.rewatch,
+});
+
 const buildEngagementSummary = (
   likeRow: Array<{ count: number }>,
   commentRow: Array<{ count: number }>,
@@ -51,6 +59,7 @@ export class UsersReviewsRepository {
         createdAt: reviews.createdAt,
         updatedAt: reviews.updatedAt,
         diaryEntryId: reviews.diaryEntryId,
+        serialDiaryEntryId: reviews.serialDiaryEntryId,
         mediaType: reviews.mediaType,
         mediaSourceId: reviews.mediaSourceId,
         movieId: reviews.movieId,
@@ -112,7 +121,7 @@ export class UsersReviewsRepository {
           : Promise.resolve([]),
         reviewRow.diaryEntryId
           ? db
-              .select({ rating: diaryEntries.rating })
+              .select(logSelection(diaryEntries))
               .from(diaryEntries)
               .where(eq(diaryEntries.id, reviewRow.diaryEntryId))
               .limit(1)
@@ -125,7 +134,7 @@ export class UsersReviewsRepository {
         return null;
       }
 
-      const rating = diaryRow[0]?.rating ?? null;
+      const log = diaryRow[0] ?? null;
 
       return {
         id: reviewRow.id,
@@ -134,7 +143,8 @@ export class UsersReviewsRepository {
         containsSpoilers: reviewRow.containsSpoilers,
         createdAt: reviewRow.createdAt,
         updatedAt: reviewRow.updatedAt,
-        rating,
+        rating: log?.rating ?? null,
+        log,
         author: buildAuthorFromRow(reviewRow),
         media: {
           tmdbId,
@@ -169,16 +179,16 @@ export class UsersReviewsRepository {
           .from(tvSeries)
           .where(eq(tvSeries.tmdbId, tmdbId))
           .limit(1),
-        reviewRow.diaryEntryId
+        reviewRow.serialDiaryEntryId
           ? db
-              .select({ rating: seriesDiaryEntries.rating })
+              .select(logSelection(seriesDiaryEntries))
               .from(seriesDiaryEntries)
-              .where(eq(seriesDiaryEntries.id, reviewRow.diaryEntryId))
+              .where(eq(seriesDiaryEntries.id, reviewRow.serialDiaryEntryId))
               .limit(1)
           : Promise.resolve([]),
       ]);
 
-      const rating = serialDiaryRow[0]?.rating ?? null;
+      const log = serialDiaryRow[0] ?? null;
 
       return {
         id: reviewRow.id,
@@ -187,7 +197,8 @@ export class UsersReviewsRepository {
         containsSpoilers: reviewRow.containsSpoilers,
         createdAt: reviewRow.createdAt,
         updatedAt: reviewRow.updatedAt,
-        rating,
+        rating: log?.rating ?? null,
+        log,
         author: buildAuthorFromRow(reviewRow),
         media: {
           tmdbId,
@@ -267,6 +278,8 @@ export class UsersReviewsRepository {
         createdAt: reviewRow.createdAt,
         updatedAt: reviewRow.updatedAt,
         rating: interactionRow[0]?.rating ?? null,
+        // Season and episode reviews stand alone; there is no log to edit.
+        log: null,
         author: buildAuthorFromRow(reviewRow),
         media: {
           tmdbId: seriesTmdbId,
