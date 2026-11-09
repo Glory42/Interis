@@ -37,7 +37,7 @@ export const RatingBars = ({ buckets }: { buckets: RatingBucket[] }) => {
 
 // Sits in the ratings header so both charts on the row start their bars at the same height.
 export const AverageRating = ({ average }: { average: number }) => (
-  <span className="mono-meta inline-flex shrink-0 items-center gap-1 text-[10px] text-primary">
+  <span className="mono-meta inline-flex shrink-0 items-center gap-1 text-[10px] leading-none text-primary">
     <Rocket aria-hidden className="size-3" />
     {`Avg ${average.toFixed(1)}`}
   </span>

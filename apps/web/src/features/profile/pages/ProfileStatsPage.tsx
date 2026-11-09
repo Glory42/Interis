@@ -23,7 +23,7 @@ type BlockProps = { title: string; aside?: React.ReactNode; children: React.Reac
 
 const Block = ({ title, aside, children }: BlockProps) => (
   <section aria-label={title}>
-    <div className="mb-2 flex items-baseline justify-between gap-3">
+    <div className="mb-2 flex min-h-4 items-center justify-between gap-3">
       <p className="kicker min-w-0 text-muted-foreground">{title}</p>
       {aside}
     </div>
