@@ -61,6 +61,7 @@ describe("PersonDetailPage", () => {
   it("shows server totals and loads the next page of credits", async () => {
     const user = userEvent.setup();
     const offsets: (string | null)[] = [];
+    const orders: (string | null)[] = [];
     server.use(
       http.get("http://localhost/api/people/director/christopher-nolan", () =>
         HttpResponse.json({
@@ -78,6 +79,7 @@ describe("PersonDetailPage", () => {
       http.get("http://localhost/api/people/director/christopher-nolan/credits", ({ request }) => {
         const params = new URL(request.url).searchParams;
         offsets.push(params.get("offset"));
+        orders.push(params.get("order"));
         const items =
           params.get("offset") === "40"
             ? [credit(41, ["Director"])]
@@ -102,5 +104,11 @@ describe("PersonDetailPage", () => {
     expect(await screen.findByRole("link", { name: /Film 41/ })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Load more credits" })).not.toBeInTheDocument();
     expect(offsets).toEqual(["0", "40"]);
+
+    await user.click(screen.getByRole("button", { name: /newest first/ }));
+    await user.click(screen.getByText("Oldest first"));
+
+    expect(await screen.findByRole("button", { name: /oldest first/ })).toBeInTheDocument();
+    expect(orders).toEqual(["recent", "recent", "oldest"]);
   });
 });

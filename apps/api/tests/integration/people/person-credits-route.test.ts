@@ -125,6 +125,22 @@ describe("GET /api/people/:role/:slug/credits", () => {
     expect(tmdbPersonCalls.filter((call) => call.includes("/combined_credits"))).toHaveLength(1);
   });
 
+  it("orders credits oldest first across pages", async () => {
+    const pageAt = async (offset: number) => {
+      const response = await apiRequest(
+        getServer().baseUrl,
+        `/api/people/director/${slug}/credits?type=crew&order=oldest&limit=40&offset=${offset}`,
+      );
+      expect(response.status).toBe(200);
+      return ((await response.json()) as CreditsPage).items.map((item) => item.tmdbId);
+    };
+    const [first, second] = await Promise.all([pageAt(0), pageAt(40)]);
+
+    // Five 2010 titles, most-voted first; the 2024 title closes the last page.
+    expect(first.slice(0, 5)).toEqual([42, 32, 22, 12, 2]);
+    expect(second.at(-1)).toBe(1);
+  });
+
   it("filters crew credits by job", async () => {
     const response = await apiRequest(
       getServer().baseUrl,

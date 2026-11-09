@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fillLastTwelveMonths, toRatingBuckets, toWeekReel } from "@/features/profile/components/stats/stats-model";
+import { fillLastTwelveMonths, toRatingBuckets } from "@/features/profile/components/stats/stats-model";
 
 describe("fillLastTwelveMonths", () => {
   it("keeps empty months so the bars never skip one", () => {
@@ -11,15 +11,6 @@ describe("fillLastTwelveMonths", () => {
       { key: "2026-10", label: "O", count: 0 },
       { key: "2026-11", label: "N", count: 4 },
     ]);
-  });
-});
-
-describe("toWeekReel", () => {
-  it("has one cell per week so far this year, brighter with more logs", () => {
-    const reel = toWeekReel([{ week: 1, count: 1 }, { week: 3, count: 4 }, { week: 45, count: 9 }], new Date(2026, 10, 7));
-    expect(reel).toHaveLength(45);
-    expect(reel.map((cell) => cell.level).slice(0, 3)).toEqual([1, 0, 3]);
-    expect(reel.at(-1)).toEqual({ week: 45, count: 9, level: 4 });
   });
 });
 

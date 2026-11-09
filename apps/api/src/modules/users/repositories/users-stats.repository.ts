@@ -104,7 +104,7 @@ export class UsersStatsRepository {
       topGenreRows,
       topDirectorRows,
       minutesWatchedRows,
-      logsPerWeekRows,
+      logsPerDayRows,
     ] = await Promise.all([
         db.execute<{ month: string; count: number }>(sql`
           SELECT to_char(watched_date, 'YYYY-MM') AS month, count(*)::int AS count
@@ -173,16 +173,22 @@ export class UsersStatsRepository {
             WHERE e.user_id = ${userId} AND e.watched
           ) AS minutes
         `),
-        db.execute<{ week: number; count: number }>(sql`
-          SELECT extract(week FROM watched_date)::int AS week, count(*)::int AS count
+        // This calendar year's logs per day, days with logs only (≤366 rows).
+        db.execute<{ day: string; count: number }>(sql`
+          WITH bounds AS (
+            SELECT date_trunc('year', current_date)::date AS start_day,
+              (date_trunc('year', current_date) + interval '1 year')::date AS end_day
+          )
+          SELECT to_char(watched_date, 'YYYY-MM-DD') AS day, count(*)::int AS count
           FROM (
-            SELECT watched_date FROM diary_entry WHERE user_id = ${userId}
+            SELECT watched_date FROM diary_entry, bounds
+            WHERE user_id = ${userId} AND watched_date >= start_day AND watched_date < end_day
             UNION ALL
-            SELECT watched_date FROM serial_diary_entry WHERE user_id = ${userId}
+            SELECT watched_date FROM serial_diary_entry, bounds
+            WHERE user_id = ${userId} AND watched_date >= start_day AND watched_date < end_day
           ) combined
-          WHERE extract(isoyear FROM watched_date) = extract(isoyear FROM current_date)
-          GROUP BY week
-          ORDER BY week
+          GROUP BY watched_date
+          ORDER BY watched_date
         `),
       ]);
 
@@ -192,7 +198,7 @@ export class UsersStatsRepository {
       topGenres: topGenreRows.rows,
       topDirectors: topDirectorRows.rows,
       minutesWatched: Number(minutesWatchedRows.rows[0]?.minutes ?? 0),
-      logsPerWeek: logsPerWeekRows.rows,
+      logsPerDay: logsPerDayRows.rows,
     };
   }
 

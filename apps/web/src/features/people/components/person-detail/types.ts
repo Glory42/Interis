@@ -1,3 +1,3 @@
-import type { CreditMediaTab, CreditRoleTab } from "@/features/people/shared";
+import type { CreditMediaTab, CreditOrder, CreditRoleTab } from "@/features/people/shared";
 
-export type { CreditMediaTab, CreditRoleTab };
+export type { CreditMediaTab, CreditOrder, CreditRoleTab };
