@@ -11,6 +11,7 @@ import {
   type ArchivePeriod,
 } from "../../../media/helpers/media-archive-period.helper";
 import { sortArchiveItemsGeneric, type ArchiveSortKind } from "../../../media/helpers/media-archive-sort.helper";
+import { isSeriesWatched } from "../../../media-interactions/helpers/interaction-state-rules.helper";
 import { TvInteractionsRepository } from "../../repositories/tv-interactions.repository";
 import { TvEpisodeInteractionsRepository } from "../../repositories/tv-episode-interactions.repository";
 import type { SeriesArchivePeriod, SeriesArchiveSort } from "../../dto/tv.dto";
@@ -53,7 +54,7 @@ export const addViewerArchiveState = async (
 
   for (const row of viewerInteractionRows) {
     if (row.watchlisted) viewerWatchlistedTmdbIdSet.add(row.tmdbId);
-    if (row.watchStatus === "completed") viewerFullyWatchedTmdbIdSet.add(row.tmdbId);
+    if (isSeriesWatched(row.watchStatus)) viewerFullyWatchedTmdbIdSet.add(row.tmdbId);
     if (row.rating !== null) viewerLoggedTmdbIdSet.add(row.tmdbId);
   }
 
