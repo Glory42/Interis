@@ -9,6 +9,7 @@ import type { FeedTitleGroup } from "@/features/feed/types";
 import { verbFor, watchedDayLabel } from "@/features/feed/components/feed-days";
 import { getPosterUrl } from "@/features/media/tmdb-images";
 import { isCardBackgroundClick } from "@/lib/card-click";
+import { LikeMark } from "@/components/ui/LikeMark";
 
 const pad = (value: number) => String(value).padStart(2, "0");
 
@@ -113,9 +114,7 @@ export const FeedTitleCard = memo(function FeedTitleCard({ group, day }: { group
               </>
             ) : null}
             {group.liked ? (
-              <span aria-label="Liked" className="text-[color:var(--like)]">
-                ♥
-              </span>
+              <LikeMark />
             ) : null}
           </p>
         ) : null}

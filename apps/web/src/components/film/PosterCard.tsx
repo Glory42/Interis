@@ -4,6 +4,7 @@ import { Rocket } from "lucide-react";
 import type { ViewerStatus } from "@/features/viewer-status/api";
 import { tmdbImageUrl, type TmdbImageSize } from "@/lib/tmdb-image";
 import { cn } from "@/lib/utils";
+import { LikeMark } from "@/components/ui/LikeMark";
 
 export type PosterCardSize = "L" | "M" | "S" | "XS";
 
@@ -45,9 +46,7 @@ const PosterSlate = ({ status, tmdbScore }: { status?: ViewerStatus | null; tmdb
         <span className="flex gap-1">
           {status.watched ? <span aria-label="Watched">◉</span> : null}
           {status.liked ? (
-            <span aria-label="Liked" className="text-[color:var(--like)]">
-              ♥
-            </span>
+            <LikeMark />
           ) : null}
         </span>
         {status.rating !== null ? (

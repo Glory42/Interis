@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Heart, X } from "lucide-react";
+import { LikeMark } from "@/components/ui/LikeMark";
 import { Button } from "@/components/ui/button";
 import { ModalShell } from "@/components/ui/ModalShell";
 import { LaunchTrack } from "@/components/film/rating/LaunchTrack";
@@ -178,7 +179,9 @@ export const LogEditorDialog = ({
                   <p className={cn("display-4 leading-tight", isPhone && !isCompact && "text-lg")}>{title}</p>
                   {isCompact ? (
                     <p className="mono-meta text-muted-foreground">
-                      {[rating !== null ? rating.toFixed(1) : null, liked ? "♥" : null].filter(Boolean).join(" · ")}
+                      {rating !== null ? rating.toFixed(1) : null}
+                      {rating !== null && liked ? " · " : null}
+                      {liked ? <LikeMark /> : null}
                     </p>
                   ) : (
                     <p className="mono-meta mt-0.5 text-muted-foreground">

@@ -8,6 +8,7 @@ import { WatchTick } from "@/features/tv/components/series-detail/WatchTick";
 import { EpisodeSheet, type EpisodeActions } from "@/features/tv/components/series-detail/EpisodeSheet";
 import { cn } from "@/lib/utils";
 import { getStillUrl } from "@/features/media/tmdb-images";
+import { LikeMark } from "@/components/ui/LikeMark";
 
 type Episode = SeriesSeasonDetailResponse["episodes"][number];
 
@@ -65,7 +66,7 @@ export const EpisodeRow = ({
             {liked ? (
               <>
                 {" · "}
-                <span aria-label="Liked" className="text-[color:var(--like)]">♥</span>
+                <LikeMark />
               </>
             ) : null}
             {interaction?.rating != null ? (

@@ -10,6 +10,7 @@ import { ListDetailPoster, ListDetailRow } from "@/features/lists/components/Lis
 import { useDeleteList, useLikeList, useListDetail, useUnlikeList } from "@/features/lists/hooks/useLists";
 import { cn } from "@/lib/utils";
 import { DocumentSkeleton, PosterGridSkeleton } from "@/components/ui/PageSkeletons";
+import { LikeMark } from "@/components/ui/LikeMark";
 
 type ProfileListDetailPageProps = {
   username: string;
@@ -111,7 +112,10 @@ export const ProfileListDetailPage = ({ username, listId }: ProfileListDetailPag
                   {list.likeCount > 0 ? `Like · ${list.likeCount}` : "Like"}
                 </Button>
               ) : !user && list.likeCount > 0 ? (
-                <span className="mono-meta text-muted-foreground">{`♥ ${list.likeCount}`}</span>
+                <span className="mono-meta inline-flex items-center gap-1 text-muted-foreground">
+                  <LikeMark />
+                  {list.likeCount}
+                </span>
               ) : null}
 
               {user ? (

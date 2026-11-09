@@ -6,6 +6,7 @@ import { EpisodeList } from "@/features/feed/components/FeedFoldedRows";
 import type { FeedItem, FeedRow } from "@/features/feed/types";
 import { getPosterUrl } from "@/features/media/tmdb-images";
 import { isCardBackgroundClick } from "@/lib/card-click";
+import { LikeMark } from "@/components/ui/LikeMark";
 
 const ACTIVITY_LINES: Partial<Record<FeedItem["kind"], string>> = {
   watchlisted_movie: "Added to watchlist",
@@ -96,7 +97,7 @@ export const FeedCompactRow = ({ row }: { row: FeedRow }) => {
             {group.movie.releaseYear ? <span className="mono-meta ml-1.5 font-normal text-muted-foreground">{group.movie.releaseYear}</span> : null}
           </Link>
           {group.rating !== null ? <RocketDisplay rating={group.rating} size="sm" /> : null}
-          {group.liked ? <span aria-label="Liked" className="text-[color:var(--like)]">♥</span> : null}
+          {group.liked ? <LikeMark /> : null}
           {group.review ? <span aria-label="Reviewed" className="text-primary">✎</span> : null}
         </p>
         {group.review && !group.review.containsSpoilers ? (

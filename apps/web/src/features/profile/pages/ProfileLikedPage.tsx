@@ -108,7 +108,7 @@ export const ProfileLikedPage = ({ username }: ProfileLikedPageProps) => {
               Could not load liked media.
             </div>
           ) : mediaTotal === 0 ? (
-            <ProfileTabEmptyState isOwner={isOwner} visitorText="No likes yet." ownerText="♥ any title to keep it here." />
+            <ProfileTabEmptyState isOwner={isOwner} visitorText="No likes yet." ownerText="Like any title to keep it here." />
           ) : (
             <LikedMediaGrid items={mediaItems} filter={mediaFilter} />
           )}

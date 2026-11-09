@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { episodeCode, episodesSummary, followsVerb, titlesVerb } from "@/features/feed/components/feed-days";
 import type { FeedRow, FeedTitleGroup } from "@/features/feed/types";
 import { getPosterUrl } from "@/features/media/tmdb-images";
+import { LikeMark } from "@/components/ui/LikeMark";
 
 const LINE_CLASS = "flex items-center gap-2 rounded-[3px] border border-[color:var(--line)] px-3 py-2 text-xs";
 
@@ -48,7 +49,7 @@ export const EpisodeList = ({ groups }: { groups: FeedTitleGroup[] }) => (
       <li key={group.id} className="flex items-center gap-1">
         <span className="text-foreground">{episodeCode(group)}</span>
         {group.rating !== null ? <span>{`${group.rating}/10`}</span> : null}
-        {group.liked ? <span aria-label="Liked" className="text-[color:var(--like)]">♥</span> : null}
+        {group.liked ? <LikeMark /> : null}
       </li>
     ))}
   </ul>

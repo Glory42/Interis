@@ -7,6 +7,7 @@ import { PHONE_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { DiaryMediaLink } from "./DiaryMediaLink";
 import { DiaryPosterCell } from "./DiaryPosterCell";
 import type { DiaryRow as DiaryRowModel } from "./diary-model";
+import { LikeMark } from "@/components/ui/LikeMark";
 
 type DiaryRowProps = {
   row: DiaryRowModel;
@@ -15,7 +16,7 @@ type DiaryRowProps = {
   isOwner?: boolean;
 };
 
-// One log line: the day (first row of the day only), poster, title, rockets and ♥ ↻ ✎.
+// One log line: the day (first row of the day only), poster, title, rockets and like, rewatch, review marks.
 export const DiaryRow = ({ row, username, isOwner = false }: DiaryRowProps) => {
   const [isEditing, setIsEditing] = useState(false);
   // Ten rockets don't fit beside the title on a phone; one rocket and the score do.
@@ -46,7 +47,7 @@ export const DiaryRow = ({ row, username, isOwner = false }: DiaryRowProps) => {
       </div>
       {row.rating !== null ? <RocketDisplay rating={row.rating} size="sm" variant={isPhone ? "compact" : "row"} /> : null}
       <span className="flex w-14 shrink-0 items-center justify-end gap-1.5 text-sm">
-        {row.isLiked ? <span aria-label="Liked" className="text-[color:var(--like)]">♥</span> : null}
+        {row.isLiked ? <LikeMark /> : null}
         {row.rewatch ? <span aria-label="Rewatch" className="text-primary">↻</span> : null}
         {row.review ? (
           <Link
