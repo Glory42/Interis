@@ -83,7 +83,11 @@ const useTitleLike = ({ kind, tmdbId }: MediaTitle) => {
   return { liked, saveLiked };
 };
 
-export const useLogEditor = (subject: LogSubject, onClose: () => void) => {
+export const useLogEditor = (
+  subject: LogSubject,
+  onClose: () => void,
+  onSaved?: (changes: UpdateLogInput | null) => void,
+) => {
   const [draft, setDraft] = useState(() => initialDraft(subject));
   // null until toggled here, so the fetched Like shows without an effect to copy it.
   const [likedOverride, setLikedOverride] = useState<boolean | null>(null);
@@ -118,6 +122,7 @@ export const useLogEditor = (subject: LogSubject, onClose: () => void) => {
         likedChanged ? titleLike.saveLiked(liked) : null,
       ]);
       if (subject.type === "new") clearReviewDraft(draftKey(subject));
+      onSaved?.(changes);
       onClose();
     } catch (error) {
       setFormError(isApiError(error) ? error.message : "Could not save this log right now.");

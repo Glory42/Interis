@@ -10,3 +10,14 @@ export const reviewKeys = {
     ["reviews", "comments", mediaType, reviewId] as const,
   mineForTitle: (query: MyTitleReviewsQuery) => ["reviews", "mine", query] as const,
 };
+
+// Every cached detail query of one review, whichever profile URL it was opened under.
+export const reviewDetailFilter = (reviewId: string) =>
+  ({
+    queryKey: reviewKeys.detailRoot,
+    exact: false,
+    predicate: (query: { queryKey: readonly unknown[] }) => {
+      const [scope, kind, , candidateReviewId] = query.queryKey;
+      return scope === "reviews" && kind === "detail" && candidateReviewId === reviewId;
+    },
+  }) as const;

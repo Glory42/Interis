@@ -49,6 +49,31 @@ describe("FeedReviewEditDialog", () => {
     expect(closed).toBe(true);
   });
 
+  it("saves a flipped spoiler flag on its own", async () => {
+    let sent: unknown = null;
+    server.use(
+      http.put("*/api/reviews/review-1", async ({ request }) => {
+        sent = await request.json();
+        return HttpResponse.json({
+          id: "review-1",
+          content: "original content",
+          containsSpoilers: true,
+          updatedAt: "2026-01-01T00:00:00.000Z",
+        });
+      }),
+    );
+
+    const user = userEvent.setup();
+    renderDialog();
+
+    expect(screen.getByRole("button", { name: "save" })).toBeDisabled();
+    await user.click(screen.getByRole("switch", { name: "Contains spoilers" }));
+    await user.click(screen.getByRole("button", { name: "save" }));
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(sent).toEqual({ content: "original content", containsSpoilers: true });
+  });
+
   it("does not close and does not throw an unhandled rejection when the save fails", async () => {
     server.use(
       http.put("*/api/reviews/review-1", () =>

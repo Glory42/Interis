@@ -13,6 +13,7 @@ const detail = (overrides: Partial<ReviewDetail> = {}): ReviewDetail => ({
   createdAt: "2026-11-02T21:40:00",
   updatedAt: "2026-11-02T21:40:00",
   rating: 8,
+  log: null,
   author: { id: "u1", username: "glory42", displayUsername: null, avatarUrl: null } as ReviewDetail["author"],
   media: { tmdbId: 1, title: "Clayface", posterPath: null, releaseYear: 2026, genres: [], director: "James Watkins", creator: null },
   engagement: { likeCount: 3, commentCount: 1, viewerHasLiked: false },

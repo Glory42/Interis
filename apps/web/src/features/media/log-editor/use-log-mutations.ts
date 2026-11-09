@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { authKeys } from "@/features/auth/hooks/useAuth";
 import {
   createDiaryEntry,
@@ -8,6 +8,7 @@ import {
 } from "@/features/diary/api";
 import { filmKeys } from "@/features/films/hooks/useFilms";
 import { refreshAfter, type MediaTitle } from "@/features/media/media-cache";
+import { reviewDetailFilter } from "@/features/reviews/hooks/review-keys";
 import { createSeriesLog, deleteSeriesLog, updateSeriesLog } from "@/features/tv/api";
 import type { FilmLog, MeProfile } from "@/types/api";
 
@@ -22,7 +23,11 @@ export type CreateLogInput = {
 // Every field optional; `review` text writes the attached Review, null deletes it.
 export type UpdateLogInput = UpdateDiaryEntryInput;
 
-type LogRef = MediaTitle & { logId: string };
+// `review`: the Review written with the log, whose detail page shows the log's rating.
+type LogRef = MediaTitle & { logId: string; review?: { id: string } | null };
+
+const refreshAttachedReview = (queryClient: QueryClient, log: LogRef) =>
+  log.review ? queryClient.invalidateQueries(reviewDetailFilter(log.review.id)) : null;
 
 type OptimisticContext =
   | { applied: false }
@@ -91,8 +96,12 @@ export const useUpdateLog = () => {
   return useMutation({
     mutationFn: ({ log, input }: { log: LogRef; input: UpdateLogInput }) =>
       log.kind === "film" ? updateDiaryEntry(log.logId, input) : updateSeriesLog(log.logId, input),
-    onSuccess: (_data, { log }) =>
-      refreshAfter(queryClient, { type: "log-edited", kind: log.kind, tmdbId: log.tmdbId }),
+    onSuccess: (_data, { log, input }) =>
+      Promise.all([
+        refreshAfter(queryClient, { type: "log-edited", kind: log.kind, tmdbId: log.tmdbId }),
+        // Emptied review text deleted the Review; its page is left, not refetched.
+        input.review === null ? null : refreshAttachedReview(queryClient, log),
+      ]),
   });
 };
 
@@ -106,6 +115,9 @@ export const useDeleteLog = () => {
         ? deleteDiaryEntry(log.logId, { unwatch })
         : deleteSeriesLog(log.logId, { unwatch }),
     onSuccess: (_data, { log, unwatch }) =>
-      refreshAfter(queryClient, { type: "log-deleted", kind: log.kind, tmdbId: log.tmdbId, unwatch }),
+      Promise.all([
+        refreshAfter(queryClient, { type: "log-deleted", kind: log.kind, tmdbId: log.tmdbId, unwatch }),
+        refreshAttachedReview(queryClient, log),
+      ]),
   });
 };

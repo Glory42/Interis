@@ -56,6 +56,16 @@ const reviewDetailSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   rating: z.number().nullable(),
+  // The log the review was written with; null for a standalone review.
+  log: z
+    .object({
+      id: z.string(),
+      watchedDate: z.string(),
+      rating: z.number().nullable(),
+      rewatch: z.boolean(),
+    })
+    .nullable()
+    .default(null),
   author: userSummarySchema,
   media: z.object({
     tmdbId: z.number().int().positive(),
