@@ -49,7 +49,8 @@ describe("ProfileStatsPage", () => {
     expect(screen.getByRole("img", { name: "2026 in reels: 4 logs over 45 weeks" })).toBeInTheDocument();
     expect(screen.getByLabelText("Nov: 4 logs")).toBeInTheDocument();
     expect(screen.getByLabelText("Oct: 0 logs")).toBeInTheDocument();
-    expect(screen.getByText("Avg 7.4")).toBeInTheDocument();
+    // The average shares the ratings header row, so it can't push the bars down.
+    expect(screen.getByText("Avg 7.4").parentElement).toContainElement(screen.getByText("Ratings · 589 rated logs"));
     expect(screen.getByRole("link", { name: /David Fincher/ })).toBeInTheDocument();
   });
 

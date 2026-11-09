@@ -38,33 +38,28 @@ export const MonthBars = ({ months }: { months: MonthBar[] }) => {
   );
 };
 
-export const RatingBars = ({ buckets, average }: { buckets: RatingBucket[]; average: number | null }) => {
+export const RatingBars = ({ buckets }: { buckets: RatingBucket[] }) => {
   const max = Math.max(1, ...buckets.map((bucket) => bucket.count));
   return (
-    <div>
-      <div className="flex h-32 items-end gap-[3px]">
-        {buckets.map((bucket) => (
-          <div key={bucket.rating} className="flex flex-1 flex-col items-center gap-1" aria-label={`${bucket.rating}: ${bucket.count} logs`}>
-            <span aria-hidden className="mono-meta h-3 text-[8px] leading-3 text-muted-foreground">{bucket.count || ""}</span>
-            <span aria-hidden className="w-full rounded-t-[1px] bg-primary" style={{ height: `${(bucket.count / max) * 88}px`, opacity: bucket.count ? 1 : 0.15, minHeight: 2 }} />
-            <span aria-hidden className="mono-meta h-3 text-[8px] leading-3 text-muted-foreground">{Number.isInteger(bucket.rating) ? bucket.rating : ""}</span>
-          </div>
-        ))}
-      </div>
-      {average !== null ? (
-        <div className="relative mt-1 h-4">
-          <span
-            className="mono-meta absolute inline-flex -translate-x-1/2 items-center gap-1 text-[9px] text-primary"
-            style={{ left: `${((average - 1) / 9) * 100}%` }}
-          >
-            <Rocket aria-hidden className="size-2.5" />
-            {`Avg ${average.toFixed(1)}`}
-          </span>
+    <div className="flex h-36 items-end gap-[3px]">
+      {buckets.map((bucket) => (
+        <div key={bucket.rating} className="flex flex-1 flex-col items-center gap-1" aria-label={`${bucket.rating}: ${bucket.count} logs`}>
+          <span aria-hidden className="mono-meta h-3 text-[8px] leading-3 text-muted-foreground">{bucket.count || ""}</span>
+          <span aria-hidden className="w-full rounded-t-[1px] bg-primary" style={{ height: `${(bucket.count / max) * 96}px`, opacity: bucket.count ? 1 : 0.15, minHeight: 2 }} />
+          <span aria-hidden className="mono-meta h-3 text-[8px] leading-3 text-muted-foreground">{Number.isInteger(bucket.rating) ? bucket.rating : ""}</span>
         </div>
-      ) : null}
+      ))}
     </div>
   );
 };
+
+// Sits in the ratings header so both charts on the row start their bars at the same height.
+export const AverageRating = ({ average }: { average: number }) => (
+  <span className="mono-meta inline-flex shrink-0 items-center gap-1 text-[10px] text-primary">
+    <Rocket aria-hidden className="size-3" />
+    {`Avg ${average.toFixed(1)}`}
+  </span>
+);
 
 type RankedRow = { label: string; count: number; slug?: string | null };
 

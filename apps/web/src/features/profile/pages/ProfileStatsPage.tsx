@@ -1,5 +1,5 @@
 import { ReelCells } from "@/components/film/ReelCells";
-import { MonthBars, RankedBars, RatingBars, WeekReel } from "@/features/profile/components/stats/StatsCharts";
+import { AverageRating, MonthBars, RankedBars, RatingBars, WeekReel } from "@/features/profile/components/stats/StatsCharts";
 import { STATS_MIN_LOGS, fillLastTwelveMonths, toRatingBuckets, toWeekReel } from "@/features/profile/components/stats/stats-model";
 import { useIsOwnProfile, useUserProfile } from "@/features/profile/hooks/useProfile";
 import { useDetailedStats } from "@/features/profile/hooks/useProfileStats";
@@ -17,9 +17,14 @@ const Headline = ({ value, label }: { value: string; label: string }) => (
   </div>
 );
 
-const Block = ({ title, children }: { title: string; children: React.ReactNode }) => (
+type BlockProps = { title: string; aside?: React.ReactNode; children: React.ReactNode };
+
+const Block = ({ title, aside, children }: BlockProps) => (
   <section aria-label={title}>
-    <p className="kicker mb-2 text-muted-foreground">{title}</p>
+    <div className="mb-2 flex items-baseline justify-between gap-3">
+      <p className="kicker min-w-0 text-muted-foreground">{title}</p>
+      {aside}
+    </div>
     {children}
   </section>
 );
@@ -70,8 +75,11 @@ export const ProfileStatsPage = ({ username, now: nowProp }: ProfileStatsPagePro
         <Block title="Logs per month · last 12">
           <MonthBars months={fillLastTwelveMonths(stats.entriesPerMonth, now)} />
         </Block>
-        <Block title={`Ratings · ${stats.ratedLogCount.toLocaleString("en-US")} rated logs`}>
-          <RatingBars buckets={toRatingBuckets(stats.ratingDistribution)} average={stats.averageRating} />
+        <Block
+          title={`Ratings · ${stats.ratedLogCount.toLocaleString("en-US")} rated logs`}
+          aside={stats.averageRating !== null ? <AverageRating average={stats.averageRating} /> : null}
+        >
+          <RatingBars buckets={toRatingBuckets(stats.ratingDistribution)} />
         </Block>
       </div>
 
