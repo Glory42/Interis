@@ -1,35 +1,28 @@
-import { DiaryRepository } from "../diary/repositories/diary.repository";
 import { UsersService } from "../users/users.service";
+import { UsersMediaInteractionsRepository } from "../users/repositories/users-media-interactions.repository";
+import type { WidgetProfileTab } from "../users/services/profile-tabs.service";
 import { SocialFeedService } from "../social/services/social-feed.service";
 import { groupFeedItems, takeVisibleRows } from "../social/helpers/social-feed-grouping.helper";
 import { PublicRepository } from "./repositories/public.repository";
-import { PublicTopPicksService } from "./services/public-top-picks.service";
 
 import type {
   PublicProfileResponse,
-  PublicCurrentlyWatchingSeries,
-  PublicDiaryItem,
   PublicList,
   PublicListEntry,
 } from "./dto/public.dto";
 import { TvProgressService } from "../tv/services/tv-progress.service";
-import { TvCurrentlyWatchingService } from "../tv/services/tv-currently-watching.service";
 import { TvService } from "../tv/tv.service";
 
 // Raw activity rows read for the grouped view, so a run of likes can't crowd out older days.
 const RECENT_GROUPED_WINDOW = 100;
 
-const toTimestamp = (value: string | Date): number => {
-  if (value instanceof Date) {
-    return value.getTime();
-  }
-
-  return Date.parse(value);
-};
+type WidgetQuery = Record<string, unknown>;
 
 export class PublicService {
-  static findUserIdByUsername(username: string): Promise<string | null> {
-    return PublicRepository.findUserIdByUsername(username);
+  // Widget reads of a Profile tab: the same data and paging rules as the in-app Profile.
+  static async readTab<T extends WidgetProfileTab>(username: string, tab: T, query: WidgetQuery) {
+    const read = await UsersService.readProfileTab(username, tab, query, { surface: "widget" });
+    return read ? read.data : null;
   }
 
   static async getProfile(username: string): Promise<PublicProfileResponse | null> {
@@ -54,17 +47,6 @@ export class PublicService {
     };
   }
 
-  static async getRecentActivity(username: string, limit = 10) {
-    const userId = await PublicService.findUserIdByUsername(username);
-    if (!userId) return null;
-
-    return SocialFeedService.getUserActivityFeed(userId, limit);
-  }
-
-  static getRecentActivityByUserId(userId: string, limit = 10) {
-    return SocialFeedService.getUserActivityFeed(userId, limit);
-  }
-
   // One entry per title per day, `limit` visible rows long (a run of likes counts once).
   static async getRecentActivityGroupedByUserId(userId: string, limit = 10) {
     const items = await SocialFeedService.getUserActivityFeed(userId, RECENT_GROUPED_WINDOW);
@@ -72,7 +54,7 @@ export class PublicService {
   }
 
   static async getActivity(username: string, limit = 30) {
-    const userId = await PublicService.findUserIdByUsername(username);
+    const userId = await UsersService.findUserIdByUsername(username);
     if (!userId) {
       return null;
     }
@@ -80,28 +62,17 @@ export class PublicService {
     return SocialFeedService.getUserActivityFeed(userId, limit);
   }
 
-  static async getReviews(username: string, limit = 50) {
-    const userId = await PublicService.findUserIdByUsername(username);
-    if (!userId) {
-      return null;
-    }
-
-    const allReviews = await UsersService.getReviewsWithMovies(userId, limit);
-    return allReviews.slice(0, limit);
-  }
-
   static async getWatchedMovies(username: string, limit = 50) {
-    const userId = await PublicService.findUserIdByUsername(username);
+    const userId = await UsersService.findUserIdByUsername(username);
     if (!userId) {
       return null;
     }
 
-    const watched = await UsersService.getWatchedMovies(userId, limit);
-    return watched.slice(0, limit);
+    return UsersMediaInteractionsRepository.getWatchedMovies(userId, limit);
   }
 
   static async getSerialsWatched(username: string, limit = 50) {
-    const userId = await PublicService.findUserIdByUsername(username);
+    const userId = await UsersService.findUserIdByUsername(username);
     if (!userId) {
       return null;
     }
@@ -110,124 +81,14 @@ export class PublicService {
     return watched.slice(0, limit);
   }
 
-  static async getLikes(username: string, limit = 50) {
-    const userId = await PublicService.findUserIdByUsername(username);
-    if (!userId) {
-      return null;
-    }
-
-    const likes = await UsersService.getLikedMovies(userId, limit);
-    return likes.slice(0, limit);
-  }
-
-  static async getWatchlist(username: string, limit = 50) {
-    const userId = await PublicService.findUserIdByUsername(username);
-    if (!userId) {
-      return null;
-    }
-
-    const watchlist = await UsersService.getWatchlistedMovies(userId, limit);
-    return watchlist.slice(0, limit);
-  }
-
-  static async getDiary(
-    username: string,
-    limit = 50,
-    offset = 0,
-  ): Promise<PublicDiaryItem[] | null> {
-    const userId = await PublicService.findUserIdByUsername(username);
-    if (!userId) {
-      return null;
-    }
-
-    return PublicService.getDiaryByUserId(userId, limit, offset);
-  }
-
-  static async getDiaryByUserId(
-    userId: string,
-    limit = 50,
-    offset = 0,
-  ): Promise<PublicDiaryItem[]> {
-    // Fetch enough of each source to cover through offset+limit, then merge,
-    // sort, and slice the exact page - matches the pattern used for
-    // reviews/likes/watchlist (see UsersReviewsRepository.getReviewsWithMovies)
-    // since a global offset can't be pushed down independently to two
-    // separately-paginated tables ahead of the merge.
-    const fetchCap = limit + offset;
-
-    const [movieEntries, serialEntries] = await Promise.all([
-      DiaryRepository.findAllByUser(userId, fetchCap),
-      PublicRepository.findSerialDiaryEntriesByUser(userId, fetchCap),
-    ]);
-
-    const normalizedMovieEntries: PublicDiaryItem[] = movieEntries.map((entry) => ({
-      id: entry.id,
-      mediaType: "movie",
-      watchedDate: entry.watchedDate,
-      rating: entry.rating,
-      rewatch: entry.rewatch,
-      liked: entry.liked,
-      createdAt: entry.createdAt,
-      updatedAt: entry.updatedAt,
-      media: {
-        tmdbId: entry.movieTmdbId,
-        title: entry.movieTitle,
-        posterPath: entry.moviePosterPath,
-        releaseYear: entry.movieReleaseYear,
-      },
-      review: entry.reviewId
-        ? {
-            id: entry.reviewId,
-            content: entry.reviewContent ?? "",
-            containsSpoilers: entry.reviewContainsSpoilers ?? false,
-            createdAt: entry.reviewCreatedAt ?? entry.createdAt,
-          }
-        : null,
-    }));
-
-    const normalizedSerialEntries: PublicDiaryItem[] = serialEntries.map((entry) => ({
-      id: entry.id,
-      mediaType: "tv",
-      watchedDate: entry.watchedDate,
-      rating: entry.rating,
-      rewatch: entry.rewatch,
-      liked: entry.liked,
-      createdAt: entry.createdAt,
-      updatedAt: entry.updatedAt,
-      media: {
-        tmdbId: entry.tmdbId,
-        title: entry.title,
-        posterPath: entry.posterPath,
-        releaseYear: entry.releaseYear,
-      },
-      review: entry.reviewId
-        ? {
-            id: entry.reviewId,
-            content: entry.reviewContent ?? "",
-            containsSpoilers: entry.reviewContainsSpoilers ?? false,
-            createdAt: entry.reviewCreatedAt ?? entry.createdAt,
-          }
-        : null,
-    }));
-
-    const combined = [...normalizedMovieEntries, ...normalizedSerialEntries]
-      .sort((left, right) => {
-        const watchedDateDelta =
-          toTimestamp(right.watchedDate) - toTimestamp(left.watchedDate);
-
-        if (watchedDateDelta !== 0) {
-          return watchedDateDelta;
-        }
-
-        return toTimestamp(right.createdAt) - toTimestamp(left.createdAt);
-      })
-      .slice(offset, offset + limit);
-
-    return combined;
+  // The widget's likes and watchlist are the newest page of the shelf, without its totals.
+  static async getShelfItems(username: string, tab: "likes" | "watchlist", limit: unknown) {
+    const shelf = await PublicService.readTab(username, tab, { limit });
+    return shelf ? shelf.items : null;
   }
 
   static async getLists(username: string, limit = 20): Promise<PublicList[] | null> {
-    const userId = await PublicService.findUserIdByUsername(username);
+    const userId = await UsersService.findUserIdByUsername(username);
     if (!userId) {
       return null;
     }
@@ -274,38 +135,8 @@ export class PublicService {
     });
   }
 
-  static async getTop4(username: string) {
-    const userId = await PublicService.findUserIdByUsername(username);
-    if (!userId) {
-      return null;
-    }
-
-    return PublicTopPicksService.getTop4ByUserId(userId);
-  }
-
-  static getTop4ByUserId(userId: string) {
-    return PublicTopPicksService.getTop4ByUserId(userId);
-  }
-
-  static getSerialsCurrentlyWatchingByUserId(
-    userId: string,
-    limit: number,
-  ): Promise<PublicCurrentlyWatchingSeries[]> {
-    return TvCurrentlyWatchingService.getCurrentlyWatching(userId, limit);
-  }
-
-  static async getSerialsCurrentlyWatching(
-    username: string,
-    limit: number,
-  ): Promise<PublicCurrentlyWatchingSeries[] | null> {
-    const userId = await PublicService.findUserIdByUsername(username);
-    if (!userId) return null;
-
-    return TvCurrentlyWatchingService.getCurrentlyWatching(userId, limit);
-  }
-
   static async getSerialProgress(username: string, tmdbId: number) {
-    const userId = await PublicService.findUserIdByUsername(username);
+    const userId = await UsersService.findUserIdByUsername(username);
     if (!userId) return null;
 
     return TvProgressService.getProgress(tmdbId, userId);
