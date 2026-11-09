@@ -8,7 +8,7 @@ import {
   type CreateLogInput,
   type UpdateLogInput,
 } from "@/features/media/log-editor/use-log-mutations";
-import type { MediaTitle } from "@/features/media/media-refresh";
+import type { MediaTitle } from "@/features/media/media-cache";
 import { useSeriesInteraction, useUpdateSeriesInteraction } from "@/features/tv/hooks/useTv";
 import { isApiError } from "@/lib/api-client";
 import { todayAsLocalDateInput } from "@/lib/time";

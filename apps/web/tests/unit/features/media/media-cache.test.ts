@@ -9,7 +9,7 @@ import {
   reviewEditedEvent,
   type MediaEvent,
   type MediaKind,
-} from "@/features/media/media-refresh";
+} from "@/features/media/media-cache";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import { profileStatsKeys } from "@/features/profile/hooks/useProfileStats";
 import { reviewKeys } from "@/features/reviews/hooks/review-keys";
@@ -144,28 +144,28 @@ const rows: Row[] = [
   },
   {
     name: "liked",
-    event: (kind) => ({ type: "interaction-changed", kind, tmdbId: tmdbIdOf(kind), changed: ["liked"] }),
+    event: (kind) => ({ type: "interaction-changed", kind, tmdbId: tmdbIdOf(kind), input: { liked: true } }),
     both: [...INTERACTION, "profile.likes", "profile.recentActivity"],
   },
   {
     name: "watchlisted",
-    event: (kind) => ({ type: "interaction-changed", kind, tmdbId: tmdbIdOf(kind), changed: ["watchlisted"] }),
+    event: (kind) => ({ type: "interaction-changed", kind, tmdbId: tmdbIdOf(kind), input: { watchlisted: true } }),
     both: [...INTERACTION, "profile.recentActivity"],
   },
   {
     name: "rated",
-    event: (kind) => ({ type: "interaction-changed", kind, tmdbId: tmdbIdOf(kind), changed: ["rating"] }),
+    event: (kind) => ({ type: "interaction-changed", kind, tmdbId: tmdbIdOf(kind), input: { rating: 8 } }),
     both: [...INTERACTION, "profile.recentActivity"],
   },
   {
     name: "watched toggled",
-    event: (kind) => ({ type: "interaction-changed", kind, tmdbId: tmdbIdOf(kind), changed: ["watched"] }),
+    event: (kind) => ({ type: "interaction-changed", kind, tmdbId: tmdbIdOf(kind), input: { watched: true } }),
     both: INTERACTION,
     tvOnly: ["title.seasonDetail", "profile.currentlyWatching"],
   },
 ];
 
-describe("refreshAfter: event × media kind", () => {
+describe("media cache refresh: event × media kind", () => {
   for (const row of rows) {
     for (const kind of ["film", "tv"] as const) {
       it(`${row.name} (${kind})`, async () => {
@@ -174,6 +174,43 @@ describe("refreshAfter: event × media kind", () => {
       });
     }
   }
+
+  it("series watch status set", async () => {
+    const event: MediaEvent = { type: "interaction-changed", kind: "tv", tmdbId: SERIES, input: { watchStatus: "paused" } };
+    expect(await invalidatedBy("tv", event)).toEqual(["feed", ...INTERACTION, "profile.currentlyWatching"].sort());
+  });
+
+  const SEASON = ["feed", "title.detailView", "title.seasonDetail", "title.interaction"];
+  const PROGRESS = ["profile.currentlyWatching", "profile.stats"];
+  it.each<[string, MediaEvent, string[]]>([
+    [
+      "season watched",
+      { type: "season-interaction-changed", tmdbId: SERIES, seasonNumber: 1, input: { watched: true } },
+      PROGRESS,
+    ],
+    [
+      "season liked",
+      { type: "season-interaction-changed", tmdbId: SERIES, seasonNumber: 1, input: { liked: true } },
+      ["profile.recentActivity"],
+    ],
+    [
+      "episode watched",
+      { type: "episode-interaction-changed", tmdbId: SERIES, seasonNumber: 1, episodeNumber: 2, input: { watched: true } },
+      PROGRESS,
+    ],
+    [
+      "episode rated (may watch it implicitly)",
+      { type: "episode-interaction-changed", tmdbId: SERIES, seasonNumber: 1, episodeNumber: 2, input: { rating: 7 } },
+      [...PROGRESS, "profile.recentActivity"],
+    ],
+    [
+      "episodes watched through",
+      { type: "episodes-watched-through", tmdbId: SERIES, seasonNumber: 1, episodeNumber: 3 },
+      PROGRESS,
+    ],
+  ])("%s", async (_name, event, viewerKeys) => {
+    expect(await invalidatedBy("tv", event)).toEqual([...SEASON, ...viewerKeys].sort());
+  });
 
   it("season review changed", async () => {
     const event: MediaEvent = { type: "season-review-changed", tmdbId: SERIES, seasonNumber: 1, episodeNumber: null };
@@ -196,7 +233,7 @@ describe("refreshAfter: event × media kind", () => {
   });
 
   it("signed out: only the title and the feed", async () => {
-    expect(await invalidatedBy("film", { type: "interaction-changed", kind: "film", tmdbId: FILM, changed: ["liked"] }, null)).toEqual(
+    expect(await invalidatedBy("film", { type: "interaction-changed", kind: "film", tmdbId: FILM, input: { liked: true } }, null)).toEqual(
       ["feed", ...TITLE].sort(),
     );
   });

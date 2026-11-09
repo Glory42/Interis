@@ -17,7 +17,7 @@ import {
   unlikeReview,
 } from "@/features/reviews/api";
 import { reviewKeys } from "@/features/reviews/hooks/review-keys";
-import { refreshAfter, reviewEditedEvent } from "@/features/media/media-refresh";
+import { refreshAfter, reviewEditedEvent } from "@/features/media/media-cache";
 
 export { reviewKeys };
 

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { refreshAfter } from "@/features/media/media-refresh";
+import { refreshAfter } from "@/features/media/media-cache";
 import {
   deleteEpisodeReview,
   deleteSeasonReview,
