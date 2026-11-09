@@ -27,6 +27,9 @@ export const watchedDayLabel = (group: FeedTitleGroup, loggedDay: string): strin
 
 const VERB_ORDER = ["rewatched", "watched", "reviewed", "rated", "liked", "wants to watch"];
 
+// The page of a film or a series.
+export const titleRoute = (mediaType: string) => (mediaType === "tv" ? "/serials/$tmdbId" : "/movies/$tmdbId");
+
 const pad = (value: number) => String(value).padStart(2, "0");
 
 // "S01E04" for an episode, "S01" for a whole season.

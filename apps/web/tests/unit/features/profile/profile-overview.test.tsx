@@ -82,8 +82,9 @@ describe("ProfileOverviewActivity", () => {
     ];
     renderWithProviders(<ProfileOverviewActivity rows={rows} isPending={false} isError={false} />);
 
-    expect(await screen.findByText("Clayface, Bleach")).toBeInTheDocument();
-    expect(screen.getByText("@reel_drifter, @nightowl")).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "Bleach" })).toHaveAttribute("href", "/movies/2");
+    expect(screen.getByRole("link", { name: "@nightowl" })).toHaveAttribute("href", "/profile/nightowl");
+    expect(screen.getByText("Followed 2 people ·")).toBeInTheDocument();
   });
 });
 
