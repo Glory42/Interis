@@ -66,3 +66,11 @@ export const markNotificationRead = async (id: string): Promise<void> => {
 export const markAllNotificationsRead = async (): Promise<void> => {
   await apiRequest("/api/notifications/read-all", { method: "POST" });
 };
+
+export const deleteNotification = async (id: string): Promise<void> => {
+  await apiRequest(`/api/notifications/${encodeURIComponent(id)}`, { method: "DELETE" });
+};
+
+export const clearNotifications = async (): Promise<void> => {
+  await apiRequest("/api/notifications", { method: "DELETE" });
+};
