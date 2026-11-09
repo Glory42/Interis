@@ -1,7 +1,6 @@
 import type { Request, Response } from "express";
 import { sendBadRequest, sendValidationError } from "../../commons/http/validation-response.helper";
 import { AdminService } from "./admin.service";
-import { AdminAuditService } from "./admin-audit.service";
 import {
   AdminPasswordConfirmSchema,
   AdminResetPasswordSchema,
@@ -52,13 +51,7 @@ export class AdminController {
       return;
     }
 
-    const targetId = await AdminService.revokeUserSessions(req.user.id, parsed.data.adminPassword, req.params.username);
-    await AdminAuditService.record(req.user, {
-      action: "user.revoke_sessions",
-      targetType: "user",
-      targetId,
-      targetLabel: req.params.username,
-    });
+    await AdminService.revokeUserSessions(req.user, parsed.data.adminPassword, req.params.username);
     res.status(200).json({ success: true });
   }
 
@@ -75,13 +68,7 @@ export class AdminController {
       return;
     }
 
-    const targetId = await AdminService.forcePasswordReset(req.user.id, parsed.data.adminPassword, req.params.username);
-    await AdminAuditService.record(req.user, {
-      action: "user.force_password_reset",
-      targetType: "user",
-      targetId,
-      targetLabel: req.params.username,
-    });
+    await AdminService.forcePasswordReset(req.user, parsed.data.adminPassword, req.params.username);
     res.status(200).json({ success: true });
   }
 
@@ -101,18 +88,12 @@ export class AdminController {
       return;
     }
 
-    const targetId = await AdminService.resetUserPassword(
-      req.user.id,
+    await AdminService.resetUserPassword(
+      req.user,
       parsed.data.adminPassword,
       req.params.username,
       parsed.data.newPassword,
     );
-    await AdminAuditService.record(req.user, {
-      action: "user.reset_password",
-      targetType: "user",
-      targetId,
-      targetLabel: req.params.username,
-    });
     res.status(200).json({ success: true });
   }
 
@@ -132,22 +113,13 @@ export class AdminController {
       return;
     }
 
-    const targetId = await AdminService.suspendUser(
-      req.user.id,
+    await AdminService.suspendUser(
+      req.user,
       parsed.data.adminPassword,
       req.params.username,
       parsed.data.reason,
       parsed.data.durationDays,
     );
-    const { reason, durationDays } = parsed.data;
-    const length = durationDays ? `${durationDays} ${durationDays === 1 ? "day" : "days"}` : null;
-    await AdminAuditService.record(req.user, {
-      action: "user.suspend",
-      targetType: "user",
-      targetId,
-      targetLabel: req.params.username,
-      reason: [reason, length && `(${length})`].filter(Boolean).join(" ") || null,
-    });
     res.status(200).json({ success: true });
   }
 
@@ -156,13 +128,7 @@ export class AdminController {
     req: Request<{ username: string }>,
     res: Response,
   ): Promise<void> {
-    const targetId = await AdminService.unsuspendUser(req.params.username);
-    await AdminAuditService.record(req.user, {
-      action: "user.unsuspend",
-      targetType: "user",
-      targetId,
-      targetLabel: req.params.username,
-    });
+    await AdminService.unsuspendUser(req.user, req.params.username);
     res.status(200).json({ success: true });
   }
 
@@ -182,13 +148,7 @@ export class AdminController {
       return;
     }
 
-    const targetId = await AdminService.promoteUser(req.user.id, parsed.data.adminPassword, req.params.username);
-    await AdminAuditService.record(req.user, {
-      action: "user.promote",
-      targetType: "user",
-      targetId,
-      targetLabel: req.params.username,
-    });
+    await AdminService.promoteUser(req.user, parsed.data.adminPassword, req.params.username);
     res.status(200).json({ success: true });
   }
 
@@ -208,13 +168,7 @@ export class AdminController {
       return;
     }
 
-    const targetId = await AdminService.demoteUser(req.user.id, parsed.data.adminPassword, req.params.username);
-    await AdminAuditService.record(req.user, {
-      action: "user.demote",
-      targetType: "user",
-      targetId,
-      targetLabel: req.params.username,
-    });
+    await AdminService.demoteUser(req.user, parsed.data.adminPassword, req.params.username);
     res.status(200).json({ success: true });
   }
 
@@ -234,13 +188,7 @@ export class AdminController {
       return;
     }
 
-    const targetId = await AdminService.deleteUser(req.user.id, parsed.data.adminPassword, req.params.username);
-    await AdminAuditService.record(req.user, {
-      action: "user.delete",
-      targetType: "user",
-      targetId,
-      targetLabel: req.params.username,
-    });
+    await AdminService.deleteUser(req.user, parsed.data.adminPassword, req.params.username);
     res.status(200).json({ success: true });
   }
 }

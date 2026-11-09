@@ -17,6 +17,12 @@ export type ResolvedInteractionUpdate = {
   updateSet: Partial<InteractionStateRow>;
 };
 
+// A Series has no watched column: it's watched once its watch status is
+// completed (#65). The one place that rule lives.
+export function isSeriesWatched(watchStatus: string | null | undefined): boolean {
+  return watchStatus === "completed";
+}
+
 // Liking or rating a single watchable item - a movie or an episode - is an
 // implicit "I've watched this" signal. `resolveInteractionUpdate` applies it
 // to the movie row; the episode path applies it (reversibly) through

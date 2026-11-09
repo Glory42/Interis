@@ -1,61 +1,33 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAdminPagedList } from "@/features/admin/hooks/useAdminPagedList";
 import {
-  deleteAdminFilm,
-  deleteAdminSeries,
-  listAdminFilms,
-  listAdminTv,
-  refreshAdminFilm,
-  refreshAdminSeries,
-  updateAdminFilm,
-  updateAdminSeries,
-  type AdminUpdateFilmInput,
-  type AdminUpdateSeriesInput,
+  deleteAdminMedia,
+  listAdminMedia,
+  refreshAdminMedia,
+  updateAdminMedia,
+  type AdminMediaKind,
+  type AdminMediaUpdate,
 } from "@/features/admin/media-api";
 
 export const adminMediaKeys = {
-  moviesAll: ["admin", "movies"] as const,
-  movies: (query?: string) => ["admin", "movies", query ?? ""] as const,
-  serialsAll: ["admin", "serials"] as const,
-  serials: (query?: string) => ["admin", "serials", query ?? ""] as const,
+  all: (kind: AdminMediaKind) => ["admin", kind === "movie" ? "movies" : "serials"] as const,
+  list: (kind: AdminMediaKind, query?: string) => [...adminMediaKeys.all(kind), query ?? ""] as const,
 };
 
-export const useAdminFilms = (query?: string) =>
-  useAdminPagedList(adminMediaKeys.movies(query), (page) => listAdminFilms(query, page));
+export const useAdminMediaList = (kind: AdminMediaKind, query?: string) =>
+  useAdminPagedList(adminMediaKeys.list(kind, query), (page) => listAdminMedia(kind, query, page));
 
-export const useAdminTv = (query?: string) =>
-  useAdminPagedList(adminMediaKeys.serials(query), (page) => listAdminTv(query, page));
-
-const useFilmAction = <TInput>(mutationFn: (input: TInput) => Promise<void>) => {
+// Edit, refresh and delete for one media kind; each refetches only that kind's admin list.
+export const useAdminMediaAction = (kind: AdminMediaKind) => {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn,
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: adminMediaKeys.moviesAll });
-    },
-  });
+  const onSuccess = () => queryClient.invalidateQueries({ queryKey: adminMediaKeys.all(kind) });
+
+  return {
+    update: useMutation({
+      mutationFn: ({ id, fields }: { id: number; fields: AdminMediaUpdate }) => updateAdminMedia(kind, id, fields),
+      onSuccess,
+    }),
+    refresh: useMutation({ mutationFn: (id: number) => refreshAdminMedia(kind, id), onSuccess }),
+    remove: useMutation({ mutationFn: (id: number) => deleteAdminMedia(kind, id), onSuccess }),
+  };
 };
-
-const useSeriesAction = <TInput>(mutationFn: (input: TInput) => Promise<void>) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn,
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: adminMediaKeys.serialsAll });
-    },
-  });
-};
-
-export const useUpdateAdminFilm = () =>
-  useFilmAction(({ id, fields }: { id: number; fields: AdminUpdateFilmInput }) =>
-    updateAdminFilm(id, fields),
-  );
-export const useRefreshAdminFilm = () => useFilmAction(refreshAdminFilm);
-export const useDeleteAdminFilm = () => useFilmAction(deleteAdminFilm);
-
-export const useUpdateAdminSeries = () =>
-  useSeriesAction(({ id, fields }: { id: number; fields: AdminUpdateSeriesInput }) =>
-    updateAdminSeries(id, fields),
-  );
-export const useRefreshAdminSeries = () => useSeriesAction(refreshAdminSeries);
-export const useDeleteAdminSeries = () => useSeriesAction(deleteAdminSeries);

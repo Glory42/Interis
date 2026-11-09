@@ -59,7 +59,7 @@ describe("useLikePost", () => {
 
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(feedKeys.grouped("all"), {
-      pages: [{ items: [{ kind: "activity", item: makeFeedItem("post-1") }], nextCursor: null }],
+      pages: [{ rows: [{ kind: "activity", key: "post-1", day: "2026-01-01", item: makeFeedItem("post-1") }], nextCursor: null }],
       pageParams: [undefined],
     });
     queryClient.setQueryData(postKeys.detail("post-1"), makePostDetail("post-1", 0));
@@ -72,10 +72,10 @@ describe("useLikePost", () => {
 
     await waitFor(() => {
       const feedData = queryClient.getQueryData(feedKeys.grouped("all")) as {
-        pages: Array<{ items: Array<{ item: FeedItem }> }>;
+        pages: Array<{ rows: Array<{ item: FeedItem }> }>;
       };
-      expect(feedData.pages[0]!.items[0]!.item.engagement.viewerHasLiked).toBe(true);
-      expect(feedData.pages[0]!.items[0]!.item.engagement.likeCount).toBe(1);
+      expect(feedData.pages[0]!.rows[0]!.item.engagement.viewerHasLiked).toBe(true);
+      expect(feedData.pages[0]!.rows[0]!.item.engagement.likeCount).toBe(1);
 
       const detail = queryClient.getQueryData<PostDetail>(postKeys.detail("post-1"));
       expect(detail?.likeCount).toBe(1);
@@ -93,7 +93,7 @@ describe("useLikePost", () => {
 
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(feedKeys.grouped("all"), {
-      pages: [{ items: [{ kind: "activity", item: makeFeedItem("post-1") }], nextCursor: null }],
+      pages: [{ rows: [{ kind: "activity", key: "post-1", day: "2026-01-01", item: makeFeedItem("post-1") }], nextCursor: null }],
       pageParams: [undefined],
     });
     queryClient.setQueryData(postKeys.detail("post-1"), makePostDetail("post-1", 0));
@@ -106,10 +106,10 @@ describe("useLikePost", () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
 
     const feedData = queryClient.getQueryData(feedKeys.grouped("all")) as {
-      pages: Array<{ items: Array<{ item: FeedItem }> }>;
+      pages: Array<{ rows: Array<{ item: FeedItem }> }>;
     };
-    expect(feedData.pages[0]!.items[0]!.item.engagement.viewerHasLiked).toBe(false);
-    expect(feedData.pages[0]!.items[0]!.item.engagement.likeCount).toBe(0);
+    expect(feedData.pages[0]!.rows[0]!.item.engagement.viewerHasLiked).toBe(false);
+    expect(feedData.pages[0]!.rows[0]!.item.engagement.likeCount).toBe(0);
 
     const detail = queryClient.getQueryData<PostDetail>(postKeys.detail("post-1"));
     expect(detail?.likeCount).toBe(0);
@@ -122,7 +122,7 @@ describe("useLikePost", () => {
     queryClient.setQueryData(feedKeys.grouped("all"), {
       pages: [
         {
-          items: [{ kind: "activity", item: makeFeedItem("post-1", { engagement: { likeCount: 1, commentCount: 0, viewerHasLiked: true } }) }],
+          rows: [{ kind: "activity", key: "post-1", day: "2026-01-01", item: makeFeedItem("post-1", { engagement: { likeCount: 1, commentCount: 0, viewerHasLiked: true } }) }],
           nextCursor: null,
         },
       ],
@@ -138,9 +138,9 @@ describe("useLikePost", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     const feedData = queryClient.getQueryData(feedKeys.grouped("all")) as {
-      pages: Array<{ items: Array<{ item: FeedItem }> }>;
+      pages: Array<{ rows: Array<{ item: FeedItem }> }>;
     };
-    expect(feedData.pages[0]!.items[0]!.item.engagement.likeCount).toBe(1);
+    expect(feedData.pages[0]!.rows[0]!.item.engagement.likeCount).toBe(1);
   });
 });
 
@@ -163,7 +163,7 @@ describe("useAddPostComment", () => {
     queryClient.setQueryData(postKeys.comments("post-1"), []);
     queryClient.setQueryData(postKeys.comments("post-2"), []);
     queryClient.setQueryData(feedKeys.grouped("all"), {
-      pages: [{ items: [{ kind: "activity", item: makeFeedItem("post-1") }], nextCursor: null }],
+      pages: [{ rows: [{ kind: "activity", key: "post-1", day: "2026-01-01", item: makeFeedItem("post-1") }], nextCursor: null }],
       pageParams: [undefined],
     });
 

@@ -9,14 +9,6 @@ import { seriesDiaryEntries, seriesEpisodeInteractions } from "../../tv/tv.entit
 import { follows } from "../../social/social.entity";
 
 export class UsersStatsRepository {
-  static async getTotalUsersCount(): Promise<number> {
-    const rows = await db
-      .select({ count: sql<number>`count(*)`.mapWith(Number) })
-      .from(user);
-
-    return rows[0]?.count ?? 0;
-  }
-
   static async getNetworkStats(): Promise<{
     totalUsers: number;
     logsToday: number;

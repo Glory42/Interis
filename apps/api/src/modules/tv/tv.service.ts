@@ -10,11 +10,10 @@ import { TvCacheService } from "./services/tv-cache.service";
 import { TvDetailService } from "./services/tv-detail.service";
 import { seriesWatchLog } from "./services/series-watch-log.adapter";
 import { WatchLogService } from "../media/services/watch-log.service";
+import { MediaInteractionService } from "../media-interactions/services/media-interaction.service";
+import { seriesInteraction } from "./services/series-interaction.adapter";
 import { TvInteractionsRepository } from "./repositories/tv-interactions.repository";
-import {
-  TvCacheRepository,
-  type AdminUpdateSeriesFields,
-} from "./repositories/tv-cache.repository";
+import { TvCacheRepository } from "./repositories/tv-cache.repository";
 import type {
   NormalizedSeriesArchiveQuery,
   CreateSeriesLogDto,
@@ -95,7 +94,7 @@ export class TvService {
   }
 
   static async getInteraction(userId: string, tmdbId: number) {
-    return TvActivityService.getInteraction(userId, tmdbId);
+    return MediaInteractionService.get(seriesInteraction, userId, tmdbId);
   }
 
   static async updateInteraction(
@@ -103,7 +102,7 @@ export class TvService {
     tmdbId: number,
     input: UpdateSeriesInteractionDto,
   ) {
-    return TvActivityService.updateInteraction(userId, tmdbId, input);
+    return MediaInteractionService.update(seriesInteraction, userId, tmdbId, input);
   }
 
   static async createLog(userId: string, tmdbId: number, input: CreateSeriesLogDto) {
@@ -152,24 +151,6 @@ export class TvService {
 
   static async getWatchedSeries(userId: string, limit?: number, offset?: number) {
     return TvInteractionsRepository.getWatchedSeriesForUser(userId, limit, offset);
-  }
-
-  static async listAllForAdmin(query: string | undefined, limit: number, offset: number) {
-    return TvCacheRepository.listAllForAdmin(query, limit, offset);
-  }
-
-  static async updateForAdmin(id: number, fields: AdminUpdateSeriesFields) {
-    return TvCacheRepository.updateById(id, fields);
-  }
-
-  static async refreshForAdmin(id: number) {
-    const existing = await TvCacheRepository.findById(id);
-    if (!existing) return null;
-    return TvCacheService.refreshForAdmin(existing.tmdbId);
-  }
-
-  static async deleteForAdmin(id: number) {
-    return TvCacheRepository.deleteById(id);
   }
 
   static async findCachedCreators(tmdbIds: number[]): Promise<Map<number, string>> {

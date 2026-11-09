@@ -25,6 +25,16 @@ const profileSelect = {
 export type SuspensionOptions = { until?: Date | null; by?: string | null };
 
 export class UsersProfileRepository {
+  static async findUserIdByUsername(username: string): Promise<string | null> {
+    const [row] = await db
+      .select({ id: user.id })
+      .from(user)
+      .where(eq(user.username, username))
+      .limit(1);
+
+    return row?.id ?? null;
+  }
+
   static async findProfileByUsername(username: string) {
     const [result] = await db
       .select(profileSelect)

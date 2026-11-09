@@ -1,7 +1,7 @@
 import { ReviewsService } from "../reviews/reviews.service";
 import { PostsService } from "../posts/posts.service";
-import { ListsService } from "../lists/lists.service";
-import type { ContentRemoval } from "../../commons/types/content-removal.types";
+import { AdminAuditService, type AuditActor } from "../admin/admin-audit.service";
+import { ModeratorActionService } from "../admin/services/moderator-action.service";
 import { ReportTargetsRepository } from "./repositories/report-targets.repository";
 import {
   ReportsRepository,
@@ -25,15 +25,6 @@ const snapshotOf = async (targetType: ReportTargetType, targetId: string): Promi
   if (targetType === "review") return (await ReviewsService.findById(targetId))?.review.content ?? null;
   if (targetType === "post") return (await PostsService.findById(targetId))?.content ?? null;
   return ReportTargetsRepository.snapshot(targetType, targetId);
-};
-
-// Each content module's own remove op retracts the activity and sends the notice.
-const removeTarget = async (targetType: ReportTargetType, targetId: string, removal: ContentRemoval) => {
-  if (targetType === "review") return ReviewsService.remove(targetId, removal);
-  if (targetType === "post") return PostsService.remove(targetId, removal);
-  if (targetType === "comment") return ReviewsService.removeComment(targetId, removal);
-  if (targetType === "post_comment") return PostsService.removeComment(targetId, removal);
-  return ListsService.remove(targetId, removal);
 };
 
 export class ReportsService {
@@ -67,7 +58,7 @@ export class ReportsService {
 
   static async resolveReport(
     reportId: string,
-    adminUserId: string,
+    actor: AuditActor,
     status: "resolved" | "dismissed",
   ): Promise<{ error: string; status: 404 } | { success: true }> {
     const report = await ReportsRepository.findById(reportId);
@@ -75,13 +66,18 @@ export class ReportsService {
       return { error: "Report not found", status: 404 };
     }
 
-    await ReportsRepository.updateStatus(reportId, status, adminUserId);
+    await ReportsRepository.updateStatus(reportId, status, actor.id);
+    await AdminAuditService.record(actor, {
+      action: status === "resolved" ? "report.resolve" : "report.dismiss",
+      targetType: "report",
+      targetId: reportId,
+    });
     return { success: true };
   }
 
   static async removeContent(
     reportId: string,
-    adminUserId: string,
+    actor: AuditActor,
     options: { reason: string | null; notifyAuthor: boolean },
   ): Promise<{ error: string; status: 404 } | { success: true }> {
     const report = await ReportsRepository.findById(reportId);
@@ -92,9 +88,11 @@ export class ReportsService {
     const notice = options.notifyAuthor
       ? { reason: options.reason, excerpt: report.contentSnapshot.slice(0, REMOVAL_NOTICE_EXCERPT_LENGTH) }
       : undefined;
-    await removeTarget(report.targetType, report.targetId, { by: "moderator", notice });
-
-    await ReportsRepository.resolvePendingForTarget(report.targetType, report.targetId, adminUserId);
+    await ModeratorActionService.removeContent(
+      { type: report.targetType, id: report.targetId },
+      actor,
+      { reason: options.reason, notice, reportId },
+    );
     return { success: true };
   }
 
@@ -106,15 +104,24 @@ export class ReportsService {
     targetType: ReportTargetType;
     targetId: string;
     status: "resolved" | "dismissed";
-    adminUserId: string;
+    actor: AuditActor;
     note: string | null;
   }): Promise<number> {
-    return ReportsRepository.closePendingForTarget({
+    const closed = await ReportsRepository.closePendingForTarget({
       targetType: input.targetType,
       targetId: input.targetId,
       status: input.status,
-      resolvedBy: input.adminUserId,
+      resolvedBy: input.actor.id,
       note: input.note,
     });
+    if (closed > 0) {
+      await AdminAuditService.record(input.actor, {
+        action: input.status === "resolved" ? "report.resolve_all" : "report.dismiss_all",
+        targetType: input.targetType,
+        targetId: input.targetId,
+        reason: input.note,
+      });
+    }
+    return closed;
   }
 }

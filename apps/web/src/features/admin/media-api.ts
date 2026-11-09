@@ -3,6 +3,39 @@ import { appendPageParams, type AdminPage } from "@/features/admin/pagination";
 import { apiRequest } from "@/lib/api-client";
 import { successResponseSchema as actionResponseSchema } from "@/types/api";
 
+// Wire names: the admin API calls Films "movies" and Series "serials".
+export type AdminMediaKind = "movie" | "serial";
+
+// One cached Film or Series row, with its year and director/creator under shared names.
+export type AdminMediaTitle = {
+  id: number;
+  tmdbId: number;
+  title: string;
+  year: number | null;
+  credit: string | null;
+};
+
+export type AdminMediaUpdate = { title?: string; overview?: string; credit?: string | null };
+
+const baseRow = { id: z.number(), tmdbId: z.number(), title: z.string() };
+
+const ADMIN_MEDIA_API = {
+  movie: {
+    path: "/api/admin/movies",
+    creditField: "director",
+    row: z
+      .object({ ...baseRow, releaseYear: z.number().nullable(), director: z.string().nullable() })
+      .transform(({ releaseYear, director, ...row }) => ({ ...row, year: releaseYear, credit: director })),
+  },
+  serial: {
+    path: "/api/admin/serials",
+    creditField: "creator",
+    row: z
+      .object({ ...baseRow, firstAirYear: z.number().nullable(), creator: z.string().nullable() })
+      .transform(({ firstAirYear, creator, ...row }) => ({ ...row, year: firstAirYear, credit: creator })),
+  },
+} as const;
+
 const buildMediaQuery = (query: string | undefined, page?: AdminPage): string => {
   const params = new URLSearchParams();
   if (query) params.set("query", query);
@@ -11,100 +44,31 @@ const buildMediaQuery = (query: string | undefined, page?: AdminPage): string =>
   return search ? `?${search}` : "";
 };
 
-const adminFilmSchema = z.object({
-  id: z.number(),
-  tmdbId: z.number(),
-  title: z.string(),
-  originalTitle: z.string().nullable(),
-  posterPath: z.string().nullable(),
-  releaseYear: z.number().nullable(),
-  director: z.string().nullable(),
-  cachedAt: z.coerce.date(),
-});
-export type AdminFilm = z.infer<typeof adminFilmSchema>;
-
-export type AdminUpdateFilmInput = Partial<{
-  title: string;
-  originalTitle: string | null;
-  overview: string | null;
-  tagline: string | null;
-  director: string | null;
-  posterPath: string | null;
-  backdropPath: string | null;
-  releaseYear: number | null;
-}>;
-
-export const listAdminFilms = async (query?: string, page?: AdminPage): Promise<AdminFilm[]> => {
-  const response = await apiRequest<unknown>(`/api/admin/movies${buildMediaQuery(query, page)}`, {
-    method: "GET",
-  });
-  return z.array(adminFilmSchema).parse(response);
+export const listAdminMedia = async (
+  kind: AdminMediaKind,
+  query?: string,
+  page?: AdminPage,
+): Promise<AdminMediaTitle[]> => {
+  const { path, row } = ADMIN_MEDIA_API[kind];
+  const response = await apiRequest<unknown>(`${path}${buildMediaQuery(query, page)}`, { method: "GET" });
+  return z.array(row).parse(response);
 };
 
-export const updateAdminFilm = async (
+export const updateAdminMedia = async (
+  kind: AdminMediaKind,
   id: number,
-  fields: AdminUpdateFilmInput,
+  { credit, ...fields }: AdminMediaUpdate,
 ): Promise<void> => {
-  await apiRequest<unknown, AdminUpdateFilmInput>(`/api/admin/movies/${id}`, {
-    method: "PATCH",
-    body: fields,
-  });
+  const { path, creditField } = ADMIN_MEDIA_API[kind];
+  const body = credit === undefined ? fields : { ...fields, [creditField]: credit };
+  await apiRequest<unknown, Record<string, unknown>>(`${path}/${id}`, { method: "PATCH", body });
 };
 
-export const refreshAdminFilm = async (id: number): Promise<void> => {
-  await apiRequest<unknown>(`/api/admin/movies/${id}/refresh`, { method: "POST" });
+export const refreshAdminMedia = async (kind: AdminMediaKind, id: number): Promise<void> => {
+  await apiRequest<unknown>(`${ADMIN_MEDIA_API[kind].path}/${id}/refresh`, { method: "POST" });
 };
 
-export const deleteAdminFilm = async (id: number): Promise<void> => {
-  const response = await apiRequest<unknown>(`/api/admin/movies/${id}`, { method: "DELETE" });
-  actionResponseSchema.parse(response);
-};
-
-const adminSeriesSchema = z.object({
-  id: z.number(),
-  tmdbId: z.number(),
-  title: z.string(),
-  originalTitle: z.string().nullable(),
-  posterPath: z.string().nullable(),
-  firstAirYear: z.number().nullable(),
-  creator: z.string().nullable(),
-  cachedAt: z.coerce.date(),
-});
-export type AdminSeries = z.infer<typeof adminSeriesSchema>;
-
-export type AdminUpdateSeriesInput = Partial<{
-  title: string;
-  originalTitle: string | null;
-  overview: string | null;
-  tagline: string | null;
-  creator: string | null;
-  network: string | null;
-  posterPath: string | null;
-  backdropPath: string | null;
-}>;
-
-export const listAdminTv = async (query?: string, page?: AdminPage): Promise<AdminSeries[]> => {
-  const response = await apiRequest<unknown>(`/api/admin/serials${buildMediaQuery(query, page)}`, {
-    method: "GET",
-  });
-  return z.array(adminSeriesSchema).parse(response);
-};
-
-export const updateAdminSeries = async (
-  id: number,
-  fields: AdminUpdateSeriesInput,
-): Promise<void> => {
-  await apiRequest<unknown, AdminUpdateSeriesInput>(`/api/admin/serials/${id}`, {
-    method: "PATCH",
-    body: fields,
-  });
-};
-
-export const refreshAdminSeries = async (id: number): Promise<void> => {
-  await apiRequest<unknown>(`/api/admin/serials/${id}/refresh`, { method: "POST" });
-};
-
-export const deleteAdminSeries = async (id: number): Promise<void> => {
-  const response = await apiRequest<unknown>(`/api/admin/serials/${id}`, { method: "DELETE" });
+export const deleteAdminMedia = async (kind: AdminMediaKind, id: number): Promise<void> => {
+  const response = await apiRequest<unknown>(`${ADMIN_MEDIA_API[kind].path}/${id}`, { method: "DELETE" });
   actionResponseSchema.parse(response);
 };

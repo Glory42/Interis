@@ -1,5 +1,6 @@
 import type { ViewerStatus, ViewerStatusItem } from "./dto/viewer-status.dto";
 import { ViewerStatusRepository } from "./repositories/viewer-status.repository";
+import { isSeriesWatched } from "../media-interactions/helpers/interaction-state-rules.helper";
 
 const emptyStatus = (item: ViewerStatusItem): ViewerStatus => ({
   ...item,
@@ -47,7 +48,7 @@ export class ViewerStatusService {
 
       return {
         ...item,
-        watched: row.watchStatus === "completed",
+        watched: isSeriesWatched(row.watchStatus),
         rating: row.rating ?? null,
         liked: row.liked ?? false,
         watchlisted: row.watchlisted ?? false,

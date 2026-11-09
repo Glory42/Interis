@@ -2,7 +2,7 @@ import { FilmsService } from "../../films/films.service";
 import { TvService } from "../../tv/tv.service";
 import { TvReviewsRepository } from "../../tv/repositories/tv-reviews.repository";
 import { ReviewsRepository } from "../../reviews/repositories/reviews.repository";
-import { MediaInteractions, type MediaInteractionAdapter } from "../../media-interactions/media-interactions.repository";
+import { MediaInteractions, type MediaInteractionStore } from "../../media-interactions/media-interactions.repository";
 import { YourRatingService } from "../../media-interactions/services/your-rating.service";
 import { WatchLogStores } from "../../media/repositories/watch-log.repository";
 import type { WatchLogStore } from "../../media/types/watch-log.types";
@@ -36,7 +36,7 @@ type DiaryImportMedia = { id: number; tmdbId: number };
 
 type DiaryImportAdapter<TMedia extends DiaryImportMedia> = {
   mediaType: MediaType;
-  interactions: MediaInteractionAdapter;
+  interactions: MediaInteractionStore;
   logs: WatchLogStore;
   findOrCreateMedia: (tmdbId: number) => Promise<TMedia>;
   fetchFailedReason: string;

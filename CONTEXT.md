@@ -14,6 +14,10 @@ _Avoid_: account, member
 The mutable, user-facing side of a User: bio, location, avatar, favorite genres, theme, and admin/suspension status. One-to-one with User.
 _Avoid_: account settings
 
+**Profile Tab**:
+One section of a Profile read by username — Diary, Reviews, Likes, Watchlist, Liked Reviews, Liked Lists, Lists, Top 4, Recent, Currently Watching. The in-app Profile and the widget API read them through one module (`ProfileTabsService`) with one set of paging rules.
+_Avoid_: profile list, profile endpoint
+
 ### Media catalog
 
 **Media**:
@@ -47,7 +51,7 @@ A reply to a Review or a Post — a distinct model per parent, not a shared one.
 _Avoid_: reply
 
 **Interaction**:
-A user's standing relationship to one Film or Series — liked, watchlisted, watched, and rating — held as one row per user+media pair and updated in place, never a history of events (`movie_interaction` for Films, `serial_interaction` for Series). Season- and episode-level variants exist for Series.
+A user's standing relationship to one Film or Series — liked, watchlisted, watched, and rating — held as one row per user+media pair and updated in place, never a history of events (`movie_interaction` for Films, `serial_interaction` for Series). Season- and episode-level variants exist for Series. A Series is watched when its watch status is completed. Liking or watchlisting adds an Activity when it newly sets the flag; explicitly undoing it removes that Activity, but an implied clear (watching takes a title off the Watchlist) does not. Writes are owned by `modules/media-interactions` (`MediaInteractionService`).
 _Avoid_: reaction, status
 
 **Your Rating**:
@@ -82,8 +86,12 @@ A short, Twitter-style standalone update a user writes, optionally attached to o
 _Avoid_: status, tweet
 
 **Following Feed**:
-The personalized, authenticated activity stream showing Activities from the users the viewer follows (plus their own), scoped via the Follow relationship. Backs `GET /api/social/feed/following`.
+The personalized, authenticated activity stream showing Activities from the users the viewer follows (plus their own), scoped via the Follow relationship. Shown as Feed Rows split into the viewer's days. Backs `GET /api/social/feed/grouped`.
 _Avoid_: feed (too ambiguous alone — always qualify as "Following Feed" or "Trending Now")
+
+**Feed Row**:
+One row the viewer sees in the Following Feed or a profile overview: a title card (one person's Activities on one Film/Series, season or episode on one day), a plain Activity, or a folded run of one person's same-day likes, watchlist adds, follows, or one show's seasons and episodes. Days are the viewer's local days (their IANA time zone, UTC if unknown); the API folds and pages rows, the web only renders them.
+_Avoid_: entry, item (an item is one Activity before grouping)
 
 **Trending Now**:
 TMDB's industry-wide popularity ranking for Films and Series, fetched on demand and cached locally like any other TMDB data — carries no Interis user activity and is not personalized or Follow-scoped. Shown as two separate rankings, one for Films and one for TV, never blended into a single list.
@@ -102,6 +110,10 @@ _Avoid_: block (Mute and Block are separate relationships)
 **Report**:
 A user's flag of a Review, Post, comment, or List for moderator review, snapshotting the content at submit time so it stays reviewable even if the original is later edited or deleted.
 _Avoid_: flag
+
+**Moderator Action**:
+An admin's removal of a Review, Post, Comment or List, from the admin panels or the report queue alike: removes the content, resolves every pending Report on it and writes an audit entry, as one operation (`ModeratorActionService`).
+_Avoid_: takedown, admin delete
 
 **Suspension**:
 An admin-applied, platform-wide restriction on a Profile (`isSuspended`) — distinct from Block/Mute, which are relationships between two ordinary users.

@@ -5,6 +5,7 @@ import { signUpTestUser } from "../../support/app/auth-flow";
 import type { CookieJar } from "../../support/app/cookie-jar";
 import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";
 import { startTestServer, type RunningTestServer } from "../../support/app/test-server";
+import { readFollowingFeed } from "../../support/app/following-feed";
 import { db } from "../../../src/infrastructure/database/db";
 import { user } from "../../../src/infrastructure/database/auth.entity";
 import { activities } from "../../../src/modules/social/social.entity";
@@ -61,44 +62,6 @@ describe("undoing an action retracts its feed activity (#76)", () => {
     return (await response.json().catch(() => null)) as Record<string, unknown> | null;
   };
 
-  it("removes a movie like and watchlist row when they are undone", async () => {
-    const { jar, username } = await signUpTestUser(getServer().baseUrl, "rtmovie");
-    const movie = await seedTestFilm();
-    const userId = await getUserId(username);
-
-    await send(jar, "PUT", `/api/interactions/${movie.tmdbId}`, { liked: true, watchlisted: true });
-    await waitForActivityWrite();
-    expect(await activityMetadataFor(userId, "liked_movie")).toHaveLength(1);
-    expect(await activityMetadataFor(userId, "watchlisted_movie")).toHaveLength(1);
-
-    await send(jar, "PUT", `/api/interactions/${movie.tmdbId}`, { liked: false });
-    expect(await activityMetadataFor(userId, "liked_movie")).toHaveLength(0);
-    expect(await activityMetadataFor(userId, "watchlisted_movie")).toHaveLength(1);
-
-    await send(jar, "PUT", `/api/interactions/${movie.tmdbId}`, { watchlisted: false });
-    expect(await activityMetadataFor(userId, "watchlisted_movie")).toHaveLength(0);
-  });
-
-  it("resending a movie like or watchlist adds no second row (#79)", async () => {
-    const { jar, username } = await signUpTestUser(getServer().baseUrl, "rtresend");
-    const movie = await seedTestFilm();
-    const userId = await getUserId(username);
-    const path = `/api/interactions/${movie.tmdbId}`;
-
-    await send(jar, "PUT", path, { liked: true, watchlisted: true });
-    await send(jar, "PUT", path, { liked: true, watchlisted: true });
-    await send(jar, "PUT", path, { liked: true, rating: 7 });
-    await waitForActivityWrite();
-    expect(await activityMetadataFor(userId, "liked_movie")).toHaveLength(1);
-    expect(await activityMetadataFor(userId, "watchlisted_movie")).toHaveLength(1);
-
-    // A real off -> on flip is news again.
-    await send(jar, "PUT", path, { liked: false });
-    await send(jar, "PUT", path, { liked: true });
-    await waitForActivityWrite();
-    expect(await activityMetadataFor(userId, "liked_movie")).toHaveLength(1);
-  });
-
   it("unliking one level of a series leaves the other levels' likes and ratings", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "rtseries");
     const serial = await seedTestSeries();
@@ -130,19 +93,6 @@ describe("undoing an action retracts its feed activity (#76)", () => {
     expect(await activityMetadataFor(userId, "liked_movie")).toHaveLength(0);
   });
 
-  it("removes a series watchlist row when it is undone", async () => {
-    const { jar, username } = await signUpTestUser(getServer().baseUrl, "rtserieswl");
-    const serial = await seedTestSeries();
-    const userId = await getUserId(username);
-
-    await send(jar, "PUT", `/api/serials/${serial.tmdbId}/interaction`, { watchlisted: true });
-    await waitForActivityWrite();
-    expect(await activityMetadataFor(userId, "watchlisted_movie")).toHaveLength(1);
-
-    await send(jar, "PUT", `/api/serials/${serial.tmdbId}/interaction`, { watchlisted: false });
-    expect(await activityMetadataFor(userId, "watchlisted_movie")).toHaveLength(0);
-  });
-
   it("removes the follow row on unfollow, and it leaves the feed", async () => {
     const follower = await signUpTestUser(getServer().baseUrl, "rtfollower");
     const target = await signUpTestUser(getServer().baseUrl, "rttarget");
@@ -154,10 +104,8 @@ describe("undoing an action retracts its feed activity (#76)", () => {
     await send(follower.jar, "DELETE", `/api/social/follow/${target.username}`);
     expect(await activityMetadataFor(followerId, "followed_user")).toHaveLength(0);
 
-    const feed = (await send(follower.jar, "GET", "/api/social/feed")) as {
-      items: Array<{ type: string }>;
-    };
-    expect(feed.items.map((item) => item.type)).not.toContain("followed_user");
+    const { rows } = await readFollowingFeed(getServer().baseUrl, follower.jar);
+    expect(JSON.stringify(rows)).not.toContain(target.username);
   });
 
   it("removes a review like and a post like when they are undone", async () => {

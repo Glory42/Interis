@@ -1,7 +1,7 @@
 import { FeedReviewEditDialog } from "@/features/feed/components/FeedReviewEditDialog";
 import type { FeedTitleGroup } from "@/features/feed/types";
 import { LogEditor } from "@/features/media/log-editor/LogEditor";
-import { toMediaKind } from "@/features/media/media-refresh";
+import { toMediaKind } from "@/features/media/media-cache";
 
 type FeedTitleEditDialogProps = {
   group: FeedTitleGroup;

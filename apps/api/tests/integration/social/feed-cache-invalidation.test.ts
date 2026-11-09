@@ -63,10 +63,10 @@ describe("feed caches are cleared when the feed changes (#84)", () => {
     await db
       .delete(activities)
       .where(and(eq(activities.userId, fanRow!.id), eq(activities.type, "followed_user")));
-    expect(JSON.stringify(await send(fan.jar, "GET", "/api/social/feed"))).toContain(other.username);
+    expect(JSON.stringify(await send(fan.jar, "GET", "/api/social/feed/grouped"))).toContain(other.username);
 
     await send(author.jar, "DELETE", `/api/social/follower/${fan.username}`);
-    expect(JSON.stringify(await send(fan.jar, "GET", "/api/social/feed"))).not.toContain(
+    expect(JSON.stringify(await send(fan.jar, "GET", "/api/social/feed/grouped"))).not.toContain(
       other.username,
     );
   });

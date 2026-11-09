@@ -69,16 +69,6 @@ const invalidateCurrentUserProfile = async (
   await Promise.all(tasks);
 };
 
-// Episode/season/series watched toggles only change the viewer's own
-// "currently watching" list, so that's the one profile key they refresh.
-export const invalidateViewerCurrentlyWatching = (queryClient: QueryClient) => {
-  const me = queryClient.getQueryData<MeProfile | null>(authKeys.me);
-  if (!me?.username) return Promise.resolve();
-  return queryClient.invalidateQueries({
-    queryKey: profileKeys.currentlyWatching(me.username),
-  });
-};
-
 // True when the signed-in viewer is looking at their own profile.
 export const useIsOwnProfile = (username: string): boolean => {
   const { user } = useAuth();

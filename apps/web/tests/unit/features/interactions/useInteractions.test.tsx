@@ -108,6 +108,28 @@ describe("useUpdateFilmInteraction", () => {
     });
   });
 
+  it("liking takes the movie off the Watchlist in the optimistic update", async () => {
+    server.use(
+      http.put("*/api/interactions/550", () =>
+        HttpResponse.json({ ...baseInteraction, liked: true, watched: true }),
+      ),
+    );
+
+    const queryClient = createTestQueryClient();
+    queryClient.setQueryData(interactionKeys.detail(550), { ...baseInteraction, watchlisted: true });
+
+    const { result } = renderHook(() => useUpdateFilmInteraction(550), {
+      wrapper: wrapperFor(queryClient),
+    });
+
+    result.current.mutate({ liked: true });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData<FilmInteraction>(interactionKeys.detail(550));
+      expect(cached).toMatchObject({ liked: true, watchlisted: false, watched: true });
+    });
+  });
+
   it("rolls back to the previous state when the request fails", async () => {
     server.use(
       http.put("*/api/interactions/550", () =>

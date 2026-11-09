@@ -10,10 +10,11 @@ import {
   makeTitleGroup,
   readGroupedFeed,
   seedGroupedFeed,
+  titleRow,
 } from "../../../support/fixtures/grouped-feed";
 import { patchFeed } from "@/features/feed/hooks/feed-cache";
 import { feedKeys } from "@/features/feed/hooks/useFeed";
-import type { FeedItem, FeedTitleGroup, GroupedFeedEntry } from "@/features/feed/types";
+import type { FeedItem, FeedRow, FeedTitleGroup } from "@/features/feed/types";
 import {
   useAddReviewComment,
   useDeleteReviewComment,
@@ -45,9 +46,9 @@ const review = { id: "review-1", content: "Old take", containsSpoilers: false, r
 const engagement = { likeCount: 2, commentCount: 1, viewerHasLiked: false };
 
 // Review 1 shows three times: a title card, a like of it and a comment on it.
-const reviewFeed = (): GroupedFeedEntry[][] => [
+const reviewFeed = (): FeedRow[][] => [
   [
-    makeTitleGroup({ review, engagement }),
+    titleRow(makeTitleGroup({ review, engagement })),
     activity(makeFeedItem({ id: "unrelated", review: { ...review, id: "review-2" }, engagement })),
   ],
   [
@@ -73,9 +74,13 @@ const reviewFeed = (): GroupedFeedEntry[][] => [
   ],
 ];
 
-const group = (entries: GroupedFeedEntry[]) => entries[0] as FeedTitleGroup;
-const item = (entries: GroupedFeedEntry[], id: string): FeedItem | undefined =>
-  entries.flatMap((entry) => (entry.kind === "activity" ? [entry.item] : [])).find((it) => it.id === id);
+const group = (rows: FeedRow[]): FeedTitleGroup => {
+  const [first] = rows;
+  if (first?.kind !== "title") throw new Error("Expected a title row first");
+  return first.group;
+};
+const item = (rows: FeedRow[], id: string): FeedItem | undefined =>
+  rows.flatMap((row) => (row.kind === "activity" ? [row.item] : [])).find((it) => it.id === id);
 
 const slow = (body: unknown) => async () => {
   await new Promise((resolve) => setTimeout(resolve, 150));
@@ -116,7 +121,7 @@ describe("feed cache: Review changes", () => {
     result.current.mutate();
     await waitFor(() => expect(result.current.isError).toBe(true));
 
-    expect(readGroupedFeed(queryClient)).toEqual(seeded.pages.flatMap((page) => page.items));
+    expect(readGroupedFeed(queryClient)).toEqual(seeded.pages.flatMap((page) => page.rows));
   });
 
   it("unlikes, and rolls back on failure", async () => {
@@ -126,7 +131,7 @@ describe("feed cache: Review changes", () => {
     }));
     const { queryClient, wrapper } = setup();
     const liked = { ...engagement, likeCount: 3, viewerHasLiked: true };
-    seedGroupedFeed(queryClient, [[makeTitleGroup({ review, engagement: liked })]]);
+    seedGroupedFeed(queryClient, [[titleRow(makeTitleGroup({ review, engagement: liked }))]]);
 
     const { result } = renderHook(() => useUnlikeReview("review-1"), { wrapper });
     result.current.mutate();
@@ -231,7 +236,7 @@ describe("feed cache: Review changes", () => {
 });
 
 const post = { id: "post-1", content: "Old post", mediaId: null, mediaType: null };
-const postFeed = (): GroupedFeedEntry[][] => [
+const postFeed = (): FeedRow[][] => [
   [
     activity(makeFeedItem({ id: "post", type: "post", kind: "post", movie: null, post, engagement, metadata: { postId: "post-1", excerpt: "Old post" } })),
     activity(

@@ -3,7 +3,7 @@ import { screen } from "@testing-library/react";
 import { renderWithProviders } from "../../../support/render/render-with-providers";
 import { ProfileOverviewActivity } from "@/features/profile/components/overview/ProfileOverviewActivity";
 import { ProfileTopPicksRow } from "@/features/profile/components/overview/ProfileTopPicksRow";
-import type { FeedItem, FeedTitleGroup, GroupedFeedEntry } from "@/features/feed/types";
+import type { FeedItem, FeedRow, FeedTitleGroup } from "@/features/feed/types";
 
 const actor = { id: "u1", username: "glory42", displayUsername: null, avatarUrl: null };
 
@@ -21,6 +21,7 @@ const title = (overrides: Partial<FeedTitleGroup> = {}): FeedTitleGroup => ({
   liked: true,
   watchlisted: false,
   review: { id: "r1", content: "Dc character when someone is not happly married", containsSpoilers: false, rating: 8 },
+  log: null,
   engagement: { likeCount: 0, commentCount: 0, viewerHasLiked: false },
   itemIds: ["a1"],
   ...overrides,
@@ -41,7 +42,7 @@ const watchlistItem = {
 
 describe("ProfileOverviewActivity", () => {
   it("shows one row per watch with its kicker, score, like and review", async () => {
-    renderWithProviders(<ProfileOverviewActivity entries={[title()]} isPending={false} isError={false} />);
+    renderWithProviders(<ProfileOverviewActivity rows={[{ kind: "title", key: "a1", day: "2026-11-02", group: title() }]} isPending={false} isError={false} />);
 
     expect(await screen.findByText("MON · NOV 2")).toBeInTheDocument();
     expect(screen.getByText("Film · watched")).toBeInTheDocument();
@@ -53,20 +54,36 @@ describe("ProfileOverviewActivity", () => {
   });
 
   it("names series and quieter events in one line", async () => {
-    const entries: GroupedFeedEntry[] = [
-      { kind: "activity", item: watchlistItem },
-      title({
-        id: "b1",
-        review: null,
-        liked: false,
-        movie: { tmdbId: 1396, title: "Breaking Bad", posterPath: null, releaseYear: 2008, mediaType: "tv" },
-      }),
+    const rows: FeedRow[] = [
+      { kind: "activity", key: "w1", day: "2026-11-04", item: watchlistItem },
+      {
+        kind: "title",
+        key: "b1",
+        day: "2026-11-02",
+        group: title({
+          id: "b1",
+          review: null,
+          liked: false,
+          movie: { tmdbId: 1396, title: "Breaking Bad", posterPath: null, releaseYear: 2008, mediaType: "tv" },
+        }),
+      },
     ];
-    renderWithProviders(<ProfileOverviewActivity entries={entries} isPending={false} isError={false} />);
+    renderWithProviders(<ProfileOverviewActivity rows={rows} isPending={false} isError={false} />);
 
     expect(await screen.findByText("Added to watchlist")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "100 Meters" })).toHaveAttribute("href", "/movies/9");
     expect(screen.getByText("Series · watched")).toBeInTheDocument();
+  });
+
+  it("shows a folded run of likes or follows as one line", async () => {
+    const rows: FeedRow[] = [
+      { kind: "titles", key: "l1+l2", day: "2026-11-02", action: "liked", actor, titles: [title().movie, { ...title().movie, tmdbId: 2, title: "Bleach" }] },
+      { kind: "follows", key: "f1+f2", day: "2026-11-02", actor, usernames: ["reel_drifter", "nightowl"] },
+    ];
+    renderWithProviders(<ProfileOverviewActivity rows={rows} isPending={false} isError={false} />);
+
+    expect(await screen.findByText("Clayface, Bleach")).toBeInTheDocument();
+    expect(screen.getByText("@reel_drifter, @nightowl")).toBeInTheDocument();
   });
 });
 

@@ -1,10 +1,9 @@
 import type { Request, Response } from "express";
 import { SocialService } from "./social.service";
 import { UsersService } from "../users/users.service";
-import {
-  normalizeSocialFeedLimit,
-  normalizeSocialFeedMediaType,
-} from "./helpers/social-query-normalizer.helper";
+import { resolveTimeZone } from "./helpers/feed-day.helper";
+import { DEFAULT_FEED_PAGE_SIZE } from "./constants/social-feed.constants";
+import { parseIntParam } from "../../commons/helpers/parse-int-param.helper";
 import type { FeedQueryDto, UsernameParamsDto } from "./dto/social.dto";
 import {
   resolveOrNotFound,
@@ -13,37 +12,18 @@ import {
 } from "../../commons/http/validation-response.helper";
 
 export class SocialController {
-  static async getFeed(
-    req: Request<{}, {}, {}, FeedQueryDto>,
-    res: Response,
-  ): Promise<void> {
-    const limit = normalizeSocialFeedLimit(req.query.limit, 20);
-    const feed = await SocialService.getFeed(req.user.id, req.query.cursor, limit);
-    res.status(200).json(feed);
-  }
-
-  static async getFollowingFeed(
-    req: Request<{}, {}, {}, FeedQueryDto>,
-    res: Response,
-  ): Promise<void> {
-    const limit = normalizeSocialFeedLimit(req.query.limit, 20);
-    const mediaType = normalizeSocialFeedMediaType(req.query.mediaType);
-    const feed = await SocialService.getFollowingFeed(
-      req.user.id,
-      limit,
-      req.query.cursor,
-      mediaType,
-    );
-    res.status(200).json(feed);
-  }
-
+  // GET /api/social/feed/grouped?limit=15&cursor=…&mediaType=movie&tz=Europe/Istanbul
   static async getGroupedFollowingFeed(
     req: Request<{}, {}, {}, FeedQueryDto>,
     res: Response,
   ): Promise<void> {
-    const limit = normalizeSocialFeedLimit(req.query.limit, 20);
-    const mediaType = normalizeSocialFeedMediaType(req.query.mediaType);
-    const feed = await SocialService.getGroupedFollowingFeed(req.user.id, limit, req.query.cursor, mediaType);
+    const { limit, cursor, mediaType, tz } = req.query;
+    const feed = await SocialService.getGroupedFollowingFeed(req.user.id, {
+      limit: parseIntParam(limit, DEFAULT_FEED_PAGE_SIZE),
+      cursor,
+      mediaType: mediaType === "movie" || mediaType === "tv" ? mediaType : undefined,
+      timeZone: resolveTimeZone(tz),
+    });
     res.status(200).json(feed);
   }
 

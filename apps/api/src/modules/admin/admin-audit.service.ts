@@ -7,6 +7,8 @@ import {
 } from "../social/helpers/social-feed-cursor.helper";
 import { AdminAuditRepository } from "./repositories/admin-audit.repository";
 
+export type AuditActor = Pick<AuthUser, "id" | "username">;
+
 export type AdminAuditEntry = {
   action: string;
   targetType: string;
@@ -18,7 +20,7 @@ export type AdminAuditEntry = {
 export class AdminAuditService {
   // Written right after the action succeeds (the Neon HTTP driver has no
   // transactions). A failed insert is logged and never undoes the action.
-  static async record(actor: AuthUser, entry: AdminAuditEntry): Promise<void> {
+  static async record(actor: AuditActor, entry: AdminAuditEntry): Promise<void> {
     try {
       await AdminAuditRepository.insert({
         actorId: actor.id,

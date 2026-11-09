@@ -20,7 +20,7 @@ export const HomePage = () => {
   const summaryQuery = useMyFeedSummary(isFollowingEnabled);
 
   const feedDays = useMemo(
-    () => toFeedDays(followingFeedQuery.data?.pages.flatMap((page) => page.items) ?? []),
+    () => toFeedDays(followingFeedQuery.data?.pages.flatMap((page) => page.rows) ?? []),
     [followingFeedQuery.data],
   );
   const isFeedLoading = isUserLoading || (isFollowingEnabled && followingFeedQuery.isPending);

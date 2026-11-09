@@ -6,12 +6,12 @@ import userEvent from "@testing-library/user-event";
 import { server } from "../../../support/msw/server";
 import { LogEditor } from "@/features/media/log-editor/LogEditor";
 import type { ExistingLogSubject, NewLogSubject } from "@/features/media/log-editor/log-subject";
-import { refreshAfter } from "@/features/media/media-refresh";
+import { refreshAfter } from "@/features/media/media-cache";
 import { todayAsLocalDateInput } from "@/lib/time";
 import { createDiaryEntryInputSchema } from "@/types/api";
 
-vi.mock("@/features/media/media-refresh", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/features/media/media-refresh")>()),
+vi.mock("@/features/media/media-cache", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/features/media/media-cache")>()),
   refreshAfter: vi.fn(() => Promise.resolve()),
 }));
 

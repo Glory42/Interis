@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "../../../src/infrastructure/database/db";
 import { user } from "../../../src/infrastructure/database/auth.entity";
 import { reviews } from "../../../src/modules/reviews/reviews.entity";
-import { MAX_PROFILE_LIST_OFFSET } from "../../../src/modules/users/helpers/users-pagination.helper";
+import { MAX_PROFILE_TAB_OFFSET as MAX_PROFILE_LIST_OFFSET } from "../../../src/modules/users/helpers/profile-tab-page.helper";
 import { apiRequest } from "../../support/app/http-client";
 import { signUpTestUser } from "../../support/app/auth-flow";
 import { seedTestFilm, seedTestSeries } from "../../support/factories/media.factory";

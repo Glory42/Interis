@@ -7,7 +7,7 @@ import {
   type UpdateDiaryEntryInput,
 } from "@/features/diary/api";
 import { filmKeys } from "@/features/films/hooks/useFilms";
-import { refreshAfter, type MediaTitle } from "@/features/media/media-refresh";
+import { refreshAfter, type MediaTitle } from "@/features/media/media-cache";
 import { createSeriesLog, deleteSeriesLog, updateSeriesLog } from "@/features/tv/api";
 import type { FilmLog, MeProfile } from "@/types/api";
 

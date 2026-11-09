@@ -5,7 +5,7 @@ import { ModalShell } from "@/components/ui/ModalShell";
 import { LaunchTrack } from "@/components/film/rating/LaunchTrack";
 import { LogEditorWhen, type LogWhen } from "@/features/media/log-editor/LogEditorWhen";
 import { LogReviewField, type LogEditorReview } from "@/features/media/log-editor/LogReviewField";
-import type { MediaKind } from "@/features/media/media-refresh";
+import type { MediaKind } from "@/features/media/media-cache";
 import { PHONE_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
 import { REVIEW_MAX_LENGTH } from "@/types/api";

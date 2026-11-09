@@ -4,9 +4,6 @@ import { sendBadRequest, sendNotFound } from "../../commons/http/validation-resp
 import {
   normalizePublicActivityLimit,
   normalizePublicCollectionLimit,
-  normalizePublicCurrentlyWatchingLimit,
-  normalizePublicDiaryOffset,
-  normalizePublicRecentLimit,
 } from "./helpers/public-query-normalizer.helper";
 import type {
   PublicActivityQueryDto,
@@ -49,11 +46,9 @@ export class PublicController {
     req: Request<{ username: string }, unknown, unknown, PublicRecentQueryDto>,
     res: Response,
   ): Promise<void> {
-    const limit = normalizePublicRecentLimit(req.query.limit);
-    const data = await PublicService.getRecentActivity(
-      req.params.username,
-      limit,
-    );
+    const data = await PublicService.readTab(req.params.username, "recent", {
+      limit: req.query.limit,
+    });
 
     if (!data) {
       PublicController.sendUserNotFound(res);
@@ -84,8 +79,9 @@ export class PublicController {
     req: Request<{ username: string }, unknown, unknown, PublicCollectionQueryDto>,
     res: Response,
   ): Promise<void> {
-    const limit = normalizePublicCollectionLimit(req.query.limit);
-    const data = await PublicService.getReviews(req.params.username, limit);
+    const data = await PublicService.readTab(req.params.username, "reviews", {
+      limit: req.query.limit,
+    });
 
     if (!data) {
       PublicController.sendUserNotFound(res);
@@ -148,8 +144,7 @@ export class PublicController {
     req: Request<{ username: string }, unknown, unknown, PublicCollectionQueryDto>,
     res: Response,
   ): Promise<void> {
-    const limit = normalizePublicCollectionLimit(req.query.limit);
-    const data = await PublicService.getLikes(req.params.username, limit);
+    const data = await PublicService.getShelfItems(req.params.username, "likes", req.query.limit);
 
     if (!data) {
       PublicController.sendUserNotFound(res);
@@ -164,8 +159,11 @@ export class PublicController {
     req: Request<{ username: string }, unknown, unknown, PublicCollectionQueryDto>,
     res: Response,
   ): Promise<void> {
-    const limit = normalizePublicCollectionLimit(req.query.limit);
-    const data = await PublicService.getWatchlist(req.params.username, limit);
+    const data = await PublicService.getShelfItems(
+      req.params.username,
+      "watchlist",
+      req.query.limit,
+    );
 
     if (!data) {
       PublicController.sendUserNotFound(res);
@@ -180,9 +178,10 @@ export class PublicController {
     req: Request<{ username: string }, unknown, unknown, PublicDiaryQueryDto>,
     res: Response,
   ): Promise<void> {
-    const limit = normalizePublicCollectionLimit(req.query.limit);
-    const offset = normalizePublicDiaryOffset(req.query.offset);
-    const data = await PublicService.getDiary(req.params.username, limit, offset);
+    const data = await PublicService.readTab(req.params.username, "diary", {
+      limit: req.query.limit,
+      offset: req.query.offset,
+    });
 
     if (!data) {
       PublicController.sendUserNotFound(res);
@@ -197,7 +196,7 @@ export class PublicController {
     req: Request<{ username: string }>,
     res: Response,
   ): Promise<void> {
-    const data = await PublicService.getTop4(req.params.username);
+    const data = await PublicService.readTab(req.params.username, "top4", {});
 
     if (!data) {
       PublicController.sendUserNotFound(res);
@@ -212,8 +211,9 @@ export class PublicController {
     req: Request<{ username: string }, unknown, unknown, PublicCurrentlyWatchingQueryDto>,
     res: Response,
   ): Promise<void> {
-    const limit = normalizePublicCurrentlyWatchingLimit(req.query.limit);
-    const data = await PublicService.getSerialsCurrentlyWatching(req.params.username, limit);
+    const data = await PublicService.readTab(req.params.username, "currently-watching", {
+      limit: req.query.limit,
+    });
 
     if (!data) {
       PublicController.sendUserNotFound(res);
