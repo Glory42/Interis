@@ -79,7 +79,7 @@ export const FeedTitleCard = memo(function FeedTitleCard({ group, day }: { group
       />
       <div className="min-w-0 flex-1">
         <p className="flex items-baseline gap-1.5 text-xs">
-          <Link to="/profile/$username" params={{ username: actor.username }} className="font-semibold text-foreground">
+          <Link to="/profile/$username" params={{ username: actor.username }} className="user-text min-w-0 font-semibold text-foreground">
             {actor.username}
           </Link>
           <span className="text-muted-foreground">{verbFor(group)}</span>
@@ -129,7 +129,7 @@ export const FeedTitleCard = memo(function FeedTitleCard({ group, day }: { group
               <Link
                 to="/reviews/$username/$reviewId"
                 params={{ username: actor.username, reviewId: review.id }}
-                className="tagline mt-2 block text-foreground hover:underline hover:decoration-[color:var(--line-strong)]"
+                className="user-text tagline mt-2 block text-foreground hover:underline hover:decoration-[color:var(--line-strong)]"
                 viewTransition
               >
                 {`“${review.content}”`}

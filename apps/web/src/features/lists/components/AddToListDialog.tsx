@@ -96,9 +96,9 @@ export const AddToListDialog = ({
                           return (
                             <li
                               key={list.id}
-                              className="flex items-center justify-between border-b border-border/45 px-4 py-2.5 last:border-b-0"
+                              className="flex items-center justify-between gap-3 border-b border-border/45 px-4 py-2.5 last:border-b-0"
                             >
-                              <span className="font-mono text-xs text-foreground">
+                              <span className="user-text min-w-0 font-mono text-xs text-foreground">
                                 {list.title}
                               </span>
                               <button
@@ -116,7 +116,7 @@ export const AddToListDialog = ({
                                     entryId: list.entryId,
                                   })
                                 }
-                                className="inline-flex h-7 w-7 items-center justify-center border border-border/70 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+                                className="inline-flex h-7 w-7 shrink-0 items-center justify-center border border-border/70 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
                               >
                                 {hasItem ? (
                                   <Check className="h-4 w-4 text-primary" />

@@ -173,14 +173,14 @@ export const ReviewActivityCard = memo(function ReviewActivityCard({
               Contains spoilers — reveal
             </button>
           ) : (
-            <p className="mt-2 line-clamp-4 text-[15px] leading-relaxed text-foreground/90 transition-colors group-hover:text-foreground">
+            <p className="user-text mt-2 line-clamp-4 text-[15px] leading-relaxed text-foreground/90 transition-colors group-hover:text-foreground">
               {reviewContent || getReviewBodyFallback(item)}
             </p>
           )}
 
           {quotedOriginal ? (
             <div className="mt-2 border-l-2 border-border/50 pl-3">
-              <p className="text-xs leading-relaxed text-muted-foreground">
+              <p className="user-text text-xs leading-relaxed text-muted-foreground">
                 {item.metadata.targetUsername ? (
                   <>
                     <span className="font-semibold text-foreground/80">

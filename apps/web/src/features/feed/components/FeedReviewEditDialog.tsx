@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ModalHeader } from "@/components/ui/ModalHeader";
 import { ModalShell } from "@/components/ui/ModalShell";
 import { Textarea } from "@/components/ui/textarea";
+import { SpoilerSwitch } from "@/features/media/log-editor/SpoilerSwitch";
 import { useUpdateReview } from "@/features/reviews/hooks/useReviews";
 import { runDialogSubmit } from "@/lib/fire-and-forget";
 import { TickLoader } from "@/components/ui/tick-loader";
@@ -34,12 +35,13 @@ const FeedReviewEditDialogContent = ({
   onSaved,
 }: FeedReviewEditDialogContentProps) => {
   const [draftContent, setDraftContent] = useState(initialContent);
+  const [draftSpoilers, setDraftSpoilers] = useState(containsSpoilers);
   const updateReviewMutation = useUpdateReview(reviewId);
 
   const canSave =
     draftContent.trim().length > 0 &&
     draftContent.trim().length <= REVIEW_MAX_LENGTH &&
-    draftContent !== initialContent &&
+    (draftContent !== initialContent || draftSpoilers !== containsSpoilers) &&
     !updateReviewMutation.isPending;
 
   const handleSave = () =>
@@ -50,7 +52,7 @@ const FeedReviewEditDialogContent = ({
 
       await updateReviewMutation.mutateAsync({
         content: draftContent.trim(),
-        containsSpoilers,
+        containsSpoilers: draftSpoilers,
       });
       onSaved?.();
       onClose();
@@ -63,6 +65,7 @@ const FeedReviewEditDialogContent = ({
 
         <div className="space-y-3 px-4 py-4">
             <Textarea
+              aria-label="Review"
               value={draftContent}
               onChange={(event) => {
                 if (event.target.value.length <= REVIEW_MAX_LENGTH) {
@@ -73,9 +76,13 @@ const FeedReviewEditDialogContent = ({
             />
 
             <div className="flex items-center justify-between gap-2">
+              <SpoilerSwitch checked={draftSpoilers} onChange={setDraftSpoilers} />
               <span className="font-mono text-[10px] text-muted-foreground">
                 {draftContent.length}/{REVIEW_MAX_LENGTH}
               </span>
+            </div>
+
+            <div className="flex items-center justify-end gap-2">
               <div className="flex items-center gap-2">
                 <button
                   type="button"

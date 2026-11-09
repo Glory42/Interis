@@ -69,7 +69,7 @@ const ReviewChooserDialogContent = ({
                         <span>{reviewDateLabel(review)}</span>
                         {ratingLabel ? <span className="text-foreground">{ratingLabel}</span> : null}
                       </span>
-                      <span className="block text-sm text-foreground">{reviewPreview(review.content)}</span>
+                      <span className="user-text block text-sm text-foreground">{reviewPreview(review.content)}</span>
                     </span>
                     <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </button>

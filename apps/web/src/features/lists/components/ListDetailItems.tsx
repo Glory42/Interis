@@ -36,7 +36,7 @@ export const ListDetailRow = memo(function ListDetailRow({ item, rank }: { item:
           </TitleLink>
           {credit ? <span className="mono-meta uppercase text-muted-foreground">{credit}</span> : null}
         </p>
-        {item.note ? <p className="tagline text-muted-foreground">{`“${item.note}”`}</p> : null}
+        {item.note ? <p className="user-text tagline text-muted-foreground">{`“${item.note}”`}</p> : null}
       </div>
       {item.ownerRating !== null ? <RocketDisplay rating={item.ownerRating} size="sm" /> : null}
     </li>

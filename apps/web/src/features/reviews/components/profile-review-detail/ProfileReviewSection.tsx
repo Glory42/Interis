@@ -30,7 +30,7 @@ export const ProfileReviewSection = ({
     <section className="rounded-2xl border border-border/60 bg-card/35 p-5 sm:p-6">
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="text-base font-bold text-foreground">Review</h2>
-        <span className="text-xs text-muted-foreground">@{detail.author.username}</span>
+        <span className="user-text min-w-0 text-xs text-muted-foreground">@{detail.author.username}</span>
       </div>
 
       {detail.containsSpoilers && !canReadSpoiler ? (
@@ -46,7 +46,7 @@ export const ProfileReviewSection = ({
 
       <p
         className={cn(
-          "tagline mt-3 whitespace-pre-wrap text-2xl leading-snug text-foreground",
+          "user-text tagline mt-3 whitespace-pre-wrap text-2xl leading-snug text-foreground",
           !canReadSpoiler ? "hidden" : "",
         )}
       >

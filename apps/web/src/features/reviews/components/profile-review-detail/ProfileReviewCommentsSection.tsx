@@ -184,7 +184,7 @@ export const ProfileReviewCommentsSection = ({
                       </div>
                     </div>
                   ) : (
-                    <p className="whitespace-pre-wrap text-sm text-foreground/95">{comment.content}</p>
+                    <p className="user-text whitespace-pre-wrap text-sm text-foreground/95">{comment.content}</p>
                   )}
                 </article>
               );

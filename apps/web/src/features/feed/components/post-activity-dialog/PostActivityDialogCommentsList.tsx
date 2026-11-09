@@ -154,7 +154,7 @@ export const PostActivityDialogCommentsList = ({
                 </div>
               </div>
             ) : (
-              <p className="mt-1 whitespace-pre-wrap font-mono text-xs text-foreground/85">
+              <p className="user-text mt-1 whitespace-pre-wrap font-mono text-xs text-foreground/85">
                 {comment.content}
               </p>
             )}

@@ -97,7 +97,36 @@ describe("folded feed rows", () => {
     expect(screen.getByText("followed 2 people")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "@nightowl" })).toHaveAttribute("href", "/profile/nightowl");
     expect(screen.getByText("liked 2 titles")).toBeInTheDocument();
-    expect(screen.getByText("Clayface, Bleach")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Clayface" })).toHaveAttribute("href", "/movies/1");
+    expect(screen.getByRole("link", { name: "Bleach" })).toHaveAttribute("href", "/movies/2");
+  });
+
+  it("names what fits on the line, then expands to every title and back", async () => {
+    // jsdom has no layout: put every name after the second on a line of its own.
+    vi.spyOn(HTMLElement.prototype, "offsetTop", "get").mockImplementation(function (this: HTMLElement) {
+      const index = this.parentElement ? Array.from(this.parentElement.children).indexOf(this) : 0;
+      return this.tagName === "LI" && index >= 2 ? 20 : 0;
+    });
+    const titles = ["Clayface", "Bleach", "The Pianist", "Severance"].map((title, index) => ({
+      ...group().movie,
+      tmdbId: index + 1,
+      title,
+      mediaType: index === 3 ? ("tv" as const) : ("movie" as const),
+    }));
+    const days = toFeedDays([{ kind: "titles", key: "l1+l4", day: "2026-11-02", action: "liked", actor, titles }]);
+    const user = userEvent.setup();
+    renderWithProviders(<FeedDayList isLoading={false} isError={false} days={days} />);
+
+    const more = await screen.findByRole("button", { name: "+2 more" });
+    expect(more).toHaveAttribute("aria-expanded", "false");
+    await user.click(more);
+
+    const less = screen.getByRole("button", { name: "Show less" });
+    expect(less).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("link", { name: "Severance" })).toHaveAttribute("href", "/serials/4");
+    expect(screen.getAllByTitle("Severance")[0]).toHaveAttribute("href", "/serials/4");
+    await user.click(less);
+    expect(screen.getByRole("button", { name: "+2 more" })).toBeInTheDocument();
   });
 });
 

@@ -17,7 +17,7 @@ const CommentRow = ({ comment }: { comment: AdminComment }) => {
         <p className="mono-meta uppercase text-muted-foreground">
           {`@${comment.authorUsername ?? "deleted"} · on a ${comment.kind} · ${formatRelativeTime(comment.createdAt.toISOString())}`}
         </p>
-        <p className="body-s mt-0.5 whitespace-pre-wrap text-foreground">{comment.content}</p>
+        <p className="user-text body-s mt-0.5 whitespace-pre-wrap text-foreground">{comment.content}</p>
       </div>
       <Button variant="ghost" size="sm" aria-label="Delete comment" className="h-7 w-7 p-0 text-[color:var(--danger)]" onClick={() => setIsOpen(true)}>
         <Trash2 aria-hidden className="size-3.5" />

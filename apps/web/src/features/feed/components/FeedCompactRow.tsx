@@ -1,8 +1,8 @@
 import type { MouseEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { RocketDisplay } from "@/components/film/rating/RocketDisplay";
-import { episodesSummary, followsVerb, titlesVerb, verbFor } from "@/features/feed/components/feed-days";
-import { EpisodeList } from "@/features/feed/components/FeedFoldedRows";
+import { episodesSummary, titleRoute, verbFor } from "@/features/feed/components/feed-days";
+import { EpisodeList, FollowsLine, TitlesLine } from "@/features/feed/components/FeedFoldedRows";
 import type { FeedItem, FeedRow } from "@/features/feed/types";
 import { getPosterUrl } from "@/features/media/tmdb-images";
 import { isCardBackgroundClick } from "@/lib/card-click";
@@ -17,27 +17,12 @@ const ACTIVITY_LINES: Partial<Record<FeedItem["kind"], string>> = {
   commented: "Commented on a review",
 };
 
-// A long folded run names this many titles or people, then "and N more".
-const MAX_FOLDED_NAMES = 12;
-
-const titleRoute = (mediaType: string) => (mediaType === "tv" ? "/serials/$tmdbId" : "/movies/$tmdbId");
-
 // One row on one line or a small poster row, for the profile overview.
 export const FeedCompactRow = ({ row }: { row: FeedRow }) => {
   const navigate = useNavigate();
 
-  if (row.kind === "titles" || row.kind === "follows") {
-    const names = row.kind === "titles" ? row.titles.map((title) => title.title) : row.usernames.map((username) => `@${username}`);
-    const hidden = names.length - MAX_FOLDED_NAMES;
-    const verb = row.kind === "titles" ? titlesVerb(row) : followsVerb(row);
-    return (
-      <p className="body-s text-muted-foreground">
-        {`${verb.charAt(0).toUpperCase()}${verb.slice(1)} · `}
-        <span className="text-foreground">{names.slice(0, MAX_FOLDED_NAMES).join(", ")}</span>
-        {hidden > 0 ? ` and ${hidden} more` : null}
-      </p>
-    );
-  }
+  if (row.kind === "titles") return <TitlesLine row={row} variant="compact" />;
+  if (row.kind === "follows") return <FollowsLine row={row} variant="compact" />;
 
   if (row.kind === "episodes") {
     return (
@@ -64,7 +49,7 @@ export const FeedCompactRow = ({ row }: { row: FeedRow }) => {
             {item.movie.title}
           </Link>
         ) : item.metadata.listTitle ? (
-          <span className="text-foreground">{item.metadata.listTitle}</span>
+          <span className="user-text text-foreground">{item.metadata.listTitle}</span>
         ) : item.metadata.targetUsername ? (
           <span className="text-foreground">{`@${item.metadata.targetUsername}`}</span>
         ) : null}
@@ -104,7 +89,7 @@ export const FeedCompactRow = ({ row }: { row: FeedRow }) => {
           <Link
             to="/reviews/$username/$reviewId"
             params={{ username: group.actor.username, reviewId: group.review.id }}
-            className="tagline mt-0.5 line-clamp-2 text-foreground hover:underline hover:decoration-[color:var(--line-strong)]"
+            className="user-text tagline mt-0.5 line-clamp-2 text-foreground hover:underline hover:decoration-[color:var(--line-strong)]"
             viewTransition
           >
             {`“${group.review.content}”`}

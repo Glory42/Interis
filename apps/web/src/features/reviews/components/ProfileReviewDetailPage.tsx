@@ -2,7 +2,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { FeedReviewEditDialog } from "@/features/feed/components/FeedReviewEditDialog";
 import { ProfileReviewCommentsSection } from "@/features/reviews/components/profile-review-detail/ProfileReviewCommentsSection";
 import { ProfileReviewDetailHero } from "@/features/reviews/components/profile-review-detail/ProfileReviewDetailHero";
 import {
@@ -11,6 +10,7 @@ import {
 } from "@/features/reviews/components/profile-review-detail/ProfileReviewDetailStatus";
 import { ProfileReviewSection } from "@/features/reviews/components/profile-review-detail/ProfileReviewSection";
 import { ProfileReviewSidebar } from "@/features/reviews/components/profile-review-detail/ProfileReviewSidebar";
+import { ReviewOwnerEditDialog } from "@/features/reviews/components/profile-review-detail/ReviewOwnerEditDialog";
 import {
   useAddReviewComment,
   useLikeReview,
@@ -151,12 +151,11 @@ export function ProfileReviewDetailPage({
 
       {isOwnReview ? (
         <>
-          <FeedReviewEditDialog
+          <ReviewOwnerEditDialog
+            detail={detail}
+            username={username}
             isOpen={isEditDialogOpen}
             onClose={() => setIsEditDialogOpen(false)}
-            reviewId={reviewId}
-            initialContent={detail.content}
-            containsSpoilers={detail.containsSpoilers}
           />
           <ConfirmDialog
             isOpen={isDeleteDialogOpen}

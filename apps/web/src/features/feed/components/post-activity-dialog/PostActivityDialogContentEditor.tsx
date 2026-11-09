@@ -73,7 +73,7 @@ export const PostActivityDialogContentEditor = ({
     <button
       type="button"
       onClick={onEnableEditing}
-      className="w-full text-left whitespace-pre-wrap font-mono text-sm leading-relaxed text-foreground/85 transition-colors hover:text-foreground"
+      className="user-text w-full text-left whitespace-pre-wrap font-mono text-sm leading-relaxed text-foreground/85 transition-colors hover:text-foreground"
     >
       {content}
     </button>

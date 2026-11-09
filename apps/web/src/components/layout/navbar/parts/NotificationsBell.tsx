@@ -47,7 +47,7 @@ const RemovalNotice = ({ notification, onRead }: { notification: NotificationIte
       className={"block w-full border-b text-left border-border/50 px-3 py-2.5 last:border-0 " + (notification.isRead ? "" : "bg-primary/5")}
     >
       <span className="block font-mono text-[11px] text-foreground">{`A moderator removed your ${label}`}</span>
-      {detail ? <span className="block font-mono text-[10px] text-muted-foreground">{detail}</span> : null}
+      {detail ? <span className="user-text block font-mono text-[10px] text-muted-foreground">{detail}</span> : null}
       <span className="block font-mono text-[9px] text-muted-foreground">
         {formatRelativeTime(notification.createdAt.toISOString())}
       </span>

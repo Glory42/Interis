@@ -4,12 +4,15 @@ import { DeleteLogConfirm } from "@/features/media/log-editor/DeleteLogConfirm";
 import { LogEditorDialog } from "@/features/media/log-editor/LogEditorDialog";
 import type { LogSubject } from "@/features/media/log-editor/log-subject";
 import { useLogEditor } from "@/features/media/log-editor/use-log-editor";
+import type { UpdateLogInput } from "@/features/media/log-editor/use-log-mutations";
 import { getPosterUrl } from "@/features/media/tmdb-images";
 
 type LogEditorProps = {
   subject: LogSubject;
   isOpen: boolean;
   onClose: () => void;
+  // Runs after a save, before onClose; `changes` is null for a new log.
+  onSaved?: (changes: UpdateLogInput | null) => void;
 };
 
 const subjectKey = (subject: LogSubject) =>
@@ -17,13 +20,11 @@ const subjectKey = (subject: LogSubject) =>
 
 // Logs a Film or Series, or edits one of the viewer's logs with its attached Review in one save.
 // Mounted only while open, so every open starts from the subject.
-export const LogEditor = ({ subject, isOpen, onClose }: LogEditorProps) =>
-  isOpen
-    ? createPortal(<LogEditorForm key={subjectKey(subject)} subject={subject} onClose={onClose} />, document.body)
-    : null;
+export const LogEditor = ({ isOpen, ...props }: LogEditorProps) =>
+  isOpen ? createPortal(<LogEditorForm key={subjectKey(props.subject)} {...props} />, document.body) : null;
 
-const LogEditorForm = ({ subject, onClose }: Omit<LogEditorProps, "isOpen">) => {
-  const editor = useLogEditor(subject, onClose);
+const LogEditorForm = ({ subject, onClose, onSaved }: Omit<LogEditorProps, "isOpen">) => {
+  const editor = useLogEditor(subject, onClose, onSaved);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const { draft, change } = editor;
 

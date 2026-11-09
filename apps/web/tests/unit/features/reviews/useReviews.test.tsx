@@ -28,6 +28,7 @@ const makeReviewDetail = (id: string, overrides: Partial<ReviewDetail> = {}): Re
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
     rating: 8,
+    log: null,
     author: { id: "author-1", username: "author", displayUsername: null, avatarUrl: null },
     media: {
       tmdbId: 550,

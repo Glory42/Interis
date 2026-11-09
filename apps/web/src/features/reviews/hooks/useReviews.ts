@@ -16,7 +16,7 @@ import {
   updateReviewComment,
   unlikeReview,
 } from "@/features/reviews/api";
-import { reviewKeys } from "@/features/reviews/hooks/review-keys";
+import { reviewDetailFilter, reviewKeys } from "@/features/reviews/hooks/review-keys";
 import { refreshAfter, reviewEditedEvent } from "@/features/media/media-cache";
 
 export { reviewKeys };
@@ -43,14 +43,7 @@ const patchReviewDetailQueries = (
   reviewId: string,
   updater: (detail: ReviewDetail) => ReviewDetail,
 ): QuerySnapshot => {
-  const queryFilter = {
-    queryKey: reviewKeys.detailRoot,
-    exact: false,
-    predicate: (query: { queryKey: readonly unknown[] }) => {
-      const [scope, kind, , candidateReviewId] = query.queryKey;
-      return scope === "reviews" && kind === "detail" && candidateReviewId === reviewId;
-    },
-  } as const;
+  const queryFilter = reviewDetailFilter(reviewId);
 
   const previousQueries = queryClient.getQueriesData<ReviewDetail>(queryFilter);
 
