@@ -19,7 +19,7 @@ const stats = {
   ratingDistribution: [{ rating: 8, count: 3 }],
   topGenres: [{ genre: "Thriller", count: 198 }],
   topDirectors: [{ director: "David Fincher", count: 4, slug: "david-fincher" }],
-  logsPerWeek: [{ week: 45, count: 4 }],
+  logsPerDay: [{ day: "2026-11-02", count: 4 }],
   averageRating: 7.4,
   ratedLogCount: 589,
   hoursWatched: 612,
@@ -38,7 +38,7 @@ const signedInAs = (username: string) => {
 };
 
 describe("ProfileStatsPage", () => {
-  it("leads with headline numbers, a week reel and labelled bars", async () => {
+  it("leads with headline numbers, a day heatmap and labelled bars", async () => {
     serve(1563);
     renderWithProviders(<ProfileStatsPage username="glory42" now={new Date(2026, 10, 7)} />);
 
@@ -46,7 +46,8 @@ describe("ProfileStatsPage", () => {
     expect(screen.getByText("85")).toBeInTheDocument();
     expect(screen.getByText("7.4")).toBeInTheDocument();
     expect(screen.getByText("612h")).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "2026 in reels: 4 logs over 45 weeks" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "2026 in reels: 4 logs" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "4 logs on Mon, Nov 2" })).toHaveAttribute("title", "4 logs on Mon, Nov 2");
     expect(screen.getByLabelText("Nov: 4 logs")).toBeInTheDocument();
     expect(screen.getByLabelText("Oct: 0 logs")).toBeInTheDocument();
     // The average shares the ratings header row, so it can't push the bars down.

@@ -1,6 +1,8 @@
 import { ReelCells } from "@/components/film/ReelCells";
-import { AverageRating, MonthBars, RankedBars, RatingBars, WeekReel } from "@/features/profile/components/stats/StatsCharts";
-import { STATS_MIN_LOGS, fillLastTwelveMonths, toRatingBuckets, toWeekReel } from "@/features/profile/components/stats/stats-model";
+import { DayHeatmap } from "@/features/profile/components/stats/DayHeatmap";
+import { toDayHeatmap } from "@/features/profile/components/stats/day-heatmap-model";
+import { AverageRating, MonthBars, RankedBars, RatingBars } from "@/features/profile/components/stats/StatsCharts";
+import { STATS_MIN_LOGS, fillLastTwelveMonths, toRatingBuckets } from "@/features/profile/components/stats/stats-model";
 import { useIsOwnProfile, useUserProfile } from "@/features/profile/hooks/useProfile";
 import { useDetailedStats } from "@/features/profile/hooks/useProfileStats";
 import { StatsSkeleton } from "@/components/ui/PageSkeletons";
@@ -67,8 +69,8 @@ export const ProfileStatsPage = ({ username, now: nowProp }: ProfileStatsPagePro
         <Headline value={`${Math.round(stats.hoursWatched).toLocaleString("en-US")}h`} label="watched" />
       </div>
 
-      <Block title={`${now.getFullYear()} in reels · one cell per week`}>
-        <WeekReel cells={toWeekReel(stats.logsPerWeek, now)} year={now.getFullYear()} />
+      <Block title={`${now.getFullYear()} in reels · one cell per day`}>
+        <DayHeatmap weeks={toDayHeatmap(stats.logsPerDay, now)} year={now.getFullYear()} />
       </Block>
 
       <div className="grid gap-6 md:grid-cols-[1fr_1.5fr]">

@@ -12,13 +12,6 @@ import { tvSeries } from "../../../src/modules/tv/tv.entity";
 import { eq } from "drizzle-orm";
 import { seedTestSeries } from "../../support/factories/media.factory";
 
-const isoWeekOf = (date: Date): number => {
-  const day = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-  day.setUTCDate(day.getUTCDate() + 4 - (day.getUTCDay() || 7));
-  const yearStart = new Date(Date.UTC(day.getUTCFullYear(), 0, 1));
-  return Math.ceil(((day.getTime() - yearStart.getTime()) / 86_400_000 + 1) / 7);
-};
-
 const seedFilmWithMetadata = async (
   title: string,
   director: string,
@@ -116,7 +109,7 @@ describe("detailed stats", () => {
     expect(stats.topDirectors.find((d) => d.director === "Jane Director")?.count).toBe(3);
   });
 
-  it("adds average rating, rated logs, hours watched and this year's logs per week", async () => {
+  it("adds average rating, rated logs, hours watched and this year's logs per day", async () => {
     const { jar, username } = await signUpTestUser(getServer().baseUrl, "statx");
     const longFilm = await seedFilmWithMetadata("Long Film", "A", ["Drama"]);
     const shortFilm = await seedFilmWithMetadata("Short Film", "B", ["Drama"]);
@@ -147,13 +140,46 @@ describe("detailed stats", () => {
       averageRating: number | null;
       ratedLogCount: number;
       hoursWatched: number;
-      logsPerWeek: { week: number; count: number }[];
+      logsPerDay: { day: string; count: number }[];
     };
 
     expect(stats.averageRating).toBe(7);
     expect(stats.ratedLogCount).toBe(2);
     // 120 + 90 + 90 film minutes + 2 × 45 episode minutes = 390 minutes.
     expect(stats.hoursWatched).toBe(6.5);
-    expect(stats.logsPerWeek).toEqual([{ week: isoWeekOf(new Date()), count: 3 }]);
+    expect(stats.logsPerDay).toEqual([{ day: today, count: 3 }]);
+  });
+
+  it("counts logs per day for this calendar year only, leaving out empty days", async () => {
+    const { jar, username } = await signUpTestUser(getServer().baseUrl, "statd");
+    const film = await seedFilmWithMetadata("Day Film", "C", ["Drama"]);
+    const today = new Date().toISOString().slice(0, 10);
+    const year = Number(today.slice(0, 4));
+    const log = (watchedDate: string) =>
+      apiRequest(
+        getServer().baseUrl,
+        "/api/diary",
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ tmdbId: film.tmdbId, watchedDate }),
+        },
+        jar,
+      );
+    for (const watchedDate of [`${year - 1}-12-31`, `${year}-01-01`, today, today]) {
+      await log(watchedDate);
+    }
+
+    const response = await apiRequest(getServer().baseUrl, `/api/users/${username}/stats/detailed`);
+    const { logsPerDay } = (await response.json()) as { logsPerDay: { day: string; count: number }[] };
+
+    expect(logsPerDay).toEqual(
+      today === `${year}-01-01`
+        ? [{ day: today, count: 3 }]
+        : [
+            { day: `${year}-01-01`, count: 1 },
+            { day: today, count: 2 },
+          ],
+    );
   });
 });

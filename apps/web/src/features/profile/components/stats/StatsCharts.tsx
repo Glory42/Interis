@@ -1,26 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { Rocket } from "lucide-react";
-import type { MonthBar, RatingBucket, WeekCell } from "./stats-model";
+import type { MonthBar, RatingBucket } from "./stats-model";
 
-const LEVEL_OPACITY = [0.1, 0.35, 0.55, 0.8, 1] as const;
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-// One cell per week this year; brightness is the number of logs.
-export const WeekReel = ({ cells, year }: { cells: WeekCell[]; year: number }) => {
-  const total = cells.reduce((sum, cell) => sum + cell.count, 0);
-  return (
-    <div
-      role="img"
-      aria-label={`${year} in reels: ${total} logs over ${cells.length} weeks`}
-      className="grid grid-flow-col grid-rows-1 gap-[3px]"
-      style={{ gridTemplateColumns: `repeat(${cells.length}, minmax(0, 1fr))` }}
-    >
-      {cells.map((cell) => (
-        <i key={cell.week} className="h-4 rounded-[1px] bg-primary" style={{ opacity: LEVEL_OPACITY[cell.level] }} />
-      ))}
-    </div>
-  );
-};
 
 // Vertical bars with their value on top; one hue, no grid.
 export const MonthBars = ({ months }: { months: MonthBar[] }) => {
