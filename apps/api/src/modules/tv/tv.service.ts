@@ -11,10 +11,7 @@ import { TvDetailService } from "./services/tv-detail.service";
 import { seriesWatchLog } from "./services/series-watch-log.adapter";
 import { WatchLogService } from "../media/services/watch-log.service";
 import { TvInteractionsRepository } from "./repositories/tv-interactions.repository";
-import {
-  TvCacheRepository,
-  type AdminUpdateSeriesFields,
-} from "./repositories/tv-cache.repository";
+import { TvCacheRepository } from "./repositories/tv-cache.repository";
 import type {
   NormalizedSeriesArchiveQuery,
   CreateSeriesLogDto,
@@ -152,24 +149,6 @@ export class TvService {
 
   static async getWatchedSeries(userId: string, limit?: number, offset?: number) {
     return TvInteractionsRepository.getWatchedSeriesForUser(userId, limit, offset);
-  }
-
-  static async listAllForAdmin(query: string | undefined, limit: number, offset: number) {
-    return TvCacheRepository.listAllForAdmin(query, limit, offset);
-  }
-
-  static async updateForAdmin(id: number, fields: AdminUpdateSeriesFields) {
-    return TvCacheRepository.updateById(id, fields);
-  }
-
-  static async refreshForAdmin(id: number) {
-    const existing = await TvCacheRepository.findById(id);
-    if (!existing) return null;
-    return TvCacheService.refreshForAdmin(existing.tmdbId);
-  }
-
-  static async deleteForAdmin(id: number) {
-    return TvCacheRepository.deleteById(id);
   }
 
   static async findCachedCreators(tmdbIds: number[]): Promise<Map<number, string>> {

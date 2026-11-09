@@ -13,7 +13,7 @@ import type {
 import { FilmsArchiveService } from "./services/films-archive.service";
 import { FilmsCacheService } from "./services/films-cache.service";
 import { FilmsDetailService } from "./services/films-detail.service";
-import { FilmsRepository, type AdminUpdateFilmFields } from "./repositories/films.repository";
+import { FilmsRepository } from "./repositories/films.repository";
 
 export class FilmsService {
   static async search(query: string): Promise<TMDBSearchFilm[]> {
@@ -87,24 +87,6 @@ export class FilmsService {
 
   static async getLogsByTmdbId(tmdbId: number, limit?: number, offset?: number) {
     return FilmsDetailService.getLogsByTmdbId(tmdbId, limit, offset);
-  }
-
-  static async listAllForAdmin(query: string | undefined, limit: number, offset: number) {
-    return FilmsRepository.listAllForAdmin(query, limit, offset);
-  }
-
-  static async updateForAdmin(id: number, fields: AdminUpdateFilmFields) {
-    return FilmsRepository.updateById(id, fields);
-  }
-
-  static async refreshForAdmin(id: number) {
-    const existing = await FilmsRepository.findById(id);
-    if (!existing) return null;
-    return FilmsCacheService.refreshForAdmin(existing.tmdbId);
-  }
-
-  static async deleteForAdmin(id: number) {
-    return FilmsRepository.deleteById(id);
   }
 
   static async findCachedDirectors(tmdbIds: number[]): Promise<Map<number, string>> {
