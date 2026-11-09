@@ -100,7 +100,7 @@ describe("uploads", () => {
         },
         jar,
       );
-      // This test suite runs with no R2_* env vars set, matching CI —
+      // tests/support/test-env.ts clears R2_* env vars, matching CI —
       // exercises the exact branch a misconfigured deploy would hit.
       expect(response.status).toBe(503);
       const body = (await response.json()) as { error: { message: string } };
