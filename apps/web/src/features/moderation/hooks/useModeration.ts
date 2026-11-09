@@ -73,6 +73,8 @@ export const useBlockUser = (username: string) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: stateKey }),
         queryClient.invalidateQueries({ queryKey: socialKeys.followState(username) }),
+        // Blocking drops the follow both ways.
+        queryClient.invalidateQueries({ queryKey: socialKeys.viewerFollowsAll }),
         queryClient.invalidateQueries({ queryKey: moderationKeys.blocked }),
         invalidateFollowingFeed(queryClient),
       ]);

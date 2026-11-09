@@ -9,6 +9,7 @@ export type SectionTarget = ScopedTarget;
 export type UserResultEntry = {
   kind: "users";
   id: string;
+  userId: string;
   username: string;
   displayName: string;
   avatarUrl: string | null;

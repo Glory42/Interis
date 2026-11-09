@@ -40,6 +40,10 @@ export class SocialService {
     return SocialFollowService.isFollowing(followerId, followingId);
   }
 
+  static async getFollowedAmong(followerId: string, userIds: string[]) {
+    return SocialFollowService.getFollowedAmong(followerId, userIds);
+  }
+
   static async removeFollower(userId: string, followerUserId: string) {
     return SocialFollowService.removeFollower(userId, followerUserId);
   }

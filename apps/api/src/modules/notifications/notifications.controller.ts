@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { sendValidationError } from "../../commons/http/validation-response.helper";
+import { sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
 import { NotificationsService } from "./notifications.service";
 import {
   ListNotificationsQuerySchema,
@@ -45,6 +45,26 @@ export class NotificationsController {
 
   static async markAllRead(req: Request, res: Response): Promise<void> {
     await NotificationsService.markAllAsRead(req.user.id);
+    res.status(200).json({ success: true });
+  }
+
+  static async remove(req: Request<NotificationParams>, res: Response): Promise<void> {
+    const parsed = NotificationParamsSchema.safeParse(req.params);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    const deleted = await NotificationsService.deleteForUser(req.user.id, parsed.data.id);
+    if (!deleted) {
+      sendNotFound(res, "Notification not found");
+      return;
+    }
+    res.status(200).json({ success: true });
+  }
+
+  static async removeAll(req: Request, res: Response): Promise<void> {
+    await NotificationsService.deleteAllForUser(req.user.id);
     res.status(200).json({ success: true });
   }
 }

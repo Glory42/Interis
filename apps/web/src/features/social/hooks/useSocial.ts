@@ -18,7 +18,7 @@ import {
   type FollowState,
   type FollowUser,
 } from "@/features/social/api";
-import type { MeProfile } from "@/types/api";
+import type { MeProfile, PublicProfile } from "@/types/api";
 
 export const socialKeys = {
   all: ["social"] as const,
@@ -28,9 +28,46 @@ export const socialKeys = {
     ["social", "followers", username] as const,
   following: (username: string) =>
     ["social", "following", username] as const,
+  // Which of a batch of user ids the viewer follows (useViewerFollows).
+  viewerFollowsAll: ["social", "viewer-follows"] as const,
+  viewerFollows: (userIdsParam: string) =>
+    ["social", "viewer-follows", userIdsParam] as const,
 };
 
-const invalidateSocialDependents = async (
+// Flips one user in every cached viewer-follows batch that asked about them.
+export const setViewerFollowsCache = (
+  queryClient: QueryClient,
+  userId: string,
+  isFollowing: boolean,
+): void => {
+  queryClient.setQueriesData<string[]>(
+    {
+      queryKey: socialKeys.viewerFollowsAll,
+      predicate: (query) => String(query.queryKey[2]).split(",").includes(userId),
+    },
+    (old) => {
+      if (!old) return old;
+      const without = old.filter((id) => id !== userId);
+      return isFollowing ? [...without, userId] : without;
+    },
+  );
+};
+
+// The profile page follows by username; its cached profile carries the id.
+const syncViewerFollowsByUsername = async (
+  queryClient: QueryClient,
+  username: string,
+  isFollowing: boolean,
+): Promise<void> => {
+  const userId = queryClient.getQueryData<PublicProfile>(profileKeys.detail(username))?.id;
+  if (userId) {
+    setViewerFollowsCache(queryClient, userId, isFollowing);
+    return;
+  }
+  await queryClient.invalidateQueries({ queryKey: socialKeys.viewerFollowsAll });
+};
+
+export const invalidateSocialDependents = async (
   queryClient: QueryClient,
 ): Promise<void> => {
   await Promise.all([
@@ -40,11 +77,14 @@ const invalidateSocialDependents = async (
 };
 
 // A follow shows on both ends: the followed user's follower count and list,
-// and the follower's following count and list (#98).
-const invalidateFollowEdge = async (
+// and the follower's following count and list (#98). `keepFollowingListOnScreen`
+// marks the follower's list stale without refetching it, so an unfollowed row
+// stays (as "Follow") in an open following dialog until it is reopened.
+export const invalidateFollowEdge = async (
   queryClient: QueryClient,
   followerUsername: string | undefined,
   followedUsername: string,
+  options: { keepFollowingListOnScreen?: boolean } = {},
 ): Promise<void> => {
   await Promise.all([
     queryClient.invalidateQueries({ queryKey: profileKeys.detail(followedUsername) }),
@@ -52,13 +92,16 @@ const invalidateFollowEdge = async (
     ...(followerUsername
       ? [
           queryClient.invalidateQueries({ queryKey: profileKeys.detail(followerUsername) }),
-          queryClient.invalidateQueries({ queryKey: socialKeys.following(followerUsername) }),
+          queryClient.invalidateQueries({
+            queryKey: socialKeys.following(followerUsername),
+            refetchType: options.keepFollowingListOnScreen ? "none" : "active",
+          }),
         ]
       : []),
   ]);
 };
 
-const viewerUsername = (queryClient: QueryClient) =>
+export const viewerUsername = (queryClient: QueryClient) =>
   queryClient.getQueryData<MeProfile | null>(authKeys.me)?.username;
 
 export const useFollowState = (username: string, enabled = true) =>
@@ -103,6 +146,7 @@ export const useFollowUser = (username: string) => {
     },
     onSuccess: async () => {
       await Promise.all([
+        syncViewerFollowsByUsername(queryClient, username, true),
         invalidateSocialDependents(queryClient),
         invalidateFollowEdge(queryClient, viewerUsername(queryClient), username),
       ]);
@@ -134,6 +178,7 @@ export const useUnfollowUser = (username: string) => {
     },
     onSuccess: async () => {
       await Promise.all([
+        syncViewerFollowsByUsername(queryClient, username, false),
         invalidateSocialDependents(queryClient),
         invalidateFollowEdge(queryClient, viewerUsername(queryClient), username),
       ]);
@@ -144,35 +189,39 @@ export const useUnfollowUser = (username: string) => {
   });
 };
 
-export const useUnfollowFromList = (profileUsername: string) => {
+export type FollowToggleVariables = {
+  userId: string;
+  username: string;
+  follow: boolean;
+};
+
+// Follow/unfollow one person from a list row (follow dialogs). The row flips
+// at once through the viewer-follows cache and flips back if the call fails.
+export const useFollowToggle = () => {
   const queryClient = useQueryClient();
-  const followingKey = socialKeys.following(profileUsername);
 
   return useMutation({
-    mutationFn: (targetUsername: string) => unfollowUser(targetUsername),
-    onMutate: async (targetUsername) => {
-      await queryClient.cancelQueries({ queryKey: followingKey });
-      const prev = queryClient.getQueryData<FollowUser[]>(followingKey);
-      queryClient.setQueryData<FollowUser[]>(
-        followingKey,
-        (old) => old?.filter((u) => u.username !== targetUsername) ?? [],
+    mutationFn: ({ username, follow }: FollowToggleVariables) =>
+      follow ? followUser(username) : unfollowUser(username),
+    onMutate: async ({ userId, username, follow }) => {
+      await queryClient.cancelQueries({ queryKey: socialKeys.viewerFollowsAll });
+      setViewerFollowsCache(queryClient, userId, follow);
+      queryClient.setQueryData<FollowState>(socialKeys.followState(username), (old) =>
+        old ? { isFollowing: follow } : old,
       );
-      return { prev };
     },
-    onError: (_error, _variables, context) => {
-      if (context?.prev) {
-        queryClient.setQueryData(followingKey, context.prev);
-      }
+    onError: async (_error, { userId, username, follow }) => {
+      setViewerFollowsCache(queryClient, userId, !follow);
+      await queryClient.invalidateQueries({ queryKey: socialKeys.followState(username) });
     },
-    onSuccess: async (_, targetUsername) => {
+    onSuccess: async (_data, { username }) => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: socialKeys.followState(targetUsername) }),
-        invalidateFollowEdge(queryClient, profileUsername, targetUsername),
+        queryClient.invalidateQueries({ queryKey: socialKeys.followState(username) }),
+        invalidateFollowEdge(queryClient, viewerUsername(queryClient), username, {
+          keepFollowingListOnScreen: true,
+        }),
         invalidateSocialDependents(queryClient),
       ]);
-    },
-    onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: followingKey });
     },
   });
 };

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { apiRequest } from "@/lib/api-client";
+import { apiRequest, type QueryRequestOptions } from "@/lib/api-client";
 import { successResponseSchema, userSummarySchema } from "@/types/api";
 
 const followStateSchema = z.object({
@@ -72,4 +72,19 @@ export const removeFollower = async (username: string): Promise<FollowActionResp
     { method: "DELETE" },
   );
   return followActionResponseSchema.parse(response);
+};
+
+// The API caps one lookup at 60 user ids.
+export const VIEWER_FOLLOWS_MAX_IDS = 60;
+
+// Which of `userIdsParam` (comma-separated ids) the signed-in viewer follows.
+export const getViewerFollows = async (
+  userIdsParam: string,
+  options: QueryRequestOptions = {},
+): Promise<string[]> => {
+  const response = await apiRequest<unknown>(
+    `/api/social/following-status?userIds=${encodeURIComponent(userIdsParam)}`,
+    { method: "GET", signal: options.signal },
+  );
+  return z.object({ followingIds: z.array(z.string()) }).parse(response).followingIds;
 };

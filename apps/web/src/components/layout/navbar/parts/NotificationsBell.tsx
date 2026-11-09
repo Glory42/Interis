@@ -1,11 +1,13 @@
 import { LineRowsSkeleton, LoadingRegion } from "@/components/ui/PageSkeletons";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Bell } from "lucide-react";
+import { Bell, X } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { FeedActorAvatar } from "@/features/feed/components/FeedActorAvatar";
 import type { NotificationItem, NotificationType } from "@/features/notifications/api";
 import {
+  useClearNotifications,
+  useDeleteNotification,
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
   useNotificationsList,
@@ -37,6 +39,25 @@ const parseRemoval = (metadata: string | null) => {
   }
 };
 
+const rowClass = "group/notification relative border-b border-border/50 last:border-0";
+
+const headerAction =
+  "font-mono text-[9px] uppercase tracking-[0.12em] transition-colors disabled:opacity-50";
+
+// Sits beside the row's link, not inside it, so it never navigates. Shown on
+// hover/focus with a mouse, always on touch screens.
+const DeleteNotificationButton = ({ onDelete }: { onDelete: () => void }) => (
+  <button
+    type="button"
+    onClick={onDelete}
+    aria-label="Delete notification"
+    title="Delete notification"
+    className="absolute right-1.5 top-1.5 flex size-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-foreground/[0.06] hover:text-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 group-hover/notification:opacity-100 group-focus-within/notification:opacity-100 [@media(hover:none)]:opacity-100"
+  >
+    <X aria-hidden className="size-3.5" />
+  </button>
+);
+
 // Moderation notices have no actor to show and nothing left to link to.
 const RemovalNotice = ({ notification, onRead }: { notification: NotificationItem; onRead: () => void }) => {
   const { label, detail } = parseRemoval(notification.metadata);
@@ -44,7 +65,7 @@ const RemovalNotice = ({ notification, onRead }: { notification: NotificationIte
     <button
       type="button"
       onClick={onRead}
-      className={"block w-full border-b text-left border-border/50 px-3 py-2.5 last:border-0 " + (notification.isRead ? "" : "bg-primary/5")}
+      className={"block w-full py-2.5 pl-3 pr-9 text-left " + (notification.isRead ? "" : "bg-primary/5")}
     >
       <span className="block font-mono text-[11px] text-foreground">{`A moderator removed your ${label}`}</span>
       {detail ? <span className="user-text block font-mono text-[10px] text-muted-foreground">{detail}</span> : null}
@@ -85,6 +106,15 @@ export const NotificationsBell = () => {
   const listQuery = useNotificationsList(isOpen);
   const markReadMutation = useMarkNotificationRead();
   const markAllReadMutation = useMarkAllNotificationsRead();
+  const deleteMutation = useDeleteNotification();
+  const clearMutation = useClearNotifications();
+  // "Clear all" asks once more before emptying the bell.
+  const [isConfirmingClear, setIsConfirmingClear] = useState(false);
+
+  const closeMenu = () => {
+    setIsOpen(false);
+    setIsConfirmingClear(false);
+  };
 
   useEffect(() => {
     if (!isOpen) {
@@ -98,6 +128,7 @@ export const NotificationsBell = () => {
         !menuRef.current.contains(event.target)
       ) {
         setIsOpen(false);
+        setIsConfirmingClear(false);
       }
     };
 
@@ -116,7 +147,7 @@ export const NotificationsBell = () => {
     <div ref={menuRef} className="relative self-stretch flex items-center">
       <button
         type="button"
-        onClick={() => setIsOpen((current) => !current)}
+        onClick={() => (isOpen ? closeMenu() : setIsOpen(true))}
         className="relative flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
         aria-haspopup="menu"
         aria-expanded={isOpen}
@@ -141,16 +172,32 @@ export const NotificationsBell = () => {
             <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
               Notifications
             </p>
-            {unreadCount > 0 ? (
-              <button
-                type="button"
-                disabled={markAllReadMutation.isPending}
-                onClick={() => markAllReadMutation.mutate()}
-                className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
-              >
-                Mark all read
-              </button>
-            ) : null}
+            <div className="flex items-center gap-3">
+              {unreadCount > 0 ? (
+                <button
+                  type="button"
+                  disabled={markAllReadMutation.isPending}
+                  onClick={() => markAllReadMutation.mutate()}
+                  className={`${headerAction} text-muted-foreground hover:text-foreground`}
+                >
+                  Mark all read
+                </button>
+              ) : null}
+              {notifications.length > 0 ? (
+                <button
+                  type="button"
+                  disabled={clearMutation.isPending}
+                  onClick={() => {
+                    setIsConfirmingClear(!isConfirmingClear);
+                    if (isConfirmingClear) clearMutation.mutate();
+                  }}
+                  aria-label={isConfirmingClear ? "Confirm clearing all notifications" : "Clear all notifications"}
+                  className={`${headerAction} ${isConfirmingClear ? "text-destructive" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  {isConfirmingClear ? "Confirm clear" : "Clear all"}
+                </button>
+              ) : null}
+            </div>
           </div>
 
           <div className="max-h-96 overflow-y-auto">
@@ -167,11 +214,12 @@ export const NotificationsBell = () => {
                 {notifications.map((notification) => {
                   if (notification.type === "content_removed") {
                     return (
-                      <li key={notification.id}>
+                      <li key={notification.id} className={rowClass}>
                         <RemovalNotice
                           notification={notification}
                           onRead={() => !notification.isRead && markReadMutation.mutate(notification.id)}
                         />
+                        <DeleteNotificationButton onDelete={() => deleteMutation.mutate(notification.id)} />
                       </li>
                     );
                   }
@@ -180,18 +228,18 @@ export const NotificationsBell = () => {
                   const link = resolveNotificationLink(notification, user.username);
 
                   return (
-                    <li key={notification.id}>
+                    <li key={notification.id} className={rowClass}>
                       <Link
                         to={link.to}
                         params={link.params}
                         onClick={() => {
-                          setIsOpen(false);
+                          closeMenu();
                           if (!notification.isRead) {
                             markReadMutation.mutate(notification.id);
                           }
                         }}
                         className={
-                          "flex items-start gap-2.5 rounded-lg border-b border-border/50 px-3 py-2.5 text-left transition-colors last:border-0 hover:bg-secondary/25 " +
+                          "flex items-start gap-2.5 rounded-lg py-2.5 pl-3 pr-9 text-left transition-colors hover:bg-secondary/25 " +
                           (notification.isRead ? "" : "bg-primary/5")
                         }
                       >
@@ -219,6 +267,7 @@ export const NotificationsBell = () => {
                           />
                         ) : null}
                       </Link>
+                      <DeleteNotificationButton onDelete={() => deleteMutation.mutate(notification.id)} />
                     </li>
                   );
                 })}

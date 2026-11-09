@@ -149,6 +149,15 @@ export class SocialRepository {
     return !!row;
   }
 
+  // The subset of `userIds` the follower follows, in one query.
+  static async findFollowedAmong(followerId: string, userIds: string[]) {
+    if (userIds.length === 0) return [];
+    return db
+      .select({ followingId: follows.followingId })
+      .from(follows)
+      .where(and(eq(follows.followerId, followerId), inArray(follows.followingId, userIds)));
+  }
+
   static async getFollowingIdsByFollowerId(followerId: string) {
     return db
       .select({ followingId: follows.followingId })

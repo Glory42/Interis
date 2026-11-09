@@ -10,6 +10,7 @@ export const toUserEntry = (profile: UserSearchResult): UserResultEntry => {
   return {
     kind: "users",
     id: `users-${profile.id}`,
+    userId: profile.id,
     username: profile.username,
     displayName: profileName,
     avatarUrl: profile.avatarUrl ?? null,

@@ -61,6 +61,11 @@ export class SocialFollowService {
     return SocialRepository.isFollowing(followerId, followingId);
   }
 
+  static async getFollowedAmong(followerId: string, userIds: string[]): Promise<string[]> {
+    const rows = await SocialRepository.findFollowedAmong(followerId, userIds);
+    return rows.map((row) => row.followingId);
+  }
+
   static async removeFollower(userId: string, followerUserId: string) {
     await SocialRepository.removeFollower(userId, followerUserId);
     await SocialFollowService.retractFollow(followerUserId, userId);

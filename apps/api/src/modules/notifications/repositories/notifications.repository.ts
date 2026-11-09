@@ -86,6 +86,21 @@ export class NotificationsRepository {
       );
   }
 
+  // Scoped to the recipient so nobody can delete another user's notification.
+  static async deleteForRecipient(recipientId: string, notificationId: string) {
+    const [row] = await db
+      .delete(notifications)
+      .where(
+        and(eq(notifications.id, notificationId), eq(notifications.recipientId, recipientId)),
+      )
+      .returning({ id: notifications.id });
+    return row ?? null;
+  }
+
+  static async deleteAllForRecipient(recipientId: string): Promise<void> {
+    await db.delete(notifications).where(eq(notifications.recipientId, recipientId));
+  }
+
   static async markAllRead(recipientId: string): Promise<void> {
     await db
       .update(notifications)
