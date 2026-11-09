@@ -1,21 +1,23 @@
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import type { MediaKind } from "@/features/media/media-cache";
 
-type UnwatchFilmDialogProps = {
+type UnwatchMediaDialogProps = {
+  kind: MediaKind;
   onConfirm: (clearLikeAndRating: boolean) => void;
   onClose: () => void;
 };
 
-// Asked before marking a liked or rated movie not watched (#93). Render it
+// Asked before marking a liked or rated Film or Series not watched (#93). Render it
 // only while open so the checkbox starts unticked each time.
-export const UnwatchFilmDialog = ({ onConfirm, onClose }: UnwatchFilmDialogProps) => {
+export const UnwatchMediaDialog = ({ kind, onConfirm, onClose }: UnwatchMediaDialogProps) => {
   const [clearLikeAndRating, setClearLikeAndRating] = useState(false);
 
   return (
     <ConfirmDialog
       isOpen
       title="Mark as not watched?"
-      description="You've liked or rated this movie."
+      description={kind === "film" ? "You've liked or rated this movie." : "You've liked or rated this show."}
       confirmLabel="Mark not watched"
       onConfirm={() => onConfirm(clearLikeAndRating)}
       onClose={onClose}
@@ -30,7 +32,7 @@ export const UnwatchFilmDialog = ({ onConfirm, onClose }: UnwatchFilmDialogProps
         <span className="text-sm text-foreground">
           Also remove your like and rating
           <span className="block text-xs text-muted-foreground">
-            Your logs and reviews stay.
+            {kind === "film" ? "Your logs and reviews stay." : "Your logs and reviews stay; episode progress is cleared."}
           </span>
         </span>
       </label>
