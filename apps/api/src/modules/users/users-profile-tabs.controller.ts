@@ -1,29 +1,39 @@
 import type { Request, Response } from "express";
+import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
 import { sendNotFound } from "../../commons/http/validation-response.helper";
 import { PublicService } from "../public/public.service";
-import {
-  normalizePublicCollectionLimit,
-  normalizePublicCurrentlyWatchingLimit,
-  normalizePublicDiaryOffset,
-  normalizePublicRecentLimit,
-} from "../public/helpers/public-query-normalizer.helper";
-import type {
-  PublicCurrentlyWatchingQueryDto,
-  PublicDiaryQueryDto,
-  PublicRecentQueryDto,
-} from "../public/dto/public.dto";
+import { normalizePublicRecentLimit } from "../public/helpers/public-query-normalizer.helper";
+import type { PublicRecentQueryDto } from "../public/dto/public.dto";
+import { UsersService } from "./users.service";
+import type { ProfileTab } from "./services/profile-tabs.service";
 
-// The in-app profile tabs that share the widget API's data. Mounted behind an
-// owner-aware response cache (users.routes.ts): other viewers get cached
-// copies, while the profile owner always gets fresh data so their own changes
-// show immediately. res.locals.profileOwnerId tells the cache whose profile it is.
+// The in-app Profile tabs, mounted behind the owner-aware response cache (users.routes.ts).
+// res.locals tells the cache whose Profile it is and whether the response is viewer-specific.
 export class UsersProfileTabsController {
+  // GET /api/users/:username/<tab>
+  static tab(tab: ProfileTab) {
+    return async (req: Request<{ username: string }>, res: Response): Promise<void> => {
+      const read = await UsersService.readProfileTab(req.params.username, tab, req.query, {
+        resolveViewerId: () => resolveViewerUserIdFromHeaders(req.headers),
+      });
+      if (!read) {
+        sendNotFound(res, "User not found");
+        return;
+      }
+
+      res.locals.profileOwnerId = read.ownerId;
+      res.locals.viewerSpecific = read.viewerSpecific;
+      res.setHeader("Cache-Control", "private, no-store");
+      res.status(200).json(read.data);
+    };
+  }
+
   private static async send(
     req: Request<{ username: string }>,
     res: Response,
     load: (userId: string) => Promise<unknown>,
   ): Promise<void> {
-    const userId = await PublicService.findUserIdByUsername(req.params.username);
+    const userId = await UsersService.findUserIdByUsername(req.params.username);
     if (!userId) {
       sendNotFound(res, "User not found");
       return;
@@ -35,36 +45,6 @@ export class UsersProfileTabsController {
     res.status(200).json(data);
   }
 
-  // GET /api/users/:username/diary?limit=50&offset=0
-  static async getDiary(
-    req: Request<{ username: string }, unknown, unknown, PublicDiaryQueryDto>,
-    res: Response,
-  ): Promise<void> {
-    const limit = normalizePublicCollectionLimit(req.query.limit);
-    const offset = normalizePublicDiaryOffset(req.query.offset);
-    await UsersProfileTabsController.send(req, res, (userId) =>
-      PublicService.getDiaryByUserId(userId, limit, offset),
-    );
-  }
-
-  // GET /api/users/:username/top4
-  static async getTop4(req: Request<{ username: string }>, res: Response): Promise<void> {
-    await UsersProfileTabsController.send(req, res, (userId) =>
-      PublicService.getTop4ByUserId(userId),
-    );
-  }
-
-  // GET /api/users/:username/recent?limit=10
-  static async getRecent(
-    req: Request<{ username: string }, unknown, unknown, PublicRecentQueryDto>,
-    res: Response,
-  ): Promise<void> {
-    const limit = normalizePublicRecentLimit(req.query.limit);
-    await UsersProfileTabsController.send(req, res, (userId) =>
-      PublicService.getRecentActivityByUserId(userId, limit),
-    );
-  }
-
   // GET /api/users/:username/recent/grouped?limit=20
   static async getRecentGrouped(
     req: Request<{ username: string }, unknown, unknown, PublicRecentQueryDto>,
@@ -73,17 +53,6 @@ export class UsersProfileTabsController {
     const limit = normalizePublicRecentLimit(req.query.limit);
     await UsersProfileTabsController.send(req, res, (userId) =>
       PublicService.getRecentActivityGroupedByUserId(userId, limit),
-    );
-  }
-
-  // GET /api/users/:username/serials/currently-watching?limit=10
-  static async getSerialsCurrentlyWatching(
-    req: Request<{ username: string }, unknown, unknown, PublicCurrentlyWatchingQueryDto>,
-    res: Response,
-  ): Promise<void> {
-    const limit = normalizePublicCurrentlyWatchingLimit(req.query.limit);
-    await UsersProfileTabsController.send(req, res, (userId) =>
-      PublicService.getSerialsCurrentlyWatchingByUserId(userId, limit),
     );
   }
 }

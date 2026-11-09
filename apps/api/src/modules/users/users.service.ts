@@ -1,60 +1,75 @@
 import type { SuspensionOptions } from "./repositories/users-profile.repository";
-import type { ThemeId } from "./constants/theme.constants";
+import { normalizeThemeId, type ThemeId } from "./constants/theme.constants";
 import type { UpdateProfileDto } from "./dto/users.dto";
-import { UsersLikesRepository } from "./repositories/users-likes.repository";
-import { UsersProfileService } from "./services/users-profile.service";
-import { UsersReadService } from "./services/users-read.service";
+import { dedupeRecentPosters } from "./helpers/users-summary.helper";
+import { UsersProfileRepository } from "./repositories/users-profile.repository";
+import { UsersReviewsRepository } from "./repositories/users-reviews.repository";
+import { UsersStatsRepository } from "./repositories/users-stats.repository";
+import {
+  ProfileTabsService,
+  type ProfileTab,
+  type ProfileTabReadOptions,
+} from "./services/profile-tabs.service";
+
+const withNormalizedTheme = <T extends { themeId: string }>(row: T | null) =>
+  row ? { ...row, themeId: normalizeThemeId(row.themeId) } : null;
 
 export class UsersService {
-  static async getTotalUsersCount() {
-    return UsersReadService.getTotalUsersCount();
+  static async readProfileTab<T extends ProfileTab>(
+    username: string,
+    tab: T,
+    query: Record<string, unknown>,
+    options?: ProfileTabReadOptions,
+  ) {
+    return ProfileTabsService.read(username, tab, query, options);
   }
 
   static async getNetworkStats() {
-    return UsersReadService.getNetworkStats();
+    return UsersStatsRepository.getNetworkStats();
   }
 
-  static async searchUsers(query: string, limit?: number) {
-    return UsersReadService.searchUsers(query, limit);
+  static async searchUsers(query: string, limit = 8) {
+    return UsersProfileRepository.searchProfilesByUsername(query, limit);
+  }
+
+  static async findUserIdByUsername(username: string) {
+    return UsersProfileRepository.findUserIdByUsername(username);
   }
 
   static async findByUsername(username: string) {
-    return UsersProfileService.findByUsername(username);
+    return withNormalizedTheme(await UsersProfileRepository.findProfileByUsername(username));
+  }
+
+  static async findById(userId: string) {
+    return withNormalizedTheme(await UsersProfileRepository.findProfileById(userId));
   }
 
   static async getPublicProfileWithStats(username: string) {
-    const profile = await UsersProfileService.findByUsername(username);
+    const profile = await UsersService.findByUsername(username);
     if (!profile) {
       return null;
     }
 
-    const stats = await UsersReadService.getStats(profile.id);
+    const stats = await UsersStatsRepository.getStatsCounts(profile.id);
     const { email: _email, ...publicProfile } = profile;
     return { ...publicProfile, stats };
   }
 
-  static async findById(userId: string) {
-    return UsersProfileService.findById(userId);
-  }
-
   static async updateProfile(userId: string, input: UpdateProfileDto) {
-    return UsersProfileService.updateProfile(userId, input);
+    return UsersProfileRepository.updateProfile(userId, input);
   }
 
   static async updateTheme(userId: string, themeId: ThemeId) {
-    return UsersProfileService.updateTheme(userId, themeId);
+    const updated = await UsersProfileRepository.updateTheme(userId, themeId);
+    return updated ? { themeId: normalizeThemeId(updated.themeId) } : null;
   }
 
   static async setAdminStatus(userId: string, isAdmin: boolean) {
-    return UsersProfileService.setAdminStatus(userId, isAdmin);
+    return UsersProfileRepository.setAdminStatus(userId, isAdmin);
   }
 
   static async setSuspended(userId: string, isSuspended: boolean, reason?: string, options?: SuspensionOptions) {
-    return UsersProfileService.setSuspended(userId, isSuspended, reason, options);
-  }
-
-  static async getReviewsWithMovies(userId: string, limit?: number, offset?: number) {
-    return UsersReadService.getReviewsWithMovies(userId, limit, offset);
+    return UsersProfileRepository.setSuspended(userId, isSuspended, reason, options);
   }
 
   static async getReviewDetailByUsername(
@@ -62,44 +77,53 @@ export class UsersService {
     reviewId: string,
     viewerUserId?: string | null,
   ) {
-    return UsersReadService.getReviewDetailByUsername(username, reviewId, viewerUserId);
-  }
-
-  static async getWatchedMovies(userId: string, limit?: number, offset?: number) {
-    return UsersReadService.getWatchedMovies(userId, limit, offset);
-  }
-
-  static async getLikedMovies(userId: string, limit: number) {
-    return UsersReadService.getLikedMovies(userId, limit);
-  }
-
-  static async getWatchlistedMovies(userId: string, limit: number) {
-    return UsersReadService.getWatchlistedMovies(userId, limit);
-  }
-
-  static async getMediaShelf(
-    ...args: Parameters<typeof UsersReadService.getMediaShelf>
-  ) {
-    return UsersReadService.getMediaShelf(...args);
+    return UsersReviewsRepository.getReviewDetailByUsername(username, reviewId, viewerUserId);
   }
 
   static async getStats(userId: string) {
-    return UsersReadService.getStats(userId);
+    return UsersStatsRepository.getStatsCounts(userId);
   }
 
   static async getDetailedStats(userId: string) {
-    return UsersReadService.getDetailedStats(userId);
+    const { minutesWatched, ...stats } = await UsersStatsRepository.getDetailedStats(userId);
+    const ratedLogCount = stats.ratingDistribution.reduce((sum, row) => sum + row.count, 0);
+    const ratingTotal = stats.ratingDistribution.reduce(
+      (sum, row) => sum + row.rating * row.count,
+      0,
+    );
+
+    return {
+      ...stats,
+      averageRating: ratedLogCount > 0 ? Math.round((ratingTotal / ratedLogCount) * 100) / 100 : null,
+      ratedLogCount,
+      hoursWatched: Math.round((minutesWatched / 60) * 10) / 10,
+    };
   }
 
   static async getMeSummary(userId: string) {
-    return UsersReadService.getMeSummary(userId);
-  }
+    // "Your week" on the feed: the last seven days, today included.
+    const weekStart = new Date(Date.now() - 6 * 86_400_000);
+    const [profile, summaryData, week] = await Promise.all([
+      UsersService.findById(userId),
+      UsersStatsRepository.getMeSummaryData(userId),
+      UsersStatsRepository.getWeekSummary(userId, weekStart.toISOString().slice(0, 10), weekStart),
+    ]);
+    if (!profile) {
+      return null;
+    }
 
-  static async getLikedReviews(userId: string, limit?: number, offset?: number) {
-    return UsersLikesRepository.getLikedReviews(userId, limit, offset);
-  }
-
-  static async getLikedLists(userId: string, limit?: number, offset?: number) {
-    return UsersLikesRepository.getLikedLists(userId, limit, offset);
+    return {
+      id: profile.id,
+      username: profile.username,
+      displayUsername: profile.displayUsername,
+      avatarUrl: profile.avatarUrl,
+      counts: {
+        logs: summaryData.logs,
+        followers: summaryData.followers,
+        following: summaryData.following,
+      },
+      recentPosters: dedupeRecentPosters(summaryData.recentRows, 5),
+      week,
+    };
   }
 }

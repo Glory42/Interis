@@ -5,20 +5,13 @@ import {
   sendNotFound,
   sendValidationError,
 } from "../../commons/http/validation-response.helper";
-import { ListsService } from "../lists/lists.service";
-import { GetUserListsQuerySchema } from "../lists/dto/lists.dto";
 import { UsersService } from "./users.service";
 import {
   SearchUsersQuerySchema,
   UpdateProfileSchema,
   UpdateThemeSchema,
-  type ProfileListQueryDto,
   type SearchUsersQueryDto,
 } from "./dto/users.dto";
-import {
-  parseProfileListPagination,
-  parseProfileShelfQuery,
-} from "./helpers/users-pagination.helper";
 
 export class UsersController {
   static async getNetworkStats(_req: Request, res: Response): Promise<void> {
@@ -67,21 +60,6 @@ export class UsersController {
     res.status(200).json(stats);
   }
 
-  static async getUserReviews(
-    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
-    res: Response,
-  ): Promise<void> {
-    const profile = await resolveOrNotFound(res, "User not found", () =>
-      UsersService.findByUsername(req.params.username),
-    );
-    if (!profile) {
-      return;
-    }
-    const { limit, offset } = parseProfileListPagination(req.query);
-    const userReviews = await UsersService.getReviewsWithMovies(profile.id, limit, offset);
-    res.status(200).json(userReviews);
-  }
-
   static async getUserReviewDetail(
     req: Request<{ username: string; reviewId: string }>,
     res: Response,
@@ -106,73 +84,6 @@ export class UsersController {
     }
 
     res.status(200).json(review);
-  }
-
-  static async getUserLikes(
-    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
-    res: Response,
-  ): Promise<void> {
-    const profile = await resolveOrNotFound(res, "User not found", () =>
-      UsersService.findByUsername(req.params.username),
-    );
-    if (!profile) {
-      return;
-    }
-    const shelf = await UsersService.getMediaShelf(
-      profile.id,
-      "liked",
-      parseProfileShelfQuery(req.query),
-    );
-    res.status(200).json(shelf);
-  }
-
-  static async getUserLikedReviews(
-    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
-    res: Response,
-  ): Promise<void> {
-    const profile = await resolveOrNotFound(res, "User not found", () =>
-      UsersService.findByUsername(req.params.username),
-    );
-    if (!profile) {
-      return;
-    }
-    const { limit, offset } = parseProfileListPagination(req.query);
-    const liked = await UsersService.getLikedReviews(profile.id, limit, offset);
-    res.status(200).json(liked);
-  }
-
-  static async getUserLikedLists(
-    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
-    res: Response,
-  ): Promise<void> {
-    const profile = await resolveOrNotFound(res, "User not found", () =>
-      UsersService.findByUsername(req.params.username),
-    );
-    if (!profile) {
-      return;
-    }
-    const { limit, offset } = parseProfileListPagination(req.query);
-    const liked = await UsersService.getLikedLists(profile.id, limit, offset);
-    res.status(200).json(liked);
-  }
-
-  static async getUserWatchlist(
-    req: Request<{ username: string }, {}, {}, ProfileListQueryDto>,
-    res: Response,
-  ): Promise<void> {
-    const profile = await resolveOrNotFound(res, "User not found", () =>
-      UsersService.findByUsername(req.params.username),
-    );
-    if (!profile) {
-      return;
-    }
-
-    const shelf = await UsersService.getMediaShelf(
-      profile.id,
-      "watchlisted",
-      parseProfileShelfQuery(req.query),
-    );
-    res.status(200).json(shelf);
   }
 
   static async getMe(req: Request, res: Response): Promise<void> {
@@ -222,37 +133,5 @@ export class UsersController {
     }
 
     res.status(200).json(updated);
-  }
-
-  static async getUserLists(
-    req: Request<{ username: string }>,
-    res: Response,
-  ): Promise<void> {
-    const parsed = GetUserListsQuerySchema.safeParse(req.query);
-    if (!parsed.success) {
-      sendValidationError(res, parsed.error);
-      return;
-    }
-
-    const profile = await resolveOrNotFound(res, "User not found", () =>
-      UsersService.findByUsername(req.params.username),
-    );
-    if (!profile) {
-      return;
-    }
-
-    const viewerUserId = await resolveViewerUserIdFromHeaders(req.headers);
-    const { limit, offset } = parseProfileListPagination(req.query);
-
-    const lists = await ListsService.getUserLists(
-      profile.id,
-      viewerUserId,
-      parsed.data.tmdbId,
-      parsed.data.itemType,
-      limit,
-      offset,
-    );
-
-    res.status(200).json(lists);
   }
 }

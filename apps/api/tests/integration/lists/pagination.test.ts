@@ -86,9 +86,7 @@ describe("GET /api/users/:username/lists pagination", () => {
     );
     expect(createResponse.status).toBe(201);
 
-    // limit=1000 exceeds ProfileListQuerySchema's max(100) — the shared
-    // parseProfileListPagination helper treats that as invalid and falls
-    // back to the default page size rather than rejecting the request.
+    // limit=1000 exceeds the Lists tab's max of 100: it is clamped, not rejected.
     const response = await apiRequest(
       getServer().baseUrl,
       `/api/users/${username}/lists?limit=1000`,

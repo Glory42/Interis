@@ -4,10 +4,10 @@ import {
   TOP_PICK_SUPPORTED_CATEGORY_ID_SET,
   type TopPickCategoryId,
   type TopPickCategoryKey,
-} from "../../users/constants/top-picks.constants";
-import { PublicTopPicksRepository } from "../repositories/public-top-picks.repository";
+} from "../constants/top-picks.constants";
+import { UsersTopPicksRepository } from "../repositories/users-top-picks.repository";
 
-type PublicTopPickItem = {
+type Top4Item = {
   slot: number;
   mediaType: string;
   mediaSource: string;
@@ -19,20 +19,20 @@ type PublicTopPickItem = {
   releaseYear: number | null;
 };
 
-type PublicTopPickCategory = {
+type Top4Category = {
   id: TopPickCategoryId;
   key: TopPickCategoryKey;
   supported: boolean;
-  items: PublicTopPickItem[];
+  items: Top4Item[];
 };
 
-type PublicTopPicksResponse = {
-  categories: PublicTopPickCategory[];
+type ProfileTop4 = {
+  categories: Top4Category[];
 };
 
-export class PublicTopPicksService {
-  static async getTop4ByUserId(userId: string): Promise<PublicTopPicksResponse> {
-    const topPickRows = await PublicTopPicksRepository.getTopPicksByUserId(userId);
+export class ProfileTop4Service {
+  static async getTop4(userId: string): Promise<ProfileTop4> {
+    const topPickRows = await UsersTopPicksRepository.getTopPicksByUserId(userId);
 
     const movieTmdbIds = topPickRows
       .filter(
@@ -55,14 +55,14 @@ export class PublicTopPicksService {
       .map((row) => Number(row.mediaSourceId));
 
     const [movieRows, serialRows] = await Promise.all([
-      PublicTopPicksRepository.getMoviesByTmdbIds([...new Set(movieTmdbIds)]),
-      PublicTopPicksRepository.getSeriesByTmdbIds([...new Set(serialTmdbIds)]),
+      UsersTopPicksRepository.getMoviesByTmdbIds([...new Set(movieTmdbIds)]),
+      UsersTopPicksRepository.getSeriesByTmdbIds([...new Set(serialTmdbIds)]),
     ]);
 
     const movieByTmdbId = new Map(movieRows.map((row) => [row.tmdbId, row]));
     const serialByTmdbId = new Map(serialRows.map((row) => [row.tmdbId, row]));
 
-    const categoriesById = new Map<TopPickCategoryId, PublicTopPickCategory>(
+    const categoriesById = new Map<TopPickCategoryId, Top4Category>(
       TOP_PICK_CATEGORY_IDS.map((id) => [
         id,
         {
@@ -117,7 +117,7 @@ export class PublicTopPicksService {
 
     return {
       categories: TOP_PICK_CATEGORY_IDS.map(
-        (id) => categoriesById.get(id) as PublicTopPickCategory,
+        (id) => categoriesById.get(id) as Top4Category,
       ),
     };
   }

@@ -39,7 +39,8 @@ export const createPublicResponseCache = (options: {
 
     const originalJson = res.json.bind(res);
     res.json = (body: unknown) => {
-      if (CACHEABLE_STATUSES.has(res.statusCode)) {
+      // A viewer-specific body (e.g. the owner's private Lists) must never be shared.
+      if (CACHEABLE_STATUSES.has(res.statusCode) && res.locals?.viewerSpecific !== true) {
         if (cache.size >= options.maxEntries) {
           const oldestKey = cache.keys().next().value;
           if (oldestKey !== undefined) cache.delete(oldestKey);
