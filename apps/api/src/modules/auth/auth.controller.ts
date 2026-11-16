@@ -9,13 +9,16 @@ import {
 import { AppError } from "../../commons/errors/app-error";
 import { env } from "../../infrastructure/config/env";
 import { AuthService } from "./auth.service";
+import { AccountSessionsService } from "./services/account-sessions.service";
 import {
   ChangeEmailSchema,
   ChangePasswordSchema,
   DeleteAccountSchema,
   ForgotPasswordSchema,
   ResetPasswordSchema,
+  RevokeOtherSessionsSchema,
   SecurityQuestionSchema,
+  SessionIdParamSchema,
   SignInSchema,
   SignUpSchema,
   UpdateUserSchema,
@@ -37,7 +40,7 @@ const handleAuthError = (res: Response, error: unknown): void => {
       sendConflict(res, error.message);
       return;
     }
-    if (error.code === "PASSWORD_RESET_REQUIRED") {
+    if (error.code === "PASSWORD_RESET_REQUIRED" || error.code === "NOT_FOUND") {
       sendAppError(res, error);
       return;
     }
@@ -220,6 +223,48 @@ export class AuthController {
         parsed.data.newPassword,
       );
       res.status(200).json({ success: true });
+    } catch (error) {
+      handleAuthError(res, error);
+    }
+  }
+
+  // GET /api/auth/sessions
+  static async listSessions(req: Request, res: Response): Promise<void> {
+    const result = await AccountSessionsService.list(req.user.id, req.session.id);
+    res.status(200).json(result);
+  }
+
+  // DELETE /api/auth/sessions/:sessionId — any session but this device's.
+  static async revokeSession(req: Request, res: Response): Promise<void> {
+    const parsed = SessionIdParamSchema.safeParse(req.params);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    try {
+      await AccountSessionsService.revoke(req.user.id, req.session.id, parsed.data.sessionId);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      handleAuthError(res, error);
+    }
+  }
+
+  // POST /api/auth/sessions/revoke-others — signs out every other device.
+  static async revokeOtherSessions(req: Request, res: Response): Promise<void> {
+    const parsed = RevokeOtherSessionsSchema.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    try {
+      const result = await AccountSessionsService.revokeOthers(
+        req.user.id,
+        req.session.id,
+        parsed.data.currentPassword,
+      );
+      res.status(200).json(result);
     } catch (error) {
       handleAuthError(res, error);
     }
