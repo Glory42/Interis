@@ -4,7 +4,7 @@ import { FilmDetailPage } from "@/features/films/components/FilmDetailPage";
 import { filmKeys } from "@/features/films/hooks/useFilms";
 import { parsePositiveIntParam } from "@/lib/router/params";
 import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
-import { getPosterUrl } from "@/features/media/tmdb-images";
+import { mediaShareText, shareCardUrl, shareHeadMeta } from "@/lib/share-meta";
 
 export const Route = createFileRoute("/movies/$tmdbId")({
   beforeLoad: ({ params }) => {
@@ -32,18 +32,10 @@ export const Route = createFileRoute("/movies/$tmdbId")({
     }
 
     const { movie } = loaderData;
-    const title = movie.releaseYear ? `${movie.title} (${movie.releaseYear})` : movie.title;
-    const description = movie.overview || `${movie.title} on Interis.`;
+    const text = mediaShareText({ title: movie.title, year: movie.releaseYear, overview: movie.overview });
 
     return {
-      meta: [
-        { title: `${title} — Interis` },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:image", content: getPosterUrl(movie.posterPath) },
-        { property: "og:type", content: "video.movie" },
-      ],
+      meta: shareHeadMeta(text, { image: shareCardUrl("movie", movie.tmdbId), ogType: "video.movie" }),
     };
   },
   component: FilmDetailRoute,

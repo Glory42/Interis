@@ -5,6 +5,7 @@ import { changeCurrentUserEmail, changeCurrentUserPassword } from "@/features/au
 import { authKeys, useSetSecurityQuestion } from "@/features/auth/hooks/useAuth";
 import { isApiError } from "@/lib/api-client";
 import { PASSWORD_MAX, PASSWORD_MIN, PASSWORD_RULES } from "@/features/auth/password";
+import { sessionKeys } from "@/features/settings/hooks/useAccountSessions";
 import { AccountField, PasswordLengthHint } from "./AccountField";
 
 type FormProps = { onClose: () => void; onDone: (message: string) => void };
@@ -61,7 +62,11 @@ export const EmailForm = ({ onClose, onDone }: FormProps) => {
 };
 
 export const PasswordForm = ({ onClose, onDone }: FormProps) => {
-  const mutation = useMutation({ mutationFn: changeCurrentUserPassword });
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: changeCurrentUserPassword,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: sessionKeys.list }),
+  });
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [revokeOtherSessions, setRevokeOtherSessions] = useState(true);

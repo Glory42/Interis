@@ -50,3 +50,11 @@ export const ResetPasswordSchema = z.object({
   answer: z.string().min(1).max(200),
   newPassword: z.string().min(1).max(256),
 });
+
+export const SessionIdParamSchema = z.object({
+  sessionId: z.string().min(1).max(64),
+});
+
+export const RevokeOtherSessionsSchema = z.object({
+  currentPassword: currentPasswordSchema,
+});
