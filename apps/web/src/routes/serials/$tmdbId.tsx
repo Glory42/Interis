@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { getSeriesDetail } from "@/features/tv/api";
 import { SeriesDetailPage } from "@/features/tv/components/SeriesDetailPage";
-import { seriesKeys } from "@/features/tv/hooks/useTv";
+import { seriesKeys } from "@/features/tv/hooks/tv/query-keys";
 import { parsePositiveIntParam } from "@/lib/router/params";
 import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
 import { mediaShareText, shareCardUrl, shareHeadMeta } from "@/lib/share-meta";

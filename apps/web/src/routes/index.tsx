@@ -6,7 +6,7 @@ import {
   trendingFilmsQueryOptions,
 } from "@/features/feed/hooks/useFeed";
 import { LandingPage } from "@/features/landing/pages/LandingPage";
-import { trendingSeriesQueryOptions } from "@/features/tv/hooks/useTv";
+import { trendingSeriesQueryOptions } from "@/features/tv/hooks/tv/use-series-queries";
 import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
 
 export const Route = createFileRoute("/")({
