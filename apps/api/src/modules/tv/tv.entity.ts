@@ -58,6 +58,8 @@ export const seriesDiaryEntries = pgTable("serial_diary_entry", {
   watchedDate: date("watched_date").notNull(),
   rating: real("rating"),
   rewatch: boolean("rewatch").default(false).notNull(),
+  // Private: only the owner's own reads select it.
+  note: text("note"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
