@@ -124,3 +124,7 @@ _Avoid_: ban, block
 **Notification**:
 A record that another user's action (follow, like, comment) or a moderator's removal of their content is relevant to a user and awaits their attention, with its own read/unread state. Distinct from Activity, which is the public record of the action itself regardless of who it's relevant to.
 _Avoid_: alert
+
+**Push Subscription**:
+One browser or installed app a user turned push on for (`push_subscription`, at most 10 per user). Every new Notification is also sent to each of the recipient's Push Subscriptions as a Web Push, unless the recipient turned that category off in their push preferences (follows, likes, comments, moderation). The bell itself is unaffected by those preferences.
+_Avoid_: device token, registration

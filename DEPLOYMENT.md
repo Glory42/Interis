@@ -51,8 +51,27 @@ Set these in Render's Environment tab (Secrets, not the repo):
 | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL` | Only needed if avatar uploads are enabled |
 | `CORS_ORIGIN` | The deployed web app's origin(s), comma-separated — required in prod; unset falls back to the local dev origins (`localhost`/`127.0.0.1:5173`) |
 | `NODE_ENV` | `production` |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Optional, turn on Web Push notifications (see below). Leave all three unset to keep push off; Settings → Notifications then says push isn't available |
 
 Everything else (`AUTH_ACCESS_COOKIE_NAME`, `AUTH_REFRESH_COOKIE_NAME`, `JWT_ACCESS_TTL_SECONDS`, `REFRESH_TOKEN_TTL_SECONDS`, `USE_LOCAL_DB_PROXY`) has a safe default in `env.ts` and doesn't need to be set explicitly in production. Don't set `USE_LOCAL_DB_PROXY` at all unless you mean it — see the `z.stringbool()` note below.
+
+### Web Push (VAPID keys)
+
+Push notifications are signed with a VAPID key pair. Generate one once, from `apps/api/`:
+
+```bash
+bunx web-push generate-vapid-keys
+```
+
+Set the printed **Public Key** as `VAPID_PUBLIC_KEY` and the **Private Key** as
+`VAPID_PRIVATE_KEY` in Render's Environment tab, and `VAPID_SUBJECT` to a contact
+URL push services can reach you at, e.g. `mailto:you@example.com`. Save and let
+Render redeploy. Nothing is needed on Cloudflare Pages: the web app fetches the
+public key from `GET /api/push/public-key`.
+
+Keep the pair stable. Rotating it orphans every existing subscription: browsers
+resubscribe the next time their owner turns the toggle on, and the old rows are
+deleted as push services answer 404/410.
 
 ### Local development
 
