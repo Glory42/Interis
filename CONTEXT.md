@@ -165,8 +165,12 @@ The title, description and image a chat app or social network shows for a shared
 _Avoid_: embed, unfurl (both name what the other app does with it)
 
 **Share Card**:
-The generated 1200×630 PNG a Link Preview shows for a Review, List, Profile, Film or Series, rendered on the API (`infrastructure/share-cards`, one renderer per card type).
+The generated 1200×630 JPEG a Link Preview shows for a Review, List, Profile, Film, Series or Year in Review, rendered on the API (`infrastructure/share-cards`, one renderer per card type) and kept well under 300 KB so every chat app unfurls it. Served at `/api/public/og/<kind>/<id>.jpg`; the older `.png` URLs redirect there.
 _Avoid_: og image, thumbnail
+
+**Year in Review**:
+A public recap of one user's calendar year (UTC dates), read from their Diary Entries: Films and Series watched, hours, months, the longest streak of consecutive days with a Diary Entry, first and last watch, top genres, directors and decades, highest-rated and most rewatched titles, their average rating against the Community Rating of the same titles, Reviews written, public Lists created, new Follows, and the year's Watch Goal. The current year reads as "so far"; an empty or thin year gets a short version. Hours are Film runtime per Diary Entry (rewatches count again) plus each Series episode ticked as watched that year (by when it was ticked) times the Series' episode runtime. Hidden while a Suspension is in effect. Viewer-independent and cached in-process; owned by `modules/year-review` and shown at `/profile/:username/year/:year` with its own Share Card.
+_Avoid_: wrapped (another product's name). "Recap" is fine as its short name (the `recap` card kind, `Recap*` components).
 
 ### Notifications
 

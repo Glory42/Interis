@@ -97,10 +97,10 @@ export class YourRatingRepository {
     }));
   }
 
-  // The same rule per row of an archive listing, grouped by `mediaId`.
+  // The same rule per row of an archive listing, grouped by `mediaId` (a column or raw outer reference).
   static communityAggregateSql(
     mediaType: MediaType,
-    mediaId: AnyPgColumn,
+    mediaId: AnyPgColumn | SQL,
   ): { avgRatingOutOfTen: SQL<number | null>; ratedLogCount: SQL<number> } {
     const ratings = communityRatingsSql(SOURCES[mediaType], mediaId);
     return {

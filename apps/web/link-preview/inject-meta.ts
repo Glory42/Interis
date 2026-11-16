@@ -70,7 +70,7 @@ export const buildHeadTags = (meta: ShareMeta, origins: { siteOrigin: string; ap
     tag("property", "og:description", meta.description),
     tag("property", "og:url", pageUrl),
     tag("property", "og:image", imageUrl),
-    isCard && tag("property", "og:image:type", "image/png"),
+    isCard && tag("property", "og:image:type", "image/jpeg"),
     isCard && tag("property", "og:image:width", "1200"),
     isCard && tag("property", "og:image:height", "630"),
     tag("property", "og:image:alt", meta.title),

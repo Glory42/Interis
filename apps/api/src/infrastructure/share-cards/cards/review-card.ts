@@ -2,7 +2,7 @@ import { loadCardImages } from "../share-card-image.helper";
 import type { ShareCard } from "../share-card.types";
 import { avatar, box, cardFrame, clampChars, kicker, poster, rocketScore, text } from "../share-card-elements";
 import { CARD_COLORS, CARD_FONTS } from "../share-card-theme";
-import { renderSharePng } from "../render-share-card";
+import { renderShareImage } from "../render-share-card";
 
 export type ReviewCardInput = {
   mediaKind: "film" | "series";
@@ -55,6 +55,6 @@ export const renderReviewCard = async (input: ReviewCardInput): Promise<ShareCar
     ),
   );
 
-  const png = await renderSharePng(cardFrame({ kind: "Review", accent, backdrop: images.backdrop, body }));
-  return { png, complete };
+  const image = await renderShareImage(cardFrame({ kind: "Review", accent, backdrop: images.backdrop, body }));
+  return { image, complete };
 };

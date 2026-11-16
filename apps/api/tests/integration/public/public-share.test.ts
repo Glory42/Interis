@@ -14,7 +14,7 @@ type MetaJson = {
   path: string;
 };
 
-const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+const JPEG_SIGNATURE = [0xff, 0xd8, 0xff];
 
 describe("link-preview meta and share cards (/api/public/meta, /api/public/og)", () => {
   let testServer: RunningTestServer | null = null;
@@ -52,13 +52,13 @@ describe("link-preview meta and share cards (/api/public/meta, /api/public/og)",
     return { response, body: response.status === 200 ? ((await response.json()) as MetaJson) : null };
   };
 
-  const expectPng = async (path: string) => {
+  const expectJpeg = async (path: string) => {
     const response = await apiRequest(baseUrl(), path);
     expect(response.status).toBe(200);
-    expect(response.headers.get("content-type")).toBe("image/png");
+    expect(response.headers.get("content-type")).toBe("image/jpeg");
     expect(response.headers.get("cache-control")).toContain("public");
     const bytes = new Uint8Array(await response.arrayBuffer());
-    expect([...bytes.slice(0, 8)]).toEqual(PNG_SIGNATURE);
+    expect([...bytes.slice(0, 3)]).toEqual(JPEG_SIGNATURE);
     expect(bytes.length).toBeGreaterThan(1_000);
   };
 
@@ -79,7 +79,7 @@ describe("link-preview meta and share cards (/api/public/meta, /api/public/og)",
         description: "A slow, patient film that rewards attention.",
         path: `/reviews/${username}/${reviewId}`,
       });
-      expect(body?.image).toMatch(new RegExp(`^/api/public/og/review/${reviewId}\\.png\\?v=[0-9a-z]+$`));
+      expect(body?.image).toMatch(new RegExp(`^/api/public/og/review/${reviewId}\\.jpg\\?v=[0-9a-z]+$`));
     });
 
     it("hides the text of a review marked as containing spoilers", async () => {
@@ -105,7 +105,7 @@ describe("link-preview meta and share cards (/api/public/meta, /api/public/og)",
       const gone = await getMeta(`/review/${username}/${reviewId}`);
       expect(gone.response.status).toBe(404);
       expect(gone.response.headers.get("cache-control")).toBe("public, max-age=60, s-maxage=300");
-      expect((await apiRequest(baseUrl(), `/api/public/og/review/${reviewId}.png`)).status).toBe(404);
+      expect((await apiRequest(baseUrl(), `/api/public/og/review/${reviewId}.jpg`)).status).toBe(404);
     });
   });
 
@@ -129,7 +129,7 @@ describe("link-preview meta and share cards (/api/public/meta, /api/public/og)",
       const listId = await createList(jar, "Secret list", false);
 
       expect((await getMeta(`/list/${listId}`)).response.status).toBe(404);
-      expect((await apiRequest(baseUrl(), `/api/public/og/list/${listId}.png`)).status).toBe(404);
+      expect((await apiRequest(baseUrl(), `/api/public/og/list/${listId}.jpg`)).status).toBe(404);
     });
   });
 
@@ -141,7 +141,7 @@ describe("link-preview meta and share cards (/api/public/meta, /api/public/og)",
         kind: "profile",
         ogType: "profile",
         title: `${username} (@${username})`,
-        image: `/api/public/og/profile/${username}.png`,
+        image: `/api/public/og/profile/${username}.jpg`,
         path: `/profile/${username}`,
       });
       expect((await getMeta("/profile/no-such-share-user")).response.status).toBe(404);
@@ -178,7 +178,7 @@ describe("link-preview meta and share cards (/api/public/meta, /api/public/og)",
   });
 
   describe("share cards", () => {
-    it("renders a PNG for each card type", async () => {
+    it("renders a JPEG for each card type", async () => {
       const { jar, username } = await signUpTestUser(baseUrl(), "shcrd");
       const film = await seedTestFilm("Card Film");
       const series = await seedTestSeries("Card Series");
@@ -186,11 +186,22 @@ describe("link-preview meta and share cards (/api/public/meta, /api/public/og)",
       const listId = await createList(jar, "Card list", true);
       expect((await post(`/api/lists/${listId}/items`, { tmdbId: series.tmdbId, itemType: "serial" }, jar)).status).toBe(201);
 
-      await expectPng(`/api/public/og/review/${reviewId}.png`);
-      await expectPng(`/api/public/og/list/${listId}.png`);
-      await expectPng(`/api/public/og/profile/${username}.png`);
-      await expectPng(`/api/public/og/movie/${film.tmdbId}.png`);
-      await expectPng(`/api/public/og/serial/${series.tmdbId}.png`);
+      await expectJpeg(`/api/public/og/review/${reviewId}.jpg`);
+      await expectJpeg(`/api/public/og/list/${listId}.jpg`);
+      await expectJpeg(`/api/public/og/profile/${username}.jpg`);
+      await expectJpeg(`/api/public/og/movie/${film.tmdbId}.jpg`);
+      await expectJpeg(`/api/public/og/serial/${series.tmdbId}.jpg`);
+    });
+
+    it("permanently redirects the old .png card URLs to the .jpg ones, keeping the version", async () => {
+      const film = await seedTestFilm("Legacy Card Film");
+      const response = await apiRequest(baseUrl(), `/api/public/og/movie/${film.tmdbId}.png?v=abc`, { redirect: "manual" });
+      expect(response.status).toBe(301);
+      expect(response.headers.get("location")).toBe(`/api/public/og/movie/${film.tmdbId}.jpg?v=abc`);
+      expect(response.headers.get("cache-control")).toBe("public, max-age=86400");
+
+      const profile = await apiRequest(baseUrl(), "/api/public/og/profile/someone.png", { redirect: "manual" });
+      expect(profile.headers.get("location")).toBe("/api/public/og/profile/someone.jpg");
     });
   });
 });

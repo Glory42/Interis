@@ -7,6 +7,7 @@ import { useIsOwnProfile, useUserProfile } from "@/features/profile/hooks/usePro
 import { useDetailedStats } from "@/features/profile/hooks/useProfileStats";
 import { StatsSkeleton } from "@/components/ui/PageSkeletons";
 import { WatchGoalCard } from "@/features/profile/components/goal/WatchGoalCard";
+import { RecapEntryCard } from "@/features/year-review/components/RecapEntryCard";
 
 type ProfileStatsPageProps = {
   username: string;
@@ -47,7 +48,12 @@ export const ProfileStatsPage = ({ username, now: nowProp }: ProfileStatsPagePro
     return <p className="body-s text-[color:var(--danger)]">Could not load stats right now.</p>;
   }
 
-  const goal = <WatchGoalCard username={username} isOwner={isOwner} now={now} />;
+  const goal = (
+    <>
+      {isOwner ? <RecapEntryCard username={username} now={now} /> : null}
+      <WatchGoalCard username={username} isOwner={isOwner} now={now} />
+    </>
+  );
 
   if (logged < STATS_MIN_LOGS) {
     return (

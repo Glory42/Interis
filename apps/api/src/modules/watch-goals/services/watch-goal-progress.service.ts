@@ -41,6 +41,13 @@ export class WatchGoalProgressService {
     };
   }
 
+  // One year's goal and how it ended (or stands), for Year in Review; null without one.
+  static async getYearResult(userId: string, year: number) {
+    const row = await WatchGoalsRepository.findGoalProgress(userId, year);
+    if (!row) return null;
+    return { ...row, reached: isReached(row.filmsWatched, row.targetFilms, row.seriesWatched, row.targetSeries) };
+  }
+
   // The current year's goal for the feed's "goal reached" moment; null without one.
   static async getCurrentSummary(userId: string, timeZone: string) {
     const year = Number(toDayKey(new Date(), timeZone).slice(0, 4));

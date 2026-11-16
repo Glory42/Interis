@@ -11,7 +11,7 @@ const reviewMeta: ShareMeta = {
   ogType: "article",
   title: `Ana's review of "Heat" <1995>`,
   description: "Tense & brilliant.",
-  image: "/api/public/og/review/abc.png?v=x1",
+  image: "/api/public/og/review/abc.jpg?v=x1",
   path: "/reviews/ana/abc",
 };
 
@@ -36,7 +36,8 @@ describe("buildHeadTags", () => {
   it("escapes text and resolves the card against the API origin", () => {
     const tags = buildHeadTags(reviewMeta, origins);
     expect(tags).toContain("<title>Ana&#39;s review of &quot;Heat&quot; &lt;1995&gt; — Interis</title>");
-    expect(tags).toContain('<meta property="og:image" content="https://api.interis.example/api/public/og/review/abc.png?v=x1" />');
+    expect(tags).toContain('<meta property="og:image" content="https://api.interis.example/api/public/og/review/abc.jpg?v=x1" />');
+    expect(tags).toContain('<meta property="og:image:type" content="image/jpeg" />');
     expect(tags).toContain('<meta property="og:image:width" content="1200" />');
     expect(tags).toContain('<link rel="canonical" href="https://interis.example/reviews/ana/abc" />');
     expect(tags).toContain('<meta name="twitter:card" content="summary_large_image" />');
@@ -61,7 +62,7 @@ describe("applyHeadTags", () => {
     expect(metaContent(html, "property", "og:title")).toEqual([`Ana&#39;s review of &quot;Heat&quot; &lt;1995&gt;`]);
     expect(metaContent(html, "name", "description")).toEqual(["Tense &amp; brilliant."]);
     expect(metaContent(html, "property", "og:image")).toEqual([
-      "https://api.interis.example/api/public/og/review/abc.png?v=x1",
+      "https://api.interis.example/api/public/og/review/abc.jpg?v=x1",
     ]);
     expect(metaContent(html, "name", "twitter:card")).toEqual(["summary_large_image"]);
     expect(metaContent(html, "property", "og:site_name")).toEqual(["Interis"]);

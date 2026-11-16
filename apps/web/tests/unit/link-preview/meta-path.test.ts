@@ -18,6 +18,9 @@ describe("metaPathFor", () => {
     ["/actor/Keanu-Reeves", "/person/actor/keanu-reeves"],
     ["/director/greta-gerwig", "/person/director/greta-gerwig"],
     ["/profile/ana%20b", "/profile/ana%20b"],
+    ["/profile/ana/year/2025", "/recap/ana/2025"],
+    ["/profile/ana%20b/year/2026/", "/recap/ana%20b/2026"],
+    ["/profile/ana/year/twenty", "/profile/ana"],
   ])("maps %s to %s", (pathname, expected) => {
     expect(metaPathFor(pathname)).toBe(expected);
   });

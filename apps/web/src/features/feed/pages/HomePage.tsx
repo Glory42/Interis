@@ -8,6 +8,7 @@ import { QuickLogComposer } from "@/features/feed/components/QuickLogComposer";
 import { FeedRail } from "@/features/feed/components/FeedRail";
 import { FindPeopleSection } from "@/features/feed/components/FindPeopleSection";
 import { FeedGoalReached } from "@/features/feed/components/FeedGoalReached";
+import { RecapBanner } from "@/features/year-review/components/RecapBanner";
 import { useGroupedFeed, useMyFeedSummary, useTrendingNow } from "@/features/feed/hooks/useFeed";
 import { useTrendingSeries } from "@/features/tv/hooks/useTv";
 import { UpNextStrip } from "@/features/tv/components/up-next/UpNextStrip";
@@ -43,6 +44,8 @@ export const HomePage = () => {
     <section className="mx-auto w-full max-w-[1032px] px-4 pt-8 pb-16">
       <div className="flex flex-col gap-10 lg:flex-row lg:items-start">
         <div className="min-w-0 flex-1 lg:max-w-2xl">
+          {summary ? <RecapBanner key={summary.id} userId={summary.id} username={summary.username} /> : null}
+
           {summary?.goal?.reached ? (
             <FeedGoalReached
               key={`${summary.id}:${summary.goal.year}`}

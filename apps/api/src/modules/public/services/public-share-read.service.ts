@@ -3,6 +3,7 @@ import { isUuid } from "../../../commons/helpers/uuid.helper";
 import { FilmsService } from "../../films/films.service";
 import { TvService } from "../../tv/tv.service";
 import { PeopleRepository } from "../../people/repositories/people.repository";
+import { YearReviewService } from "../../year-review/year-review.service";
 import { PublicShareRepository } from "../repositories/public-share.repository";
 import { displayNameOf } from "../helpers/share-meta-format.helper";
 
@@ -109,6 +110,11 @@ export class PublicShareReadService {
       numberOfSeasons: series.numberOfSeasons,
       communityRating,
     };
+  }
+
+  // The same cached Year in Review the recap page reads; null for an unknown or suspended user.
+  static async getYearReview(username: string, year: number) {
+    return YearReviewService.read(username, year);
   }
 
   // Cached People only, like the in-app page: an unknown slug is a 404 there too.

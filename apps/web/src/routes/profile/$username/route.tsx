@@ -62,7 +62,10 @@ function ProfileRouteLayout() {
       return "lists";
     }
 
-    if (matchRoute({ to: "/profile/$username/stats", params: routeParams, fuzzy: true })) {
+    if (
+      matchRoute({ to: "/profile/$username/stats", params: routeParams, fuzzy: true }) ||
+      matchRoute({ to: "/profile/$username/year/$year", fuzzy: true })
+    ) {
       return "stats";
     }
 
