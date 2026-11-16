@@ -87,6 +87,8 @@ const tmdbDetailFixture = (over: Record<string, unknown> = {}) =>
     episode_run_time: [],
     number_of_seasons: 3,
     number_of_episodes: 22,
+    next_episode_to_air: null,
+    last_episode_to_air: null,
     status: "Ended",
     overview: "ov",
     tagline: "tag",

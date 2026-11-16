@@ -7,6 +7,7 @@ import {
 } from "@/features/feed/hooks/useFeed";
 import { LandingPage } from "@/features/landing/pages/LandingPage";
 import { trendingSeriesQueryOptions } from "@/features/tv/hooks/tv/use-series-queries";
+import { upNextQueryOptions } from "@/features/tv/hooks/tv/use-up-next";
 import { redirectToPendingOnboarding } from "@/lib/router/auth-guards";
 import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
 
@@ -27,6 +28,7 @@ export const Route = createFileRoute("/")({
     }
 
     void context.queryClient.prefetchInfiniteQuery(groupedFeedInfiniteQueryOptions());
+    void context.queryClient.prefetchQuery(upNextQueryOptions());
   },
   component: HomeRoute,
   errorComponent: (props) => <RouteErrorBoundary {...props} title="Could not load home feed" />,
