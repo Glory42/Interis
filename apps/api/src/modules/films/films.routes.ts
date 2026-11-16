@@ -3,6 +3,7 @@ import { FilmsController } from "./films.controller";
 import { asyncHandler } from "../../commons/utils/asyncHandler";
 import { requireAuth } from "../../commons/middlewares/requireAuth";
 import { MediaFollowingController } from "../media/media-following.controller";
+import { WatchProvidersController } from "../media/watch-providers.controller";
 
 const router = Router();
 
@@ -18,6 +19,7 @@ router.get(
   requireAuth,
   asyncHandler(MediaFollowingController.forMediaType("movie")),
 );
+router.get("/:tmdbId/watch-providers", asyncHandler(WatchProvidersController.getForFilm));
 router.get("/:tmdbId", asyncHandler(FilmsController.getByTmdbId));
 
 export default router;

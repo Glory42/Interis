@@ -32,6 +32,10 @@ _Avoid_: movie (in new code and copy), cinema, title (title is ambiguous with th
 One TV show, TMDB-sourced and cached locally like Film (title, season/episode counts, network, status). The UI section is **TV**; code is `modules/tv` and `features/tv`, with `Series*` for one show and `Tv*` for the section or module (ADR 0003). The wire keeps the older name: `/serials/:tmdbId` pages, `/api/serials`, the `tv_series` table, `serial_*` columns and `mediaType: "tv"`.
 _Avoid_: serial (in new code and copy), show in code names
 
+**Watch Providers**:
+Where a Film or Series can be streamed, rented or bought in one region, from TMDB's JustWatch data (credited in the UI). Read straight from TMDB through a 12h in-memory cache of the all-regions response, never stored in the DB; owned by `modules/media` (`WatchProvidersService`) and shown by `WhereToWatch` on the detail page.
+_Avoid_: streaming services, availability
+
 **Person**:
 A cast or crew member, TMDB-sourced and cached locally (name, known-for department, popularity). Content metadata, never an Interis account — distinct from User.
 _Avoid_: actor, cast member (too narrow — Person covers crew too)
