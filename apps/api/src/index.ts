@@ -24,6 +24,7 @@ import {
   isTrustedOrigin,
 } from "./infrastructure/config/origins";
 import { registerRoutes } from "./infrastructure/routing/register-routes";
+import { resolveTrustProxy } from "./infrastructure/config/trust-proxy";
 
 export type RateLimiterOverrides = {
   auth?: number;
@@ -34,6 +35,8 @@ export type RateLimiterOverrides = {
 
 export type CreateAppOptions = {
   rateLimiterOverrides?: RateLimiterOverrides;
+  // Defaults to TRUST_PROXY from the environment.
+  trustProxy?: string;
 };
 
 export const createApp = (options: CreateAppOptions = {}) => {
@@ -45,6 +48,8 @@ export const createApp = (options: CreateAppOptions = {}) => {
   const adminReauthLimiter = createAdminReauthLimiter(options.rateLimiterOverrides?.adminReauth);
 
   app.disable("x-powered-by");
+  // req.ip (rate-limit key, session IP) must be the real client behind Cloudflare and Render.
+  app.set("trust proxy", resolveTrustProxy(options.trustProxy ?? env.TRUST_PROXY));
   app.use(helmetMiddleware);
   app.use(securityHeaders);
 

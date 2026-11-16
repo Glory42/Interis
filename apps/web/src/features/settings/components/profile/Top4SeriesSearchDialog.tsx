@@ -1,4 +1,3 @@
-import { useDeferredValue } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ModalShell } from "@/components/ui/ModalShell";
@@ -6,6 +5,7 @@ import { useSeriesSearch } from "@/features/tv/hooks/useTv";
 import type { TmdbSearchSeries } from "@/features/tv/api";
 import { TickLoader } from "@/components/ui/tick-loader";
 import { getPosterUrl } from "@/features/media/tmdb-images";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 
 type Top4SeriesSearchDialogProps = {
   isOpen: boolean;
@@ -34,7 +34,7 @@ export const Top4SeriesSearchDialog = ({
   onSelectSeries,
   isSelectingSeries,
 }: Top4SeriesSearchDialogProps) => {
-  const deferredQuery = useDeferredValue(query);
+  const deferredQuery = useDebouncedValue(query);
   const searchQuery = useSeriesSearch(deferredQuery);
   const suggestions = (searchQuery.data ?? []).slice(0, 10);
 

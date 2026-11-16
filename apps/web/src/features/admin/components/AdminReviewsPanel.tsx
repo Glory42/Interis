@@ -1,4 +1,4 @@
-import { useDeferredValue, useState } from "react";
+import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import type { AdminReview } from "@/features/admin/content-api";
 import { useAdminReviews, useDeleteAdminReview } from "@/features/admin/hooks/useAdminContent";
 import { isApiError } from "@/lib/api-client";
 import { formatRelativeTime } from "@/lib/time";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 
 const DeleteReviewAction = ({ review }: { review: AdminReview }) => {
   const { mutateAsync: deleteReview, isPending } = useDeleteAdminReview();
@@ -56,7 +57,7 @@ const DeleteReviewAction = ({ review }: { review: AdminReview }) => {
 
 export const AdminReviewsPanel = () => {
   const [usernameInput, setUsernameInput] = useState("");
-  const deferredUsername = useDeferredValue(usernameInput.trim());
+  const deferredUsername = useDebouncedValue(usernameInput.trim());
   const reviewsQuery = useAdminReviews({
     username: deferredUsername.length > 0 ? deferredUsername : undefined,
   });

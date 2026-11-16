@@ -51,7 +51,7 @@ const titleQueries = (kind: MediaKind): Record<string, QueryKey> =>
 const sharedQueries: Record<string, QueryKey> = {
   feed: feedKeys.grouped("all"),
   "feed.meSummary": feedKeys.meSummary,
-  "feed.trending": feedKeys.trending(3),
+  "feed.trending": feedKeys.trending,
   "profile.detail": profileKeys.detail(VIEWER),
   "profile.diary": profileKeys.diary(VIEWER),
   "profile.reviews": profileKeys.reviews(VIEWER),

@@ -25,6 +25,9 @@ export {
 
 export type { SeasonEpisodeReviewSaveInput } from "./api/requests";
 
+export { getUpNext } from "./api/up-next.requests";
+export type { AiringSoonEpisode, UpNextItem, UpNextResponse } from "./api/schemas";
+
 export type {
   CachedSeries,
   CreateSeriesLogInput,

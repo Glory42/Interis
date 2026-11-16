@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { QueryClient } from "@tanstack/react-query";
 import { authKeys } from "@/features/auth/hooks/useAuth";
 import {
+  redirectToPendingOnboarding,
   requireAdminUser,
+  requirePendingOnboarding,
   requireAuthenticatedUser,
   requireGuestUser,
 } from "@/lib/router/auth-guards";
@@ -116,5 +118,22 @@ describe("auth guards", () => {
     });
 
     expect(user.username).toBe("cinefan");
+  });
+
+  it("sends a new account to onboarding until it finishes or skips", async () => {
+    expect(() => redirectToPendingOnboarding({ onboardingCompletedAt: null })).toThrow();
+    expect(() => redirectToPendingOnboarding({ onboardingCompletedAt: "2026-11-16T10:00:00.000Z" })).not.toThrow();
+    // Older payloads without the field, and guests, are never redirected.
+    expect(() => redirectToPendingOnboarding({})).not.toThrow();
+    expect(() => redirectToPendingOnboarding(null)).not.toThrow();
+  });
+
+  it("lets only pending accounts into /welcome", async () => {
+    const queryClient = createTestQueryClient();
+    queryClient.setQueryData(authKeys.me, { ...baseUser, onboardingCompletedAt: null });
+    await expect(requirePendingOnboarding({ queryClient })).resolves.toMatchObject({ username: "cinefan" });
+
+    queryClient.setQueryData(authKeys.me, { ...baseUser, onboardingCompletedAt: "2026-11-16T10:00:00.000Z" });
+    await expect(requirePendingOnboarding({ queryClient })).rejects.toMatchObject({ options: { to: "/" } });
   });
 });

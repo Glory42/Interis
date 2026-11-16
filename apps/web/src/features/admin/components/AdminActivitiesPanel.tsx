@@ -1,4 +1,4 @@
-import { useDeferredValue, useState } from "react";
+import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
 } from "@/features/admin/hooks/useAdminCommunity";
 import { isApiError } from "@/lib/api-client";
 import { formatRelativeTime } from "@/lib/time";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 
 const ACTIVITY_TYPES: ActivityType[] = [
   "diary_entry",
@@ -73,7 +74,7 @@ const DeleteActivityAction = ({ activity }: { activity: AdminActivity }) => {
 export const AdminActivitiesPanel = () => {
   const [usernameInput, setUsernameInput] = useState("");
   const [type, setType] = useState<ActivityType | "">("");
-  const deferredUsername = useDeferredValue(usernameInput.trim());
+  const deferredUsername = useDebouncedValue(usernameInput.trim());
   const activitiesQuery = useAdminActivities({
     username: deferredUsername.length > 0 ? deferredUsername : undefined,
     type: type || undefined,

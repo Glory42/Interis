@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { privateNoStore } from "../../commons/http/cache-control.helper";
 import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
 import { sendValidationError } from "../../commons/http/validation-response.helper";
 import { ViewerStatusQuerySchema } from "./dto/viewer-status.dto";
@@ -16,7 +17,7 @@ export class ViewerStatusController {
     const items = await ViewerStatusService.getStatuses(viewerUserId, parsed.data.items);
 
     // Viewer-specific: never cache in shared caches.
-    res.setHeader("Cache-Control", "private, no-store");
+    privateNoStore(res);
     res.status(200).json({ items });
   }
 }

@@ -223,4 +223,26 @@ describe("PeopleCacheService", () => {
       expect(links).toEqual([]);
     });
   });
+
+  describe("ensurePersonLinkGroups", () => {
+    it("resolves every group in one pass and records each role the person holds", async () => {
+      const tmdbPersonId = randomTmdbPersonId();
+      const name = uniqueName("Director Actor Person");
+      const base = { tmdbPersonId, name, profilePath: null, knownForDepartment: "Directing" };
+
+      const [directors, cast, empty] = await PeopleCacheService.ensurePersonLinkGroups([
+        [{ ...base, routeRole: "director", job: "Director" }],
+        [{ ...base, routeRole: "actor", character: "Cameo" }],
+        [],
+      ]);
+
+      expect(directors?.map((link) => link.routeRole)).toEqual(["director"]);
+      expect(cast?.map((link) => link.character)).toEqual(["Cameo"]);
+      expect(empty).toEqual([]);
+      expect(directors?.[0]?.slug).toBe(cast?.[0]?.slug);
+
+      const stored = await PeopleRepository.findByTmdbPersonId(tmdbPersonId);
+      expect([...(stored?.routeRoleHints ?? [])].sort()).toEqual(["actor", "director"]);
+    });
+  });
 });

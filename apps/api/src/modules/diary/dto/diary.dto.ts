@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { isoDateSchema } from "../../../commons/validation/common.schemas";
-import { REVIEW_MAX_LENGTH, watchLogReviewEditShape } from "../../media/dto/watch-log.dto";
+import {
+  REVIEW_MAX_LENGTH,
+  watchLogExtrasCreateShape,
+  watchLogExtrasEditShape,
+  watchLogReviewEditShape,
+} from "../../media/dto/watch-log.dto";
 
 const ratingSchema = z
   .number()
@@ -15,6 +20,7 @@ export const CreateDiarySchema = z.object({
   rewatch: z.boolean().optional(),
   review: z.string().max(REVIEW_MAX_LENGTH).optional(),
   containsSpoilers: z.boolean().optional(),
+  ...watchLogExtrasCreateShape,
 });
 
 export const UpdateDiarySchema = z.object({
@@ -22,6 +28,7 @@ export const UpdateDiarySchema = z.object({
   rating: ratingSchema.nullable().optional(),
   rewatch: z.boolean().optional(),
   ...watchLogReviewEditShape,
+  ...watchLogExtrasEditShape,
 });
 
 // Bounds GET /api/diary so a large diary can't be fetched in one

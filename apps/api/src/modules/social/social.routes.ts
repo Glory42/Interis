@@ -34,6 +34,11 @@ router.get(
   asyncHandler(SocialController.checkIsFollowing),
 );
 router.get(
+  "/suggestions",
+  requireAuth,
+  asyncHandler(SocialController.getFollowSuggestions),
+);
+router.get(
   "/following-status",
   requireAuth,
   asyncHandler(SocialController.getFollowingStatus),

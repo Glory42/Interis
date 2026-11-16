@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getProfileReviewDetail } from "@/features/reviews/api";
 import { ProfileReviewDetailPage } from "@/features/reviews/components/ProfileReviewDetailPage";
-import { reviewKeys } from "@/features/reviews/hooks/useReviews";
+import { reviewKeys } from "@/features/reviews/hooks/review-keys";
 import { reviewShareText, shareCardUrl, shareHeadMeta } from "@/lib/share-meta";
 
 export const Route = createFileRoute("/reviews/$username/$reviewId")({

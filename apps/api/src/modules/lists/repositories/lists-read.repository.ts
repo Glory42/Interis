@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, lte, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "../../../infrastructure/database/db";
 import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
@@ -22,6 +22,8 @@ const ownedOrSharedWith = (userId: string) =>
         .where(and(eq(listCollaborators.userId, userId), eq(listCollaborators.status, "accepted"))),
     ),
   );
+
+const COVER_IMAGES_PER_LIST = 4;
 
 export class ListsReadRepository {
   static async findById(listId: string) {
@@ -70,23 +72,36 @@ export class ListsReadRepository {
     return applyOptionalPagination(query, limit, offset);
   }
 
+  // First 4 entries per list only: a list can hold 500, the card shows 4 posters.
   static async getCoverImages(listIds: string[]) {
     if (listIds.length === 0) {
       return [];
     }
 
-    return db
+    const ranked = db
       .select({
         listId: listEntries.listId,
         position: listEntries.position,
         itemType: listEntries.itemType,
-        posterPath: sql<string | null>`COALESCE(${films.posterPath}, ${tvSeries.posterPath})`,
+        posterPath: sql<string | null>`COALESCE(${films.posterPath}, ${tvSeries.posterPath})`.as("poster_path"),
+        rank: sql<number>`ROW_NUMBER() OVER (PARTITION BY ${listEntries.listId} ORDER BY ${listEntries.position})`.as("rank"),
       })
       .from(listEntries)
       .leftJoin(films, eq(listEntries.movieId, films.id))
       .leftJoin(tvSeries, eq(listEntries.tvSeriesId, tvSeries.id))
       .where(inArray(listEntries.listId, listIds))
-      .orderBy(asc(listEntries.listId), asc(listEntries.position));
+      .as("ranked");
+
+    return db
+      .select({
+        listId: ranked.listId,
+        position: ranked.position,
+        itemType: ranked.itemType,
+        posterPath: ranked.posterPath,
+      })
+      .from(ranked)
+      .where(lte(ranked.rank, COVER_IMAGES_PER_LIST))
+      .orderBy(asc(ranked.listId), asc(ranked.position));
   }
 
   // Owner's rating comes from their interaction rows; director/creator from the cached title.

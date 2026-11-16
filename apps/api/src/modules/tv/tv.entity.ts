@@ -58,6 +58,8 @@ export const seriesDiaryEntries = pgTable("serial_diary_entry", {
   watchedDate: date("watched_date").notNull(),
   rating: real("rating"),
   rewatch: boolean("rewatch").default(false).notNull(),
+  // Private: only the owner's own reads select it.
+  note: text("note"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -107,6 +109,8 @@ export const seriesInteractions = pgTable(
     index("serial_interaction_series_rating_idx")
       .on(table.seriesId, table.rating)
       .where(sql`rating is not null`),
+    // Backs the follow-suggestion overlap join on every watched or rated row.
+    index("serial_interaction_series_id_idx").on(table.seriesId),
   ],
 );
 

@@ -1,16 +1,23 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { reviews } from "../../reviews/reviews.entity";
 import { seriesDiaryEntries, seriesInteractions, tvSeries } from "../../tv/tv.entity";
+import type { DiaryReadOptions } from "../../diary/repositories/diary.repository";
+import { DiaryTagsRepository } from "../../media/repositories/diary-tags.repository";
 
 export class UsersDiaryRepository {
-  static async findSeriesDiaryEntriesByUser(userId: string, fetchCap: number) {
+  static async findSeriesDiaryEntriesByUser(
+    userId: string,
+    fetchCap: number,
+    { includeNote = false, tag }: DiaryReadOptions = {},
+  ) {
     return db
       .select({
         id: seriesDiaryEntries.id,
         watchedDate: seriesDiaryEntries.watchedDate,
         rating: seriesDiaryEntries.rating,
         rewatch: seriesDiaryEntries.rewatch,
+        note: includeNote ? seriesDiaryEntries.note : sql<string | null>`null`,
         createdAt: seriesDiaryEntries.createdAt,
         updatedAt: seriesDiaryEntries.updatedAt,
         tmdbId: tvSeries.tmdbId,
@@ -40,7 +47,14 @@ export class UsersDiaryRepository {
           eq(seriesInteractions.seriesId, seriesDiaryEntries.seriesId),
         ),
       )
-      .where(eq(seriesDiaryEntries.userId, userId))
+      .where(
+        and(
+          eq(seriesDiaryEntries.userId, userId),
+          tag === undefined
+            ? undefined
+            : inArray(seriesDiaryEntries.id, DiaryTagsRepository.taggedEntryIds(userId, "tv", tag)),
+        ),
+      )
       .orderBy(desc(seriesDiaryEntries.watchedDate), desc(seriesDiaryEntries.createdAt))
       .limit(fetchCap);
   }

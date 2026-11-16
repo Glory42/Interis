@@ -61,7 +61,7 @@ export type SeriesDetailInputs = {
   engagement: ReviewEngagementIndex;
   // Pre-resolved by gather() - building these needs a TMDB season fetch.
   seasonEpisodeReviews: SeriesDetailReviewItem[];
-  communityRatings: { rating: number }[];
+  communityRatings: { rating: number; count: number }[];
   tmdbSimilar: TmdbSimilarSeries;
   userSeasonInteractions: ViewerSeasonInteraction[];
   viewerDiary: ViewerDiaryRow | null;

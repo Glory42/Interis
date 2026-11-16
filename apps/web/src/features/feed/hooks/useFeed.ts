@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import type { FeedFilter } from "@/features/feed/types";
+import type { FeedFilter, TrendingFilm } from "@/features/feed/types";
 import {
   getGroupedFeed,
   getMyFeedSummary,
@@ -21,7 +21,7 @@ export const feedKeys = {
   // The Following Feed, every filter; feed-cache.ts patches and refreshes it by this prefix.
   groupedRoot: ["feed", "grouped"] as const,
   grouped: (filter: FeedFilter = "all") => ["feed", "grouped", filter] as const,
-  trending: (limit = 3) => ["feed", "trending", limit] as const,
+  trending: ["feed", "trending"] as const,
   meSummary: ["feed", "me-summary"] as const,
   networkStats: ["feed", "network-stats"] as const,
 };
@@ -42,13 +42,18 @@ export const useGroupedFeed = (filter: FeedFilter = "all", enabled = true) =>
   });
 
 // Shared with the home route loader so its prefetch can't drift onto a key nothing reads.
-export const trendingFilmsQueryOptions = (limit = 3) => ({
-  queryKey: feedKeys.trending(limit),
-  queryFn: ({ signal }: { signal: AbortSignal }) => getTrendingFilms({ signal, limit }),
-  staleTime: 300_000,
+// One cached list for every caller; each slices its own limit, so landing, auth and home share one fetch.
+export const trendingFilmsQueryOptions = () => ({
+  queryKey: feedKeys.trending,
+  queryFn: ({ signal }: { signal: AbortSignal }) => getTrendingFilms({ signal }),
+  staleTime: 15 * 60_000,
 });
 
-export const useTrendingNow = (limit = 3) => useQuery(trendingFilmsQueryOptions(limit));
+export const useTrendingNow = (limit = 3) =>
+  useQuery({
+    ...trendingFilmsQueryOptions(),
+    select: (films: TrendingFilm[]) => films.slice(0, limit),
+  });
 
 export const useMyFeedSummary = (enabled = true) =>
   useQuery({

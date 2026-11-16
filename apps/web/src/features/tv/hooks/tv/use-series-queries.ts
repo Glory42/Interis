@@ -28,7 +28,7 @@ export const useSeriesSearch = (query: string) =>
 
 // Series metadata (title/poster/overview/genres/season-episode counts) is
 // TMDB-backed and rarely changes within a session, so this can outlive the
-// 30s global default.
+// 2-minute global default.
 const SERIES_DETAIL_STALE_TIME_MS = 300_000;
 
 export const useSeriesDetail = (tmdbId: number, enabled = true) =>
@@ -47,7 +47,7 @@ export const useSeriesDetailView = (
   useQuery({
     queryKey: seriesKeys.detailView(tmdbId, reviewsSort),
     // Bundles reviews/ratingBreakdown alongside static series fields, so it
-    // stays on the global 30s staleTime — those change too often to treat
+    // stays on the global 2-minute staleTime — those change too often to treat
     // as long-lived.
     queryFn: ({ signal }) => getSeriesDetail(tmdbId, { reviewsSort }, { signal }),
     enabled,
@@ -101,13 +101,15 @@ export const useSeriesSeasonDetail = (
   useQuery({
     queryKey: seriesKeys.seasonDetail(tmdbId, seasonNumber),
     queryFn: ({ signal }) => getSeriesSeasonDetail(tmdbId, seasonNumber, { signal }),
+    // Episode data is TMDB's; the viewer's own marks are refreshed by their mutations.
+    staleTime: 10 * 60_000,
     enabled,
   });
 
 export const trendingSeriesQueryOptions = () => ({
   queryKey: seriesKeys.trending,
   queryFn: ({ signal }: { signal: AbortSignal }) => getTrendingSeries({ signal }),
-  staleTime: 300_000,
+  staleTime: 15 * 60_000,
 });
 
 export const useTrendingSeries = () => useQuery(trendingSeriesQueryOptions());

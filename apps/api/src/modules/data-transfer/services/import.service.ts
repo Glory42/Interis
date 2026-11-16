@@ -5,6 +5,7 @@ import { ReviewsRepository } from "../../reviews/repositories/reviews.repository
 import { MediaInteractions, type MediaInteractionStore } from "../../media-interactions/media-interactions.repository";
 import { YourRatingService } from "../../media-interactions/services/your-rating.service";
 import { WatchLogStores } from "../../media/repositories/watch-log.repository";
+import { DiaryTagsService } from "../../media/services/diary-tags.service";
 import type { WatchLogStore } from "../../media/types/watch-log.types";
 import type { MediaType } from "../../media/constants/media-type.constant";
 import { parseCsv, getCsvHeaders } from "../helpers/csv-parser";
@@ -125,6 +126,7 @@ async function importDiaryRow(
       watchedDate: normalized.watchedDate,
       rating,
       rewatch: normalized.rewatch,
+      note: normalized.note,
     });
   } catch {
     entry = null;
@@ -142,6 +144,14 @@ async function importDiaryRow(
       });
     } catch {
       // non-fatal
+    }
+  }
+
+  if (normalized.tags.length > 0) {
+    try {
+      await DiaryTagsService.add(userId, adapter.mediaType, entry.id, normalized.tags);
+    } catch {
+      // non-fatal, like the review below
     }
   }
 

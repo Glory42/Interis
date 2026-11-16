@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { privateNoStore } from "../../commons/http/cache-control.helper";
 import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
 import { sendNotFound } from "../../commons/http/validation-response.helper";
 import { PublicService } from "../public/public.service";
@@ -24,7 +25,7 @@ export class UsersProfileTabsController {
 
       res.locals.profileOwnerId = read.ownerId;
       res.locals.viewerSpecific = read.viewerSpecific;
-      res.setHeader("Cache-Control", "private, no-store");
+      privateNoStore(res);
       res.status(200).json(read.data);
     };
   }
@@ -42,7 +43,7 @@ export class UsersProfileTabsController {
 
     res.locals.profileOwnerId = userId;
     const data = await load(userId);
-    res.setHeader("Cache-Control", "private, no-store");
+    privateNoStore(res);
     res.status(200).json(data);
   }
 

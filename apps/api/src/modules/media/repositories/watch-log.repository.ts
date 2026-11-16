@@ -7,6 +7,7 @@ import { films } from "../../films/films.entity";
 import { reviews } from "../../reviews/reviews.entity";
 import { seriesDiaryEntries, tvSeries } from "../../tv/tv.entity";
 import type {
+  OwnedWatchLogRow,
   WatchLogAdminRow,
   WatchLogInsert,
   WatchLogPatch,
@@ -25,6 +26,7 @@ export type WatchLogTableConfig = {
   watchedDate: AnyPgColumn;
   rating: AnyPgColumn;
   rewatch: AnyPgColumn;
+  note: AnyPgColumn;
   createdAt: AnyPgColumn;
   updatedAt: AnyPgColumn;
   titleTable: PgTable;
@@ -43,6 +45,7 @@ export const FILM_LOG_TABLE: WatchLogTableConfig = {
   watchedDate: diaryEntries.watchedDate,
   rating: diaryEntries.rating,
   rewatch: diaryEntries.rewatch,
+  note: diaryEntries.note,
   createdAt: diaryEntries.createdAt,
   updatedAt: diaryEntries.updatedAt,
   titleTable: films,
@@ -61,6 +64,7 @@ export const SERIES_LOG_TABLE: WatchLogTableConfig = {
   watchedDate: seriesDiaryEntries.watchedDate,
   rating: seriesDiaryEntries.rating,
   rewatch: seriesDiaryEntries.rewatch,
+  note: seriesDiaryEntries.note,
   createdAt: seriesDiaryEntries.createdAt,
   updatedAt: seriesDiaryEntries.updatedAt,
   titleTable: tvSeries,
@@ -81,6 +85,8 @@ function makeWatchLogStore(t: WatchLogTableConfig): WatchLogStore {
     createdAt: t.createdAt,
     updatedAt: t.updatedAt,
   };
+  // Write and owner paths only: the note never rides along on other reads.
+  const ownedColumns = { ...rowColumns, note: t.note };
   // Newest watch first, the later-created on a tie.
   const latestFirst = [desc(t.watchedDate), desc(t.createdAt)];
   const byId = (entryId: string, userId?: string): SQL =>
@@ -94,17 +100,17 @@ function makeWatchLogStore(t: WatchLogTableConfig): WatchLogStore {
       const [row] = (await db
         .insert(t.table)
         .values({ ...values, [t.mediaKey]: mediaId })
-        .returning(rowColumns)) as WatchLogRow[];
+        .returning(ownedColumns)) as OwnedWatchLogRow[];
       return row ?? null;
     },
 
     async find(entryId, userId) {
       const [row] = (await db
-        .select({ ...rowColumns, tmdbId: t.titleTmdbId })
+        .select({ ...ownedColumns, tmdbId: t.titleTmdbId })
         .from(t.table)
         .innerJoin(t.titleTable, eq(t.titleId, t.mediaId))
         .where(byId(entryId, userId))
-        .limit(1)) as (WatchLogRow & { tmdbId: number })[];
+        .limit(1)) as (OwnedWatchLogRow & { tmdbId: number })[];
       return row ?? null;
     },
 
@@ -113,7 +119,7 @@ function makeWatchLogStore(t: WatchLogTableConfig): WatchLogStore {
         .update(t.table)
         .set({ ...patch, updatedAt: new Date() })
         .where(byId(entryId, userId))
-        .returning(rowColumns)) as WatchLogRow[];
+        .returning(ownedColumns)) as OwnedWatchLogRow[];
       return row ?? null;
     },
 

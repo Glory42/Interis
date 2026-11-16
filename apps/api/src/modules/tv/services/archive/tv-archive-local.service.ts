@@ -12,7 +12,8 @@ import {
 import type { TvArchiveQueryInput } from "./tv-archive.types";
 import { toArchiveItemFromLocalRow } from "./tv-archive-mapper.helper";
 
-const LOCAL_ARCHIVE_CACHE_TTL_MS = 2 * 60 * 1000;
+// Community ordering of the archive can lag; the scan reads every cached title.
+const LOCAL_ARCHIVE_CACHE_TTL_MS = 10 * 60 * 1000;
 
 // Caches the full unbounded catalog scan so concurrent browsing shares one DB read.
 const getCachedLocalArchiveRows = createTtlCache(

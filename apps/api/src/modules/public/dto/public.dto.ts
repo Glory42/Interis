@@ -59,6 +59,8 @@ export type PublicDiaryItem = {
     containsSpoilers: boolean;
     createdAt: Date;
   } | null;
+  // Diary Tags are public; the private note never appears here.
+  tags: string[];
 };
 
 export type PublicCurrentlyWatchingQueryDto = {

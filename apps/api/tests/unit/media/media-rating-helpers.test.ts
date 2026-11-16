@@ -117,6 +117,17 @@ describe("buildMediaRatingBreakdown", () => {
     expect(bucket1?.count).toBe(1);
   });
 
+  it("weights pre-grouped rows by their count", () => {
+    const grouped = buildMediaRatingBreakdown([
+      { rating: 8, count: 2 },
+      { rating: 5, count: 1 },
+    ]);
+    const flat = buildMediaRatingBreakdown([{ rating: 8 }, { rating: 8 }, { rating: 5 }]);
+    expect(grouped).toEqual(flat);
+    expect(grouped.totalRatedReviews).toBe(3);
+    expect(grouped.averageRating).toBe(7);
+  });
+
   it("orders buckets from 10 down to 1", () => {
     const result = buildMediaRatingBreakdown([]);
     expect(result.buckets.map((b) => b.ratingValue)).toEqual([10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);

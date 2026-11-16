@@ -22,31 +22,85 @@ export type PersonLinkSeed = {
 
 type ExistingPersonRow = NonNullable<Awaited<ReturnType<typeof PeopleRepository.findByTmdbPersonId>>>;
 
+type CachedPersonRow = NonNullable<Awaited<ReturnType<typeof PeopleCacheService.upsertPersonCache>>>;
+
+const toPersonLinks = (
+  seeds: PersonLinkSeed[],
+  cachedPersonByTmdbPersonId: Map<number, CachedPersonRow>,
+): PersonLinkItem[] => {
+  const unique = new Map<string, PersonLinkItem>();
+
+  for (const seed of seeds) {
+    const normalizedName = toNullableTrimmed(seed.name);
+    if (!Number.isInteger(seed.tmdbPersonId) || seed.tmdbPersonId <= 0 || !normalizedName) {
+      continue;
+    }
+
+    const cachedPerson = cachedPersonByTmdbPersonId.get(seed.tmdbPersonId);
+    if (!cachedPerson) {
+      continue;
+    }
+
+    const link: PersonLinkItem = {
+      tmdbPersonId: cachedPerson.tmdbPersonId,
+      slug: cachedPerson.slug,
+      name: cachedPerson.name,
+      profilePath: cachedPerson.profilePath,
+      knownForDepartment: cachedPerson.knownForDepartment,
+      routeRole: seed.routeRole,
+      character: toNullableTrimmed(seed.character),
+      job: toNullableTrimmed(seed.job),
+      department: toNullableTrimmed(seed.department),
+    };
+
+    const key = [
+      String(link.tmdbPersonId),
+      link.routeRole,
+      link.character ?? "",
+      link.job ?? "",
+      link.department ?? "",
+    ].join(":");
+
+    if (!unique.has(key)) {
+      unique.set(key, link);
+    }
+  }
+
+  return [...unique.values()];
+};
+
 export class PeopleCacheService {
   static async ensurePersonLinks(seeds: PersonLinkSeed[]): Promise<PersonLinkItem[]> {
+    const [links] = await PeopleCacheService.ensurePersonLinkGroups([seeds]);
+    return links ?? [];
+  }
+
+  // Several credit groups (directors, cast, crew) resolved with one batched
+  // lookup and one upsert per distinct person, instead of a round per group.
+  static async ensurePersonLinkGroups(groups: PersonLinkSeed[][]): Promise<PersonLinkItem[][]> {
+    const seeds = groups.flat();
     if (seeds.length === 0) {
-      return [];
+      return groups.map(() => []);
     }
 
     // Batch-fetch every cast/crew member's existing cache row in one query
     // instead of one findByTmdbPersonId per seed - this runs on every
-    // movie/series detail page fetch, so an unbatched per-person lookup
-    // multiplies into dozens of individual round trips per page view.
+    // movie/series detail page fetch.
     const uniqueTmdbPersonIds = [...new Set(seeds.map((seed) => seed.tmdbPersonId))];
     const existingRows = await PeopleRepository.findByTmdbPersonIds(uniqueTmdbPersonIds);
     const existingByTmdbPersonId = new Map(existingRows.map((row) => [row.tmdbPersonId, row]));
 
-    // One upsert per distinct tmdbPersonId, not per seed - the same person
-    // can appear in multiple seeds (e.g. one actor playing two characters).
-    // Upserting those concurrently against the same preloaded `existing`
-    // snapshot races two inserts for the same not-yet-taken slug: Postgres's
-    // ON CONFLICT(tmdb_person_id) only suppresses that one constraint, so the
-    // second insert still throws on the separate slug unique constraint.
+    // One upsert per distinct tmdbPersonId, not per seed: concurrent upserts for
+    // the same person race two inserts for one not-yet-taken slug, and Postgres's
+    // ON CONFLICT(tmdb_person_id) doesn't cover the separate slug unique constraint.
     const firstSeedByTmdbPersonId = new Map<number, PersonLinkSeed>();
+    const roleHintsByTmdbPersonId = new Map<number, Set<PersonRouteRole>>();
     for (const seed of seeds) {
       if (!firstSeedByTmdbPersonId.has(seed.tmdbPersonId)) {
         firstSeedByTmdbPersonId.set(seed.tmdbPersonId, seed);
+        roleHintsByTmdbPersonId.set(seed.tmdbPersonId, new Set());
       }
+      roleHintsByTmdbPersonId.get(seed.tmdbPersonId)?.add(seed.routeRole);
     }
 
     const cachedPersonEntries = await Promise.all(
@@ -58,7 +112,7 @@ export class PeopleCacheService {
             knownForDepartment: seed.knownForDepartment,
             profilePath: seed.profilePath,
             popularity: seed.popularity ?? null,
-            routeRoleHints: [seed.routeRole],
+            routeRoleHints: [...(roleHintsByTmdbPersonId.get(tmdbPersonId) ?? [seed.routeRole])],
           },
           existingByTmdbPersonId.get(tmdbPersonId) ?? null,
         );
@@ -70,45 +124,7 @@ export class PeopleCacheService {
       cachedPersonEntries.filter((entry) => entry !== null),
     );
 
-    const unique = new Map<string, PersonLinkItem>();
-
-    for (const seed of seeds) {
-      const normalizedName = toNullableTrimmed(seed.name);
-      if (!Number.isInteger(seed.tmdbPersonId) || seed.tmdbPersonId <= 0 || !normalizedName) {
-        continue;
-      }
-
-      const cachedPerson = cachedPersonByTmdbPersonId.get(seed.tmdbPersonId);
-      if (!cachedPerson) {
-        continue;
-      }
-
-      const link: PersonLinkItem = {
-        tmdbPersonId: cachedPerson.tmdbPersonId,
-        slug: cachedPerson.slug,
-        name: cachedPerson.name,
-        profilePath: cachedPerson.profilePath,
-        knownForDepartment: cachedPerson.knownForDepartment,
-        routeRole: seed.routeRole,
-        character: toNullableTrimmed(seed.character),
-        job: toNullableTrimmed(seed.job),
-        department: toNullableTrimmed(seed.department),
-      };
-
-      const key = [
-        String(link.tmdbPersonId),
-        link.routeRole,
-        link.character ?? "",
-        link.job ?? "",
-        link.department ?? "",
-      ].join(":");
-
-      if (!unique.has(key)) {
-        unique.set(key, link);
-      }
-    }
-
-    return [...unique.values()];
+    return groups.map((group) => toPersonLinks(group, cachedPersonByTmdbPersonId));
   }
 
   static async resolveCanonicalSlug(

@@ -1,6 +1,7 @@
 import { UsersService } from "../../users/users.service";
 import { SocialRepository } from "../../social/repositories/social.repository";
 import { SocialFeedService } from "../../social/services/social-feed.service";
+import { UsersStatsCacheService } from "../../users/services/users-stats-cache.service";
 import { ModerationRepository } from "../repositories/moderation.repository";
 
 type ServiceError = { error: string; status: 400 | 404 };
@@ -25,6 +26,7 @@ export class ModerationService {
     ]);
     SocialFeedService.invalidateFollowingFeed(blockerId);
     SocialFeedService.invalidateFollowingFeed(target.id);
+    UsersStatsCacheService.forgetFollowEdge(blockerId, target.id);
 
     return { success: true };
   }
