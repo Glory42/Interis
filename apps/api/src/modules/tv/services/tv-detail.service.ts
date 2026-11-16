@@ -25,6 +25,7 @@ import {
   type SeriesDetailInputs,
 } from "../helpers/assemble-series-detail.helper";
 import { TvCacheService } from "./tv-cache.service";
+import { UNSAVED_MEDIA_ID } from "../../media/constants/unsaved-media.constants";
 import { createTtlCache } from "../../../infrastructure/cache/ttl-cache.helper";
 import {
   ANONYMOUS_DETAIL_CACHE_MAX_ENTRIES,
@@ -196,6 +197,8 @@ export class TvDetailService {
   ): Promise<SeriesDetailInputs> {
     const viewerUserId = input.viewerUserId ?? null;
     const reviewsOffset = (input.reviewsPage - 1) * input.reviewsLimit;
+    // A series nobody has saved yet has no logs, reviews or ratings to query.
+    const isSaved = cachedSeries.id !== UNSAVED_MEDIA_ID;
 
     const [
       tmdbDetail,
@@ -208,15 +211,17 @@ export class TvDetailService {
     ] = await Promise.all([
       tmdbClient.getDetails(input.tmdbId).catch(() => null),
       tmdbClient.getAggregateCredits(input.tmdbId).catch(() => null),
-      TvReviewsRepository.getLogsCountBySeriesId(cachedSeries.id),
-      TvReviewsRepository.getReviewRowsBySeriesId(cachedSeries.id, {
-        sort: input.reviewsSort,
-        limit: input.reviewsLimit,
-        offset: reviewsOffset,
-        viewerUserId,
-      }),
+      isSaved ? TvReviewsRepository.getLogsCountBySeriesId(cachedSeries.id) : 0,
+      isSaved
+        ? TvReviewsRepository.getReviewRowsBySeriesId(cachedSeries.id, {
+            sort: input.reviewsSort,
+            limit: input.reviewsLimit,
+            offset: reviewsOffset,
+            viewerUserId,
+          })
+        : { rows: [], totalCount: 0 },
       tmdbClient.getSimilar(input.tmdbId).catch(() => []),
-      YourRatingService.communityRatings("tv", cachedSeries.id),
+      isSaved ? YourRatingService.communityRatings("tv", cachedSeries.id) : [],
       TvSeasonEpisodeReviewsRepository.getReviewRowsBySeriesId(input.tmdbId, cachedSeries.id, {
         sort: input.reviewsSort,
         viewerUserId,
@@ -230,21 +235,23 @@ export class TvDetailService {
     ];
     const engagement = await loadReviewEngagement(TvReviewsRepository, reviewIds, viewerUserId);
 
-    const [seasonEpisodeReviews, creators, cast, crew] = await Promise.all([
+    const [seasonEpisodeReviews, [creators = [], cast = [], crew = []]] = await Promise.all([
       resolveSeasonEpisodeReviewItems(
         input.tmdbId,
         seasonEpisodeReviewRows,
         engagement.likeCountByReviewId,
         engagement.viewerLikedReviewIds,
       ),
-      PeopleCacheService.ensurePersonLinks(creatorSeeds(tmdbDetail)),
-      PeopleCacheService.ensurePersonLinks(castSeeds(tmdbAggregateCredits)),
-      PeopleCacheService.ensurePersonLinks(crewSeeds(tmdbAggregateCredits)),
+      PeopleCacheService.ensurePersonLinkGroups([
+        creatorSeeds(tmdbDetail),
+        castSeeds(tmdbAggregateCredits),
+        crewSeeds(tmdbAggregateCredits),
+      ]),
     ]);
 
     // Only viewerTracking depends on userSeasonInteractions, so the other
     // two fetches run concurrent with it instead of sequentially.
-    const [[viewerDiary, viewerRating, viewerReviewRow], userSeasonInteractions] = viewerUserId
+    const [[viewerDiary, viewerRating, viewerReviewRow], userSeasonInteractions] = viewerUserId && isSaved
       ? await Promise.all([
           Promise.all([
             WatchLogStores.series.findLatest(viewerUserId, cachedSeries.id),

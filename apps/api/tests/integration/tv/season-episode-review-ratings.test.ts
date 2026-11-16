@@ -56,7 +56,10 @@ describe("season/episode review ratings", () => {
       { userId: watcherId, seriesId: series.id, seasonNumber: 1, episodeNumber: 3, watched: true },
     ]);
 
-    const detailRows = await TvSeasonEpisodeReviewsRepository.getReviewRowsBySeriesId(series.tmdbId, series.id);
+    const detailRows = await TvSeasonEpisodeReviewsRepository.getReviewRowsBySeriesId(series.tmdbId, series.id, {
+      sort: "recent",
+      viewerUserId: null,
+    });
     const ratingById = new Map(detailRows.map((row) => [row.id, row.rating]));
     expect(ratingById.get(seasonReview!.id)).toBe(7);
     expect(ratingById.get(episodeReview!.id)).toBe(9);
