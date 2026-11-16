@@ -24,6 +24,9 @@ export const peopleKeys = {
   ) => ["people", "credits", role, slug, media, type, order] as const,
 };
 
+// TMDB person data, no viewer state: changes far less often than a session lasts.
+const PERSON_STALE_TIME_MS = 30 * 60_000;
+
 export const usePersonDetail = (
   role: PersonRouteRole,
   slug: string,
@@ -32,6 +35,7 @@ export const usePersonDetail = (
   useQuery({
     queryKey: peopleKeys.detail(role, slug),
     queryFn: ({ signal }) => getPersonDetailBySlug(role, slug, { signal }),
+    staleTime: PERSON_STALE_TIME_MS,
     enabled,
   });
 
@@ -45,6 +49,7 @@ export const usePersonCredits = (
     queryKey: peopleKeys.credits(role, slug, view.media, view.type, view.order),
     queryFn: ({ pageParam, signal }) =>
       getPersonCredits(role, slug, { ...view, offset: pageParam }, { signal }),
+    staleTime: PERSON_STALE_TIME_MS,
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       const loaded = allPages.reduce((sum, page) => sum + page.items.length, 0);

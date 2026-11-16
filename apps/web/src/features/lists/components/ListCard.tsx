@@ -17,6 +17,9 @@ type ListCardProps = {
 
 export const ListCard = memo(function ListCard({ list, username }: ListCardProps) {
   const covers = list.coverImages.slice(0, 4);
+  // A List shared with this profile's user lives under its owner's profile.
+  const isShared = list.role === "collaborator";
+  const linkUsername = isShared && list.ownerUsername ? list.ownerUsername : username;
   const coverCount = covers.filter((c) => c.posterPath).length;
 
   const derivedTypeLabel =
@@ -37,7 +40,7 @@ export const ListCard = memo(function ListCard({ list, username }: ListCardProps
   return (
     <Link
       to="/profile/$username/lists/$listId"
-      params={{ username, listId: list.id }}
+      params={{ username: linkUsername, listId: list.id }}
       className="group flex items-center gap-5 border-b border-border/50 py-5 transition-opacity last:border-0 hover:opacity-90"
     >
       {/* Stacked covers */}
@@ -122,6 +125,14 @@ export const ListCard = memo(function ListCard({ list, username }: ListCardProps
       </div>
 
       <div className="flex shrink-0 flex-col items-end gap-1.5 pt-0.5">
+        {isShared ? (
+          <span
+            title={list.ownerUsername ? `Shared by ${list.ownerUsername}` : "Shared list"}
+            className="rounded-full border border-primary/45 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-primary"
+          >
+            SHARED
+          </span>
+        ) : null}
         {derivedTypeLabel ? (
           <span className="rounded-full border border-border/60 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
             {derivedTypeLabel}

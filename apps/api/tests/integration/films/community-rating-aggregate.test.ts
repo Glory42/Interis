@@ -66,7 +66,8 @@ describe("movies community rating aggregate", () => {
 
     const expectedRatings = [3, 7, 8];
     const detailRatings = await YourRatingService.communityRatings("movie", movie.id);
-    expect(detailRatings.map((row) => row.rating).sort()).toEqual(expectedRatings);
+    const flattened = detailRatings.flatMap((row) => Array<number>(row.count).fill(row.rating));
+    expect(flattened.sort()).toEqual(expectedRatings);
 
     const [aggregateRow] = await FilmsRepository.getLocalArchiveAggregateRowsByTmdbIds([
       movie.tmdbId,

@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
 import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
 import { sendBadRequest, sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
+import { anonymousPublicCache, publicCache } from "../../commons/http/cache-control.helper";
+import { MEDIA_CACHE_TIMES } from "../media/constants/media-cache-times.constants";
 import { parseTmdbIdParam } from "../../commons/validation/params.helper";
 import { FilmsService } from "./films.service";
 import type {
@@ -28,6 +30,7 @@ export class FilmsController {
     }
 
     const movies = await FilmsService.search(parsed.data.query);
+    publicCache(res, MEDIA_CACHE_TIMES.search);
     res.status(200).json(movies);
   }
 
@@ -47,6 +50,7 @@ export class FilmsController {
       return;
     }
 
+    publicCache(res, MEDIA_CACHE_TIMES.title);
     res.status(200).json(movie);
   }
 
@@ -76,7 +80,7 @@ export class FilmsController {
       return;
     }
 
-    res.setHeader("Cache-Control", "no-store");
+    anonymousPublicCache(req, res, MEDIA_CACHE_TIMES.detail);
     res.status(200).json(detail);
   }
 
@@ -106,12 +110,13 @@ export class FilmsController {
       return;
     }
 
-    res.setHeader("Cache-Control", "no-store");
+    anonymousPublicCache(req, res, MEDIA_CACHE_TIMES.detail);
     res.status(200).json(reviews);
   }
 
   static async getRecent(_req: Request, res: Response): Promise<void> {
     const movies = await FilmsService.getRecent();
+    publicCache(res, MEDIA_CACHE_TIMES.tmdbList);
     res.status(200).json(movies);
   }
 
@@ -126,13 +131,13 @@ export class FilmsController {
       viewerUserId,
     });
 
-    res.setHeader("Cache-Control", "no-store");
+    anonymousPublicCache(req, res, MEDIA_CACHE_TIMES.archive);
     res.status(200).json(archive);
   }
 
   static async getTrending(_req: Request, res: Response): Promise<void> {
     const movies = await FilmsService.getTrending();
-    res.setHeader("Cache-Control", "public, max-age=300");
+    publicCache(res, MEDIA_CACHE_TIMES.tmdbList);
     res.status(200).json(movies);
   }
 
@@ -148,6 +153,7 @@ export class FilmsController {
 
     const { limit, offset } = normalizeFilmLogsQuery(req.query);
     const logs = await FilmsService.getLogsByTmdbId(tmdbId, limit, offset);
+    anonymousPublicCache(req, res, MEDIA_CACHE_TIMES.logs);
     res.status(200).json(logs);
   }
 }

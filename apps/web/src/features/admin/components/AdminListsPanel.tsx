@@ -1,4 +1,4 @@
-import { useDeferredValue, useState } from "react";
+import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import type { AdminList } from "@/features/admin/community-api";
 import { useAdminLists, useDeleteAdminList } from "@/features/admin/hooks/useAdminCommunity";
 import { isApiError } from "@/lib/api-client";
 import { formatRelativeTime } from "@/lib/time";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 
 const DeleteListAction = ({ list }: { list: AdminList }) => {
   const { mutateAsync: deleteList, isPending } = useDeleteAdminList();
@@ -57,7 +58,7 @@ const DeleteListAction = ({ list }: { list: AdminList }) => {
 
 export const AdminListsPanel = () => {
   const [usernameInput, setUsernameInput] = useState("");
-  const deferredUsername = useDeferredValue(usernameInput.trim());
+  const deferredUsername = useDebouncedValue(usernameInput.trim());
   const listsQuery = useAdminLists(deferredUsername.length > 0 ? deferredUsername : undefined);
 
   return (

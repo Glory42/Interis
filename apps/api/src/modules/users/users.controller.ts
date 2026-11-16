@@ -1,5 +1,8 @@
 import type { Request, Response } from "express";
-import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
+import {
+  peekViewerUserIdFromHeaders,
+  resolveViewerUserIdFromHeaders,
+} from "../../commons/auth/session-resolver.helper";
 import {
   resolveOrNotFound,
   sendNotFound,
@@ -38,8 +41,10 @@ export class UsersController {
     req: Request<{ username: string }>,
     res: Response,
   ): Promise<void> {
+    // Only decides whether the owner skips the stats cache, so the DB-free peek is enough.
+    const viewerUserId = await peekViewerUserIdFromHeaders(req.headers);
     const profile = await resolveOrNotFound(res, "User not found", () =>
-      UsersService.getPublicProfileWithStats(req.params.username),
+      UsersService.getPublicProfileWithStats(req.params.username, viewerUserId),
     );
     if (!profile) {
       return;
@@ -57,7 +62,10 @@ export class UsersController {
     if (!profile) {
       return;
     }
-    const stats = await UsersService.getDetailedStats(profile.id);
+    const stats = await UsersService.getDetailedStats(
+      profile.id,
+      await peekViewerUserIdFromHeaders(req.headers),
+    );
     res.status(200).json(stats);
   }
 

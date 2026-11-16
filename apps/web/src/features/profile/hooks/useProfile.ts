@@ -40,7 +40,10 @@ export const profileKeys = {
   watchlist: (username: string) => ["profile", "watchlist", username] as const,
   currentlyWatching: (username: string) =>
     ["profile", "currently-watching", username] as const,
-  diary: (username: string) => ["profile", "diary", username] as const,
+  // Without a tag this is also the prefix of every tag-filtered diary.
+  diary: (username: string, tag?: string) =>
+    (tag ? ["profile", "diary", username, tag] : ["profile", "diary", username]) as readonly string[],
+  diaryTags: (username: string) => ["profile", "diary-tags", username] as const,
   reviews: (username: string) => ["profile", "reviews", username] as const,
   topPicks: (username: string) => ["profile", "top-picks", username] as const,
   recentActivityRoot: (username: string) => ["profile", "recent-activity", username] as const,
@@ -150,11 +153,11 @@ export const useUserCurrentlyWatching = (username: string, limit = 20) =>
     enabled: username.trim().length > 0,
   });
 
-export const useUserDiary = (username: string) =>
+export const useUserDiary = (username: string, tag?: string) =>
   useInfiniteQuery({
-    queryKey: profileKeys.diary(username),
+    queryKey: profileKeys.diary(username, tag),
     queryFn: ({ signal, pageParam }) =>
-      getUserDiary(username, PROFILE_LIST_PAGE_SIZE, pageParam, { signal }),
+      getUserDiary(username, PROFILE_LIST_PAGE_SIZE, pageParam, { signal, tag }),
     initialPageParam: 0,
     getNextPageParam: getNextProfileListPageParam,
     enabled: username.trim().length > 0,
@@ -174,6 +177,7 @@ export const useUserTopPicks = (username: string) =>
   useQuery({
     queryKey: profileKeys.topPicks(username),
     queryFn: ({ signal }) => getUserTopPicks(username, { signal }),
+    staleTime: 10 * 60_000,
     enabled: username.trim().length > 0,
   });
 

@@ -1,4 +1,4 @@
-import { useDeferredValue, useState } from "react";
+import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminMediaRowActions } from "@/features/admin/components/AdminMediaRowActions";
 import { AdminPanelHeader } from "@/features/admin/components/AdminPanelHeader";
@@ -7,11 +7,12 @@ import { AdminSearchInput } from "@/features/admin/components/AdminSearchInput";
 import { useAdminMediaList } from "@/features/admin/hooks/useAdminMedia";
 import type { AdminMediaKind } from "@/features/admin/media-api";
 import { ADMIN_MEDIA_KINDS } from "@/features/admin/media-kinds";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 
 export const AdminMediaPanel = ({ kind }: { kind: AdminMediaKind }) => {
   const { pluralNoun, panelTitle, panelDescription, yearLabel, creditLabel } = ADMIN_MEDIA_KINDS[kind];
   const [queryInput, setQueryInput] = useState("");
-  const deferredQuery = useDeferredValue(queryInput.trim());
+  const deferredQuery = useDebouncedValue(queryInput.trim());
   const mediaQuery = useAdminMediaList(kind, deferredQuery.length > 0 ? deferredQuery : undefined);
 
   return (

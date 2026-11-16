@@ -2,3 +2,6 @@
 // is well above any realistic use — it exists purely to bound unbounded
 // growth from a buggy or abusive client hammering the add-item endpoint.
 export const MAX_LIST_ITEMS = 500;
+
+// Invited and accepted List Collaborators together, per list.
+export const MAX_LIST_COLLABORATORS = 10;

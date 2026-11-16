@@ -1,6 +1,13 @@
 import { useState } from "react";
+import { useLogPrivateFields } from "@/features/diary/hooks/useDiaryTags";
 import { useFilmInteraction, useUpdateFilmInteraction } from "@/features/interactions/hooks/useInteractions";
 import type { ExistingLogSubject, LogSubject } from "@/features/media/log-editor/log-subject";
+import {
+  currentPrivateFields,
+  EMPTY_PRIVATE_FIELDS,
+  privateFieldChanges,
+  type PrivateFieldsEdit,
+} from "@/features/media/log-editor/log-private-fields";
 import { clearReviewDraft, readReviewDraft, writeReviewDraft } from "@/features/media/log-editor/review-draft";
 import {
   useCreateLog,
@@ -41,13 +48,16 @@ const initialDraft = (subject: LogSubject): LogDraft =>
         containsSpoilers: subject.review?.containsSpoilers ?? false,
       };
 
-const createInput = (draft: LogDraft): CreateLogInput => {
+const createInput = (draft: LogDraft, extras: { note: string; tags: string[] }): CreateLogInput => {
   const review = draft.review.trim();
+  const note = extras.note.trim();
   return {
     watchedDate: draft.watchedDate,
     ...(draft.rating !== null ? { rating: draft.rating } : {}),
     rewatch: draft.rewatch,
     ...(review ? { review, containsSpoilers: draft.containsSpoilers } : {}),
+    ...(note ? { note } : {}),
+    ...(extras.tags.length > 0 ? { tags: extras.tags } : {}),
   };
 };
 
@@ -89,6 +99,16 @@ export const useLogEditor = (
   onSaved?: (changes: UpdateLogInput | null) => void,
 ) => {
   const [draft, setDraft] = useState(() => initialDraft(subject));
+  // Note and tags are tracked as edits over the saved values, which may still be loading.
+  const [privateEdit, setPrivateEdit] = useState<PrivateFieldsEdit>({});
+  const privateQuery = useLogPrivateFields(
+    subject.kind,
+    subject.type === "existing" ? subject.logId : "",
+    subject.type === "existing" && !subject.privateFields,
+  );
+  const privateBaseline =
+    subject.type === "new" ? EMPTY_PRIVATE_FIELDS : (subject.privateFields ?? privateQuery.data ?? null);
+  const privateFields = currentPrivateFields(privateBaseline, privateEdit);
   // null until toggled here, so the fetched Like shows without an effect to copy it.
   const [likedOverride, setLikedOverride] = useState<boolean | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -99,7 +119,10 @@ export const useLogEditor = (
 
   const liked = likedOverride ?? titleLike.liked;
   const likedChanged = liked !== titleLike.liked;
-  const changes = subject.type === "existing" ? editInput(subject, draft) : null;
+  const changes =
+    subject.type === "existing"
+      ? { ...editInput(subject, draft), ...(privateBaseline ? privateFieldChanges(privateBaseline, privateEdit) : {}) }
+      : null;
   const canSubmit = changes === null || Object.keys(changes).length > 0 || likedChanged;
 
   const change = (patch: Partial<LogDraft>) => {
@@ -115,7 +138,7 @@ export const useLogEditor = (
       // Like is sent only when toggled, so a slow Interaction fetch can't unlike the title.
       await Promise.all([
         subject.type === "new"
-          ? createLog.mutateAsync({ title: subject, input: createInput(draft) })
+          ? createLog.mutateAsync({ title: subject, input: createInput(draft, privateFields) })
           : changes && Object.keys(changes).length > 0
             ? updateLog.mutateAsync({ log: subject, input: changes })
             : null,
@@ -131,5 +154,23 @@ export const useLogEditor = (
     }
   };
 
-  return { draft, change, liked, setLiked: setLikedOverride, formError, isSubmitting, canSubmit, save };
+  const privateState = {
+    ...privateFields,
+    // Until the saved note and tags arrive, editing them could overwrite what's there.
+    isReady: privateBaseline !== null,
+    hasSavedNote: Boolean(privateBaseline?.note),
+    change: (patch: PrivateFieldsEdit) => setPrivateEdit((current) => ({ ...current, ...patch })),
+  };
+
+  return {
+    draft,
+    change,
+    privateFields: privateState,
+    liked,
+    setLiked: setLikedOverride,
+    formError,
+    isSubmitting,
+    canSubmit,
+    save,
+  };
 };

@@ -11,6 +11,8 @@ type ArchiveFilterOption<TValue extends string> = {
 type MediaArchivePageProps<TItem, TSort extends string, TPeriod extends string> = {
   moduleStyles: MediaModuleStyles;
   heading: string;
+  // A link beside the heading, e.g. TV's "Up next".
+  headingAction?: ReactNode;
   // The rotating reel above the filters.
   spotlight: ReactNode;
   archiveErrorMessage: string;
@@ -43,6 +45,7 @@ type MediaArchivePageProps<TItem, TSort extends string, TPeriod extends string> 
 export function MediaArchivePage<TItem, TSort extends string, TPeriod extends string>({
   moduleStyles,
   heading,
+  headingAction,
   spotlight,
   archiveErrorMessage,
   emptyMessage,
@@ -96,7 +99,10 @@ export function MediaArchivePage<TItem, TSort extends string, TPeriod extends st
     <main className="relative mx-auto w-full max-w-400">
       <div className="px-4 py-6">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-          <h1 className="display-1 text-foreground">{heading}</h1>
+          <div className="flex items-baseline gap-4">
+            <h1 className="display-1 text-foreground">{heading}</h1>
+            {headingAction}
+          </div>
           <p className="mono-meta text-muted-foreground">{`${archiveCountLabel} · logged, not filtered.`}</p>
         </div>
 

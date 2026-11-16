@@ -3,6 +3,7 @@ import { asyncHandler } from "../../commons/utils/asyncHandler";
 import { requireAuth } from "../../commons/middlewares/requireAuth";
 import { TvController } from "./tv.controller";
 import { TvTrackingController } from "./tv-tracking.controller";
+import { TvUpNextController } from "./tv-up-next.controller";
 import { MediaFollowingController } from "../media/media-following.controller";
 import { WatchProvidersController } from "../media/watch-providers.controller";
 
@@ -12,7 +13,9 @@ router.get("/search", asyncHandler(TvController.search));
 router.get("/recent", asyncHandler(TvController.getRecent));
 router.get("/archive", asyncHandler(TvController.getArchive));
 router.get("/trending", asyncHandler(TvController.getTrending));
+router.get("/up-next", requireAuth, asyncHandler(TvUpNextController.getUpNext));
 router.get("/logs", requireAuth, asyncHandler(TvController.getMyLogs));
+router.get("/logs/:id", requireAuth, asyncHandler(TvController.getMyLog));
 router.put("/logs/:id", requireAuth, asyncHandler(TvController.updateLog));
 router.delete("/logs/:id", requireAuth, asyncHandler(TvController.deleteLog));
 router.get("/:tmdbId/detail", asyncHandler(TvController.getDetailByTmdbId));

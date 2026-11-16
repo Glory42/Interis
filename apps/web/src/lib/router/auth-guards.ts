@@ -2,6 +2,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import { redirect } from "@tanstack/react-router";
 import { authQueryOptions } from "@/features/auth/hooks/useAuth";
 import { getSafeRedirectPath } from "@/lib/router/redirect";
+import type { MeProfile } from "@/types/api";
 
 type AuthGuardInput = {
   queryClient: QueryClient;
@@ -57,5 +58,24 @@ export const requireAdminUser = async ({
     throw redirect({ to: "/" });
   }
 
+  return user;
+};
+
+// A new account goes through onboarding once; null means it hasn't finished or skipped it.
+export const isOnboardingPending = (user: Pick<MeProfile, "onboardingCompletedAt"> | null | undefined) =>
+  user?.onboardingCompletedAt === null;
+
+export const redirectToPendingOnboarding = (user: Pick<MeProfile, "onboardingCompletedAt"> | null | undefined) => {
+  if (isOnboardingPending(user)) {
+    throw redirect({ to: "/welcome" });
+  }
+};
+
+// The /welcome route's own guard: signed in, security question set, onboarding not done.
+export const requirePendingOnboarding = async ({ queryClient }: AuthGuardInput) => {
+  const user = await requireAuthenticatedUser({ queryClient, redirectPath: "/welcome" });
+  if (!isOnboardingPending(user)) {
+    throw redirect({ to: "/" });
+  }
   return user;
 };

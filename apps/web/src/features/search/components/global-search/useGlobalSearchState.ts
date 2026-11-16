@@ -1,5 +1,4 @@
 import {
-  useDeferredValue,
   useMemo,
   useState,
   type Dispatch,
@@ -22,6 +21,7 @@ import type {
   SearchSectionOffset,
   SearchResultEntry,
 } from "./types";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 
 export type GlobalSearchState = {
   mode: SearchMode;
@@ -52,7 +52,7 @@ export const useGlobalSearchState = (): GlobalSearchState => {
   const [highlightedIndex, setHighlightedIndex] = useState(0);
 
   const normalizedQuery = queryInput.trim();
-  const deferredQuery = useDeferredValue(normalizedQuery);
+  const deferredQuery = useDebouncedValue(normalizedQuery);
   const hasMinQueryLength = normalizedQuery.length >= MIN_QUERY_LENGTH;
   const shouldRunSearch = deferredQuery.length >= MIN_QUERY_LENGTH;
 

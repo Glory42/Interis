@@ -44,6 +44,10 @@ export class SocialService {
     return SocialFollowService.getFollowedAmong(followerId, userIds);
   }
 
+  static async getFollowSuggestions(viewerId: string, limit: number) {
+    return SocialFollowService.getSuggestions(viewerId, limit);
+  }
+
   static async removeFollower(userId: string, followerUserId: string) {
     return SocialFollowService.removeFollower(userId, followerUserId);
   }

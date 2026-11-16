@@ -17,7 +17,7 @@ export const Route = createFileRoute("/profile/$username/lists/$listId/")({
     if (!loaderData) return {};
     const text = listShareText({
       title: loaderData.title,
-      ownerName: params.username,
+      ownerName: loaderData.ownerUsername ?? params.username,
       description: loaderData.description,
       entryCount: loaderData.itemCount,
     });

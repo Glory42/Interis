@@ -59,12 +59,14 @@ export class ListsWriteRepository {
     return deleted ?? null;
   }
 
+  // Position is computed in the insert so concurrent adds don't read a stale max.
+  // Null when the title is already on the list.
   static async insertEntry(data: {
     listId: string;
     movieId?: number;
     tvSeriesId?: number;
     itemType: string;
-    position: number;
+    addedByUserId: string;
   }) {
     const [created] = await db
       .insert(listEntries)
@@ -73,30 +75,74 @@ export class ListsWriteRepository {
         movieId: data.movieId,
         tvSeriesId: data.tvSeriesId,
         itemType: data.itemType,
-        position: data.position,
+        addedByUserId: data.addedByUserId,
+        position: sql`(SELECT COALESCE(MAX(${listEntries.position}), 0) + 1 FROM ${listEntries} WHERE ${listEntries.listId} = ${data.listId})`,
       })
+      .onConflictDoNothing()
       .returning();
 
     return created ?? null;
   }
 
-  static async deleteEntry(entryId: string): Promise<void> {
-    await db.delete(listEntries).where(eq(listEntries.id, entryId));
+  // Derived from the entries as they are now, so concurrent edits can't leave it stale.
+  static async refreshDerivedType(listId: string): Promise<string | null> {
+    const [updated] = await db
+      .update(lists)
+      .set({
+        derivedType: sql`(
+          SELECT CASE
+            WHEN COUNT(*) = 0 THEN NULL
+            WHEN COUNT(DISTINCT ${listEntries.itemType}) > 1 THEN 'mixed'
+            ELSE MIN(${listEntries.itemType})
+          END
+          FROM ${listEntries} WHERE ${listEntries.listId} = ${listId}
+        )`,
+      })
+      .where(eq(lists.id, listId))
+      .returning({ derivedType: lists.derivedType });
+
+    return updated?.derivedType ?? null;
   }
 
-  static async bulkUpdatePositions(
-    items: Array<{ id: string; position: number }>,
-  ): Promise<void> {
-    if (items.length === 0) return;
+  static async deleteEntry(listId: string, entryId: string): Promise<boolean> {
+    const rows = await db
+      .delete(listEntries)
+      .where(and(eq(listEntries.id, entryId), eq(listEntries.listId, listId)))
+      .returning({ id: listEntries.id });
+    return rows.length > 0;
+  }
 
-    const whenClauses = items.map(
-      (item) => sql`WHEN ${item.id}::uuid THEN ${item.position}::integer`,
-    );
+  static async updateEntryNote(listId: string, entryId: string, note: string | null) {
+    const [updated] = await db
+      .update(listEntries)
+      .set({ note })
+      .where(and(eq(listEntries.id, entryId), eq(listEntries.listId, listId)))
+      .returning({ id: listEntries.id, note: listEntries.note });
+    return updated ?? null;
+  }
 
-    await db
+  // Renumbers the list 1..n in the given order, in one statement that applies only
+  // when the ids are exactly the list's current entries; returns rows changed (0 = stale).
+  static async reorderEntries(listId: string, orderedIds: string[]): Promise<number> {
+    if (orderedIds.length === 0) return 0;
+
+    const whenClauses = orderedIds.map((id, index) => sql`WHEN ${id}::uuid THEN ${index + 1}::integer`);
+    const idList = sql.join(orderedIds.map((id) => sql`${id}::uuid`), sql`, `);
+
+    const rows = await db
       .update(listEntries)
       .set({ position: sql`CASE ${listEntries.id} ${sql.join(whenClauses, sql` `)} END` })
-      .where(inArray(listEntries.id, items.map((item) => item.id)));
+      .where(
+        and(
+          eq(listEntries.listId, listId),
+          inArray(listEntries.id, orderedIds),
+          sql`(SELECT COUNT(*) FROM ${listEntries} WHERE ${listEntries.listId} = ${listId}) = ${orderedIds.length}`,
+          sql`(SELECT COUNT(*) FROM ${listEntries} WHERE ${listEntries.listId} = ${listId} AND ${listEntries.id} IN (${idList})) = ${orderedIds.length}`,
+        ),
+      )
+      .returning({ id: listEntries.id });
+
+    return rows.length;
   }
 
   static async likeList(userId: string, listId: string): Promise<void> {

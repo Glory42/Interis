@@ -15,15 +15,16 @@ export const viewerStatusKeys = {
   items: (itemsParam: string) => ["viewer-status", itemsParam] as const,
 };
 
+// The cache key's param for a grid, so a writer can refresh just that grid.
+export const toViewerStatusParam = (items: ViewerStatusItem[]): string =>
+  [...new Set(items.map(viewerStatusKey))].sort().slice(0, MAX_ITEMS).join(",");
+
 // One request for a whole grid of cards; pass enabled=false for signed-out visitors.
 export const useViewerStatuses = (
   items: ViewerStatusItem[],
   enabled = true,
 ): Map<string, ViewerStatus> => {
-  const itemsParam = useMemo(
-    () => [...new Set(items.map(viewerStatusKey))].sort().slice(0, MAX_ITEMS).join(","),
-    [items],
-  );
+  const itemsParam = useMemo(() => toViewerStatusParam(items), [items]);
 
   const query = useQuery({
     queryKey: viewerStatusKeys.items(itemsParam),

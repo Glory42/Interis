@@ -30,6 +30,8 @@ export type ExistingLogSubject = LogMediaTitle & {
   rating: number | null;
   rewatch: boolean;
   review: AttachedReview | null;
+  // The log's private note and tags when the opener already has them; otherwise the editor fetches them.
+  privateFields?: { note: string | null; tags: string[] };
 };
 
 export type LogSubject = NewLogSubject | ExistingLogSubject;

@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as SetupSecurityQuestionRouteImport } from './routes/setup-security-question'
 import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as AuthLayoutRouteImport } from './routes/_authLayout'
@@ -27,6 +28,7 @@ import { Route as SettingsDeleteAccountRouteImport } from './routes/settings/del
 import { Route as SettingsDataRouteImport } from './routes/settings/data'
 import { Route as SettingsBlockedRouteImport } from './routes/settings/blocked'
 import { Route as SettingsAuthRouteImport } from './routes/settings/auth'
+import { Route as SerialsUpNextRouteImport } from './routes/serials/up-next'
 import { Route as SerialsTmdbIdRouteImport } from './routes/serials/$tmdbId'
 import { Route as MoviesTmdbIdRouteImport } from './routes/movies/$tmdbId'
 import { Route as DirectorSlugRouteImport } from './routes/director/$slug'
@@ -58,6 +60,11 @@ import { Route as ProfileUsernameListsNewRouteImport } from './routes/profile/$u
 import { Route as ProfileUsernameListsListIdIndexRouteImport } from './routes/profile/$username/lists/$listId/index'
 import { Route as ProfileUsernameListsListIdEditRouteImport } from './routes/profile/$username/lists/$listId/edit'
 
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SetupSecurityQuestionRoute = SetupSecurityQuestionRouteImport.update({
   id: '/setup-security-question',
   path: '/setup-security-question',
@@ -146,6 +153,11 @@ const SettingsAuthRoute = SettingsAuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => SettingsRouteRoute,
+} as any)
+const SerialsUpNextRoute = SerialsUpNextRouteImport.update({
+  id: '/serials/up-next',
+  path: '/serials/up-next',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const SerialsTmdbIdRoute = SerialsTmdbIdRouteImport.update({
   id: '/serials/$tmdbId',
@@ -310,6 +322,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRouteRouteWithChildren
   '/developer': typeof DeveloperRoute
   '/setup-security-question': typeof SetupSecurityQuestionRoute
+  '/welcome': typeof WelcomeRoute
   '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
   '/forgot-password': typeof AuthLayoutForgotPasswordRoute
   '/login': typeof AuthLayoutLoginRoute
@@ -322,6 +335,7 @@ export interface FileRoutesByFullPath {
   '/director/$slug': typeof DirectorSlugRoute
   '/movies/$tmdbId': typeof MoviesTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
+  '/serials/up-next': typeof SerialsUpNextRoute
   '/settings/auth': typeof SettingsAuthRoute
   '/settings/blocked': typeof SettingsBlockedRoute
   '/settings/data': typeof SettingsDataRoute
@@ -357,6 +371,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/developer': typeof DeveloperRoute
   '/setup-security-question': typeof SetupSecurityQuestionRoute
+  '/welcome': typeof WelcomeRoute
   '/forgot-password': typeof AuthLayoutForgotPasswordRoute
   '/login': typeof AuthLayoutLoginRoute
   '/register': typeof AuthLayoutRegisterRoute
@@ -368,6 +383,7 @@ export interface FileRoutesByTo {
   '/director/$slug': typeof DirectorSlugRoute
   '/movies/$tmdbId': typeof MoviesTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
+  '/serials/up-next': typeof SerialsUpNextRoute
   '/settings/auth': typeof SettingsAuthRoute
   '/settings/blocked': typeof SettingsBlockedRoute
   '/settings/data': typeof SettingsDataRoute
@@ -407,6 +423,7 @@ export interface FileRoutesById {
   '/_authLayout': typeof AuthLayoutRouteWithChildren
   '/developer': typeof DeveloperRoute
   '/setup-security-question': typeof SetupSecurityQuestionRoute
+  '/welcome': typeof WelcomeRoute
   '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
   '/_authLayout/forgot-password': typeof AuthLayoutForgotPasswordRoute
   '/_authLayout/login': typeof AuthLayoutLoginRoute
@@ -419,6 +436,7 @@ export interface FileRoutesById {
   '/director/$slug': typeof DirectorSlugRoute
   '/movies/$tmdbId': typeof MoviesTmdbIdRoute
   '/serials/$tmdbId': typeof SerialsTmdbIdRoute
+  '/serials/up-next': typeof SerialsUpNextRoute
   '/settings/auth': typeof SettingsAuthRoute
   '/settings/blocked': typeof SettingsBlockedRoute
   '/settings/data': typeof SettingsDataRoute
@@ -458,6 +476,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/developer'
     | '/setup-security-question'
+    | '/welcome'
     | '/profile/$username'
     | '/forgot-password'
     | '/login'
@@ -470,6 +489,7 @@ export interface FileRouteTypes {
     | '/director/$slug'
     | '/movies/$tmdbId'
     | '/serials/$tmdbId'
+    | '/serials/up-next'
     | '/settings/auth'
     | '/settings/blocked'
     | '/settings/data'
@@ -505,6 +525,7 @@ export interface FileRouteTypes {
     | '/'
     | '/developer'
     | '/setup-security-question'
+    | '/welcome'
     | '/forgot-password'
     | '/login'
     | '/register'
@@ -516,6 +537,7 @@ export interface FileRouteTypes {
     | '/director/$slug'
     | '/movies/$tmdbId'
     | '/serials/$tmdbId'
+    | '/serials/up-next'
     | '/settings/auth'
     | '/settings/blocked'
     | '/settings/data'
@@ -554,6 +576,7 @@ export interface FileRouteTypes {
     | '/_authLayout'
     | '/developer'
     | '/setup-security-question'
+    | '/welcome'
     | '/profile/$username'
     | '/_authLayout/forgot-password'
     | '/_authLayout/login'
@@ -566,6 +589,7 @@ export interface FileRouteTypes {
     | '/director/$slug'
     | '/movies/$tmdbId'
     | '/serials/$tmdbId'
+    | '/serials/up-next'
     | '/settings/auth'
     | '/settings/blocked'
     | '/settings/data'
@@ -605,11 +629,13 @@ export interface RootRouteChildren {
   AuthLayoutRoute: typeof AuthLayoutRouteWithChildren
   DeveloperRoute: typeof DeveloperRoute
   SetupSecurityQuestionRoute: typeof SetupSecurityQuestionRoute
+  WelcomeRoute: typeof WelcomeRoute
   ProfileUsernameRouteRoute: typeof ProfileUsernameRouteRouteWithChildren
   ActorSlugRoute: typeof ActorSlugRoute
   DirectorSlugRoute: typeof DirectorSlugRoute
   MoviesTmdbIdRoute: typeof MoviesTmdbIdRoute
   SerialsTmdbIdRoute: typeof SerialsTmdbIdRoute
+  SerialsUpNextRoute: typeof SerialsUpNextRoute
   MoviesIndexRoute: typeof MoviesIndexRoute
   SerialsIndexRoute: typeof SerialsIndexRoute
   ReviewsUsernameReviewIdRoute: typeof ReviewsUsernameReviewIdRoute
@@ -618,6 +644,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/setup-security-question': {
       id: '/setup-security-question'
       path: '/setup-security-question'
@@ -743,6 +776,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/auth'
       preLoaderRoute: typeof SettingsAuthRouteImport
       parentRoute: typeof SettingsRouteRoute
+    }
+    '/serials/up-next': {
+      id: '/serials/up-next'
+      path: '/serials/up-next'
+      fullPath: '/serials/up-next'
+      preLoaderRoute: typeof SerialsUpNextRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/serials/$tmdbId': {
       id: '/serials/$tmdbId'
@@ -1069,11 +1109,13 @@ const rootRouteChildren: RootRouteChildren = {
   AuthLayoutRoute: AuthLayoutRouteWithChildren,
   DeveloperRoute: DeveloperRoute,
   SetupSecurityQuestionRoute: SetupSecurityQuestionRoute,
+  WelcomeRoute: WelcomeRoute,
   ProfileUsernameRouteRoute: ProfileUsernameRouteRouteWithChildren,
   ActorSlugRoute: ActorSlugRoute,
   DirectorSlugRoute: DirectorSlugRoute,
   MoviesTmdbIdRoute: MoviesTmdbIdRoute,
   SerialsTmdbIdRoute: SerialsTmdbIdRoute,
+  SerialsUpNextRoute: SerialsUpNextRoute,
   MoviesIndexRoute: MoviesIndexRoute,
   SerialsIndexRoute: SerialsIndexRoute,
   ReviewsUsernameReviewIdRoute: ReviewsUsernameReviewIdRoute,

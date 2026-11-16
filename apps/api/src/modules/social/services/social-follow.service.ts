@@ -1,8 +1,10 @@
 import { SocialRepository } from "../repositories/social.repository";
+import { SocialSuggestionsRepository } from "../repositories/social-suggestions.repository";
 import { ModerationRepository } from "../../moderation/repositories/moderation.repository";
 import { NotificationsService } from "../../notifications/notifications.service";
 import { ActivityRecorder } from "./activity-recorder.service";
 import { SocialFeedService } from "./social-feed.service";
+import { UsersStatsCacheService } from "../../users/services/users-stats-cache.service";
 
 export class SocialFollowService {
   static async follow(
@@ -21,6 +23,7 @@ export class SocialFollowService {
     const row = await SocialRepository.insertFollow(followerId, followingId);
 
     if (row) {
+      UsersStatsCacheService.forgetFollowEdge(followerId, followingId);
       await Promise.all([
         ActivityRecorder.record({
           userId: followerId,
@@ -66,6 +69,11 @@ export class SocialFollowService {
     return rows.map((row) => row.followingId);
   }
 
+  // People the viewer may want to follow, best taste match first.
+  static async getSuggestions(viewerId: string, limit: number) {
+    return SocialSuggestionsRepository.findForViewer(viewerId, limit);
+  }
+
   static async removeFollower(userId: string, followerUserId: string) {
     await SocialRepository.removeFollower(userId, followerUserId);
     await SocialFollowService.retractFollow(followerUserId, userId);
@@ -77,6 +85,7 @@ export class SocialFollowService {
   // cached feed must stop showing the account.
   private static async retractFollow(followerId: string, followingId: string) {
     SocialFeedService.invalidateFollowingFeed(followerId);
+    UsersStatsCacheService.forgetFollowEdge(followerId, followingId);
     await Promise.all([
       ActivityRecorder.retract({
         userId: followerId,

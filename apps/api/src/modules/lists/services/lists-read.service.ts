@@ -2,6 +2,13 @@ import { FilmsCacheService } from "../../films/services/films-cache.service";
 import { TvCacheService } from "../../tv/services/tv-cache.service";
 import { ListsReadRepository } from "../repositories/lists-read.repository";
 import { ListsWriteRepository } from "../repositories/lists-write.repository";
+import { ListCollaboratorsRepository } from "../repositories/list-collaborators.repository";
+import { ListAccessService } from "./list-access.service";
+
+type ListItemRow = Awaited<ReturnType<typeof ListsReadRepository.getListItems>>[number];
+
+const addedByOf = (row: ListItemRow) =>
+  row.addedByUserId && row.addedByUsername ? { userId: row.addedByUserId, username: row.addedByUsername } : null;
 
 export class ListsReadService {
   static async getUserLists(
@@ -82,6 +89,9 @@ export class ListsReadService {
       itemCount: list.itemCount,
       createdAt: list.createdAt,
       updatedAt: list.updatedAt,
+      ownerUsername: list.ownerUsername,
+      // "collaborator" marks a shared List on a collaborator's profile.
+      role: list.userId === userId ? ("owner" as const) : ("collaborator" as const),
       coverImages: coversByListId.get(list.id) ?? [],
       containsItem:
         checkTmdbId !== undefined && checkItemType !== undefined
@@ -95,21 +105,24 @@ export class ListsReadService {
   }
 
   static async getListDetail(listId: string, viewerUserId: string | null) {
-    const list = await ListsReadRepository.findById(listId);
-
-    if (!list) {
+    const access = await ListAccessService.resolveVisible(listId, viewerUserId);
+    if (!access) {
       return null;
     }
+    const { list, role } = access;
 
-    if (!list.isPublic && viewerUserId !== list.userId) {
-      return null;
-    }
-
-    const [itemRows, likeCount, likedByViewer] = await Promise.all([
+    const [itemRows, likeCount, likedByViewer, collaboratorRows, ownerUsername] = await Promise.all([
       ListsReadRepository.getListItems(listId, list.userId),
       ListsWriteRepository.getListLikeCount(listId),
       viewerUserId ? ListsWriteRepository.hasUserLikedList(viewerUserId, listId) : Promise.resolve(false),
+      ListCollaboratorsRepository.listForList(listId),
+      ListsReadRepository.findOwnerUsername(list.userId),
     ]);
+
+    // Pending invites are the owner's and the invitee's business only.
+    const collaborators = collaboratorRows
+      .filter((c) => c.status === "accepted" || role === "owner" || c.userId === viewerUserId)
+      .map(({ createdAt: _createdAt, ...c }) => c);
 
     const items = itemRows.map((row) => {
       if (row.itemType === "movie") {
@@ -118,6 +131,7 @@ export class ListsReadService {
           position: row.position,
           itemType: row.itemType,
           note: row.note,
+          addedBy: addedByOf(row),
           tmdbId: row.movieTmdbId,
           title: row.movieTitle,
           posterPath: row.moviePosterPath,
@@ -132,6 +146,7 @@ export class ListsReadService {
         position: row.position,
         itemType: row.itemType,
         note: row.note,
+        addedBy: addedByOf(row),
         tmdbId: row.serialTmdbId,
         title: row.serialTitle,
         posterPath: row.serialPosterPath,
@@ -144,6 +159,7 @@ export class ListsReadService {
     return {
       id: list.id,
       userId: list.userId,
+      ownerUsername,
       title: list.title,
       description: list.description,
       isRanked: list.isRanked,
@@ -155,6 +171,8 @@ export class ListsReadService {
       itemCount: items.length,
       likeCount,
       likedByViewer,
+      viewerRole: role,
+      collaborators,
     };
   }
 

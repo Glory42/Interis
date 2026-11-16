@@ -65,7 +65,8 @@ describe("serials community rating aggregate", () => {
 
     const expectedRatings = [3, 7, 8];
     const detailRatings = await YourRatingService.communityRatings("tv", serial.id);
-    expect(detailRatings.map((row) => row.rating).sort()).toEqual(expectedRatings);
+    const flattened = detailRatings.flatMap((row) => Array<number>(row.count).fill(row.rating));
+    expect(flattened.sort()).toEqual(expectedRatings);
 
     const [aggregateRow] = await TvArchiveRepository.getLocalArchiveAggregateRowsByTmdbIds([
       serial.tmdbId,

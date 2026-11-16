@@ -101,7 +101,11 @@ export const reviewLikes = pgTable(
       .references(() => reviews.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (table) => [unique("review_likes_unique").on(table.userId, table.reviewId)],
+  (table) => [
+    unique("review_likes_unique").on(table.userId, table.reviewId),
+    // Like counts and the "popular" sort look up by review alone.
+    index("review_like_review_id_idx").on(table.reviewId),
+  ],
 );
 
 export const commentLikes = pgTable(
@@ -115,5 +119,8 @@ export const commentLikes = pgTable(
       .references(() => comments.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (table) => [unique("comment_likes_unique").on(table.userId, table.commentId)],
+  (table) => [
+    unique("comment_likes_unique").on(table.userId, table.commentId),
+    index("comment_like_comment_id_idx").on(table.commentId),
+  ],
 );

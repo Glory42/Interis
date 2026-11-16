@@ -85,10 +85,16 @@ export class YourRatingRepository {
     return yourRatingSql(SOURCES[mediaType], userId, mediaId).mapWith(toRating);
   }
 
+  // Grouped per distinct rating (at most 20 rows), never one row per user.
   static async communityRatings(mediaType: MediaType, mediaId: number) {
     const ratings = communityRatingsSql(SOURCES[mediaType], sql`${mediaId}`);
-    const result = await db.execute(sql`select r.rating from ${ratings} r`);
-    return (result.rows as { rating: unknown }[]).map((row) => ({ rating: Number(row.rating) }));
+    const result = await db.execute(
+      sql`select r.rating, count(*)::int as count from ${ratings} r group by r.rating`,
+    );
+    return (result.rows as { rating: unknown; count: unknown }[]).map((row) => ({
+      rating: Number(row.rating),
+      count: Number(row.count),
+    }));
   }
 
   // The same rule per row of an archive listing, grouped by `mediaId` (a column or raw outer reference).
