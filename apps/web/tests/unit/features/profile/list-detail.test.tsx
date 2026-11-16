@@ -59,7 +59,7 @@ describe("ProfileListDetailPage", () => {
     const user = userEvent.setup();
     let deleted = false;
     server.use(
-      http.get("*/api/lists/l1", () => HttpResponse.json(listDetail)),
+      http.get("*/api/lists/l1", () => HttpResponse.json({ ...listDetail, viewerRole: "owner" })),
       http.delete("*/api/lists/l1", () => {
         deleted = true;
         return HttpResponse.json({ success: true });
