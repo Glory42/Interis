@@ -21,6 +21,8 @@ export const seriesKeys = {
   seasonDetailRoot: (tmdbId: number) => ["serials", "season-detail", tmdbId] as const,
   interaction: (tmdbId: number) => ["serials", "interaction", tmdbId] as const,
   trending: ["serials", "trending"] as const,
+  // The signed-in viewer's own Up next / Airing soon.
+  upNext: ["serials", "up-next"] as const,
   recent: ["serials", "recent"] as const,
   logs: (tmdbId: number) => ["serials", "logs", tmdbId] as const,
   myLogs: ["serials", "my-logs"] as const,
