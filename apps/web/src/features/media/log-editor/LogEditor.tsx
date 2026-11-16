@@ -56,6 +56,7 @@ const LogEditorForm = ({ subject, onClose, onSaved }: Omit<LogEditorProps, "isOp
           onTextChange: (review) => change({ review }),
           onContainsSpoilersChange: (containsSpoilers) => change({ containsSpoilers }),
         }}
+        privateFields={editor.privateFields}
         formError={editor.formError}
         isSubmitting={editor.isSubmitting}
         canSubmit={editor.canSubmit}

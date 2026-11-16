@@ -39,6 +39,7 @@ const logKeys = (title: MediaTitle, viewer: string | null): QueryKey[] => [
     ? [
         profileKeys.detail(viewer),
         profileKeys.diary(viewer),
+        profileKeys.diaryTags(viewer),
         profileKeys.recentActivityRoot(viewer),
         profileStatsKeys.detail(viewer),
       ]
