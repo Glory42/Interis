@@ -54,6 +54,13 @@ _Avoid_: reply
 A user's standing relationship to one Film or Series — liked, watchlisted, watched, and rating — held as one row per user+media pair and updated in place, never a history of events (`movie_interaction` for Films, `serial_interaction` for Series). Season- and episode-level variants exist for Series. A Series is watched when its watch status is completed. Liking or watchlisting adds an Activity when it newly sets the flag; explicitly undoing it removes that Activity, but an implied clear (watching takes a title off the Watchlist) does not. Writes are owned by `modules/media-interactions` (`MediaInteractionService`).
 _Avoid_: reaction, status
 
+**Up Next**:
+For each Series the viewer is watching, the episode after the furthest regular-season episode they've watched, once it has aired; specials (season 0) never count. A Series whose next episode hasn't aired yet is caught up and only shows in Airing Soon. Read-only, from one DB query plus cached TMDB lookups (`TvUpNextService`, `/serials/up-next`).
+_Avoid_: continue watching (a section title on the page, not the concept), next episode
+
+**Airing Soon**:
+Episodes of Series the viewer is watching or has watchlisted that air in the next 14 days, by the viewer's local day. Shown with Up Next.
+
 **Your Rating**:
 A user's current rating of a Film or Series, on the 0.5–10 rocket scale: the Interaction rating, else their latest rated Diary Entry. Logging or editing their latest rated Diary Entry sets the Interaction rating to match. When the latest rated Diary Entry changes otherwise (backdated, cleared or deleted), an Interaction rating that still matched it moves to the new latest rated one; it is never cleared. Owned by `modules/media-interactions` (`YourRatingService`).
 

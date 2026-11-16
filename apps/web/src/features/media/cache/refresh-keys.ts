@@ -62,6 +62,7 @@ export const mediaRefreshKeys = (event: MediaEvent, viewer: string | null): Quer
           ...(event.kind === "tv" ? [profileKeys.currentlyWatching(username)] : []),
           ...(event.hasReview ? [profileKeys.reviews(username)] : []),
         ]),
+        ...(event.kind === "tv" ? [seriesKeys.upNext] : []),
       ];
     case "log-edited":
       // An attached review shows the log's rating.
@@ -73,6 +74,7 @@ export const mediaRefreshKeys = (event: MediaEvent, viewer: string | null): Quer
           profileKeys.reviews(username),
           ...(event.kind === "tv" && event.unwatch ? [profileKeys.currentlyWatching(username)] : []),
         ]),
+        ...(event.kind === "tv" && event.unwatch ? [seriesKeys.upNext] : []),
       ];
     case "review-created":
       return [
@@ -117,6 +119,8 @@ export const mediaRefreshKeys = (event: MediaEvent, viewer: string | null): Quer
           ...(socialChanged(input) || input.watchlisted !== undefined ? [profileKeys.recentActivityRoot(username)] : []),
           ...(event.kind === "tv" && watchedChanged ? [profileKeys.currentlyWatching(username)] : []),
         ]),
+        // Watching and watchlisted Series feed Up next and Airing soon.
+        ...(event.kind === "tv" && (watchedChanged || input.watchlisted !== undefined) ? [seriesKeys.upNext] : []),
       ];
     }
     case "season-interaction-changed":
@@ -129,6 +133,7 @@ export const mediaRefreshKeys = (event: MediaEvent, viewer: string | null): Quer
         seriesKeys.detailViewRoot(event.tmdbId),
         seriesKeys.seasonDetail(event.tmdbId, event.seasonNumber),
         seriesKeys.interaction(event.tmdbId),
+        ...(watchedChanged ? [seriesKeys.upNext] : []),
         ...viewerKeys(viewer, (username) => [
           ...(watchedChanged ? [profileKeys.currentlyWatching(username), profileStatsKeys.detail(username)] : []),
           ...(socialChanged(input) ? [profileKeys.recentActivityRoot(username)] : []),

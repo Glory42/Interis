@@ -4,3 +4,4 @@ export * from "./schemas/detail";
 export * from "./schemas/season";
 export * from "./schemas/interactions";
 export * from "./schemas/cache-and-logs";
+export * from "./schemas/up-next";

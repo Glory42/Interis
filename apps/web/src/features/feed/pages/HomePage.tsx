@@ -8,6 +8,7 @@ import { QuickLogComposer } from "@/features/feed/components/QuickLogComposer";
 import { FeedRail } from "@/features/feed/components/FeedRail";
 import { useGroupedFeed, useMyFeedSummary, useTrendingNow } from "@/features/feed/hooks/useFeed";
 import { useTrendingSeries } from "@/features/tv/hooks/useTv";
+import { UpNextStrip } from "@/features/tv/components/up-next/UpNextStrip";
 
 export const HomePage = () => {
   const { user, isUserLoading } = useAuth();
@@ -37,6 +38,8 @@ export const HomePage = () => {
     <section className="mx-auto w-full max-w-[1032px] px-4 pt-8 pb-16">
       <div className="flex flex-col gap-10 lg:flex-row lg:items-start">
         <div className="min-w-0 flex-1 lg:max-w-2xl">
+          <UpNextStrip enabled={isFollowingEnabled} />
+
           <div id="quick-log-composer" className="mb-4 rounded-[3px] border border-[color:var(--line)] p-3">
             <QuickLogComposer user={user} />
           </div>
