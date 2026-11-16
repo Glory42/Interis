@@ -8,6 +8,7 @@ import {
   uniqueIndex,
   unique,
   index,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { user } from "../../infrastructure/database/auth.entity";
@@ -50,9 +51,12 @@ export const listEntries = pgTable(
     itemType: text("item_type").notNull(),
     position: integer("position").notNull(),
     note: text("note"),
+    // Who added the entry; null for entries from before List Collaborators.
+    addedByUserId: text("added_by_user_id").references(() => user.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [
+    index("le_added_by_idx").on(table.addedByUserId),
     uniqueIndex("le_movie_unique")
       .on(table.listId, table.movieId)
       .where(sql`movie_id IS NOT NULL`),
@@ -74,4 +78,36 @@ export const listLikes = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [unique("list_likes_unique").on(table.userId, table.listId)],
+);
+
+export const listCollaboratorStatusEnum = pgEnum("list_collaborator_status", ["invited", "accepted"]);
+
+export const listCollaborators = pgTable(
+  "list_collaborator",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    listId: uuid("list_id")
+      .notNull()
+      .references(() => lists.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    invitedByUserId: text("invited_by_user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    status: listCollaboratorStatusEnum("status").default("invited").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    // Also backs "collaborators of a list" (leading list_id).
+    unique("list_collaborator_list_user_unique").on(table.listId, table.userId),
+    index("list_collaborator_user_status_idx").on(table.userId, table.status),
+    index("list_collaborator_invited_by_idx").on(table.invitedByUserId),
+  ],
 );
