@@ -39,6 +39,17 @@ export const TMDBDiscoverSeriesListSchema = z.object({
   results: z.array(TMDBDiscoverSeriesSchema),
 });
 
+// TMDB's `next_episode_to_air` / `last_episode_to_air` on a series detail.
+const TMDBSeriesEpisodeToAirSchema = z.object({
+  id: z.number(),
+  name: z.string().default(""),
+  episode_number: z.number().int(),
+  season_number: z.number().int(),
+  air_date: z.string().nullable().default(null),
+  still_path: z.string().nullable().optional().default(null),
+  runtime: z.number().int().nullable().optional().default(null),
+});
+
 export const TMDBSeriesDetailSchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -58,6 +69,8 @@ export const TMDBSeriesDetailSchema = z.object({
   in_production: z.boolean().default(false),
   number_of_seasons: z.number().int().nullable(),
   number_of_episodes: z.number().int().nullable(),
+  next_episode_to_air: TMDBSeriesEpisodeToAirSchema.nullable().optional().default(null),
+  last_episode_to_air: TMDBSeriesEpisodeToAirSchema.nullable().optional().default(null),
   created_by: z
     .array(
       z.object({
