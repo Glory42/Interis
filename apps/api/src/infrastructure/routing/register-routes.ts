@@ -15,6 +15,7 @@ import dataTransferRouter from "../../modules/data-transfer/data-transfer.routes
 import searchRouter from "../../modules/search/search.routes";
 import moderationRouter from "../../modules/moderation/moderation.routes";
 import notificationsRouter from "../../modules/notifications/notifications.routes";
+import pushRouter from "../../modules/push/push.routes";
 import reportsRouter from "../../modules/reports/reports.routes";
 import adminRouter from "../../modules/admin/admin.routes";
 import authRouter from "../../modules/auth/auth.routes";
@@ -26,6 +27,7 @@ export const registerRoutes = (app: Express): void => {
   app.use("/api/viewer-status", viewerStatusRouter);
   app.use("/api/moderation", moderationRouter);
   app.use("/api/notifications", notificationsRouter);
+  app.use("/api/push", pushRouter);
   app.use("/api/reports", reportsRouter);
   app.use("/api/admin", adminRouter);
   app.use("/api/movies", moviesRouter);

@@ -26,6 +26,10 @@ const envSchema = z.object({
   // - fixed here proactively even though nothing currently sets this
   // explicitly to "false" outside docker-compose.
   USE_LOCAL_DB_PROXY: z.stringbool().default(false),
+  // Web Push (VAPID). All three unset disables push notifications.
+  VAPID_PUBLIC_KEY: z.string().trim().optional(),
+  VAPID_PRIVATE_KEY: z.string().trim().optional(),
+  VAPID_SUBJECT: z.string().trim().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

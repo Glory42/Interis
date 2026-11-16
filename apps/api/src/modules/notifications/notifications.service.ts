@@ -8,6 +8,7 @@ import {
   NotificationsRepository,
   type NotificationType,
 } from "./repositories/notifications.repository";
+import { PushService } from "../push/push.service";
 
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 50;
@@ -17,7 +18,21 @@ const normalizeLimit = (limit?: number): number =>
 
 export type NotificationPage = Awaited<ReturnType<typeof NotificationsService.listForUser>>;
 
+type NewNotification = {
+  recipientId: string;
+  actorId: string;
+  type: NotificationType;
+  entityId: string;
+  metadata?: string;
+};
+
 export class NotificationsService {
+  // Every notification is inserted here, so each one also goes out as a Web Push.
+  private static async record(notification: NewNotification): Promise<void> {
+    await NotificationsRepository.insert(notification);
+    PushService.dispatchInBackground(notification);
+  }
+
   static async notify(input: {
     recipientId: string;
     actorId: string;
@@ -29,7 +44,7 @@ export class NotificationsService {
       return;
     }
 
-    await NotificationsRepository.insert({
+    await NotificationsService.record({
       recipientId: input.recipientId,
       actorId: input.actorId,
       type: input.type,
@@ -48,7 +63,7 @@ export class NotificationsService {
       return;
     }
 
-    await NotificationsRepository.insert({
+    await NotificationsService.record({
       recipientId: content.authorId,
       actorId: content.authorId,
       type: "content_removed",

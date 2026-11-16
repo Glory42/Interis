@@ -15,5 +15,6 @@ export * from "../../modules/social/social.entity";
 export * from "../../modules/lists/lists.entity";
 export * from "../../modules/moderation/moderation.entity";
 export * from "../../modules/notifications/notifications.entity";
+export * from "../../modules/push/push.entity";
 export * from "../../modules/reports/reports.entity";
 export * from "../../modules/admin/admin-audit-log.entity";
