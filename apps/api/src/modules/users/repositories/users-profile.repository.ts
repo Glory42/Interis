@@ -53,6 +53,7 @@ export class UsersProfileRepository {
       .select({
         ...profileSelect,
         hasSecurityQuestion: sql<boolean>`exists (select 1 from ${securityAnswers} where ${securityAnswers.userId} = ${profiles.userId})`,
+        onboardingCompletedAt: profiles.onboardingCompletedAt,
       })
       .from(profiles)
       .innerJoin(user, eq(profiles.userId, user.id))
