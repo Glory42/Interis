@@ -15,6 +15,10 @@ export class WatchGoalsService {
     return WatchGoalProgressService.readForProfile(userId, query);
   }
 
+  static async getYearResult(userId: string, year: number) {
+    return WatchGoalProgressService.getYearResult(userId, year);
+  }
+
   static async getCurrentSummary(userId: string, timeZone: string) {
     return WatchGoalProgressService.getCurrentSummary(userId, timeZone);
   }

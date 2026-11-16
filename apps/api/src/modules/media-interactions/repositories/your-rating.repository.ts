@@ -91,10 +91,10 @@ export class YourRatingRepository {
     return (result.rows as { rating: unknown }[]).map((row) => ({ rating: Number(row.rating) }));
   }
 
-  // The same rule per row of an archive listing, grouped by `mediaId`.
+  // The same rule per row of an archive listing, grouped by `mediaId` (a column or raw outer reference).
   static communityAggregateSql(
     mediaType: MediaType,
-    mediaId: AnyPgColumn,
+    mediaId: AnyPgColumn | SQL,
   ): { avgRatingOutOfTen: SQL<number | null>; ratedLogCount: SQL<number> } {
     const ratings = communityRatingsSql(SOURCES[mediaType], mediaId);
     return {
