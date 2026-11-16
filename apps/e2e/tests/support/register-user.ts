@@ -22,7 +22,7 @@ export const buildTestUser = (prefix: string): TestUser => {
 
 // Registers through the real UI (not an API shortcut) to exercise the
 // actual signup form, then completes the mandatory security-question setup
-// every new account is forced through before landing on "/".
+// every new account is forced through, and skips onboarding to land on "/".
 export const registerUser = async (page: Page, user: TestUser): Promise<void> => {
   await page.goto("/register");
   // exact: true - TanStack Router Devtools (dev-mode only, see
@@ -40,6 +40,12 @@ export const registerUser = async (page: Page, user: TestUser): Promise<void> =>
   await page.getByLabel("Your question").fill("What is this test account's favorite film?");
   await page.getByLabel("Your answer").fill("e2e-test-answer");
   await page.getByRole("button", { name: "Save and open my diary" }).click();
+
+  // New accounts land on onboarding; skipping both steps marks it done.
+  await page.waitForURL("/welcome");
+  await page.getByRole("button", { name: "Skip", exact: true }).click();
+  await page.waitForURL("/welcome?step=people");
+  await page.getByRole("button", { name: "Skip", exact: true }).click();
   await page.waitForURL("/");
 };
 

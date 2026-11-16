@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as SetupSecurityQuestionRouteImport } from './routes/setup-security-question'
 import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as AuthLayoutRouteImport } from './routes/_authLayout'
@@ -57,6 +58,11 @@ import { Route as ProfileUsernameListsNewRouteImport } from './routes/profile/$u
 import { Route as ProfileUsernameListsListIdIndexRouteImport } from './routes/profile/$username/lists/$listId/index'
 import { Route as ProfileUsernameListsListIdEditRouteImport } from './routes/profile/$username/lists/$listId/edit'
 
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SetupSecurityQuestionRoute = SetupSecurityQuestionRouteImport.update({
   id: '/setup-security-question',
   path: '/setup-security-question',
@@ -304,6 +310,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRouteRouteWithChildren
   '/developer': typeof DeveloperRoute
   '/setup-security-question': typeof SetupSecurityQuestionRoute
+  '/welcome': typeof WelcomeRoute
   '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
   '/forgot-password': typeof AuthLayoutForgotPasswordRoute
   '/login': typeof AuthLayoutLoginRoute
@@ -350,6 +357,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/developer': typeof DeveloperRoute
   '/setup-security-question': typeof SetupSecurityQuestionRoute
+  '/welcome': typeof WelcomeRoute
   '/forgot-password': typeof AuthLayoutForgotPasswordRoute
   '/login': typeof AuthLayoutLoginRoute
   '/register': typeof AuthLayoutRegisterRoute
@@ -399,6 +407,7 @@ export interface FileRoutesById {
   '/_authLayout': typeof AuthLayoutRouteWithChildren
   '/developer': typeof DeveloperRoute
   '/setup-security-question': typeof SetupSecurityQuestionRoute
+  '/welcome': typeof WelcomeRoute
   '/profile/$username': typeof ProfileUsernameRouteRouteWithChildren
   '/_authLayout/forgot-password': typeof AuthLayoutForgotPasswordRoute
   '/_authLayout/login': typeof AuthLayoutLoginRoute
@@ -449,6 +458,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/developer'
     | '/setup-security-question'
+    | '/welcome'
     | '/profile/$username'
     | '/forgot-password'
     | '/login'
@@ -495,6 +505,7 @@ export interface FileRouteTypes {
     | '/'
     | '/developer'
     | '/setup-security-question'
+    | '/welcome'
     | '/forgot-password'
     | '/login'
     | '/register'
@@ -543,6 +554,7 @@ export interface FileRouteTypes {
     | '/_authLayout'
     | '/developer'
     | '/setup-security-question'
+    | '/welcome'
     | '/profile/$username'
     | '/_authLayout/forgot-password'
     | '/_authLayout/login'
@@ -593,6 +605,7 @@ export interface RootRouteChildren {
   AuthLayoutRoute: typeof AuthLayoutRouteWithChildren
   DeveloperRoute: typeof DeveloperRoute
   SetupSecurityQuestionRoute: typeof SetupSecurityQuestionRoute
+  WelcomeRoute: typeof WelcomeRoute
   ProfileUsernameRouteRoute: typeof ProfileUsernameRouteRouteWithChildren
   ActorSlugRoute: typeof ActorSlugRoute
   DirectorSlugRoute: typeof DirectorSlugRoute
@@ -606,6 +619,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/setup-security-question': {
       id: '/setup-security-question'
       path: '/setup-security-question'
@@ -1048,6 +1068,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthLayoutRoute: AuthLayoutRouteWithChildren,
   DeveloperRoute: DeveloperRoute,
   SetupSecurityQuestionRoute: SetupSecurityQuestionRoute,
+  WelcomeRoute: WelcomeRoute,
   ProfileUsernameRouteRoute: ProfileUsernameRouteRouteWithChildren,
   ActorSlugRoute: ActorSlugRoute,
   DirectorSlugRoute: DirectorSlugRoute,

@@ -5,6 +5,7 @@ import { resolveTimeZone } from "./helpers/feed-day.helper";
 import { DEFAULT_FEED_PAGE_SIZE } from "./constants/social-feed.constants";
 import { parseIntParam } from "../../commons/helpers/parse-int-param.helper";
 import {
+  FollowSuggestionsQuerySchema,
   FollowingStatusQuerySchema,
   type FeedQueryDto,
   type UsernameParamsDto,
@@ -96,6 +97,19 @@ export class SocialController {
     const followingIds = await SocialService.getFollowedAmong(req.user.id, parsed.data.userIds);
     res.setHeader("Cache-Control", "private, no-store");
     res.status(200).json({ followingIds });
+  }
+
+  // GET /api/social/suggestions?limit=15 → people to follow, by taste overlap.
+  static async getFollowSuggestions(req: Request, res: Response): Promise<void> {
+    const parsed = FollowSuggestionsQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    const suggestions = await SocialService.getFollowSuggestions(req.user.id, parsed.data.limit);
+    res.setHeader("Cache-Control", "private, no-store");
+    res.status(200).json(suggestions);
   }
 
   static async getFollowers(
