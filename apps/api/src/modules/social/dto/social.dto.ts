@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  DEFAULT_FOLLOW_SUGGESTIONS_LIMIT,
+  MAX_FOLLOW_SUGGESTIONS_LIMIT,
+} from "../constants/follow-suggestions.constants";
 
 export type FeedQueryDto = {
   limit?: string;
@@ -25,4 +29,13 @@ export const FollowingStatusQuerySchema = z.object({
     .transform((raw) => raw.split(",").map((id) => id.trim()))
     .pipe(z.array(z.string().regex(userIdPattern)).max(FOLLOWING_STATUS_MAX_IDS))
     .transform((ids) => [...new Set(ids)]),
+});
+
+export const FollowSuggestionsQuerySchema = z.object({
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(MAX_FOLLOW_SUGGESTIONS_LIMIT)
+    .default(DEFAULT_FOLLOW_SUGGESTIONS_LIMIT),
 });

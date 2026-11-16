@@ -107,6 +107,8 @@ export const seriesInteractions = pgTable(
     index("serial_interaction_series_rating_idx")
       .on(table.seriesId, table.rating)
       .where(sql`rating is not null`),
+    // Backs the follow-suggestion overlap join on every watched or rated row.
+    index("serial_interaction_series_id_idx").on(table.seriesId),
   ],
 );
 

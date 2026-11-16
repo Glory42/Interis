@@ -88,3 +88,28 @@ export const getViewerFollows = async (
   );
   return z.object({ followingIds: z.array(z.string()) }).parse(response).followingIds;
 };
+
+const followSuggestionSchema = z.object({
+  id: z.string(),
+  username: z.string(),
+  displayUsername: z.string().nullable(),
+  avatarUrl: z.string().nullable(),
+  // Titles in common with the viewer, and one they rated alike.
+  sharedCount: z.number().int(),
+  agreeTitle: z.string().nullable(),
+  followerCount: z.number().int(),
+});
+
+export type FollowSuggestion = z.infer<typeof followSuggestionSchema>;
+
+// People to follow, best taste match first (excludes anyone already followed).
+export const getFollowSuggestions = async (
+  limit: number,
+  options: QueryRequestOptions = {},
+): Promise<FollowSuggestion[]> => {
+  const response = await apiRequest<unknown>(`/api/social/suggestions?limit=${limit}`, {
+    method: "GET",
+    signal: options.signal,
+  });
+  return z.array(followSuggestionSchema).parse(response);
+};

@@ -37,5 +37,7 @@ export const filmInteractions = pgTable(
     index("movie_interaction_movie_rating_idx")
       .on(table.movieId, table.rating)
       .where(sql`rating is not null`),
+    // Backs the follow-suggestion overlap join on every watched or rated row.
+    index("movie_interaction_movie_id_idx").on(table.movieId),
   ],
 );
