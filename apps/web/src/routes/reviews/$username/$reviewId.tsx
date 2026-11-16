@@ -2,9 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getProfileReviewDetail } from "@/features/reviews/api";
 import { ProfileReviewDetailPage } from "@/features/reviews/components/ProfileReviewDetailPage";
 import { reviewKeys } from "@/features/reviews/hooks/useReviews";
-import { getPosterUrl } from "@/features/media/tmdb-images";
-
-const REVIEW_EXCERPT_MAX_LENGTH = 160;
+import { reviewShareText, shareCardUrl, shareHeadMeta } from "@/lib/share-meta";
 
 export const Route = createFileRoute("/reviews/$username/$reviewId")({
   loader: async ({ context, params }) => {
@@ -23,21 +21,18 @@ export const Route = createFileRoute("/reviews/$username/$reviewId")({
       return {};
     }
 
-    const authorName = loaderData.author.displayUsername ?? loaderData.author.username;
-    const title = `${authorName}'s review of ${loaderData.media.title}`;
-    const description = loaderData.containsSpoilers
-      ? `Contains spoilers for ${loaderData.media.title}. Read on Interis.`
-      : loaderData.content.slice(0, REVIEW_EXCERPT_MAX_LENGTH);
+    const text = reviewShareText({
+      authorName: loaderData.author.displayUsername ?? loaderData.author.username,
+      mediaTitle: loaderData.media.title,
+      content: loaderData.content,
+      containsSpoilers: loaderData.containsSpoilers,
+    });
 
     return {
-      meta: [
-        { title: `${title} — Interis` },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:image", content: getPosterUrl(loaderData.media.posterPath) },
-        { property: "og:type", content: "article" },
-      ],
+      meta: shareHeadMeta(text, {
+        image: shareCardUrl("review", loaderData.id, loaderData.updatedAt),
+        ogType: "article",
+      }),
     };
   },
   component: ReviewDetailRoute,

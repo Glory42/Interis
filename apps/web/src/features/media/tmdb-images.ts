@@ -9,3 +9,7 @@ export const getBackdropUrl = (backdropPath: string | null | undefined): string 
 
 export const getStillUrl = (stillPath: string | null | undefined): string =>
   stillPath ? `${TMDB_IMAGE_BASE}/w500${stillPath}` : "https://placehold.co/400x225/101010/8a8a8a?text=No+Still";
+
+// A person's portrait at the size link previews use (the API's person meta uses the same).
+export const getPersonShareImageUrl = (profilePath: string | null | undefined): string | null =>
+  profilePath ? `${TMDB_IMAGE_BASE}/h632${profilePath}` : null;

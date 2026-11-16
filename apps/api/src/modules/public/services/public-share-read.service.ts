@@ -4,7 +4,7 @@ import { FilmsService } from "../../films/films.service";
 import { TvService } from "../../tv/tv.service";
 import { PeopleRepository } from "../../people/repositories/people.repository";
 import { PublicShareRepository } from "../repositories/public-share.repository";
-import { displayNameOf, seasonLabel } from "../helpers/share-meta-format.helper";
+import { displayNameOf } from "../helpers/share-meta-format.helper";
 
 export type ShareMediaKind = "film" | "series";
 
@@ -31,7 +31,8 @@ export class PublicShareReadService {
     const baseTitle = isFilm ? row.filmTitle : row.seriesTitle;
     let mediaTitle = baseTitle ?? (isFilm ? "Unknown movie" : "Unknown series");
     if (!isFilm && row.seasonNumber !== null) {
-      const label = row.episodeNumber !== null ? `S${row.seasonNumber}E${row.episodeNumber}` : seasonLabel(row.seasonNumber);
+      // The same label the in-app review page builds (users-reviews.repository.ts).
+      const label = row.episodeNumber !== null ? `S${row.seasonNumber}E${row.episodeNumber}` : `Season ${row.seasonNumber}`;
       mediaTitle = `${mediaTitle} · ${label}`;
     }
 

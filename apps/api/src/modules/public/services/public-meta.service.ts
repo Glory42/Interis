@@ -46,7 +46,8 @@ export class PublicMetaService {
     return {
       kind: "list",
       ogType: "website",
-      ...listShareText(list),
+      // By username, as the in-app List page (and its <head>) names the owner.
+      ...listShareText({ ...list, ownerName: list.ownerUsername }),
       image: cardPath("list", list.id, list.version),
       path: `/profile/${encodeURIComponent(list.ownerUsername)}/lists/${list.id}`,
     };
