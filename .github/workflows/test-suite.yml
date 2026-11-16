@@ -9,7 +9,7 @@ on:
 jobs:
   frontend:
     name: Frontend Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout
@@ -36,7 +36,7 @@ jobs:
 
   backend:
     name: Backend Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     services:
       postgres:
@@ -109,7 +109,8 @@ jobs:
 
   e2e:
     name: E2E Tests
-    runs-on: ubuntu-latest
+    # ubuntu-latest is 26.04 now, which Playwright 1.59 has no chromium build for.
+    runs-on: ubuntu-24.04
     # Needed to access secrets.TMDB_ACCESS_TOKEN, which is scoped to this
     # GitHub environment (the old backend job declared this for the same
     # reason before it dropped its secret dependencies entirely).
