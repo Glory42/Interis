@@ -5,6 +5,7 @@ import serialsRouter from "../../modules/tv/tv.routes";
 import peopleRouter from "../../modules/people/people.routes";
 import diaryRouter from "../../modules/diary/diary.routes";
 import usersRouter from "../../modules/users/users.routes";
+import watchGoalsRouter from "../../modules/watch-goals/watch-goals.routes";
 import reviewsRouter from "../../modules/reviews/reviews.routes";
 import socialRouter from "../../modules/social/social.routes";
 import interactionsRouter from "../../modules/interactions/interactions.routes";
@@ -32,6 +33,7 @@ export const registerRoutes = (app: Express): void => {
   app.use("/api/serials", serialsRouter);
   app.use("/api/people", peopleRouter);
   app.use("/api/diary", diaryRouter);
+  app.use("/api/users/me/goal", watchGoalsRouter);
   app.use("/api/users", usersRouter);
   app.use("/api/reviews", reviewsRouter);
   app.use("/api/social", socialRouter);

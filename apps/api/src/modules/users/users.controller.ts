@@ -6,6 +6,7 @@ import {
   sendValidationError,
 } from "../../commons/http/validation-response.helper";
 import { UsersService } from "./users.service";
+import { resolveTimeZone } from "../social/helpers/feed-day.helper";
 import {
   SearchUsersQuerySchema,
   UpdateProfileSchema,
@@ -95,8 +96,9 @@ export class UsersController {
     res.status(200).json(profile);
   }
 
+  // GET /api/users/me/summary?tz=Europe/Istanbul
   static async getMeSummary(req: Request, res: Response): Promise<void> {
-    const summary = await UsersService.getMeSummary(req.user.id);
+    const summary = await UsersService.getMeSummary(req.user.id, resolveTimeZone(req.query.tz));
     if (!summary) {
       sendNotFound(res, "Profile not found");
       return;
