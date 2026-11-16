@@ -5,6 +5,7 @@ import { filmKeys } from "@/features/films/hooks/useFilms";
 import { interactionKeys } from "@/features/interactions/hooks/interaction-keys";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import { profileStatsKeys } from "@/features/profile/hooks/useProfileStats";
+import { watchGoalKeys } from "@/features/profile/hooks/useWatchGoal";
 import { reviewKeys } from "@/features/reviews/hooks/review-keys";
 import { seriesKeys } from "@/features/tv/hooks/tv/query-keys";
 import type { MediaEvent, MediaKind, MediaTitle, SeasonInteractionInput } from "./media-events";
@@ -28,7 +29,10 @@ const reviewKeysFor = (title: MediaTitle): QueryKey[] => [
   myReviewsKey(title),
 ];
 
-const logKeys = (title: MediaTitle, viewer: string | null): QueryKey[] => [
+const goalKeys = (viewer: string, goalYears: number[] | undefined): QueryKey[] =>
+  goalYears ? goalYears.map((year) => watchGoalKeys.detail(viewer, year)) : [watchGoalKeys.user(viewer)];
+
+const logKeys = (title: MediaTitle & { goalYears?: number[] }, viewer: string | null): QueryKey[] => [
   ...titleKeys(title),
   myLogsKey(title.kind),
   myReviewsKey(title),
@@ -41,6 +45,7 @@ const logKeys = (title: MediaTitle, viewer: string | null): QueryKey[] => [
         profileKeys.diary(viewer),
         profileKeys.recentActivityRoot(viewer),
         profileStatsKeys.detail(viewer),
+        ...goalKeys(viewer, title.goalYears),
       ]
     : []),
 ];

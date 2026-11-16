@@ -6,6 +6,8 @@ import { toFeedDays } from "@/features/feed/components/feed-days";
 import type { FeedFilter } from "@/features/feed/types";
 import { QuickLogComposer } from "@/features/feed/components/QuickLogComposer";
 import { FeedRail } from "@/features/feed/components/FeedRail";
+import { FindPeopleSection } from "@/features/feed/components/FindPeopleSection";
+import { FeedGoalReached } from "@/features/feed/components/FeedGoalReached";
 import { useGroupedFeed, useMyFeedSummary, useTrendingNow } from "@/features/feed/hooks/useFeed";
 import { useTrendingSeries } from "@/features/tv/hooks/useTv";
 
@@ -26,6 +28,9 @@ export const HomePage = () => {
   const isFeedLoading = isUserLoading || (isFollowingEnabled && followingFeedQuery.isPending);
   const isFeedError = isFollowingEnabled ? followingFeedQuery.isError : false;
 
+  const summary = summaryQuery.data;
+  const isFollowingNobody = summary?.counts.following === 0;
+
   const isFetchingMoreFeed = isFollowingEnabled && followingFeedQuery.isFetchingNextPage;
   const canShowMoreFeed =
     isFollowingEnabled &&
@@ -37,9 +42,20 @@ export const HomePage = () => {
     <section className="mx-auto w-full max-w-[1032px] px-4 pt-8 pb-16">
       <div className="flex flex-col gap-10 lg:flex-row lg:items-start">
         <div className="min-w-0 flex-1 lg:max-w-2xl">
+          {summary?.goal?.reached ? (
+            <FeedGoalReached
+              key={`${summary.id}:${summary.goal.year}`}
+              userId={summary.id}
+              username={summary.username}
+              goal={summary.goal}
+            />
+          ) : null}
+
           <div id="quick-log-composer" className="mb-4 rounded-[3px] border border-[color:var(--line)] p-3">
             <QuickLogComposer user={user} />
           </div>
+
+          {isFollowingNobody ? <FindPeopleSection /> : null}
 
           <div className="mb-5">
             <FeedFilterSentence filter={activeFilter} onChange={setActiveFilter} />
@@ -69,7 +85,7 @@ export const HomePage = () => {
           <FeedRail
             films={movieTrendingQuery.data ?? []}
             shows={serialTrendingQuery.data ?? []}
-            week={summaryQuery.data?.week ?? null}
+            week={summary?.week ?? null}
             isLoading={movieTrendingQuery.isPending || serialTrendingQuery.isPending}
           />
         </aside>

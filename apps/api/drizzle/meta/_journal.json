@@ -488,8 +488,29 @@
     {
       "idx": 69,
       "version": "7",
-      "when": 1794831595582,
-      "tag": "0069_push",
+      "when": 1794831396017,
+      "tag": "0069_goal",
+      "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "7",
+      "when": 1794839852063,
+      "tag": "0070_following",
+      "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1794840225956,
+      "tag": "0071_onboarding",
+      "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1794840884086,
+      "tag": "0072_push",
       "breakpoints": true
     }
   ]

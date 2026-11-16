@@ -2,6 +2,7 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useUserRecentActivity, useUserTopPicks } from "@/features/profile/hooks/useProfile";
 import { ProfileTopPicksRow } from "./ProfileTopPicksRow";
 import { ProfileOverviewActivity } from "./ProfileOverviewActivity";
+import { WatchGoalCompact } from "../goal/WatchGoalCompact";
 
 type ProfileOverviewContentProps = {
   username: string;
@@ -33,6 +34,8 @@ export const ProfileOverviewContent = ({ username }: ProfileOverviewContentProps
           />
         ))}
       </section>
+
+      <WatchGoalCompact username={username} isOwner={isOwner} />
 
       <ProfileOverviewActivity
         rows={recentActivityQuery.data ?? []}

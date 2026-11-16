@@ -8,6 +8,7 @@ import { authKeys } from "@/features/auth/hooks/useAuth";
 import { feedKeys } from "@/features/feed/hooks/useFeed";
 import { invalidateFollowingFeed } from "@/features/feed/hooks/feed-cache";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
+import { invalidateMediaFollowing } from "@/features/media/following/hooks/useMediaFollowing";
 import {
   followUser,
   getFollowers,
@@ -32,6 +33,7 @@ export const socialKeys = {
   viewerFollowsAll: ["social", "viewer-follows"] as const,
   viewerFollows: (userIdsParam: string) =>
     ["social", "viewer-follows", userIdsParam] as const,
+  suggestions: (limit: number) => ["social", "suggestions", limit] as const,
 };
 
 // Flips one user in every cached viewer-follows batch that asked about them.
@@ -73,6 +75,7 @@ export const invalidateSocialDependents = async (
   await Promise.all([
     invalidateFollowingFeed(queryClient),
     queryClient.invalidateQueries({ queryKey: feedKeys.meSummary }),
+    invalidateMediaFollowing(queryClient),
   ]);
 };
 

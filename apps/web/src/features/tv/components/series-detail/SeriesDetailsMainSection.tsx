@@ -6,6 +6,7 @@ import { toDateLabel } from "@/features/tv/components/series-detail/utils";
 import type { ReactNode } from "react";
 import { formatEpisodeRuntimeLabel } from "@/features/tv/components/utils";
 import { getPosterUrl } from "@/features/media/tmdb-images";
+import { MediaFollowingPanel } from "@/features/media/following/components/MediaFollowingPanel";
 
 type SeriesDetailsMainSectionProps = {
   detail: SeriesDetailResponse;
@@ -50,6 +51,7 @@ export const SeriesDetailsMainSection = ({
       posterUrl={series.posterPath ? getPosterUrl(series.posterPath) : null}
       runtimeLabel={formatEpisodeRuntimeLabel(series.episodeRuntime)}
       actionsSlot={actionsSlot}
+      followingSlot={<MediaFollowingPanel kind="tv" tmdbId={series.tmdbId} />}
     />
   );
 };
