@@ -5,6 +5,7 @@ import { dedupeRecentPosters } from "./helpers/users-summary.helper";
 import { UsersProfileRepository } from "./repositories/users-profile.repository";
 import { UsersReviewsRepository } from "./repositories/users-reviews.repository";
 import { UsersStatsRepository } from "./repositories/users-stats.repository";
+import { WatchGoalsService } from "../watch-goals/watch-goals.service";
 import {
   ProfileTabsService,
   type ProfileTab,
@@ -100,13 +101,14 @@ export class UsersService {
     };
   }
 
-  static async getMeSummary(userId: string) {
+  static async getMeSummary(userId: string, timeZone = "UTC") {
     // "Your week" on the feed: the last seven days, today included.
     const weekStart = new Date(Date.now() - 6 * 86_400_000);
-    const [profile, summaryData, week] = await Promise.all([
+    const [profile, summaryData, week, goal] = await Promise.all([
       UsersService.findById(userId),
       UsersStatsRepository.getMeSummaryData(userId),
       UsersStatsRepository.getWeekSummary(userId, weekStart.toISOString().slice(0, 10), weekStart),
+      WatchGoalsService.getCurrentSummary(userId, timeZone),
     ]);
     if (!profile) {
       return null;
@@ -124,6 +126,7 @@ export class UsersService {
       },
       recentPosters: dedupeRecentPosters(summaryData.recentRows, 5),
       week,
+      goal,
     };
   }
 }
