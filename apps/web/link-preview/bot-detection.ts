@@ -1,0 +1,45 @@
+// Link-preview fetchers that read og:/twitter: tags but never run JavaScript. Search engines
+// render the SPA themselves, so they are left out and keep getting the normal page.
+const LINK_PREVIEW_BOT_PATTERN = new RegExp(
+  [
+    "discordbot",
+    "twitterbot",
+    "facebookexternalhit",
+    "facebot",
+    "meta-externalagent",
+    "slackbot",
+    "slack-imgproxy",
+    "telegrambot",
+    "whatsapp",
+    "linkedinbot",
+    "applebot",
+    "mastodon",
+    "pleroma",
+    "akkoma",
+    "misskey",
+    "cardyb",
+    "bluesky",
+    "skypeuripreview",
+    "microsoftpreview",
+    "pinterest",
+    "redditbot",
+    "embedly",
+    "iframely",
+    "vkshare",
+    "snapchat",
+    "mattermost",
+    "zulip",
+    "rocket\\.chat",
+    "synapse",
+    "viber",
+    "kakaotalk-scrap",
+    "google-pagerenderer",
+    "bitlybot",
+    "tumblr",
+    "xing-contenttabreceiver",
+  ].join("|"),
+  "i",
+);
+
+export const isLinkPreviewBot = (userAgent: string | null | undefined): boolean =>
+  Boolean(userAgent) && LINK_PREVIEW_BOT_PATTERN.test(userAgent ?? "");

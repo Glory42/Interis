@@ -2,7 +2,9 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { getPersonDetailBySlug } from "@/features/people/api";
 import { PersonDetailPage } from "@/features/people/components/PersonDetailPage";
 import { peopleKeys } from "@/features/people/hooks/usePeople";
+import { getPersonShareImageUrl } from "@/features/media/tmdb-images";
 import { parseSlugParam } from "@/lib/router/params";
+import { personShareText, shareHeadMeta } from "@/lib/share-meta";
 
 export const Route = createFileRoute("/director/$slug")({
   beforeLoad: ({ params }) => {
@@ -29,6 +31,18 @@ export const Route = createFileRoute("/director/$slug")({
         params: { slug: detail.person.slug },
       });
     }
+
+    return detail;
+  },
+  head: ({ loaderData }) => {
+    if (!loaderData) return {};
+    const { person } = loaderData;
+    return {
+      meta: shareHeadMeta(personShareText({ name: person.name, role: "director" }), {
+        image: getPersonShareImageUrl(person.profilePath),
+        ogType: "profile",
+      }),
+    };
   },
   component: DirectorDetailRoute,
 });

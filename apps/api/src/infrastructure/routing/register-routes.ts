@@ -10,6 +10,7 @@ import socialRouter from "../../modules/social/social.routes";
 import interactionsRouter from "../../modules/interactions/interactions.routes";
 import uploadsRouter from "../../modules/uploads/uploads.routes";
 import { createPublicRouter } from "../../modules/public/public.routes";
+import { createPublicShareRouter } from "../../modules/public/public-share.routes";
 import postsRouter from "../../modules/posts/posts.routes";
 import dataTransferRouter from "../../modules/data-transfer/data-transfer.routes";
 import searchRouter from "../../modules/search/search.routes";
@@ -37,6 +38,8 @@ export const registerRoutes = (app: Express): void => {
   app.use("/api/social", socialRouter);
   app.use("/api/interactions", interactionsRouter);
   app.use("/api/uploads", uploadsRouter);
+  // Before the widget router, whose /:username/* routes would otherwise see "meta" and "og" as usernames.
+  app.use("/api/public", createPublicShareRouter());
   app.use("/api/public", createPublicRouter());
   app.use("/api/posts", postsRouter);
   app.use("/api/lists", listsRouter);

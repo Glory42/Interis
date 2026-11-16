@@ -4,6 +4,7 @@ import type { ProfileTab } from "@/features/profile/components/ProfileTabs";
 import { ProfileLayout } from "@/features/profile/layout/ProfileLayout";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
+import { profileShareText, shareCardUrl, shareHeadMeta } from "@/lib/share-meta";
 
 export const Route = createFileRoute("/profile/$username")({
   loader: async ({ context, params }) => {
@@ -17,21 +18,14 @@ export const Route = createFileRoute("/profile/$username")({
       return {};
     }
 
-    const displayName = loaderData.displayUsername ?? loaderData.username;
-    const title = `${displayName} (@${loaderData.username})`;
-    const description =
-      loaderData.bio || `${displayName}'s movie and TV journal on Interis.`;
-    const image = loaderData.avatarUrl ?? "/og-image.png";
+    const text = profileShareText({
+      username: loaderData.username,
+      displayName: loaderData.displayUsername ?? loaderData.username,
+      bio: loaderData.bio ?? null,
+    });
 
     return {
-      meta: [
-        { title: `${title} — Interis` },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:image", content: image },
-        { property: "og:type", content: "profile" },
-      ],
+      meta: shareHeadMeta(text, { image: shareCardUrl("profile", loaderData.username), ogType: "profile" }),
     };
   },
   component: ProfileRouteLayout,

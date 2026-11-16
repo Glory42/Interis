@@ -4,6 +4,7 @@ import { SeriesSeasonPage } from "@/features/tv/components/SeriesSeasonPage";
 import { seriesKeys } from "@/features/tv/hooks/useTv";
 import { parsePositiveIntParam } from "@/lib/router/params";
 import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
+import { mediaShareText, seasonLabel, shareCardUrl, shareHeadMeta } from "@/lib/share-meta";
 
 // Season 0 is Specials, so zero is a valid season number.
 const parseSeasonNumber = (value: string): number | null => {
@@ -27,10 +28,12 @@ export const Route = createFileRoute("/serials/$tmdbId_/season/$seasonNumber")({
     });
   },
   head: ({ loaderData, params }) => {
-    if (!loaderData) return {};
-    const season = loaderData.series.seasons.find((entry) => String(entry.seasonNumber) === params.seasonNumber);
-    const title = `${loaderData.series.title} · ${season?.name ?? `Season ${params.seasonNumber}`}`;
-    return { meta: [{ title: `${title} — Interis` }, { property: "og:title", content: title }] };
+    const seasonNumber = parseSeasonNumber(params.seasonNumber);
+    if (!loaderData || seasonNumber === null) return {};
+    const { series } = loaderData;
+    const { description } = mediaShareText({ title: series.title, year: series.firstAirYear, overview: series.overview });
+    const text = { title: `${series.title} · ${seasonLabel(seasonNumber)}`, description };
+    return { meta: shareHeadMeta(text, { image: shareCardUrl("serial", series.tmdbId), ogType: "video.tv_show" }) };
   },
   component: SeriesSeasonRoute,
   errorComponent: (props) => <RouteErrorBoundary {...props} title="Season unavailable" />,
