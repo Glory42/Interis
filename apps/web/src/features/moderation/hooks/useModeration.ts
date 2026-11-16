@@ -13,6 +13,7 @@ import {
   type RelationshipState,
 } from "@/features/moderation/api";
 import { socialKeys } from "@/features/social/hooks/useSocial";
+import { invalidateMediaFollowing } from "@/features/media/following/hooks/useMediaFollowing";
 
 export const moderationKeys = {
   relationshipState: (username: string) =>
@@ -77,6 +78,7 @@ export const useBlockUser = (username: string) => {
         queryClient.invalidateQueries({ queryKey: socialKeys.viewerFollowsAll }),
         queryClient.invalidateQueries({ queryKey: moderationKeys.blocked }),
         invalidateFollowingFeed(queryClient),
+        invalidateMediaFollowing(queryClient),
       ]);
     },
   });
@@ -107,6 +109,7 @@ export const useUnblockUser = (username: string) => {
         queryClient.invalidateQueries({ queryKey: stateKey }),
         queryClient.invalidateQueries({ queryKey: moderationKeys.blocked }),
         invalidateFollowingFeed(queryClient),
+        invalidateMediaFollowing(queryClient),
       ]);
     },
   });
@@ -137,6 +140,7 @@ export const useMuteUser = (username: string) => {
         queryClient.invalidateQueries({ queryKey: stateKey }),
         queryClient.invalidateQueries({ queryKey: moderationKeys.muted }),
         invalidateFollowingFeed(queryClient),
+        invalidateMediaFollowing(queryClient),
       ]);
     },
   });
@@ -167,6 +171,7 @@ export const useUnmuteUser = (username: string) => {
         queryClient.invalidateQueries({ queryKey: stateKey }),
         queryClient.invalidateQueries({ queryKey: moderationKeys.muted }),
         invalidateFollowingFeed(queryClient),
+        invalidateMediaFollowing(queryClient),
       ]);
     },
   });

@@ -43,6 +43,8 @@ type MediaDetailsMainSectionProps = {
   runtimeLabel?: string | null;
   // Phones only: the action card, right under the score line.
   actionsSlot?: ReactNode;
+  // "From people you follow", signed-in viewers only.
+  followingSlot?: ReactNode;
 };
 
 const VISIBLE_CAST = 3;
@@ -66,6 +68,7 @@ export const MediaDetailsMainSection = ({
   posterUrl,
   runtimeLabel,
   actionsSlot,
+  followingSlot,
 }: MediaDetailsMainSectionProps) => {
   const [isCastExpanded, setIsCastExpanded] = useState(false);
   const visibleCast = isCastExpanded ? cast : cast.slice(0, VISIBLE_CAST);
@@ -156,6 +159,8 @@ export const MediaDetailsMainSection = ({
       </ul>
 
       {actionsSlot ? <div className="mb-8">{actionsSlot}</div> : null}
+
+      {followingSlot}
 
       <p className="body mb-8 text-foreground">
         {overview || overviewFallback}

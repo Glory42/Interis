@@ -34,7 +34,7 @@ const filmArchivePeriodValues = [
 
 export type FilmArchivePeriod = (typeof filmArchivePeriodValues)[number];
 
-const filmDetailReviewSortValues = ["popular", "recent"] as const;
+const filmDetailReviewSortValues = ["popular", "recent", "following"] as const;
 
 export type FilmDetailReviewSort = (typeof filmDetailReviewSortValues)[number];
 

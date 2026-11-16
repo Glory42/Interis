@@ -4,12 +4,20 @@ import type { MediaModuleStyles } from "@/features/media/styles";
 import { MediaReviewCard, type MediaReview } from "@/features/media/detail/MediaReviewCard";
 import { MediaReviewsEmptyState } from "@/features/media/detail/MediaReviewsEmptyState";
 
-type ReviewSort = "popular" | "recent";
+type ReviewSort = "popular" | "recent" | "following";
+
+const SORT_LABELS: Record<ReviewSort, string> = {
+  popular: "Popular",
+  recent: "Recent",
+  following: "Following",
+};
 
 type MediaReviewsSectionProps = {
   moduleStyles: MediaModuleStyles;
   emptyMessage: string;
   reviewsSort: ReviewSort;
+  // Only offered once someone the viewer follows has reviewed the title.
+  showFollowingSort?: boolean;
   onSortChange: (nextSort: ReviewSort) => void;
   reviews: MediaReview[];
   extraItems: MediaReview[];
@@ -23,6 +31,7 @@ export const MediaReviewsSection = ({
   moduleStyles,
   emptyMessage,
   reviewsSort,
+  showFollowingSort = false,
   onSortChange,
   reviews,
   extraItems,
@@ -32,6 +41,8 @@ export const MediaReviewsSection = ({
   renderContextLabel,
 }: MediaReviewsSectionProps) => {
   const allReviews = [...reviews, ...extraItems];
+  const sorts: ReviewSort[] =
+    showFollowingSort || reviewsSort === "following" ? ["popular", "recent", "following"] : ["popular", "recent"];
 
   return (
     <section className="mt-10">
@@ -44,11 +55,12 @@ export const MediaReviewsSection = ({
         </h2>
 
         <div className="flex gap-2">
-          {(["popular", "recent"] as const).map((sort) => (
+          {sorts.map((sort) => (
             <button
               key={sort}
               type="button"
-              className="rounded-full border px-3 py-1.5 font-mono text-[10px] capitalize transition-all"
+              aria-pressed={reviewsSort === sort}
+              className="rounded-full border px-3 py-1.5 font-mono text-[10px] transition-all"
               style={{
                 borderColor: reviewsSort === sort ? moduleStyles.accent : moduleStyles.borderSoft,
                 color: reviewsSort === sort ? moduleStyles.accent : moduleStyles.faint,
@@ -59,14 +71,17 @@ export const MediaReviewsSection = ({
               }}
               onClick={() => onSortChange(sort)}
             >
-              {sort}
+              {SORT_LABELS[sort]}
             </button>
           ))}
         </div>
       </div>
 
       {allReviews.length === 0 ? (
-        <MediaReviewsEmptyState message={emptyMessage} moduleStyles={moduleStyles} />
+        <MediaReviewsEmptyState
+          message={reviewsSort === "following" ? "No reviews from people you follow yet." : emptyMessage}
+          moduleStyles={moduleStyles}
+        />
       ) : (
         <div className="space-y-4">
           {allReviews.map((review) => (
