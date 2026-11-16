@@ -118,6 +118,9 @@ export const filmsHandlers = [
       },
     });
   }),
+  http.get("*/api/movies/:tmdbId/watch-providers", () =>
+    HttpResponse.json({ region: "US", link: null, flatrate: [], free: [], ads: [], rent: [], buy: [], availableRegions: [] }),
+  ),
   http.get("*/api/movies/:tmdbId", ({ params }) => {
     const tmdbId = Number(params.tmdbId);
 
