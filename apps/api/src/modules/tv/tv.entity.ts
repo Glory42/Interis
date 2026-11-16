@@ -64,7 +64,9 @@ export const seriesDiaryEntries = pgTable("serial_diary_entry", {
     .$onUpdate(() => new Date())
     .notNull(),
 }, (table) => [
-  index("serial_diary_entry_series_id_idx").on(table.seriesId),
+  // Leftmost series_id still serves per-title reads; user_id adds the
+  // one-user-one-title lookups (Your Rating, followed users on a title).
+  index("serial_diary_entry_series_user_idx").on(table.seriesId, table.userId),
   // Backs the network stats' logs-today count.
   index("serial_diary_entry_created_at_idx").on(table.createdAt),
   // Backs the diary page query: WHERE user_id = X ORDER BY watched_date DESC, created_at DESC

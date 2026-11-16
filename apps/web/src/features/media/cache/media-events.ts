@@ -15,11 +15,14 @@ export type InteractionInput = {
 // A season- or episode-level Interaction write.
 export type SeasonInteractionInput = { watched?: boolean; liked?: boolean; rating?: number | null };
 
+// The watch-goal years a log write touched (its old and new watched dates); unknown refreshes every year.
+type GoalYears = { goalYears?: number[] };
+
 // Something the viewer did to a Film or Series; the media cache patches and refetches whatever shows it.
 export type MediaEvent =
-  | (MediaTitle & { type: "log-created"; hasReview: boolean })
-  | (MediaTitle & { type: "log-edited" })
-  | (MediaTitle & { type: "log-deleted"; unwatch: boolean })
+  | (MediaTitle & GoalYears & { type: "log-created"; hasReview: boolean })
+  | (MediaTitle & GoalYears & { type: "log-edited" })
+  | (MediaTitle & GoalYears & { type: "log-deleted"; unwatch: boolean })
   | (MediaTitle & { type: "review-created" })
   | { type: "review-edited"; title: MediaTitle | null }
   | (MediaTitle & { type: "review-deleted" })

@@ -4,6 +4,7 @@ import { requireAuth } from "../../commons/middlewares/requireAuth";
 import { TvController } from "./tv.controller";
 import { TvTrackingController } from "./tv-tracking.controller";
 import { TvUpNextController } from "./tv-up-next.controller";
+import { MediaFollowingController } from "../media/media-following.controller";
 import { WatchProvidersController } from "../media/watch-providers.controller";
 
 const router = Router();
@@ -20,6 +21,11 @@ router.get("/:tmdbId/detail", asyncHandler(TvController.getDetailByTmdbId));
 router.get("/:tmdbId/reviews", asyncHandler(TvController.getReviews));
 router.get("/:tmdbId/logs", asyncHandler(TvController.getLogsByTmdbId));
 router.get("/:tmdbId/watch-providers", asyncHandler(WatchProvidersController.getForSeries));
+router.get(
+  "/:tmdbId/following",
+  requireAuth,
+  asyncHandler(MediaFollowingController.forMediaType("tv")),
+);
 router.get(
   "/:tmdbId/seasons/:seasonNumber",
   asyncHandler(TvController.getSeasonByTmdbId),

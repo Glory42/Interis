@@ -111,7 +111,7 @@ export class FilmsDetailService {
 
     const { rows: reviewRows, totalCount } = await FilmsReviewsRepository.getReviewRowsByMovieId(
       movie.id,
-      { sort: input.sort, limit: input.limit, offset },
+      { sort: input.sort, limit: input.limit, offset, viewerUserId },
     );
 
     const engagement = await loadReviewEngagement(
@@ -157,6 +157,7 @@ export class FilmsDetailService {
           sort: input.reviewsSort,
           limit: input.reviewsLimit,
           offset: reviewsOffset,
+          viewerUserId,
         }),
         tmdbClient.getSimilar(input.tmdbId).catch(() => []),
         YourRatingService.communityRatings("movie", movie.id),

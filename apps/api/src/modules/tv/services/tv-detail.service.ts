@@ -158,7 +158,7 @@ export class TvDetailService {
 
     const { rows: reviewRows, totalCount } = await TvReviewsRepository.getReviewRowsBySeriesId(
       cachedSeries.id,
-      { sort: input.sort, limit: input.limit, offset },
+      { sort: input.sort, limit: input.limit, offset, viewerUserId },
     );
 
     const engagement = await loadReviewEngagement(
@@ -213,10 +213,14 @@ export class TvDetailService {
         sort: input.reviewsSort,
         limit: input.reviewsLimit,
         offset: reviewsOffset,
+        viewerUserId,
       }),
       tmdbClient.getSimilar(input.tmdbId).catch(() => []),
       YourRatingService.communityRatings("tv", cachedSeries.id),
-      TvSeasonEpisodeReviewsRepository.getReviewRowsBySeriesId(input.tmdbId, cachedSeries.id),
+      TvSeasonEpisodeReviewsRepository.getReviewRowsBySeriesId(input.tmdbId, cachedSeries.id, {
+        sort: input.reviewsSort,
+        viewerUserId,
+      }),
     ]);
     const { rows: reviewRows, totalCount: reviewsTotalCount } = reviewsPage;
 

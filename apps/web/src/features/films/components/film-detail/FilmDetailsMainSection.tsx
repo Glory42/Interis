@@ -8,6 +8,7 @@ import { formatMoneyLabel } from "@/features/films/components/film-detail/utils"
 import type { ReactNode } from "react";
 import { formatRuntimeLabel } from "@/features/films/components/utils";
 import { getPosterUrl } from "@/features/media/tmdb-images";
+import { MediaFollowingPanel } from "@/features/media/following/components/MediaFollowingPanel";
 
 type FilmDetailsMainSectionProps = {
   detail: FilmDetailResponse;
@@ -54,6 +55,7 @@ export const FilmDetailsMainSection = ({ detail, actionsSlot }: FilmDetailsMainS
       posterUrl={movie.posterPath ? getPosterUrl(movie.posterPath) : null}
       runtimeLabel={formatRuntimeLabel(movie.runtime)}
       actionsSlot={actionsSlot}
+      followingSlot={<MediaFollowingPanel kind="film" tmdbId={movie.tmdbId} />}
     />
   );
 };

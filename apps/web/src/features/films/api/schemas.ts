@@ -68,7 +68,7 @@ export const archivePeriodSchema = z.enum([
   "today",
 ]);
 
-export const filmDetailReviewSortSchema = z.enum(["popular", "recent"]);
+export const filmDetailReviewSortSchema = z.enum(["popular", "recent", "following"]);
 
 const filmDetailFilmSchema = z.object({
   id: z.number().int(),
