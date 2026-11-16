@@ -19,4 +19,7 @@ export const authHandlers = [
   http.post("*/api/auth/update-user", async () => {
     return HttpResponse.json({ ok: true });
   }),
+  http.get("*/api/auth/sessions", async () => {
+    return HttpResponse.json({ sessions: [], hasMore: false });
+  }),
 ];

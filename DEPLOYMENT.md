@@ -5,7 +5,7 @@
 | Layer | Platform | How it deploys |
 |-------|----------|-----------------|
 | `apps/api/` | Render (Web Service, native Bun runtime) | Push to `master` → Render's GitHub integration auto-builds and deploys |
-| `apps/web/` | Cloudflare Pages | Already set up (project `interis`) — push to `master` auto-builds and deploys |
+| `apps/web/` | Cloudflare Pages | Already set up (project `interis`) — push to `master` auto-builds and deploys; `functions/` adds link previews (below) |
 | `apps/docs/` | Cloudflare Pages | Already set up (project `interis-docs`) — push to `master` auto-builds and deploys |
 | DB migrations | Neon | Runs in Render's Build Command, before each deploy |
 
@@ -68,6 +68,39 @@ drains the Free plan's monthly network-transfer quota). Bring the DB up with
 ## DNS
 
 `api.interis.gorkemkaryol.dev` was previously bound to a Cloudflare Worker as a Custom Domain route; it's now pointed at Render (Cloudflare still proxies in front — check for `x-render-origin-server: Render` in response headers to confirm you're hitting Render, not a stale Worker). `apps/web` has no hardcoded backend URLs anywhere — it just talks to that hostname, so no frontend changes are needed regardless of what's behind it.
+
+---
+
+## Link previews (Cloudflare Pages Functions)
+
+`apps/web` is a client-rendered SPA, so link-preview bots (Discord, Slack, X, iMessage,
+WhatsApp, Telegram, Mastodon, Bluesky…) never see the per-page `<head>` that TanStack Router
+sets. `apps/web/functions/` fixes that for the shareable pages: reviews, profiles (and their
+tabs), lists, films, series, seasons, actors and directors.
+
+- Pages builds `functions/` itself (esbuild, TypeScript) and only routes `/reviews/*`,
+  `/profile/*`, `/movies/*`, `/serials/*`, `/actor/*` and `/director/*` through it. This needs
+  the Pages project's **Root directory** to be `apps/web` (build `bun run build`, output `dist`).
+- For a normal browser the function returns the static page untouched (`context.next()`), with
+  no API call. For a link-preview bot it fetches `/api/public/meta/*` from the API and rewrites
+  the `<title>`, description, `og:*` and `twitter:*` tags with `HTMLRewriter`. Any API error
+  falls back to the plain page. Shared logic lives in `apps/web/link-preview/`.
+- The API origin is read from the Pages variable `VITE_API_BASE_URL` (already set for the SPA
+  build), else `LINK_PREVIEW_API_ORIGIN`, else `https://api.interis.gorkemkaryol.dev`.
+- `og:image` points at a generated 1200×630 card, `/api/public/og/<kind>/<id>.png`, rendered on
+  the API with satori + resvg. Cloudflare caches `.png` by default; meta responses are cached
+  at the edge by the function (`cf.cacheEverything`).
+
+Check it after a deploy:
+
+```bash
+curl -s -A "Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com)" \
+  https://interis.gorkemkaryol.dev/movies/27205 | grep -E "og:|twitter:|<title>"
+curl -s https://interis.gorkemkaryol.dev/movies/27205 | grep "og:title"   # browsers: unchanged generic tags
+curl -sI https://api.interis.gorkemkaryol.dev/api/public/og/movie/27205.png  # 200 image/png
+```
+
+`wrangler pages dev` isn't needed for normal work: `vite` dev ignores `functions/`.
 
 ---
 
