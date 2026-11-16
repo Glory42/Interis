@@ -55,6 +55,7 @@ describe("SettingsLayout on desktop", () => {
       "05Account & security",
       "06Blocked & muted",
       "07Your data",
+      "08Notifications",
       "Delete account",
     ]);
     expect(within(nav).getByRole("link", { name: "01 Profile" })).toHaveAttribute("aria-current", "page");
