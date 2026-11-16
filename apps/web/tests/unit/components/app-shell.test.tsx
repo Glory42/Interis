@@ -64,6 +64,7 @@ describe("app shell", () => {
     expect(screen.queryByPlaceholderText("Films, shows, members")).not.toBeInTheDocument();
 
     await act(async () => screen.getByRole("button", { name: /Search/ }).click());
-    expect(await screen.findByPlaceholderText("Films, shows, members")).toBeInTheDocument();
+    // The first open fetches the dialog's chunk, which can be slow on a loaded runner.
+    expect(await screen.findByPlaceholderText("Films, shows, members", {}, { timeout: 4000 })).toBeInTheDocument();
   });
 });
