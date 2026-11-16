@@ -121,7 +121,7 @@ describe("GET /api/people/:role/:slug/credits", () => {
 
     expect(page.total).toBe(45);
     expect(page.items).toHaveLength(5);
-    expect(response.headers.get("cache-control")).toBe("public, max-age=300");
+    expect(response.headers.get("cache-control")).toBe("public, max-age=300, s-maxage=3600");
     expect(tmdbPersonCalls.filter((call) => call.includes("/combined_credits"))).toHaveLength(1);
   });
 
@@ -168,7 +168,7 @@ describe("GET /api/people/:role/:slug/credits", () => {
       { job: "Director", count: 45 },
       { job: "Writer", count: 1 },
     ]);
-    expect(response.headers.get("cache-control")).toBe("public, max-age=300");
+    expect(response.headers.get("cache-control")).toBe("public, max-age=300, s-maxage=3600");
     expect(tmdbPersonCalls.filter((call) => call.includes("/combined_credits"))).toHaveLength(1);
   });
 

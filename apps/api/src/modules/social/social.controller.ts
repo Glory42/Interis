@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { privateNoStore } from "../../commons/http/cache-control.helper";
 import { SocialService } from "./social.service";
 import { UsersService } from "../users/users.service";
 import { resolveTimeZone } from "./helpers/feed-day.helper";
@@ -94,7 +95,7 @@ export class SocialController {
     }
 
     const followingIds = await SocialService.getFollowedAmong(req.user.id, parsed.data.userIds);
-    res.setHeader("Cache-Control", "private, no-store");
+    privateNoStore(res);
     res.status(200).json({ followingIds });
   }
 

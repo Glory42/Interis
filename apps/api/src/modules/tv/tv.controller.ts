@@ -1,5 +1,7 @@
 import type { Request, Response } from "express";
 import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
+import { anonymousPublicCache, publicCache } from "../../commons/http/cache-control.helper";
+import { MEDIA_CACHE_TIMES } from "../media/constants/media-cache-times.constants";
 import { sendBadRequest, sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
 import { parseTmdbIdParam } from "../../commons/validation/params.helper";
 import { TvService } from "./tv.service";
@@ -34,6 +36,7 @@ export class TvController {
     }
 
     const series = await TvService.search(parsed.data.query);
+    publicCache(res, MEDIA_CACHE_TIMES.search);
     res.status(200).json(series);
   }
 
@@ -54,6 +57,7 @@ export class TvController {
       return;
     }
 
+    publicCache(res, MEDIA_CACHE_TIMES.title);
     res.status(200).json(series);
   }
 
@@ -83,7 +87,7 @@ export class TvController {
       return;
     }
 
-    res.setHeader("Cache-Control", "no-store");
+    anonymousPublicCache(req, res, MEDIA_CACHE_TIMES.detail);
     res.status(200).json(detail);
   }
 
@@ -113,7 +117,7 @@ export class TvController {
       return;
     }
 
-    res.setHeader("Cache-Control", "no-store");
+    anonymousPublicCache(req, res, MEDIA_CACHE_TIMES.detail);
     res.status(200).json(reviews);
   }
 
@@ -220,7 +224,7 @@ export class TvController {
       return;
     }
 
-    res.setHeader("Cache-Control", "no-store");
+    anonymousPublicCache(req, res, MEDIA_CACHE_TIMES.season);
     res.status(200).json(seasonDetail);
   }
 
@@ -235,19 +239,19 @@ export class TvController {
       viewerUserId,
     });
 
-    res.setHeader("Cache-Control", "no-store");
+    anonymousPublicCache(req, res, MEDIA_CACHE_TIMES.archive);
     res.status(200).json(archive);
   }
 
   static async getTrending(_req: Request, res: Response): Promise<void> {
     const series = await TvService.getTrending();
-    res.setHeader("Cache-Control", "public, max-age=300");
+    publicCache(res, MEDIA_CACHE_TIMES.tmdbList);
     res.status(200).json(series);
   }
 
   static async getRecent(_req: Request, res: Response): Promise<void> {
     const series = await TvService.getRecent();
-    res.setHeader("Cache-Control", "public, max-age=300");
+    publicCache(res, MEDIA_CACHE_TIMES.tmdbList);
     res.status(200).json(series);
   }
 
@@ -268,6 +272,7 @@ export class TvController {
       return;
     }
 
+    anonymousPublicCache(req, res, MEDIA_CACHE_TIMES.logs);
     res.status(200).json(logs);
   }
 
