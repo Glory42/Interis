@@ -20,5 +20,12 @@ router.post(
   requireAuth,
   asyncHandler(AuthController.setSecurityQuestion),
 );
+router.get("/sessions", requireAuth, asyncHandler(AuthController.listSessions));
+router.post(
+  "/sessions/revoke-others",
+  requireAuth,
+  asyncHandler(AuthController.revokeOtherSessions),
+);
+router.delete("/sessions/:sessionId", requireAuth, asyncHandler(AuthController.revokeSession));
 
 export default router;
