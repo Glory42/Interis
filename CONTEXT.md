@@ -65,6 +65,10 @@ A user's current rating of a Film or Series, on the 0.5–10 rocket scale: the I
 The average of every user's Your Rating for a Film or Series, one rating per user however many Diary Entries they have. The detail page and archive listings use the same rule.
 _Avoid_: average log rating
 
+**Watch Goal**:
+A user's target for one calendar year: a number of Films and, optionally, a number of Series (`watch_goal`, one row per user and year, so past years stay as history). Progress counts distinct titles with a Diary Entry dated in that year (rewatches count once); a Series counts once it has a Series Diary Entry that year. Pace compares progress with a steady share of the target by the viewer's local day. Public on the Profile, read as a Profile Tab.
+_Avoid_: challenge, reading-challenge style names
+
 ### Lists
 
 **List**:

@@ -1,5 +1,5 @@
 {
-  "id": "8ee4591d-a531-42c1-99ea-fbe6e232afe1",
+  "id": "8acc59bf-701a-4e54-94da-44a4cf2e05b7",
   "prevId": "c0b7ea3d-6f67-4298-96d3-b79b0704af0e",
   "version": "7",
   "dialect": "postgresql",
@@ -531,17 +531,11 @@
         }
       },
       "indexes": {
-        "serial_diary_entry_series_user_idx": {
-          "name": "serial_diary_entry_series_user_idx",
+        "serial_diary_entry_series_id_idx": {
+          "name": "serial_diary_entry_series_id_idx",
           "columns": [
             {
               "expression": "series_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "user_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1635,17 +1629,11 @@
         }
       },
       "indexes": {
-        "diary_entry_movie_user_idx": {
-          "name": "diary_entry_movie_user_idx",
+        "diary_entry_movie_id_idx": {
+          "name": "diary_entry_movie_id_idx",
           "columns": [
             {
               "expression": "movie_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "user_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -3874,6 +3862,87 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.watch_goal": {
+      "name": "watch_goal",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year": {
+          "name": "year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_films": {
+          "name": "target_films",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_series": {
+          "name": "target_series",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "watch_goal_user_id_user_id_fk": {
+          "name": "watch_goal_user_id_user_id_fk",
+          "tableFrom": "watch_goal",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "watch_goal_user_year_unique": {
+          "name": "watch_goal_user_year_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_id",
+            "year"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

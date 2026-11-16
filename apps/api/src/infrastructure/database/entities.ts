@@ -17,3 +17,4 @@ export * from "../../modules/moderation/moderation.entity";
 export * from "../../modules/notifications/notifications.entity";
 export * from "../../modules/reports/reports.entity";
 export * from "../../modules/admin/admin-audit-log.entity";
+export * from "../../modules/watch-goals/watch-goals.entity";

@@ -13,6 +13,7 @@ const profileTabsCache = createProfileTabsCache();
 const PROFILE_TAB_PATHS: [string, ProfileTab][] = [
   ["diary", "diary"],
   ["top4", "top4"],
+  ["goal", "goal"],
   ["recent", "recent"],
   ["serials/currently-watching", "currently-watching"],
   ["reviews", "reviews"],
