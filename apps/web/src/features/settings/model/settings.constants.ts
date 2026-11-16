@@ -26,6 +26,7 @@ export const settingsSections: SettingsSectionDefinition[] = [
   { id: "auth", to: "/settings/auth", number: "05", label: "Account & security", group: "account" },
   { id: "blocked", to: "/settings/blocked", number: "06", label: "Blocked & muted", group: "account" },
   { id: "data", to: "/settings/data", number: "07", label: "Your data", group: "account" },
+  { id: "notifications", to: "/settings/notifications", number: "08", label: "Notifications", group: "account" },
 ];
 
 export const SETTINGS_GROUP_LABEL = { profile: "Your profile", look: "Look", account: "Account" } as const;

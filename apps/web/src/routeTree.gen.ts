@@ -21,6 +21,7 @@ import { Route as MoviesIndexRouteImport } from './routes/movies/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as SettingsThemeRouteImport } from './routes/settings/theme'
 import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
+import { Route as SettingsNotificationsRouteImport } from './routes/settings/notifications'
 import { Route as SettingsGenresRouteImport } from './routes/settings/genres'
 import { Route as SettingsFavoritesRouteImport } from './routes/settings/favorites'
 import { Route as SettingsDeleteAccountRouteImport } from './routes/settings/delete-account'
@@ -114,6 +115,11 @@ const SettingsThemeRoute = SettingsThemeRouteImport.update({
 const SettingsProfileRoute = SettingsProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => SettingsRouteRoute,
+} as any)
+const SettingsNotificationsRoute = SettingsNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => SettingsRouteRoute,
 } as any)
 const SettingsGenresRoute = SettingsGenresRouteImport.update({
@@ -322,6 +328,7 @@ export interface FileRoutesByFullPath {
   '/settings/delete-account': typeof SettingsDeleteAccountRoute
   '/settings/favorites': typeof SettingsFavoritesRoute
   '/settings/genres': typeof SettingsGenresRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/theme': typeof SettingsThemeRoute
   '/admin/': typeof AdminIndexRoute
@@ -367,6 +374,7 @@ export interface FileRoutesByTo {
   '/settings/delete-account': typeof SettingsDeleteAccountRoute
   '/settings/favorites': typeof SettingsFavoritesRoute
   '/settings/genres': typeof SettingsGenresRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/theme': typeof SettingsThemeRoute
   '/admin': typeof AdminIndexRoute
@@ -417,6 +425,7 @@ export interface FileRoutesById {
   '/settings/delete-account': typeof SettingsDeleteAccountRoute
   '/settings/favorites': typeof SettingsFavoritesRoute
   '/settings/genres': typeof SettingsGenresRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/theme': typeof SettingsThemeRoute
   '/admin/': typeof AdminIndexRoute
@@ -467,6 +476,7 @@ export interface FileRouteTypes {
     | '/settings/delete-account'
     | '/settings/favorites'
     | '/settings/genres'
+    | '/settings/notifications'
     | '/settings/profile'
     | '/settings/theme'
     | '/admin/'
@@ -512,6 +522,7 @@ export interface FileRouteTypes {
     | '/settings/delete-account'
     | '/settings/favorites'
     | '/settings/genres'
+    | '/settings/notifications'
     | '/settings/profile'
     | '/settings/theme'
     | '/admin'
@@ -561,6 +572,7 @@ export interface FileRouteTypes {
     | '/settings/delete-account'
     | '/settings/favorites'
     | '/settings/genres'
+    | '/settings/notifications'
     | '/settings/profile'
     | '/settings/theme'
     | '/admin/'
@@ -688,6 +700,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/settings/profile'
       preLoaderRoute: typeof SettingsProfileRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
+    '/settings/notifications': {
+      id: '/settings/notifications'
+      path: '/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof SettingsNotificationsRouteImport
       parentRoute: typeof SettingsRouteRoute
     }
     '/settings/genres': {
@@ -969,6 +988,7 @@ interface SettingsRouteRouteChildren {
   SettingsDeleteAccountRoute: typeof SettingsDeleteAccountRoute
   SettingsFavoritesRoute: typeof SettingsFavoritesRoute
   SettingsGenresRoute: typeof SettingsGenresRoute
+  SettingsNotificationsRoute: typeof SettingsNotificationsRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
   SettingsThemeRoute: typeof SettingsThemeRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
@@ -981,6 +1001,7 @@ const SettingsRouteRouteChildren: SettingsRouteRouteChildren = {
   SettingsDeleteAccountRoute: SettingsDeleteAccountRoute,
   SettingsFavoritesRoute: SettingsFavoritesRoute,
   SettingsGenresRoute: SettingsGenresRoute,
+  SettingsNotificationsRoute: SettingsNotificationsRoute,
   SettingsProfileRoute: SettingsProfileRoute,
   SettingsThemeRoute: SettingsThemeRoute,
   SettingsIndexRoute: SettingsIndexRoute,

@@ -44,6 +44,8 @@ export default defineConfig(({ mode }) => {
           // App-shell only — /api/* must never be served from the service
           // worker cache (auth state, feed, movie data are all dynamic).
           navigateFallbackDenylist: [/^\/api\//],
+          // Web Push handlers (public/push-sw.js), added on top of the generated worker.
+          importScripts: ["push-sw.js"],
         },
       }),
     ],
