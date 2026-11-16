@@ -19,6 +19,7 @@ import reportsRouter from "../../modules/reports/reports.routes";
 import adminRouter from "../../modules/admin/admin.routes";
 import authRouter from "../../modules/auth/auth.routes";
 import viewerStatusRouter from "../../modules/viewer-status/viewer-status.routes";
+import onboardingRouter from "../../modules/onboarding/onboarding.routes";
 
 export const registerRoutes = (app: Express): void => {
   app.use("/api/auth", authRouter);
@@ -41,4 +42,5 @@ export const registerRoutes = (app: Express): void => {
   app.use("/api/posts", postsRouter);
   app.use("/api/lists", listsRouter);
   app.use("/api/data", dataTransferRouter);
+  app.use("/api/onboarding", onboardingRouter);
 };
