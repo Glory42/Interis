@@ -53,6 +53,7 @@ import { Route as ProfileUsernameCinemaRouteImport } from './routes/profile/$use
 import { Route as AdminUsersUsernameRouteImport } from './routes/admin/users/$username'
 import { Route as ProfileUsernameListsIndexRouteImport } from './routes/profile/$username/lists/index'
 import { Route as SerialsTmdbIdSeasonSeasonNumberRouteImport } from './routes/serials/$tmdbId_.season.$seasonNumber'
+import { Route as ProfileUsernameYearYearRouteImport } from './routes/profile/$username/year/$year'
 import { Route as ProfileUsernameListsNewRouteImport } from './routes/profile/$username/lists/new'
 import { Route as ProfileUsernameListsListIdIndexRouteImport } from './routes/profile/$username/lists/$listId/index'
 import { Route as ProfileUsernameListsListIdEditRouteImport } from './routes/profile/$username/lists/$listId/edit'
@@ -280,6 +281,11 @@ const SerialsTmdbIdSeasonSeasonNumberRoute =
     path: '/serials/$tmdbId/season/$seasonNumber',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ProfileUsernameYearYearRoute = ProfileUsernameYearYearRouteImport.update({
+  id: '/year/$year',
+  path: '/year/$year',
+  getParentRoute: () => ProfileUsernameRouteRoute,
+} as any)
 const ProfileUsernameListsNewRoute = ProfileUsernameListsNewRouteImport.update({
   id: '/lists/new',
   path: '/lists/new',
@@ -341,6 +347,7 @@ export interface FileRoutesByFullPath {
   '/admin/users/': typeof AdminUsersIndexRoute
   '/profile/$username/': typeof ProfileUsernameIndexRoute
   '/profile/$username/lists/new': typeof ProfileUsernameListsNewRoute
+  '/profile/$username/year/$year': typeof ProfileUsernameYearYearRoute
   '/serials/$tmdbId/season/$seasonNumber': typeof SerialsTmdbIdSeasonSeasonNumberRoute
   '/profile/$username/lists/': typeof ProfileUsernameListsIndexRoute
   '/profile/$username/lists/$listId/edit': typeof ProfileUsernameListsListIdEditRoute
@@ -386,6 +393,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersIndexRoute
   '/profile/$username': typeof ProfileUsernameIndexRoute
   '/profile/$username/lists/new': typeof ProfileUsernameListsNewRoute
+  '/profile/$username/year/$year': typeof ProfileUsernameYearYearRoute
   '/serials/$tmdbId/season/$seasonNumber': typeof SerialsTmdbIdSeasonSeasonNumberRoute
   '/profile/$username/lists': typeof ProfileUsernameListsIndexRoute
   '/profile/$username/lists/$listId/edit': typeof ProfileUsernameListsListIdEditRoute
@@ -436,6 +444,7 @@ export interface FileRoutesById {
   '/admin/users/': typeof AdminUsersIndexRoute
   '/profile/$username/': typeof ProfileUsernameIndexRoute
   '/profile/$username/lists/new': typeof ProfileUsernameListsNewRoute
+  '/profile/$username/year/$year': typeof ProfileUsernameYearYearRoute
   '/serials/$tmdbId_/season/$seasonNumber': typeof SerialsTmdbIdSeasonSeasonNumberRoute
   '/profile/$username/lists/': typeof ProfileUsernameListsIndexRoute
   '/profile/$username/lists/$listId/edit': typeof ProfileUsernameListsListIdEditRoute
@@ -486,6 +495,7 @@ export interface FileRouteTypes {
     | '/admin/users/'
     | '/profile/$username/'
     | '/profile/$username/lists/new'
+    | '/profile/$username/year/$year'
     | '/serials/$tmdbId/season/$seasonNumber'
     | '/profile/$username/lists/'
     | '/profile/$username/lists/$listId/edit'
@@ -531,6 +541,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/profile/$username'
     | '/profile/$username/lists/new'
+    | '/profile/$username/year/$year'
     | '/serials/$tmdbId/season/$seasonNumber'
     | '/profile/$username/lists'
     | '/profile/$username/lists/$listId/edit'
@@ -580,6 +591,7 @@ export interface FileRouteTypes {
     | '/admin/users/'
     | '/profile/$username/'
     | '/profile/$username/lists/new'
+    | '/profile/$username/year/$year'
     | '/serials/$tmdbId_/season/$seasonNumber'
     | '/profile/$username/lists/'
     | '/profile/$username/lists/$listId/edit'
@@ -914,6 +926,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SerialsTmdbIdSeasonSeasonNumberRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profile/$username/year/$year': {
+      id: '/profile/$username/year/$year'
+      path: '/year/$year'
+      fullPath: '/profile/$username/year/$year'
+      preLoaderRoute: typeof ProfileUsernameYearYearRouteImport
+      parentRoute: typeof ProfileUsernameRouteRoute
+    }
     '/profile/$username/lists/new': {
       id: '/profile/$username/lists/new'
       path: '/lists/new'
@@ -1017,6 +1036,7 @@ interface ProfileUsernameRouteRouteChildren {
   ProfileUsernameWatchlistRoute: typeof ProfileUsernameWatchlistRoute
   ProfileUsernameIndexRoute: typeof ProfileUsernameIndexRoute
   ProfileUsernameListsNewRoute: typeof ProfileUsernameListsNewRoute
+  ProfileUsernameYearYearRoute: typeof ProfileUsernameYearYearRoute
   ProfileUsernameListsIndexRoute: typeof ProfileUsernameListsIndexRoute
   ProfileUsernameListsListIdEditRoute: typeof ProfileUsernameListsListIdEditRoute
   ProfileUsernameListsListIdIndexRoute: typeof ProfileUsernameListsListIdIndexRoute
@@ -1033,6 +1053,7 @@ const ProfileUsernameRouteRouteChildren: ProfileUsernameRouteRouteChildren = {
   ProfileUsernameWatchlistRoute: ProfileUsernameWatchlistRoute,
   ProfileUsernameIndexRoute: ProfileUsernameIndexRoute,
   ProfileUsernameListsNewRoute: ProfileUsernameListsNewRoute,
+  ProfileUsernameYearYearRoute: ProfileUsernameYearYearRoute,
   ProfileUsernameListsIndexRoute: ProfileUsernameListsIndexRoute,
   ProfileUsernameListsListIdEditRoute: ProfileUsernameListsListIdEditRoute,
   ProfileUsernameListsListIdIndexRoute: ProfileUsernameListsListIdIndexRoute,
