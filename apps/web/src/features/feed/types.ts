@@ -141,6 +141,18 @@ export const meFeedSummarySchema = z.object({
     averageRating: z.number().nullable(),
     episodes: z.number().int().nonnegative(),
   }),
+  // This year's watch goal, null without one.
+  goal: z
+    .object({
+      year: z.number().int(),
+      targetFilms: z.number().int(),
+      targetSeries: z.number().int().nullable(),
+      filmsWatched: z.number().int().nonnegative(),
+      seriesWatched: z.number().int().nonnegative(),
+      reached: z.boolean(),
+    })
+    .nullable()
+    .default(null),
 });
 
 export const networkStatsSchema = z.object({

@@ -59,7 +59,8 @@ export const getTrendingFilms = async (
 export const getMyFeedSummary = async (
   options: QueryRequestOptions = {},
 ): Promise<MeFeedSummary> => {
-  const response = await apiRequest<unknown>("/api/users/me/summary", {
+  const params = new URLSearchParams({ tz: viewerTimeZone() });
+  const response = await apiRequest<unknown>(`/api/users/me/summary?${params}`, {
     method: "GET",
     signal: options.signal,
   });
