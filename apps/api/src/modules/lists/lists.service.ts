@@ -2,6 +2,7 @@ import type { ContentRemoval } from "../../commons/types/content-removal.types";
 import type { CreateListDto, UpdateListDto } from "./dto/lists.dto";
 import { ListsReadService } from "./services/lists-read.service";
 import { ListsWriteService } from "./services/lists-write.service";
+import { ListCollaboratorsService } from "./services/list-collaborators.service";
 
 export class ListsService {
   static async getUserLists(
@@ -50,6 +51,22 @@ export class ListsService {
 
   static async removeItem(listId: string, userId: string, entryId: string) {
     return ListsWriteService.removeItem(listId, userId, entryId);
+  }
+
+  static async updateItemNote(listId: string, userId: string, entryId: string, note: string | null) {
+    return ListsWriteService.updateItemNote(listId, userId, entryId, note);
+  }
+
+  static async inviteCollaborator(listId: string, ownerId: string, username: string) {
+    return ListCollaboratorsService.invite(listId, ownerId, username);
+  }
+
+  static async acceptInvite(listId: string, userId: string) {
+    return ListCollaboratorsService.accept(listId, userId);
+  }
+
+  static async removeCollaborator(listId: string, actorId: string, targetUserId: string) {
+    return ListCollaboratorsService.remove(listId, actorId, targetUserId);
   }
 
   static async reorderItems(

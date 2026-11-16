@@ -3,14 +3,15 @@ import { TvCacheService } from "../../tv/services/tv-cache.service";
 import { ActivityRecorder } from "../../social/services/activity-recorder.service";
 import { MAX_LIST_ITEMS } from "../constants/lists.constants";
 import type { CreateListDto, UpdateListDto } from "../dto/lists.dto";
-import { deriveListType } from "../helpers/derive-list-type.helper";
+import { canViewList } from "../helpers/list-access.policy";
 import { ListsReadRepository } from "../repositories/lists-read.repository";
 import { ListsWriteRepository } from "../repositories/lists-write.repository";
 import { NotificationsService } from "../../notifications/notifications.service";
 import { isUuid } from "../../../commons/helpers/uuid.helper";
 import { removalOwnerId, type ContentRemoval } from "../../../commons/types/content-removal.types";
+import type { ListServiceError } from "../types/lists-service.types";
+import { ListAccessService } from "./list-access.service";
 
-type ServiceError = { error: string; status: 400 | 403 | 404 };
 
 export class ListsWriteService {
   static async createList(userId: string, data: CreateListDto) {
@@ -40,16 +41,9 @@ export class ListsWriteService {
     listId: string,
     userId: string,
     data: UpdateListDto,
-  ): Promise<NonNullable<Awaited<ReturnType<typeof ListsWriteRepository.update>>> | ServiceError> {
-    const list = await ListsReadRepository.findById(listId);
-
-    if (!list) {
-      return { error: "List not found", status: 404 };
-    }
-
-    if (list.userId !== userId) {
-      return { error: "Forbidden", status: 403 };
-    }
+  ): Promise<NonNullable<Awaited<ReturnType<typeof ListsWriteRepository.update>>> | ListServiceError> {
+    const access = await ListAccessService.requireManager(listId, userId);
+    if ("error" in access) return access;
 
     const updated = await ListsWriteRepository.update(listId, data);
 
@@ -65,16 +59,9 @@ export class ListsWriteService {
   static async deleteList(
     listId: string,
     userId: string,
-  ): Promise<void | ServiceError> {
-    const list = isUuid(listId) ? await ListsReadRepository.findById(listId) : null;
-
-    if (!list) {
-      return { error: "List not found", status: 404 };
-    }
-
-    if (list.userId !== userId) {
-      return { error: "Forbidden", status: 403 };
-    }
+  ): Promise<void | ListServiceError> {
+    const access = await ListAccessService.requireManager(listId, userId);
+    if ("error" in access) return access;
 
     await ListsWriteService.remove(listId, { by: "author", userId });
   }
@@ -86,119 +73,88 @@ export class ListsWriteService {
     itemType: "movie" | "serial",
   ): Promise<
     | { entry: NonNullable<Awaited<ReturnType<typeof ListsWriteRepository.insertEntry>>>; derivedType: string | null }
-    | ServiceError
+    | ListServiceError
   > {
-    const list = await ListsReadRepository.findById(listId);
+    const access = await ListAccessService.requireEntryEditor(listId, userId);
+    if ("error" in access) return access;
 
-    if (!list) {
-      return { error: "List not found", status: 404 };
-    }
-
-    if (list.userId !== userId) {
-      return { error: "Forbidden", status: 403 };
-    }
-
-    const currentTypes = await ListsReadRepository.getCurrentItemTypes(listId);
-    if (currentTypes.length >= MAX_LIST_ITEMS) {
+    // Checked before caching the title, so a full list costs no TMDB call or cache row.
+    if ((await ListsReadRepository.countEntries(listId)) >= MAX_LIST_ITEMS) {
       return {
         error: `Lists are limited to ${MAX_LIST_ITEMS} items`,
         status: 400,
       };
     }
 
-    let movieId: number | undefined;
-    let tvSeriesId: number | undefined;
-
-    const [media, maxPosition] = await Promise.all([
-      itemType === "movie"
-        ? FilmsCacheService.findOrCreate(tmdbId)
-        : TvCacheService.findOrCreate(tmdbId),
-      ListsReadRepository.getMaxPosition(listId),
-    ]);
-
-    if (itemType === "movie") {
-      movieId = media.id;
-    } else {
-      tvSeriesId = media.id;
-    }
-
-    const position = maxPosition + 1;
+    const media = itemType === "movie"
+      ? await FilmsCacheService.findOrCreate(tmdbId)
+      : await TvCacheService.findOrCreate(tmdbId);
 
     const entry = await ListsWriteRepository.insertEntry({
       listId,
-      movieId,
-      tvSeriesId,
+      movieId: itemType === "movie" ? media.id : undefined,
+      tvSeriesId: itemType === "serial" ? media.id : undefined,
       itemType,
-      position,
+      addedByUserId: userId,
     });
 
     if (!entry) {
-      throw new Error("Failed to insert list entry");
+      return { error: "Already in this list", status: 409 };
     }
 
-    const newDerivedType = deriveListType([...currentTypes, itemType]);
-
-    await ListsWriteRepository.update(listId, { derivedType: newDerivedType });
-
-    return { entry, derivedType: newDerivedType };
+    const derivedType = await ListsWriteRepository.refreshDerivedType(listId);
+    return { entry, derivedType };
   }
 
   static async removeItem(
     listId: string,
     userId: string,
     entryId: string,
-  ): Promise<{ success: true; derivedType: string | null } | ServiceError> {
-    const [entry, list] = await Promise.all([
-      ListsReadRepository.findEntryById(entryId),
-      ListsReadRepository.findById(listId),
-    ]);
+  ): Promise<{ success: true; derivedType: string | null } | ListServiceError> {
+    const access = await ListAccessService.requireEntryEditor(listId, userId);
+    if ("error" in access) return access;
 
-    if (!entry) {
+    const deleted = isUuid(entryId) && (await ListsWriteRepository.deleteEntry(listId, entryId));
+    if (!deleted) {
       return { error: "Entry not found", status: 404 };
     }
 
-    if (!list) {
-      return { error: "List not found", status: 404 };
-    }
-
-    if (list.userId !== userId) {
-      return { error: "Forbidden", status: 403 };
-    }
-
-    await ListsWriteRepository.deleteEntry(entryId);
-
-    const remainingTypes = await ListsReadRepository.getCurrentItemTypes(listId);
-    const newDerivedType = deriveListType(remainingTypes);
-
-    await ListsWriteRepository.update(listId, { derivedType: newDerivedType });
-
-    return { success: true, derivedType: newDerivedType };
+    const derivedType = await ListsWriteRepository.refreshDerivedType(listId);
+    return { success: true, derivedType };
   }
 
+  static async updateItemNote(
+    listId: string,
+    userId: string,
+    entryId: string,
+    note: string | null,
+  ): Promise<{ id: string; note: string | null } | ListServiceError> {
+    const access = await ListAccessService.requireEntryEditor(listId, userId);
+    if ("error" in access) return access;
+
+    const updated = isUuid(entryId) ? await ListsWriteRepository.updateEntryNote(listId, entryId, note) : null;
+    return updated ?? { error: "Entry not found", status: 404 };
+  }
+
+  // Items carry the full new order; a payload built from a stale view is a 409, never a partial write.
   static async reorderItems(
     listId: string,
     userId: string,
     items: Array<{ id: string; position: number }>,
-  ): Promise<{ success: true } | ServiceError> {
-    const list = await ListsReadRepository.findById(listId);
+  ): Promise<{ success: true } | ListServiceError> {
+    const access = await ListAccessService.requireEntryEditor(listId, userId);
+    if ("error" in access) return access;
 
-    if (!list) {
-      return { error: "List not found", status: 404 };
-    }
-
-    if (list.userId !== userId) {
-      return { error: "Forbidden", status: 403 };
-    }
-
-    const entryIds = items.map((i) => i.id);
-    const entries = await ListsWriteRepository.getEntriesByIds(entryIds);
-
-    const allBelongToList = entries.every((e) => e.listId === listId);
-    if (!allBelongToList || entries.length !== items.length) {
+    const entries = await ListsWriteRepository.getEntriesByIds(items.map((i) => i.id));
+    if (entries.some((e) => e.listId !== listId) || entries.length !== items.length) {
       return { error: "Some entries do not belong to this list", status: 403 };
     }
 
-    await ListsWriteRepository.bulkUpdatePositions(items);
+    const orderedIds = [...items].sort((a, b) => a.position - b.position).map((i) => i.id);
+    const changed = await ListsWriteRepository.reorderEntries(listId, orderedIds);
+    if (changed !== orderedIds.length) {
+      return { error: "This list changed while you were editing it. Reload and try again.", status: 409 };
+    }
 
     return { success: true };
   }
@@ -206,11 +162,10 @@ export class ListsWriteService {
   static async likeList(
     listId: string,
     userId: string,
-  ): Promise<ServiceError | { success: true; likeCount: number }> {
-    const list = await ListsReadRepository.findById(listId);
-    if (!list) return { error: "List not found", status: 404 as const };
-    if (!list.isPublic && list.userId !== userId)
-      return { error: "Forbidden", status: 403 as const };
+  ): Promise<ListServiceError | { success: true; likeCount: number }> {
+    const access = await ListAccessService.resolve(listId, userId);
+    if (!access) return { error: "List not found", status: 404 as const };
+    if (!canViewList(access.list, access.role)) return { error: "Forbidden", status: 403 as const };
     await ListsWriteRepository.likeList(userId, listId);
     const likeCount = await ListsWriteRepository.getListLikeCount(listId);
     return { success: true, likeCount };

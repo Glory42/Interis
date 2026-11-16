@@ -24,6 +24,20 @@ router.delete(
   requireAuth,
   asyncHandler(ListsController.removeItem),
 );
+router.patch(
+  "/:id/items/:itemId",
+  requireAuth,
+  asyncHandler(ListsController.updateItemNote),
+);
 router.patch("/:id/reorder", requireAuth, asyncHandler(ListsController.reorder));
+
+// Protected — List Collaborators
+router.post("/:id/collaborators", requireAuth, asyncHandler(ListsController.inviteCollaborator));
+router.post("/:id/collaborators/accept", requireAuth, asyncHandler(ListsController.acceptInvite));
+router.delete(
+  "/:id/collaborators/:userId",
+  requireAuth,
+  asyncHandler(ListsController.removeCollaborator),
+);
 
 export default router;

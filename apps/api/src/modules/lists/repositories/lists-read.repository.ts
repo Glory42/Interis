@@ -1,11 +1,27 @@
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { db } from "../../../infrastructure/database/db";
 import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { films } from "../../films/films.entity";
 import { filmInteractions } from "../../interactions/interactions.entity";
 import { seriesInteractions, tvSeries } from "../../tv/tv.entity";
-import { listEntries, lists } from "../lists.entity";
+import { listCollaborators, listEntries, lists } from "../lists.entity";
+
+const addedBy = alias(user, "added_by");
+
+// Lists the user owns or has accepted a List Collaborator invite to.
+const ownedOrSharedWith = (userId: string) =>
+  or(
+    eq(lists.userId, userId),
+    inArray(
+      lists.id,
+      db
+        .select({ listId: listCollaborators.listId })
+        .from(listCollaborators)
+        .where(and(eq(listCollaborators.userId, userId), eq(listCollaborators.status, "accepted"))),
+    ),
+  );
 
 export class ListsReadRepository {
   static async findById(listId: string) {
@@ -16,6 +32,11 @@ export class ListsReadRepository {
       .limit(1);
 
     return row ?? null;
+  }
+
+  static async findOwnerUsername(userId: string): Promise<string | null> {
+    const [row] = await db.select({ username: user.username }).from(user).where(eq(user.id, userId)).limit(1);
+    return row?.username ?? null;
   }
 
   static async findByUserId(
@@ -35,16 +56,14 @@ export class ListsReadRepository {
         derivedType: lists.derivedType,
         createdAt: lists.createdAt,
         updatedAt: lists.updatedAt,
+        ownerUsername: user.username,
         itemCount: sql<number>`count(${listEntries.id})`.mapWith(Number),
       })
       .from(lists)
+      .innerJoin(user, eq(user.id, lists.userId))
       .leftJoin(listEntries, eq(listEntries.listId, lists.id))
-      .where(
-        publicOnly
-          ? sql`${lists.userId} = ${userId} and ${lists.isPublic} = true`
-          : eq(lists.userId, userId),
-      )
-      .groupBy(lists.id)
+      .where(publicOnly ? and(ownedOrSharedWith(userId), eq(lists.isPublic, true)) : ownedOrSharedWith(userId))
+      .groupBy(lists.id, user.username)
       .orderBy(desc(lists.updatedAt))
       .$dynamic();
 
@@ -78,6 +97,8 @@ export class ListsReadRepository {
         position: listEntries.position,
         itemType: listEntries.itemType,
         note: listEntries.note,
+        addedByUserId: listEntries.addedByUserId,
+        addedByUsername: addedBy.username,
         movieTmdbId: films.tmdbId,
         movieTitle: films.title,
         moviePosterPath: films.posterPath,
@@ -94,6 +115,7 @@ export class ListsReadRepository {
       .from(listEntries)
       .leftJoin(films, eq(listEntries.movieId, films.id))
       .leftJoin(tvSeries, eq(listEntries.tvSeriesId, tvSeries.id))
+      .leftJoin(addedBy, eq(addedBy.id, listEntries.addedByUserId))
       .leftJoin(
         filmInteractions,
         and(
@@ -109,37 +131,15 @@ export class ListsReadRepository {
         ),
       )
       .where(eq(listEntries.listId, listId))
-      .orderBy(asc(listEntries.position));
+      .orderBy(asc(listEntries.position), asc(listEntries.createdAt));
   }
 
-  static async getMaxPosition(listId: string): Promise<number> {
+  static async countEntries(listId: string): Promise<number> {
     const [row] = await db
-      .select({
-        max: sql<number>`COALESCE(MAX(${listEntries.position}), 0)`.mapWith(Number),
-      })
+      .select({ n: sql<number>`count(*)`.mapWith(Number) })
       .from(listEntries)
       .where(eq(listEntries.listId, listId));
-
-    return row?.max ?? 0;
-  }
-
-  static async findEntryById(entryId: string) {
-    const [row] = await db
-      .select()
-      .from(listEntries)
-      .where(eq(listEntries.id, entryId))
-      .limit(1);
-
-    return row ?? null;
-  }
-
-  static async getCurrentItemTypes(listId: string): Promise<string[]> {
-    const rows = await db
-      .select({ itemType: listEntries.itemType })
-      .from(listEntries)
-      .where(eq(listEntries.listId, listId));
-
-    return rows.map((r) => r.itemType);
+    return row?.n ?? 0;
   }
 
   static async checkItemInListsForUser(
@@ -159,9 +159,10 @@ export class ListsReadRepository {
       .from(listEntries)
       .innerJoin(lists, eq(listEntries.listId, lists.id))
       .where(
-        movieId !== null
-          ? sql`${lists.userId} = ${userId} and ${listEntries.movieId} = ${movieId}`
-          : sql`${lists.userId} = ${userId} and ${listEntries.tvSeriesId} = ${tvSeriesId}`,
+        and(
+          ownedOrSharedWith(userId),
+          movieId !== null ? eq(listEntries.movieId, movieId) : eq(listEntries.tvSeriesId, tvSeriesId ?? -1),
+        ),
       );
 
     return rows;
