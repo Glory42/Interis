@@ -1,4 +1,5 @@
 import { DiaryRepository } from "../../diary/repositories/diary.repository";
+import { DiaryTagsService } from "../../media/services/diary-tags.service";
 import { buildCsv } from "../helpers/csv-builder";
 import { ExportRepository } from "../repositories/export.repository";
 
@@ -12,7 +13,12 @@ export const EXPORT_HEADERS = [
   "Rewatch",
   "Review",
   "Spoilers",
+  "Note",
+  "Tags",
 ] as const;
+
+// Tags are joined with ", " like Letterboxd's Tags column; a tag never contains a comma.
+export const EXPORT_TAG_SEPARATOR = ", ";
 
 const toExportRatingString = (r: number | null): string =>
   r !== null ? String(r / 2) : "";
@@ -29,6 +35,8 @@ type DiaryEntryLike = {
   rewatch: boolean;
   reviewContent: string | null;
   reviewContainsSpoilers: boolean | null;
+  note: string | null;
+  tags: string[];
 };
 
 // Movies and series diary entries come back from two differently-shaped
@@ -45,13 +53,16 @@ const toExportRow = (entry: DiaryEntryLike): Row => ({
   Rewatch: entry.rewatch ? "true" : "false",
   Review: entry.reviewContent ?? "",
   Spoilers: entry.reviewContent ? (entry.reviewContainsSpoilers ? "true" : "false") : "",
+  Note: entry.note ?? "",
+  Tags: entry.tags.join(EXPORT_TAG_SEPARATOR),
 });
 
 export class DataExportService {
   static async exportDiary(userId: string): Promise<string> {
-    const [movieEntries, serialEntries] = await Promise.all([
-      DiaryRepository.findAllByUser(userId),
+    const [movieEntries, serialEntries, tagsOf] = await Promise.all([
+      DiaryRepository.findAllByUser(userId, undefined, undefined, { includeNote: true }),
       ExportRepository.findAllSerialDiaryEntriesByUser(userId),
+      DiaryTagsService.lookupForUser(userId),
     ]);
 
     const movieRows = movieEntries.map((entry) =>
@@ -65,6 +76,8 @@ export class DataExportService {
         rewatch: entry.rewatch,
         reviewContent: entry.reviewContent,
         reviewContainsSpoilers: entry.reviewContainsSpoilers,
+        note: entry.note,
+        tags: tagsOf("movie", entry.id),
       }),
     );
 
@@ -79,6 +92,8 @@ export class DataExportService {
         rewatch: entry.rewatch,
         reviewContent: entry.reviewContent,
         reviewContainsSpoilers: entry.reviewContainsSpoilers,
+        note: entry.note,
+        tags: tagsOf("tv", entry.id),
       }),
     );
 
