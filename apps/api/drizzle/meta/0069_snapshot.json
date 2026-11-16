@@ -1,5 +1,5 @@
 {
-  "id": "fe31f547-5476-47d9-bd64-feffbcd5bdcc",
+  "id": "8acc59bf-701a-4e54-94da-44a4cf2e05b7",
   "prevId": "c0b7ea3d-6f67-4298-96d3-b79b0704af0e",
   "version": "7",
   "dialect": "postgresql",
@@ -514,12 +514,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": false
-        },
-        "note": {
-          "name": "note",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -1619,12 +1613,6 @@
           "notNull": true,
           "default": false
         },
-        "note": {
-          "name": "note",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -1753,167 +1741,6 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.diary_tag": {
-      "name": "diary_tag",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "diary_entry_id": {
-          "name": "diary_entry_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "serial_diary_entry_id": {
-          "name": "serial_diary_entry_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "tag": {
-          "name": "tag",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "diary_tag_film_entry_tag_unique": {
-          "name": "diary_tag_film_entry_tag_unique",
-          "columns": [
-            {
-              "expression": "diary_entry_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "tag",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "where": "diary_entry_id is not null",
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "diary_tag_series_entry_tag_unique": {
-          "name": "diary_tag_series_entry_tag_unique",
-          "columns": [
-            {
-              "expression": "serial_diary_entry_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "tag",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "where": "serial_diary_entry_id is not null",
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "diary_tag_user_tag_idx": {
-          "name": "diary_tag_user_tag_idx",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "tag",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "diary_tag_user_id_user_id_fk": {
-          "name": "diary_tag_user_id_user_id_fk",
-          "tableFrom": "diary_tag",
-          "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "diary_tag_diary_entry_id_diary_entry_id_fk": {
-          "name": "diary_tag_diary_entry_id_diary_entry_id_fk",
-          "tableFrom": "diary_tag",
-          "tableTo": "diary_entry",
-          "columnsFrom": [
-            "diary_entry_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "diary_tag_serial_diary_entry_id_serial_diary_entry_id_fk": {
-          "name": "diary_tag_serial_diary_entry_id_serial_diary_entry_id_fk",
-          "tableFrom": "diary_tag",
-          "tableTo": "serial_diary_entry",
-          "columnsFrom": [
-            "serial_diary_entry_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "diary_tag_one_entry": {
-          "name": "diary_tag_one_entry",
-          "value": "(diary_entry_id is null) <> (serial_diary_entry_id is null)"
-        }
-      },
       "isRLSEnabled": false
     },
     "public.comment_like": {
@@ -4035,6 +3862,87 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.watch_goal": {
+      "name": "watch_goal",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year": {
+          "name": "year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_films": {
+          "name": "target_films",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_series": {
+          "name": "target_series",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "watch_goal_user_id_user_id_fk": {
+          "name": "watch_goal_user_id_user_id_fk",
+          "tableFrom": "watch_goal",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "watch_goal_user_year_unique": {
+          "name": "watch_goal_user_year_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_id",
+            "year"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

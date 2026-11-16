@@ -1,6 +1,7 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
+import { MediaFollowingRepository } from "../../media/repositories/media-following.repository";
 import { profiles } from "../../users/users.entity";
 import { reviews } from "../../reviews/reviews.entity";
 import { ReviewsRepository } from "../../reviews/repositories/reviews.repository";
@@ -43,6 +44,7 @@ export class TvSeasonEpisodeReviewsRepository {
   static async getReviewRowsBySeriesId(
     tmdbId: number,
     seriesId: number,
+    options: { sort: string; viewerUserId: string | null },
   ): Promise<SeriesSeasonEpisodeReviewRow[]> {
     const rows = await db
       .select({
@@ -68,6 +70,7 @@ export class TvSeasonEpisodeReviewsRepository {
           // avoids a LIKE '${tmdbId}:%' false-positive (e.g. tmdbId 12
           // matching a stored "123:1").
           sql`split_part(${reviews.mediaSourceId}, ':', 1)::int = ${tmdbId}`,
+          MediaFollowingRepository.reviewAuthorFilter(options.sort, options.viewerUserId),
         ),
       )
       .orderBy(desc(reviews.createdAt));

@@ -14,6 +14,7 @@ const PROFILE_TAB_PATHS: [string, ProfileTab][] = [
   ["diary", "diary"],
   ["diary/tags", "diary-tags"],
   ["top4", "top4"],
+  ["goal", "goal"],
   ["recent", "recent"],
   ["serials/currently-watching", "currently-watching"],
   ["reviews", "reviews"],

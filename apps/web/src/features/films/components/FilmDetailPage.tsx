@@ -13,6 +13,7 @@ import { isValidTmdbId, useMediaDetail } from "@/features/media/detail/use-media
 import { BELOW_MD_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { MediaSimilarSection } from "@/features/media/detail/MediaSimilarSection";
 import { MediaActionsSidebar } from "@/features/media/detail/MediaActionsSidebar";
+import { WhereToWatch } from "@/features/media/watch-providers/WhereToWatch";
 import { getBackdropUrl, getPosterUrl } from "@/features/media/tmdb-images";
 import { toLanguageLabel } from "@/features/media/labels";
 
@@ -40,18 +41,21 @@ export function FilmDetailPage({ tmdbId }: FilmDetailPageProps) {
     : null;
 
   const actionCard = (
-    <MediaDetailActionCard
-      media={{
-        kind: "film",
-        tmdbId: movie.tmdbId,
-        title: movie.title,
-        year: movie.releaseYear,
-        posterPath: movie.posterPath,
-      }}
-      userRating={detail.userRating}
-      moduleStyles={FILM_MODULE_STYLES}
-      state={mediaDetail}
-    />
+    <>
+      <MediaDetailActionCard
+        media={{
+          kind: "film",
+          tmdbId: movie.tmdbId,
+          title: movie.title,
+          year: movie.releaseYear,
+          posterPath: movie.posterPath,
+        }}
+        userRating={detail.userRating}
+        moduleStyles={FILM_MODULE_STYLES}
+        state={mediaDetail}
+      />
+      <WhereToWatch kind="film" tmdbId={movie.tmdbId} accent={FILM_MODULE_STYLES.accent} className="mt-3" />
+    </>
   );
 
   return (

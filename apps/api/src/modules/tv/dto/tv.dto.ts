@@ -61,7 +61,7 @@ const seriesArchivePeriodValues = [
 
 export type SeriesArchivePeriod = (typeof seriesArchivePeriodValues)[number];
 
-const seriesDetailReviewSortValues = ["popular", "recent"] as const;
+const seriesDetailReviewSortValues = ["popular", "recent", "following"] as const;
 
 export type SeriesDetailReviewSort = (typeof seriesDetailReviewSortValues)[number];
 

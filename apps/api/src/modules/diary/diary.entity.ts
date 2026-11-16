@@ -41,7 +41,9 @@ export const diaryEntries = pgTable(
       .notNull(),
   },
   (table) => [
-    index("diary_entry_movie_id_idx").on(table.movieId),
+    // Leftmost movie_id still serves per-title reads; user_id adds the
+    // one-user-one-title lookups (Your Rating, followed users on a title).
+    index("diary_entry_movie_user_idx").on(table.movieId, table.userId),
     // Backs the network stats' logs-today count.
     index("diary_entry_created_at_idx").on(table.createdAt),
     // Backs the diary page query: WHERE user_id = X ORDER BY watched_date DESC, created_at DESC

@@ -5,6 +5,7 @@ import { ListsService } from "../../lists/lists.service";
 import { DiaryTagsService } from "../../media/services/diary-tags.service";
 import { SocialFeedService } from "../../social/services/social-feed.service";
 import { TvCurrentlyWatchingService } from "../../tv/services/tv-currently-watching.service";
+import { WatchGoalsService } from "../../watch-goals/watch-goals.service";
 import { ProfileShelfQuerySchema } from "../dto/users.dto";
 import {
   normalizeProfileTabPage,
@@ -69,6 +70,7 @@ const TABS = {
     DiaryTagsService.topForUser(userId, page.limit),
   ),
   top4: unpaged(({ userId }) => ProfileTop4Service.getTop4(userId)),
+  goal: unpaged(({ userId, query }) => WatchGoalsService.readForProfile(userId, query)),
   recent: paged({ app: RECENT_PAGE, widget: RECENT_PAGE }, ({ userId, page }) =>
     SocialFeedService.getUserActivityFeed(userId, page.limit),
   ),
