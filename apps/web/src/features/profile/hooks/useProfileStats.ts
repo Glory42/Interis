@@ -9,5 +9,7 @@ export const useDetailedStats = (username: string, enabled = true) =>
   useQuery({
     queryKey: profileStatsKeys.detail(username),
     queryFn: ({ signal }) => getDetailedStats(username, { signal }),
+    // A heavy aggregate; the viewer's own logs refresh it through mediaRefreshKeys.
+    staleTime: 10 * 60_000,
     enabled: enabled && username.trim().length > 0,
   });

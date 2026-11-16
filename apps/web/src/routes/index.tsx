@@ -16,8 +16,7 @@ export const Route = createFileRoute("/")({
     // page still renders; useAuth's own query reflects the real state.
     const user = await context.queryClient.fetchQuery(authQueryOptions).catch(() => null);
 
-    // Limits must match what HomePage (6) / LandingPage (9) actually read.
-    void context.queryClient.prefetchQuery(trendingFilmsQueryOptions(user ? 6 : 9));
+    void context.queryClient.prefetchQuery(trendingFilmsQueryOptions());
     void context.queryClient.prefetchQuery(trendingSeriesQueryOptions());
 
     if (!user) {

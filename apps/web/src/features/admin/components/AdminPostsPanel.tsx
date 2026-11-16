@@ -1,4 +1,4 @@
-import { useDeferredValue, useState } from "react";
+import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import type { AdminPost } from "@/features/admin/content-api";
 import { useAdminPosts, useDeleteAdminPost } from "@/features/admin/hooks/useAdminContent";
 import { isApiError } from "@/lib/api-client";
 import { formatRelativeTime } from "@/lib/time";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 
 const DeletePostAction = ({ post }: { post: AdminPost }) => {
   const { mutateAsync: deletePost, isPending } = useDeleteAdminPost();
@@ -56,7 +57,7 @@ const DeletePostAction = ({ post }: { post: AdminPost }) => {
 
 export const AdminPostsPanel = () => {
   const [usernameInput, setUsernameInput] = useState("");
-  const deferredUsername = useDeferredValue(usernameInput.trim());
+  const deferredUsername = useDebouncedValue(usernameInput.trim());
   const postsQuery = useAdminPosts({
     username: deferredUsername.length > 0 ? deferredUsername : undefined,
   });
