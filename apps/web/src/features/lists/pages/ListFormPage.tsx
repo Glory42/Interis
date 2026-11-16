@@ -13,6 +13,7 @@ import {
 import { ListMetadataFields } from "@/features/lists/components/ListMetadataFields";
 import { ListItemSearch, type SearchResult } from "@/features/lists/components/ListItemSearch";
 import { ListItemsEditor } from "@/features/lists/components/ListItemsEditor";
+import { useUpdateListItemNote } from "@/features/lists/hooks/useListCollaborators";
 import { TickLoader } from "@/components/ui/tick-loader";
 import { SettingsSectionSkeleton } from "@/components/ui/PageSkeletons";
 
@@ -37,6 +38,14 @@ export const ListFormPage = (props: ListFormPageProps) => {
     return (
       <div className="rounded-xl border border-border/60 bg-card/30 p-4 text-sm text-destructive">
         This list could not be loaded.
+      </div>
+    );
+  }
+
+  if (list && list.viewerRole !== "owner" && list.viewerRole !== "collaborator") {
+    return (
+      <div className="rounded-xl border border-border/60 bg-card/30 p-4 text-sm text-muted-foreground">
+        You can't edit this list.
       </div>
     );
   }
@@ -88,6 +97,9 @@ const ListFormPageContent = ({
   const addItemMutation = useAddListItem(listId, username);
   const removeItemMutation = useRemoveListItem(listId, username);
   const reorderMutation = useReorderListItems(listId);
+  const noteMutation = useUpdateListItemNote(listId);
+  // List Collaborators edit entries only; the list's settings stay the owner's.
+  const isCollaborator = list?.viewerRole === "collaborator";
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -190,43 +202,55 @@ const ListFormPageContent = ({
 
       <div className="mb-8 flex items-center justify-between gap-4 border-b border-border/50 pb-5">
         <h1 className="font-mono text-xl font-bold text-foreground">
-          {mode === "create" ? "New List" : "Edit List"}
+          {mode === "create" ? "New List" : isCollaborator ? "Edit Entries" : "Edit List"}
         </h1>
-        <div className="flex items-center gap-2">
+        {isCollaborator ? (
           <Link
-            to="/profile/$username/lists"
-            params={{ username }}
-            className="rounded-full border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground"
+            to="/profile/$username/lists/$listId"
+            params={{ username, listId }}
+            className="rounded-full border border-primary/45 bg-primary/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-primary"
           >
-            Cancel
+            Done
           </Link>
-          <button
-            type="button"
-            disabled={!canSave}
-            onClick={() => { void handleSave(); }}
-            className="rounded-full border border-primary/45 bg-primary/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-primary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isSaving ? (
-              <span className="inline-flex items-center gap-1.5">
-                <TickLoader /> Saving
-              </span>
-            ) : (
-              "Save"
-            )}
-          </button>
-        </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Link
+              to="/profile/$username/lists"
+              params={{ username }}
+              className="rounded-full border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Cancel
+            </Link>
+            <button
+              type="button"
+              disabled={!canSave}
+              onClick={() => { void handleSave(); }}
+              className="rounded-full border border-primary/45 bg-primary/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-primary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isSaving ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <TickLoader /> Saving
+                </span>
+              ) : (
+                "Save"
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
-      <ListMetadataFields
-        title={title}
-        onTitleChange={setTitle}
-        description={description}
-        onDescriptionChange={setDescription}
-        isPublic={isPublic}
-        onIsPublicChange={setIsPublic}
-        isRanked={isRanked}
-        onIsRankedChange={setIsRanked}
-      />
+      {isCollaborator ? null : (
+        <ListMetadataFields
+          title={title}
+          onTitleChange={setTitle}
+          description={description}
+          onDescriptionChange={setDescription}
+          isPublic={isPublic}
+          onIsPublicChange={setIsPublic}
+          isRanked={isRanked}
+          onIsRankedChange={setIsRanked}
+        />
+      )}
 
       <ListItemSearch existingTmdbIds={existingTmdbIds} onSelect={(result) => { void handleAddItem(result); }} />
 
@@ -239,6 +263,7 @@ const ListFormPageContent = ({
         isAnyRemovePending={removeItemMutation.isPending}
         removingItemId={removeItemMutation.variables ?? null}
         isReorderPending={reorderMutation.isPending}
+        onNoteSave={mode === "edit" ? (itemId, note) => noteMutation.mutate({ itemId, note }) : undefined}
       />
     </div>
   );

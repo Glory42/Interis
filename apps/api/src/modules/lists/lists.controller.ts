@@ -8,7 +8,9 @@ import {
 import {
   AddListItemSchema,
   CreateListSchema,
+  InviteListCollaboratorSchema,
   ReorderListItemsSchema,
+  UpdateListItemNoteSchema,
   UpdateListSchema,
 } from "./dto/lists.dto";
 import { ListsService } from "./lists.service";
@@ -156,6 +158,68 @@ export class ListsController {
       parsed.data.items,
     );
 
+    if ("error" in result) {
+      sendErrorForStatus(res, result.status, result.error);
+      return;
+    }
+
+    res.status(200).json(result);
+  }
+
+  // PATCH /api/lists/:id/items/:itemId
+  static async updateItemNote(
+    req: Request<{ id: string; itemId: string }>,
+    res: Response,
+  ): Promise<void> {
+    const parsed = UpdateListItemNoteSchema.safeParse(req.body);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    const result = await ListsService.updateItemNote(req.params.id, req.user.id, req.params.itemId, parsed.data.note);
+    if ("error" in result) {
+      sendErrorForStatus(res, result.status, result.error);
+      return;
+    }
+
+    res.status(200).json(result);
+  }
+
+  // POST /api/lists/:id/collaborators
+  static async inviteCollaborator(req: Request<{ id: string }>, res: Response): Promise<void> {
+    const parsed = InviteListCollaboratorSchema.safeParse(req.body);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error);
+      return;
+    }
+
+    const result = await ListsService.inviteCollaborator(req.params.id, req.user.id, parsed.data.username);
+    if ("error" in result) {
+      sendErrorForStatus(res, result.status, result.error);
+      return;
+    }
+
+    res.status(201).json(result);
+  }
+
+  // POST /api/lists/:id/collaborators/accept
+  static async acceptInvite(req: Request<{ id: string }>, res: Response): Promise<void> {
+    const result = await ListsService.acceptInvite(req.params.id, req.user.id);
+    if ("error" in result) {
+      sendErrorForStatus(res, result.status, result.error);
+      return;
+    }
+
+    res.status(200).json(result);
+  }
+
+  // DELETE /api/lists/:id/collaborators/:userId (remove, decline or leave)
+  static async removeCollaborator(
+    req: Request<{ id: string; userId: string }>,
+    res: Response,
+  ): Promise<void> {
+    const result = await ListsService.removeCollaborator(req.params.id, req.user.id, req.params.userId);
     if ("error" in result) {
       sendErrorForStatus(res, result.status, result.error);
       return;

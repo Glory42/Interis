@@ -95,8 +95,12 @@ A user-curated, orderable collection of Films and/or Series, optionally ranked a
 _Avoid_: watchlist (Watchlist is a boolean Interaction flag, not a List)
 
 **List Entry**:
-One Film or Series' membership in a List, carrying its position and an optional note.
+One Film or Series' membership in a List, carrying its position, an optional note, and who added it.
 _Avoid_: list item
+
+**List Collaborator**:
+A User the List's owner has invited to edit it with them (up to 10 per List). An invitee becomes a collaborator by accepting, or declines; a collaborator can leave and the owner can remove them. Collaborators add, remove and reorder List Entries and edit their notes; they and pending invitees see the List even while it is private; only the owner renames it, changes its visibility or ranking, deletes it, or manages collaborators. The one rule set lives in `modules/lists` (`list-access.policy`, `ListAccessService`). A shared List also shows on the collaborator's Lists Profile Tab.
+_Avoid_: co-owner, member, editor
 
 ### Social & activity
 
@@ -167,5 +171,5 @@ _Avoid_: og image, thumbnail
 ### Notifications
 
 **Notification**:
-A record that another user's action (follow, like, comment) or a moderator's removal of their content is relevant to a user and awaits their attention, with its own read/unread state. Distinct from Activity, which is the public record of the action itself regardless of who it's relevant to.
+A record that another user's action (follow, like, comment, a List Collaborator invite or its acceptance) or a moderator's removal of their content is relevant to a user and awaits their attention, with its own read/unread state. Distinct from Activity, which is the public record of the action itself regardless of who it's relevant to.
 _Avoid_: alert
