@@ -89,6 +89,10 @@ _Avoid_: status, tweet
 The personalized, authenticated activity stream showing Activities from the users the viewer follows (plus their own), scoped via the Follow relationship. Shown as Feed Rows split into the viewer's days. Backs `GET /api/social/feed/grouped`.
 _Avoid_: feed (too ambiguous alone — always qualify as "Following Feed" or "Trending Now")
 
+**From People You Follow**:
+What the users the viewer follows make of one Film or Series, shown on its detail page to signed-in viewers: how many watched it, the average of their Your Rating, and each one's rating, like, watch date or Series watch status and latest Review. Muted, blocked and suspended users are left out. Also a "Following" sort on the title's Reviews. Owned by `modules/media` (`MediaFollowingService`).
+_Avoid_: friends' ratings, social proof
+
 **Feed Row**:
 One row the viewer sees in the Following Feed or a profile overview: a title card (one person's Activities on one Film/Series, season or episode on one day), a plain Activity, or a folded run of one person's same-day likes, watchlist adds, follows, or one show's seasons and episodes. Days are the viewer's local days (their IANA time zone, UTC if unknown); the API folds and pages rows, the web only renders them.
 _Avoid_: entry, item (an item is one Activity before grouping)
