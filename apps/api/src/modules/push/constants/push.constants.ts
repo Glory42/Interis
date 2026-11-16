@@ -26,6 +26,8 @@ export const PUSH_CATEGORY_BY_TYPE: Record<PushNotificationType, PushCategory> =
   comment_review: "comments",
   comment_post: "comments",
   content_removed: "moderation",
+  list_invite: "follows",
+  list_invite_accepted: "follows",
 };
 
 // The server POSTs to whatever endpoint a browser hands it, so only known push services are accepted.

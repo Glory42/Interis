@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DEFAULT_TRUST_PROXY } from "./trust-proxy";
 
 const envSchema = z.object({
   NODE_ENV: z
@@ -26,6 +27,8 @@ const envSchema = z.object({
   // - fixed here proactively even though nothing currently sets this
   // explicitly to "false" outside docker-compose.
   USE_LOCAL_DB_PROXY: z.stringbool().default(false),
+  // Which proxies may set req.ip via X-Forwarded-For; see trust-proxy.ts.
+  TRUST_PROXY: z.string().default(DEFAULT_TRUST_PROXY),
   // Web Push (VAPID). All three unset disables push notifications.
   VAPID_PUBLIC_KEY: z.string().trim().optional(),
   VAPID_PRIVATE_KEY: z.string().trim().optional(),

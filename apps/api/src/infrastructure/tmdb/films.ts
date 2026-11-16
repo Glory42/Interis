@@ -35,15 +35,17 @@ type GenreCacheEntry = {
 
 let filmGenreCache: GenreCacheEntry | null = null;
 
-export const searchFilms = async (
-  query: string,
-): Promise<TMDBSearchFilm[]> => {
-  const data = await fetchTMDB(
-    `/search/movie?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`,
-  );
-  const results = (data as { results?: unknown }).results ?? [];
-  return z.array(TMDBSearchFilmSchema).parse(results);
-};
+// Typing in search sends the same few queries over and over; TMDB matches case-insensitively.
+export const searchFilms = createCachedTmdbFetcher(
+  async (query: string): Promise<TMDBSearchFilm[]> => {
+    const data = await fetchTMDB(
+      `/search/movie?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`,
+    );
+    const results = (data as { results?: unknown }).results ?? [];
+    return z.array(TMDBSearchFilmSchema).parse(results);
+  },
+  { keyFn: (query) => query.trim().toLowerCase(), ttlMs: 10 * 60 * 1000, maxEntries: 500 },
+);
 
 export const searchFilmByTitleAndYear = async (
   title: string,

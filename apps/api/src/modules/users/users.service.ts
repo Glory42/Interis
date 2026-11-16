@@ -11,6 +11,7 @@ import {
   type ProfileTab,
   type ProfileTabReadOptions,
 } from "./services/profile-tabs.service";
+import { UsersStatsCacheService } from "./services/users-stats-cache.service";
 
 const withNormalizedTheme = <T extends { themeId: string }>(row: T | null) =>
   row ? { ...row, themeId: normalizeThemeId(row.themeId) } : null;
@@ -26,7 +27,7 @@ export class UsersService {
   }
 
   static async getNetworkStats() {
-    return UsersStatsRepository.getNetworkStats();
+    return UsersStatsCacheService.networkStats();
   }
 
   static async searchUsers(query: string, limit = 8) {
@@ -45,13 +46,13 @@ export class UsersService {
     return withNormalizedTheme(await UsersProfileRepository.findProfileById(userId));
   }
 
-  static async getPublicProfileWithStats(username: string) {
+  static async getPublicProfileWithStats(username: string, viewerUserId: string | null = null) {
     const profile = await UsersService.findByUsername(username);
     if (!profile) {
       return null;
     }
 
-    const stats = await UsersStatsRepository.getStatsCounts(profile.id);
+    const stats = await UsersStatsCacheService.statsCounts(profile.id, viewerUserId);
     const { email: _email, ...publicProfile } = profile;
     return { ...publicProfile, stats };
   }
@@ -85,8 +86,8 @@ export class UsersService {
     return UsersStatsRepository.getStatsCounts(userId);
   }
 
-  static async getDetailedStats(userId: string) {
-    const { minutesWatched, ...stats } = await UsersStatsRepository.getDetailedStats(userId);
+  static async getDetailedStats(userId: string, viewerUserId: string | null = null) {
+    const { minutesWatched, ...stats } = await UsersStatsCacheService.detailedStats(userId, viewerUserId);
     const ratedLogCount = stats.ratingDistribution.reduce((sum, row) => sum + row.count, 0);
     const ratingTotal = stats.ratingDistribution.reduce(
       (sum, row) => sum + row.rating * row.count,

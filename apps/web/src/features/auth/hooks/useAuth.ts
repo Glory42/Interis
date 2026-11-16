@@ -26,7 +26,8 @@ export const authQueryOptions = queryOptions({
   queryKey: authKeys.me,
   queryFn: getCurrentUser,
   retry: false,
-  staleTime: 60_000,
+  // Only login/logout/identity mutations change it, and they invalidate this key.
+  staleTime: 10 * 60_000,
 });
 
 export const useAuth = () => {

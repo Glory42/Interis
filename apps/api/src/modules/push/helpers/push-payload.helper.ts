@@ -9,6 +9,8 @@ const ACTION_BY_TYPE: Record<Exclude<PushNotificationType, "content_removed">, s
   like_activity: "liked your activity",
   comment_review: "commented on your review",
   comment_post: "commented on your post",
+  list_invite: "invited you to edit a list",
+  list_invite_accepted: "joined your list",
 };
 
 const REMOVED_LABEL: Record<string, string> = {
@@ -44,7 +46,13 @@ export const buildPushPayload = (
   const isReviewNotice = notification.type === "like_review" || notification.type === "comment_review";
 
   let url = "/";
-  if (isReviewNotice && names.recipientUsername) {
+  // entityId is the list; its owner is the actor of an invite and the recipient of an acceptance.
+  const listOwner = notification.type === "list_invite" ? names.actorUsername : names.recipientUsername;
+  if (notification.type === "list_invite" || notification.type === "list_invite_accepted") {
+    url = listOwner
+      ? `/profile/${encodeURIComponent(listOwner)}/lists/${encodeURIComponent(notification.entityId)}`
+      : "/";
+  } else if (isReviewNotice && names.recipientUsername) {
     url = `/reviews/${encodeURIComponent(names.recipientUsername)}/${encodeURIComponent(notification.entityId)}`;
   } else if (!isReviewNotice && names.actorUsername) {
     url = `/profile/${encodeURIComponent(names.actorUsername)}`;

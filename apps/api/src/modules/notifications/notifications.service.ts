@@ -75,10 +75,12 @@ export class NotificationsService {
   // Undo of notify(): the follow or like was taken back, so the recipient
   // stops seeing it, and a re-follow or re-like leaves one notification,
   // not one per toggle. Never fails the request, like ActivityRecorder.retract.
+  // recipientId narrows it to one recipient (a List invite is per invitee).
   static async retract(input: {
     actorId: string;
     type: NotificationType;
     entityId: string;
+    recipientId?: string;
   }): Promise<void> {
     try {
       await NotificationsRepository.deleteMatching(input);

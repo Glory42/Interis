@@ -14,6 +14,8 @@ import {
   useUnreadNotificationCount,
 } from "@/features/notifications/hooks/useNotifications";
 import { formatRelativeTime } from "@/lib/time";
+import { ListInviteNotification } from "@/features/lists/components/ListInviteNotification";
+import { listTitleFrom } from "@/features/lists/list-notification-metadata";
 
 const messageByType: Record<NotificationType, string> = {
   follow: "started following you",
@@ -23,6 +25,8 @@ const messageByType: Record<NotificationType, string> = {
   comment_review: "commented on your review",
   comment_post: "commented on your post",
   content_removed: "",
+  list_invite: "invited you to edit a list",
+  list_invite_accepted: "joined your list",
 };
 
 const REMOVED_LABEL: Record<string, string> = { review: "review", post: "post", comment: "comment", post_comment: "comment", list: "list" };
@@ -78,7 +82,8 @@ const RemovalNotice = ({ notification, onRead }: { notification: NotificationIte
 
 type NotificationLink =
   | { to: "/reviews/$username/$reviewId"; params: { username: string; reviewId: string } }
-  | { to: "/profile/$username"; params: { username: string } };
+  | { to: "/profile/$username"; params: { username: string } }
+  | { to: "/profile/$username/lists/$listId"; params: { username: string; listId: string } };
 
 const resolveNotificationLink = (
   notification: NotificationItem,
@@ -88,6 +93,13 @@ const resolveNotificationLink = (
     return {
       to: "/reviews/$username/$reviewId",
       params: { username: ownUsername, reviewId: notification.entityId },
+    };
+  }
+
+  if (notification.type === "list_invite_accepted") {
+    return {
+      to: "/profile/$username/lists/$listId",
+      params: { username: ownUsername, listId: notification.entityId },
     };
   }
 
@@ -223,8 +235,24 @@ export const NotificationsBell = () => {
                       </li>
                     );
                   }
+                  if (notification.type === "list_invite") {
+                    return (
+                      <li key={notification.id} className={rowClass}>
+                        <ListInviteNotification
+                          notification={notification}
+                          onNavigate={() => {
+                            closeMenu();
+                            if (!notification.isRead) markReadMutation.mutate(notification.id);
+                          }}
+                        />
+                        <DeleteNotificationButton onDelete={() => deleteMutation.mutate(notification.id)} />
+                      </li>
+                    );
+                  }
                   const avatarUrl =
                     notification.actorAvatarUrl ?? notification.actorImage ?? null;
+                  const listTitle =
+                    notification.type === "list_invite_accepted" ? listTitleFrom(notification.metadata) : null;
                   const link = resolveNotificationLink(notification, user.username);
 
                   return (
@@ -254,7 +282,7 @@ export const NotificationsBell = () => {
                             <span className="font-semibold">
                               {notification.actorDisplayUsername ?? notification.actorUsername}
                             </span>{" "}
-                            {messageByType[notification.type]}
+                            {listTitle ? `joined your list “${listTitle}”` : messageByType[notification.type]}
                           </span>
                           <span className="block font-mono text-[9px] text-muted-foreground">
                             {formatRelativeTime(notification.createdAt.toISOString())}

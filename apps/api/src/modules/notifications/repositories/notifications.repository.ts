@@ -22,6 +22,7 @@ export class NotificationsRepository {
     actorId: string;
     type: NotificationType;
     entityId: string;
+    recipientId?: string;
   }) {
     return db
       .delete(notifications)
@@ -30,6 +31,7 @@ export class NotificationsRepository {
           eq(notifications.actorId, input.actorId),
           eq(notifications.type, input.type),
           eq(notifications.entityId, input.entityId),
+          input.recipientId ? eq(notifications.recipientId, input.recipientId) : undefined,
         ),
       )
       .returning({ id: notifications.id });

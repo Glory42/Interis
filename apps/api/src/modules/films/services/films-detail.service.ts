@@ -147,20 +147,24 @@ export class FilmsDetailService {
   ): Promise<FilmDetailInputs> {
     const viewerUserId = input.viewerUserId ?? null;
     const reviewsOffset = (input.reviewsPage - 1) * input.reviewsLimit;
+    // A title nobody has saved yet has no logs, reviews or ratings to query.
+    const isSaved = movie.id !== UNSAVED_MEDIA_ID;
 
     const [tmdbDetail, tmdbCredits, logsCount, reviewsPage, tmdbSimilar, communityRatings] =
       await Promise.all([
         tmdbClient.getDetails(input.tmdbId).catch(() => null),
         tmdbClient.getCredits(input.tmdbId).catch(() => null),
-        FilmsRepository.getLogsCountByMovieId(movie.id),
-        FilmsReviewsRepository.getReviewRowsByMovieId(movie.id, {
-          sort: input.reviewsSort,
-          limit: input.reviewsLimit,
-          offset: reviewsOffset,
-          viewerUserId,
-        }),
+        isSaved ? FilmsRepository.getLogsCountByMovieId(movie.id) : 0,
+        isSaved
+          ? FilmsReviewsRepository.getReviewRowsByMovieId(movie.id, {
+              sort: input.reviewsSort,
+              limit: input.reviewsLimit,
+              offset: reviewsOffset,
+              viewerUserId,
+            })
+          : { rows: [], totalCount: 0 },
         tmdbClient.getSimilar(input.tmdbId).catch(() => []),
-        YourRatingService.communityRatings("movie", movie.id),
+        isSaved ? YourRatingService.communityRatings("movie", movie.id) : [],
       ]);
     const { rows: reviewRows, totalCount: reviewsTotalCount } = reviewsPage;
 
@@ -171,40 +175,38 @@ export class FilmsDetailService {
         .map((directorCredit) => toNullableTrimmedText(directorCredit.name))
         .find((directorName): directorName is string => Boolean(directorName)) ?? movie.director;
 
-    if (!movie.director && resolvedDirectorName && movie.id !== UNSAVED_MEDIA_ID) {
+    if (!movie.director && resolvedDirectorName && isSaved) {
       await FilmsRepository.updateDirectorByTmdbId(input.tmdbId, resolvedDirectorName).catch(
         () => undefined,
       );
     }
 
-    const [directors, cast] = await Promise.all([
-      PeopleCacheService.ensurePersonLinks(
-        uniqueDirectorCredits.map((directorCredit) => ({
-          tmdbPersonId: directorCredit.id,
-          name: directorCredit.name,
-          profilePath: directorCredit.profile_path,
-          knownForDepartment: directorCredit.known_for_department,
-          popularity: directorCredit.popularity,
-          routeRole: "director" as const,
-          job: directorCredit.job,
-          department: directorCredit.department,
-        })),
-      ),
-      PeopleCacheService.ensurePersonLinks(
-        [...(tmdbCredits?.cast ?? [])]
-          .sort((leftMember, rightMember) => leftMember.order - rightMember.order)
-          .slice(0, 20)
-          .map((castMember) => ({
-            tmdbPersonId: castMember.id,
-            name: castMember.name,
-            profilePath: castMember.profile_path,
-            knownForDepartment: castMember.known_for_department,
-            popularity: castMember.popularity,
-            routeRole: "actor" as const,
-            character: castMember.character,
-            department: castMember.known_for_department,
-          })),
-      ),
+    const directorSeeds = uniqueDirectorCredits.map((directorCredit) => ({
+      tmdbPersonId: directorCredit.id,
+      name: directorCredit.name,
+      profilePath: directorCredit.profile_path,
+      knownForDepartment: directorCredit.known_for_department,
+      popularity: directorCredit.popularity,
+      routeRole: "director" as const,
+      job: directorCredit.job,
+      department: directorCredit.department,
+    }));
+    const castSeeds = [...(tmdbCredits?.cast ?? [])]
+      .sort((leftMember, rightMember) => leftMember.order - rightMember.order)
+      .slice(0, 20)
+      .map((castMember) => ({
+        tmdbPersonId: castMember.id,
+        name: castMember.name,
+        profilePath: castMember.profile_path,
+        knownForDepartment: castMember.known_for_department,
+        popularity: castMember.popularity,
+        routeRole: "actor" as const,
+        character: castMember.character,
+        department: castMember.known_for_department,
+      }));
+    const [directors = [], cast = []] = await PeopleCacheService.ensurePersonLinkGroups([
+      directorSeeds,
+      castSeeds,
     ]);
 
     const engagement = await loadReviewEngagement(
@@ -213,7 +215,7 @@ export class FilmsDetailService {
       viewerUserId,
     );
 
-    const [viewerDiary, viewerRating, viewerReviewRow] = viewerUserId
+    const [viewerDiary, viewerRating, viewerReviewRow] = viewerUserId && isSaved
       ? await Promise.all([
           WatchLogStores.film.findLatest(viewerUserId, movie.id),
           YourRatingService.resolve("movie", viewerUserId, movie.id),
@@ -245,6 +247,7 @@ export class FilmsDetailService {
 
   static async getLogsByTmdbId(tmdbId: number, limit?: number, offset?: number) {
     const movie = await FilmsCacheService.findForRead(tmdbId);
+    if (movie.id === UNSAVED_MEDIA_ID) return [];
     return FilmsRepository.getLogsByMovieId(movie.id, limit, offset);
   }
 }

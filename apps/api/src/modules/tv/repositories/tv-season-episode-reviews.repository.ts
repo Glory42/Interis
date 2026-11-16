@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { MediaFollowingRepository } from "../../media/repositories/media-following.repository";
@@ -90,7 +90,13 @@ export class TvSeasonEpisodeReviewsRepository {
               rating: seriesSeasonInteractions.rating,
             })
             .from(seriesSeasonInteractions)
-            .where(eq(seriesSeasonInteractions.seriesId, seriesId))
+            .where(
+              and(
+                eq(seriesSeasonInteractions.seriesId, seriesId),
+                inArray(seriesSeasonInteractions.userId, [...new Set(seasonRows.map((row) => row.userId))]),
+                isNotNull(seriesSeasonInteractions.rating),
+              ),
+            )
         : Promise.resolve([]),
       episodeRows.length > 0
         ? db
@@ -101,7 +107,14 @@ export class TvSeasonEpisodeReviewsRepository {
               rating: seriesEpisodeInteractions.rating,
             })
             .from(seriesEpisodeInteractions)
-            .where(eq(seriesEpisodeInteractions.seriesId, seriesId))
+            // Only the review authors' rated rows, never every viewer's watched-episode marks.
+            .where(
+              and(
+                eq(seriesEpisodeInteractions.seriesId, seriesId),
+                inArray(seriesEpisodeInteractions.userId, [...new Set(episodeRows.map((row) => row.userId))]),
+                isNotNull(seriesEpisodeInteractions.rating),
+              ),
+            )
         : Promise.resolve([]),
     ]);
 

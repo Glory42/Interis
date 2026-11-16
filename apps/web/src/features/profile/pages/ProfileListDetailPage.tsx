@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Ellipsis, Heart } from "lucide-react";
+import { ArrowLeft, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { SentenceSelect } from "@/components/ui/SentenceSelect";
@@ -8,6 +8,11 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { ReportContentDialog } from "@/features/reports/components/ReportContentDialog";
 import { ListDetailPoster, ListDetailRow } from "@/features/lists/components/ListDetailItems";
 import { useDeleteList, useLikeList, useListDetail, useUnlikeList } from "@/features/lists/hooks/useLists";
+import { useRemoveListCollaborator } from "@/features/lists/hooks/useListCollaborators";
+import { ListCollaboratorsRow } from "@/features/lists/components/ListCollaboratorsRow";
+import { ListDetailActionsMenu } from "@/features/lists/components/ListDetailActionsMenu";
+import { ListInviteBanner } from "@/features/lists/components/ListInviteBanner";
+import { ManageCollaboratorsDialog } from "@/features/lists/components/ManageCollaboratorsDialog";
 import { cn } from "@/lib/utils";
 import { DocumentSkeleton, PosterGridSkeleton } from "@/components/ui/PageSkeletons";
 import { LikeMark } from "@/components/ui/LikeMark";
@@ -31,20 +36,23 @@ const kindLabel = (derivedType: string | null, count: number) => {
   return `${count} ${noun}${count === 1 || noun === "series" ? "" : "s"}`;
 };
 
-const menuItem = "block w-full px-4 py-2 text-left text-xs text-muted-foreground hover:bg-foreground/5 hover:text-foreground";
-
 export const ProfileListDetailPage = ({ username, listId }: ProfileListDetailPageProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const detailQuery = useListDetail(listId);
   const list = detailQuery.data;
-  const isOwnProfile = Boolean(user && list && user.id === list.userId);
-  const deleteMutation = useDeleteList(listId, username);
+  // Shared lists can be reached from a collaborator's profile, so name the real owner.
+  const ownerUsername = list?.ownerUsername ?? username;
+  const role = list?.viewerRole ?? "none";
+  const canEditEntries = role === "owner" || role === "collaborator";
+  const deleteMutation = useDeleteList(listId, ownerUsername);
+  const leaveMutation = useRemoveListCollaborator(listId, user?.username);
   const likeMutation = useLikeList(listId, user?.username);
   const unlikeMutation = useUnlikeList(listId, user?.username);
   const [view, setView] = useState<ListView>("rows");
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isConfirmingLeave, setIsConfirmingLeave] = useState(false);
+  const [isManagingCollaborators, setIsManagingCollaborators] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
 
   if (detailQuery.isPending) {
@@ -65,14 +73,23 @@ export const ProfileListDetailPage = ({ username, listId }: ProfileListDetailPag
   const slateLeft = ["List", list.isRanked ? "Ranked" : null, kindLabel(list.derivedType, list.itemCount), list.isPublic ? "Public" : "Private"]
     .filter(Boolean)
     .join(" · ");
-  const slateRight = [`By ${username}`, Number.isNaN(updated.getTime()) ? null : `Updated ${MONTHS[updated.getMonth()]} ${updated.getDate()}`]
+  const slateRight = [`By ${ownerUsername}`, Number.isNaN(updated.getTime()) ? null : `Updated ${MONTHS[updated.getMonth()]} ${updated.getDate()}`]
     .filter(Boolean)
     .join(" · ");
 
   const deleteList = async () => {
     await deleteMutation.mutateAsync();
     setIsConfirmingDelete(false);
-    void navigate({ to: "/profile/$username/lists", params: { username } });
+    void navigate({ to: "/profile/$username/lists", params: { username: ownerUsername } });
+  };
+
+  const leaveList = async () => {
+    if (!user) return;
+    await leaveMutation.mutateAsync(user.id);
+    setIsConfirmingLeave(false);
+    if (!list.isPublic) {
+      void navigate({ to: "/profile/$username/lists", params: { username: user.username } });
+    }
   };
 
   return (
@@ -86,6 +103,8 @@ export const ProfileListDetailPage = ({ username, listId }: ProfileListDetailPag
         Lists
       </Link>
 
+      {role === "invitee" ? <ListInviteBanner listId={list.id} ownerUsername={ownerUsername} /> : null}
+
       <div className="rounded-[3px] border border-[color:var(--line)]">
         <div className="slate mono-meta rounded-t-[3px] uppercase">
           <span>{slateLeft}</span>
@@ -97,9 +116,14 @@ export const ProfileListDetailPage = ({ username, listId }: ProfileListDetailPag
             <div className="min-w-0">
               <h1 className="user-text display-2 leading-none text-foreground">{list.title}</h1>
               {list.description ? <p className="user-text body mt-2 text-muted-foreground">{list.description}</p> : null}
+              <ListCollaboratorsRow
+                collaborators={list.collaborators}
+                canManage={role === "owner"}
+                onManage={() => setIsManagingCollaborators(true)}
+              />
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              {user && !isOwnProfile ? (
+              {user && !canEditEntries ? (
                 <Button
                   variant="outline"
                   size="md"
@@ -119,73 +143,28 @@ export const ProfileListDetailPage = ({ username, listId }: ProfileListDetailPag
               ) : null}
 
               {user ? (
-                <div
-                  className="relative"
-                  onBlur={(event) => !event.currentTarget.contains(event.relatedTarget) && setIsMenuOpen(false)}
-                  onKeyDown={(event) => event.key === "Escape" && setIsMenuOpen(false)}
-                >
-                  <Button
-                    variant="icon"
-                    size="md"
-                    aria-label="List actions"
-                    aria-haspopup="menu"
-                    aria-expanded={isMenuOpen}
-                    onClick={() => setIsMenuOpen((open) => !open)}
-                  >
-                    <Ellipsis aria-hidden className="size-4" />
-                  </Button>
-                  {isMenuOpen ? (
-                    <div role="menu" className="surface-card absolute top-full right-0 z-40 mt-1 min-w-32 overflow-hidden">
-                      {isOwnProfile ? (
-                        <>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            className={menuItem}
-                            onClick={() => void navigate({ to: "/profile/$username/lists/$listId/edit", params: { username, listId } })}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            className={cn(menuItem, "text-[color:var(--danger)]")}
-                            onClick={() => {
-                              setIsMenuOpen(false);
-                              setIsConfirmingDelete(true);
-                            }}
-                          >
-                            Delete
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className={menuItem}
-                          onClick={() => {
-                            setIsMenuOpen(false);
-                            setIsReporting(true);
-                          }}
-                        >
-                          Report list
-                        </button>
-                      )}
-                    </div>
-                  ) : null}
-                </div>
+                <ListDetailActionsMenu
+                  role={role}
+                  onEdit={() =>
+                    void navigate({ to: "/profile/$username/lists/$listId/edit", params: { username: ownerUsername, listId } })
+                  }
+                  onManageCollaborators={() => setIsManagingCollaborators(true)}
+                  onDelete={() => setIsConfirmingDelete(true)}
+                  onLeave={() => setIsConfirmingLeave(true)}
+                  onReport={() => setIsReporting(true)}
+                />
               ) : null}
             </div>
           </div>
 
           {list.items.length === 0 ? (
             <p className="body-s mt-4 border-t border-[color:var(--line)] pt-4 text-muted-foreground">
-              {isOwnProfile ? "Edit this list to add films and series." : "This list is empty."}
+              {canEditEntries ? "Edit this list to add films and series." : "This list is empty."}
             </p>
           ) : view === "rows" ? (
             <ol className="mt-4">
               {list.items.map((item, index) => (
-                <ListDetailRow key={item.id} item={item} rank={list.isRanked ? index + 1 : null} />
+                <ListDetailRow key={item.id} item={item} rank={list.isRanked ? index + 1 : null} ownerId={list.userId} />
               ))}
             </ol>
           ) : (
@@ -217,6 +196,25 @@ export const ProfileListDetailPage = ({ username, listId }: ProfileListDetailPag
         isConfirming={deleteMutation.isPending}
         onConfirm={() => void deleteList()}
         onClose={() => setIsConfirmingDelete(false)}
+      />
+      <ConfirmDialog
+        isOpen={isConfirmingLeave}
+        context="List · Leave"
+        title="Leave this list?"
+        description="You'll stop being able to edit it. The titles you added stay on the list."
+        confirmLabel="Leave list"
+        cancelLabel="Stay"
+        isDestructive
+        isConfirming={leaveMutation.isPending}
+        onConfirm={() => void leaveList()}
+        onClose={() => setIsConfirmingLeave(false)}
+      />
+      <ManageCollaboratorsDialog
+        isOpen={isManagingCollaborators}
+        onClose={() => setIsManagingCollaborators(false)}
+        listId={list.id}
+        ownerId={list.userId}
+        collaborators={list.collaborators}
       />
       <ReportContentDialog isOpen={isReporting} onClose={() => setIsReporting(false)} targetType="list" targetId={list.id} />
     </div>

@@ -27,7 +27,23 @@ export const ReorderListItemsSchema = z.object({
         position: z.number().int().positive(),
       }),
     )
-    .min(1),
+    .min(1)
+    .refine((items) => new Set(items.map((i) => i.id)).size === items.length, "Duplicate entry ids")
+    .refine((items) => new Set(items.map((i) => i.position)).size === items.length, "Duplicate positions"),
+});
+
+export const UpdateListItemNoteSchema = z.object({
+  // Blank clears the note.
+  note: z
+    .string()
+    .max(500)
+    .trim()
+    .nullable()
+    .transform((note) => note || null),
+});
+
+export const InviteListCollaboratorSchema = z.object({
+  username: z.string().trim().min(1).max(64),
 });
 
 export const GetUserListsQuerySchema = z.object({

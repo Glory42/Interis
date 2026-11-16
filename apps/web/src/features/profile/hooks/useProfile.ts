@@ -177,6 +177,7 @@ export const useUserTopPicks = (username: string) =>
   useQuery({
     queryKey: profileKeys.topPicks(username),
     queryFn: ({ signal }) => getUserTopPicks(username, { signal }),
+    staleTime: 10 * 60_000,
     enabled: username.trim().length > 0,
   });
 

@@ -4,6 +4,7 @@ import {
   sendNotFound,
   sendValidationError,
 } from "../../commons/http/validation-response.helper";
+import { publicCache } from "../../commons/http/cache-control.helper";
 import { normalizePersonRouteSlug } from "./helpers/people-slug.helper";
 import {
   PersonCreditsQuerySchema,
@@ -14,7 +15,7 @@ import { PeopleDetailService } from "./services/people-detail.service";
 import type { PersonRouteRole } from "./types/people.types";
 
 // TMDB person data changes slowly and nothing here is viewer-specific.
-const PERSON_CACHE_CONTROL = "public, max-age=300";
+const PERSON_CACHE_TIMES = { maxAge: 300, sMaxAge: 3600 };
 
 const parsePersonRoute = (
   req: Request<PersonRouteParams>,
@@ -52,7 +53,7 @@ export class PeopleController {
       return;
     }
 
-    res.setHeader("Cache-Control", PERSON_CACHE_CONTROL);
+    publicCache(res, PERSON_CACHE_TIMES);
     res.status(200).json(detail);
   }
 
@@ -74,7 +75,7 @@ export class PeopleController {
       return;
     }
 
-    res.setHeader("Cache-Control", PERSON_CACHE_CONTROL);
+    publicCache(res, PERSON_CACHE_TIMES);
     res.status(200).json(page);
   }
 }

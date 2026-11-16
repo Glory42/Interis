@@ -53,6 +53,8 @@ Set these in Render's Environment tab (Secrets, not the repo):
 | `NODE_ENV` | `production` |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Optional, turn on Web Push notifications (see below). Leave all three unset to keep push off; Settings → Notifications then says push isn't available |
 
+`TRUST_PROXY` defaults to `cloudflare`, which is right for this setup (Client → Cloudflare → Render's load balancer → app). Express then trusts only the private-network hop (Render's proxy) and Cloudflare's published ranges (`src/infrastructure/config/trust-proxy.ts`), walking `X-Forwarded-For` from the right. That makes `req.ip` the visitor, which keys the rate limiters and is stored as the session IP. A client can't choose its own IP by writing `X-Forwarded-For`, even when it calls the `*.onrender.com` origin directly. Set `none` to disable it, a hop count, or a comma-separated list of CIDRs. `true` is refused. If Cloudflare publishes new ranges (https://www.cloudflare.com/ips/), update the list.
+
 Everything else (`AUTH_ACCESS_COOKIE_NAME`, `AUTH_REFRESH_COOKIE_NAME`, `JWT_ACCESS_TTL_SECONDS`, `REFRESH_TOKEN_TTL_SECONDS`, `USE_LOCAL_DB_PROXY`) has a safe default in `env.ts` and doesn't need to be set explicitly in production. Don't set `USE_LOCAL_DB_PROXY` at all unless you mean it — see the `z.stringbool()` note below.
 
 ### Web Push (VAPID keys)
@@ -81,6 +83,40 @@ deleted as push services answer 404/410.
 drains the Free plan's monthly network-transfer quota). Bring the DB up with
 `docker compose up postgres db-proxy`, then `bun run dev`. See
 [`apps/api/.env.example`](apps/api/.env.example).
+
+---
+
+## Cloudflare edge cache for the API (set up by hand)
+
+Cloudflare doesn't cache JSON by default. Without the rule below, every API request reaches Render and usually Neon. The origin already sends correct headers (`apps/api/src/commons/http/cache-control.helper.ts`):
+
+- `public, max-age=…, s-maxage=…` on reads that are the same for everyone: trending/recent lists, search, the cached title row, people pages.
+- `public, max-age=0, s-maxage=…` plus `Vary: Cookie` on signed-out Film/Series detail, reviews, archive, season and log reads. The edge may keep these, browsers never do.
+- `private, no-store` on the same reads whenever an auth cookie is present, and on everything viewer-specific.
+
+So the rule only needs to make these paths eligible and defer to the origin. In the dashboard, open the zone, then **Caching → Cache Rules → Create rule**:
+
+- **Rule name:** `API public reads`
+- **When incoming requests match** (custom filter expression; Free plan, so `starts_with`, not regex `matches`):
+
+  ```
+  (http.host eq "api.interis.gorkemkaryol.dev"
+   and http.request.method eq "GET"
+   and (starts_with(http.request.uri.path, "/api/movies/")
+        or starts_with(http.request.uri.path, "/api/serials/")
+        or starts_with(http.request.uri.path, "/api/people/")
+        or http.request.uri.path eq "/api/search")
+   and not http.cookie contains "interis_access_token"
+   and not http.cookie contains "interis_refresh_token")
+  ```
+
+  The cookie names are `AUTH_ACCESS_COOKIE_NAME` / `AUTH_REFRESH_COOKIE_NAME` from `env.ts`. Change them here if those env vars are ever set.
+- **Cache eligibility:** Eligible for cache
+- **Edge TTL:** *Use cache-control header if present, bypass cache if not*. Responses with `private`/`no-store` or no header (errors, 401s) are then never stored.
+- **Browser TTL:** Respect origin
+- **Cache key:** leave the defaults. They include the full query string (archive filters, search terms) and the `Origin` header, so a cached CORS header is never replayed to another origin.
+
+To check it: request a signed-out detail URL twice with `curl -sI -H "Origin: https://<web origin>" https://api.interis.gorkemkaryol.dev/api/movies/603/detail`. The second response should show `cf-cache-status: HIT`. A request with `-H "Cookie: interis_access_token=x"` should show `BYPASS` or `DYNAMIC`.
 
 ---
 

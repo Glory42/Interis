@@ -51,4 +51,20 @@ describe("app shell", () => {
     expect(screen.getByRole("button", { name: /Search/ })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Browse films" })).toHaveAttribute("href", "/movies");
   });
+
+  it("loads the search dialog only when someone opens it", async () => {
+    renderWithProviders(
+      <GlobalSearchDialogProvider>
+        <NotFoundPage />
+      </GlobalSearchDialogProvider>,
+      { routePath: "/movies/godzila-minus-zero" },
+    );
+
+    await screen.findByRole("heading", { name: "Cut to black." });
+    expect(screen.queryByPlaceholderText("Films, shows, members")).not.toBeInTheDocument();
+
+    await act(async () => screen.getByRole("button", { name: /Search/ }).click());
+    // The first open fetches the dialog's chunk, which can be slow on a loaded runner.
+    expect(await screen.findByPlaceholderText("Films, shows, members", {}, { timeout: 4000 })).toBeInTheDocument();
+  });
 });

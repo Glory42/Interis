@@ -1,4 +1,3 @@
-import { useDeferredValue } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ModalShell } from "@/components/ui/ModalShell";
@@ -7,6 +6,7 @@ import { useFilmSearch } from "@/features/films/hooks/useFilms";
 import type { TmdbSearchFilm } from "@/types/api";
 import { TickLoader } from "@/components/ui/tick-loader";
 import { getPosterUrl } from "@/features/media/tmdb-images";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 
 type Top4FilmSearchDialogProps = {
   isOpen: boolean;
@@ -25,7 +25,7 @@ export const Top4FilmSearchDialog = ({
   onSelectMovie,
   isSelectingMovie,
 }: Top4FilmSearchDialogProps) => {
-  const deferredQuery = useDeferredValue(query);
+  const deferredQuery = useDebouncedValue(query);
   const searchQuery = useFilmSearch(deferredQuery);
   const suggestions = (searchQuery.data ?? []).slice(0, 10);
 

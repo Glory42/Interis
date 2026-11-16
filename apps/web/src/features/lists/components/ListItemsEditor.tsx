@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, GripVertical, X } from "lucide-react";
 import type { ListItem } from "@/features/lists/api";
 import type { SearchResult } from "@/features/lists/components/ListItemSearch";
 import { TickLoader } from "@/components/ui/tick-loader";
+import { ListEntryNoteField } from "@/features/lists/components/ListEntryNoteField";
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p";
 const getPosterUrl = (path: string | null) =>
@@ -19,6 +20,8 @@ type ListItemsEditorProps = {
   isAnyRemovePending: boolean;
   removingItemId: string | number | null;
   isReorderPending: boolean;
+  // Edit mode only: saved entries can carry a note.
+  onNoteSave?: (itemId: string, note: string | null) => void;
 };
 
 export const ListItemsEditor = ({
@@ -30,6 +33,7 @@ export const ListItemsEditor = ({
   isAnyRemovePending,
   removingItemId,
   isReorderPending,
+  onNoteSave,
 }: ListItemsEditorProps) => {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -131,6 +135,13 @@ export const ListItemsEditor = ({
                 <p className="font-mono text-sm text-muted-foreground">
                   {releaseYear}
                 </p>
+              ) : null}
+              {onNoteSave && "note" in item ? (
+                <ListEntryNoteField
+                  note={item.note}
+                  title={itemTitle ?? "this title"}
+                  onSave={(note) => onNoteSave(item.id, note)}
+                />
               ) : null}
             </div>
 

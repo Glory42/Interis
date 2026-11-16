@@ -1,4 +1,4 @@
-import { useDeferredValue, useState } from "react";
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -9,11 +9,12 @@ import { AdminSearchInput } from "@/features/admin/components/AdminSearchInput";
 import { UserRowActions } from "@/features/admin/components/AdminUserRowActions";
 import { useAdminUsers } from "@/features/admin/hooks/useAdmin";
 import { formatRelativeTime } from "@/lib/time";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 
 export const AdminUsersPanel = () => {
   const { user: viewer } = useAuth();
   const [queryInput, setQueryInput] = useState("");
-  const deferredQuery = useDeferredValue(queryInput.trim());
+  const deferredQuery = useDebouncedValue(queryInput.trim());
   const usersQuery = useAdminUsers(deferredQuery.length > 0 ? deferredQuery : undefined);
 
   return (

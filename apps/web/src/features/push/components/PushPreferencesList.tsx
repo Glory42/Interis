@@ -4,7 +4,7 @@ import type { PushCategory } from "@/features/push/api";
 import { usePushPreferences, useUpdatePushPreferences } from "@/features/push/hooks/usePush";
 
 const CATEGORIES: { id: PushCategory; label: string; hint: string }[] = [
-  { id: "follows", label: "New followers", hint: "Someone follows you" },
+  { id: "follows", label: "Followers and list invites", hint: "Someone follows you, invites you to a list or joins yours" },
   { id: "likes", label: "Likes", hint: "On your reviews, posts and activity" },
   { id: "comments", label: "Comments", hint: "On your reviews and posts" },
   { id: "moderation", label: "Moderation notices", hint: "A moderator removed something of yours" },

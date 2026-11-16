@@ -1,4 +1,4 @@
-import { useDeferredValue, useState } from "react";
+import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -15,6 +15,7 @@ import { isApiError } from "@/lib/api-client";
 import { formatRelativeTime } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import type { MediaType } from "@/types/api";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 
 const DeleteDiaryEntryAction = ({ entry }: { entry: AdminDiaryEntry }) => {
   const { mutateAsync: deleteEntry, isPending } = useDeleteAdminDiaryEntry();
@@ -67,7 +68,7 @@ const MEDIA_TABS: { value: MediaType; label: string }[] = [
 export const AdminDiaryPanel = () => {
   const [usernameInput, setUsernameInput] = useState("");
   const [mediaType, setMediaType] = useState<MediaType>("movie");
-  const deferredUsername = useDeferredValue(usernameInput.trim());
+  const deferredUsername = useDebouncedValue(usernameInput.trim());
   const entriesQuery = useAdminDiaryEntries({
     username: deferredUsername.length > 0 ? deferredUsername : undefined,
     mediaType,
