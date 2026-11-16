@@ -65,6 +65,10 @@ A user's current rating of a Film or Series, on the 0.5–10 rocket scale: the I
 The average of every user's Your Rating for a Film or Series, one rating per user however many Diary Entries they have. The detail page and archive listings use the same rule.
 _Avoid_: average log rating
 
+**Watch Goal**:
+A user's target for one calendar year: a number of Films and, optionally, a number of Series (`watch_goal`, one row per user and year, so past years stay as history). Progress counts distinct titles with a Diary Entry dated in that year (rewatches count once); a Series counts once it has a Series Diary Entry that year. Pace compares progress with a steady share of the target by the viewer's local day. Public on the Profile, read as a Profile Tab.
+_Avoid_: challenge, reading-challenge style names
+
 ### Lists
 
 **List**:
@@ -97,6 +101,10 @@ _Avoid_: status, tweet
 The personalized, authenticated activity stream showing Activities from the users the viewer follows (plus their own), scoped via the Follow relationship. Shown as Feed Rows split into the viewer's days. Backs `GET /api/social/feed/grouped`.
 _Avoid_: feed (too ambiguous alone — always qualify as "Following Feed" or "Trending Now")
 
+**From People You Follow**:
+What the users the viewer follows make of one Film or Series, shown on its detail page to signed-in viewers: how many watched it, the average of their Your Rating, and each one's rating, like, watch date or Series watch status and latest Review. Muted, blocked and suspended users are left out. Also a "Following" sort on the title's Reviews. Owned by `modules/media` (`MediaFollowingService`).
+_Avoid_: friends' ratings, social proof
+
 **Feed Row**:
 One row the viewer sees in the Following Feed or a profile overview: a title card (one person's Activities on one Film/Series, season or episode on one day), a plain Activity, or a folded run of one person's same-day likes, watchlist adds, follows, or one show's seasons and episodes. Days are the viewer's local days (their IANA time zone, UTC if unknown); the API folds and pages rows, the web only renders them.
 _Avoid_: entry, item (an item is one Activity before grouping)
@@ -126,6 +134,16 @@ _Avoid_: takedown, admin delete
 **Suspension**:
 An admin-applied, platform-wide restriction on a Profile (`isSuspended`) — distinct from Block/Mute, which are relationships between two ordinary users.
 _Avoid_: ban, block
+
+### Sharing
+
+**Link Preview**:
+The title, description and image a chat app or social network shows for a shared Interis link. Served to link-preview bots by the web app's Pages Function from the API's `/api/public/meta/*`; browsers get the same text from each route's `head()`. Only public content has one.
+_Avoid_: embed, unfurl (both name what the other app does with it)
+
+**Share Card**:
+The generated 1200×630 PNG a Link Preview shows for a Review, List, Profile, Film or Series, rendered on the API (`infrastructure/share-cards`, one renderer per card type).
+_Avoid_: og image, thumbnail
 
 ### Notifications
 

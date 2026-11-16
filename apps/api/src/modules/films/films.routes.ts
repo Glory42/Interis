@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { FilmsController } from "./films.controller";
 import { asyncHandler } from "../../commons/utils/asyncHandler";
+import { requireAuth } from "../../commons/middlewares/requireAuth";
+import { MediaFollowingController } from "../media/media-following.controller";
 import { WatchProvidersController } from "../media/watch-providers.controller";
 
 const router = Router();
@@ -12,6 +14,11 @@ router.get("/trending", asyncHandler(FilmsController.getTrending));
 router.get("/:tmdbId/detail", asyncHandler(FilmsController.getDetailByTmdbId));
 router.get("/:tmdbId/reviews", asyncHandler(FilmsController.getReviews));
 router.get("/:tmdbId/logs", asyncHandler(FilmsController.getLogsByTmdbId));
+router.get(
+  "/:tmdbId/following",
+  requireAuth,
+  asyncHandler(MediaFollowingController.forMediaType("movie")),
+);
 router.get("/:tmdbId/watch-providers", asyncHandler(WatchProvidersController.getForFilm));
 router.get("/:tmdbId", asyncHandler(FilmsController.getByTmdbId));
 

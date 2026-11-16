@@ -1,5 +1,5 @@
 {
-  "id": "a301092c-e51a-484d-8f11-29059835099b",
+  "id": "8acc59bf-701a-4e54-94da-44a4cf2e05b7",
   "prevId": "c0b7ea3d-6f67-4298-96d3-b79b0704af0e",
   "version": "7",
   "dialect": "postgresql",
@@ -2892,151 +2892,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.list_collaborator": {
-      "name": "list_collaborator",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "list_id": {
-          "name": "list_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "invited_by_user_id": {
-          "name": "invited_by_user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "status": {
-          "name": "status",
-          "type": "list_collaborator_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'invited'"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "list_collaborator_user_status_idx": {
-          "name": "list_collaborator_user_status_idx",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "status",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "list_collaborator_invited_by_idx": {
-          "name": "list_collaborator_invited_by_idx",
-          "columns": [
-            {
-              "expression": "invited_by_user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "list_collaborator_list_id_list_id_fk": {
-          "name": "list_collaborator_list_id_list_id_fk",
-          "tableFrom": "list_collaborator",
-          "tableTo": "list",
-          "columnsFrom": [
-            "list_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "list_collaborator_user_id_user_id_fk": {
-          "name": "list_collaborator_user_id_user_id_fk",
-          "tableFrom": "list_collaborator",
-          "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "list_collaborator_invited_by_user_id_user_id_fk": {
-          "name": "list_collaborator_invited_by_user_id_user_id_fk",
-          "tableFrom": "list_collaborator",
-          "tableTo": "user",
-          "columnsFrom": [
-            "invited_by_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "list_collaborator_list_user_unique": {
-          "name": "list_collaborator_list_user_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "list_id",
-            "user_id"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.list_entry": {
       "name": "list_entry",
       "schema": "",
@@ -3083,12 +2938,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "added_by_user_id": {
-          "name": "added_by_user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -3098,21 +2947,6 @@
         }
       },
       "indexes": {
-        "le_added_by_idx": {
-          "name": "le_added_by_idx",
-          "columns": [
-            {
-              "expression": "added_by_user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "le_movie_unique": {
           "name": "le_movie_unique",
           "columns": [
@@ -3196,19 +3030,6 @@
             "id"
           ],
           "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "list_entry_added_by_user_id_user_id_fk": {
-          "name": "list_entry_added_by_user_id_user_id_fk",
-          "tableFrom": "list_entry",
-          "tableTo": "user",
-          "columnsFrom": [
-            "added_by_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -4044,6 +3865,87 @@
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
+    },
+    "public.watch_goal": {
+      "name": "watch_goal",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year": {
+          "name": "year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_films": {
+          "name": "target_films",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_series": {
+          "name": "target_series",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "watch_goal_user_id_user_id_fk": {
+          "name": "watch_goal_user_id_user_id_fk",
+          "tableFrom": "watch_goal",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "watch_goal_user_year_unique": {
+          "name": "watch_goal_user_year_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_id",
+            "year"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     }
   },
   "enums": {
@@ -4088,14 +3990,6 @@
         "post"
       ]
     },
-    "public.list_collaborator_status": {
-      "name": "list_collaborator_status",
-      "schema": "public",
-      "values": [
-        "invited",
-        "accepted"
-      ]
-    },
     "public.notification_type": {
       "name": "notification_type",
       "schema": "public",
@@ -4106,9 +4000,7 @@
         "like_activity",
         "comment_review",
         "comment_post",
-        "content_removed",
-        "list_invite",
-        "list_invite_accepted"
+        "content_removed"
       ]
     },
     "public.report_reason": {

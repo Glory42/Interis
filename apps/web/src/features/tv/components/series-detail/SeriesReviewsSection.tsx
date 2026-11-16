@@ -2,6 +2,7 @@ import type { SeriesDetailResponse, SeriesDetailReviewSort } from "@/features/tv
 import { SERIES_MODULE_STYLES } from "@/features/media/styles";
 import { useSeriesReviewsLoadMore } from "@/features/tv/hooks/useTv";
 import { MediaReviewsSection } from "@/features/media/detail/MediaReviewsSection";
+import { useMediaFollowing } from "@/features/media/following/hooks/useMediaFollowing";
 
 type SeriesReviewsSectionProps = {
   tmdbId: number;
@@ -37,6 +38,7 @@ export const SeriesReviewsSection = ({
     reviewsLimit,
     reviewsHasMore,
   );
+  const following = useMediaFollowing("tv", tmdbId);
 
   const contextByReviewId = new Map(
     [...reviews, ...extraItems].map((review) => [review.id, formatReviewContextLabel(review.context)]),
@@ -47,6 +49,7 @@ export const SeriesReviewsSection = ({
       moduleStyles={SERIES_MODULE_STYLES}
       emptyMessage="No reviews yet for this series."
       reviewsSort={reviewsSort}
+      showFollowingSort={(following.data?.summary.reviewCount ?? 0) > 0}
       onSortChange={onSortChange}
       reviews={reviews}
       extraItems={extraItems}

@@ -3,6 +3,7 @@ import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { comments, reviewLikes, reviews } from "../../reviews/reviews.entity";
 import { ReviewsRepository } from "../../reviews/repositories/reviews.repository";
+import { MediaFollowingRepository } from "../../media/repositories/media-following.repository";
 import { profiles } from "../../users/users.entity";
 import { seriesDiaryEntries, tvSeries } from "../tv.entity";
 import type { SeriesDetailReviewSort } from "../dto/tv.dto";
@@ -21,7 +22,12 @@ export class TvReviewsRepository {
   // Sorted/paginated in SQL - see MoviesReviewsRepository's equivalent.
   static async getReviewRowsBySeriesId(
     seriesId: number,
-    options: { sort: SeriesDetailReviewSort; limit: number; offset: number },
+    options: {
+      sort: SeriesDetailReviewSort;
+      limit: number;
+      offset: number;
+      viewerUserId: string | null;
+    },
   ) {
     const [series] = await db
       .select({ tmdbId: tvSeries.tmdbId })
@@ -66,6 +72,7 @@ export class TvReviewsRepository {
           eq(reviews.mediaType, "tv"),
           eq(reviews.mediaSource, "tmdb"),
           eq(reviews.mediaSourceId, String(series.tmdbId)),
+          MediaFollowingRepository.reviewAuthorFilter(options.sort, options.viewerUserId),
         ),
       )
       .orderBy(...orderBy)

@@ -136,7 +136,9 @@ describe("LogEditor", () => {
         },
       },
     ]);
-    expect(events()).toEqual([{ type: "log-created", kind: "film", tmdbId: 550, hasReview: true }]);
+    expect(events()).toEqual([
+      { type: "log-created", kind: "film", tmdbId: 550, hasReview: true, goalYears: [Number(todayAsLocalDateInput().slice(0, 4))] },
+    ]);
     expect(window.localStorage.getItem("interis:review-draft:movie:550")).toBeNull();
   });
 
@@ -165,7 +167,7 @@ describe("LogEditor", () => {
       ]),
     );
     expect(sent).toHaveLength(2);
-    expect(events()).toContainEqual({ type: "log-created", kind: "tv", tmdbId: 1399, hasReview: false });
+    expect(events()).toContainEqual(expect.objectContaining({ type: "log-created", kind: "tv", tmdbId: 1399, hasReview: false }));
   });
 
   it("edits a log and its Review in one request", async () => {
@@ -189,7 +191,7 @@ describe("LogEditor", () => {
         body: { rewatch: true, review: "Better the second time", containsSpoilers: true },
       },
     ]);
-    expect(events()).toEqual([{ type: "log-edited", kind: "film", tmdbId: 550 }]);
+    expect(events()).toEqual([{ type: "log-edited", kind: "film", tmdbId: 550, goalYears: [2026] }]);
   });
 
   it("removes the attached Review when its text is emptied", async () => {
@@ -201,7 +203,7 @@ describe("LogEditor", () => {
 
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     expect(sent).toEqual([{ method: "PUT", path: "/api/serials/logs/log-1", body: { review: null } }]);
-    expect(events()).toEqual([{ type: "log-edited", kind: "tv", tmdbId: 1399 }]);
+    expect(events()).toEqual([{ type: "log-edited", kind: "tv", tmdbId: 1399, goalYears: [2026] }]);
   });
 
   it("shows the API's message and stays open when a save fails", async () => {
@@ -232,7 +234,7 @@ describe("LogEditor", () => {
 
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     expect(sent).toEqual([{ method: "DELETE", path: "/api/serials/logs/log-1?unwatch=true", body: null }]);
-    expect(events()).toEqual([{ type: "log-deleted", kind: "tv", tmdbId: 1399, unwatch: true }]);
+    expect(events()).toEqual([{ type: "log-deleted", kind: "tv", tmdbId: 1399, unwatch: true, goalYears: [2026] }]);
   });
 
   it.each([
