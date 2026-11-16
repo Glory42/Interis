@@ -5,6 +5,7 @@ import { diaryEntries } from "../../diary/diary.entity";
 import { profiles } from "../../users/users.entity";
 import { reviewLikes, reviews } from "../../reviews/reviews.entity";
 import { ReviewsRepository } from "../../reviews/repositories/reviews.repository";
+import { MediaFollowingRepository } from "../../media/repositories/media-following.repository";
 import type { FilmDetailReviewSort } from "../dto/films.dto";
 
 export class FilmsReviewsRepository {
@@ -12,7 +13,12 @@ export class FilmsReviewsRepository {
   // never ships its full history per request; totalCount rides a window fn.
   static async getReviewRowsByMovieId(
     movieId: number,
-    options: { sort: FilmDetailReviewSort; limit: number; offset: number },
+    options: {
+      sort: FilmDetailReviewSort;
+      limit: number;
+      offset: number;
+      viewerUserId: string | null;
+    },
   ) {
     const likeCountExpr = sql<number>`(
       select count(*) from ${reviewLikes} where ${reviewLikes.reviewId} = ${reviews.id}
@@ -42,7 +48,13 @@ export class FilmsReviewsRepository {
       .innerJoin(user, eq(user.id, reviews.userId))
       .leftJoin(profiles, eq(profiles.userId, reviews.userId))
       .leftJoin(diaryEntries, eq(diaryEntries.id, reviews.diaryEntryId))
-      .where(and(eq(reviews.movieId, movieId), eq(reviews.mediaType, "movie")))
+      .where(
+        and(
+          eq(reviews.movieId, movieId),
+          eq(reviews.mediaType, "movie"),
+          MediaFollowingRepository.reviewAuthorFilter(options.sort, options.viewerUserId),
+        ),
+      )
       .orderBy(...orderBy)
       .limit(options.limit)
       .offset(options.offset);
