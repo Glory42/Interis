@@ -11,6 +11,7 @@ router.get("/recent", asyncHandler(TvController.getRecent));
 router.get("/archive", asyncHandler(TvController.getArchive));
 router.get("/trending", asyncHandler(TvController.getTrending));
 router.get("/logs", requireAuth, asyncHandler(TvController.getMyLogs));
+router.get("/logs/:id", requireAuth, asyncHandler(TvController.getMyLog));
 router.put("/logs/:id", requireAuth, asyncHandler(TvController.updateLog));
 router.delete("/logs/:id", requireAuth, asyncHandler(TvController.deleteLog));
 router.get("/:tmdbId/detail", asyncHandler(TvController.getDetailByTmdbId));

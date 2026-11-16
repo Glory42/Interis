@@ -1,19 +1,29 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { filmInteractions } from "../../interactions/interactions.entity";
 import { films } from "../../films/films.entity";
 import { reviews } from "../../reviews/reviews.entity";
 import { applyOptionalPagination } from "../../../commons/helpers/db-pagination.helper";
+import { DiaryTagsRepository } from "../../media/repositories/diary-tags.repository";
 import { diaryEntries } from "../diary.entity";
 
+// includeNote: the owner's own reads only. tag: only entries carrying it.
+export type DiaryReadOptions = { includeNote?: boolean; tag?: string };
+
 export class DiaryRepository {
-  static async findAllByUser(userId: string, limit?: number, offset?: number) {
+  static async findAllByUser(
+    userId: string,
+    limit?: number,
+    offset?: number,
+    { includeNote = false, tag }: DiaryReadOptions = {},
+  ) {
     const query = db
       .select({
         id: diaryEntries.id,
         watchedDate: diaryEntries.watchedDate,
         rating: diaryEntries.rating,
         rewatch: diaryEntries.rewatch,
+        note: includeNote ? diaryEntries.note : sql<string | null>`null`,
         movieId: diaryEntries.movieId,
         createdAt: diaryEntries.createdAt,
         updatedAt: diaryEntries.updatedAt,
@@ -42,7 +52,14 @@ export class DiaryRepository {
           eq(filmInteractions.movieId, diaryEntries.movieId),
         ),
       )
-      .where(eq(diaryEntries.userId, userId))
+      .where(
+        and(
+          eq(diaryEntries.userId, userId),
+          tag === undefined
+            ? undefined
+            : inArray(diaryEntries.id, DiaryTagsRepository.taggedEntryIds(userId, "movie", tag)),
+        ),
+      )
       .orderBy(desc(diaryEntries.watchedDate), desc(diaryEntries.createdAt))
       .$dynamic();
 
