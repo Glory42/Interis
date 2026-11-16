@@ -167,7 +167,7 @@ export const useAddListItem = (listId: string, ownerUsername: string) => {
               title: data.title,
               posterPath: data.posterPath,
               releaseYear: data.releaseYear,
-              ownerRating: null, credit: null,
+              ownerRating: null, credit: null, addedBy: null,
             },
           ],
         });

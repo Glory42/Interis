@@ -21,6 +21,9 @@ export const listSummarySchema = z
     coverImages: z.array(coverImageSchema),
     containsItem: z.boolean().optional(),
     entryId: z.string().nullable().optional(),
+    // "collaborator" marks a List shared with the profile's user; link it under its owner.
+    role: z.enum(["owner", "collaborator"]).optional().default("owner"),
+    ownerUsername: z.string().optional(),
   })
   .passthrough();
 
@@ -29,6 +32,7 @@ const listItemSchema = z.object({
   position: z.number().int(),
   itemType: z.string(),
   note: z.string().nullable(),
+  addedBy: z.object({ userId: z.string(), username: z.string() }).nullable().optional().default(null),
   tmdbId: z.number().int().nullable(),
   title: z.string().nullable(),
   posterPath: z.string().nullable(),
@@ -36,6 +40,16 @@ const listItemSchema = z.object({
   // The list owner's own score, and the director or creator (from the cached title).
   ownerRating: z.number().nullable().optional().default(null),
   credit: z.string().nullable().optional().default(null),
+});
+
+export const listRoleSchema = z.enum(["owner", "collaborator", "invitee", "none"]);
+
+const listCollaboratorSchema = z.object({
+  userId: z.string(),
+  username: z.string(),
+  displayUsername: z.string().nullable(),
+  avatarUrl: z.string().nullable(),
+  status: z.enum(["invited", "accepted"]),
 });
 
 export const listDetailSchema = z
@@ -53,6 +67,9 @@ export const listDetailSchema = z
     items: z.array(listItemSchema),
     likeCount: z.number().int().nonnegative().optional().default(0),
     likedByViewer: z.boolean().optional().default(false),
+    ownerUsername: z.string().nullable().optional().default(null),
+    viewerRole: listRoleSchema.optional().default("none"),
+    collaborators: z.array(listCollaboratorSchema).optional().default([]),
   })
   .passthrough();
 
@@ -74,6 +91,8 @@ export type ListSummary = z.infer<typeof listSummarySchema>;
 export type ListDetail = z.infer<typeof listDetailSchema>;
 export type ListItem = z.infer<typeof listItemSchema>;
 export type ListBase = z.infer<typeof listBaseSchema>;
+export type ListRole = z.infer<typeof listRoleSchema>;
+export type ListCollaborator = z.infer<typeof listCollaboratorSchema>;
 
 export const getUserLists = async (
   username: string,
@@ -209,5 +228,38 @@ export const reorderListItems = async (
   await apiRequest<unknown, ReorderListItemsBody>(
     `/api/lists/${encodeURIComponent(listId)}/reorder`,
     { method: "PATCH", body: { items } },
+  );
+};
+
+export const updateListItemNote = async (
+  listId: string,
+  itemId: string,
+  note: string | null,
+): Promise<{ id: string; note: string | null }> => {
+  const response = await apiRequest<unknown, { note: string | null }>(
+    `/api/lists/${encodeURIComponent(listId)}/items/${encodeURIComponent(itemId)}`,
+    { method: "PATCH", body: { note } },
+  );
+  return z.object({ id: z.string(), note: z.string().nullable() }).parse(response);
+};
+
+export const inviteListCollaborator = async (listId: string, username: string): Promise<void> => {
+  await apiRequest<unknown, { username: string }>(
+    `/api/lists/${encodeURIComponent(listId)}/collaborators`,
+    { method: "POST", body: { username } },
+  );
+};
+
+export const acceptListInvite = async (listId: string): Promise<void> => {
+  await apiRequest<unknown>(`/api/lists/${encodeURIComponent(listId)}/collaborators/accept`, {
+    method: "POST",
+  });
+};
+
+// Removing someone else (owner), or yourself: declining an invite or leaving.
+export const removeListCollaborator = async (listId: string, userId: string): Promise<void> => {
+  await apiRequest<unknown>(
+    `/api/lists/${encodeURIComponent(listId)}/collaborators/${encodeURIComponent(userId)}`,
+    { method: "DELETE" },
   );
 };

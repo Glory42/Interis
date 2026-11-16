@@ -9,6 +9,8 @@ export const notificationTypeSchema = z.enum([
   "comment_review",
   "comment_post",
   "content_removed",
+  "list_invite",
+  "list_invite_accepted",
 ]);
 
 const notificationItemSchema = z.object({

@@ -20,8 +20,17 @@ const TitleLink = ({ item, className, children }: { item: ListItem; className?: 
     <span className={className}>{children}</span>
   );
 
-// One ranked row: number, poster, title with year and credit, the owner's note and score.
-export const ListDetailRow = memo(function ListDetailRow({ item, rank }: { item: ListItem; rank: number | null }) {
+// One ranked row: number, poster, title with year and credit, the note, the owner's score,
+// and who added it when that was a List Collaborator rather than the owner.
+export const ListDetailRow = memo(function ListDetailRow({
+  item,
+  rank,
+  ownerId,
+}: {
+  item: ListItem;
+  rank: number | null;
+  ownerId?: string;
+}) {
   const credit = [item.releaseYear, item.credit].filter(Boolean).join(" · ");
   return (
     <li aria-label={item.title ?? MISSING_TITLE} className="flex items-center gap-3.5 border-t border-[color:var(--line)] py-2.5">
@@ -37,6 +46,9 @@ export const ListDetailRow = memo(function ListDetailRow({ item, rank }: { item:
           {credit ? <span className="mono-meta uppercase text-muted-foreground">{credit}</span> : null}
         </p>
         {item.note ? <p className="user-text tagline text-muted-foreground">{`“${item.note}”`}</p> : null}
+        {item.addedBy && ownerId && item.addedBy.userId !== ownerId ? (
+          <p className="mono-meta text-muted-foreground">{`Added by ${item.addedBy.username}`}</p>
+        ) : null}
       </div>
       {item.ownerRating !== null ? <RocketDisplay rating={item.ownerRating} size="sm" /> : null}
     </li>
