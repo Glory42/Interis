@@ -1,4 +1,4 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, isNotNull } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { user } from "../../../infrastructure/database/auth.entity";
 import { reviews } from "../../reviews/reviews.entity";
@@ -107,7 +107,13 @@ export class SocialFeedSeriesReviewRepository {
               rating: seriesSeasonInteractions.rating,
             })
             .from(seriesSeasonInteractions)
-            .where(inArray(seriesSeasonInteractions.seriesId, seasonSeriesIds))
+            .where(
+              and(
+                inArray(seriesSeasonInteractions.seriesId, seasonSeriesIds),
+                inArray(seriesSeasonInteractions.userId, [...new Set(seasonRows.map((row) => row.userId))]),
+                isNotNull(seriesSeasonInteractions.rating),
+              ),
+            )
         : Promise.resolve([]),
       episodeSeriesIds.length > 0
         ? db
@@ -119,7 +125,14 @@ export class SocialFeedSeriesReviewRepository {
               rating: seriesEpisodeInteractions.rating,
             })
             .from(seriesEpisodeInteractions)
-            .where(inArray(seriesEpisodeInteractions.seriesId, episodeSeriesIds))
+            // Only the review authors' rated rows, never every viewer's watched-episode marks.
+            .where(
+              and(
+                inArray(seriesEpisodeInteractions.seriesId, episodeSeriesIds),
+                inArray(seriesEpisodeInteractions.userId, [...new Set(episodeRows.map((row) => row.userId))]),
+                isNotNull(seriesEpisodeInteractions.rating),
+              ),
+            )
         : Promise.resolve([]),
     ]);
 

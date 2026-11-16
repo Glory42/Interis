@@ -6,7 +6,8 @@ import {
   trendingFilmsQueryOptions,
 } from "@/features/feed/hooks/useFeed";
 import { LandingPage } from "@/features/landing/pages/LandingPage";
-import { trendingSeriesQueryOptions, upNextQueryOptions } from "@/features/tv/hooks/useTv";
+import { trendingSeriesQueryOptions } from "@/features/tv/hooks/tv/use-series-queries";
+import { upNextQueryOptions } from "@/features/tv/hooks/tv/use-up-next";
 import { redirectToPendingOnboarding } from "@/lib/router/auth-guards";
 import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
 
@@ -19,8 +20,7 @@ export const Route = createFileRoute("/")({
     // A brand-new account starts with onboarding, not an empty feed.
     redirectToPendingOnboarding(user);
 
-    // Limits must match what HomePage (6) / LandingPage (9) actually read.
-    void context.queryClient.prefetchQuery(trendingFilmsQueryOptions(user ? 6 : 9));
+    void context.queryClient.prefetchQuery(trendingFilmsQueryOptions());
     void context.queryClient.prefetchQuery(trendingSeriesQueryOptions());
 
     if (!user) {

@@ -53,7 +53,8 @@ export const getTrendingFilms = async (
     signal: options.signal,
   });
 
-  return trendingFilmListSchema.parse(response).slice(0, options.limit ?? 3);
+  const films = trendingFilmListSchema.parse(response);
+  return options.limit === undefined ? films : films.slice(0, options.limit);
 };
 
 export const getMyFeedSummary = async (

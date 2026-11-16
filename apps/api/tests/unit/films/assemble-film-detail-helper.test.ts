@@ -232,7 +232,7 @@ describe("assembleFilmDetail", () => {
 
   it("passes the community rating breakdown through", () => {
     const res = assembleFilmDetail(
-      makeInputs({ communityRatings: [{ rating: 8 }, { rating: 8 }, { rating: 6 }] }),
+      makeInputs({ communityRatings: [{ rating: 8, count: 2 }, { rating: 6, count: 1 }] }),
     );
     expect(res.ratingBreakdown.totalRatedReviews).toBe(3);
     expect(res.ratingBreakdown.averageRating).toBeCloseTo(7.33, 1);

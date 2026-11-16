@@ -49,7 +49,7 @@ export type FilmDetailInputs = {
   logsCount: number;
   reviewRows: FilmReviewRow[];
   engagement: ReviewEngagementIndex;
-  communityRatings: { rating: number }[];
+  communityRatings: { rating: number; count: number }[];
   tmdbSimilar: TmdbSimilarFilms;
   viewerDiary: ViewerDiaryRow | null;
   viewerRating: number | null;

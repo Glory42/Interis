@@ -4,8 +4,10 @@ export type MediaRatingBreakdownBucket = {
   percentage: number;
 };
 
+// `count` lets callers pass ratings already grouped in SQL; it defaults to 1.
 type RatedReviewLike = {
   rating: number | null;
+  count?: number;
 };
 
 export const buildMediaRatingBreakdown = (
@@ -35,16 +37,16 @@ export const buildMediaRatingBreakdown = (
     }
 
     const bucket = Math.max(1, Math.min(10, Math.round(ratedRow.rating)));
-    ratingBucketCount.set(bucket, (ratingBucketCount.get(bucket) ?? 0) + 1);
+    ratingBucketCount.set(bucket, (ratingBucketCount.get(bucket) ?? 0) + (ratedRow.count ?? 1));
   }
 
-  const totalRatedReviews = ratedRows.length;
+  const totalRatedReviews = ratedRows.reduce((sum, ratedRow) => sum + (ratedRow.count ?? 1), 0);
   const averageRating =
     totalRatedReviews > 0
       ? Number(
           (
             ratedRows.reduce((sum, ratedRow) => {
-              return sum + (ratedRow.rating ?? 0);
+              return sum + (ratedRow.rating ?? 0) * (ratedRow.count ?? 1);
             }, 0) / totalRatedReviews
           ).toFixed(2),
         )
