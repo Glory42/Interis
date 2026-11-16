@@ -171,6 +171,9 @@ export const tvHandlers = [
       review: null,
     });
   }),
+  http.get("*/api/serials/:tmdbId/watch-providers", () =>
+    HttpResponse.json({ region: "US", link: null, flatrate: [], free: [], ads: [], rent: [], buy: [], availableRegions: [] }),
+  ),
   http.get("*/api/serials/:tmdbId", ({ params }) => {
     return HttpResponse.json({
       id: 1,
