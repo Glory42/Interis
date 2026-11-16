@@ -2,6 +2,7 @@ import type { FilmDetailResponse, FilmDetailReviewSort } from "@/features/films/
 import { FILM_MODULE_STYLES } from "@/features/media/styles";
 import { useFilmReviewsLoadMore } from "@/features/films/hooks/useFilms";
 import { MediaReviewsSection } from "@/features/media/detail/MediaReviewsSection";
+import { useMediaFollowing } from "@/features/media/following/hooks/useMediaFollowing";
 
 type FilmReviewsSectionProps = {
   tmdbId: number;
@@ -26,12 +27,14 @@ export const FilmReviewsSection = ({
     reviewsLimit,
     reviewsHasMore,
   );
+  const following = useMediaFollowing("film", tmdbId);
 
   return (
     <MediaReviewsSection
       moduleStyles={FILM_MODULE_STYLES}
       emptyMessage="No reviews yet for this movie."
       reviewsSort={reviewsSort}
+      showFollowingSort={(following.data?.summary.reviewCount ?? 0) > 0}
       onSortChange={onSortChange}
       reviews={reviews}
       extraItems={extraItems}
