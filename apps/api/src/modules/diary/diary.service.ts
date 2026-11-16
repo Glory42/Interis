@@ -16,6 +16,10 @@ export class DiaryService {
     return DiaryRepository.findAllByUser(userId, limit, offset);
   }
 
+  static async findMine(entryId: string, userId: string) {
+    return WatchLogService.findOwned(filmWatchLog, entryId, userId);
+  }
+
   static async update(entryId: string, userId: string, input: UpdateDiaryDto) {
     return WatchLogService.update(filmWatchLog, entryId, userId, input);
   }

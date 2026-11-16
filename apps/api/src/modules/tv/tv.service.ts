@@ -113,6 +113,10 @@ export class TvService {
     return TvActivityService.getMyLogs(userId, limit, offset);
   }
 
+  static async findMyLog(entryId: string, userId: string) {
+    return WatchLogService.findOwned(seriesWatchLog, entryId, userId);
+  }
+
   static async updateLog(entryId: string, userId: string, input: UpdateSeriesLogDto) {
     return WatchLogService.update(seriesWatchLog, entryId, userId, input);
   }

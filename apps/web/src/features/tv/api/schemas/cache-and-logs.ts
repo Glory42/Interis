@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { REVIEW_MAX_LENGTH } from "@/types/api";
+import { REVIEW_MAX_LENGTH, diaryNoteInputSchema, diaryTagsInputSchema } from "@/types/api";
 import { seriesGenreSchema } from "./shared";
 
 export const cachedSeriesSchema = z
@@ -64,6 +64,9 @@ export const updateSeriesLogInputSchema = z.object({
   // Text writes the attached Review, null or blank deletes it, omitted leaves it.
   review: z.string().max(REVIEW_MAX_LENGTH).nullable().optional(),
   containsSpoilers: z.boolean().optional(),
+  // Null or blank clears the private note; tags replace the whole set.
+  note: diaryNoteInputSchema.nullable().optional(),
+  tags: diaryTagsInputSchema.optional(),
 });
 
 export const seriesLogSchema = z.object({

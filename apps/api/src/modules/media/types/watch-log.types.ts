@@ -14,12 +14,15 @@ export type WatchLogRow = {
   updatedAt: Date;
 };
 
-export type WatchLogInsert = Pick<
-  WatchLogRow,
-  "userId" | "mediaId" | "watchedDate" | "rating" | "rewatch"
->;
+// The owner's view of a log: with the private note. Only owner-scoped reads return it.
+export type OwnedWatchLogRow = WatchLogRow & { note: string | null };
 
-export type WatchLogPatch = Partial<Pick<WatchLogRow, "watchedDate" | "rating" | "rewatch">>;
+export type WatchLogInsert = Pick<
+  OwnedWatchLogRow,
+  "userId" | "mediaId" | "watchedDate" | "rating" | "rewatch"
+> & { note?: string | null };
+
+export type WatchLogPatch = Partial<Pick<OwnedWatchLogRow, "watchedDate" | "rating" | "rewatch" | "note">>;
 
 export type LatestRatedLog = { id: string; rating: number };
 
@@ -40,9 +43,9 @@ export type WatchLogAdminRow = {
 // Table access for one media type's Diary Entries. Passing no userId to
 // find/update/remove skips the ownership check (admin moderation only).
 export type WatchLogStore = {
-  insert: (input: WatchLogInsert) => Promise<WatchLogRow | null>;
-  find: (entryId: string, userId?: string) => Promise<(WatchLogRow & { tmdbId: number }) | null>;
-  update: (entryId: string, userId: string, patch: WatchLogPatch) => Promise<WatchLogRow | null>;
+  insert: (input: WatchLogInsert) => Promise<OwnedWatchLogRow | null>;
+  find: (entryId: string, userId?: string) => Promise<(OwnedWatchLogRow & { tmdbId: number }) | null>;
+  update: (entryId: string, userId: string, patch: WatchLogPatch) => Promise<OwnedWatchLogRow | null>;
   remove: (entryId: string, userId?: string) => Promise<WatchLogRow | null>;
   findLatest: (userId: string, mediaId: number) => Promise<WatchLogRow | null>;
   findLatestRated: (userId: string, mediaId: number) => Promise<LatestRatedLog | null>;
@@ -78,11 +81,15 @@ export type WatchLogCreateInput = {
   rewatch?: boolean;
   review?: string;
   containsSpoilers?: boolean;
+  note?: string;
+  tags?: string[];
 };
 
 // `review`: text creates or rewrites the attached Review; null or blank
 // deletes it; absent leaves it.
+// `note`: null or blank clears it. `tags`: replaces the whole set; absent leaves it.
 export type WatchLogUpdateInput = WatchLogPatch & {
   review?: string | null;
   containsSpoilers?: boolean;
+  tags?: string[];
 };

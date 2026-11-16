@@ -56,7 +56,7 @@ describe("data-transfer", () => {
       const csv = await response.text();
       const [headerLine, ...dataLines] = csv.trim().split("\n");
       expect(headerLine).toBe(
-        "WatchedDate,MediaType,Title,Year,TmdbId,Rating,Rewatch,Review,Spoilers",
+        "WatchedDate,MediaType,Title,Year,TmdbId,Rating,Rewatch,Review,Spoilers,Note,Tags",
       );
       expect(dataLines.some((line) => line.includes(String(movie.tmdbId)))).toBe(true);
       expect(dataLines.some((line) => line.includes("Export Test Movie"))).toBe(true);
@@ -212,6 +212,76 @@ describe("data-transfer", () => {
         .split("\n")
         .map((line) => JSON.parse(line));
       expect(events.at(-1)).toMatchObject({ type: "done", imported: 0, skipped: 1 });
+    });
+  });
+
+  describe("notes and tags round trip", () => {
+    const postJson = (path: string, body: unknown, jar: Parameters<typeof apiRequest>[3]) =>
+      apiRequest(
+        getServer().baseUrl,
+        path,
+        { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) },
+        jar,
+      );
+
+    it("exports each log's private note and tags and imports them back into another account", async () => {
+      const source = await signUpTestUser(getServer().baseUrl, "dtnotesrc");
+      const target = await signUpTestUser(getServer().baseUrl, "dtnotedst");
+      const movie = await seedTestFilm("Round Trip Movie");
+      const serial = await seedTestSeries("Round Trip Serial");
+
+      await postJson(
+        "/api/diary",
+        { tmdbId: movie.tmdbId, watchedDate: "2024-05-01", note: 'With "quotes", commas\nand lines', tags: ["cinema", "with mom"] },
+        source.jar,
+      );
+      await postJson(`/api/serials/${serial.tmdbId}/log`, { watchedDate: "2024-05-02", tags: ["binge"] }, source.jar);
+
+      const csv = await (await apiRequest(getServer().baseUrl, "/api/data/export", {}, source.jar)).text();
+      expect(csv).toContain('"cinema, with mom"');
+
+      const importResponse = await apiRequest(
+        getServer().baseUrl,
+        "/api/data/import",
+        { method: "POST", headers: { "content-type": "text/csv" }, body: csv },
+        target.jar,
+      );
+      const events = (await importResponse.text()).trim().split("\n").map((line) => JSON.parse(line));
+      expect(events.at(-1)).toMatchObject({ type: "done", imported: 2, failed: 0 });
+
+      const diary = (await (
+        await apiRequest(getServer().baseUrl, `/api/users/${target.username}/diary`, {}, target.jar)
+      ).json()) as { media: { tmdbId: number }; note?: string | null; tags: string[] }[];
+      const movieItem = diary.find((item) => item.media.tmdbId === movie.tmdbId);
+      const serialItem = diary.find((item) => item.media.tmdbId === serial.tmdbId);
+      expect(movieItem?.note).toBe('With "quotes", commas\nand lines');
+      expect(movieItem?.tags).toEqual(["cinema", "with mom"]);
+      expect(serialItem?.note).toBeNull();
+      expect(serialItem?.tags).toEqual(["binge"]);
+    });
+
+    it("cleans up a hand-edited Tags cell instead of failing the row", async () => {
+      const { jar, username } = await signUpTestUser(getServer().baseUrl, "dtlbtags");
+      const movie = await seedTestFilm("Letterboxd Tagged Movie");
+      // Letterboxd rows need a TMDB search; their Tags mapping is covered by the normalizer unit tests.
+      const csv = [
+        "WatchedDate,MediaType,Title,Year,TmdbId,Rating,Rewatch,Review,Spoilers,Tags",
+        `2024-06-01,movie,Letterboxd Tagged Movie,2020,${movie.tmdbId},,false,,false,"#Cinema, w/ mom, 🎬"`,
+        "",
+      ].join("\n");
+      await (
+        await apiRequest(
+          getServer().baseUrl,
+          "/api/data/import",
+          { method: "POST", headers: { "content-type": "text/csv" }, body: csv },
+          jar,
+        )
+      ).text();
+
+      const diary = (await (
+        await apiRequest(getServer().baseUrl, `/api/users/${username}/diary`, {}, jar)
+      ).json()) as { tags: string[] }[];
+      expect(diary[0]?.tags).toEqual(["cinema", "w mom"]);
     });
   });
 });

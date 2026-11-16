@@ -9,6 +9,7 @@ router.use(requireAuth);
 
 router.get("/", asyncHandler(DiaryController.getMyDiary));
 router.post("/", asyncHandler(DiaryController.create));
+router.get("/:id", asyncHandler(DiaryController.getMine));
 router.put("/:id", asyncHandler(DiaryController.update));
 router.delete("/:id", asyncHandler(DiaryController.remove));
 

@@ -11,6 +11,13 @@ export type MediaType = z.infer<typeof mediaTypeSchema>;
 // One length for a Review wherever it's written: alone, with a new log or by a log edit.
 export const REVIEW_MAX_LENGTH = 10_000;
 
+// A Diary Entry's private note and public tags; the server normalizes tags the same way.
+export const DIARY_NOTE_MAX_LENGTH = 1000;
+export const DIARY_TAGS_MAX = 10;
+export const DIARY_TAG_MAX_LENGTH = 30;
+export const diaryNoteInputSchema = z.string().max(DIARY_NOTE_MAX_LENGTH);
+export const diaryTagsInputSchema = z.array(z.string().max(DIARY_TAG_MAX_LENGTH)).max(DIARY_TAGS_MAX);
+
 export const successResponseSchema = z.object({ success: z.boolean() });
 
 export const userSummarySchema = z.object({
@@ -137,6 +144,8 @@ export const createDiaryEntryInputSchema = z.object({
   rewatch: z.boolean().optional(),
   review: z.string().max(REVIEW_MAX_LENGTH).optional(),
   containsSpoilers: z.boolean().optional(),
+  note: diaryNoteInputSchema.optional(),
+  tags: diaryTagsInputSchema.optional(),
 });
 
 export const diaryReviewSchema = z

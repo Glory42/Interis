@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import {
   ARCHIVE_PAGE_SIZE,
   languageOptions,
@@ -26,6 +28,7 @@ import { formatArchiveCount } from "@/features/media/labels";
 import type { ArchiveRatingSource } from "@/features/media/types";
 
 export const TvArchivePage = () => {
+  const { user } = useAuth();
   const [selectedGenre, setSelectedGenre] = useState("all");
   const [selectedLanguage, setSelectedLanguage] = useState("all");
   const [selectedSort, setSelectedSort] =
@@ -85,6 +88,17 @@ export const TvArchivePage = () => {
     <MediaArchivePage
       moduleStyles={SERIES_MODULE_STYLES}
       heading="TV"
+      headingAction={
+        user ? (
+          <Link
+            to="/serials/up-next"
+            className="mono-meta uppercase text-[color:var(--series)] hover:underline"
+            viewTransition
+          >
+            Up next →
+          </Link>
+        ) : null
+      }
       spotlight={
         <ArchiveSpotlight
           kindLabel="TV"

@@ -10,6 +10,7 @@ import { FindPeopleSection } from "@/features/feed/components/FindPeopleSection"
 import { FeedGoalReached } from "@/features/feed/components/FeedGoalReached";
 import { useGroupedFeed, useMyFeedSummary, useTrendingNow } from "@/features/feed/hooks/useFeed";
 import { useTrendingSeries } from "@/features/tv/hooks/useTv";
+import { UpNextStrip } from "@/features/tv/components/up-next/UpNextStrip";
 
 export const HomePage = () => {
   const { user, isUserLoading } = useAuth();
@@ -50,6 +51,7 @@ export const HomePage = () => {
               goal={summary.goal}
             />
           ) : null}
+          <UpNextStrip enabled={isFollowingEnabled} />
 
           <div id="quick-log-composer" className="mb-4 rounded-[3px] border border-[color:var(--line)] p-3">
             <QuickLogComposer user={user} />

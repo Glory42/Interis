@@ -19,6 +19,7 @@ const row = (overrides: Partial<DiaryRowModel> = {}): DiaryRowModel => ({
   rewatch: true,
   review: { id: "r1", content: "Loud and lovely.", containsSpoilers: false },
   isLiked: true,
+  tags: [],
   dateParts: { month: "OCT", day: "28", year: "2026", monthKey: "2026-10" },
   showMonthCell: true,
   dayLabel: { day: "28", weekday: "WED" },
@@ -64,5 +65,25 @@ describe("DiaryRow", () => {
 
     expect(screen.getByRole("dialog", { name: /Edit log · Film · 2026/ })).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Review" })).toHaveValue("Loud and lovely.");
+  });
+
+  it("links each tag to the diary filtered by it", async () => {
+    renderWithProviders(<DiaryRow row={row({ tags: ["cinema", "with mom"] })} username="glory42" />);
+
+    expect(await screen.findByRole("link", { name: "#with mom" })).toHaveAttribute(
+      "href",
+      "/profile/glory42/diary?tag=with+mom",
+    );
+  });
+
+  it("shows the private note only when the row carries one (the owner's diary)", async () => {
+    const { unmount } = renderWithProviders(<DiaryRow row={row({ note: "with grandma" })} username="glory42" isOwner />);
+    expect(await screen.findByText("with grandma")).toBeInTheDocument();
+    expect(screen.getByLabelText("Private note")).toBeInTheDocument();
+    unmount();
+
+    renderWithProviders(<DiaryRow row={row()} username="glory42" />);
+    await screen.findByText("28");
+    expect(screen.queryByLabelText("Private note")).not.toBeInTheDocument();
   });
 });
