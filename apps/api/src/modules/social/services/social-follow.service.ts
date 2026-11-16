@@ -3,6 +3,7 @@ import { ModerationRepository } from "../../moderation/repositories/moderation.r
 import { NotificationsService } from "../../notifications/notifications.service";
 import { ActivityRecorder } from "./activity-recorder.service";
 import { SocialFeedService } from "./social-feed.service";
+import { UsersStatsCacheService } from "../../users/services/users-stats-cache.service";
 
 export class SocialFollowService {
   static async follow(
@@ -21,6 +22,7 @@ export class SocialFollowService {
     const row = await SocialRepository.insertFollow(followerId, followingId);
 
     if (row) {
+      UsersStatsCacheService.forgetFollowEdge(followerId, followingId);
       await Promise.all([
         ActivityRecorder.record({
           userId: followerId,
@@ -77,6 +79,7 @@ export class SocialFollowService {
   // cached feed must stop showing the account.
   private static async retractFollow(followerId: string, followingId: string) {
     SocialFeedService.invalidateFollowingFeed(followerId);
+    UsersStatsCacheService.forgetFollowEdge(followerId, followingId);
     await Promise.all([
       ActivityRecorder.retract({
         userId: followerId,
