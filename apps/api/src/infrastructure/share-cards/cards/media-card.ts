@@ -1,7 +1,7 @@
 import { loadCardImages } from "../share-card-image.helper";
 import { box, cardFrame, clampChars, kicker, poster, rocketScore, text } from "../share-card-elements";
 import { CARD_COLORS, CARD_FONTS } from "../share-card-theme";
-import { renderSharePng } from "../render-share-card";
+import { renderShareImage } from "../render-share-card";
 import type { ShareCard } from "../share-card.types";
 
 export type MediaCardInput = {
@@ -44,6 +44,6 @@ export const renderMediaCard = async (input: MediaCardInput): Promise<ShareCard>
     ),
   );
 
-  const png = await renderSharePng(cardFrame({ kind: input.mediaKind === "film" ? "Film" : "TV", accent, backdrop: images.backdrop, body }));
-  return { png, complete };
+  const image = await renderShareImage(cardFrame({ kind: input.mediaKind === "film" ? "Film" : "TV", accent, backdrop: images.backdrop, body }));
+  return { image, complete };
 };

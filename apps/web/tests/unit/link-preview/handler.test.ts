@@ -70,7 +70,7 @@ describe("handleLinkPreview", () => {
           ogType: "video.movie",
           title: "Inception (2010)",
           description: "A thief who steals secrets through dreams.",
-          image: "/api/public/og/movie/27205.png",
+          image: "/api/public/og/movie/27205.jpg",
           path: "/movies/27205",
         });
       }),
@@ -97,7 +97,7 @@ describe("handleLinkPreview", () => {
     const { html, response } = await invoke("/movies/27205", DISCORD);
     expect(metaRequests).toHaveBeenCalledTimes(1);
     expect(html).toContain("<title>Inception (2010) — Interis</title>");
-    expect(html).toContain(`<meta property="og:image" content="${API}/api/public/og/movie/27205.png" />`);
+    expect(html).toContain(`<meta property="og:image" content="${API}/api/public/og/movie/27205.jpg" />`);
     expect(html).toContain('<meta property="og:url" content="https://interis.example/movies/27205" />');
     expect(html).not.toContain('<meta property="og:title" content="Interis" />');
     expect(response.headers.get("vary")).toContain("User-Agent");

@@ -1,7 +1,7 @@
 import { loadCardImageList, loadCardImages } from "../share-card-image.helper";
 import { avatar, box, cardFrame, clampChars, kicker, poster, text } from "../share-card-elements";
 import { CARD_COLORS, CARD_FONTS } from "../share-card-theme";
-import { renderSharePng } from "../render-share-card";
+import { renderShareImage } from "../render-share-card";
 import type { ShareCard } from "../share-card.types";
 
 export type ListCardInput = {
@@ -77,6 +77,6 @@ export const renderListCard = async (input: ListCardInput): Promise<ShareCard> =
     ),
   );
 
-  const png = await renderSharePng(cardFrame({ kind: "List", accent: CARD_COLORS.primary, body }));
-  return { png, complete: strip.complete && owner.complete };
+  const image = await renderShareImage(cardFrame({ kind: "List", accent: CARD_COLORS.primary, body }));
+  return { image, complete: strip.complete && owner.complete };
 };

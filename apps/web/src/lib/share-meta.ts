@@ -65,15 +65,46 @@ export const personShareText = (input: { name: string; role: "actor" | "director
       : `Films and TV directed by ${input.name} on Interis.`,
 });
 
+type RecapShareInput = {
+  year: number;
+  isPartialYear: boolean;
+  depth: "empty" | "thin" | "full";
+  user: { displayName: string };
+  totals: { films: number; series: number; hoursWatched: number };
+  topDirectors: { director: string }[];
+  topGenres: { genre: string }[];
+};
+
+const countOf = (count: number, one: string, many: string) =>
+  `${count.toLocaleString("en-US")} ${count === 1 ? one : many}`;
+
+export const recapShareText = (input: RecapShareInput): ShareText => {
+  const name = input.user.displayName;
+  const title = input.isPartialYear ? `${name}'s ${input.year} so far` : `${name}'s ${input.year} in review`;
+  if (input.depth === "empty") return { title, description: `${name}'s year in film and TV on Interis.` };
+
+  const { films, series, hoursWatched } = input.totals;
+  const parts = [countOf(films, "film", "films")];
+  if (series > 0) parts.push(countOf(series, "series", "series"));
+  if (hoursWatched > 0) parts.push(countOf(hoursWatched, "hour", "hours"));
+  const counts = parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}` : parts[0];
+  const director = input.topDirectors[0]?.director;
+  const genre = input.topGenres[0]?.genre;
+  const highlight = director ? ` Top director: ${director}.` : genre ? ` Top genre: ${genre}.` : "";
+  return { title, description: `${counts} on Interis.${highlight}` };
+};
+
 // The API's generated 1200×630 card; `updatedAt` versions it like the API's own meta does.
+// A recap's id is "<username>/<year>".
 export const shareCardUrl = (
-  kind: "review" | "list" | "profile" | "movie" | "serial",
+  kind: "review" | "list" | "profile" | "movie" | "serial" | "recap",
   id: string | number,
   updatedAt?: string,
 ): string => {
   const seconds = updatedAt ? Math.floor(Date.parse(updatedAt) / 1000) : Number.NaN;
   const version = Number.isFinite(seconds) ? `?v=${seconds.toString(36)}` : "";
-  return `${API_BASE_URL}/api/public/og/${kind}/${encodeURIComponent(String(id))}.png${version}`;
+  const encodedId = String(id).split("/").map(encodeURIComponent).join("/");
+  return `${API_BASE_URL}/api/public/og/${kind}/${encodedId}.jpg${version}`;
 };
 
 // The head() meta entries for a shareable page.

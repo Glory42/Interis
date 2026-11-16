@@ -2,19 +2,21 @@ import {
   renderListCard,
   renderMediaCard,
   renderProfileCard,
+  renderRecapCard,
   renderReviewCard,
   type ShareCard,
 } from "../../../infrastructure/share-cards";
 import { tmdbImageUrl } from "../../../infrastructure/tmdb/tmdb-images.helper";
+import { recapCardStats, recapHighlight, recapVersion } from "../helpers/recap-share.helper";
 import { PublicShareReadService } from "./public-share-read.service";
 
-export type ShareCardKind = "review" | "list" | "profile" | "movie" | "serial";
+export type ShareCardKind = "review" | "list" | "profile" | "movie" | "serial" | "recap";
 
 type VersionedCard = { card: ShareCard; version: string | null };
 
 const CARD_TTL_MS = 10 * 60 * 1000;
-// Cards are ~0.2–0.8 MB each, so the in-process cache stays small.
-const CARD_CACHE_MAX_ENTRIES = 40;
+// Cards are ~80–130 KB each as JPEG.
+const CARD_CACHE_MAX_ENTRIES = 120;
 const RENDER_TIMEOUT_MS = 8_000;
 
 const cache = new Map<string, VersionedCard & { expiresAt: number }>();
@@ -62,6 +64,21 @@ const loadAndRender = async (kind: ShareCardKind, id: string): Promise<Versioned
         favoritePosterUrls: profile.favoritePosterPaths.map((path) => tmdbImageUrl(path, "w342")).filter((url) => url !== null),
       });
       return { card, version: null };
+    }
+    case "recap": {
+      // The id is "<username>/<year>", checked by the controller.
+      const [username = "", year = ""] = id.split("/");
+      const recap = await PublicShareReadService.getYearReview(username, Number(year));
+      if (!recap) return null;
+      const card = await renderRecapCard({
+        ...recap.user,
+        year: recap.year,
+        isPartialYear: recap.isPartialYear,
+        stats: recapCardStats(recap),
+        highlight: recapHighlight(recap),
+        posterUrls: recap.posterPaths.map((path) => tmdbImageUrl(path, "w342")).filter((url) => url !== null),
+      });
+      return { card, version: recapVersion(recap) };
     }
     case "movie":
     case "serial": {

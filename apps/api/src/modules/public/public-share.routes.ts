@@ -4,8 +4,11 @@ import { asyncHandler } from "../../commons/utils/asyncHandler";
 import { env } from "../../infrastructure/config/env";
 import { createPublicResponseCache } from "./helpers/public-response-cache.helper";
 import { PublicShareController } from "./public-share.controller";
+import type { ShareCardKind } from "./services/public-card.service";
 
-// Link-preview meta (/api/public/meta/*) and share cards (/api/public/og/*.png), read by
+const SINGLE_ID_CARDS: ShareCardKind[] = ["review", "list", "profile", "movie", "serial"];
+
+// Link-preview meta (/api/public/meta/*) and share cards (/api/public/og/*.jpg), read by
 // the web app's Pages Function and by link-preview bots. Mounted before the widget router.
 export const createPublicShareRouter = (): Router => {
   const router = Router();
@@ -22,14 +25,15 @@ export const createPublicShareRouter = (): Router => {
   meta.get("/serial/:tmdbId", asyncHandler(PublicShareController.seriesMeta));
   meta.get("/serial/:tmdbId/season/:seasonNumber", asyncHandler(PublicShareController.seriesMeta));
   meta.get("/person/:role/:slug", asyncHandler(PublicShareController.personMeta));
+  meta.get("/recap/:username/:year", asyncHandler(PublicShareController.recapMeta));
 
   const og = Router();
   og.use(limiter);
-  og.get("/review/:id.png", asyncHandler(PublicShareController.card("review")));
-  og.get("/list/:id.png", asyncHandler(PublicShareController.card("list")));
-  og.get("/profile/:id.png", asyncHandler(PublicShareController.card("profile")));
-  og.get("/movie/:id.png", asyncHandler(PublicShareController.card("movie")));
-  og.get("/serial/:id.png", asyncHandler(PublicShareController.card("serial")));
+  for (const kind of SINGLE_ID_CARDS) {
+    og.get(`/${kind}/:id.jpg`, asyncHandler(PublicShareController.card(kind)));
+    og.get(`/${kind}/:id.png`, asyncHandler(PublicShareController.legacyPngCard));
+  }
+  og.get("/recap/:username/:year.jpg", asyncHandler(PublicShareController.card("recap")));
 
   router.use("/meta", meta);
   router.use("/og", og);

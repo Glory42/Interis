@@ -3,6 +3,7 @@ const TMDB_ID = /^[1-9][0-9]{0,9}$/;
 const SEASON = /^[0-9]{1,3}$/;
 const SLUG = /^[a-z0-9-]{1,200}$/i;
 const USERNAME = /^[^/]{1,64}$/;
+const YEAR = /^(19|20)[0-9]{2}$/;
 
 const decode = (segment: string): string | null => {
   try {
@@ -28,6 +29,7 @@ export const metaPathFor = (pathname: string): string | null => {
     case "profile":
       if (count < 2 || !USERNAME.test(first)) return null;
       if (second === "lists" && third && UUID.test(third)) return `/list/${third}`;
+      if (second === "year" && count === 4 && YEAR.test(third)) return `/recap/${enc(first)}/${third}`;
       return `/profile/${enc(first)}`;
     case "movies":
       return count === 2 && TMDB_ID.test(first) ? `/movie/${first}` : null;

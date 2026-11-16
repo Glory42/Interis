@@ -1,7 +1,7 @@
 import { loadCardImageList, loadCardImages } from "../share-card-image.helper";
 import { avatar, box, cardFrame, clampChars, kicker, poster, text } from "../share-card-elements";
 import { CARD_COLORS, CARD_FONTS } from "../share-card-theme";
-import { renderSharePng } from "../render-share-card";
+import { renderShareImage } from "../render-share-card";
 import type { ShareCard } from "../share-card.types";
 
 export type ProfileCardInput = {
@@ -63,6 +63,6 @@ export const renderProfileCard = async (input: ProfileCardInput): Promise<ShareC
       ),
   );
 
-  const png = await renderSharePng(cardFrame({ kind: "Profile", accent: CARD_COLORS.primary, body }));
-  return { png, complete: own.complete && favorites.complete };
+  const image = await renderShareImage(cardFrame({ kind: "Profile", accent: CARD_COLORS.primary, body }));
+  return { image, complete: own.complete && favorites.complete };
 };

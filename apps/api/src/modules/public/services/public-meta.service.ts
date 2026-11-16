@@ -1,4 +1,6 @@
+import { SHARE_CARD_EXTENSION } from "../../../infrastructure/share-cards";
 import { tmdbImageUrl } from "../../../infrastructure/tmdb/tmdb-images.helper";
+import { recapShareText, recapVersion } from "../helpers/recap-share.helper";
 import {
   listShareText,
   mediaShareText,
@@ -10,8 +12,11 @@ import {
 import type { ShareMeta } from "../dto/public-share.dto";
 import { PublicShareReadService } from "./public-share-read.service";
 
-const cardPath = (kind: string, id: string | number, version?: string) =>
-  `/api/public/og/${kind}/${encodeURIComponent(String(id))}.png${version ? `?v=${version}` : ""}`;
+// `id` may span segments (a recap's "<username>/<year>"); each one is encoded.
+const cardPath = (kind: string, id: string | number, version?: string) => {
+  const encodedId = String(id).split("/").map(encodeURIComponent).join("/");
+  return `/api/public/og/${kind}/${encodedId}.${SHARE_CARD_EXTENSION}${version ? `?v=${version}` : ""}`;
+};
 
 // Link-preview meta per shareable page. `path` is relative to the web app's origin and a
 // relative `image` to the API's, so neither depends on which host served the request.
@@ -50,6 +55,18 @@ export class PublicMetaService {
       ...listShareText({ ...list, ownerName: list.ownerUsername }),
       image: cardPath("list", list.id, list.version),
       path: `/profile/${encodeURIComponent(list.ownerUsername)}/lists/${list.id}`,
+    };
+  }
+
+  static async recap(username: string, year: number): Promise<ShareMeta | null> {
+    const recap = await PublicShareReadService.getYearReview(username, year);
+    if (!recap) return null;
+    return {
+      kind: "recap",
+      ogType: "website",
+      ...recapShareText(recap),
+      image: cardPath("recap", `${recap.user.username}/${year}`, recapVersion(recap)),
+      path: `/profile/${encodeURIComponent(recap.user.username)}/year/${year}`,
     };
   }
 

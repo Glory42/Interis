@@ -1,8 +1,9 @@
 import { z } from "zod";
 import { tmdbIdSchema } from "../../../commons/validation/common.schemas";
+import { YearReviewParamsSchema } from "../../year-review/dto/year-review.dto";
 
 export type ShareMeta = {
-  kind: "review" | "profile" | "list" | "film" | "series" | "season" | "person";
+  kind: "review" | "profile" | "list" | "film" | "series" | "season" | "person" | "recap";
   ogType: string;
   title: string;
   description: string;
@@ -15,3 +16,4 @@ export type ShareMeta = {
 export const shareTmdbIdSchema = tmdbIdSchema.max(2_147_483_647);
 export const shareSeasonNumberSchema = z.coerce.number().int().min(0).max(500);
 export const sharePersonRoleSchema = z.enum(["actor", "director"]);
+export const shareRecapParamsSchema = YearReviewParamsSchema;
