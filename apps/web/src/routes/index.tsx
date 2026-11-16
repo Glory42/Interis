@@ -7,6 +7,7 @@ import {
 } from "@/features/feed/hooks/useFeed";
 import { LandingPage } from "@/features/landing/pages/LandingPage";
 import { trendingSeriesQueryOptions, upNextQueryOptions } from "@/features/tv/hooks/useTv";
+import { redirectToPendingOnboarding } from "@/lib/router/auth-guards";
 import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
 
 export const Route = createFileRoute("/")({
@@ -15,6 +16,8 @@ export const Route = createFileRoute("/")({
     // must not crash the whole home route - fall back to guest so the
     // page still renders; useAuth's own query reflects the real state.
     const user = await context.queryClient.fetchQuery(authQueryOptions).catch(() => null);
+    // A brand-new account starts with onboarding, not an empty feed.
+    redirectToPendingOnboarding(user);
 
     // Limits must match what HomePage (6) / LandingPage (9) actually read.
     void context.queryClient.prefetchQuery(trendingFilmsQueryOptions(user ? 6 : 9));

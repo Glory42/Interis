@@ -6,6 +6,7 @@ import { toFeedDays } from "@/features/feed/components/feed-days";
 import type { FeedFilter } from "@/features/feed/types";
 import { QuickLogComposer } from "@/features/feed/components/QuickLogComposer";
 import { FeedRail } from "@/features/feed/components/FeedRail";
+import { FindPeopleSection } from "@/features/feed/components/FindPeopleSection";
 import { FeedGoalReached } from "@/features/feed/components/FeedGoalReached";
 import { useGroupedFeed, useMyFeedSummary, useTrendingNow } from "@/features/feed/hooks/useFeed";
 import { useTrendingSeries } from "@/features/tv/hooks/useTv";
@@ -29,6 +30,8 @@ export const HomePage = () => {
   const isFeedError = isFollowingEnabled ? followingFeedQuery.isError : false;
 
   const summary = summaryQuery.data;
+  const isFollowingNobody = summary?.counts.following === 0;
+
   const isFetchingMoreFeed = isFollowingEnabled && followingFeedQuery.isFetchingNextPage;
   const canShowMoreFeed =
     isFollowingEnabled &&
@@ -53,6 +56,8 @@ export const HomePage = () => {
           <div id="quick-log-composer" className="mb-4 rounded-[3px] border border-[color:var(--line)] p-3">
             <QuickLogComposer user={user} />
           </div>
+
+          {isFollowingNobody ? <FindPeopleSection /> : null}
 
           <div className="mb-5">
             <FeedFilterSentence filter={activeFilter} onChange={setActiveFilter} />

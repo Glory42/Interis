@@ -246,6 +246,8 @@ export const meProfileSchema = z
     isAdmin: z.boolean(),
     createdAt: z.string().optional(),
     hasSecurityQuestion: z.boolean(),
+    // null = onboarding still pending.
+    onboardingCompletedAt: z.string().nullish(),
   })
   .passthrough();
 
