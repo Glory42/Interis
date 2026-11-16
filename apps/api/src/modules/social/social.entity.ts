@@ -72,5 +72,8 @@ export const activityLikes = pgTable(
       .references(() => activities.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (table) => [unique("activity_likes_unique").on(table.userId, table.activityId)],
+  (table) => [
+    unique("activity_likes_unique").on(table.userId, table.activityId),
+    index("activity_like_activity_id_idx").on(table.activityId),
+  ],
 );
