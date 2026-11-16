@@ -19,6 +19,7 @@ export const SettingsIndex = () => {
     theme: getThemeById(user.themeId).label,
     auth: user.email ? maskEmail(user.email) : undefined,
     data: "CSV export, import",
+    notifications: "Push",
   };
 
   return (

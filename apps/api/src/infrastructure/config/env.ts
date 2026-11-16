@@ -29,6 +29,10 @@ const envSchema = z.object({
   USE_LOCAL_DB_PROXY: z.stringbool().default(false),
   // Which proxies may set req.ip via X-Forwarded-For; see trust-proxy.ts.
   TRUST_PROXY: z.string().default(DEFAULT_TRUST_PROXY),
+  // Web Push (VAPID). All three unset disables push notifications.
+  VAPID_PUBLIC_KEY: z.string().trim().optional(),
+  VAPID_PRIVATE_KEY: z.string().trim().optional(),
+  VAPID_SUBJECT: z.string().trim().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

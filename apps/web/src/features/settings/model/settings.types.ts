@@ -5,7 +5,8 @@ export type SettingsSectionId =
   | "genres"
   | "favorites"
   | "blocked"
-  | "data";
+  | "data"
+  | "notifications";
 
 export type SettingsSectionTo =
   | "/settings/profile"
@@ -14,7 +15,8 @@ export type SettingsSectionTo =
   | "/settings/genres"
   | "/settings/favorites"
   | "/settings/blocked"
-  | "/settings/data";
+  | "/settings/data"
+  | "/settings/notifications";
 
 export type SettingsSectionDefinition = {
   id: SettingsSectionId;

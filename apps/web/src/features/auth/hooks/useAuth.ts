@@ -16,6 +16,7 @@ import {
 } from "@/features/auth/api";
 import type { LoginInput, RegisterInput } from "@/types/api";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
+import { releaseDevicePush } from "@/features/push/release-device-push";
 
 export const authKeys = {
   me: ["auth", "me"] as const,
@@ -49,7 +50,10 @@ export const useAuth = () => {
   });
 
   const logoutMutation = useMutation({
-    mutationFn: logoutCurrentUser,
+    mutationFn: async () => {
+      await releaseDevicePush();
+      await logoutCurrentUser();
+    },
     onSuccess: async () => {
       queryClient.setQueryData(authKeys.me, null);
       await queryClient.invalidateQueries({ queryKey: authKeys.me });
