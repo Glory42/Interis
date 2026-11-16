@@ -52,6 +52,8 @@ Set these in Render's Environment tab (Secrets, not the repo):
 | `CORS_ORIGIN` | The deployed web app's origin(s), comma-separated — required in prod; unset falls back to the local dev origins (`localhost`/`127.0.0.1:5173`) |
 | `NODE_ENV` | `production` |
 
+`TRUST_PROXY` defaults to `cloudflare`, which is right for this setup (Client → Cloudflare → Render's load balancer → app). Express then trusts only the private-network hop (Render's proxy) and Cloudflare's published ranges (`src/infrastructure/config/trust-proxy.ts`), walking `X-Forwarded-For` from the right. That makes `req.ip` the visitor, which keys the rate limiters and is stored as the session IP. A client can't choose its own IP by writing `X-Forwarded-For`, even when it calls the `*.onrender.com` origin directly. Set `none` to disable it, a hop count, or a comma-separated list of CIDRs. `true` is refused. If Cloudflare publishes new ranges (https://www.cloudflare.com/ips/), update the list.
+
 Everything else (`AUTH_ACCESS_COOKIE_NAME`, `AUTH_REFRESH_COOKIE_NAME`, `JWT_ACCESS_TTL_SECONDS`, `REFRESH_TOKEN_TTL_SECONDS`, `USE_LOCAL_DB_PROXY`) has a safe default in `env.ts` and doesn't need to be set explicitly in production. Don't set `USE_LOCAL_DB_PROXY` at all unless you mean it — see the `z.stringbool()` note below.
 
 ### Local development
