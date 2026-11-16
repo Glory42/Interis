@@ -15,6 +15,7 @@ import { isValidTmdbId, useMediaDetail } from "@/features/media/detail/use-media
 import { BELOW_MD_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { MediaSimilarSection } from "@/features/media/detail/MediaSimilarSection";
 import { MediaActionsSidebar } from "@/features/media/detail/MediaActionsSidebar";
+import { WhereToWatch } from "@/features/media/watch-providers/WhereToWatch";
 import { getBackdropUrl, getPosterUrl } from "@/features/media/tmdb-images";
 import { toLanguageLabel as toSeriesLanguageLabel } from "@/features/media/labels";
 
@@ -87,6 +88,7 @@ export const SeriesDetailPage = ({ tmdbId }: SeriesDetailPageProps) => {
           onWatchStatusChange={mediaDetail.setWatchStatus}
         />
       ) : null}
+      <WhereToWatch kind="tv" tmdbId={series.tmdbId} accent={SERIES_MODULE_STYLES.accent} className="mt-3" />
     </>
   );
 

@@ -25,9 +25,20 @@ const stats = {
   hoursWatched: 612,
 };
 
+const noGoal = {
+  year: 2026,
+  today: "2026-11-07",
+  goal: null,
+  films: { watched: 0, target: null, pace: null },
+  series: { watched: 0, target: null, pace: null },
+  reached: false,
+  years: [],
+};
+
 const serve = (logged: number) =>
   server.use(
     http.get("*/api/users/glory42/stats/detailed", () => HttpResponse.json(stats)),
+    http.get("*/api/users/glory42/goal", () => HttpResponse.json(noGoal)),
     http.get("*/api/users/glory42", () => HttpResponse.json(profile(logged))),
   );
 

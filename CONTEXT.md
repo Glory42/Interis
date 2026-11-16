@@ -36,6 +36,10 @@ _Avoid_: movie (in new code and copy), cinema, title (title is ambiguous with th
 One TV show, TMDB-sourced and cached locally like Film (title, season/episode counts, network, status). The UI section is **TV**; code is `modules/tv` and `features/tv`, with `Series*` for one show and `Tv*` for the section or module (ADR 0003). The wire keeps the older name: `/serials/:tmdbId` pages, `/api/serials`, the `tv_series` table, `serial_*` columns and `mediaType: "tv"`.
 _Avoid_: serial (in new code and copy), show in code names
 
+**Watch Providers**:
+Where a Film or Series can be streamed, rented or bought in one region, from TMDB's JustWatch data (credited in the UI). Read straight from TMDB through a 12h in-memory cache of the all-regions response, never stored in the DB; owned by `modules/media` (`WatchProvidersService`) and shown by `WhereToWatch` on the detail page.
+_Avoid_: streaming services, availability
+
 **Person**:
 A cast or crew member, TMDB-sourced and cached locally (name, known-for department, popularity). Content metadata, never an Interis account — distinct from User.
 _Avoid_: actor, cast member (too narrow — Person covers crew too)
@@ -64,6 +68,10 @@ A user's current rating of a Film or Series, on the 0.5–10 rocket scale: the I
 **Community Rating**:
 The average of every user's Your Rating for a Film or Series, one rating per user however many Diary Entries they have. The detail page and archive listings use the same rule.
 _Avoid_: average log rating
+
+**Watch Goal**:
+A user's target for one calendar year: a number of Films and, optionally, a number of Series (`watch_goal`, one row per user and year, so past years stay as history). Progress counts distinct titles with a Diary Entry dated in that year (rewatches count once); a Series counts once it has a Series Diary Entry that year. Pace compares progress with a steady share of the target by the viewer's local day. Public on the Profile, read as a Profile Tab.
+_Avoid_: challenge, reading-challenge style names
 
 ### Lists
 
@@ -97,6 +105,10 @@ _Avoid_: feed (too ambiguous alone — always qualify as "Following Feed" or "Tr
 A user the viewer might want to follow, ranked by taste overlap (titles both watched or rated, closer ratings weighing more), falling back to the most followed and most active users. Never someone already followed, blocked either way, muted, suspended or inactive. Backs `GET /api/social/suggestions`, used by Onboarding and the empty Following Feed.
 _Avoid_: recommended users, friend suggestions
 
+**From People You Follow**:
+What the users the viewer follows make of one Film or Series, shown on its detail page to signed-in viewers: how many watched it, the average of their Your Rating, and each one's rating, like, watch date or Series watch status and latest Review. Muted, blocked and suspended users are left out. Also a "Following" sort on the title's Reviews. Owned by `modules/media` (`MediaFollowingService`).
+_Avoid_: friends' ratings, social proof
+
 **Feed Row**:
 One row the viewer sees in the Following Feed or a profile overview: a title card (one person's Activities on one Film/Series, season or episode on one day), a plain Activity, or a folded run of one person's same-day likes, watchlist adds, follows, or one show's seasons and episodes. Days are the viewer's local days (their IANA time zone, UTC if unknown); the API folds and pages rows, the web only renders them.
 _Avoid_: entry, item (an item is one Activity before grouping)
@@ -126,6 +138,16 @@ _Avoid_: takedown, admin delete
 **Suspension**:
 An admin-applied, platform-wide restriction on a Profile (`isSuspended`) — distinct from Block/Mute, which are relationships between two ordinary users.
 _Avoid_: ban, block
+
+### Sharing
+
+**Link Preview**:
+The title, description and image a chat app or social network shows for a shared Interis link. Served to link-preview bots by the web app's Pages Function from the API's `/api/public/meta/*`; browsers get the same text from each route's `head()`. Only public content has one.
+_Avoid_: embed, unfurl (both name what the other app does with it)
+
+**Share Card**:
+The generated 1200×630 PNG a Link Preview shows for a Review, List, Profile, Film or Series, rendered on the API (`infrastructure/share-cards`, one renderer per card type).
+_Avoid_: og image, thumbnail
 
 ### Notifications
 

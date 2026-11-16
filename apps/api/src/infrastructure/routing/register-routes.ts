@@ -5,11 +5,13 @@ import serialsRouter from "../../modules/tv/tv.routes";
 import peopleRouter from "../../modules/people/people.routes";
 import diaryRouter from "../../modules/diary/diary.routes";
 import usersRouter from "../../modules/users/users.routes";
+import watchGoalsRouter from "../../modules/watch-goals/watch-goals.routes";
 import reviewsRouter from "../../modules/reviews/reviews.routes";
 import socialRouter from "../../modules/social/social.routes";
 import interactionsRouter from "../../modules/interactions/interactions.routes";
 import uploadsRouter from "../../modules/uploads/uploads.routes";
 import { createPublicRouter } from "../../modules/public/public.routes";
+import { createPublicShareRouter } from "../../modules/public/public-share.routes";
 import postsRouter from "../../modules/posts/posts.routes";
 import dataTransferRouter from "../../modules/data-transfer/data-transfer.routes";
 import searchRouter from "../../modules/search/search.routes";
@@ -33,11 +35,14 @@ export const registerRoutes = (app: Express): void => {
   app.use("/api/serials", serialsRouter);
   app.use("/api/people", peopleRouter);
   app.use("/api/diary", diaryRouter);
+  app.use("/api/users/me/goal", watchGoalsRouter);
   app.use("/api/users", usersRouter);
   app.use("/api/reviews", reviewsRouter);
   app.use("/api/social", socialRouter);
   app.use("/api/interactions", interactionsRouter);
   app.use("/api/uploads", uploadsRouter);
+  // Before the widget router, whose /:username/* routes would otherwise see "meta" and "og" as usernames.
+  app.use("/api/public", createPublicShareRouter());
   app.use("/api/public", createPublicRouter());
   app.use("/api/posts", postsRouter);
   app.use("/api/lists", listsRouter);

@@ -26,6 +26,7 @@ export type LoginInput = { email: string; password: string };
 export type ChangePasswordInput = {
   currentPassword: string;
   newPassword: string;
+  // Other devices are signed out unless the caller explicitly opts out.
   revokeOtherSessions?: boolean;
 };
 
@@ -279,7 +280,7 @@ export class AuthService {
     const newPasswordHash = await PasswordService.hash(input.newPassword);
     await AuthCredentialsRepository.updatePasswordHash(credential.id, newPasswordHash);
 
-    if (input.revokeOtherSessions) {
+    if (input.revokeOtherSessions !== false) {
       await SessionService.revokeAllSessionsForUser(userId, currentSessionId);
     }
   }

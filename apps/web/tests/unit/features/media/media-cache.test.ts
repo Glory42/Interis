@@ -12,6 +12,7 @@ import {
 } from "@/features/media/media-cache";
 import { profileKeys } from "@/features/profile/hooks/useProfile";
 import { profileStatsKeys } from "@/features/profile/hooks/useProfileStats";
+import { watchGoalKeys } from "@/features/profile/hooks/useWatchGoal";
 import { reviewKeys } from "@/features/reviews/hooks/review-keys";
 import { seriesKeys } from "@/features/tv/hooks/tv/query-keys";
 
@@ -60,6 +61,8 @@ const sharedQueries: Record<string, QueryKey> = {
   "profile.stats": profileStatsKeys.detail(VIEWER),
   "profile.currentlyWatching": profileKeys.currentlyWatching(VIEWER),
   "profile.topPicks": profileKeys.topPicks(VIEWER),
+  "goal.thisYear": watchGoalKeys.detail(VIEWER, 2026),
+  "goal.lastYear": watchGoalKeys.detail(VIEWER, 2025),
   "other.user": profileKeys.detail("someone-else"),
   "other.film": filmKeys.detail(999),
   "other.series": seriesKeys.detail(999),
@@ -86,7 +89,7 @@ const invalidatedBy = async (kind: MediaKind, event: MediaEvent, viewer: string 
 const tmdbIdOf = (kind: MediaKind) => (kind === "film" ? FILM : SERIES);
 const TITLE = ["title.detail", "title.detailView", "title.logs", "title.interaction"];
 const REVIEW_TITLE = ["title.detailView", "title.logs", "myLogs", "title.myReviews"];
-const LOG = [...TITLE, "myLogs", "title.myReviews", "feed.meSummary", "profile.detail", "profile.diary", "profile.recentActivity", "profile.stats"];
+const LOG = [...TITLE, "myLogs", "title.myReviews", "feed.meSummary", "profile.detail", "profile.diary", "profile.recentActivity", "profile.stats", "goal.thisYear"];
 const INTERACTION = [...TITLE, "profile.detail", "profile.stats", "profile.watchlist"];
 
 type Row = {
@@ -99,33 +102,45 @@ type Row = {
 const rows: Row[] = [
   {
     name: "log created with a review",
-    event: (kind) => ({ type: "log-created", kind, tmdbId: tmdbIdOf(kind), hasReview: true }),
+    event: (kind) => ({ type: "log-created", kind, tmdbId: tmdbIdOf(kind), hasReview: true, goalYears: [2026] }),
     both: [...LOG, "profile.watchlist", "profile.reviews"],
     tvOnly: ["title.seasonDetail", "profile.currentlyWatching"],
   },
   {
     name: "log created without a review",
-    event: (kind) => ({ type: "log-created", kind, tmdbId: tmdbIdOf(kind), hasReview: false }),
+    event: (kind) => ({ type: "log-created", kind, tmdbId: tmdbIdOf(kind), hasReview: false, goalYears: [2026] }),
     both: [...LOG, "profile.watchlist"],
     tvOnly: ["title.seasonDetail", "profile.currentlyWatching"],
   },
   {
     name: "log edited",
-    event: (kind) => ({ type: "log-edited", kind, tmdbId: tmdbIdOf(kind) }),
+    event: (kind) => ({ type: "log-edited", kind, tmdbId: tmdbIdOf(kind), goalYears: [2026] }),
     both: [...LOG, "profile.reviews"],
     tvOnly: ["title.seasonDetail"],
   },
   {
     name: "log deleted, kept watched",
-    event: (kind) => ({ type: "log-deleted", kind, tmdbId: tmdbIdOf(kind), unwatch: false }),
+    event: (kind) => ({ type: "log-deleted", kind, tmdbId: tmdbIdOf(kind), unwatch: false, goalYears: [2026] }),
     both: [...LOG, "profile.reviews"],
     tvOnly: ["title.seasonDetail"],
   },
   {
     name: "log deleted and unwatched",
-    event: (kind) => ({ type: "log-deleted", kind, tmdbId: tmdbIdOf(kind), unwatch: true }),
+    event: (kind) => ({ type: "log-deleted", kind, tmdbId: tmdbIdOf(kind), unwatch: true, goalYears: [2026] }),
     both: [...LOG, "profile.reviews"],
     tvOnly: ["title.seasonDetail", "profile.currentlyWatching"],
+  },
+  {
+    name: "log moved to last year",
+    event: (kind) => ({ type: "log-edited", kind, tmdbId: tmdbIdOf(kind), goalYears: [2026, 2025] }),
+    both: [...LOG, "goal.lastYear", "profile.reviews"],
+    tvOnly: ["title.seasonDetail"],
+  },
+  {
+    name: "log edited, date unknown",
+    event: (kind) => ({ type: "log-edited", kind, tmdbId: tmdbIdOf(kind) }),
+    both: [...LOG, "goal.lastYear", "profile.reviews"],
+    tvOnly: ["title.seasonDetail"],
   },
   {
     name: "review created",

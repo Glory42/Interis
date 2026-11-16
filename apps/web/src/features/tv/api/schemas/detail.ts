@@ -50,7 +50,7 @@ const seriesDetailSeriesSchema = z.object({
   seasons: z.array(seriesDetailSeasonSchema),
 });
 
-export const seriesDetailReviewSortSchema = z.enum(["popular", "recent"]);
+export const seriesDetailReviewSortSchema = z.enum(["popular", "recent", "following"]);
 
 const seriesDetailUserRatingSchema = z
   .object({

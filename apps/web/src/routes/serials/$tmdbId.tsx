@@ -4,7 +4,7 @@ import { SeriesDetailPage } from "@/features/tv/components/SeriesDetailPage";
 import { seriesKeys } from "@/features/tv/hooks/useTv";
 import { parsePositiveIntParam } from "@/lib/router/params";
 import { RouteErrorBoundary } from "@/lib/router/RouteErrorBoundary";
-import { getPosterUrl } from "@/features/media/tmdb-images";
+import { mediaShareText, shareCardUrl, shareHeadMeta } from "@/lib/share-meta";
 
 export const Route = createFileRoute("/serials/$tmdbId")({
   beforeLoad: ({ params }) => {
@@ -32,20 +32,10 @@ export const Route = createFileRoute("/serials/$tmdbId")({
     }
 
     const { series } = loaderData;
-    const title = series.firstAirYear
-      ? `${series.title} (${series.firstAirYear})`
-      : series.title;
-    const description = series.overview || `${series.title} on Interis.`;
+    const text = mediaShareText({ title: series.title, year: series.firstAirYear, overview: series.overview });
 
     return {
-      meta: [
-        { title: `${title} — Interis` },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:image", content: getPosterUrl(series.posterPath) },
-        { property: "og:type", content: "video.tv_show" },
-      ],
+      meta: shareHeadMeta(text, { image: shareCardUrl("serial", series.tmdbId), ogType: "video.tv_show" }),
     };
   },
   component: TvDetailRoute,

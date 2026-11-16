@@ -6,6 +6,7 @@ import { STATS_MIN_LOGS, fillLastTwelveMonths, toRatingBuckets } from "@/feature
 import { useIsOwnProfile, useUserProfile } from "@/features/profile/hooks/useProfile";
 import { useDetailedStats } from "@/features/profile/hooks/useProfileStats";
 import { StatsSkeleton } from "@/components/ui/PageSkeletons";
+import { WatchGoalCard } from "@/features/profile/components/goal/WatchGoalCard";
 
 type ProfileStatsPageProps = {
   username: string;
@@ -46,13 +47,18 @@ export const ProfileStatsPage = ({ username, now: nowProp }: ProfileStatsPagePro
     return <p className="body-s text-[color:var(--danger)]">Could not load stats right now.</p>;
   }
 
+  const goal = <WatchGoalCard username={username} isOwner={isOwner} now={now} />;
+
   if (logged < STATS_MIN_LOGS) {
     return (
-      <div className="border-t border-[color:var(--line)] pt-4">
-        <p className="body-s text-muted-foreground">
-          {isOwner ? `${STATS_MIN_LOGS - logged} more logs to start your stats.` : "Not enough logs for stats yet."}
-        </p>
-        {isOwner ? <ReelCells total={STATS_MIN_LOGS} watched={logged} tone="film" className="mt-2" /> : null}
+      <div className="space-y-7">
+        {goal}
+        <div className="border-t border-[color:var(--line)] pt-4">
+          <p className="body-s text-muted-foreground">
+            {isOwner ? `${STATS_MIN_LOGS - logged} more logs to start your stats.` : "Not enough logs for stats yet."}
+          </p>
+          {isOwner ? <ReelCells total={STATS_MIN_LOGS} watched={logged} tone="film" className="mt-2" /> : null}
+        </div>
       </div>
     );
   }
@@ -68,6 +74,8 @@ export const ProfileStatsPage = ({ username, now: nowProp }: ProfileStatsPagePro
         <Headline value={stats.averageRating !== null ? stats.averageRating.toFixed(1) : "—"} label="avg rating" />
         <Headline value={`${Math.round(stats.hoursWatched).toLocaleString("en-US")}h`} label="watched" />
       </div>
+
+      {goal}
 
       <Block title={`${now.getFullYear()} in reels · one cell per day`}>
         <DayHeatmap weeks={toDayHeatmap(stats.logsPerDay, now)} year={now.getFullYear()} />
