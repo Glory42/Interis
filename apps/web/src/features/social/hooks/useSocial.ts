@@ -32,6 +32,7 @@ export const socialKeys = {
   viewerFollowsAll: ["social", "viewer-follows"] as const,
   viewerFollows: (userIdsParam: string) =>
     ["social", "viewer-follows", userIdsParam] as const,
+  suggestions: (limit: number) => ["social", "suggestions", limit] as const,
 };
 
 // Flips one user in every cached viewer-follows batch that asked about them.
