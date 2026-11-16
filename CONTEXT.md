@@ -42,6 +42,14 @@ _Avoid_: actor, cast member (too narrow — Person covers crew too)
 A record that a user watched a Film or Series on a given date — a watch log. Stored per media type (`diary_entry` for Films, `serial_diary_entry` for Series). May optionally have a Review attached (`Review.diaryEntryId` for Film logs, `Review.serialDiaryEntryId` for Series logs). Deleting the log keeps the Review, unattached.
 _Avoid_: watch, log
 
+**Private Note**:
+An optional text (up to 1000 characters) on a Diary Entry that only its owner ever sees: never in feeds, Activity metadata, public or widget reads, Reviews or admin listings. Owner reads select it explicitly; every other read leaves the column out.
+_Avoid_: comment, memo
+
+**Diary Tag**:
+A short public label on a Diary Entry ("cinema", "with mom"), up to 10 per entry: trimmed, lowercased, spaces collapsed, at most 30 letters, digits, spaces, `-`, `_` or `'`. One `diary_tag` row per entry and tag, for Films and Series alike; the profile Diary filters by one and lists a user's tags with counts.
+_Avoid_: label, category, hashtag
+
 **Review**:
 A write-up about a Film or Series. May be attached to the Diary Entry it was written for, or stand alone with no Diary Entry at all.
 _Avoid_: rating (a separate Interaction, not a Review)
