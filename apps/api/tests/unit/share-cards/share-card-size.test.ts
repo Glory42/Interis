@@ -35,6 +35,7 @@ const syntheticJpeg = (width: number, height: number, seed: number): Buffer => {
 const poster = (n: number) => `https://image.tmdb.org/t/p/w342/size-test-poster-${n}.jpg`;
 const BACKDROP = "https://image.tmdb.org/t/p/w780/size-test-backdrop.jpg";
 const POSTERS = [1, 2, 3, 4, 5].map(poster);
+const [FIRST_POSTER, SECOND_POSTER] = POSTERS as [string, string];
 
 describe("share card size", () => {
   const realFetch = globalThis.fetch;
@@ -65,7 +66,7 @@ describe("share card size", () => {
       genres: ["Drama", "Science Fiction", "Thriller"],
       overview: "A thief who steals secrets from deep inside the subconscious is offered one last job. ".repeat(3),
       communityRating: 8.7,
-      posterUrl: POSTERS[0],
+      posterUrl: FIRST_POSTER,
       backdropUrl: BACKDROP,
     })],
     ["series", () => renderMediaCard({
@@ -76,14 +77,14 @@ describe("share card size", () => {
       genres: ["Drama"],
       overview: "Four seasons of slow-burning family drama.",
       communityRating: 7.4,
-      posterUrl: POSTERS[1],
+      posterUrl: SECOND_POSTER,
       backdropUrl: BACKDROP,
     })],
     ["review", () => renderReviewCard({
       mediaKind: "film",
       mediaTitle: "A Long Film Title",
       year: 2010,
-      posterUrl: POSTERS[0],
+      posterUrl: FIRST_POSTER,
       backdropUrl: BACKDROP,
       rating: 9,
       content: "A dream inside a heist inside a love story, and the ending still starts arguments. ".repeat(3),
