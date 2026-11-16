@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ModalShell } from "@/components/ui/ModalShell";
 import { LaunchTrack } from "@/components/film/rating/LaunchTrack";
 import { LogEditorWhen, type LogWhen } from "@/features/media/log-editor/LogEditorWhen";
+import { LogPrivateFields, type LogEditorPrivateFields } from "@/features/media/log-editor/LogPrivateFields";
 import { LogReviewField, type LogEditorReview } from "@/features/media/log-editor/LogReviewField";
 import type { MediaKind } from "@/features/media/media-cache";
 import { PHONE_QUERY, useMediaQuery } from "@/lib/use-media-query";
@@ -24,6 +25,8 @@ type LogEditorDialogProps = {
   liked: boolean;
   onLikedChange: (nextValue: boolean) => void;
   review: LogEditorReview;
+  // Tags and the private note of a Diary Entry; absent for season and episode reviews.
+  privateFields?: LogEditorPrivateFields;
   formError: string | null;
   isSubmitting: boolean;
   canSubmit?: boolean;
@@ -45,6 +48,7 @@ export const LogEditorDialog = ({
   liked,
   onLikedChange,
   review,
+  privateFields,
   formError,
   isSubmitting,
   canSubmit = true,
@@ -212,6 +216,8 @@ export const LogEditorDialog = ({
                   maxLength={REVIEW_MAX_LENGTH}
                   onWritingChange={setIsWriting}
                 />
+
+                {privateFields && !isCompact ? <LogPrivateFields fields={privateFields} /> : null}
 
                 {formError ? (
                   <p role="alert" className="body-s rounded-[3px] border border-[color:var(--danger)]/50 bg-[color:var(--danger)]/10 px-3 py-2 text-[color:var(--danger)]">

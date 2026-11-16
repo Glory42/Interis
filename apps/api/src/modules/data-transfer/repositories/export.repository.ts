@@ -11,6 +11,7 @@ export class ExportRepository {
         watchedDate: seriesDiaryEntries.watchedDate,
         rating: seriesDiaryEntries.rating,
         rewatch: seriesDiaryEntries.rewatch,
+        note: seriesDiaryEntries.note,
         tmdbId: tvSeries.tmdbId,
         title: tvSeries.title,
         firstAirYear: tvSeries.firstAirYear,
@@ -19,7 +20,7 @@ export class ExportRepository {
       })
       .from(seriesDiaryEntries)
       .innerJoin(tvSeries, eq(tvSeries.id, seriesDiaryEntries.seriesId))
-      .leftJoin(reviews, eq(reviews.diaryEntryId, seriesDiaryEntries.id))
+      .leftJoin(reviews, eq(reviews.serialDiaryEntryId, seriesDiaryEntries.id))
       .where(eq(seriesDiaryEntries.userId, userId))
       .orderBy(desc(seriesDiaryEntries.watchedDate));
   }

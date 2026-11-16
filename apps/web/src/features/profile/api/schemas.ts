@@ -24,6 +24,9 @@ export const diaryItemSchema = z.object({
       createdAt: z.string(),
     })
     .nullable(),
+  tags: z.array(z.string()).default([]),
+  // Present only on the owner's own diary.
+  note: z.string().nullable().optional(),
 });
 
 export const diaryItemListSchema = z.array(diaryItemSchema);

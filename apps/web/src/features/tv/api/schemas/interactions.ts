@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { REVIEW_MAX_LENGTH } from "@/types/api";
+import { REVIEW_MAX_LENGTH, diaryNoteInputSchema, diaryTagsInputSchema } from "@/types/api";
 
 export const seriesWatchStatusSchema = z.enum(["watching", "paused", "dropped", "completed"]);
 
@@ -44,6 +44,8 @@ export const createSeriesLogInputSchema = z.object({
   rewatch: z.boolean().optional(),
   review: z.string().max(REVIEW_MAX_LENGTH).optional(),
   containsSpoilers: z.boolean().optional(),
+  note: diaryNoteInputSchema.optional(),
+  tags: diaryTagsInputSchema.optional(),
 });
 
 export const createSeriesLogResponseSchema = z.object({

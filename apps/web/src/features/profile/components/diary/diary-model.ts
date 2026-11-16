@@ -16,6 +16,9 @@ export type DiaryRow = {
   // The Review written with this log, editable together with it.
   review: AttachedReview | null;
   isLiked: boolean;
+  tags: string[];
+  // undefined unless the viewer owns the diary; then the private note or null.
+  note?: string | null;
   dateParts: {
     month: string;
     day: string;
@@ -108,6 +111,8 @@ export const toDiaryRows = (diaryItems: DiaryItem[]): DiaryRow[] => {
         containsSpoilers: item.review.containsSpoilers,
       },
       isLiked: item.liked,
+      tags: item.tags,
+      note: item.note,
     };
   });
 

@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
 import { DiaryService } from "./diary.service";
 import { CreateDiarySchema, DeleteDiaryQuerySchema, UpdateDiarySchema } from "./dto/diary.dto";
+import { isUuid } from "../../commons/validation/params.helper";
 import { parseDiaryPagination } from "./helpers/diary-pagination.helper";
 
 export class DiaryController {
@@ -9,6 +10,16 @@ export class DiaryController {
     const { limit, offset } = parseDiaryPagination(req.query);
     const entries = await DiaryService.findAllByUser(req.user.id, limit, offset);
     res.status(200).json(entries);
+  }
+
+  // The viewer's own log with its private note and tags.
+  static async getMine(req: Request<{ id: string }>, res: Response): Promise<void> {
+    const entry = isUuid(req.params.id) ? await DiaryService.findMine(req.params.id, req.user.id) : null;
+    if (!entry) {
+      sendNotFound(res, "Diary entry not found");
+      return;
+    }
+    res.status(200).json(entry);
   }
 
   static async create(req: Request, res: Response): Promise<void> {

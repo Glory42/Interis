@@ -4,8 +4,11 @@ import { ReviewsRepository } from "../../reviews/repositories/reviews.repository
 import { YourRatingService } from "../../media-interactions/services/your-rating.service";
 import type { MediaType } from "../constants/media-type.constant";
 import { buildWatchLogActivityMetadata, resolveLogReviewEdit } from "../helpers/watch-log.helper";
+import { normalizeDiaryNote } from "../helpers/diary-tag.helper";
+import { DiaryTagsService } from "./diary-tags.service";
 import type {
   AttachedReview,
+  OwnedWatchLogRow,
   WatchLogAdapter,
   WatchLogCreateInput,
   WatchLogRow,
@@ -13,6 +16,9 @@ import type {
   WatchLogTitle,
   WatchLogUpdateInput,
 } from "../types/watch-log.types";
+
+// What only the log's owner sees besides the log itself.
+export type WatchLogPrivateFields = { note: string | null; tags: string[] };
 
 const toAttachedReview = (review: AttachedReview | null): AttachedReview | null =>
   review && { id: review.id, content: review.content, containsSpoilers: review.containsSpoilers };
@@ -25,7 +31,7 @@ export class WatchLogService {
     userId: string,
     tmdbId: number,
     input: WatchLogCreateInput,
-  ): Promise<TCreated | null> {
+  ): Promise<(TCreated & WatchLogPrivateFields) | null> {
     const title = await adapter.findOrCreateTitle(tmdbId);
     if (!title) return null;
     const markWatched = await adapter.prepareMarkWatched(title);
@@ -38,8 +44,10 @@ export class WatchLogService {
       watchedDate: input.watchedDate,
       rating,
       rewatch,
+      note: normalizeDiaryNote(input.note),
     });
     if (!row) throw new Error("Failed to create diary entry");
+    const tags = input.tags ?? [];
 
     // Written with the log, so it rides on the log's Activity, not its own.
     const content = input.review?.trim();
@@ -57,6 +65,7 @@ export class WatchLogService {
 
     await Promise.all([
       markWatched(userId),
+      DiaryTagsService.add(userId, adapter.mediaType, row.id, tags),
       rating !== null
         ? YourRatingService.followLatestRatedLog(adapter.mediaType, userId, title.id, {
             before: null,
@@ -73,7 +82,7 @@ export class WatchLogService {
       extraMetadata: buildWatchLogActivityMetadata({ rating, rewatch, review }),
     });
 
-    return adapter.toCreated({ entry: adapter.toEntry(row), title, review });
+    return { ...adapter.toCreated({ entry: adapter.toEntry(row), title, review }), note: row.note, tags };
   }
 
   // Edits the log and, when asked, its attached Review in one call. No
@@ -83,27 +92,30 @@ export class WatchLogService {
     entryId: string,
     userId: string,
     input: WatchLogUpdateInput,
-  ): Promise<(TEntry & { review: AttachedReview | null }) | null> {
+  ): Promise<(TEntry & WatchLogPrivateFields & { review: AttachedReview | null }) | null> {
     const existing = await adapter.store.find(entryId, userId);
     if (!existing) return null;
 
-    const { review: reviewText, containsSpoilers, ...fields } = input;
+    const { review: reviewText, containsSpoilers, tags: newTags, ...fields } = input;
     const patch = Object.fromEntries(
-      Object.entries(fields).filter(([, value]) => value !== undefined),
+      Object.entries({ ...fields, note: fields.note === undefined ? undefined : normalizeDiaryNote(fields.note) })
+        .filter(([, value]) => value !== undefined),
     );
     const movesRating = input.rating !== undefined || input.watchedDate !== undefined;
-    const [before, attached] = await Promise.all([
+    const [before, attached, tags] = await Promise.all([
       movesRating ? YourRatingService.latestRatedLog(adapter.mediaType, userId, existing.mediaId) : null,
       adapter.store.findAttachedReview(entryId),
+      newTags ?? DiaryTagsService.forEntry(adapter.mediaType, entryId),
     ]);
 
     const { tmdbId: _tmdbId, ...unchanged } = existing;
-    const row: WatchLogRow | null =
+    const row: OwnedWatchLogRow | null =
       Object.keys(patch).length > 0 ? await adapter.store.update(entryId, userId, patch) : unchanged;
     if (!row) return null;
 
     const [review] = await Promise.all([
       WatchLogService.editAttachedReview(adapter, existing, attached, { review: reviewText, containsSpoilers }),
+      newTags ? DiaryTagsService.replace(userId, adapter.mediaType, entryId, newTags) : null,
       movesRating
         ? YourRatingService.followLatestRatedLog(adapter.mediaType, userId, row.mediaId, {
             before,
@@ -113,7 +125,22 @@ export class WatchLogService {
     ]);
 
     ActivityRecorder.invalidateFeeds(userId);
-    return { ...adapter.toEntry(row), review };
+    return { ...adapter.toEntry(row), note: row.note, tags, review };
+  }
+
+  // The owner's own log with its private note and tags; null for anyone else's.
+  static async findOwned<TTitle extends WatchLogTitle, TEntry, TCreated>(
+    adapter: WatchLogAdapter<TTitle, TEntry, TCreated>,
+    entryId: string,
+    userId: string,
+  ): Promise<(TEntry & WatchLogPrivateFields) | null> {
+    const [row, tags] = await Promise.all([
+      adapter.store.find(entryId, userId),
+      DiaryTagsService.forEntry(adapter.mediaType, entryId),
+    ]);
+    if (!row) return null;
+    const { tmdbId: _tmdbId, ...owned } = row;
+    return { ...adapter.toEntry(owned), note: owned.note, tags };
   }
 
   private static async editAttachedReview(

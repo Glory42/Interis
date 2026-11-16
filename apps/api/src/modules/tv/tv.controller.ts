@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { resolveViewerUserIdFromHeaders } from "../../commons/auth/session-resolver.helper";
 import { sendBadRequest, sendNotFound, sendValidationError } from "../../commons/http/validation-response.helper";
-import { parseTmdbIdParam } from "../../commons/validation/params.helper";
+import { isUuid, parseTmdbIdParam } from "../../commons/validation/params.helper";
 import { TvService } from "./tv.service";
 import type {
   SeriesDetailQuery,
@@ -275,6 +275,16 @@ export class TvController {
     const { limit, offset } = normalizeSeriesLogsQuery(req.query);
     const logs = await TvService.getMyLogs(req.user.id, limit, offset);
     res.status(200).json(logs);
+  }
+
+  // The viewer's own log with its private note and tags.
+  static async getMyLog(req: Request<{ id: string }>, res: Response): Promise<void> {
+    const log = isUuid(req.params.id) ? await TvService.findMyLog(req.params.id, req.user.id) : null;
+    if (!log) {
+      sendNotFound(res, "Serial log not found");
+      return;
+    }
+    res.status(200).json(log);
   }
 
   static async updateLog(
