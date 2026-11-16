@@ -218,14 +218,16 @@ export const getUserWatchlist = (
   options: QueryRequestOptions = {},
 ): Promise<UserMediaShelfPage> => getUserMediaShelf("watchlist", username, query, options);
 
+// `tag` filters the diary by one Diary Tag, server-side.
 export const getUserDiary = async (
   username: string,
   limit: number,
   offset: number,
-  options: QueryRequestOptions = {},
+  options: QueryRequestOptions & { tag?: string } = {},
 ): Promise<DiaryItem[]> => {
+  const tagParam = options.tag ? `&tag=${encodeURIComponent(options.tag)}` : "";
   const response = await apiRequest<unknown>(
-    `/api/users/${encodePathSegment(username)}/diary?${toPaginationParams(limit, offset)}`,
+    `/api/users/${encodePathSegment(username)}/diary?${toPaginationParams(limit, offset)}${tagParam}`,
     {
       method: "GET",
       cache: "no-store",

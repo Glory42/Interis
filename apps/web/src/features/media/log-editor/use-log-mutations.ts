@@ -6,6 +6,7 @@ import {
   updateDiaryEntry,
   type UpdateDiaryEntryInput,
 } from "@/features/diary/api";
+import { diaryKeys } from "@/features/diary/hooks/diary-keys";
 import { filmKeys } from "@/features/films/hooks/useFilms";
 import { refreshAfter, type MediaTitle } from "@/features/media/media-cache";
 import { goalYearOf } from "@/features/profile/hooks/useWatchGoal";
@@ -19,6 +20,8 @@ export type CreateLogInput = {
   rewatch: boolean;
   review?: string;
   containsSpoilers?: boolean;
+  note?: string;
+  tags?: string[];
 };
 
 // Every field optional; `review` text writes the attached Review, null deletes it.
@@ -112,6 +115,9 @@ export const useUpdateLog = () => {
         }),
         // Emptied review text deleted the Review; its page is left, not refetched.
         input.review === null ? null : refreshAttachedReview(queryClient, log),
+        input.note !== undefined || input.tags !== undefined
+          ? queryClient.invalidateQueries({ queryKey: diaryKeys.privateFields(log.kind, log.logId), exact: true })
+          : null,
       ]),
   });
 };

@@ -1,4 +1,5 @@
 import { SocialRepository } from "../repositories/social.repository";
+import { SocialSuggestionsRepository } from "../repositories/social-suggestions.repository";
 import { ModerationRepository } from "../../moderation/repositories/moderation.repository";
 import { NotificationsService } from "../../notifications/notifications.service";
 import { ActivityRecorder } from "./activity-recorder.service";
@@ -66,6 +67,11 @@ export class SocialFollowService {
   static async getFollowedAmong(followerId: string, userIds: string[]): Promise<string[]> {
     const rows = await SocialRepository.findFollowedAmong(followerId, userIds);
     return rows.map((row) => row.followingId);
+  }
+
+  // People the viewer may want to follow, best taste match first.
+  static async getSuggestions(viewerId: string, limit: number) {
+    return SocialSuggestionsRepository.findForViewer(viewerId, limit);
   }
 
   static async removeFollower(userId: string, followerUserId: string) {

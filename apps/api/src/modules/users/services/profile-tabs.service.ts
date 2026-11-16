@@ -2,6 +2,7 @@ import { z } from "zod";
 import { AppError } from "../../../commons/errors/app-error";
 import { GetUserListsQuerySchema } from "../../lists/dto/lists.dto";
 import { ListsService } from "../../lists/lists.service";
+import { DiaryTagsService } from "../../media/services/diary-tags.service";
 import { SocialFeedService } from "../../social/services/social-feed.service";
 import { TvCurrentlyWatchingService } from "../../tv/services/tv-currently-watching.service";
 import { WatchGoalsService } from "../../watch-goals/watch-goals.service";
@@ -41,6 +42,7 @@ const paged = <Rules extends TabRules, R>(
 const LIST_PAGE = { defaultLimit: 60, maxLimit: 100, acceptsOffset: true };
 const WIDGET_COLLECTION = { defaultLimit: 50, maxLimit: 200, acceptsOffset: false };
 const DIARY_PAGE = { defaultLimit: 50, maxLimit: 200, acceptsOffset: true };
+const DIARY_TAGS_PAGE = { defaultLimit: 50, maxLimit: 100, acceptsOffset: false };
 const RECENT_PAGE = { defaultLimit: 10, maxLimit: 20, acceptsOffset: false };
 const CURRENTLY_WATCHING_PAGE = { defaultLimit: 10, maxLimit: 30, acceptsOffset: false };
 
@@ -57,8 +59,15 @@ const loadShelf =
   };
 
 const TABS = {
-  diary: paged({ app: DIARY_PAGE, widget: DIARY_PAGE }, ({ userId, page }) =>
-    ProfileDiaryService.getDiary(userId, page),
+  // Viewer-aware: the owner also gets each entry's private note. ?tag= filters by a Diary Tag.
+  diary: paged(
+    { app: DIARY_PAGE, widget: DIARY_PAGE },
+    ({ userId, viewerId, page, query }) =>
+      ProfileDiaryService.getDiary(userId, page, { isOwner: viewerId === userId, tag: query.tag }),
+    true,
+  ),
+  "diary-tags": paged({ app: DIARY_TAGS_PAGE }, ({ userId, page }) =>
+    DiaryTagsService.topForUser(userId, page.limit),
   ),
   top4: unpaged(({ userId }) => ProfileTop4Service.getTop4(userId)),
   goal: unpaged(({ userId, query }) => WatchGoalsService.readForProfile(userId, query)),

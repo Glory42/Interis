@@ -106,6 +106,7 @@ describe("normalizeLetterboxdRow (diary.csv)", () => {
       Rating: "4.5",
       Rewatch: "Yes",
       Review: "Great film",
+      Tags: "Cinema, with  Mom, sci-fi/horror, ",
     });
     expect(row).toEqual({
       title: "Fight Club",
@@ -117,6 +118,8 @@ describe("normalizeLetterboxdRow (diary.csv)", () => {
       rewatch: true,
       review: "Great film",
       spoilers: false,
+      note: null,
+      tags: ["cinema", "with mom", "sci-fi horror"],
     });
   });
 
@@ -178,6 +181,21 @@ describe("normalizeInterisRow", () => {
       mediaType: "tv",
       spoilers: true,
     });
+  });
+
+  it("carries the private note and tags of an Interis export", () => {
+    const row = normalizeInterisRow({
+      Title: "Film",
+      WatchedDate: "2024-01-15",
+      Note: "  saw it twice  ",
+      Tags: "cinema, rewatch-night",
+    });
+    expect(row).toMatchObject({ note: "saw it twice", tags: ["cinema", "rewatch-night"] });
+  });
+
+  it("leaves note and tags empty on an older export without those columns", () => {
+    const row = normalizeInterisRow({ Title: "Film", WatchedDate: "2024-01-15" });
+    expect(row).toMatchObject({ note: null, tags: [] });
   });
 
   it("defaults mediaType to movie for anything other than 'tv'", () => {

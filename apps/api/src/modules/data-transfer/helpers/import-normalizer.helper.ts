@@ -1,6 +1,8 @@
 import { searchFilmByTitleAndYear } from "../../../infrastructure/tmdb/films";
 import { searchSeriesByTitleAndYear } from "../../../infrastructure/tmdb/tv";
 import type { MediaType } from "../../media/constants/media-type.constant";
+import { DIARY_NOTE_MAX_LENGTH } from "../../media/constants/diary-entry.constants";
+import { normalizeDiaryNote, sanitizeImportedDiaryTags } from "../../media/helpers/diary-tag.helper";
 
 export type ImportStreamEvent =
   | { type: "start"; total: number; format: string }
@@ -64,7 +66,19 @@ export type NormalizedRow = {
   rewatch: boolean;
   review: string;
   spoilers: boolean;
+  note: string | null;
+  tags: string[];
 };
+
+// Both Letterboxd and Interis exports keep tags in one comma-separated "Tags" cell.
+export function parseTags(raw: string | undefined): string[] {
+  return sanitizeImportedDiaryTags((raw ?? "").split(","));
+}
+
+// An over-long note is cut to fit rather than failing the row.
+export function parseNote(raw: string | undefined): string | null {
+  return normalizeDiaryNote(raw)?.slice(0, DIARY_NOTE_MAX_LENGTH) ?? null;
+}
 
 export function normalizeLetterboxdRow(row: Record<string, string>): NormalizedRow | null {
   const watchedDate =
@@ -87,6 +101,8 @@ export function normalizeLetterboxdRow(row: Record<string, string>): NormalizedR
     rewatch: parseRewatch(row["Rewatch"] ?? ""),
     review: (row["Review"] ?? "").trim(),
     spoilers: false,
+    note: null,
+    tags: parseTags(row["Tags"]),
   };
 }
 
@@ -117,6 +133,8 @@ export function normalizeLetterboxdRatingsRow(row: Record<string, string>): Norm
     rewatch: false,
     review: "",
     spoilers: false,
+    note: null,
+    tags: [],
   };
 }
 
@@ -140,6 +158,8 @@ export function normalizeLetterboxdWatchedRow(row: Record<string, string>): Norm
     rewatch: false,
     review: "",
     spoilers: false,
+    note: null,
+    tags: [],
   };
 }
 
@@ -169,6 +189,8 @@ export function normalizeInterisRow(row: Record<string, string>): NormalizedRow 
     rewatch: parseRewatch(row["Rewatch"] ?? ""),
     review: (row["Review"] ?? "").trim(),
     spoilers: (row["Spoilers"] ?? "").trim().toLowerCase() === "true",
+    note: parseNote(row["Note"]),
+    tags: parseTags(row["Tags"]),
   };
 }
 

@@ -43,6 +43,7 @@ const logKeys = (title: MediaTitle & { goalYears?: number[] }, viewer: string | 
     ? [
         profileKeys.detail(viewer),
         profileKeys.diary(viewer),
+        profileKeys.diaryTags(viewer),
         profileKeys.recentActivityRoot(viewer),
         profileStatsKeys.detail(viewer),
         ...goalKeys(viewer, title.goalYears),

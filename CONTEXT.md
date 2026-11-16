@@ -14,6 +14,10 @@ _Avoid_: account, member
 The mutable, user-facing side of a User: bio, location, avatar, favorite genres, theme, and admin/suspension status. One-to-one with User.
 _Avoid_: account settings
 
+**Onboarding**:
+The short, skippable first-run flow a new User goes through once after sign-up: mark titles they've watched (the taste grid, saved as Interactions, which records no Activity), then follow suggested people, then land on the Following Feed. Finishing or skipping sets the Profile's `onboardingCompletedAt`; accounts that predate it were backfilled as completed.
+_Avoid_: tutorial, setup wizard
+
 **Profile Tab**:
 One section of a Profile read by username — Diary, Reviews, Likes, Watchlist, Liked Reviews, Liked Lists, Lists, Top 4, Recent, Currently Watching. The in-app Profile and the widget API read them through one module (`ProfileTabsService`) with one set of paging rules.
 _Avoid_: profile list, profile endpoint
@@ -45,6 +49,14 @@ _Avoid_: actor, cast member (too narrow — Person covers crew too)
 **Diary Entry**:
 A record that a user watched a Film or Series on a given date — a watch log. Stored per media type (`diary_entry` for Films, `serial_diary_entry` for Series). May optionally have a Review attached (`Review.diaryEntryId` for Film logs, `Review.serialDiaryEntryId` for Series logs). Deleting the log keeps the Review, unattached.
 _Avoid_: watch, log
+
+**Private Note**:
+An optional text (up to 1000 characters) on a Diary Entry that only its owner ever sees: never in feeds, Activity metadata, public or widget reads, Reviews or admin listings. Owner reads select it explicitly; every other read leaves the column out.
+_Avoid_: comment, memo
+
+**Diary Tag**:
+A short public label on a Diary Entry ("cinema", "with mom"), up to 10 per entry: trimmed, lowercased, spaces collapsed, at most 30 letters, digits, spaces, `-`, `_` or `'`. One `diary_tag` row per entry and tag, for Films and Series alike; the profile Diary filters by one and lists a user's tags with counts.
+_Avoid_: label, category, hashtag
 
 **Review**:
 A write-up about a Film or Series. May be attached to the Diary Entry it was written for, or stand alone with no Diary Entry at all.
@@ -96,6 +108,10 @@ _Avoid_: status, tweet
 **Following Feed**:
 The personalized, authenticated activity stream showing Activities from the users the viewer follows (plus their own), scoped via the Follow relationship. Shown as Feed Rows split into the viewer's days. Backs `GET /api/social/feed/grouped`.
 _Avoid_: feed (too ambiguous alone — always qualify as "Following Feed" or "Trending Now")
+
+**Follow Suggestion**:
+A user the viewer might want to follow, ranked by taste overlap (titles both watched or rated, closer ratings weighing more), falling back to the most followed and most active users. Never someone already followed, blocked either way, muted, suspended or inactive. Backs `GET /api/social/suggestions`, used by Onboarding and the empty Following Feed.
+_Avoid_: recommended users, friend suggestions
 
 **From People You Follow**:
 What the users the viewer follows make of one Film or Series, shown on its detail page to signed-in viewers: how many watched it, the average of their Your Rating, and each one's rating, like, watch date or Series watch status and latest Review. Muted, blocked and suspended users are left out. Also a "Following" sort on the title's Reviews. Owned by `modules/media` (`MediaFollowingService`).

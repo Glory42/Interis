@@ -251,4 +251,53 @@ describe("LogEditor", () => {
     expect(createDiaryEntryInputSchema.safeParse({ ...input, review: "a".repeat(10_000) }).success).toBe(true);
     expect(createDiaryEntryInputSchema.safeParse({ ...input, review: "a".repeat(10_001) }).success).toBe(false);
   });
+
+  it("logs tags and a private note that starts collapsed", async () => {
+    const sent = recordRequests();
+    const { onClose, user } = renderEditor(newFilmLog);
+
+    expect(screen.queryByRole("textbox", { name: "Private note" })).not.toBeInTheDocument();
+    const tagInput = screen.getByRole("textbox", { name: "Add a tag" });
+    await user.type(tagInput, "  Cinema {Enter}With   Mom,");
+    await user.click(screen.getByRole("button", { name: "Add a private note" }));
+    await user.type(screen.getByRole("textbox", { name: "Private note" }), " just for me ");
+    await user.click(screen.getByRole("button", { name: "Save log" }));
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(sent[0]?.body).toMatchObject({ tags: ["cinema", "with mom"], note: "just for me" });
+  });
+
+  it("loads an existing log's note and tags and sends only what changed", async () => {
+    const sent = recordRequests();
+    server.use(http.get("*/api/diary/:id", () => HttpResponse.json({ id: "entry-1", note: "kept", tags: ["old"] })));
+    const { onClose, user } = renderEditor(filmLog);
+
+    expect(await screen.findByRole("textbox", { name: "Private note" })).toHaveValue("kept");
+    await user.click(screen.getByRole("button", { name: "Remove tag old" }));
+    await user.type(screen.getByRole("textbox", { name: "Add a tag" }), "new{Enter}");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(sent).toEqual([{ method: "PUT", path: "/api/diary/entry-1", body: { tags: ["new"] } }]);
+  });
+
+  it("uses the note and tags it was opened with and clears an emptied note", async () => {
+    const sent = recordRequests();
+    const fetched = vi.fn();
+    server.use(
+      http.get("*/api/serials/logs/:id", () => {
+        fetched();
+        return HttpResponse.json({ note: null, tags: [] });
+      }),
+    );
+    const { onClose, user } = renderEditor({ ...seriesLog, privateFields: { note: "secret", tags: ["binge"] } });
+
+    expect(screen.getByText("#binge")).toBeInTheDocument();
+    await user.clear(screen.getByRole("textbox", { name: "Private note" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(sent).toEqual([{ method: "PUT", path: "/api/serials/logs/log-1", body: { note: null } }]);
+    expect(fetched).not.toHaveBeenCalled();
+  });
 });
