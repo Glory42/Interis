@@ -1,10 +1,12 @@
-import { and, eq, isNull, lt, ne, or } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, lt, ne, or, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { authSessions, user } from "../../../infrastructure/database/auth.entity";
 import { profiles } from "../../users/users.entity";
 
 export type AuthSessionInsert = typeof authSessions.$inferInsert;
 export type AuthSessionRow = typeof authSessions.$inferSelect;
+
+const isLive = () => and(isNull(authSessions.revokedAt), gt(authSessions.expiresAt, new Date()));
 
 export class AuthSessionsRepository {
   static async insert(row: AuthSessionInsert): Promise<AuthSessionRow> {
@@ -93,16 +95,48 @@ export class AuthSessionsRepository {
       .where(eq(authSessions.id, id));
   }
 
-  static async revokeAllForUser(userId: string, exceptSessionId?: string): Promise<void> {
+  static async revokeAllForUser(userId: string, exceptSessionId?: string): Promise<number> {
     const conditions = [eq(authSessions.userId, userId), isNull(authSessions.revokedAt)];
     if (exceptSessionId) {
       conditions.push(ne(authSessions.id, exceptSessionId));
     }
 
-    await db
+    const revoked = await db
       .update(authSessions)
       .set({ revokedAt: new Date() })
-      .where(and(...conditions));
+      .where(and(...conditions))
+      .returning({ id: authSessions.id });
+    return revoked.length;
+  }
+
+  // Scoped to the owner, so another user's session id matches nothing.
+  static async revokeLiveForUser(id: string, userId: string): Promise<boolean> {
+    const revoked = await db
+      .update(authSessions)
+      .set({ revokedAt: new Date() })
+      .where(and(eq(authSessions.id, id), eq(authSessions.userId, userId), isLive()))
+      .returning({ id: authSessions.id });
+    return revoked.length > 0;
+  }
+
+  // Current session first, then most recently active; no token hashes selected.
+  static async listLiveForUser(userId: string, currentSessionId: string, limit: number) {
+    return db
+      .select({
+        id: authSessions.id,
+        userAgent: authSessions.userAgent,
+        ipAddress: authSessions.ipAddress,
+        createdAt: authSessions.createdAt,
+        updatedAt: authSessions.updatedAt,
+      })
+      .from(authSessions)
+      .where(and(eq(authSessions.userId, userId), isLive()))
+      .orderBy(
+        desc(sql`${authSessions.id} = ${currentSessionId}`),
+        desc(authSessions.updatedAt),
+        desc(authSessions.id),
+      )
+      .limit(limit);
   }
 
   static async deleteExpiredOrRevokedBefore(cutoff: Date): Promise<void> {
