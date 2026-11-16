@@ -119,6 +119,16 @@ _Avoid_: takedown, admin delete
 An admin-applied, platform-wide restriction on a Profile (`isSuspended`) — distinct from Block/Mute, which are relationships between two ordinary users.
 _Avoid_: ban, block
 
+### Sharing
+
+**Link Preview**:
+The title, description and image a chat app or social network shows for a shared Interis link. Served to link-preview bots by the web app's Pages Function from the API's `/api/public/meta/*`; browsers get the same text from each route's `head()`. Only public content has one.
+_Avoid_: embed, unfurl (both name what the other app does with it)
+
+**Share Card**:
+The generated 1200×630 PNG a Link Preview shows for a Review, List, Profile, Film or Series, rendered on the API (`infrastructure/share-cards`, one renderer per card type).
+_Avoid_: og image, thumbnail
+
 ### Notifications
 
 **Notification**:
