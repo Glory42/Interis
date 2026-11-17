@@ -136,6 +136,12 @@ tabs), lists, films, series, seasons, actors and directors.
 - Pages builds `functions/` itself (esbuild, TypeScript) and only routes `/reviews/*`,
   `/profile/*`, `/movies/*`, `/serials/*`, `/actor/*` and `/director/*` through it. This needs
   the Pages project's **Root directory** to be `apps/web` (build `bun run build`, output `dist`).
+- That route list is pinned in `apps/web/public/_routes.json`, and
+  `tests/unit/link-preview/routes-json.test.ts` keeps it in sync with `functions/`. Every
+  Function run, **including a human's page load that only calls `context.next()`**, counts
+  toward the account's shared Workers Free limit of 100k requests a day. Static assets are free.
+  A root `_middleware.ts` would route every asset through the Function too, so the test rejects
+  any file at the root of `functions/`. If you add a Function directory, add its `/<dir>/*` here too.
 - For a normal browser the function returns the static page untouched (`context.next()`), with
   no API call. For a link-preview bot it fetches `/api/public/meta/*` from the API and rewrites
   the `<title>`, description, `og:*` and `twitter:*` tags with `HTMLRewriter`. Any API error
@@ -156,6 +162,61 @@ curl -sI https://api.interis.gorkemkaryol.dev/api/public/og/movie/27205.png  # 2
 ```
 
 `wrangler pages dev` isn't needed for normal work: `vite` dev ignores `functions/`.
+
+### Keeping cloud crawlers off the Function (set up by hand)
+
+On 2026-11-17 headless browsers on cloud servers (mostly Microsoft Azure, AS8075) loaded these
+pages in bursts and ran the Function 26k times in one day. Before the Function existed, the
+same traffic cost nothing. Each load also boots the SPA and calls the API (`/api/users/me` 504s
+on Render). WAF rules run before Pages Functions, so a challenged request isn't billed.
+
+In the dashboard, open the zone, then **Security → WAF → Custom rules → Create rule** (Free plan
+has 5; `starts_with`/`contains` only, no regex):
+
+- **Rule name:** `Challenge cloud crawlers on link-preview pages`
+- **Expression:**
+
+  ```
+  (http.host eq "interis.gorkemkaryol.dev"
+   and (starts_with(http.request.uri.path, "/movies/")
+        or starts_with(http.request.uri.path, "/serials/")
+        or starts_with(http.request.uri.path, "/profile/")
+        or starts_with(http.request.uri.path, "/reviews/")
+        or starts_with(http.request.uri.path, "/actor/")
+        or starts_with(http.request.uri.path, "/director/"))
+   and ip.src.asnum in {8075 16509 14618 15169 396982 14061 24940 16276 63949 20473 31898 36351 45102 132203}
+   and not cf.client.bot
+   and not (lower(http.user_agent) contains "discordbot"
+            or lower(http.user_agent) contains "twitterbot"
+            or lower(http.user_agent) contains "facebookexternalhit"
+            or lower(http.user_agent) contains "slackbot"
+            or lower(http.user_agent) contains "telegrambot"
+            or lower(http.user_agent) contains "whatsapp"
+            or lower(http.user_agent) contains "linkedinbot"
+            or lower(http.user_agent) contains "skypeuripreview"
+            or lower(http.user_agent) contains "microsoftpreview"
+            or lower(http.user_agent) contains "mastodon"
+            or lower(http.user_agent) contains "bluesky"
+            or lower(http.user_agent) contains "cardyb"
+            or lower(http.user_agent) contains "redditbot"
+            or lower(http.user_agent) contains "embedly"
+            or lower(http.user_agent) contains "iframely"))
+  ```
+
+  The ASNs are the large clouds and hosts: Microsoft, AWS, Google Cloud, DigitalOcean, Hetzner,
+  OVH, Linode, Vultr, Oracle, IBM, Alibaba and Tencent. Verified bots (Googlebot, Bingbot) and
+  link-preview fetchers, several of which run on those clouds (Teams on Azure, Discord on
+  Google Cloud), are let through. A person on a cloud VPN gets a one-time Managed Challenge.
+- **Action:** Managed Challenge. Keep it scoped to the web host: API calls are `fetch()`es that
+  can't solve a challenge, so never apply it to `api.interis.gorkemkaryol.dev`.
+
+Don't turn on **Bot Fight Mode** instead. On Free it applies to the whole zone, including the
+API and the f1 Worker, and rules can't skip it.
+
+To check it: **Security → Events** should show the rule's challenges during a burst, and the
+hourly `pagesFunctionsInvocationsAdaptiveGroups` count for this project (scriptName
+`pages-worker--12007314-production`) should stay in the hundreds instead of 2–6k an hour.
+A normal browser on a home connection still gets the page with no challenge.
 
 ---
 
