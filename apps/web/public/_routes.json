@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "description": "Only the link-preview pages run the Pages Function; every run counts toward the account's 100k Workers requests a day. See DEPLOYMENT.md.",
+  "include": ["/actor/*", "/director/*", "/movies/*", "/profile/*", "/reviews/*", "/serials/*"],
+  "exclude": []
+}
