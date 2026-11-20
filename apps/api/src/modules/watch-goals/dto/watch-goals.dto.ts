@@ -12,10 +12,16 @@ const YearSchema = z.coerce
 
 export const WatchGoalYearParamsSchema = z.object({ year: YearSchema });
 
-export const SetWatchGoalSchema = z.object({
-  targetFilms: TargetSchema,
-  targetSeries: TargetSchema.nullable().optional(),
-});
+// Films, TV or both: each target is optional, but a goal needs at least one.
+export const SetWatchGoalSchema = z
+  .object({
+    targetFilms: TargetSchema.nullable().optional(),
+    targetSeries: TargetSchema.nullable().optional(),
+  })
+  .refine((goal) => goal.targetFilms != null || goal.targetSeries != null, {
+    message: "Set a Film or TV target",
+    path: ["targetFilms"],
+  });
 
 export const WatchGoalQuerySchema = z.object({
   year: YearSchema.optional(),

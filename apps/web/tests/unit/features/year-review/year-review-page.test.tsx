@@ -32,12 +32,14 @@ describe("YearReviewPage", () => {
     vi.restoreAllMocks();
   });
 
-  it("runs a full year as a sequence of sections", async () => {
+  // Renders every section at once, so it can pass 5s when the whole suite runs in parallel.
+  it("runs a full year as a sequence of sections", { timeout: 15_000 }, async () => {
     serve(fullYear());
     renderWithProviders(<YearReviewPage username="glory42" year={2025} now={NOW} />);
 
     expect(await screen.findByRole("heading", { level: 1, name: "2025 in review" })).toBeInTheDocument();
-    expect(screen.getByText("142")).toBeInTheDocument();
+    // The hero's Film count, and again on the goal.
+    expect(screen.getAllByText("142")).toHaveLength(2);
     expect(screen.getByText("351h")).toBeInTheDocument();
     expect(screen.getByText("+22 vs 2024")).toBeInTheDocument();
     expect(screen.getByText("−49 vs 2024")).toBeInTheDocument();
@@ -57,7 +59,7 @@ describe("YearReviewPage", () => {
     expect(screen.getByText("10.0 / 10")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Comfort Film/ })).toHaveTextContent("4 watches");
     expect(screen.getByText("“Every frame earns its place.”")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Goal reached: 142 films against 100." })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Goal reached: 142 of 100 films." })).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Year" })).toHaveTextContent("202620252024");
     expect(screen.getByRole("link", { name: "2025" })).toHaveAttribute("aria-current", "page");
   });

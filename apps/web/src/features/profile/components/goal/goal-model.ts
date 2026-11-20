@@ -13,7 +13,7 @@ export const goalStateOf = (goal: WatchGoal): GoalState => {
   return "in-progress";
 };
 
-const plural = (count: number, noun: string) => `${count} ${noun}${count === 1 ? "" : "s"}`;
+const plural = (count: number, noun: string) => `${count.toLocaleString("en-US")} ${noun}${count === 1 ? "" : "s"}`;
 
 export const paceLabel = (pace: WatchGoalPace): string => {
   const by = Math.abs(pace.diff);
@@ -34,7 +34,18 @@ export const paceLabel = (pace: WatchGoalPace): string => {
 };
 
 export const filmCountLabel = (count: number) => plural(count, "film");
-export const seriesCountLabel = (count: number) => `${count} series`;
+export const tvCountLabel = (count: number) => plural(count, "TV show");
+
+type GoalCounts = { targetFilms: number | null; targetSeries: number | null; filmsWatched: number; seriesWatched: number };
+
+// "11 of 10 films and 3 of 5 TV shows", naming only the targets that were set.
+export const goalProgressLabel = (goal: GoalCounts): string =>
+  [
+    goal.targetFilms !== null ? `${goal.filmsWatched.toLocaleString("en-US")} of ${filmCountLabel(goal.targetFilms)}` : null,
+    goal.targetSeries !== null ? `${goal.seriesWatched.toLocaleString("en-US")} of ${tvCountLabel(goal.targetSeries)}` : null,
+  ]
+    .filter(Boolean)
+    .join(" and ");
 
 // The pace marker only means something while the year is running.
 export const showsPaceMarker = (pace: WatchGoalPace | null): pace is WatchGoalPace =>

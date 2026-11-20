@@ -1,5 +1,7 @@
 import { Link } from "@tanstack/react-router";
+import { cn } from "@/lib/utils";
 import { GoalBar } from "@/features/profile/components/goal/GoalBar";
+import { goalProgressLabel } from "@/features/profile/components/goal/goal-model";
 import type { YearReview } from "@/features/year-review/api";
 import { formatCount, plural } from "@/features/year-review/year-review-model";
 import { BigStat, RecapSection } from "./RecapBlocks";
@@ -44,18 +46,21 @@ export const RecapGoal = ({ review }: { review: YearReview }) => {
   const goal = review.goal;
   if (!goal) return null;
 
+  const progress = goalProgressLabel(goal);
   const title = goal.reached
-    ? `Goal reached: ${plural(goal.filmsWatched, "film")} against ${formatCount(goal.targetFilms)}.`
+    ? `Goal reached: ${progress}.`
     : review.isPartialYear
-      ? `${formatCount(goal.filmsWatched)} of ${plural(goal.targetFilms, "film")} so far.`
-      : `${formatCount(goal.filmsWatched)} of ${plural(goal.targetFilms, "film")}: close the gap next year.`;
+      ? `${progress} so far.`
+      : `${progress}: close the gap next year.`;
 
   return (
     <RecapSection label="Watch goal" year={review.year} title={title}>
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        <GoalBar label="Films" watched={goal.filmsWatched} target={goal.targetFilms} pace={null} tone="film" />
+      <div className={cn("mt-8 grid gap-x-10 gap-y-6", goal.targetFilms !== null && goal.targetSeries !== null && "sm:grid-cols-2")}>
+        {goal.targetFilms !== null ? (
+          <GoalBar label="Films" watched={goal.filmsWatched} target={goal.targetFilms} pace={null} tone="film" />
+        ) : null}
         {goal.targetSeries !== null ? (
-          <GoalBar label="Series" watched={goal.seriesWatched} target={goal.targetSeries} pace={null} tone="series" />
+          <GoalBar label="TV" watched={goal.seriesWatched} target={goal.targetSeries} pace={null} tone="series" />
         ) : null}
       </div>
     </RecapSection>

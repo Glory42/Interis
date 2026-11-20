@@ -145,7 +145,7 @@ export const meFeedSummarySchema = z.object({
   goal: z
     .object({
       year: z.number().int(),
-      targetFilms: z.number().int(),
+      targetFilms: z.number().int().nullable(),
       targetSeries: z.number().int().nullable(),
       filmsWatched: z.number().int().nonnegative(),
       seriesWatched: z.number().int().nonnegative(),

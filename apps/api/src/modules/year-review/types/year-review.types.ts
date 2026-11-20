@@ -67,7 +67,7 @@ export type YearReview = {
   listsCreated: number;
   newFollowers: number;
   goal: {
-    targetFilms: number;
+    targetFilms: number | null;
     targetSeries: number | null;
     filmsWatched: number;
     seriesWatched: number;

@@ -2,9 +2,10 @@ import { and, eq, sql } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { watchGoals } from "../watch-goals.entity";
 
-export type WatchGoalYear = { year: number; targetFilms: number; targetSeries: number | null };
+export type WatchGoalYear = { year: number; targetFilms: number | null; targetSeries: number | null };
 
 type ProgressRow = {
+  has_goal: boolean;
   target_films: number | null;
   target_series: number | null;
   updated_at: string | Date | null;
@@ -27,7 +28,7 @@ export class WatchGoalsRepository {
   // The year's goal (if any), its progress and every year with a goal, in one round trip.
   static async findWithProgress(userId: string, year: number) {
     const result = await db.execute<ProgressRow & { years: WatchGoalYear[] }>(sql`
-      SELECT g.target_films, g.target_series, g.updated_at, ${countsFor(userId, year)},
+      SELECT g.id IS NOT NULL AS has_goal, g.target_films, g.target_series, g.updated_at, ${countsFor(userId, year)},
         (SELECT coalesce(json_agg(json_build_object(
             'year', y.year, 'targetFilms', y.target_films, 'targetSeries', y.target_series
           ) ORDER BY y.year DESC), '[]'::json)
@@ -37,6 +38,7 @@ export class WatchGoalsRepository {
     `);
     const row = result.rows[0];
     return {
+      hasGoal: Boolean(row?.has_goal),
       targetFilms: row?.target_films ?? null,
       targetSeries: row?.target_series ?? null,
       updatedAt: row?.updated_at ? new Date(row.updated_at) : null,
@@ -49,12 +51,12 @@ export class WatchGoalsRepository {
   // Counts only when the user has a goal for the year; no row otherwise.
   static async findGoalProgress(userId: string, year: number) {
     const result = await db.execute<ProgressRow>(sql`
-      SELECT g.target_films, g.target_series, g.updated_at, ${countsFor(userId, year)}
+      SELECT true AS has_goal, g.target_films, g.target_series, g.updated_at, ${countsFor(userId, year)}
       FROM watch_goal g
       WHERE g.user_id = ${userId} AND g.year = ${year}
     `);
     const row = result.rows[0];
-    if (!row || row.target_films === null) return null;
+    if (!row) return null;
     return {
       targetFilms: row.target_films,
       targetSeries: row.target_series,
@@ -63,7 +65,7 @@ export class WatchGoalsRepository {
     };
   }
 
-  static async upsert(userId: string, year: number, targetFilms: number, targetSeries: number | null) {
+  static async upsert(userId: string, year: number, targetFilms: number | null, targetSeries: number | null) {
     const [row] = await db
       .insert(watchGoals)
       .values({ userId, year, targetFilms, targetSeries })

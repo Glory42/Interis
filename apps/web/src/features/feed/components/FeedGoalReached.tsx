@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import type { MeFeedSummary } from "@/features/feed/types";
+import { goalProgressLabel } from "@/features/profile/components/goal/goal-model";
 
 type FeedGoalReachedProps = {
   userId: string;
@@ -48,9 +49,7 @@ export const FeedGoalReached = ({ userId, username, goal }: FeedGoalReachedProps
       <div className="min-w-0 flex-1">
         <p className="kicker text-[color:var(--film)]">{`${goal.year} goal reached`}</p>
         <p className="body-s mt-1 text-foreground">
-          {`${goal.filmsWatched.toLocaleString("en-US")} of ${goal.targetFilms.toLocaleString("en-US")} films`}
-          {goal.targetSeries !== null ? ` and ${goal.seriesWatched} of ${goal.targetSeries} series` : ""}
-          {" logged this year. "}
+          {`${goalProgressLabel(goal)} logged this year. `}
           <Link to="/profile/$username/stats" params={{ username }} className="text-muted-foreground underline hover:text-foreground">
             See your year
           </Link>

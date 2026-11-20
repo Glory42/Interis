@@ -16,21 +16,22 @@ const parseTarget = (raw: string): number | undefined => {
   return Number.isInteger(value) && value >= 1 && value <= WATCH_GOAL_MAX_TARGET ? value : undefined;
 };
 
-// Inline form for the owner: a Film target and an optional Series one.
+// Inline form for the owner: a Film target, a TV target or both.
 export const WatchGoalEditor = ({ year, goal, onDone }: WatchGoalEditorProps) => {
-  const [films, setFilms] = useState(goal ? String(goal.targetFilms) : "");
+  const [films, setFilms] = useState(goal?.targetFilms ? String(goal.targetFilms) : "");
   const [series, setSeries] = useState(goal?.targetSeries ? String(goal.targetSeries) : "");
   const save = useSetWatchGoal();
   const clear = useClearWatchGoal();
 
-  const targetFilms = parseTarget(films);
+  // Blank means "no target"; a goal needs at least one.
+  const targetFilms = films.trim() === "" ? null : parseTarget(films);
   const targetSeries = series.trim() === "" ? null : parseTarget(series);
-  const isValid = targetFilms !== undefined && targetSeries !== undefined;
+  const isValid = targetFilms !== undefined && targetSeries !== undefined && (targetFilms !== null || targetSeries !== null);
   const failed = save.isError || clear.isError;
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (targetFilms === undefined || targetSeries === undefined) return;
+    if (!isValid || targetFilms === undefined || targetSeries === undefined) return;
     save.mutate({ year, input: { targetFilms, targetSeries } }, { onSuccess: onDone });
   };
 
@@ -44,15 +45,14 @@ export const WatchGoalEditor = ({ year, goal, onDone }: WatchGoalEditorProps) =>
             inputMode="numeric"
             min={1}
             max={WATCH_GOAL_MAX_TARGET}
-            required
             value={films}
             onChange={(event) => setFilms(event.target.value)}
-            placeholder="52"
+            placeholder="—"
             className={fieldInput}
           />
         </label>
         <label className="block">
-          <span className="kicker mb-1 block text-muted-foreground">Series · optional</span>
+          <span className="kicker mb-1 block text-muted-foreground">TV</span>
           <input
             type="number"
             inputMode="numeric"
@@ -66,7 +66,7 @@ export const WatchGoalEditor = ({ year, goal, onDone }: WatchGoalEditorProps) =>
         </label>
       </div>
       <p className="mono-meta mt-1 text-[10px] text-muted-foreground">
-        {`Distinct titles you log in ${year}; rewatches count once. Up to ${WATCH_GOAL_MAX_TARGET.toLocaleString("en-US")}.`}
+        {`Set Films, TV or both. Distinct titles you log in ${year}; rewatches count once. Up to ${WATCH_GOAL_MAX_TARGET.toLocaleString("en-US")}.`}
       </p>
       {failed ? (
         <p role="alert" className="body-s mt-2 text-[color:var(--danger)]">
