@@ -14,18 +14,21 @@ describe("toDayHeatmap", () => {
     now,
   );
 
-  it("runs Monday-first week columns from the week of Jan 1 to this week", () => {
-    expect(weeks).toHaveLength(45);
+  it("runs Monday-first week columns across the whole year", () => {
+    expect(weeks).toHaveLength(53);
     expect(weeks[0]!.key).toBe("2025-12-29");
-    expect(weeks.at(-1)!.key).toBe("2026-11-02");
+    expect(weeks.at(-1)!.key).toBe("2026-12-28");
     expect(weeks.every((week) => week.days.length === 7)).toBe(true);
   });
 
-  it("leaves last year's and future days empty", () => {
+  it("leaves other years' days empty and marks days still to come", () => {
     expect(weeks[0]!.days.slice(0, 3)).toEqual([null, null, null]);
     expect(weeks[0]!.days[3]).toEqual({ key: "2026-01-01", label: "1 log on Thu, Jan 1", count: 1, level: 1 });
-    expect(weeks.at(-1)!.days.at(-1)).toBeNull();
-    expect(weeks.at(-1)!.days[5]).toMatchObject({ key: "2026-11-07", count: 9, level: 4 });
+    expect(weeks.at(-1)!.days.slice(4)).toEqual([null, null, null]);
+    const days = weeks.flatMap((week) => week.days);
+    expect(days.find((day) => day?.key === "2026-11-07")).toMatchObject({ count: 9, level: 4 });
+    expect(days.find((day) => day?.key === "2026-11-07")).not.toHaveProperty("future");
+    expect(days.find((day) => day?.key === "2026-11-08")).toEqual({ key: "2026-11-08", label: "", count: 0, level: 0, future: true });
   });
 
   it("labels every day, including empty ones", () => {
@@ -36,7 +39,7 @@ describe("toDayHeatmap", () => {
 
   it("names each month once, on its first column", () => {
     const months = weeks.map((week) => week.month).filter(Boolean);
-    expect(months).toEqual(["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov"]);
+    expect(months).toEqual(["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]);
     expect(weeks[0]!.month).toBe("Jan");
   });
 });
