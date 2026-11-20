@@ -17,16 +17,17 @@ const progressSchema = z.object({
   pace: paceSchema.nullable(),
 });
 
+// A goal sets Films, TV or both; at least one target is non-null.
 const watchGoalYearSchema = z.object({
   year: z.number().int(),
-  targetFilms: z.number().int(),
+  targetFilms: z.number().int().nullable(),
   targetSeries: z.number().int().nullable(),
 });
 
 export const watchGoalSchema = z.object({
   year: z.number().int(),
   today: z.string(),
-  goal: z.object({ targetFilms: z.number().int(), targetSeries: z.number().int().nullable() }).nullable(),
+  goal: z.object({ targetFilms: z.number().int().nullable(), targetSeries: z.number().int().nullable() }).nullable(),
   films: progressSchema,
   series: progressSchema,
   reached: z.boolean(),
@@ -37,7 +38,7 @@ export const watchGoalSchema = z.object({
 export type WatchGoal = z.infer<typeof watchGoalSchema>;
 export type WatchGoalProgress = z.infer<typeof progressSchema>;
 export type WatchGoalPace = z.infer<typeof paceSchema>;
-export type SetWatchGoalInput = { targetFilms: number; targetSeries: number | null };
+export type SetWatchGoalInput = { targetFilms: number | null; targetSeries: number | null };
 
 export const getWatchGoal = async (
   username: string,

@@ -7,11 +7,11 @@ import { WATCH_LOG_MEDIA, watchLogClient } from "../../support/factories/watch-l
 
 type GoalProgress = {
   year: number;
-  goal: { targetFilms: number; targetSeries: number | null } | null;
+  goal: { targetFilms: number | null; targetSeries: number | null } | null;
   films: { watched: number; target: number | null; pace: { status: string; diff: number } | null };
   series: { watched: number; target: number | null; pace: { status: string; diff: number } | null };
   reached: boolean;
-  years: { year: number; targetFilms: number; targetSeries: number | null }[];
+  years: { year: number; targetFilms: number | null; targetSeries: number | null }[];
 };
 
 const [FILM, SERIES] = WATCH_LOG_MEDIA as [(typeof WATCH_LOG_MEDIA)[0], (typeof WATCH_LOG_MEDIA)[0]];
@@ -106,6 +106,23 @@ describe("watch goal", () => {
     expect(cleared.body.years.map((row) => row.year)).toEqual([THIS_YEAR]);
   });
 
+  it("takes a TV-only goal and reaches it on TV alone", async () => {
+    const { jar, username } = await signUpTestUser(baseUrl(), "goal");
+    const show = await SERIES.seed("Goal TV Only");
+    await series.logId(jar, show.tmdbId, "2024-04-04");
+
+    const created = await setGoal(jar, 2024, { targetFilms: null, targetSeries: 1 });
+    expect(created.status).toBe(200);
+    expect(await created.json()).toMatchObject({ year: 2024, targetFilms: null, targetSeries: 1 });
+
+    const read = await readGoal(username, "?year=2024");
+    expect(read.body.goal).toMatchObject({ targetFilms: null, targetSeries: 1 });
+    expect(read.body.films.pace).toBeNull();
+    expect(read.body.series).toMatchObject({ watched: 1, target: 1, pace: { status: "reached" } });
+    expect(read.body.reached).toBe(true);
+    expect(read.body.years).toEqual([{ year: 2024, targetFilms: null, targetSeries: 1 }]);
+  });
+
   it("marks a past year's unmet goal missed and defaults to the viewer's current year", async () => {
     const { jar, username } = await signUpTestUser(baseUrl(), "goal");
     await setGoal(jar, 2023, { targetFilms: 10 });
@@ -127,6 +144,7 @@ describe("watch goal", () => {
       [THIS_YEAR, { targetFilms: 2.5 }],
       [THIS_YEAR, { targetFilms: 10, targetSeries: 0 }],
       [THIS_YEAR, {}],
+      [THIS_YEAR, { targetFilms: null, targetSeries: null }],
       [1999, { targetFilms: 10 }],
       [THIS_YEAR + 2, { targetFilms: 10 }],
       ["soon", { targetFilms: 10 }],

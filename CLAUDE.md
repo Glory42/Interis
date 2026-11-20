@@ -47,7 +47,7 @@ DIRECT_DATABASE_URL=postgres://interis:interis@localhost:5432/interis # tests + 
 USE_LOCAL_DB_PROXY=true
 JWT_ACCESS_SECRET=
 TMDB_ACCESS_TOKEN=Bearer <token>
-CORS_ORIGIN=http://localhost:5173
+CORS_ORIGIN=http://localhost:5173,http://localhost:4173
 PORT=5000
 TZ=UTC   # driver reads naive timestamps back in the process TZ
 # Optional: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_PUBLIC_URL

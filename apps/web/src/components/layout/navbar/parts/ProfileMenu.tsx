@@ -87,14 +87,6 @@ export const ProfileMenu = ({
           >
             Profile
           </Link>
-          <Link
-            to="/serials/up-next"
-            viewTransition
-            className={dropdownItemClass}
-            onClick={onClose}
-          >
-            Up next
-          </Link>
           {user.isAdmin ? (
             <Link
               to="/admin"

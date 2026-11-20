@@ -1,4 +1,6 @@
 import { formatDateOnlyLabel } from "@/lib/time";
+import type { UpNextItem } from "@/features/tv/api";
+import { getBackdropUrl, getStillUrl } from "@/features/media/tmdb-images";
 
 const pad = (value: number) => String(value).padStart(2, "0");
 
@@ -31,4 +33,20 @@ export const airDayLabel = (date: string, today: string) => {
   if (diff === 0) return "Today";
   if (diff === 1) return "Tomorrow";
   return formatDateOnlyLabel(date, { weekday: "short", month: "short", day: "numeric" });
+};
+
+// The episode still, or the show's backdrop when TMDB has none.
+export const stillFor = (item: UpNextItem) =>
+  item.episode.stillPath ? getStillUrl(item.episode.stillPath) : getBackdropUrl(item.series.backdropPath);
+
+// The timeline's date block: "SUN" / "22" / "NOV", plus "Today", "Tomorrow" or "In 5 days".
+export const airDayParts = (date: string, today: string) => {
+  const diff = dayDiff(today, date);
+  return {
+    weekday: formatDateOnlyLabel(date, { weekday: "short" }),
+    day: formatDateOnlyLabel(date, { day: "numeric" }),
+    month: formatDateOnlyLabel(date, { month: "short" }),
+    relative: diff <= 0 ? "Today" : diff === 1 ? "Tomorrow" : `In ${diff} days`,
+    isSoon: diff <= 1,
+  };
 };

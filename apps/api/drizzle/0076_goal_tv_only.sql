@@ -1,0 +1,2 @@
+ALTER TABLE "watch_goal" ALTER COLUMN "target_films" DROP NOT NULL;--> statement-breakpoint
+ALTER TABLE "watch_goal" ADD CONSTRAINT "watch_goal_has_target" CHECK ("watch_goal"."target_films" IS NOT NULL OR "watch_goal"."target_series" IS NOT NULL);

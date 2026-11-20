@@ -4,7 +4,7 @@ import { WatchGoalProgressService } from "./services/watch-goal-progress.service
 
 export class WatchGoalsService {
   static async setGoal(userId: string, year: number, input: SetWatchGoalDto) {
-    return WatchGoalsRepository.upsert(userId, year, input.targetFilms, input.targetSeries ?? null);
+    return WatchGoalsRepository.upsert(userId, year, input.targetFilms ?? null, input.targetSeries ?? null);
   }
 
   static async clearGoal(userId: string, year: number): Promise<boolean> {

@@ -11,9 +11,9 @@ const progressOf = (watched: number, target: number | null, year: number, today:
   pace: target === null ? null : computeWatchGoalPace(target, watched, year, today),
 });
 
-// Reached once every target the user set is met.
-const isReached = (filmsWatched: number, targetFilms: number, seriesWatched: number, targetSeries: number | null) =>
-  filmsWatched >= targetFilms && (targetSeries === null || seriesWatched >= targetSeries);
+// Reached once every target the user set is met; an unset target doesn't hold it back.
+const isReached = (filmsWatched: number, targetFilms: number | null, seriesWatched: number, targetSeries: number | null) =>
+  (targetFilms === null || filmsWatched >= targetFilms) && (targetSeries === null || seriesWatched >= targetSeries);
 
 export class WatchGoalProgressService {
   // A Profile's goal for `year` (default: the viewer's current year), read as a Profile Tab.
@@ -25,10 +25,9 @@ export class WatchGoalProgressService {
     const today = toDayKey(new Date(), resolveTimeZone(parsed.data.tz));
     const year = parsed.data.year ?? Number(today.slice(0, 4));
     const row = await WatchGoalsRepository.findWithProgress(userId, year);
-    const goal =
-      row.targetFilms === null
-        ? null
-        : { targetFilms: row.targetFilms, targetSeries: row.targetSeries, updatedAt: row.updatedAt };
+    const goal = row.hasGoal
+      ? { targetFilms: row.targetFilms, targetSeries: row.targetSeries, updatedAt: row.updatedAt }
+      : null;
 
     return {
       year,

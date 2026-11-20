@@ -6,6 +6,7 @@ import { server } from "../../../support/msw/server";
 import { renderWithProviders } from "../../../support/render/render-with-providers";
 import { UpNextPage } from "@/features/tv/components/up-next/UpNextPage";
 import { UpNextStrip } from "@/features/tv/components/up-next/UpNextStrip";
+import { UpNextButton } from "@/features/tv/components/up-next/UpNextButton";
 import type { UpNextItem, UpNextResponse } from "@/features/tv/api";
 
 const series = { tmdbId: 1396, title: "Breaking Bad", posterPath: null, backdropPath: null };
@@ -90,6 +91,7 @@ describe("UpNextPage", () => {
     renderWithProviders(<UpNextPage />);
 
     const fresh = await screen.findByRole("region", { name: "New since you last watched" });
+    expect(screen.getByText("2 shows in progress · 2 episodes in the next 14 days")).toBeInTheDocument();
     expect(within(fresh).getByText("Severance")).toBeInTheDocument();
     expect(within(fresh).getByText("3 new")).toBeInTheDocument();
     expect(within(screen.getByRole("region", { name: "Continue watching" })).getByText("Breaking Bad")).toBeInTheDocument();
@@ -119,6 +121,20 @@ describe("UpNextStrip", () => {
     expect(screen.getByRole("link", { name: "See all →" })).toHaveAttribute("href", "/serials/up-next");
   });
 
+  it("lays one or two shows out as wide rows, more as swipeable cards", async () => {
+    const show = (tmdbId: number) => item(4, { series: { ...series, tmdbId, title: `Show ${tmdbId}` } });
+    server.use(http.get("*/api/serials/up-next", () => HttpResponse.json(response({ upNext: [show(1), show(2)] }))));
+    const rows = renderWithProviders(<UpNextStrip enabled />);
+    // Rows have room for the progress line; the compact cards drop it.
+    expect(await screen.findAllByText("11/62 ep")).toHaveLength(2);
+    rows.unmount();
+
+    server.use(http.get("*/api/serials/up-next", () => HttpResponse.json(response({ upNext: [show(1), show(2), show(3)] }))));
+    renderWithProviders(<UpNextStrip enabled />);
+    expect(await screen.findByText("Show 3")).toBeInTheDocument();
+    expect(screen.queryByText("11/62 ep")).toBeNull();
+  });
+
   it("renders nothing when there's nothing up next", async () => {
     let fetched = false;
     server.use(
@@ -132,5 +148,15 @@ describe("UpNextStrip", () => {
 
     await waitFor(() => expect(fetched).toBe(true));
     await waitFor(() => expect(container).toBeEmptyDOMElement());
+  });
+});
+
+describe("UpNextButton", () => {
+  it("links to Up next with how many shows are waiting", async () => {
+    server.use(http.get("*/api/serials/up-next", () => HttpResponse.json(response({ upNext: [item(4)] }))));
+
+    renderWithProviders(<UpNextButton />);
+
+    expect(await screen.findByRole("link", { name: "Up next: 1 show waiting" })).toHaveAttribute("href", "/serials/up-next");
   });
 });

@@ -10,15 +10,20 @@ type GoalBarProps = {
   tone: "film" | "series";
 };
 
-// A thin bar in the media's tone; the hairline marks where a steady pace would be today.
+// One target's count and a thin bar in the media's tone; the hairline marks where a steady pace would be today.
 export const GoalBar = ({ label, watched, target, pace, tone }: GoalBarProps) => {
   const percent = Math.min(100, (watched / target) * 100);
   const isDone = pace?.status === "reached";
+  const toneText = tone === "film" ? "text-[color:var(--film)]" : "text-[color:var(--series)]";
   return (
-    <div>
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="kicker text-muted-foreground">{label}</span>
-        <span className="mono-meta text-[11px] text-foreground">{`${watched} / ${target}`}</span>
+    <div className="min-w-0">
+      <p className={cn("kicker", toneText)}>{label}</p>
+      <div className="mt-1.5 flex items-baseline justify-between gap-3">
+        <p className="display-2 leading-none text-foreground">
+          {watched.toLocaleString("en-US")}
+          <span className="text-muted-foreground">{` / ${target.toLocaleString("en-US")}`}</span>
+        </p>
+        <span className="mono-meta shrink-0 text-[11px] text-muted-foreground">{`${Math.floor((watched / target) * 100)}%`}</span>
       </div>
       <div
         role="progressbar"
@@ -26,7 +31,7 @@ export const GoalBar = ({ label, watched, target, pace, tone }: GoalBarProps) =>
         aria-valuemin={0}
         aria-valuemax={target}
         aria-valuenow={Math.min(watched, target)}
-        className="relative mt-1 h-1.5 rounded-[1px] bg-foreground/12"
+        className="relative mt-3 h-1.5 rounded-[1px] bg-foreground/12"
       >
         <span
           className={cn(
@@ -44,12 +49,7 @@ export const GoalBar = ({ label, watched, target, pace, tone }: GoalBarProps) =>
         ) : null}
       </div>
       {pace ? (
-        <p
-          className={cn(
-            "mono-meta mt-1 text-[10px] uppercase",
-            isDone ? (tone === "film" ? "text-[color:var(--film)]" : "text-[color:var(--series)]") : "text-muted-foreground",
-          )}
-        >
+        <p className={cn("mono-meta mt-1.5 text-[10px] uppercase", isDone ? toneText : "text-muted-foreground")}>
           {paceLabel(pace)}
         </p>
       ) : null}

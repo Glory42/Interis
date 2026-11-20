@@ -7,7 +7,6 @@ import { server } from "../../../support/msw/server";
 import { renderWithProviders } from "../../../support/render/render-with-providers";
 import { authKeys } from "@/features/auth/hooks/useAuth";
 import { WatchGoalCard } from "@/features/profile/components/goal/WatchGoalCard";
-import { WatchGoalCompact } from "@/features/profile/components/goal/WatchGoalCompact";
 import { FeedGoalReached } from "@/features/feed/components/FeedGoalReached";
 import type { WatchGoal } from "@/features/profile/goal-api";
 
@@ -52,7 +51,7 @@ describe("WatchGoalCard", () => {
     serveGoal(NO_GOAL);
     renderWithProviders(<WatchGoalCard username="glory42" isOwner now={NOW} />);
 
-    expect(await screen.findByText("12 films logged in 2026. How many will you watch?")).toBeInTheDocument();
+    expect(await screen.findByText("12 films and 3 TV shows logged in 2026. How many will you watch?")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Set a goal" })).toBeInTheDocument();
   });
 
@@ -82,7 +81,7 @@ describe("WatchGoalCard", () => {
     expect(screen.getByText("Behind pace")).toBeInTheDocument();
   });
 
-  it("celebrates a reached goal, Series target included", async () => {
+  it("celebrates a reached goal, TV target included", async () => {
     serveGoal(
       goalOf({
         goal: { targetFilms: 52, targetSeries: 5 },
@@ -95,7 +94,55 @@ describe("WatchGoalCard", () => {
 
     expect(await screen.findByText("Goal reached")).toBeInTheDocument();
     expect(screen.getByText("Reached · 3 over")).toBeInTheDocument();
-    expect(screen.getByRole("progressbar", { name: "Series: 5 of 5" })).toBeInTheDocument();
+    expect(screen.getByRole("progressbar", { name: "TV: 5 of 5" })).toBeInTheDocument();
+  });
+
+  it("gives each target its own count, not just the Film one", async () => {
+    serveGoal(
+      goalOf({
+        goal: { targetFilms: 360, targetSeries: 20 },
+        films: { watched: 82, target: 360, pace: { status: "behind", expected: 320, diff: -238 } },
+        series: { watched: 182, target: 20, pace: { status: "reached", expected: 20, diff: 162 } },
+      }),
+    );
+    renderWithProviders(<WatchGoalCard username="glory42" isOwner={false} now={NOW} />);
+
+    expect(await screen.findByText("82")).toHaveTextContent("82 / 360");
+    expect(screen.getByText("182")).toHaveTextContent("182 / 20");
+  });
+
+  it("shows a TV-only goal on its own, with no Film bar", async () => {
+    serveGoal(
+      goalOf({
+        goal: { targetFilms: null, targetSeries: 12 },
+        films: { watched: 40, target: null, pace: null },
+        series: { watched: 9, target: 12, pace: { status: "ahead", expected: 8, diff: 1 } },
+      }),
+    );
+    renderWithProviders(<WatchGoalCard username="glory42" isOwner={false} now={NOW} />);
+
+    expect(await screen.findByRole("progressbar", { name: "TV: 9 of 12" })).toBeInTheDocument();
+    expect(screen.queryByRole("progressbar", { name: /Films/ })).toBeNull();
+  });
+
+  it("lets the owner set a TV-only goal", async () => {
+    serveGoal(NO_GOAL);
+    const sent: unknown[] = [];
+    server.use(
+      http.put("*/api/users/me/goal/2026", async ({ request }) => {
+        sent.push(await request.json());
+        return HttpResponse.json({ year: 2026, targetFilms: null, targetSeries: 20 });
+      }),
+    );
+    const user = userEvent.setup();
+    renderWithProviders(<WatchGoalCard username="glory42" isOwner now={NOW} />, { queryClient: signedInAs("glory42") });
+
+    await user.click(await screen.findByRole("button", { name: "Set a goal" }));
+    expect(screen.getByRole("button", { name: "Save goal" })).toBeDisabled();
+    await user.type(screen.getByRole("spinbutton", { name: "TV" }), "20");
+    await user.click(screen.getByRole("button", { name: "Save goal" }));
+
+    await waitFor(() => expect(sent).toEqual([{ targetFilms: null, targetSeries: 20 }]));
   });
 
   it("lets the owner set a goal inline", async () => {
@@ -129,24 +176,20 @@ describe("WatchGoalCard", () => {
   });
 });
 
-describe("WatchGoalCompact", () => {
-  it("links the year's progress to the Stats page", async () => {
-    serveGoal(goalOf());
-    renderWithProviders(<WatchGoalCompact username="glory42" isOwner={false} now={NOW} />);
-
-    const link = await screen.findByRole("link", { name: "2026 watch goal: 40 of 52 films" });
-    expect(link).toHaveAttribute("href", "/profile/glory42/stats");
-  });
-
-  it("offers the owner a goal when there is none", async () => {
-    serveGoal(NO_GOAL);
-    renderWithProviders(<WatchGoalCompact username="glory42" isOwner now={NOW} />);
-    expect(await screen.findByRole("link", { name: "Set a 2026 watch goal →" })).toBeInTheDocument();
-  });
-});
-
 describe("FeedGoalReached", () => {
   const goal = { year: 2026, targetFilms: 10, targetSeries: null, filmsWatched: 11, seriesWatched: 0, reached: true };
+
+  it("names a TV target as TV shows", async () => {
+    window.localStorage.removeItem("interis:goal-reached:u3:2026");
+    renderWithProviders(
+      <FeedGoalReached
+        userId="u3"
+        username="glory42"
+        goal={{ year: 2026, targetFilms: null, targetSeries: 5, filmsWatched: 0, seriesWatched: 6, reached: true }}
+      />,
+    );
+    expect(await screen.findByRole("status", { name: "2026 goal reached" })).toHaveTextContent("6 of 5 TV shows logged this year.");
+  });
 
   it("shows once per year, then stays away", async () => {
     window.localStorage.removeItem("interis:goal-reached:u1:2026");

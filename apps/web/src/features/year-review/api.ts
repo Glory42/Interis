@@ -60,7 +60,7 @@ const yearReviewSchema = z.object({
   newFollowers: z.number(),
   goal: z
     .object({
-      targetFilms: z.number(),
+      targetFilms: z.number().nullable(),
       targetSeries: z.number().nullable(),
       filmsWatched: z.number(),
       seriesWatched: z.number(),
