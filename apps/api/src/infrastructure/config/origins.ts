@@ -27,7 +27,8 @@ export const getTrustedOriginsFromEnv = (): string[] => {
     .filter((value): value is string => Boolean(value));
 
   if (trustedOrigins.length === 0) {
-    return ["http://localhost:5173", "http://127.0.0.1:5173"];
+    // Vite dev (5173) and `bun run start`'s preview (4173).
+    return ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:4173", "http://127.0.0.1:4173"];
   }
 
   return [...new Set(trustedOrigins)];
