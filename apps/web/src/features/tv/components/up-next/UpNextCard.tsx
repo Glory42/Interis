@@ -1,12 +1,10 @@
 import { memo } from "react";
 import { Link } from "@tanstack/react-router";
-import { Check } from "lucide-react";
 import type { UpNextItem } from "@/features/tv/api";
-import { useUpdateEpisodeInteraction } from "@/features/tv/hooks/useTv";
-import { getBackdropUrl, getStillUrl } from "@/features/media/tmdb-images";
 import { SERIES_MODULE_STYLES } from "@/features/media/styles";
 import { cn } from "@/lib/utils";
-import { episodeCode, episodeKicker } from "./up-next-format";
+import { episodeKicker, stillFor } from "./up-next-format";
+import { MarkWatchedButton } from "./MarkWatchedButton";
 
 type UpNextCardProps = {
   item: UpNextItem;
@@ -15,15 +13,9 @@ type UpNextCardProps = {
   className?: string;
 };
 
-const stillFor = (item: UpNextItem) =>
-  item.episode.stillPath ? getStillUrl(item.episode.stillPath) : getBackdropUrl(item.series.backdropPath);
-
-// One show's next episode with the one tap you make right after it ends. Marking it watched
-// refetches Up next, which brings the following episode into this same card.
+// One show's next episode with the one tap you make right after it ends.
 export const UpNextCard = memo(function UpNextCard({ item, compact = false, className }: UpNextCardProps) {
   const { series, episode } = item;
-  const markWatched = useUpdateEpisodeInteraction(series.tmdbId, episode.seasonNumber);
-  const code = episodeCode(episode);
   const progress = item.numberOfEpisodes ? `${item.watchedEpisodesCount}/${item.numberOfEpisodes} ep` : null;
 
   return (
@@ -67,17 +59,7 @@ export const UpNextCard = memo(function UpNextCard({ item, compact = false, clas
           </Link>
           {progress && !compact ? <span className="mono-meta shrink-0 uppercase text-muted-foreground">{progress}</span> : null}
         </div>
-        <button
-          type="button"
-          aria-label={`Mark ${series.title} ${code} watched`}
-          disabled={markWatched.isPending}
-          onClick={() => markWatched.mutate({ episodeNumber: episode.episodeNumber, input: { watched: true } })}
-          className="mt-auto flex min-h-11 w-full items-center justify-center gap-2 rounded-[3px] text-sm font-semibold transition-opacity disabled:opacity-60"
-          style={{ background: SERIES_MODULE_STYLES.accent, color: "var(--bg)" }}
-        >
-          <Check aria-hidden className="size-4" />
-          {markWatched.isPending ? "Marking…" : "Mark watched"}
-        </button>
+        <MarkWatchedButton item={item} className="mt-auto w-full" />
       </div>
     </article>
   );

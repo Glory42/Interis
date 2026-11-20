@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { UpNextButton } from "@/features/tv/components/up-next/UpNextButton";
 import {
   ARCHIVE_PAGE_SIZE,
   languageOptions,
@@ -88,17 +88,7 @@ export const TvArchivePage = () => {
     <MediaArchivePage
       moduleStyles={SERIES_MODULE_STYLES}
       heading="TV"
-      headingAction={
-        user ? (
-          <Link
-            to="/serials/up-next"
-            className="mono-meta uppercase text-[color:var(--series)] hover:underline"
-            viewTransition
-          >
-            Up next →
-          </Link>
-        ) : null
-      }
+      headingAction={user ? <UpNextButton /> : null}
       spotlight={
         <ArchiveSpotlight
           kindLabel="TV"

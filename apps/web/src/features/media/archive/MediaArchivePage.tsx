@@ -99,7 +99,7 @@ export function MediaArchivePage<TItem, TSort extends string, TPeriod extends st
     <main className="relative mx-auto w-full max-w-400">
       <div className="px-4 py-6">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-          <div className="flex items-baseline gap-4">
+          <div className="flex items-center gap-4">
             <h1 className="display-1 text-foreground">{heading}</h1>
             {headingAction}
           </div>
