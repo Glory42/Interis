@@ -184,7 +184,12 @@ has 5; `starts_with`/`contains` only, no regex):
         or starts_with(http.request.uri.path, "/reviews/")
         or starts_with(http.request.uri.path, "/actor/")
         or starts_with(http.request.uri.path, "/director/"))
-   and ip.src.asnum in {8075 16509 14618 15169 396982 14061 24940 16276 63949 20473 31898 36351 45102 132203}
+   and (ip.src.asnum in {8075 16509 14618 15169 396982 14061 24940 16276 63949 20473 31898 36351 45102 132203 45090}
+        or http.user_agent contains "Chrome/143.0.0.0"
+        or http.user_agent contains "Chrome/145.0.0.0"
+        or http.user_agent contains "Chrome/146.0.0.0"
+        or http.user_agent contains "Chrome/155.0.0.0"
+        or http.user_agent contains "DotBot")
    and not cf.client.bot
    and not (lower(http.user_agent) contains "discordbot"
             or lower(http.user_agent) contains "twitterbot"
@@ -207,6 +212,10 @@ has 5; `starts_with`/`contains` only, no regex):
   OVH, Linode, Vultr, Oracle, IBM, Alibaba and Tencent. Verified bots (Googlebot, Bingbot) and
   link-preview fetchers, several of which run on those clouds (Teams on Azure, Discord on
   Google Cloud), are let through. A person on a cloud VPN gets a one-time Managed Challenge.
+
+  On 2026-11-18 a second wave came from 5k+ residential-looking IPs that the ASN list missed,
+  all on frozen Chrome builds (143/145/146/155). The `Chrome/x.0.0.0` matches catch them; if
+  Function runs climb again, check the top user-agents on these paths and update the list.
 - **Action:** Managed Challenge. Keep it scoped to the web host: API calls are `fetch()`es that
   can't solve a challenge, so never apply it to `api.interis.gorkemkaryol.dev`.
 
