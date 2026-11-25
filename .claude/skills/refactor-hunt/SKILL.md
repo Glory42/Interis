@@ -9,7 +9,7 @@ Scans for code that would benefit from simplification, consolidation, or better 
 
 ## Scope
 
-Default: the diff since the last tagged release or the modules the user names. For a broader hunt, use the `Explore` agent to search across the full `apps/api/src` and `apps/web/src` trees.
+Default: the diff since the last tagged release or the modules the user names. For a broader hunt, use a search subagent when your harness provides one (Claude Code: the `Explore` agent) to search across the full `apps/api/src` and `apps/web/src` trees.
 
 If the user says "hunt in tv" or names a specific feature, scope to that module's files.
 
@@ -40,7 +40,7 @@ Per architecture rules, controllers should only validate input and call one serv
 - Has conditional logic beyond input coercion/validation
 - Calls more than one service method (service methods should compose sub-services, not controllers)
 
-Reference: `CLAUDE.md` architecture section — controllers call service only.
+Reference: `AGENTS.md` architecture section — controllers call service only.
 
 ### 4. Services that do repository work directly
 

@@ -12,7 +12,7 @@ A structured health check across backend and frontend. Run after a sprint, befor
 Default: full `apps/api/src` and `apps/web/src` trees plus migrations and docs.
 If the user scopes it ("just the tv module", "just frontend"), honour that.
 
-Use the `Explore` agent for the search legwork — it keeps the main context window clean.
+Delegate the search legwork to a subagent when your harness provides one (Claude Code: the `Explore` agent) — it keeps the main context window clean. Otherwise search directly with `grep`/`glob`.
 
 ---
 

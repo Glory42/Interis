@@ -17,6 +17,7 @@ By participating you agree to the [Code of Conduct](CODE_OF_CONDUCT.md). Found a
 - [Adding a new feature](#adding-a-new-feature)
 - [Testing](#testing)
 - [Quality checks](#quality-checks)
+- [AI agent guidance](#ai-agent-guidance)
 - [Adding a custom theme](#adding-a-custom-theme)
 - [Submitting changes](#submitting-changes)
 
@@ -545,7 +546,7 @@ Apply these to every new feature, not just when something is already slow:
 - **Frontend state sync**: don't use `useEffect` + `setState` to copy a prop or query result into local state. Either derive the value during render or force a remount with `key={id}`.
 - **List rendering**: wrap repeated grid/list item components in `React.memo` when they render inside a page that also holds unrelated local state (menus, filters, tabs).
 
-Run the `/performance-check` skill (`.claude/skills/performance-check/`) against your diff before opening a PR — it audits for all of the above.
+Run the `/performance-check` skill (`.claude/skills/performance-check/`, mirrored in `.agents/skills/performance-check/` for Codex) against your diff before opening a PR — it audits for all of the above.
 
 ## Adding a new feature
 
@@ -683,6 +684,16 @@ involved. The e2e job runs the e2e typecheck and Playwright suite against an
 identical container and only needs the `a`
 [environment](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment)
 for the real `TMDB_ACCESS_TOKEN` secret.
+
+## AI agent guidance
+
+The repo ships instructions for AI coding agents, checked in so every tool starts from the same context:
+
+- [`AGENTS.md`](./AGENTS.md) — the shared project guide: commands, architecture, domain notes, layer rules and performance guidelines. Codex reads it directly.
+- [`CLAUDE.md`](./CLAUDE.md) — imports `AGENTS.md` via `@AGENTS.md` and adds only Claude Code-specific notes.
+- `.claude/skills/` and `.agents/skills/` — the same six workflow skills (`add-theme`, `codebase-audit`, `codebase-cleanup`, `commit`, `performance-check`, `refactor-hunt`), mirrored for Claude Code/OpenCode and Codex respectively.
+
+When a project convention changes, update `AGENTS.md` (and this file if the rule is contributor-facing). When you add or edit a skill, edit both skill folders — they must stay byte-identical, which the `Agent Skills In Sync` CI job enforces with `diff -r`.
 
 ## Submitting changes
 

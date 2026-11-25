@@ -9,7 +9,7 @@ Safely removes code that is provably unused. Every deletion must be verified —
 
 ## Scope
 
-Default: the changed files in the current diff, plus any files they import from. For a full-tree cleanup, use the `Explore` agent — say so explicitly so the user knows it will be thorough but slower.
+Default: the changed files in the current diff, plus any files they import from. For a full-tree cleanup, use a search subagent when your harness provides one (Claude Code: the `Explore` agent) — say so explicitly so the user knows it will be thorough but slower.
 
 ---
 

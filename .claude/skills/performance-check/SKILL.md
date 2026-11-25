@@ -5,7 +5,7 @@ description: Audits code for performance issues — broad React Query cache inva
 
 # Performance Check — Interis
 
-Audits code against the checklist in `CLAUDE.md`'s "Performance guidelines" section — read that section first, it defines the standard this skill enforces. This skill finds violations; it does not fix them unless the user explicitly asks it to.
+Audits code against the checklist in `AGENTS.md`'s "Performance guidelines" section — read that section first, it defines the standard this skill enforces. This skill finds violations; it does not fix them unless the user explicitly asks it to.
 
 ## Scope
 
@@ -13,7 +13,7 @@ Default to the current diff (uncommitted changes). Determine scope like this:
 
 1. If the user names specific files/features, scope to those.
 2. Otherwise, run `git status` and `git diff` to find changed files. Review those.
-3. If the user asks for a "full audit" or there's no diff (e.g. reviewing `master` directly), scope to the whole `apps/api/src` and `apps/web/src` trees — use the `Explore` agent for the search legwork so this doesn't blow the main context window.
+3. If the user asks for a "full audit" or there's no diff (e.g. reviewing `master` directly), scope to the whole `apps/api/src` and `apps/web/src` trees — delegate the search legwork to a subagent when your harness provides one (Claude Code: the `Explore` agent) so this doesn't blow the main context window.
 
 If the diff is small (a handful of files), just read them directly instead of spawning agents.
 

@@ -186,3 +186,17 @@ jobs:
       - name: Run e2e tests
         run: bun run test
         working-directory: apps/e2e
+
+  agent-skills:
+    name: Agent Skills In Sync
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # Codex reads .agents/skills; Claude Code and OpenCode read .claude/skills.
+      # Both trees must stay byte-identical so every agent gets the same
+      # instructions — see the "Agent skills" section of AGENTS.md.
+      - name: Check mirrored skill folders match
+        run: diff -r .claude/skills .agents/skills
