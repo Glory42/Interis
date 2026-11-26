@@ -16,7 +16,7 @@ test("creates a list, adds an item, edits it, then deletes it", async ({ page })
 
     await test.step("create a new list with one item", async () => {
       await page.goto(`/profile/${user.username}/lists`);
-      await page.getByRole("button", { name: "New List" }).click();
+      await page.getByRole("link", { name: "New list" }).click();
       await page.waitForURL(`/profile/${user.username}/lists/new`);
 
       await page.getByPlaceholder("Give your list a name...").fill("My Favorite Thrillers");
