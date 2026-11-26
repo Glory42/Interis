@@ -20,7 +20,7 @@ export const ProfileWatchlistPage = ({
   return (
     <ProfileMediaInteractionGridSection
       errorLabel="Could not load watchlist."
-      sectionTitle="Watchlist"
+      sentenceSuffix="on the watchlist"
       interactionVerb="added"
       isOwner={isOwner}
       emptyState={{

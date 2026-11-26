@@ -1,6 +1,13 @@
 import { LoadingRegion, TitleRowsSkeleton } from "@/components/ui/PageSkeletons";
+import { useMemo, useState } from "react";
+import { SentenceSelect } from "@/components/ui/SentenceSelect";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import { ProfileReviewRow } from "@/features/profile/components/ProfileReviewRow";
+import {
+  mediaShelfOptions,
+  toMediaShelfType,
+  type MediaShelfFilter,
+} from "@/features/profile/components/media-shelf-filter";
 import { useIsOwnProfile, useUserProfile, useUserReviews } from "@/features/profile/hooks/useProfile";
 
 type ProfileReviewsPageProps = {
@@ -8,11 +15,18 @@ type ProfileReviewsPageProps = {
 };
 
 export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
+  const [filter, setFilter] = useState<MediaShelfFilter>("all");
   const reviewsQuery = useUserReviews(username);
   const isOwner = useIsOwnProfile(username);
-  const reviews = reviewsQuery.data?.pages.flat() ?? [];
+  const reviews = useMemo(() => reviewsQuery.data?.pages.flat() ?? [], [reviewsQuery.data]);
   // The profile (already loaded by the layout) carries the real total, not just this page.
   const totalReviews = useUserProfile(username).data?.stats?.reviewCount;
+
+  const filteredReviews = useMemo(() => {
+    if (filter === "all") return reviews;
+    const mediaType = toMediaShelfType(filter);
+    return reviews.filter((review) => review.mediaType === mediaType);
+  }, [reviews, filter]);
 
   return (
     <>
@@ -36,12 +50,29 @@ export const ProfileReviewsPage = ({ username }: ProfileReviewsPageProps) => {
 
       {reviews.length > 0 ? (
         <section aria-label="Reviews">
-          <p className="body-s mb-1 text-muted-foreground">
-            {`Showing all ${(totalReviews ?? reviews.length).toLocaleString("en-US")} reviews, newest first.`}
+          <p className="body-s mb-4 text-muted-foreground">
+            {filter === "all"
+              ? `Showing all ${(totalReviews ?? reviews.length).toLocaleString("en-US")} reviews`
+              : `Showing ${filteredReviews.length.toLocaleString("en-US")} reviews`}
+            {" · "}
+            <SentenceSelect
+              value={filter}
+              options={mediaShelfOptions()}
+              onChange={setFilter}
+              ariaLabel="Filter reviews by media type"
+            />
+            {"."}
           </p>
-          {reviews.map((entry) => (
-            <ProfileReviewRow key={entry.id} review={entry} username={username} />
-          ))}
+
+          {filteredReviews.length === 0 ? (
+            <p className="body-s text-muted-foreground">
+              {`No ${filter === "movie" ? "film" : "series"} reviews yet.`}
+            </p>
+          ) : (
+            filteredReviews.map((entry) => (
+              <ProfileReviewRow key={entry.id} review={entry} username={username} />
+            ))
+          )}
         </section>
       ) : null}
 

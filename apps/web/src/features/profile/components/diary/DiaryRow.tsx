@@ -44,21 +44,6 @@ export const DiaryRow = ({ row, username, isOwner = false }: DiaryRowProps) => {
           {row.releaseYear ? <span className="mono-meta ml-1.5 font-normal text-muted-foreground">{row.releaseYear}</span> : null}
         </DiaryMediaLink>
         <p className={`kicker text-[9px] ${isSeries ? "text-[color:var(--series)]" : "text-[color:var(--film)]"}`}>{kicker}</p>
-        {row.tags.length > 0 ? (
-          <p className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5">
-            {row.tags.map((tag) => (
-              <Link
-                key={tag}
-                to="/profile/$username/diary"
-                params={{ username }}
-                search={{ tag }}
-                className="mono-meta text-[10px] text-muted-foreground hover:text-foreground"
-              >
-                #{tag}
-              </Link>
-            ))}
-          </p>
-        ) : null}
         {row.note ? (
           <p className="body-s mt-0.5 flex items-center gap-1 text-muted-foreground" title={row.note}>
             <Lock aria-label="Private note" className="size-3 shrink-0" />
