@@ -18,7 +18,8 @@ import {
 
 type ProfileMediaInteractionGridSectionProps = {
   errorLabel: string;
-  sectionTitle: string;
+  // Where the titles sit, completing "Showing N films and series …".
+  sentenceSuffix: string;
   emptyState: {
     visitorText: string;
     ownerText?: string;
@@ -39,7 +40,7 @@ type ProfileMediaInteractionGridSectionProps = {
 
 export const ProfileMediaInteractionGridSection = ({
   errorLabel,
-  sectionTitle,
+  sentenceSuffix,
   emptyState,
   isOwner,
   interactionVerb,
@@ -71,14 +72,11 @@ export const ProfileMediaInteractionGridSection = ({
 
       {!isPending && !isError && !isShelfEmpty ? (
         <div>
-          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2 border-b border-[color:var(--line)] pb-2">
-            <h2 className="display-3 text-foreground">{sectionTitle}</h2>
-            <p className="body-s text-muted-foreground">
-              {`Showing ${mediaShelfCount(activeFilter, counts)} `}
-              <SentenceSelect value={activeFilter} options={mediaShelfOptions(counts)} onChange={onFilterChange} />
-              {", newest first."}
-            </p>
-          </div>
+          <p className="body-s mb-4 text-muted-foreground">
+            {`Showing ${mediaShelfCount(activeFilter, counts)} `}
+            <SentenceSelect value={activeFilter} options={mediaShelfOptions(counts)} onChange={onFilterChange} />
+            {` ${sentenceSuffix}.`}
+          </p>
 
           {items.length === 0 ? (
             <p className="body-s text-muted-foreground">Nothing here for this filter yet.</p>
@@ -86,7 +84,7 @@ export const ProfileMediaInteractionGridSection = ({
             <div className={PROFILE_MEDIA_GRID_CLASSES}>
               {items.map((item) => (
                 <MediaPosterGridItem
-                  key={`${sectionTitle}-${item.mediaType}-${item.tmdbId}`}
+                  key={`${interactionVerb}-${item.mediaType}-${item.tmdbId}`}
                   item={item}
                   interactionVerb={interactionVerb}
                 />

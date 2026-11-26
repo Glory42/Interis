@@ -1,45 +1,62 @@
 import { LoadingRegion } from "@/components/ui/PageSkeletons";
-import { useMemo } from "react";
-import { Link } from "@tanstack/react-router";
-import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useMemo, useState } from "react";
+import { SentenceSelect } from "@/components/ui/SentenceSelect";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
 import { DiaryRow } from "@/features/profile/components/diary/DiaryRow";
 import { DiaryRowSkeleton } from "@/features/profile/components/diary/DiaryRowSkeleton";
-import { DiaryTagsOverview } from "@/features/profile/components/diary/DiaryTagsOverview";
 import { toDiaryMonths, toDiaryRows } from "@/features/profile/components/diary/diary-model";
-import { useUserDiary } from "@/features/profile/hooks/useProfile";
+import {
+  mediaShelfOptions,
+  toMediaShelfType,
+  type MediaShelfFilter,
+} from "@/features/profile/components/media-shelf-filter";
+import { useIsOwnProfile, useUserDiary, useUserProfile } from "@/features/profile/hooks/useProfile";
 
 type ProfileDiaryPageProps = {
   username: string;
-  // Shows only the logs carrying this Diary Tag.
-  tag?: string;
 };
 
-export const ProfileDiaryPage = ({ username, tag }: ProfileDiaryPageProps) => {
-  const { user } = useAuth();
-  const isOwner = Boolean(user) && user?.username.toLowerCase() === username.toLowerCase();
-  const diaryQuery = useUserDiary(username, tag);
-  const rows = useMemo(() => toDiaryRows(diaryQuery.data?.pages.flat() ?? []), [diaryQuery.data]);
+export const ProfileDiaryPage = ({ username }: ProfileDiaryPageProps) => {
+  const [filter, setFilter] = useState<MediaShelfFilter>("all");
+  const isOwner = useIsOwnProfile(username);
+  const diaryQuery = useUserDiary(username);
+  const stats = useUserProfile(username).data?.stats;
+  const items = useMemo(() => diaryQuery.data?.pages.flat() ?? [], [diaryQuery.data]);
+
+  const filteredItems = useMemo(() => {
+    if (filter === "all") return items;
+    const mediaType = toMediaShelfType(filter);
+    return items.filter((item) => item.mediaType === mediaType);
+  }, [items, filter]);
+
+  const itemCount =
+    filter === "movie"
+      ? (stats?.movieEntryCount ?? filteredItems.length)
+      : filter === "serial"
+        ? (stats?.serialEntryCount ?? filteredItems.length)
+        : stats
+          ? stats.movieEntryCount + (stats.serialEntryCount ?? 0)
+          : filteredItems.length;
+
+  const rows = useMemo(() => toDiaryRows(filteredItems), [filteredItems]);
   const months = useMemo(() => toDiaryMonths(rows, Boolean(diaryQuery.hasNextPage)), [rows, diaryQuery.hasNextPage]);
 
   return (
     <>
-      <DiaryTagsOverview username={username} activeTag={tag} />
-
-      {tag ? (
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <p className="body-s text-muted-foreground">
-            Logs tagged <span className="text-foreground">#{tag}</span>
-          </p>
-          <Link
-            to="/profile/$username/diary"
-            params={{ username }}
-            search={{}}
-            className="mono-meta uppercase text-muted-foreground hover:text-foreground"
-          >
-            Show all
-          </Link>
-        </div>
+      {!diaryQuery.isPending && !diaryQuery.isError && items.length > 0 ? (
+        <p className="body-s mb-4 text-muted-foreground">
+          {filter === "all"
+            ? `Showing all ${itemCount.toLocaleString("en-US")} logs`
+            : `Showing ${itemCount.toLocaleString("en-US")} logs`}
+          {" · "}
+          <SentenceSelect
+            value={filter}
+            options={mediaShelfOptions()}
+            onChange={setFilter}
+            ariaLabel="Filter diary by media type"
+          />
+          {"."}
+        </p>
       ) : null}
 
       {diaryQuery.isPending ? (
@@ -56,17 +73,19 @@ export const ProfileDiaryPage = ({ username, tag }: ProfileDiaryPageProps) => {
         </div>
       ) : null}
 
-      {!diaryQuery.isPending && !diaryQuery.isError && rows.length === 0 && tag ? (
-        <p className="body-s py-6 text-center text-muted-foreground">{`Nothing logged with #${tag}.`}</p>
-      ) : null}
-
-      {!diaryQuery.isPending && !diaryQuery.isError && rows.length === 0 && !tag ? (
+      {!diaryQuery.isPending && !diaryQuery.isError && items.length === 0 ? (
         <ProfileTabEmptyState
           isOwner={isOwner}
           visitorText={`${username} hasn't logged anything yet.`}
           ownerAction={{ label: "✎ Log a watch", to: "/movies" }}
           ownerText="Your favourites, diary and stats fill in from what you log."
         />
+      ) : null}
+
+      {!diaryQuery.isPending && !diaryQuery.isError && items.length > 0 && rows.length === 0 ? (
+        <p className="body-s py-6 text-center text-muted-foreground">
+          {`No ${filter === "movie" ? "films" : "series"} in the loaded diary yet.`}
+        </p>
       ) : null}
 
       {months.map((month) => (

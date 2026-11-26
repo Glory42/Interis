@@ -88,11 +88,11 @@ export const ListCard = memo(function ListCard({ list, username }: ListCardProps
       </div>
 
       <div className="min-w-0 flex-1">
-        <h3 className="user-text display-4 mb-1 text-foreground group-hover:text-foreground/90">
+        <h3 className="user-text mb-1 font-mono text-base font-semibold text-foreground group-hover:text-foreground/90">
           {list.title}
         </h3>
         {list.description ? (
-          <p className="user-text body-s mb-2 line-clamp-1 text-muted-foreground">
+          <p className="user-text mb-2 line-clamp-1 font-mono text-xs text-muted-foreground">
             {list.description}
           </p>
         ) : null}

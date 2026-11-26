@@ -1,20 +1,21 @@
 import { LoadingRegion, TitleRowsSkeleton } from "@/components/ui/PageSkeletons";
 import { useMemo, useState } from "react";
 import { Layers3 } from "lucide-react";
-import { useNavigate } from "@tanstack/react-router";
-import { useAuth } from "@/features/auth/hooks/useAuth";
+import { Link } from "@tanstack/react-router";
 import { ListCard } from "@/features/lists/components/ListCard";
 import { useUserLists } from "@/features/lists/hooks/useLists";
 import { ProfileTabEmptyState } from "@/features/profile/components/ProfileTabEmptyState";
+import { SentenceSelect, type SentenceOption } from "@/components/ui/SentenceSelect";
+import { useIsOwnProfile } from "@/features/profile/hooks/useProfile";
 import type { ListSummary } from "@/features/lists/api";
 
 type ListFilter = "all" | "movie" | "serial" | "mixed";
 
-const filterTabs: Array<{ key: ListFilter; label: string }> = [
-  { key: "all", label: "All" },
-  { key: "movie", label: "Movie" },
-  { key: "serial", label: "Serial" },
-  { key: "mixed", label: "Mixed" },
+const listFilterOptions: Array<SentenceOption<ListFilter>> = [
+  { value: "all", word: "every kind", label: "Every kind" },
+  { value: "movie", word: "film lists", label: "Film lists" },
+  { value: "serial", word: "series lists", label: "Series lists" },
+  { value: "mixed", word: "mixed lists", label: "Mixed lists" },
 ];
 
 const filterMatches = (list: ListSummary, filter: ListFilter): boolean => {
@@ -27,11 +28,7 @@ type ProfileListsPageProps = {
 };
 
 export const ProfileListsPage = ({ username }: ProfileListsPageProps) => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const isOwnProfile =
-    Boolean(user) && user?.username.toLowerCase() === username.toLowerCase();
-
+  const isOwnProfile = useIsOwnProfile(username);
   const listsQuery = useUserLists(username);
   const lists = useMemo(() => listsQuery.data ?? [], [listsQuery.data]);
 
@@ -44,67 +41,36 @@ export const ProfileListsPage = ({ username }: ProfileListsPageProps) => {
 
   return (
     <div>
-      {/* Header row: title + filter tabs */}
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-          Lists{" "}
-          {!listsQuery.isPending ? (
-            <span className="shell-accent">({lists.length})</span>
+      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
+        <p className="body-s text-muted-foreground">
+          {listsQuery.isPending
+            ? "Loading lists…"
+            : `Showing ${filteredLists.length.toLocaleString("en-US")} ${filteredLists.length === 1 ? "list" : "lists"}`}
+          {!listsQuery.isPending && lists.length > 0 ? (
+            <>
+              {" · "}
+              <SentenceSelect
+                value={activeFilter}
+                options={listFilterOptions}
+                onChange={setActiveFilter}
+                ariaLabel="Filter lists by kind"
+              />
+            </>
           ) : null}
+          {!listsQuery.isPending ? "." : null}
         </p>
-        {!listsQuery.isPending && lists.length > 0 ? (
-          <div className="flex flex-wrap justify-end gap-1">
-            {filterTabs.map((tab) => {
-              const isActive = activeFilter === tab.key;
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  className="rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest transition-colors"
-                  style={
-                    isActive
-                      ? {
-                          borderColor: "var(--shell-accent)",
-                          color: "var(--shell-accent)",
-                          background:
-                            "color-mix(in srgb, var(--shell-accent) 8%, transparent)",
-                        }
-                      : {
-                          borderColor: "var(--shell-border)",
-                          color: "var(--shell-muted)",
-                          background: "transparent",
-                        }
-                  }
-                  onClick={() => setActiveFilter(tab.key)}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-        ) : null}
-      </div>
 
-      {/* New List button under the header */}
-      {isOwnProfile ? (
-        <div className="mb-3">
-          <button
-            type="button"
-            onClick={() => {
-              void navigate({
-                to: "/profile/$username/lists/new",
-                params: { username },
-              });
-            }}
-            className="flex items-center gap-2 rounded-full border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+        {isOwnProfile ? (
+          <Link
+            to="/profile/$username/lists/new"
+            params={{ username }}
+            className="flex shrink-0 items-center gap-1.5 rounded-full border border-border/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
           >
             <Layers3 className="h-3 w-3" />
-            New List
-          </button>
-        </div>
-      ) : (
-        <div className="mb-3" />
-      )}
+            New list
+          </Link>
+        ) : null}
+      </div>
 
       {listsQuery.isPending ? (
         <LoadingRegion label="Loading lists">
