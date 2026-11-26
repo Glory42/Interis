@@ -37,7 +37,7 @@ describe("ProfileWatchlistPage", () => {
     const { container } = renderWithProviders(<ProfileWatchlistPage username="cinephile" />);
 
     expect(await screen.findByText("Queued Film")).toBeInTheDocument();
-    expect(container).toHaveTextContent("Showing 71 films and series, newest first.");
+    expect(container).toHaveTextContent("Showing 71 films and series on the watchlist.");
     await user.click(screen.getByRole("button", { name: /films and series/ }));
     await user.click(screen.getByRole("menuitemradio", { name: "Series · 1" }));
 

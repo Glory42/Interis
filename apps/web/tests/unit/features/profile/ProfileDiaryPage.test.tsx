@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { http, HttpResponse } from "msw";
 import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { server } from "../../../support/msw/server";
 import { renderWithProviders } from "../../../support/render/render-with-providers";
 import { ProfileDiaryPage } from "@/features/profile/pages/ProfileDiaryPage";
 
-const diaryItem = (id: string, title: string, tags: string[]) => ({
+const diaryItem = (id: string, title: string, mediaType: "movie" | "tv", tags: string[] = []) => ({
   id,
-  mediaType: "movie",
+  mediaType,
   watchedDate: "2026-04-05",
   rating: null,
   rewatch: false,
@@ -19,49 +20,51 @@ const diaryItem = (id: string, title: string, tags: string[]) => ({
   tags,
 });
 
-describe("ProfileDiaryPage tags", () => {
-  it("asks the server for one tag and lists the user's tags with counts", async () => {
-    const requested: (string | null)[] = [];
+describe("ProfileDiaryPage", () => {
+  it("filters the loaded logs by media type", async () => {
+    const user = userEvent.setup();
     server.use(
-      http.get("http://localhost/api/users/cinephile/diary", ({ request }) => {
-        requested.push(new URL(request.url).searchParams.get("tag"));
-        return HttpResponse.json([diaryItem("1", "Tagged Film", ["cinema", "with mom"])]);
-      }),
-      http.get("http://localhost/api/users/cinephile/diary/tags", () =>
+      http.get("http://localhost/api/users/cinephile/diary", () =>
         HttpResponse.json([
-          { tag: "cinema", count: 4 },
-          { tag: "with mom", count: 2 },
+          diaryItem("1", "Film Log", "movie"),
+          diaryItem("2", "Show Log", "tv"),
         ]),
       ),
     );
 
-    renderWithProviders(<ProfileDiaryPage username="cinephile" tag="cinema" />);
+    const { container } = renderWithProviders(<ProfileDiaryPage username="cinephile" />);
 
-    expect((await screen.findAllByText("Tagged Film")).length).toBeGreaterThan(0);
-    expect(requested).toEqual(["cinema"]);
-    expect(screen.getByText("Logs tagged")).toHaveTextContent("Logs tagged #cinema");
-    expect(screen.getByRole("link", { name: "Show all" })).toHaveAttribute("href", "/profile/cinephile/diary");
+    expect(await screen.findAllByText("Film Log")).not.toHaveLength(0);
+    expect(screen.getAllByText("Show Log")).not.toHaveLength(0);
+    expect(container).toHaveTextContent("Showing all 2 logs · films and series.");
 
-    const active = await screen.findByRole("link", { name: "#cinema, 4 logs" });
-    // The active tag clears the filter; the others switch to themselves.
-    expect(active).toHaveAttribute("aria-current", "true");
-    expect(active).toHaveAttribute("href", "/profile/cinephile/diary");
-    expect(screen.getByRole("link", { name: "#with mom, 2 logs" })).toHaveAttribute(
-      "href",
-      "/profile/cinephile/diary?tag=with+mom",
-    );
-    // Each row links its own tags to the filter too.
-    expect(screen.getAllByRole("link", { name: "#with mom" })[0]).toHaveAttribute(
-      "href",
-      "/profile/cinephile/diary?tag=with+mom",
-    );
+    await user.click(screen.getByRole("button", { name: "Filter diary by media type" }));
+    await user.click(screen.getByRole("menuitemradio", { name: "Series" }));
+
+    expect(await screen.findAllByText("Show Log")).not.toHaveLength(0);
+    expect(screen.queryByText("Film Log")).not.toBeInTheDocument();
   });
 
-  it("says when nothing carries the tag", async () => {
+  it("does not render diary tags or a tag filter", async () => {
+    server.use(
+      http.get("http://localhost/api/users/cinephile/diary", () =>
+        HttpResponse.json([diaryItem("1", "Tagged Film", "movie", ["cinema", "with mom"])]),
+      ),
+    );
+
+    renderWithProviders(<ProfileDiaryPage username="cinephile" />);
+
+    expect(await screen.findAllByText("Tagged Film")).not.toHaveLength(0);
+    expect(screen.queryByText("Tags")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /#cinema/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /#with mom/ })).not.toBeInTheDocument();
+  });
+
+  it("shows the empty state when nothing is logged", async () => {
     server.use(http.get("http://localhost/api/users/cinephile/diary", () => HttpResponse.json([])));
 
-    renderWithProviders(<ProfileDiaryPage username="cinephile" tag="nothing" />);
+    renderWithProviders(<ProfileDiaryPage username="cinephile" />);
 
-    expect(await screen.findByText("Nothing logged with #nothing.")).toBeInTheDocument();
+    expect(await screen.findByText("cinephile hasn't logged anything yet.")).toBeInTheDocument();
   });
 });

@@ -42,23 +42,23 @@ export const ProfileListsPage = ({ username }: ProfileListsPageProps) => {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
-        <p className="body-s text-muted-foreground">
-          {listsQuery.isPending
-            ? "Loading lists…"
-            : `Showing ${filteredLists.length.toLocaleString("en-US")} ${filteredLists.length === 1 ? "list" : "lists"}`}
-          {!listsQuery.isPending && lists.length > 0 ? (
-            <>
-              {" · "}
-              <SentenceSelect
-                value={activeFilter}
-                options={listFilterOptions}
-                onChange={setActiveFilter}
-                ariaLabel="Filter lists by kind"
-              />
-            </>
-          ) : null}
-          {!listsQuery.isPending ? "." : null}
-        </p>
+        {!listsQuery.isPending ? (
+          <p className="body-s text-muted-foreground">
+            {`Showing ${filteredLists.length.toLocaleString("en-US")} ${filteredLists.length === 1 ? "list" : "lists"}`}
+            {lists.length > 0 ? (
+              <>
+                {" · "}
+                <SentenceSelect
+                  value={activeFilter}
+                  options={listFilterOptions}
+                  onChange={setActiveFilter}
+                  ariaLabel="Filter lists by kind"
+                />
+              </>
+            ) : null}
+            {"."}
+          </p>
+        ) : null}
 
         {isOwnProfile ? (
           <Link

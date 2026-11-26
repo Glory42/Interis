@@ -67,13 +67,12 @@ describe("DiaryRow", () => {
     expect(screen.getByRole("textbox", { name: "Review" })).toHaveValue("Loud and lovely.");
   });
 
-  it("links each tag to the diary filtered by it", async () => {
+  it("does not render diary tags on the row", async () => {
     renderWithProviders(<DiaryRow row={row({ tags: ["cinema", "with mom"] })} username="glory42" />);
 
-    expect(await screen.findByRole("link", { name: "#with mom" })).toHaveAttribute(
-      "href",
-      "/profile/glory42/diary?tag=with+mom",
-    );
+    expect(await screen.findByText("28")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "#with mom" })).not.toBeInTheDocument();
+    expect(screen.queryByText("#cinema")).not.toBeInTheDocument();
   });
 
   it("shows the private note only when the row carries one (the owner's diary)", async () => {
