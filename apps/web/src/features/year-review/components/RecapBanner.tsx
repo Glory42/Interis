@@ -35,18 +35,18 @@ export const RecapBanner = ({ userId, username, now: nowProp }: RecapBannerProps
 
   return (
     <section
-      aria-label={`Your ${year} in review`}
+      aria-label={`Your ${year} recap`}
       className="animate-fade-up mb-4 flex items-center gap-3 overflow-hidden rounded-[3px] border border-[color:var(--line)] bg-[color:var(--slate)] p-4"
     >
       <div className="min-w-0 flex-1">
         <p className="kicker text-primary">Year in review</p>
-        <p className="mt-1 font-display text-xl leading-tight font-bold text-white sm:text-2xl">{`Your ${year} in review is ready.`}</p>
+        <p className="mt-1 font-display text-xl leading-tight font-bold text-white sm:text-2xl">{`Your ${year} recap is ready.`}</p>
         <Link
-          to="/profile/$username/year/$year"
+          to="/recap/$username/$year"
           params={{ username, year: String(year) }}
           className="mono-meta mt-2 inline-block text-[11px] text-[#bdbdbd] uppercase hover:text-white"
         >
-          See it and share it →
+          Take your seat →
         </Link>
       </div>
       <button

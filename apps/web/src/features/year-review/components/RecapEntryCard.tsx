@@ -12,7 +12,7 @@ export const RecapEntryCard = ({ username, now: nowProp }: RecapEntryCardProps) 
 
   return (
     <Link
-      to="/profile/$username/year/$year"
+      to="/recap/$username/$year"
       params={{ username, year: String(year) }}
       className="group block overflow-hidden rounded-[3px] border border-[color:var(--line)] transition-colors hover:border-[color:var(--line-strong)]"
     >
@@ -20,12 +20,12 @@ export const RecapEntryCard = ({ username, now: nowProp }: RecapEntryCardProps) 
       <div className="flex items-end justify-between gap-4 p-4">
         <div className="min-w-0">
           <p className="font-display text-2xl leading-tight font-bold tracking-tight text-foreground sm:text-3xl">
-            {`Your ${year} in review`}
+            {`Your ${year} recap`}
           </p>
-          <p className="body-s mt-1 text-muted-foreground">Films, hours, streaks, favourites and a card to share.</p>
+          <p className="body-s mt-1 text-muted-foreground">A private screening of your year: films, hours, streaks, a persona and a card to share.</p>
         </div>
         <span aria-hidden className="mono-meta shrink-0 text-[11px] text-primary uppercase group-hover:underline">
-          Open →
+          Play →
         </span>
       </div>
     </Link>

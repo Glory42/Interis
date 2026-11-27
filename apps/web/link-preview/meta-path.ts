@@ -31,6 +31,10 @@ export const metaPathFor = (pathname: string): string | null => {
       if (second === "lists" && third && UUID.test(third)) return `/list/${third}`;
       if (second === "year" && count === 4 && YEAR.test(third)) return `/recap/${enc(first)}/${third}`;
       return `/profile/${enc(first)}`;
+    case "recap":
+      return count === 3 && USERNAME.test(first) && YEAR.test(second)
+        ? `/recap/${enc(first)}/${second}`
+        : null;
     case "movies":
       return count === 2 && TMDB_ID.test(first) ? `/movie/${first}` : null;
     case "serials":

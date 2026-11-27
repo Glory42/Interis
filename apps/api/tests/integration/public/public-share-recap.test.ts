@@ -52,7 +52,7 @@ describe("Year in Review link preview (/api/public/meta/recap, /api/public/og/re
       ogType: "website",
       title: `${username}'s 2025 in review`,
       description: "1 film and 4 hours on Interis. Top director: Ada Lens.",
-      path: `/profile/${username}/year/2025`,
+      path: `/recap/${username}/2025`,
     });
     expect(body?.image).toMatch(new RegExp(`^/api/public/og/recap/${username}/2025\\.jpg\\?v=[0-9a-f]{10}$`));
 

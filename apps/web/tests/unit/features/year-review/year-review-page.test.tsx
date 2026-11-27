@@ -43,6 +43,7 @@ describe("YearReviewPage", () => {
     expect(screen.getByText("351h")).toBeInTheDocument();
     expect(screen.getByText("+22 vs 2024")).toBeInTheDocument();
     expect(screen.getByText("−49 vs 2024")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Play the recap" })).toHaveAttribute("href", "/recap/glory42/2025");
     expect(sectionNames()).toEqual(["Rhythm", "Taste", "Ratings", "Words & people", "Watch goal"]);
 
     expect(screen.getByRole("heading", { name: "March was the busiest month: 23 logs." })).toBeInTheDocument();
@@ -107,7 +108,7 @@ describe("YearReviewPage", () => {
     renderWithProviders(<YearReviewPage username="glory42" year={2025} now={NOW} />);
 
     await user.click(await screen.findByRole("button", { name: "Share" }));
-    await waitFor(() => expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/profile/glory42/year/2025`));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/recap/glory42/2025`));
     expect(screen.getByRole("button", { name: "Link copied" })).toBeInTheDocument();
   });
 });

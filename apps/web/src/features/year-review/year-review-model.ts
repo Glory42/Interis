@@ -58,4 +58,4 @@ export const recapYearFor = (now: Date) =>
   now.getMonth() === 0 && now.getDate() <= 15 ? now.getFullYear() - 1 : now.getFullYear();
 
 export const recapPath = (username: string, year: number) =>
-  `/profile/${encodeURIComponent(username)}/year/${year}`;
+  `/recap/${encodeURIComponent(username)}/${year}`;
