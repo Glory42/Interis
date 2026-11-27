@@ -1,7 +1,7 @@
 import { sql, type SQL } from "drizzle-orm";
 import { db } from "../../../infrastructure/database/db";
 import { YourRatingRepository } from "../../media-interactions/repositories/your-rating.repository";
-import type { YearReviewTitle, YearTotals } from "../types/year-review.types";
+import type { YearReviewRankedTitle, YearReviewTitle, YearTotals } from "../types/year-review.types";
 
 type DayRange = { start: string; end: string };
 
@@ -77,6 +77,12 @@ const toTotals = (row: TotalsRow | undefined): YearTotals => ({
 
 type DatedTitle = YearReviewTitle & { watchedDate: string };
 
+type SpotlightReviewRow = {
+  id: string;
+  content: string;
+  containsSpoilers: boolean;
+};
+
 // Aggregate reads over one user's Diary Entries in one calendar year; each is one statement.
 export class YearReviewLogsRepository {
   // The year's totals and the previous year's, in one round trip.
@@ -112,8 +118,8 @@ export class YearReviewLogsRepository {
     return { days: row?.days ?? [], months: row?.months ?? [], streak: row?.streak ?? null };
   }
 
-  // First and last watch, top-rated titles, the most rewatched one, card posters, and the
-  // Community Rating of the titles rated that year.
+  // First and last watch, ranked titles, the most rewatched one, card posters,
+  // the spotlight review, and the Community Rating of the titles rated that year.
   static async getHighlights(userId: string, year: number) {
     const range = yearRange(year);
     const community = (mediaType: "movie" | "tv") =>
@@ -122,7 +128,11 @@ export class YearReviewLogsRepository {
       first_watch: DatedTitle | null;
       last_watch: DatedTitle | null;
       top_rated: (YearReviewTitle & { rating: number })[];
+      top_films: YearReviewRankedTitle[];
+      top_series: YearReviewRankedTitle[];
       most_rewatched: (YearReviewTitle & { logCount: number }) | null;
+      top_film_review: SpotlightReviewRow | null;
+      high_ratings: number;
       poster_paths: string[];
       community_average: number | null;
     }>(sql`
@@ -143,13 +153,36 @@ export class YearReviewLogsRepository {
           SELECT ${TITLE_COLUMNS}, best_rating AS rating,
             row_number() OVER (ORDER BY best_rating DESC, log_count DESC, last_watched DESC) AS ord
           FROM per_title WHERE best_rating IS NOT NULL ORDER BY ord LIMIT 5`)} AS top_rated,
+        ${orderedJson(sql`
+          SELECT ${TITLE_COLUMNS}, best_rating AS rating, log_count AS "logCount",
+            to_char(last_watched, 'YYYY-MM-DD') AS "watchedDate",
+            row_number() OVER (ORDER BY best_rating DESC NULLS LAST, log_count DESC, last_watched DESC) AS ord
+          FROM per_title WHERE media_type = 'movie' ORDER BY ord LIMIT 5`)} AS top_films,
+        ${orderedJson(sql`
+          SELECT ${TITLE_COLUMNS}, best_rating AS rating, log_count AS "logCount",
+            to_char(last_watched, 'YYYY-MM-DD') AS "watchedDate",
+            row_number() OVER (ORDER BY best_rating DESC NULLS LAST, log_count DESC, last_watched DESC) AS ord
+          FROM per_title WHERE media_type = 'tv' ORDER BY ord LIMIT 5`)} AS top_series,
         (SELECT row_to_json(r) FROM (
           SELECT ${TITLE_COLUMNS}, log_count AS "logCount"
           FROM per_title WHERE log_count >= 2 ORDER BY log_count DESC, last_watched DESC LIMIT 1) r) AS most_rewatched,
+        (SELECT count(*)::int FROM per_title WHERE best_rating >= 9) AS high_ratings,
+        (SELECT row_to_json(r) FROM (
+          SELECT r.id, r.content, r.contains_spoilers AS "containsSpoilers"
+          FROM review r
+          JOIN movie m ON m.id = r.movie_id
+          WHERE r.user_id = ${userId}
+            AND m.tmdb_id = (
+              SELECT tmdb_id FROM per_title WHERE media_type = 'movie'
+              ORDER BY best_rating DESC NULLS LAST, log_count DESC, last_watched DESC LIMIT 1
+            )
+            AND r.created_at >= ${range.start}::timestamp AND r.created_at < ${range.end}::timestamp
+          ORDER BY r.created_at DESC LIMIT 1
+        ) r) AS top_film_review,
         (SELECT coalesce(json_agg(p.poster_path ORDER BY p.ord), '[]'::json) FROM (
           SELECT poster_path,
             row_number() OVER (ORDER BY best_rating DESC NULLS LAST, log_count DESC, last_watched DESC) AS ord
-          FROM per_title WHERE poster_path IS NOT NULL ORDER BY ord LIMIT 4) p) AS poster_paths,
+          FROM per_title WHERE poster_path IS NOT NULL ORDER BY ord LIMIT 18) p) AS poster_paths,
         (SELECT avg(CASE WHEN pt.media_type = 'movie' THEN ${community("movie")} ELSE ${community("tv")} END)
           FROM per_title pt WHERE pt.best_rating IS NOT NULL) AS community_average
     `);
@@ -158,7 +191,19 @@ export class YearReviewLogsRepository {
       firstWatch: row?.first_watch ?? null,
       lastWatch: row?.last_watch ?? null,
       topRated: (row?.top_rated ?? []).map((title) => ({ ...title, rating: Number(title.rating) })),
+      topFilms: (row?.top_films ?? []).map((title) => ({
+        ...title,
+        rating: title.rating === null || title.rating === undefined ? null : Number(title.rating),
+        logCount: Number(title.logCount),
+      })),
+      topSeries: (row?.top_series ?? []).map((title) => ({
+        ...title,
+        rating: title.rating === null || title.rating === undefined ? null : Number(title.rating),
+        logCount: Number(title.logCount),
+      })),
       mostRewatched: row?.most_rewatched ?? null,
+      topFilmReview: row?.top_film_review ?? null,
+      highRatings: Number(row?.high_ratings ?? 0),
       posterPaths: row?.poster_paths ?? [],
       communityAverage: row?.community_average === null || row?.community_average === undefined
         ? null
@@ -166,19 +211,23 @@ export class YearReviewLogsRepository {
     };
   }
 
-  // Top genres (Films and Series) and directors (Films), each title counted once, and decades.
+  // Top genres (Films and Series), directors (Films) with up to three of
+  // their titles, decades, the median release year, and distinct counts.
   static async getTaste(userId: string, year: number) {
     const range = yearRange(year);
     const result = await db.execute<{
       genres: { genre: string; count: number }[];
-      directors: { director: string; count: number; slug: string | null }[];
+      directors: { director: string; count: number; slug: string | null; titles: YearReviewTitle[] }[];
       decades: { decade: number; count: number }[];
       rated_logs: number;
       average_rating: number | null;
+      release_year_median: number | null;
+      distinct_genres: number;
+      distinct_directors: number;
     }>(sql`
       WITH ${yearLogsCte(userId, range)},
       titles AS (
-        SELECT DISTINCT ON (media_type, media_id) media_type, genres, director, release_year
+        SELECT DISTINCT ON (media_type, media_id) media_type, genres, director, release_year, tmdb_id, title, poster_path
         FROM logs ORDER BY media_type, media_id
       )
       SELECT
@@ -190,7 +239,15 @@ export class YearReviewLogsRepository {
           WHERE g ->> 'name' IS NOT NULL
           GROUP BY g ->> 'name' ORDER BY ord LIMIT 5`)} AS genres,
         ${orderedJson(sql`
-          SELECT dc.director, dc.count, p.slug, dc.ord FROM (
+          SELECT dc.director, dc.count, p.slug, dc.ord,
+            ${orderedJson(sql`
+              SELECT media_type AS "mediaType", tmdb_id AS "tmdbId", title, poster_path AS "posterPath",
+                release_year AS "releaseYear",
+                row_number() OVER (ORDER BY release_year DESC NULLS LAST, title) AS ord
+              FROM titles t
+              WHERE t.director = dc.director AND t.media_type = 'movie'
+              ORDER BY ord LIMIT 3`)} AS titles
+          FROM (
             SELECT director, count(*)::int AS count, row_number() OVER (ORDER BY count(*) DESC, director) AS ord
             FROM titles WHERE media_type = 'movie' AND director IS NOT NULL AND director <> ''
             GROUP BY director ORDER BY ord LIMIT 5
@@ -201,15 +258,33 @@ export class YearReviewLogsRepository {
           SELECT (release_year / 10) * 10 AS decade, count(*)::int AS count, (release_year / 10) * 10 AS ord
           FROM titles WHERE release_year IS NOT NULL GROUP BY 1`)} AS decades,
         (SELECT count(rating)::int FROM logs) AS rated_logs,
-        (SELECT avg(rating)::double precision FROM logs) AS average_rating
+        (SELECT avg(rating)::double precision FROM logs) AS average_rating,
+        (SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY release_year)
+          FROM titles WHERE release_year IS NOT NULL) AS release_year_median,
+        (SELECT count(DISTINCT g ->> 'name')::int
+          FROM titles,
+            jsonb_array_elements(CASE WHEN jsonb_typeof(titles.genres) = 'array' THEN titles.genres ELSE '[]'::jsonb END) g
+          WHERE g ->> 'name' IS NOT NULL) AS distinct_genres,
+        (SELECT count(DISTINCT director)::int
+          FROM titles WHERE media_type = 'movie' AND director IS NOT NULL AND director <> '') AS distinct_directors
     `);
     const row = result.rows[0];
     return {
       topGenres: row?.genres ?? [],
-      topDirectors: row?.directors ?? [],
+      topDirectors: (row?.directors ?? []).map((director) => ({
+        ...director,
+        count: Number(director.count),
+        titles: director.titles ?? [],
+      })),
       decades: row?.decades ?? [],
       ratedLogs: Number(row?.rated_logs ?? 0),
       averageRating: row?.average_rating === null || row?.average_rating === undefined ? null : Number(row.average_rating),
+      releaseYearMedian:
+        row?.release_year_median === null || row?.release_year_median === undefined
+          ? null
+          : Number(row.release_year_median),
+      distinctGenres: Number(row?.distinct_genres ?? 0),
+      distinctDirectors: Number(row?.distinct_directors ?? 0),
     };
   }
 }

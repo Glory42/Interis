@@ -3,13 +3,18 @@ import { createTtlCache } from "../../../infrastructure/cache/ttl-cache.helper";
 import { WatchGoalsService } from "../../watch-goals/watch-goals.service";
 import { YEAR_REVIEW_MIN_YEAR, currentYearReviewYear } from "../dto/year-review.dto";
 import {
+  busiestDayOf,
   busiestMonthOf,
   depthFor,
   fillMonths,
+  pre1980ShareOf,
   roundedRatings,
   toMostLikedReview,
+  toSpotlightReview,
   totalsWithHours,
+  viewingAgeOf,
 } from "../helpers/year-review-assemble.helper";
+import { resolvePersona } from "../helpers/year-review-persona.helper";
 import { YearReviewLogsRepository } from "../repositories/year-review-logs.repository";
 import { YearReviewSocialRepository } from "../repositories/year-review-social.repository";
 import type { YearReview, YearReviewOwner } from "../types/year-review.types";
@@ -50,30 +55,89 @@ const loadYear = async (owner: YearReviewOwner, year: number): Promise<YearRevie
   const thisYear = currentYearReviewYear();
   const { userId: _userId, ...user } = owner;
 
+  const depth = depthFor(current.logs);
+  const topDirectors = taste.topDirectors.map((director) => ({
+    director: director.director,
+    count: director.count,
+    slug: director.slug,
+  }));
+  const directorTitles =
+    taste.topDirectors[0] && taste.topDirectors[0].count >= 2 ? taste.topDirectors[0].titles : [];
+  const ratings = roundedRatings(taste.averageRating, taste.ratedLogs, highlights.communityAverage);
+  const busiestDay = busiestDayOf(calendar.days);
+  const viewingAge = viewingAgeOf(taste.releaseYearMedian);
+  const pre1980Share = pre1980ShareOf(taste.decades);
+  const topFilm = highlights.topFilms[0]
+    ? { ...highlights.topFilms[0], review: toSpotlightReview(highlights.topFilmReview) }
+    : null;
+  const topSeriesSpotlight = highlights.topSeries[0]
+    ? { ...highlights.topSeries[0], review: null }
+    : null;
+
+  const persona = resolvePersona({
+    depth,
+    logs: current.logs,
+    filmLogs: current.filmLogs,
+    seriesLogs: current.seriesLogs,
+    films: current.films,
+    series: current.series,
+    episodes: current.episodes,
+    hoursWatched: current.hoursWatched,
+    rewatchLogs: current.rewatchLogs,
+    mostRewatchedLogCount: highlights.mostRewatched?.logCount ?? 0,
+    averageRating: ratings.average,
+    communityAverage: ratings.communityAverage,
+    ratedLogs: ratings.ratedLogs,
+    highRatings: highlights.highRatings,
+    topGenres: taste.topGenres,
+    topDirectors,
+    decades: taste.decades,
+    reviewCount: social.reviews,
+    listsCreated: social.lists,
+    longestStreakDays: calendar.streak?.days ?? 0,
+    busiestDayCount: busiestDay?.count ?? 0,
+    viewingAge,
+    pre1980Share,
+    distinctGenres: taste.distinctGenres,
+    distinctDirectors: taste.distinctDirectors,
+  });
+
   return {
     year,
     isPartialYear: year === thisYear,
-    depth: depthFor(current.logs),
+    depth,
     user,
     totals: current,
     previousYear:
       previous.logs > 0 ? { films: previous.films, series: previous.series, hoursWatched: previous.hoursWatched } : null,
     months,
     busiestMonth: busiestMonthOf(months),
+    busiestDay,
     logsPerDay: calendar.days,
     longestStreak: calendar.streak,
     firstWatch: highlights.firstWatch,
     lastWatch: highlights.lastWatch,
     topGenres: taste.topGenres,
-    topDirectors: taste.topDirectors,
+    distinctGenres: taste.distinctGenres,
+    topDirectors,
+    directorTitles,
+    distinctDirectors: taste.distinctDirectors,
     decades: taste.decades,
+    viewingAge,
+    pre1980Share,
     topRated: highlights.topRated,
+    topFilms: highlights.topFilms,
+    topSeries: highlights.topSeries,
+    topFilm,
+    topSeriesSpotlight,
     mostRewatched: highlights.mostRewatched,
-    ratings: roundedRatings(taste.averageRating, taste.ratedLogs, highlights.communityAverage),
+    ratings,
+    highRatings: highlights.highRatings,
     reviews: { count: social.reviews, mostLiked: toMostLikedReview(social.mostLikedReview) },
     listsCreated: social.lists,
     newFollowers: social.followers,
     goal,
+    persona,
     posterPaths: highlights.posterPaths,
     availableYears: social.years.filter((available) => available >= YEAR_REVIEW_MIN_YEAR && available <= thisYear),
   };

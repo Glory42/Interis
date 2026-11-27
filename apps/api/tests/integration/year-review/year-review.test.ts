@@ -119,6 +119,14 @@ describe("Year in Review (GET /api/users/:username/year/:year)", () => {
     expect(body.months[0]).toEqual({ month: 1, count: 1 });
     expect(body.months[11]).toEqual({ month: 12, count: 1 });
     expect(body.availableYears).toEqual([2026, 2025, 2024].filter((year) => year <= THIS_YEAR));
+    expect(body).toMatchObject({
+      busiestDay: { day: "2025-01-01", count: 1 }, viewingAge: null, pre1980Share: null,
+      highRatings: 0, directorTitles: [], distinctGenres: 0, distinctDirectors: 0, persona: null,
+    });
+    expect(body.topFilms.map((title) => title.title)).toEqual(["Yr Late", "Yr B", "Yr A"]);
+    expect(body.topFilm).toMatchObject({ title: "Yr Late", review: null });
+    expect(body.topSeries.map((title) => title.title)).toEqual(["Yr Show"]);
+    expect(body.topSeriesSpotlight?.title).toBe("Yr Show");
   });
 
   it("counts a rewatched title once, its logs each time, and names the most rewatched", async () => {
@@ -134,6 +142,13 @@ describe("Year in Review (GET /api/users/:username/year/:year)", () => {
     expect(body.mostRewatched).toMatchObject({ title: "Loop Film", logCount: 3 });
     expect(body.topRated.map((title) => [title.title, title.rating])).toEqual([["Loop Film", 8], ["Once Film", 7]]);
     expect(body.ratings).toMatchObject({ average: 7, ratedLogs: 3 });
+    expect(body.topFilms.map((title) => [title.title, title.rating, title.logCount])).toEqual([
+      ["Loop Film", 8, 3],
+      ["Once Film", 7, 1],
+    ]);
+    expect(body.topFilm?.title).toBe("Loop Film");
+    expect(body.highRatings).toBe(0);
+    expect(body.persona).toBeNull();
   });
 
   it("leaves deleted logs out of every number", async () => {
@@ -162,6 +177,7 @@ describe("Year in Review (GET /api/users/:username/year/:year)", () => {
     const { body } = await readRecap(username, 2025);
     expect(body.longestStreak).toEqual({ days: 4, start: "2025-01-30", end: "2025-02-02" });
     expect(body.busiestMonth).toEqual({ month: 2, count: 3 });
+    expect(body.busiestDay).toEqual({ day: "2025-02-01", count: 2 });
     expect(body.logsPerDay.find((day) => day.day === "2025-02-01")).toEqual({ day: "2025-02-01", count: 2 });
   });
 
@@ -196,6 +212,18 @@ describe("Year in Review (GET /api/users/:username/year/:year)", () => {
     ]);
     // Theirs: (9 + 9 + 7) / 3. Community per title: X (9, 5) → 7, Y (7, 5) → 6; averaged → 6.5.
     expect(body.ratings).toEqual({ average: 8.33, ratedLogs: 3, communityAverage: 6.5 });
+    expect(body.viewingAge).toBe(1999);
+    expect(body.pre1980Share).toBe(0);
+    expect(body.distinctGenres).toBe(3);
+    expect(body.distinctDirectors).toBe(2);
+    expect(body.highRatings).toBe(1);
+    expect(body.directorTitles.map((title) => title.title)).toEqual(["Taste Y", "Taste X"]);
+    expect(body.topFilms.map((title) => [title.title, title.rating, title.logCount])).toEqual([
+      ["Taste X", 9, 2],
+      ["Taste Y", 7, 1],
+      ["Taste Z", null, 1],
+    ]);
+    expect(body.persona).toBeNull();
   });
 
   it("counts Reviews, the most-liked one, public Lists and new followers by UTC creation time", async () => {
@@ -257,6 +285,12 @@ describe("Year in Review (GET /api/users/:username/year/:year)", () => {
     });
     expect(body.listsCreated).toBe(1);
     expect(body.newFollowers).toBe(2);
+    // The spoiler review is the newest review on the only Film, so the spotlight withholds it.
+    expect(body.topFilm?.title).toBe("Social Film");
+    expect(body.topFilm?.review?.containsSpoilers).toBe(true);
+    expect(body.topFilm?.review?.excerpt).toBe("");
+    expect(body.highRatings).toBe(0);
+    expect(body.persona).toBeNull();
   });
 
   it("reports the year's Watch Goal result when one was set", async () => {
@@ -281,19 +315,12 @@ describe("Year in Review (GET /api/users/:username/year/:year)", () => {
     const { response, body } = await readRecap(username, 2023);
     expect(response.status).toBe(200);
     expect(body).toMatchObject({
-      depth: "empty",
-      previousYear: null,
-      busiestMonth: null,
-      longestStreak: null,
-      firstWatch: null,
-      lastWatch: null,
-      mostRewatched: null,
-      goal: null,
-      topRated: [],
-      topGenres: [],
-      logsPerDay: [],
-      posterPaths: [],
-      availableYears: [],
+      depth: "empty", previousYear: null, busiestMonth: null, busiestDay: null,
+      longestStreak: null, firstWatch: null, lastWatch: null, mostRewatched: null, goal: null,
+      topRated: [], topFilms: [], topSeries: [], topFilm: null, topSeriesSpotlight: null,
+      topGenres: [], distinctGenres: 0, topDirectors: [], directorTitles: [], distinctDirectors: 0,
+      decades: [], viewingAge: null, pre1980Share: null, highRatings: 0,
+      logsPerDay: [], persona: null, posterPaths: [], availableYears: [],
       ratings: { average: null, ratedLogs: 0, communityAverage: null },
       reviews: { count: 0, mostLiked: null },
     });
@@ -309,6 +336,8 @@ describe("Year in Review (GET /api/users/:username/year/:year)", () => {
     const { response, body } = await readRecap(username, THIS_YEAR);
     expect(body).toMatchObject({ isPartialYear: true, depth: "full" });
     expect(body.longestStreak?.days).toBe(10);
+    expect(body.topFilms[0]).toMatchObject({ title: "Busy Film", logCount: 10 });
+    expect(body.persona?.id).toBe("devotee");
     expect(response.headers.get("cache-control")).toBe("public, max-age=300, s-maxage=600");
   });
 
