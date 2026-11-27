@@ -45,6 +45,7 @@ import { Route as ProfileUsernameRouteRouteImport } from './routes/profile/$user
 import { Route as ProfileUsernameIndexRouteImport } from './routes/profile/$username/index'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
 import { Route as ReviewsUsernameReviewIdRouteImport } from './routes/reviews/$username/$reviewId'
+import { Route as RecapUsernameYearRouteImport } from './routes/recap/$username/$year'
 import { Route as ProfileUsernameWatchlistRouteImport } from './routes/profile/$username/watchlist'
 import { Route as ProfileUsernameWatchingRouteImport } from './routes/profile/$username/watching'
 import { Route as ProfileUsernameStatsRouteImport } from './routes/profile/$username/stats'
@@ -241,6 +242,11 @@ const ReviewsUsernameReviewIdRoute = ReviewsUsernameReviewIdRouteImport.update({
   path: '/reviews/$username/$reviewId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RecapUsernameYearRoute = RecapUsernameYearRouteImport.update({
+  id: '/recap/$username/$year',
+  path: '/recap/$username/$year',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileUsernameWatchlistRoute =
   ProfileUsernameWatchlistRouteImport.update({
     id: '/watchlist',
@@ -364,6 +370,7 @@ export interface FileRoutesByFullPath {
   '/profile/$username/stats': typeof ProfileUsernameStatsRoute
   '/profile/$username/watching': typeof ProfileUsernameWatchingRoute
   '/profile/$username/watchlist': typeof ProfileUsernameWatchlistRoute
+  '/recap/$username/$year': typeof RecapUsernameYearRoute
   '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/profile/$username/': typeof ProfileUsernameIndexRoute
@@ -413,6 +420,7 @@ export interface FileRoutesByTo {
   '/profile/$username/stats': typeof ProfileUsernameStatsRoute
   '/profile/$username/watching': typeof ProfileUsernameWatchingRoute
   '/profile/$username/watchlist': typeof ProfileUsernameWatchlistRoute
+  '/recap/$username/$year': typeof RecapUsernameYearRoute
   '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
   '/admin/users': typeof AdminUsersIndexRoute
   '/profile/$username': typeof ProfileUsernameIndexRoute
@@ -467,6 +475,7 @@ export interface FileRoutesById {
   '/profile/$username/stats': typeof ProfileUsernameStatsRoute
   '/profile/$username/watching': typeof ProfileUsernameWatchingRoute
   '/profile/$username/watchlist': typeof ProfileUsernameWatchlistRoute
+  '/recap/$username/$year': typeof RecapUsernameYearRoute
   '/reviews/$username/$reviewId': typeof ReviewsUsernameReviewIdRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/profile/$username/': typeof ProfileUsernameIndexRoute
@@ -521,6 +530,7 @@ export interface FileRouteTypes {
     | '/profile/$username/stats'
     | '/profile/$username/watching'
     | '/profile/$username/watchlist'
+    | '/recap/$username/$year'
     | '/reviews/$username/$reviewId'
     | '/admin/users/'
     | '/profile/$username/'
@@ -570,6 +580,7 @@ export interface FileRouteTypes {
     | '/profile/$username/stats'
     | '/profile/$username/watching'
     | '/profile/$username/watchlist'
+    | '/recap/$username/$year'
     | '/reviews/$username/$reviewId'
     | '/admin/users'
     | '/profile/$username'
@@ -623,6 +634,7 @@ export interface FileRouteTypes {
     | '/profile/$username/stats'
     | '/profile/$username/watching'
     | '/profile/$username/watchlist'
+    | '/recap/$username/$year'
     | '/reviews/$username/$reviewId'
     | '/admin/users/'
     | '/profile/$username/'
@@ -650,6 +662,7 @@ export interface RootRouteChildren {
   SerialsUpNextRoute: typeof SerialsUpNextRoute
   MoviesIndexRoute: typeof MoviesIndexRoute
   SerialsIndexRoute: typeof SerialsIndexRoute
+  RecapUsernameYearRoute: typeof RecapUsernameYearRoute
   ReviewsUsernameReviewIdRoute: typeof ReviewsUsernameReviewIdRoute
   SerialsTmdbIdSeasonSeasonNumberRoute: typeof SerialsTmdbIdSeasonSeasonNumberRoute
 }
@@ -908,6 +921,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReviewsUsernameReviewIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/recap/$username/$year': {
+      id: '/recap/$username/$year'
+      path: '/recap/$username/$year'
+      fullPath: '/recap/$username/$year'
+      preLoaderRoute: typeof RecapUsernameYearRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile/$username/watchlist': {
       id: '/profile/$username/watchlist'
       path: '/watchlist'
@@ -1139,6 +1159,7 @@ const rootRouteChildren: RootRouteChildren = {
   SerialsUpNextRoute: SerialsUpNextRoute,
   MoviesIndexRoute: MoviesIndexRoute,
   SerialsIndexRoute: SerialsIndexRoute,
+  RecapUsernameYearRoute: RecapUsernameYearRoute,
   ReviewsUsernameReviewIdRoute: ReviewsUsernameReviewIdRoute,
   SerialsTmdbIdSeasonSeasonNumberRoute: SerialsTmdbIdSeasonSeasonNumberRoute,
 }

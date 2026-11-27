@@ -29,6 +29,20 @@ const RootLayout = () => {
   // Phones keep the tab bar everywhere, detail pages included; only the guest landing hides it.
   const showTabBar = !isGuestLanding;
 
+  // The recap story is a full-screen screening: no navbar, footer or tab bar.
+  if (pathname.startsWith("/recap/")) {
+    return (
+      <>
+        <HeadContent />
+        <main className="min-h-screen">
+          <Outlet />
+        </main>
+        <Toaster />
+        {import.meta.env.DEV ? <TanStackRouterDevtools position="bottom-right" /> : null}
+      </>
+    );
+  }
+
   return (
     <>
       <HeadContent />
