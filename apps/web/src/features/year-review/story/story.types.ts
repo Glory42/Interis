@@ -46,11 +46,13 @@ export type CoverSlide = StorySlideBase & {
   year: number;
   isPartialYear: boolean;
   user: StoryUser;
+  posterPaths: string[];
 };
 
 export type VolumeSlide = StorySlideBase & {
   kind: "volume";
   id: "volume";
+  year: number;
   depth: YearReview["depth"];
   totals: StoryTotals;
   previousYear: StoryPreviousYear;
@@ -62,6 +64,7 @@ export type RankedTitlesSlide = StorySlideBase & {
   id: "top-films" | "top-series" | "titles";
   scope: "films" | "series" | "mixed";
   titles: StoryRankedTitle[];
+  totalWatched: number;
 };
 
 export type SpotlightSlide = StorySlideBase & {
@@ -124,6 +127,7 @@ export type PersonaSlide = StorySlideBase & {
   kind: "persona";
   id: "persona";
   persona: StoryPersona;
+  posterPaths: string[];
 };
 
 export type EmptySlide = StorySlideBase & {
@@ -165,4 +169,5 @@ export type StoryActions = {
   previous: () => void;
   togglePause: () => void;
   isPaused: boolean;
+  reducedMotion: boolean;
 };

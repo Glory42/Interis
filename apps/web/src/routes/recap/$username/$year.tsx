@@ -4,8 +4,8 @@ import { getYearReview } from "@/features/year-review/api";
 import { yearReviewKeys } from "@/features/year-review/hooks/useYearReview";
 import { YEAR_REVIEW_MIN_YEAR } from "@/features/year-review/year-review-model";
 import { buildStory } from "@/features/year-review/story/build-story";
-import { StoryPlaceholder } from "@/features/year-review/story/story-placeholder";
 import { StoryPlayer } from "@/features/year-review/story/story-player";
+import { StorySlideRenderer } from "@/features/year-review/story/story-slide-renderer";
 import type { StoryActions, StorySlide } from "@/features/year-review/story/story.types";
 import { recapShareText, shareCardUrl, shareHeadMeta } from "@/lib/share-meta";
 
@@ -67,9 +67,9 @@ function RecapStoryRoute() {
 
   const renderSlide = useCallback(
     (next: StorySlide, actions: StoryActions) => (
-      <StoryPlaceholder slide={next} actions={actions} />
+      <StorySlideRenderer slide={next} actions={actions} username={username} />
     ),
-    [],
+    [username],
   );
 
   if (!review) {
