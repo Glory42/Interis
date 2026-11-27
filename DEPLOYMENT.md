@@ -170,10 +170,18 @@ pages in bursts and ran the Function 26k times in one day. Before the Function e
 same traffic cost nothing. Each load also boots the SPA and calls the API (`/api/users/me` 504s
 on Render). WAF rules run before Pages Functions, so a challenged request isn't billed.
 
+On 2026-11-27 the crawler returned from residential-looking IPs, rotating Chrome 121–154 UAs,
+and ran the Function ~17k times an hour (119,582 by 13:00 UTC — over the account's shared
+Workers/Pages Free limit of 100k/day). The old cloud-ASN + frozen-Chrome list missed it, so the
+rule now challenges **every** request to the six link-preview prefixes except verified bots
+(`cf.client.bot`) and known link-preview fetchers. This is intentionally broad: a normal
+browser may see a one-time Managed Challenge, but a challenge is free while a Function run is
+billed.
+
 In the dashboard, open the zone, then **Security → WAF → Custom rules → Create rule** (Free plan
 has 5; `starts_with`/`contains` only, no regex):
 
-- **Rule name:** `Challenge cloud crawlers on link-preview pages`
+- **Rule name:** `Interis: managed-challenge all link-preview page loads`
 - **Expression:**
 
   ```
@@ -184,12 +192,6 @@ has 5; `starts_with`/`contains` only, no regex):
         or starts_with(http.request.uri.path, "/reviews/")
         or starts_with(http.request.uri.path, "/actor/")
         or starts_with(http.request.uri.path, "/director/"))
-   and (ip.src.asnum in {8075 16509 14618 15169 396982 14061 24940 16276 63949 20473 31898 36351 45102 132203 45090}
-        or http.user_agent contains "Chrome/143.0.0.0"
-        or http.user_agent contains "Chrome/145.0.0.0"
-        or http.user_agent contains "Chrome/146.0.0.0"
-        or http.user_agent contains "Chrome/155.0.0.0"
-        or http.user_agent contains "DotBot")
    and not cf.client.bot
    and not (lower(http.user_agent) contains "discordbot"
             or lower(http.user_agent) contains "twitterbot"
@@ -208,14 +210,10 @@ has 5; `starts_with`/`contains` only, no regex):
             or lower(http.user_agent) contains "iframely"))
   ```
 
-  The ASNs are the large clouds and hosts: Microsoft, AWS, Google Cloud, DigitalOcean, Hetzner,
-  OVH, Linode, Vultr, Oracle, IBM, Alibaba and Tencent. Verified bots (Googlebot, Bingbot) and
-  link-preview fetchers, several of which run on those clouds (Teams on Azure, Discord on
-  Google Cloud), are let through. A person on a cloud VPN gets a one-time Managed Challenge.
-
-  On 2026-11-18 a second wave came from 5k+ residential-looking IPs that the ASN list missed,
-  all on frozen Chrome builds (143/145/146/155). The `Chrome/x.0.0.0` matches catch them; if
-  Function runs climb again, check the top user-agents on these paths and update the list.
+  Verified search-engine bots (`cf.client.bot`) and the link-preview fetchers above are let
+  through so shares and SEO keep their per-page `<head>`. Everyone else gets a one-time
+  Managed Challenge. The old ASN and specific-Chrome-version conditions were removed because
+  the 2026-11-27 wave used residential IPs and a wide Chrome-version rotation.
 - **Action:** Managed Challenge. Keep it scoped to the web host: API calls are `fetch()`es that
   can't solve a challenge, so never apply it to `api.interis.gorkemkaryol.dev`.
 
@@ -224,8 +222,9 @@ API and the f1 Worker, and rules can't skip it.
 
 To check it: **Security → Events** should show the rule's challenges during a burst, and the
 hourly `pagesFunctionsInvocationsAdaptiveGroups` count for this project (scriptName
-`pages-worker--12007314-production`) should stay in the hundreds instead of 2–6k an hour.
-A normal browser on a home connection still gets the page with no challenge.
+`pages-worker--12007314-production`) should stay in the low hundreds instead of 2–17k an hour.
+During the 2026-11-27 burst the zone showed ~6k challenges/hour on `/movies/*` and only ~30
+passes, while the API host dropped from tens of thousands of requests/hour to dozens.
 
 ---
 
