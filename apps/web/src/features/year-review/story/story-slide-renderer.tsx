@@ -1,7 +1,11 @@
 import { CoverSlide } from "./cover-slide";
+import { DirectorSlide } from "./director-slide";
+import { GenreSlide } from "./genre-slide";
 import { RankedTitlesSlide } from "./ranked-titles-slide";
+import { RhythmSlide } from "./rhythm-slide";
 import { SpotlightSlide } from "./spotlight-slide";
 import { StoryPlaceholder } from "./story-placeholder";
+import { TimeMachineSlide } from "./time-machine-slide";
 import type { StoryActions, StorySlide } from "./story.types";
 import { VolumeSlide } from "./volume-slide";
 import "./story-slides.css";
@@ -23,6 +27,14 @@ export const StorySlideRenderer = ({ slide, actions, username }: StorySlideRende
       return <RankedTitlesSlide slide={slide} />;
     case "spotlight":
       return <SpotlightSlide slide={slide} username={username} />;
+    case "genre":
+      return <GenreSlide slide={slide} />;
+    case "director":
+      return <DirectorSlide slide={slide} />;
+    case "time-machine":
+      return <TimeMachineSlide slide={slide} />;
+    case "rhythm":
+      return <RhythmSlide slide={slide} />;
     default:
       return <StoryPlaceholder slide={slide} actions={actions} />;
   }
