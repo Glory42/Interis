@@ -158,3 +158,11 @@ export type StorySlide =
   | EndSlide;
 
 export type StorySlideKind = StorySlide["kind"];
+
+export type StoryActions = {
+  begin: () => void;
+  next: () => void;
+  previous: () => void;
+  togglePause: () => void;
+  isPaused: boolean;
+};
