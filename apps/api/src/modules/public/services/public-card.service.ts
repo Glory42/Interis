@@ -3,6 +3,7 @@ import {
   renderMediaCard,
   renderProfileCard,
   renderRecapCard,
+  renderRecapStoryCard,
   renderReviewCard,
   type ShareCard,
 } from "../../../infrastructure/share-cards";
@@ -10,7 +11,7 @@ import { tmdbImageUrl } from "../../../infrastructure/tmdb/tmdb-images.helper";
 import { recapCardStats, recapHighlight, recapVersion } from "../helpers/recap-share.helper";
 import { PublicShareReadService } from "./public-share-read.service";
 
-export type ShareCardKind = "review" | "list" | "profile" | "movie" | "serial" | "recap";
+export type ShareCardKind = "review" | "list" | "profile" | "movie" | "serial" | "recap" | "recap-story";
 
 type VersionedCard = { card: ShareCard; version: string | null };
 
@@ -77,6 +78,29 @@ const loadAndRender = async (kind: ShareCardKind, id: string): Promise<Versioned
         stats: recapCardStats(recap),
         highlight: recapHighlight(recap),
         posterUrls: recap.posterPaths.map((path) => tmdbImageUrl(path, "w342")).filter((url) => url !== null),
+      });
+      return { card, version: recapVersion(recap) };
+    }
+    case "recap-story": {
+      // The id is "<username>/<year>", checked by the controller.
+      const [username = "", year = ""] = id.split("/");
+      const recap = await PublicShareReadService.getYearReview(username, Number(year));
+      if (!recap?.persona) return null;
+      const card = await renderRecapStoryCard({
+        displayName: recap.user.displayName,
+        username: recap.user.username,
+        year: recap.year,
+        isPartialYear: recap.isPartialYear,
+        persona: recap.persona,
+        totals: {
+          films: recap.totals.films,
+          series: recap.totals.series,
+          episodes: recap.totals.episodes,
+        },
+        avatarUrl: recap.user.avatarUrl,
+        posterUrls: recap.posterPaths
+          .map((path) => tmdbImageUrl(path, "w342"))
+          .filter((url): url is string => url !== null),
       });
       return { card, version: recapVersion(recap) };
     }

@@ -24,3 +24,7 @@ export const CARD_FONTS = {
 
 export const CARD_WIDTH = 1200;
 export const CARD_HEIGHT = 630;
+
+// The story card is a 9:16 share artifact, not a link preview.
+export const STORY_CARD_WIDTH = 1080;
+export const STORY_CARD_HEIGHT = 1920;

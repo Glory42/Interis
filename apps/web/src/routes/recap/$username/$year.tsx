@@ -8,6 +8,7 @@ import { YEAR_REVIEW_MIN_YEAR } from "@/features/year-review/year-review-model";
 import { buildStory } from "@/features/year-review/story/build-story";
 import { StoryPlayer } from "@/features/year-review/story/story-player";
 import { StorySlideRenderer } from "@/features/year-review/story/story-slide-renderer";
+import { shareStoryCard } from "@/features/year-review/story/story-share";
 import type { StoryActions, StorySlide } from "@/features/year-review/story/story.types";
 import { recapShareText, shareCardUrl, shareHeadMeta } from "@/lib/share-meta";
 
@@ -73,26 +74,11 @@ function RecapStoryRoute() {
 
   const handleShare = useCallback(async () => {
     if (!review) return;
-    const url = new URL(
-      `/recap/${encodeURIComponent(review.user.username)}/${review.year}`,
-      window.location.origin,
-    ).toString();
-    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-      try {
-        await navigator.share({
-          title: `${review.user.displayName}'s ${review.year} recap`,
-          url,
-        });
-        return;
-      } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") return;
-      }
-    }
-    try {
-      await navigator.clipboard?.writeText(url);
-    } catch {
-      // A blocked clipboard just means the link stays in the address bar.
-    }
+    await shareStoryCard({
+      username: review.user.username,
+      year: review.year,
+      title: `${review.user.displayName}'s ${review.year} recap`,
+    });
   }, [review]);
 
   const renderSlide = useCallback(

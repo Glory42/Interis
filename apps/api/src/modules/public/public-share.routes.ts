@@ -34,6 +34,7 @@ export const createPublicShareRouter = (): Router => {
     og.get(`/${kind}/:id.png`, asyncHandler(PublicShareController.legacyPngCard));
   }
   og.get("/recap/:username/:year.jpg", asyncHandler(PublicShareController.card("recap")));
+  og.get("/recap-story/:username/:year.jpg", asyncHandler(PublicShareController.card("recap-story")));
 
   router.use("/meta", meta);
   router.use("/og", og);

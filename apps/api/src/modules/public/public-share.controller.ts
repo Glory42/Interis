@@ -40,11 +40,13 @@ const LEGACY_CARD_CACHE_CONTROL = "public, max-age=86400";
 
 // A recap card is keyed "<username>/<year>"; every other card by its single :id.
 const cardIdOf = (kind: ShareCardKind, params: Record<string, string>) =>
-  kind === "recap" ? `${params.username}/${params.year}` : (params.id ?? "");
+  kind === "recap" || kind === "recap-story"
+    ? `${params.username}/${params.year}`
+    : (params.id ?? "");
 
 const isValidCardId = (kind: ShareCardKind, id: string) => {
   if (kind === "movie" || kind === "serial") return parseOrNull<number>(shareTmdbIdSchema, id) !== null;
-  if (kind === "recap") {
+  if (kind === "recap" || kind === "recap-story") {
     const [username, year] = id.split("/");
     return shareRecapParamsSchema.safeParse({ username, year }).success;
   }

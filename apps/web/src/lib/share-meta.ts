@@ -97,7 +97,7 @@ export const recapShareText = (input: RecapShareInput): ShareText => {
 // The API's generated 1200×630 card; `updatedAt` versions it like the API's own meta does.
 // A recap's id is "<username>/<year>".
 export const shareCardUrl = (
-  kind: "review" | "list" | "profile" | "movie" | "serial" | "recap",
+  kind: "review" | "list" | "profile" | "movie" | "serial" | "recap" | "recap-story",
   id: string | number,
   updatedAt?: string,
 ): string => {
