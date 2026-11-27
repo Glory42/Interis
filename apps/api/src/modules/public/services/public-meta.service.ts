@@ -66,7 +66,7 @@ export class PublicMetaService {
       ogType: "website",
       ...recapShareText(recap),
       image: cardPath("recap", `${recap.user.username}/${year}`, recapVersion(recap)),
-      path: `/profile/${encodeURIComponent(recap.user.username)}/year/${year}`,
+      path: `/recap/${encodeURIComponent(recap.user.username)}/${year}`,
     };
   }
 

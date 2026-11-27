@@ -1,3 +1,5 @@
+import { Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 import { StatsSkeleton } from "@/components/ui/PageSkeletons";
 import { useIsOwnProfile } from "@/features/profile/hooks/useProfile";
 import { useYearReview } from "@/features/year-review/hooks/useYearReview";
@@ -55,8 +57,16 @@ export const YearReviewPage = ({ username, year, now: nowProp }: YearReviewPageP
   const review = query.data;
   const actions = (
     <>
-      <RecapYearSelector username={review.user.username} years={selectableYears(review, now)} activeYear={review.year} />
+      <Button variant="primary" size="md" asChild>
+        <Link
+          to="/recap/$username/$year"
+          params={{ username: review.user.username, year: String(review.year) }}
+        >
+          Play the recap
+        </Link>
+      </Button>
       <RecapShareButton username={review.user.username} year={review.year} title={recapShareText(review).title} />
+      <RecapYearSelector username={review.user.username} years={selectableYears(review, now)} activeYear={review.year} />
     </>
   );
 

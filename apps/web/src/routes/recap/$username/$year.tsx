@@ -19,7 +19,7 @@ const parseYear = (value: string): number | null => {
 };
 
 export const Route = createFileRoute("/recap/$username/$year")({
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: Record<string, unknown>): { slide?: string } => ({
     slide: typeof search.slide === "string" ? search.slide : undefined,
   }),
   loader: async ({ context, params }) => {
