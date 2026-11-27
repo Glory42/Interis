@@ -42,12 +42,14 @@ const coverSlide = (review: YearReview): CoverSlide => ({
   year: review.year,
   isPartialYear: review.isPartialYear,
   user: review.user,
+  posterPaths: review.posterPaths,
 });
 
 const volumeSlide = (review: YearReview): VolumeSlide => ({
   kind: "volume",
   id: "volume",
   label: LABELS.volume,
+  year: review.year,
   depth: review.depth,
   totals: review.totals,
   previousYear: review.previousYear,
@@ -147,6 +149,7 @@ const personaSlide = (review: YearReview): PersonaSlide | null =>
         id: "persona",
         label: LABELS.persona,
         persona: review.persona,
+        posterPaths: review.posterPaths,
       }
     : null;
 
@@ -206,6 +209,7 @@ export const buildStory = (review: YearReview): StorySlide[] => {
         label: LABELS.titles,
         scope: "mixed",
         titles,
+        totalWatched: review.totals.films + review.totals.series,
       });
     }
     const highlight = thinHighlight(review);
@@ -221,6 +225,7 @@ export const buildStory = (review: YearReview): StorySlide[] => {
       label: LABELS.topFilms,
       scope: "films",
       titles: review.topFilms,
+      totalWatched: review.totals.films,
     });
   }
   const spotlight = spotlightSlide(review);
@@ -232,6 +237,7 @@ export const buildStory = (review: YearReview): StorySlide[] => {
       label: LABELS.topSeries,
       scope: "series",
       titles: review.topSeries,
+      totalWatched: review.totals.series,
     });
   }
   if (review.topGenres.length > 0) slides.push(genreSlide(review));

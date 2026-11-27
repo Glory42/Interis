@@ -27,20 +27,16 @@ export const StoryPlayer = ({
   renderSlide,
 }: StoryPlayerProps) => {
   const prefersReducedMotion = usePrefersReducedMotion();
-  const player = useStoryPlayer({
-    slides,
-    initialSlideId,
-    reducedMotion: reducedMotion ?? prefersReducedMotion,
-    onSlideChange,
-  });
+  const reduced = reducedMotion ?? prefersReducedMotion;
+  const player = useStoryPlayer({ slides, initialSlideId, reducedMotion: reduced, onSlideChange });
   const { index, current, progress, isPlaying, isPaused, begin, next, previous, goTo, togglePause } =
     player;
   const cardRef = useRef<HTMLDivElement>(null);
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
 
   const actions = useMemo<StoryActions>(
-    () => ({ begin, next, previous, togglePause, isPaused }),
-    [begin, isPaused, next, previous, togglePause],
+    () => ({ begin, next, previous, togglePause, isPaused, reducedMotion: reduced }),
+    [begin, isPaused, next, previous, reduced, togglePause],
   );
 
   const content = useMemo(
