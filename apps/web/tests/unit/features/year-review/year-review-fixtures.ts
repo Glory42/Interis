@@ -87,7 +87,7 @@ export const fullYear = (overrides: Partial<YearReview> = {}): YearReview => ({
   ...overrides,
 });
 
-export const thinYear = (): YearReview =>
+export const thinYear = (overrides: Partial<YearReview> = {}): YearReview =>
   fullYear({
     depth: "thin",
     totals: { ...fullYear().totals, films: 3, series: 0, logs: 3, filmLogs: 3, seriesLogs: 0, hoursWatched: 6 },
@@ -95,6 +95,7 @@ export const thinYear = (): YearReview =>
     topRated: [{ ...title(3, "Perfect Film"), rating: 10 }],
     persona: null,
     goal: null,
+    ...overrides,
   });
 
 export const emptyYear = (): YearReview =>
