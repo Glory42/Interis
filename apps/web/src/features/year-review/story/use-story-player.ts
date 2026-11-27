@@ -26,6 +26,7 @@ type UseStoryPlayerOptions = {
   slides: StorySlide[];
   initialSlideId?: string;
   reducedMotion?: boolean;
+  paused?: boolean;
   onSlideChange?: (slide: StorySlide) => void;
 };
 
@@ -46,6 +47,7 @@ export const useStoryPlayer = ({
   slides,
   initialSlideId,
   reducedMotion = false,
+  paused = false,
   onSlideChange,
 }: UseStoryPlayerOptions): StoryPlayerState => {
   const lastIndex = Math.max(0, slides.length - 1);
@@ -61,7 +63,7 @@ export const useStoryPlayer = ({
 
   const current = slides[index] ?? slides[0]!;
   const isPlaying = !reducedMotion && index > 0 && index < lastIndex;
-  const isPaused = manualPause || hidden;
+  const isPaused = manualPause || hidden || paused;
   const progress = index === 0 || index === lastIndex ? 1 : Math.min(1, elapsed / STORY_ADVANCE_MS);
 
   const goTo = useCallback(
@@ -87,8 +89,8 @@ export const useStoryPlayer = ({
       goTo(0, { user: true });
       return;
     }
-    setManualPause((value) => !value);
-  }, [begin, goTo, index, lastIndex]);
+    setManualPause((value) => (paused ? false : !value));
+  }, [begin, goTo, index, lastIndex, paused]);
 
   const onSlideChangeRef = useRef(onSlideChange);
   useEffect(() => {

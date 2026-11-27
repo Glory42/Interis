@@ -45,6 +45,21 @@ describe("StoryPlayer", () => {
     expect(current()).toBe("top-films");
   });
 
+  it("pauses while a control is focused and resumes on Play", () => {
+    renderPlayer();
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    const pause = screen.getByRole("button", { name: "Pause" });
+    pause.focus();
+    fireEvent.focusIn(pause);
+
+    act(() => vi.advanceTimersByTime(9000));
+    expect(current()).toBe("volume");
+
+    fireEvent.click(pause);
+    act(() => vi.advanceTimersByTime(8100));
+    expect(current()).toBe("top-films");
+  });
+
   it("pauses and resumes the clock", () => {
     renderPlayer();
     fireEvent.keyDown(window, { key: "ArrowRight" });

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import FocusLock from "react-focus-lock";
 import type { MouseEvent, PointerEvent, ReactNode } from "react";
 import { StoryControls } from "./story-controls";
 import { StoryProgress } from "./story-progress";
@@ -30,7 +31,14 @@ export const StoryPlayer = ({
 }: StoryPlayerProps) => {
   const prefersReducedMotion = usePrefersReducedMotion();
   const reduced = reducedMotion ?? prefersReducedMotion;
-  const player = useStoryPlayer({ slides, initialSlideId, reducedMotion: reduced, onSlideChange });
+  const [focusPaused, setFocusPaused] = useState(false);
+  const player = useStoryPlayer({
+    slides,
+    initialSlideId,
+    reducedMotion: reduced,
+    paused: focusPaused,
+    onSlideChange,
+  });
   const { index, current, progress, isPlaying, isPaused, begin, next, previous, goTo, togglePause } =
     player;
   const cardRef = useRef<HTMLDivElement>(null);
@@ -100,21 +108,33 @@ export const StoryPlayer = ({
 
   return (
     <div className="recap-stage">
-      <div
-        className="recap-card"
-        ref={cardRef}
-        tabIndex={-1}
-        role="region"
-        aria-roledescription="carousel"
-        aria-label="Year in review story"
-        data-testid="story-stage"
-      >
+      <FocusLock autoFocus={false} returnFocus>
+        <div
+          className="recap-card"
+          ref={cardRef}
+          tabIndex={-1}
+          role="region"
+          aria-roledescription="carousel"
+          aria-label="Year in review story"
+          data-testid="story-stage"
+          onFocusCapture={(event) => {
+            if (event.target !== event.currentTarget) setFocusPaused(true);
+          }}
+          onBlurCapture={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+              setFocusPaused(false);
+            }
+          }}
+        >
         <div className="recap-grain" aria-hidden />
         <StoryProgress slides={slides} index={index} progress={progress} onJump={goTo} />
         <StoryControls
           year={year}
           isPaused={isPaused || !isPlaying}
-          onPause={togglePause}
+          onPause={() => {
+            setFocusPaused(false);
+            togglePause();
+          }}
           onExit={onExit}
         />
         <div
@@ -132,7 +152,8 @@ export const StoryPlayer = ({
         <p className="sr-only" aria-live="polite">
           Slide {index + 1} of {slides.length}: {current.label}
         </p>
-      </div>
+        </div>
+      </FocusLock>
     </div>
   );
 };
