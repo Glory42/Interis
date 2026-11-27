@@ -127,6 +127,7 @@ export type PersonaSlide = StorySlideBase & {
   kind: "persona";
   id: "persona";
   persona: StoryPersona;
+  totals: StoryTotals;
   posterPaths: string[];
 };
 
@@ -168,6 +169,8 @@ export type StoryActions = {
   next: () => void;
   previous: () => void;
   togglePause: () => void;
+  share: () => void;
+  replay: () => void;
   isPaused: boolean;
   reducedMotion: boolean;
 };

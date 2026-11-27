@@ -149,6 +149,7 @@ const personaSlide = (review: YearReview): PersonaSlide | null =>
         id: "persona",
         label: LABELS.persona,
         persona: review.persona,
+        totals: review.totals,
         posterPaths: review.posterPaths,
       }
     : null;
