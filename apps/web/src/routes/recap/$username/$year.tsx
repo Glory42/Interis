@@ -1,5 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useIsOwnProfile } from "@/features/profile/hooks/useProfile";
 import { getYearReview } from "@/features/year-review/api";
 import { yearReviewKeys } from "@/features/year-review/hooks/useYearReview";
 import { YEAR_REVIEW_MIN_YEAR } from "@/features/year-review/year-review-model";
@@ -47,6 +49,10 @@ function RecapStoryRoute() {
   const { slide } = Route.useSearch();
   const review = Route.useLoaderData();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isOwner = useIsOwnProfile(username);
+  const isLoggedIn = Boolean(user);
+  const reviewYear = review?.year ?? Number(year);
   const slides = useMemo(() => (review ? buildStory(review) : []), [review]);
 
   const handleSlideChange = useCallback(
@@ -65,11 +71,42 @@ function RecapStoryRoute() {
     void navigate({ to: "/profile/$username/stats", params: { username } });
   }, [navigate, username]);
 
+  const handleShare = useCallback(async () => {
+    if (!review) return;
+    const url = new URL(
+      `/recap/${encodeURIComponent(review.user.username)}/${review.year}`,
+      window.location.origin,
+    ).toString();
+    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+      try {
+        await navigator.share({
+          title: `${review.user.displayName}'s ${review.year} recap`,
+          url,
+        });
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+      }
+    }
+    try {
+      await navigator.clipboard?.writeText(url);
+    } catch {
+      // A blocked clipboard just means the link stays in the address bar.
+    }
+  }, [review]);
+
   const renderSlide = useCallback(
     (next: StorySlide, actions: StoryActions) => (
-      <StorySlideRenderer slide={next} actions={actions} username={username} />
+      <StorySlideRenderer
+        slide={next}
+        actions={actions}
+        username={username}
+        year={reviewYear}
+        isOwner={isOwner}
+        isLoggedIn={isLoggedIn}
+      />
     ),
-    [username],
+    [isLoggedIn, isOwner, reviewYear, username],
   );
 
   if (!review) {
@@ -84,6 +121,7 @@ function RecapStoryRoute() {
       year={review.year}
       initialSlideId={slide}
       onSlideChange={handleSlideChange}
+      onShare={handleShare}
       onExit={handleExit}
       renderSlide={renderSlide}
     />

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { MouseEvent, PointerEvent, ReactNode } from "react";
 import { StoryControls } from "./story-controls";
 import { StoryProgress } from "./story-progress";
@@ -13,6 +13,7 @@ type StoryPlayerProps = {
   initialSlideId?: string;
   reducedMotion?: boolean;
   onSlideChange?: (slide: StorySlide) => void;
+  onShare?: () => void;
   onExit: () => void;
   renderSlide: (slide: StorySlide, actions: StoryActions) => ReactNode;
 };
@@ -23,6 +24,7 @@ export const StoryPlayer = ({
   initialSlideId,
   reducedMotion,
   onSlideChange,
+  onShare,
   onExit,
   renderSlide,
 }: StoryPlayerProps) => {
@@ -34,9 +36,11 @@ export const StoryPlayer = ({
   const cardRef = useRef<HTMLDivElement>(null);
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
 
+  const replay = useCallback(() => goTo(0), [goTo]);
+  const share = useCallback(() => onShare?.(), [onShare]);
   const actions = useMemo<StoryActions>(
-    () => ({ begin, next, previous, togglePause, isPaused, reducedMotion: reduced }),
-    [begin, isPaused, next, previous, reduced, togglePause],
+    () => ({ begin, next, previous, togglePause, share, replay, isPaused, reducedMotion: reduced }),
+    [begin, isPaused, next, previous, reduced, replay, share, togglePause],
   );
 
   const content = useMemo(

@@ -8,6 +8,7 @@
   --recap-film: #e8a33d;
   --recap-series: #7fc8d4;
   --recap-primary: #f2c46d;
+  --recap-like: #e06c84;
   --recap-display: var(--font-display, "Space Grotesk", sans-serif);
   --recap-body: var(--font-sans, "Sora", sans-serif);
   --recap-mono: var(--font-mono, "JetBrains Mono", monospace);
@@ -167,8 +168,12 @@
 }
 
 .recap-primary {
+  display: inline-flex;
   align-self: flex-start;
+  align-items: center;
+  justify-content: center;
   padding: 10px 14px;
+  text-decoration: none;
   border: 1px solid var(--recap-primary);
   background: var(--recap-primary);
   color: #16110a;

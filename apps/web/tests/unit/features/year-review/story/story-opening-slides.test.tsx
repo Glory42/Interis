@@ -11,6 +11,8 @@ const actions: StoryActions = {
   next: vi.fn(),
   previous: vi.fn(),
   togglePause: vi.fn(),
+  share: vi.fn(),
+  replay: vi.fn(),
   isPaused: false,
   reducedMotion: true,
 };
@@ -22,7 +24,14 @@ const renderSlide = async (slide: StorySlide | undefined) => {
   expect(slide).toBeDefined();
   const result = renderWithProviders(
     <div data-testid="slide-root">
-      <StorySlideRenderer slide={slide!} actions={actions} username="glory42" />
+      <StorySlideRenderer
+        slide={slide!}
+        actions={actions}
+        username="glory42"
+        year={2025}
+        isOwner
+        isLoggedIn
+      />
     </div>,
   );
   await screen.findByTestId("slide-root");
