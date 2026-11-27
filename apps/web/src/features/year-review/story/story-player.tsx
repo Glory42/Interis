@@ -77,8 +77,8 @@ export const StoryPlayer = ({
         onExit();
       }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
   }, [next, onExit, previous, togglePause]);
 
   const handleClick = (event: MouseEvent<HTMLDivElement>) => {
