@@ -11,10 +11,13 @@ const JPEG_QUALITY = 82;
 
 // satori lays the card out as SVG (text as paths), resvg rasterises it off the main thread,
 // and jpeg-js (pure JS, so no native build) encodes the opaque RGBA pixels.
-export const renderShareImage = async (node: CardNode): Promise<Buffer> => {
+export const renderShareImage = async (
+  node: CardNode,
+  size: { width: number; height: number } = { width: CARD_WIDTH, height: CARD_HEIGHT },
+): Promise<Buffer> => {
   const svg = await satori(node as unknown as Parameters<typeof satori>[0], {
-    width: CARD_WIDTH,
-    height: CARD_HEIGHT,
+    width: size.width,
+    height: size.height,
     fonts: await loadCardFonts(),
   });
   const rendered = await renderAsync(svg, { font: { loadSystemFonts: false } });
