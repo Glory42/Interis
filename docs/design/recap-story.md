@@ -450,3 +450,25 @@ features/year-review/story/
 - No generated video or audio.
 - No new animation library.
 - No changes to the existing year page's layout or the 1200×630 share card.
+
+---
+
+## 11. Implementation notes (2026-11-28)
+
+The shipped feature follows the deck and the design system above. Decisions that were open in §10 are now closed:
+
+- **Persona names:** kept as specified (The Time Traveller, Completionist, Rewatcher, Marathoner, Curator, Critic, Romantic, Explorer, Devotee).
+- **Auto-advance:** 8 seconds per card. No hover pause; the clock pauses while a control has focus, when the tab is hidden, or when the user pauses. Reduced motion stays manual.
+- **Cover:** the poster wall with the title, not a standalone countdown leader.
+- **Thin-year persona:** no persona below 5 logs; at 5–9 logs the top score must clear 0.60.
+- **Share scope:** the persona card is the v1 story artifact. Per-slide sharing is a later extension.
+- **Double Feature:** deferred. The deck has the time machine and rhythm cards as its surprises.
+- **Guest end card:** "Start your journal" for guests, "Back to profile" for signed-in visitors, and "Full breakdown" plus "Log a film" for the owner.
+
+### What landed
+
+- `/recap/:username/:year` is a top-level immersive route; the existing `/profile/:username/year/:year` remains the full breakdown. See [ADR 0004](../adr/0004-recap-story-as-an-immersive-route.md).
+- The story has 13 card components, a five-card thin deck and a one-card quiet year. The development placeholder is gone.
+- The entry points are the home recap banner, the stats-page recap card and the year page's "Play the recap" button. `/recap/*` has its own Pages Function link preview.
+- The share action fetches the 1080×1920 card at `/api/public/og/recap-story/:username/:year.jpg`, uses the native file share when available, and falls back to a JPEG download plus the deep link. The 1200×630 recap card remains the link-preview image.
+- Focus is kept inside the story, mobile controls are 44px, the progress segments have a 19px hit area, and the existing live region, labels, keyboard controls and reduced-motion handling remain.

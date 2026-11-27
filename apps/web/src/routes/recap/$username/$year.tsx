@@ -56,17 +56,13 @@ function RecapStoryRoute() {
   const reviewYear = review?.year ?? Number(year);
   const slides = useMemo(() => (review ? buildStory(review) : []), [review]);
 
-  const handleSlideChange = useCallback(
-    (next: StorySlide) => {
-      void navigate({
-        to: "/recap/$username/$year",
-        params: { username, year },
-        search: { slide: next.id },
-        replace: true,
-      });
-    },
-    [navigate, username, year],
-  );
+  // Keep the deep link fresh without a router navigation on every card; a
+  // pending slide navigation can otherwise land after Escape and bounce back.
+  const handleSlideChange = useCallback((next: StorySlide) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("slide", next.id);
+    window.history.replaceState(window.history.state, "", url);
+  }, []);
 
   const handleExit = useCallback(() => {
     void navigate({ to: "/profile/$username/stats", params: { username } });
