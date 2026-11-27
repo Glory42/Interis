@@ -411,3 +411,266 @@
     gap: 10px;
   }
 }
+
+/* Genre */
+.recap-genre {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.recap-genre-word {
+  margin: 16px 0 0;
+  font: 700 clamp(62px, 18.5vw, 94px) / 0.82 var(--recap-display);
+  letter-spacing: -0.075em;
+  text-transform: uppercase;
+}
+
+.recap-genre-word::after {
+  content: "";
+  display: block;
+  width: 46px;
+  height: 3px;
+  margin-top: 16px;
+  background: var(--recap-film);
+}
+
+.recap-genre-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+.recap-genre-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--recap-line);
+}
+
+.recap-genre-row span {
+  font: 600 12.5px var(--recap-body);
+}
+
+.recap-genre-row b {
+  font: 600 9px var(--recap-mono);
+  letter-spacing: 0.06em;
+  color: var(--recap-muted);
+}
+
+/* Director */
+.recap-director {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.recap-director-name {
+  margin: 10px 0 0;
+  font: 700 clamp(38px, 10.5vw, 55px) / 0.92 var(--recap-display);
+  letter-spacing: -0.055em;
+}
+
+.recap-director-count {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 8px 0 0;
+}
+
+.recap-director-count b {
+  font: 700 28px / 1 var(--recap-display);
+  color: var(--recap-film);
+}
+
+.recap-director-count span {
+  font: 600 8px var(--recap-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--recap-muted);
+}
+
+.recap-director-strip {
+  display: flex;
+  gap: 7px;
+  margin-top: 26px;
+}
+
+.recap-director-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.recap-director-line {
+  margin-top: 12px;
+  font-size: 17px;
+  color: var(--recap-muted);
+}
+
+/* Time machine */
+.recap-time {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.recap-age {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin-top: 10px;
+}
+
+.recap-age span {
+  font: 700 clamp(70px, 20vw, 100px) / 0.8 var(--recap-display);
+  letter-spacing: -0.07em;
+  color: var(--recap-film);
+}
+
+.recap-age em {
+  max-width: 82px;
+  font: italic 400 14px / 1.1 var(--recap-serif);
+  color: var(--recap-muted);
+}
+
+.recap-body-copy {
+  margin: 10px 0 0;
+  font: 400 12.5px / 1.6 var(--recap-body);
+  color: var(--recap-muted);
+}
+
+.recap-decades {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 116px;
+  margin-top: 28px;
+  padding-top: 10px;
+  border-bottom: 1px solid var(--recap-line);
+}
+
+.recap-decade {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 3px;
+  min-width: 0;
+}
+
+.recap-decade em {
+  font: 500 5.8px var(--recap-mono);
+  font-style: normal;
+  color: var(--recap-faint);
+}
+
+.recap-decade-hot em {
+  color: var(--recap-film);
+  font-weight: 700;
+}
+
+.recap-time-foot {
+  margin-top: 14px;
+  font-size: 17px;
+  color: var(--recap-muted);
+}
+
+/* Rhythm */
+.recap-rhythm {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.recap-months {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 136px;
+  margin-top: 18px;
+  padding-top: 10px;
+  border-bottom: 1px solid var(--recap-line);
+}
+
+.recap-month {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 4px;
+  min-width: 0;
+}
+
+.recap-month em {
+  font: 500 6px var(--recap-mono);
+  font-style: normal;
+  color: var(--recap-faint);
+}
+
+.recap-month-hot em {
+  color: var(--recap-film);
+  font-weight: 700;
+}
+
+.recap-rhythm-stats {
+  display: flex;
+  gap: 28px;
+  margin-top: 16px;
+}
+
+.recap-rhythm-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recap-rhythm-stats b {
+  font: 700 22px / 1 var(--recap-display);
+}
+
+.recap-rhythm-stats span {
+  font: 600 7px var(--recap-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--recap-muted);
+}
+
+/* Bars */
+.recap-bar {
+  display: block;
+  width: 100%;
+  background: color-mix(in srgb, var(--recap-fg) 18%, transparent);
+  transform-origin: bottom;
+  animation: recap-grow 0.7s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.recap-decade-hot .recap-bar,
+.recap-month-hot .recap-bar {
+  background: var(--recap-film);
+}
+
+@keyframes recap-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recap-bar {
+    animation: none;
+    transform: none;
+  }
+}
