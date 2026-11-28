@@ -267,7 +267,7 @@ Scale (mobile 9:16): hero 64–112px, statement 32–44px, persona name 44–64p
 
 - **Auto-advance:** 8 seconds per card. The progress segment fills linearly. The cover does not auto-advance; the user taps `Begin`.
 - **Tap-through:** tap the right 70% to advance, the left 30% to go back. No separate skip button. This is the Spotify Wrapped behaviour.
-- **Pause:** focus within the player, hidden tab, or the pause button. The progress bar stops; resuming continues from the same point. Do **not** pause on hover: the stage covers the viewport, so a resting pointer would stop auto-advance permanently.
+- **Pause:** a hidden tab or the pause button. The progress bar stops; resuming continues from the same point. Do **not** pause on focus: the focus trap moves focus to a control when the story starts, which would stop the show immediately. Do not pause on hover either: the stage covers the viewport, so a resting pointer would stop auto-advance permanently.
 - **Keyboard:** `ArrowRight` / `ArrowLeft` navigate, `Space` toggles pause, `Escape` exits to the profile stats tab.
 - **Swipe:** horizontal swipe advances/goes back; vertical swipes pass through to the page (the stage is scroll-locked, so vertical is a no-op).
 - **Progress:** 13 segments (one per card), each a button with an accessible label. Completed segments are filled; the active one fills. Clicking a segment jumps to that card.
@@ -339,7 +339,7 @@ Per-slide share for every card is a phase 2 extension. V1 shares the persona and
 - Tap zones are buttons or have keyboard equivalents; minimum 44×44 targets.
 - Focus is trapped in the player with `react-focus-lock`; on mount, focus the player container with `tabIndex={-1}`.
 - `Escape` exits to the profile stats tab; the close button is always visible.
-- Auto-advance pauses on focus, hidden tab, and manual pause — never on hover. Reduced motion defaults to manual.
+- Auto-advance pauses on a hidden tab or manual pause — never on focus or hover. Reduced motion defaults to manual.
 - Text over posters/backdrops always has a scrim; target 4.5:1 for body text and 3:1 for large display text.
 - Images: meaningful posters get `alt="{title} ({year})"`; decorative wall images get `alt=""`.
 - No audio in v1. No autoplaying sound.
@@ -458,7 +458,7 @@ features/year-review/story/
 The shipped feature follows the deck and the design system above. Decisions that were open in §10 are now closed:
 
 - **Persona names:** kept as specified (The Time Traveller, Completionist, Rewatcher, Marathoner, Curator, Critic, Romantic, Explorer, Devotee).
-- **Auto-advance:** 8 seconds per card. No hover pause; the clock pauses while a control has focus, when the tab is hidden, or when the user pauses. Reduced motion stays manual.
+- **Auto-advance:** 8 seconds per card. No hover or focus pause; the clock pauses when the tab is hidden or the user pauses. Reduced motion stays manual.
 - **Cover:** the poster wall with the title, not a standalone countdown leader.
 - **Thin-year persona:** no persona below 5 logs; at 5–9 logs the top score must clear 0.60.
 - **Share scope:** the persona card is the v1 story artifact. Per-slide sharing is a later extension.

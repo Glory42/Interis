@@ -45,17 +45,26 @@ describe("StoryPlayer", () => {
     expect(current()).toBe("top-films");
   });
 
-  it("pauses while a control is focused and resumes on Play", () => {
-    renderPlayer();
-    fireEvent.keyDown(window, { key: "ArrowRight" });
-    const pause = screen.getByRole("button", { name: "Pause" });
-    pause.focus();
-    fireEvent.focusIn(pause);
+  it("auto-advances after the cover Begin action", () => {
+    render(
+      <StoryPlayer
+        slides={slides}
+        year={2025}
+        onExit={vi.fn()}
+        renderSlide={(slide, actions) =>
+          slide.kind === "cover" ? (
+            <button type="button" onClick={actions.begin}>
+              Begin
+            </button>
+          ) : (
+            <div data-testid="slide-content">{slide.id}</div>
+          )
+        }
+      />,
+    );
 
-    act(() => vi.advanceTimersByTime(9000));
+    fireEvent.click(screen.getByRole("button", { name: "Begin" }));
     expect(current()).toBe("volume");
-
-    fireEvent.click(pause);
     act(() => vi.advanceTimersByTime(8100));
     expect(current()).toBe("top-films");
   });
