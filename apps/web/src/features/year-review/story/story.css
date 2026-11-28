@@ -26,8 +26,9 @@
 
 .recap-card {
   position: relative;
-  width: min(430px, calc(84vh * 9 / 16), calc(100vw - 48px));
+  width: min(480px, calc(84vh * 9 / 16), calc(100vw - 48px));
   aspect-ratio: 9 / 16;
+  container-type: inline-size;
   overflow: hidden;
   background: var(--recap-bg);
   border: 1px solid var(--recap-line);
@@ -84,14 +85,13 @@
   z-index: 1;
   display: block;
   height: 3px;
-  margin-top: 8px;
   background: var(--recap-fg);
   transition: width 0.1s linear;
 }
 
 .recap-seg:focus-visible {
-  outline: 1px solid var(--recap-fg);
-  outline-offset: 2px;
+  outline: 1px solid var(--recap-line-strong);
+  outline-offset: 0;
 }
 
 .recap-controls {

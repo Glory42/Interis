@@ -29,9 +29,12 @@ test("owner opens the recap from stats, advances the deck, and exits", async ({ 
       });
     });
 
-    await test.step("advance the deck and exit back to stats", async () => {
-      await page.keyboard.press("ArrowRight");
+    await test.step("auto-advance from Begin and exit back to stats", async () => {
+      await page.getByRole("button", { name: "Begin" }).click();
       await expect(page.getByText("hours", { exact: true })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "The year in titles." })).toBeVisible({
+        timeout: 12_000,
+      });
       await page.keyboard.press("Escape");
       await expect(page).toHaveURL(new RegExp(`/profile/${user.username}/stats`));
     });

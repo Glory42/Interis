@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import FocusLock from "react-focus-lock";
 import type { MouseEvent, PointerEvent, ReactNode } from "react";
 import { StoryControls } from "./story-controls";
@@ -31,12 +31,10 @@ export const StoryPlayer = ({
 }: StoryPlayerProps) => {
   const prefersReducedMotion = usePrefersReducedMotion();
   const reduced = reducedMotion ?? prefersReducedMotion;
-  const [focusPaused, setFocusPaused] = useState(false);
   const player = useStoryPlayer({
     slides,
     initialSlideId,
     reducedMotion: reduced,
-    paused: focusPaused,
     onSlideChange,
   });
   const { index, current, progress, isPlaying, isPaused, begin, next, previous, goTo, togglePause } =
@@ -117,24 +115,13 @@ export const StoryPlayer = ({
           aria-roledescription="carousel"
           aria-label="Year in review story"
           data-testid="story-stage"
-          onFocusCapture={(event) => {
-            if (event.target !== event.currentTarget) setFocusPaused(true);
-          }}
-          onBlurCapture={(event) => {
-            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-              setFocusPaused(false);
-            }
-          }}
         >
         <div className="recap-grain" aria-hidden />
         <StoryProgress slides={slides} index={index} progress={progress} onJump={goTo} />
         <StoryControls
           year={year}
           isPaused={isPaused || !isPlaying}
-          onPause={() => {
-            setFocusPaused(false);
-            togglePause();
-          }}
+          onPause={togglePause}
           onExit={onExit}
         />
         <div
