@@ -306,6 +306,16 @@ Scale (mobile 9:16): hero 64–112px, statement 32–44px, persona name 44–64p
 - The share button copies/downloads with a short "Saved" state; never blocks the player.
 - The end card can replay or return to the full breakdown.
 
+### Sound
+
+A quiet procedural pad, not a playlist. It starts on the first gesture (`Begin`, tap, key or progress jump) so the browser autoplay policy is satisfied.
+
+- **Chords:** seven acts share the deck. The cold open is C minor; the volume moves to F major; titles to D minor; the spotlight to G minor; genre/director/time/rhythm/taste/words to A minor; the persona to Ab major; end credits return to C major. Neighbouring cards stay on the same chord.
+- **Texture:** three low oscillators per chord (sine root, detuned triangles), a 760Hz low-pass and a 2.2s attack. Chord changes crossfade over 2.8s; the master sits at 0.055, well under the dialogue-free reading level.
+- **Controls:** a speaker button next to pause and close. `interis:recap-sound` stores the per-browser choice; sound defaults on. Muting fades the master in 350ms.
+- **Lifecycle:** a hidden tab suspends the context; exit fades out, stops every oscillator and closes the context. Pause keeps the bed playing rather than cutting it.
+- **Fallback:** browsers without `AudioContext` silently render the story; the mute button remains harmless. No audio files, no network requests, no audio on the share card or stats page.
+
 ---
 
 ## 7. Share cards (1080×1920)
@@ -314,15 +324,19 @@ The existing recap card stays 1200×630 for link previews. The story adds vertic
 
 ### Persona card (primary)
 
-- Top: `INTERIS · 2025` in mono, small.
+- The top film's backdrop is the full-bleed background, under a `--bg` scrim.
+- Top: `INTERIS` / `2025 RECAP` in mono, small.
+- Profile row: avatar, display name, `@username`.
 - Kicker: `THIS YEAR, YOU WERE`.
-- Name: the persona, 2 lines max, 120–150px.
-- Tagline: Instrument Serif italic, 36–42px.
-- Description: 2–3 lines, 28–32px.
-- Trait chips: 4 ticket stubs.
-- Poster wall: top 6 posters, faded, behind the text or at the bottom.
-- Footer: `Based on 47 films · 12 series · 1,204 episodes` and `@maya`.
+- Name: the persona, uppercase, ~108px on one line or two.
+- Tagline and description in Sora.
+- Trait chips: up to 5 ticket stubs.
+- Poster wall: 8 of the year's posters in a 4×2 grid.
+- `FILM OF THE YEAR`: the top title.
+- Stats row: films / series / episodes / hours.
+- Footer: year marker and `@username`.
 - The card should read at thumbnail size: the persona name and one line are enough.
+- Artwork is fetched with a 10s cold-request budget. A timeout falls back to lettered poster frames, but the card never clips or shifts the layout.
 
 ### Data cards (v1)
 
@@ -356,7 +370,7 @@ Per-slide share for every card is a phase 2 extension. V1 shares the persona and
 - Auto-advance pauses on a hidden tab or manual pause — never on focus or hover. Reduced motion defaults to manual.
 - Text over posters/backdrops always has a scrim; target 4.5:1 for body text and 3:1 for large display text.
 - Images: meaningful posters get `alt="{title} ({year})"`; decorative wall images get `alt=""`.
-- No audio in v1. No autoplaying sound.
+- The soundtrack starts on Begin, never on page load. The speaker button has an action label ("Mute the recap music" / "Unmute the recap music") and the choice persists.
 - The story must be fully usable with keyboard only and with a screen reader. Test at 320px, 390px, tablet, and desktop.
 
 ---
@@ -462,7 +476,7 @@ features/year-review/story/
 ### Non-goals for this design
 
 - No global percentile, leaderboard, or friends' recap hub.
-- No generated video or audio.
+- No generated video. Audio is the procedural pad described above, not a rendered asset.
 - No new animation library.
 - No changes to the existing year page's layout or the 1200×630 share card.
 

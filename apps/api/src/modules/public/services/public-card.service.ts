@@ -96,8 +96,11 @@ const loadAndRender = async (kind: ShareCardKind, id: string): Promise<Versioned
           films: recap.totals.films,
           series: recap.totals.series,
           episodes: recap.totals.episodes,
+          hours: recap.totals.hoursWatched,
         },
         avatarUrl: recap.user.avatarUrl,
+        backdropUrl: tmdbImageUrl(recap.topFilm?.backdropPath, "w1280"),
+        topFilmTitle: recap.topFilm?.title ?? null,
         posterUrls: recap.posterPaths
           .map((path) => tmdbImageUrl(path, "w342"))
           .filter((url): url is string => url !== null),

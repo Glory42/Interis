@@ -1,6 +1,6 @@
 import { createTtlCache } from "../cache/ttl-cache.helper";
 
-const IMAGE_TIMEOUT_MS = 3_000;
+const IMAGE_TIMEOUT_MS = 10_000;
 const MAX_IMAGE_BYTES = 2_500_000;
 const SUPPORTED_TYPES = new Set(["image/jpeg", "image/png"]);
 
