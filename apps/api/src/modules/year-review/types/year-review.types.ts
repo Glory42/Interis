@@ -15,6 +15,7 @@ export type YearReviewTitle = {
   tmdbId: number;
   title: string;
   posterPath: string | null;
+  backdropPath: string | null;
   releaseYear: number | null;
 };
 

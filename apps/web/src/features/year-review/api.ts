@@ -8,6 +8,7 @@ const titleSchema = z.object({
   tmdbId: z.number(),
   title: z.string(),
   posterPath: z.string().nullable(),
+  backdropPath: z.string().nullable(),
   releaseYear: z.number().nullable(),
 });
 

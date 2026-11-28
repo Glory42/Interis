@@ -35,7 +35,13 @@ describe("Year in Review story data", () => {
 
   const signUp = (prefix: string): Promise<SignedUpTestUser> => signUpTestUser(baseUrl(), prefix);
 
-  type FilmMeta = { genres?: string[]; director?: string; releaseYear?: number; posterPath?: string };
+  type FilmMeta = {
+    genres?: string[];
+    director?: string;
+    releaseYear?: number;
+    posterPath?: string;
+    backdropPath?: string;
+  };
   const seedFilm = async (title: string, meta: FilmMeta = {}) => {
     const film = await FILM.seed(title);
     await db
@@ -45,6 +51,7 @@ describe("Year in Review story data", () => {
         director: meta.director ?? null,
         releaseYear: meta.releaseYear ?? null,
         posterPath: meta.posterPath ?? null,
+        backdropPath: meta.backdropPath ?? null,
       })
       .where(eq(filmTable.id, film.id));
     return film;
@@ -60,6 +67,7 @@ describe("Year in Review story data", () => {
           director: index === years.length - 1 ? "Bo Frame" : "Ada Lens",
           releaseYear,
           posterPath: `/story-${releaseYear}.jpg`,
+          backdropPath: `/story-${releaseYear}-backdrop.jpg`,
         }),
       ),
     );
@@ -97,6 +105,9 @@ describe("Year in Review story data", () => {
       "Story 1974",
     ]);
     expect(body.topFilm?.title).toBe("Story 1970");
+    expect(body.topFilm?.posterPath).toBe("/story-1970.jpg");
+    expect(body.topFilm?.backdropPath).toBe("/story-1970-backdrop.jpg");
+    expect(body.topFilms[0]?.backdropPath).toBe("/story-1970-backdrop.jpg");
     expect(body.topFilm?.review).toEqual({
       id: reviewId,
       excerpt: "A film that stayed with me.",

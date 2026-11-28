@@ -20,7 +20,10 @@ const actions: StoryActions = {
 const find = (slides: StorySlide[], kind: StorySlide["kind"]) =>
   slides.find((slide) => slide.kind === kind);
 
-const renderSlide = async (slide: StorySlide | undefined) => {
+const renderSlide = async (
+  slide: StorySlide | undefined,
+  ambient?: { backdropPath: string | null; posterPaths: string[] },
+) => {
   expect(slide).toBeDefined();
   const result = renderWithProviders(
     <div data-testid="slide-root">
@@ -31,6 +34,8 @@ const renderSlide = async (slide: StorySlide | undefined) => {
         year={2025}
         isOwner
         isLoggedIn
+        ambientBackdropPath={ambient?.backdropPath ?? null}
+        posterPaths={ambient?.posterPaths ?? []}
       />
     </div>,
   );
@@ -80,6 +85,31 @@ describe("recap opening slides", () => {
     expect(screen.getByText("↓ 12% vs 2024")).toBeTruthy();
   });
 
+  it("renders the theme-aware ambient room behind the volume", async () => {
+    const slides = buildStory(fullYear());
+    const result = await renderSlide(find(slides, "volume"), {
+      backdropPath: "/perfect-backdrop.jpg",
+      posterPaths: ["/one.jpg", "/two.jpg"],
+    });
+
+    const ambient = result.container.querySelector(".recap-ambient");
+    expect(ambient).toBeTruthy();
+    expect(ambient?.querySelector(".recap-ambient-still")?.getAttribute("style")).toContain(
+      "perfect-backdrop.jpg",
+    );
+    expect(ambient?.querySelectorAll(".recap-ambient-wall img")).toHaveLength(2);
+    expect(result.container.querySelectorAll(".recap-volume .recap-strip img")).toHaveLength(2);
+  });
+
+  it("shrinks the hero number when the volume reaches five digits", async () => {
+    const review = fullYear({ totals: { ...fullYear().totals, hoursWatched: 24560 } });
+    const slides = buildStory(review);
+    await renderSlide(find(slides, "volume"));
+
+    const hero = screen.getByText("24,560").closest(".recap-big-number");
+    expect(hero?.getAttribute("data-digits")).toBe("5");
+  });
+
   it("renders the ranked films and the watched count", async () => {
     const slides = buildStory(fullYear());
     await renderSlide(find(slides, "ranked-titles"));
@@ -99,13 +129,16 @@ describe("recap opening slides", () => {
     expect(screen.getByText("Ranked by your rating · 18 series watched")).toBeTruthy();
   });
 
-  it("renders the spotlight with the review quote", async () => {
+  it("renders the spotlight with the film's backdrop and review quote", async () => {
     const slides = buildStory(fullYear());
-    await renderSlide(find(slides, "spotlight"));
+    const result = await renderSlide(find(slides, "spotlight"));
 
     expect(screen.getAllByText("Perfect Film").length).toBeGreaterThan(0);
     expect(screen.getByText("10.0")).toBeTruthy();
     expect(screen.getByText("“Every frame earns its place.”")).toBeTruthy();
+    expect(result.container.querySelector(".recap-spotlight-bg")?.getAttribute("style")).toContain(
+      "perfect-backdrop.jpg",
+    );
   });
 
   it("routes a spoiler spotlight to the review instead of leaking it", async () => {

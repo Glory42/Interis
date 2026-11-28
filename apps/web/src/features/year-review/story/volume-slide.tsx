@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { StoryPosterStrip } from "./story-poster-strip";
 import type { StoryActions, VolumeSlide as VolumeSlideData } from "./story.types";
 
 const useCountUp = (target: number, reduced: boolean) => {
@@ -34,9 +35,10 @@ const comparisonFor = (slide: VolumeSlideData) => {
 type VolumeSlideProps = {
   slide: VolumeSlideData;
   actions: StoryActions;
+  posterPaths?: string[];
 };
 
-export const VolumeSlide = ({ slide, actions }: VolumeSlideProps) => {
+export const VolumeSlide = ({ slide, actions, posterPaths = [] }: VolumeSlideProps) => {
   const hours = slide.totals.hoursWatched;
   const value = useCountUp(hours, actions.reducedMotion);
   const days = (hours / 24).toFixed(1);
@@ -45,10 +47,11 @@ export const VolumeSlide = ({ slide, actions }: VolumeSlideProps) => {
   return (
     <div className="recap-volume">
       <p className="recap-kicker recap-kicker-film">The volume</p>
-      <div className="recap-big-number">
+      <div className="recap-big-number" data-digits={String(hours).length}>
         <span>{value.toLocaleString("en-US")}</span>
         <em>hours</em>
       </div>
+      <div className="recap-volume-rule" aria-hidden />
       <p className="recap-statement recap-volume-statement">
         That's <b>{days} days</b> in other worlds{slide.isPartialYear ? " so far" : ""}.
       </p>
@@ -67,6 +70,7 @@ export const VolumeSlide = ({ slide, actions }: VolumeSlideProps) => {
         </div>
       </div>
       {comparison ? <p className="recap-pill">{comparison}</p> : null}
+      <StoryPosterStrip posterPaths={posterPaths} />
     </div>
   );
 };
