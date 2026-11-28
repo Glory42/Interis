@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useIsOwnProfile } from "@/features/profile/hooks/useProfile";
@@ -11,6 +11,7 @@ import { StorySlideRenderer } from "@/features/year-review/story/story-slide-ren
 import { shareStoryCard } from "@/features/year-review/story/story-share";
 import type { StoryActions, StorySlide } from "@/features/year-review/story/story.types";
 import { recapShareText, shareCardUrl, shareHeadMeta } from "@/lib/share-meta";
+import { tmdbImageUrl } from "@/lib/tmdb-image";
 
 const parseYear = (value: string): number | null => {
   const year = Number(value);
@@ -56,6 +57,21 @@ function RecapStoryRoute() {
   const reviewYear = review?.year ?? Number(year);
   const slides = useMemo(() => (review ? buildStory(review) : []), [review]);
 
+  // The cover gives the story a quiet beat before Begin; use it to warm the
+  // backdrops and posters the data cards need, so they do not pop in mid-show.
+  useEffect(() => {
+    if (!review || typeof Image === "undefined") return;
+    const urls = [
+      tmdbImageUrl(review.topFilm?.backdropPath, "w780"),
+      ...review.posterPaths.map((path) => tmdbImageUrl(path, "w185")),
+    ];
+    for (const url of urls) {
+      if (!url) continue;
+      const image = new Image();
+      image.src = url;
+    }
+  }, [review]);
+
   // Keep the deep link fresh without a router navigation on every card; a
   // pending slide navigation can otherwise land after Escape and bounce back.
   const handleSlideChange = useCallback((next: StorySlide) => {
@@ -86,9 +102,11 @@ function RecapStoryRoute() {
         year={reviewYear}
         isOwner={isOwner}
         isLoggedIn={isLoggedIn}
+        ambientBackdropPath={review?.topFilm?.backdropPath ?? null}
+        posterPaths={review?.posterPaths ?? []}
       />
     ),
-    [isLoggedIn, isOwner, reviewYear, username],
+    [isLoggedIn, isOwner, review, reviewYear, username],
   );
 
   if (!review) {

@@ -14,8 +14,8 @@ export const PersonaSlide = ({ slide, username, year, onShare }: PersonaSlidePro
   return (
     <div className="recap-persona">
       <div className="recap-persona-wall" aria-hidden>
-        {slide.posterPaths.slice(0, 8).map((path, index) => (
-          <StoryPosterPath key={`${path}-${index}`} path={path} priority={index < 4} />
+        {slide.posterPaths.slice(0, 16).map((path, index) => (
+          <StoryPosterPath key={`${path}-${index}`} path={path} priority />
         ))}
       </div>
       <div className="recap-persona-scrim" />

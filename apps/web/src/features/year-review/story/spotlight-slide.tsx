@@ -11,19 +11,21 @@ type SpotlightSlideProps = {
 
 export const SpotlightSlide = ({ slide, username }: SpotlightSlideProps) => {
   const title = slide.title;
-  const background = tmdbImageUrl(title.posterPath, "w500");
+  const still = tmdbImageUrl(title.backdropPath ?? title.posterPath, "w780");
   const score = title.rating === null ? null : title.rating.toFixed(1);
   const review = title.review;
+  const kind = title.mediaType === "movie" ? "Feature" : "Series";
 
   return (
     <div className="recap-spotlight">
-      {background ? (
+      {still ? (
         <div
           className="recap-spotlight-bg"
-          style={{ backgroundImage: `url(${background})` }}
+          style={{ backgroundImage: `url(${still})` }}
           aria-hidden
         />
       ) : null}
+      <div className="recap-spotlight-beam" aria-hidden />
       <div className="recap-spotlight-scrim" />
       <div className="recap-spotlight-body">
         <p className="recap-kicker recap-kicker-film">The one</p>
@@ -33,15 +35,20 @@ export const SpotlightSlide = ({ slide, username }: SpotlightSlideProps) => {
         <StoryTitleLink title={title} className="recap-spotlight-title">
           {title.title}
         </StoryTitleLink>
-        <p className="recap-spotlight-rating">
+        <div className="recap-spotlight-facts">
           {score ? (
-            <>
+            <p className="recap-spotlight-rating">
               {score} <span>/ 10</span>
-            </>
-          ) : (
-            title.releaseYear
-          )}
-        </p>
+            </p>
+          ) : null}
+          <span className="recap-spotlight-fact">{kind}</span>
+          {title.releaseYear ? (
+            <span className="recap-spotlight-fact">{title.releaseYear}</span>
+          ) : null}
+          {title.logCount > 1 ? (
+            <span className="recap-spotlight-fact">{`${title.logCount} logs`}</span>
+          ) : null}
+        </div>
         {review ? (
           review.containsSpoilers ? (
             <Link
@@ -52,7 +59,10 @@ export const SpotlightSlide = ({ slide, username }: SpotlightSlideProps) => {
               Contains spoilers — read it on Interis →
             </Link>
           ) : (
-            <p className="recap-serif recap-spotlight-quote">“{review.excerpt}”</p>
+            <figure className="recap-spotlight-quote-card">
+              <blockquote className="recap-serif">“{review.excerpt}”</blockquote>
+              <figcaption>The one that made your year</figcaption>
+            </figure>
           )
         ) : null}
       </div>

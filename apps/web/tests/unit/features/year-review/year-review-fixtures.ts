@@ -5,6 +5,7 @@ const title = (tmdbId: number, name: string, mediaType: "movie" | "tv" = "movie"
   tmdbId,
   title: name,
   posterPath: null,
+  backdropPath: null,
   releaseYear: 1999,
 });
 
@@ -43,12 +44,13 @@ export const fullYear = (overrides: Partial<YearReview> = {}): YearReview => ({
   pre1980Share: 0.1,
   topRated: [{ ...title(3, "Perfect Film"), rating: 10 }, { ...title(4, "Great Show", "tv"), rating: 9 }],
   topFilms: [
-    { ...title(3, "Perfect Film"), rating: 10, logCount: 2, watchedDate: "2025-03-10" },
+    { ...title(3, "Perfect Film"), backdropPath: "/perfect-backdrop.jpg", rating: 10, logCount: 2, watchedDate: "2025-03-10" },
     { ...title(8, "Second Film"), rating: 9, logCount: 1, watchedDate: "2025-03-11" },
   ],
   topSeries: [{ ...title(4, "Great Show", "tv"), rating: 9, logCount: 1, watchedDate: "2025-03-12" }],
   topFilm: {
     ...title(3, "Perfect Film"),
+    backdropPath: "/perfect-backdrop.jpg",
     rating: 10,
     logCount: 2,
     watchedDate: "2025-03-10",

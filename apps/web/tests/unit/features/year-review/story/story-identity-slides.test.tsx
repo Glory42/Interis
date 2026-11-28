@@ -20,7 +20,7 @@ const actions: StoryActions = {
 const find = (slides: StorySlide[], kind: StorySlide["kind"]) =>
   slides.find((slide) => slide.kind === kind);
 
-const renderSlide = async (slide: StorySlide | undefined) => {
+const renderSlide = async (slide: StorySlide | undefined, posterPaths: string[] = []) => {
   expect(slide).toBeDefined();
   const result = renderWithProviders(
     <div data-testid="slide-root">
@@ -31,6 +31,7 @@ const renderSlide = async (slide: StorySlide | undefined) => {
         year={2025}
         isOwner
         isLoggedIn
+        posterPaths={posterPaths}
       />
     </div>,
   );
@@ -51,6 +52,13 @@ describe("recap identity slides", () => {
     expect(screen.getByText("25% of everything you watched.")).toBeTruthy();
     expect(screen.getByText("Thriller")).toBeTruthy();
     expect(screen.getByText("14%")).toBeTruthy();
+  });
+
+  it("shows the year's posters on the genre card", async () => {
+    const slides = buildStory(fullYear());
+    const result = await renderSlide(find(slides, "genre"), ["/one.jpg", "/two.jpg", "/three.jpg"]);
+
+    expect(result.container.querySelectorAll(".recap-strip img")).toHaveLength(3);
   });
 
   it("renders the director and their films", async () => {

@@ -207,23 +207,37 @@ The chips are receipts, not adjectives. Do not invent traits the data does not s
 
 ### Palette
 
-The stage is always black, in every app theme. This is a deliberate "screening room" exception. Theme accents are used for the moments.
+The story is theme-aware. The screening room borrows the active theme's stage, text, line and accent roles; it does not ship a second fixed palette.
 
-| Role | Value | Use |
+| Role | Source | Use |
 |---|---|---|
-| `stage` | `#050505` | The card background |
-| `stage-2` | `#0c0a08` | Panels, gradients |
-| `fg` | `#f4efe4` | Primary text, warm white |
-| `muted` | `#a39a8c` | Labels, secondary text |
-| `faint` | `#6b645a` | Receipts, disabled |
-| `line` | `rgba(244,239,228,0.14)` | Hairlines |
-| `film` | `#e8a33d` (theme `--film`) | Films, time machine, projector light |
-| `series` | `#7fc8d4` (theme `--series`) | Series, episode counts |
-| `like` | `#e06c84` (theme `--like`) | Review likes, hearts |
-| `primary` | `#f2c46d` (theme `--primary`) | CTAs, share |
-| `danger` | `#e06c84` | Errors, spoiler warnings |
+| `stage` | `--bg` | The card background |
+| `surface` | `--surface` | Poster fallbacks, panels |
+| `fg` | `--fg` | Primary text |
+| `muted` | `--muted-foreground` | Labels, secondary text |
+| `faint` | `--faint` | Receipts, disabled |
+| `line` | `--line` | Hairlines |
+| `line-strong` | `--line-strong` | Emphasised rules, chips |
+| `film` | `--film` | Films, time machine, projector light |
+| `series` | `--series` | Series, episode counts |
+| `like` | `--like` | Review likes, hearts |
+| `primary` | `--primary` | CTAs, share |
+| `primary-fg` | `--primary-foreground` | Text on the CTA |
+| `grain` | `--grain` | Film grain strength |
 
-For the light "Marquee" theme, keep the black stage and the warm accents. The story is a screening, not a page. Document this in the code so nobody "fixes" it to match the theme later.
+Scrims use `color-mix` against `--bg`, not a baked black. Rose Pine, NULL://LOG and Nitrate stay dark; Marquee is a bright "paper" cut with stronger washes so its dark ink stays readable. Share cards are separate artifacts and keep their fixed 1080×1920 / 1200×630 Cinema palette.
+
+### The room
+
+Every data card sits in a room made of the year's own material:
+
+- **Backdrop:** the top title's `backdropPath` fills the card, dimmed and shifted per card so the same still does not read as wallpaper.
+- **Poster wall:** up to 20 posters from `posterPaths` in a rotated 5×4 collage, blended at low opacity.
+- **Projector beam:** a soft cone from the top edge, plus the theme grain on top.
+- **Poster fan:** the volume and genre cards also show five of the year's posters in a loose strip, so they are not only numbers.
+- **Scrim:** a radial and vertical `--bg` wash keeps body text at 4.5:1 and display text at 3:1.
+
+The cover gives the story a free beat before `Begin`; the route preloads the spotlight backdrop and the wall posters there so the data cards do not pop in mid-show. The cover and persona keep their denser 4×4 poster walls. The spotlight is the exception: its backdrop is sharp and full-bleed, with the poster presented in front.
 
 ### Type
 
@@ -357,6 +371,7 @@ Additive to `YearReview`:
 topFilms: RankedTitle[];        // up to 5, rating/logCount/watchedDate
 topSeries: RankedTitle[];       // up to 5
 topFilm: SpotlightTitle | null; // #1 + optional review excerpt
+// Every Title carries backdropPath (nullable) for the spotlight and the room.
 topSeriesSpotlight: SpotlightTitle | null;
 busiestDay: { day: string; count: number; titles: Title[] } | null;
 viewingAge: number | null;      // median release year
@@ -430,7 +445,7 @@ features/year-review/story/
 - Persona in; behavioural, positive/neutral, "This year you were..." with receipts.
 - Auto-advance + tap-through; no separate skip button.
 - Route `/recap/$username/$year`; immersive chrome.
-- Fixed black stage with theme accents.
+- Theme-aware room: backdrop + poster wall + projector light, scrimmed against the active `--bg`.
 - 13-card full deck; 5-card thin; 1-card empty.
 - Share: persona + one data card in v1; link previews stay 1200×630.
 

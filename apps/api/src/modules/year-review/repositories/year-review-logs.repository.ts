@@ -9,19 +9,19 @@ export const yearRange = (year: number): DayRange => ({ start: `${year}-01-01`, 
 
 // Every Diary Entry dated in the range (Films and Series), with the cached title it logs.
 const yearLogsCte = (userId: string, { start, end }: DayRange) => sql`logs AS (
-  SELECT 'movie'::text AS media_type, d.movie_id AS media_id, m.tmdb_id, m.title, m.poster_path,
+  SELECT 'movie'::text AS media_type, d.movie_id AS media_id, m.tmdb_id, m.title, m.poster_path, m.backdrop_path,
     m.release_year, m.genres, m.director, d.watched_date, d.created_at, d.rating, d.rewatch
   FROM diary_entry d JOIN movie m ON m.id = d.movie_id
   WHERE d.user_id = ${userId} AND d.watched_date >= ${start}::date AND d.watched_date < ${end}::date
   UNION ALL
-  SELECT 'tv'::text, s.series_id, t.tmdb_id, t.title, t.poster_path,
+  SELECT 'tv'::text, s.series_id, t.tmdb_id, t.title, t.poster_path, t.backdrop_path,
     t.first_air_year, t.genres, NULL::text, s.watched_date, s.created_at, s.rating, s.rewatch
   FROM serial_diary_entry s JOIN tv_series t ON t.id = s.series_id
   WHERE s.user_id = ${userId} AND s.watched_date >= ${start}::date AND s.watched_date < ${end}::date
 )`;
 
 const TITLE_COLUMNS = sql.raw(
-  `media_type AS "mediaType", tmdb_id AS "tmdbId", title, poster_path AS "posterPath", release_year AS "releaseYear"`,
+  `media_type AS "mediaType", tmdb_id AS "tmdbId", title, poster_path AS "posterPath", backdrop_path AS "backdropPath", release_year AS "releaseYear"`,
 );
 
 // A JSON array of `rows` (a subquery with an `ord` column) in `ord` order, without `ord`.
@@ -138,9 +138,9 @@ export class YearReviewLogsRepository {
     }>(sql`
       WITH ${yearLogsCte(userId, range)},
       per_title AS (
-        SELECT media_type, media_id, tmdb_id, title, poster_path, release_year,
+        SELECT media_type, media_id, tmdb_id, title, poster_path, backdrop_path, release_year,
           max(rating) AS best_rating, count(*)::int AS log_count, max(watched_date) AS last_watched
-        FROM logs GROUP BY media_type, media_id, tmdb_id, title, poster_path, release_year
+        FROM logs GROUP BY media_type, media_id, tmdb_id, title, poster_path, backdrop_path, release_year
       )
       SELECT
         (SELECT row_to_json(f) FROM (
@@ -227,7 +227,7 @@ export class YearReviewLogsRepository {
     }>(sql`
       WITH ${yearLogsCte(userId, range)},
       titles AS (
-        SELECT DISTINCT ON (media_type, media_id) media_type, genres, director, release_year, tmdb_id, title, poster_path
+        SELECT DISTINCT ON (media_type, media_id) media_type, genres, director, release_year, tmdb_id, title, poster_path, backdrop_path
         FROM logs ORDER BY media_type, media_id
       )
       SELECT
@@ -242,7 +242,7 @@ export class YearReviewLogsRepository {
           SELECT dc.director, dc.count, p.slug, dc.ord,
             ${orderedJson(sql`
               SELECT media_type AS "mediaType", tmdb_id AS "tmdbId", title, poster_path AS "posterPath",
-                release_year AS "releaseYear",
+                backdrop_path AS "backdropPath", release_year AS "releaseYear",
                 row_number() OVER (ORDER BY release_year DESC NULLS LAST, title) AS ord
               FROM titles t
               WHERE t.director = dc.director AND t.media_type = 'movie'
