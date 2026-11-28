@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { buildStory } from "../../../../../src/features/year-review/story/build-story";
 import { StoryPlayer } from "../../../../../src/features/year-review/story/story-player";
+import { STORY_SOUND_STORAGE_KEY } from "../../../../../src/features/year-review/story/use-story-audio";
 import { fullYear } from "../year-review-fixtures";
 
 const slides = buildStory(fullYear());
@@ -32,6 +33,7 @@ describe("StoryPlayer", () => {
   afterEach(() => {
     cleanup();
     vi.useRealTimers();
+    window.localStorage.clear();
   });
 
   it("starts on the cover and auto-advances after the first move", () => {
@@ -43,6 +45,15 @@ describe("StoryPlayer", () => {
 
     act(() => vi.advanceTimersByTime(8100));
     expect(current()).toBe("top-films");
+  });
+
+  it("mutes the soundtrack and remembers the choice", () => {
+    window.localStorage.clear();
+    renderPlayer();
+
+    fireEvent.click(screen.getByRole("button", { name: "Mute the recap music" }));
+    expect(screen.getByRole("button", { name: "Unmute the recap music" })).toBeTruthy();
+    expect(window.localStorage.getItem(STORY_SOUND_STORAGE_KEY)).toBe("off");
   });
 
   it("auto-advances after the cover Begin action", () => {

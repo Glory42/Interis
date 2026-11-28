@@ -35,6 +35,8 @@ test("owner opens the recap from stats, advances the deck, and exits", async ({ 
       await expect(page.getByRole("heading", { name: "The year in titles." })).toBeVisible({
         timeout: 12_000,
       });
+      await page.getByRole("button", { name: "Mute the recap music" }).click();
+      await expect(page.getByRole("button", { name: "Unmute the recap music" })).toBeVisible();
       await page.keyboard.press("Escape");
       await expect(page).toHaveURL(new RegExp(`/profile/${user.username}/stats`));
     });

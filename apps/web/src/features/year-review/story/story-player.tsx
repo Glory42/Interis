@@ -3,9 +3,11 @@ import FocusLock from "react-focus-lock";
 import type { MouseEvent, PointerEvent, ReactNode } from "react";
 import { StoryControls } from "./story-controls";
 import { StoryProgress } from "./story-progress";
+import { storyActFor } from "./story-act";
 import { StorySlideFrame } from "./story-slide-frame";
 import type { StoryActions, StorySlide } from "./story.types";
 import { usePrefersReducedMotion, useStoryPlayer } from "./use-story-player";
+import { useStoryAudio } from "./use-story-audio";
 import "./story.css";
 
 type StoryPlayerProps = {
@@ -37,13 +39,51 @@ export const StoryPlayer = ({
     reducedMotion: reduced,
     onSlideChange,
   });
-  const { index, current, progress, isPlaying, isPaused, begin, next, previous, goTo, togglePause } =
-    player;
+  const {
+    index,
+    current,
+    progress,
+    isPlaying,
+    isPaused,
+    begin: beginPlayer,
+    next: nextPlayer,
+    previous: previousPlayer,
+    goTo: goToPlayer,
+    togglePause,
+  } = player;
+  const { isMuted, toggleMuted, start: startAudio } = useStoryAudio(storyActFor(current.kind));
   const cardRef = useRef<HTMLDivElement>(null);
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
 
-  const replay = useCallback(() => goTo(0), [goTo]);
+  const begin = useCallback(() => {
+    startAudio();
+    beginPlayer();
+  }, [beginPlayer, startAudio]);
+  const next = useCallback(() => {
+    startAudio();
+    nextPlayer();
+  }, [nextPlayer, startAudio]);
+  const previous = useCallback(() => {
+    startAudio();
+    previousPlayer();
+  }, [previousPlayer, startAudio]);
+  const goTo = useCallback(
+    (target: number) => {
+      startAudio();
+      goToPlayer(target);
+    },
+    [goToPlayer, startAudio],
+  );
+  const replay = useCallback(() => {
+    startAudio();
+    goToPlayer(0);
+  }, [goToPlayer, startAudio]);
   const share = useCallback(() => onShare?.(), [onShare]);
+  const toggleMute = useCallback(() => {
+    const wasMuted = isMuted;
+    toggleMuted();
+    if (wasMuted && isPlaying) startAudio();
+  }, [isMuted, isPlaying, startAudio, toggleMuted]);
   const actions = useMemo<StoryActions>(
     () => ({ begin, next, previous, togglePause, share, replay, isPaused, reducedMotion: reduced }),
     [begin, isPaused, next, previous, reduced, replay, share, togglePause],
@@ -121,7 +161,9 @@ export const StoryPlayer = ({
         <StoryControls
           year={year}
           isPaused={isPaused || !isPlaying}
+          isMuted={isMuted}
           onPause={togglePause}
+          onToggleMute={toggleMute}
           onExit={onExit}
         />
         <div
